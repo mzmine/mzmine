@@ -29,6 +29,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PeakList;
@@ -55,12 +56,14 @@ class CasmiImportTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private final MZmineProject project;
     private final String casmiProblemName, msSpectrum, msMsSpectrum;
     private PeakList newPeakList;
     private RawDataFile newDataFile;
 
-    CasmiImportTask(ParameterSet parameters) {
+    CasmiImportTask(MZmineProject project, ParameterSet parameters) {
 
+	this.project = project;
 	casmiProblemName = parameters.getParameter(
 		CasmiImportParameters.casmiProblemName).getValue();
 	msSpectrum = parameters.getParameter(CasmiImportParameters.msSpectrum)
@@ -159,8 +162,8 @@ class CasmiImportTask extends AbstractTask {
 		    newDataFile);
 	    newPeakList.addRow(newRow);
 
-	    MZmineCore.getCurrentProject().addFile(newDataFile);
-	    MZmineCore.getCurrentProject().addPeakList(newPeakList);
+	    project.addFile(newDataFile);
+	    project.addPeakList(newPeakList);
 
 	    logger.finest("Finished generating data for CASMI problem "
 		    + casmiProblemName);

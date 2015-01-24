@@ -117,7 +117,8 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 	if (src == selectPeakListsButton) {
 	    final MultiChoiceParameter<PeakList> plParameter = new MultiChoiceParameter<PeakList>(
 		    "Select peak lists", "Select peak lists", MZmineCore
-			    .getCurrentProject().getPeakLists());
+			    .getProjectManager().getCurrentProject()
+			    .getPeakLists());
 	    final SimpleParameterSet paramSet = new SimpleParameterSet(
 		    new Parameter[] { plParameter });
 	    Window parent = (Window) SwingUtilities.getAncestorOfClass(

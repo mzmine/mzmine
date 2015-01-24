@@ -30,7 +30,6 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -43,14 +42,17 @@ public class MsMsPeakPickingTask extends AbstractTask {
 
     private int processedScans, totalScans;
 
-    private RawDataFile dataFile;
+    private final MZmineProject project;
+    private final RawDataFile dataFile;
     private double binSize;
     private double binTime;
     private int msLevel;
 
     private SimplePeakList newPeakList;
 
-    public MsMsPeakPickingTask(RawDataFile dataFile, ParameterSet parameters) {
+    public MsMsPeakPickingTask(MZmineProject project, RawDataFile dataFile,
+	    ParameterSet parameters) {
+	this.project = project;
 	this.dataFile = dataFile;
 	binSize = parameters.getParameter(MsMsPeakPickerParameters.mzWindow)
 		.getValue();
@@ -149,8 +151,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 	    processedScans++;
 	}
 
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(newPeakList);
+	project.addPeakList(newPeakList);
 	logger.info("Finished MS/MS peak builder on " + dataFile + ", "
 		+ processedScans + " scans processed");
 

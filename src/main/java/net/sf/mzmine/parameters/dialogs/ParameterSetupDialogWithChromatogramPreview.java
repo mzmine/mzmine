@@ -200,7 +200,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	super.addDialogComponents();
 
-	dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+	dataFiles = MZmineCore.getProjectManager().getCurrentProject()
+		.getDataFiles();
 
 	if (dataFiles.length == 0)
 	    return;

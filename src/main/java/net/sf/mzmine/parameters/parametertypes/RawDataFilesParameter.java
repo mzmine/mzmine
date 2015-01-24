@@ -64,8 +64,8 @@ public class RawDataFilesParameter implements
 	if ((values == null) || (values.length == 0))
 	    return new RawDataFile[0];
 
-	RawDataFile allDataFiles[] = MZmineCore.getCurrentProject()
-		.getDataFiles();
+	RawDataFile allDataFiles[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getDataFiles();
 	ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
 
 	fileCheck: for (RawDataFile file : allDataFiles) {

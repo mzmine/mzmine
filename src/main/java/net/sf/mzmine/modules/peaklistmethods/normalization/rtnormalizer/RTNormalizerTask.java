@@ -33,7 +33,6 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
@@ -47,6 +46,7 @@ class RTNormalizerTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private final MZmineProject project;
     private PeakList originalPeakLists[], normalizedPeakLists[];
 
     // Processed rows counter
@@ -59,8 +59,9 @@ class RTNormalizerTask extends AbstractTask {
     private boolean removeOriginal;
     private ParameterSet parameters;
 
-    public RTNormalizerTask(ParameterSet parameters) {
+    public RTNormalizerTask(MZmineProject project, ParameterSet parameters) {
 
+	this.project = project;
 	this.originalPeakLists = parameters.getParameter(
 		RTNormalizerParameters.peakLists).getMatchingPeakLists();
 	this.parameters = parameters;
@@ -206,11 +207,10 @@ class RTNormalizerTask extends AbstractTask {
 	}
 
 	// Add new peaklists to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
 
 	for (int i = 0; i < originalPeakLists.length; i++) {
 
-	    currentProject.addPeakList(normalizedPeakLists[i]);
+	    project.addPeakList(normalizedPeakLists[i]);
 
 	    // Load previous applied methods
 	    for (PeakListAppliedMethod proc : originalPeakLists[i]
@@ -225,7 +225,7 @@ class RTNormalizerTask extends AbstractTask {
 
 	    // Remove the original peaklists if requested
 	    if (removeOriginal)
-		currentProject.removePeakList(originalPeakLists[i]);
+		project.removePeakList(originalPeakLists[i]);
 
 	}
 

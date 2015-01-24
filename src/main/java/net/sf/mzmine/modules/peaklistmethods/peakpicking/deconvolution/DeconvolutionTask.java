@@ -36,7 +36,6 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -49,6 +48,7 @@ public class DeconvolutionTask extends AbstractTask {
 	    .getName());
 
     // Peak lists.
+    private final MZmineProject project;
     private final PeakList originalPeakList;
     private PeakList newPeakList;
 
@@ -67,10 +67,11 @@ public class DeconvolutionTask extends AbstractTask {
      * @param parameterSet
      *            task parameters.
      */
-    public DeconvolutionTask(final PeakList list,
+    public DeconvolutionTask(final MZmineProject project, final PeakList list,
 	    final ParameterSet parameterSet) {
 
 	// Initialize.
+	this.project = project;
 	parameters = parameterSet;
 	originalPeakList = list;
 	newPeakList = null;
@@ -115,14 +116,12 @@ public class DeconvolutionTask extends AbstractTask {
 		    if (!isCanceled()) {
 
 			// Add new peaklist to the project.
-			final MZmineProject currentProject = MZmineCore
-				.getCurrentProject();
-			currentProject.addPeakList(newPeakList);
+
+			project.addPeakList(newPeakList);
 
 			// Remove the original peaklist if requested.
 			if (parameters.getParameter(AUTO_REMOVE).getValue()) {
-
-			    currentProject.removePeakList(originalPeakList);
+			    project.removePeakList(originalPeakList);
 			}
 
 			setStatus(TaskStatus.FINISHED);

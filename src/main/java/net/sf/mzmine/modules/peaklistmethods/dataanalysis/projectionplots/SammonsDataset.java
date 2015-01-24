@@ -72,7 +72,7 @@ public class SammonsDataset extends AbstractXYDataset implements
 
     private ProjectionStatus projectionStatus;
 
-    public SammonsDataset(ParameterSet parameters) {
+    public SammonsDataset(MZmineProject project, ParameterSet parameters) {
 
 	this.peakList = parameters.getParameter(
 		ProjectionPlotParameters.peakLists).getMatchingPeakLists()[0];
@@ -112,7 +112,6 @@ public class SammonsDataset extends AbstractXYDataset implements
 
 	if (coloringType.isByParameter()) {
 	    // Group files with same parameter value to same group
-	    MZmineProject project = MZmineCore.getCurrentProject();
 	    Vector<Object> availableParameterValues = new Vector<Object>();
 	    UserParameter<?, ?> selectedParameter = coloringType.getParameter();
 	    for (RawDataFile rawDataFile : selectedRawDataFiles) {

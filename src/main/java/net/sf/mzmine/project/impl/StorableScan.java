@@ -348,7 +348,7 @@ public class StorableScan implements Scan {
 
 	// Add the mass list to the tree model
 	MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-		.getCurrentProject();
+		.getProjectManager().getCurrentProject();
 
 	// Check if we are adding to the current project
 	if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
@@ -386,7 +386,7 @@ public class StorableScan implements Scan {
 
 	// Remove from the tree model
 	MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-		.getCurrentProject();
+		.getProjectManager().getCurrentProject();
 
 	// Check if we are using the current project
 	if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {

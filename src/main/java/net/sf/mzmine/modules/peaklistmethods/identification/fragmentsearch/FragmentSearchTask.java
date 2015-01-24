@@ -204,7 +204,8 @@ public class FragmentSearchTask extends AbstractTask {
 	fragmentRow.addPeakIdentity(newIdentity, false);
 
 	// Notify the GUI about the change in the project
-	MZmineCore.getCurrentProject().notifyObjectChanged(fragmentRow, false);
+	MZmineCore.getProjectManager().getCurrentProject()
+		.notifyObjectChanged(fragmentRow, false);
 
     }
 

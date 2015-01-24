@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -46,8 +47,8 @@ public class XMLExportModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 	XMLExportTask newTask = new XMLExportTask(parameters);
 	tasks.add(newTask);
 	return ExitCode.OK;

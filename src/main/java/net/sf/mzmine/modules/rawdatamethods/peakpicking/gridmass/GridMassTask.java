@@ -43,7 +43,9 @@ public class GridMassTask extends AbstractTask {
 
     private HashMap<Integer, DataPoint[]> dpCache = null;
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    private RawDataFile dataFile;
+
+    private final MZmineProject project;
+    private final RawDataFile dataFile;
 
     // scan counter
     private int totalScans;
@@ -77,8 +79,10 @@ public class GridMassTask extends AbstractTask {
      * @param dataFile
      * @param parameters
      */
-    public GridMassTask(RawDataFile dataFile, ParameterSet parameters) {
+    public GridMassTask(MZmineProject project, RawDataFile dataFile,
+	    ParameterSet parameters) {
 
+	this.project = project;
 	this.dataFile = dataFile;
 
 	this.mzTol = parameters.getParameter(GridMassParameters.mzTolerance)
@@ -644,8 +648,7 @@ public class GridMassTask extends AbstractTask {
 		+ newPeakList.getNumberOfRows());
 
 	// Add new peaklist to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(newPeakList);
+	project.addPeakList(newPeakList);
 
 	setStatus(TaskStatus.FINISHED);
 

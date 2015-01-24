@@ -38,7 +38,8 @@ class ShutDownHook extends Thread {
 	}
 
 	// Close all temporary files
-	RawDataFile dataFiles[] = MZmineCore.getCurrentProject().getDataFiles();
+	RawDataFile dataFiles[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getDataFiles();
 	for (RawDataFile dataFile : dataFiles) {
 	    dataFile.close();
 	}

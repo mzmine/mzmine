@@ -71,7 +71,8 @@ public class PeakListsParameter implements
 	if ((values == null) || (values.length == 0))
 	    return new PeakList[0];
 
-	PeakList allPeakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+	PeakList allPeakLists[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getPeakLists();
 	ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
 
 	plCheck: for (PeakList pl : allPeakLists) {

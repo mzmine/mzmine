@@ -188,8 +188,8 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 	    peakListRow.setComment(note);
 
 	    // Notify the GUI about the change in the project
-	    MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
-		    false);
+	    MZmineCore.getProjectManager().getCurrentProject()
+		    .notifyObjectChanged(peakListRow, false);
 
 	    exitCode = ExitCode.OK;
 	    dispose();

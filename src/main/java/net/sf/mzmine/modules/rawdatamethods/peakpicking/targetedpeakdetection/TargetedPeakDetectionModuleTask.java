@@ -34,7 +34,6 @@ import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
@@ -47,8 +46,10 @@ import com.google.common.collect.Range;
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private final MZmineProject project;
+    private final RawDataFile dataFile;
     private PeakList processedPeakList;
-    private RawDataFile dataFile;
     private String suffix;
     private MZTolerance mzTolerance;
     private RTTolerance rtTolerance;
@@ -61,8 +62,10 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     private int finishedLines = 0;
     private int ID = 0;
 
-    TargetedPeakDetectionModuleTask(ParameterSet parameters,
-	    RawDataFile dataFile) {
+    TargetedPeakDetectionModuleTask(MZmineProject project,
+	    ParameterSet parameters, RawDataFile dataFile) {
+
+	this.project = project;
 	this.parameters = parameters;
 
 	suffix = parameters
@@ -171,8 +174,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 	}
 
 	// Append processed peak list to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(processedPeakList);
+	project.addPeakList(processedPeakList);
 
 	// Add task description to peakList
 	processedPeakList

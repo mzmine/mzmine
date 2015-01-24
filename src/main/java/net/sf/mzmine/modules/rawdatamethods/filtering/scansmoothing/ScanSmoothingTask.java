@@ -37,7 +37,9 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 public class ScanSmoothingTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    private RawDataFile dataFile;
+
+    private final MZmineProject project;
+    private final RawDataFile dataFile;
 
     // scan counter
     private int processedScans = 0, totalScans;
@@ -56,8 +58,10 @@ public class ScanSmoothingTask extends AbstractTask {
      * @param dataFile
      * @param parameters
      */
-    public ScanSmoothingTask(RawDataFile dataFile, ParameterSet parameters) {
+    public ScanSmoothingTask(MZmineProject project, RawDataFile dataFile,
+	    ParameterSet parameters) {
 
+	this.project = project;
 	this.dataFile = dataFile;
 
 	this.timeSpan = parameters.getParameter(
@@ -263,7 +267,6 @@ public class ScanSmoothingTask extends AbstractTask {
 		newRDF = newRDFW.finishWriting();
 
 		// Add the newly created file to the project
-		final MZmineProject project = MZmineCore.getCurrentProject();
 		project.addFile(newRDF);
 
 		// Remove the original data file if requested

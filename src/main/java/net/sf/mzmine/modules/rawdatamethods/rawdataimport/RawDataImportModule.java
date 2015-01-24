@@ -65,8 +65,8 @@ public class RawDataImportModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
 	File fileNames[] = parameters.getParameter(
 		RawDataImportParameters.fileNames).getValue();
@@ -98,7 +98,6 @@ public class RawDataImportModule implements MZmineProcessingModule {
 		    .substring(fileNames[i].getName().lastIndexOf(".") + 1)
 		    .toLowerCase();
 	    Task newTask = null;
-	    final MZmineProject project = MZmineCore.getCurrentProject();
 
 	    if (extension.endsWith("mzdata")) {
 		newTask = new MzDataReadTask(project, fileNames[i],

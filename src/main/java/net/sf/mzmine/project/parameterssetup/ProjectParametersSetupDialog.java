@@ -77,7 +77,8 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
 	parameterValues = new Hashtable<UserParameter<?, ?>, Object[]>();
 
-	this.dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+	this.dataFiles = MZmineCore.getProjectManager().getCurrentProject()
+		.getDataFiles();
 	this.desktop = MZmineCore.getDesktop();
 
 	setTitle("Setup project parameters and values");
@@ -256,7 +257,8 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
     private void copyParameterValuesToRawDataFiles() {
 
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
+	MZmineProject currentProject = MZmineCore.getProjectManager()
+		.getCurrentProject();
 
 	// Remove all previous parameters from project
 	UserParameter<?, ?>[] parameters = currentProject.getParameters();
@@ -310,7 +312,8 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
     private void copyParameterValuesFromRawDataFiles() {
 
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
+	MZmineProject currentProject = MZmineCore.getProjectManager()
+		.getCurrentProject();
 
 	for (int dataFileIndex = 0; dataFileIndex < dataFiles.length; dataFileIndex++) {
 

@@ -31,7 +31,6 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -46,6 +45,8 @@ import org.rosuda.JRI.Rengine;
 public class HeatMapTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private final MZmineProject project;
     private String outputType;
     private boolean log, rcontrol, scale, plegend, area, onlyIdentified;
     private int height, width, columnMargin, rowMargin, starSize;
@@ -58,7 +59,10 @@ public class HeatMapTask extends AbstractTask {
     private Object referenceGroup;
     private PeakList peakList;
 
-    public HeatMapTask(PeakList peakList, ParameterSet parameters) {
+    public HeatMapTask(MZmineProject project, PeakList peakList,
+	    ParameterSet parameters) {
+
+	this.project = project;
 	this.peakList = peakList;
 
 	// Parameters
@@ -290,7 +294,6 @@ public class HeatMapTask extends AbstractTask {
 	List<RawDataFile> referenceDataFiles = new ArrayList<RawDataFile>();
 	List<RawDataFile> nonReferenceDataFiles = new ArrayList<RawDataFile>();
 
-	MZmineProject project = MZmineCore.getCurrentProject();
 	for (RawDataFile rawDataFile : allDataFiles) {
 
 	    Object paramValue = project.getParameterValue(selectedParameter,
@@ -458,7 +461,6 @@ public class HeatMapTask extends AbstractTask {
 	List<RawDataFile> nonReferenceDataFiles = new ArrayList<RawDataFile>();
 
 	List<String> groups = new ArrayList<String>();
-	MZmineProject project = MZmineCore.getCurrentProject();
 
 	for (RawDataFile rawDataFile : allDataFiles) {
 

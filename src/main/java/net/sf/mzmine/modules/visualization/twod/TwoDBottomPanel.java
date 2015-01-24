@@ -239,8 +239,8 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 
 	PeakList selectedPeakList = (PeakList) peakListSelector
 		.getSelectedItem();
-	PeakList currentPeakLists[] = MZmineCore.getCurrentProject()
-		.getPeakLists(dataFile);
+	PeakList currentPeakLists[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getPeakLists(dataFile);
 	peakListSelector.removeAllItems();
 	for (int i = currentPeakLists.length - 1; i >= 0; i--) {
 	    peakListSelector.addItem(currentPeakLists[i]);

@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
 import java.util.ArrayList;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
@@ -31,6 +32,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 
 class DataSetFilteringTask extends AbstractTask {
 
+    private MZmineProject project;
     private RawDataFile[] dataFiles;
 
     // User parameters
@@ -45,8 +47,9 @@ class DataSetFilteringTask extends AbstractTask {
      * @param dataFiles
      * @param parameters
      */
-    DataSetFilteringTask(ParameterSet parameters) {
+    DataSetFilteringTask(MZmineProject project, ParameterSet parameters) {
 
+	this.project = project;
 	this.dataFiles = parameters.getParameter(
 		DataSetFiltersParameters.dataFiles).getMatchingRawDataFiles();
 	this.filteredRawDataFiles = new ArrayList<RawDataFile>();
@@ -95,12 +98,12 @@ class DataSetFilteringTask extends AbstractTask {
 			.filterDatafile(dataFile, rawDataFileWriter,
 				rawDataFilter.getParameterSet());
 		if (filteredRawDataFile != null) {
-		    MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
+		    project.addFile(filteredRawDataFile);
 		    filteredRawDataFiles.add(filteredRawDataFile);
 
 		    // Remove the original file if requested
 		    if (removeOriginal) {
-			MZmineCore.getCurrentProject().removeFile(dataFile);
+			project.removeFile(dataFile);
 		    }
 		}
 	    }

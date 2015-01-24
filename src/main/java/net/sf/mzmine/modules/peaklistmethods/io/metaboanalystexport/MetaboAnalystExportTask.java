@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -38,15 +39,17 @@ class MetaboAnalystExportTask extends AbstractTask {
 
     private static final String fieldSeparator = ",";
 
-    private PeakList peakList;
+    private final MZmineProject project;
+    private final PeakList peakList;
     private int processedRows = 0, totalRows = 0;
 
     // parameter values
     private File fileName;
     private UserParameter<?, ?> groupParameter;
 
-    MetaboAnalystExportTask(ParameterSet parameters) {
+    MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters) {
 
+	this.project = project;
 	this.peakList = parameters.getParameter(
 		MetaboAnalystExportParameters.peakList).getMatchingPeakLists()[0];
 
@@ -113,14 +116,12 @@ class MetaboAnalystExportTask extends AbstractTask {
 	// Check if each sample group has at least 3 samples
 	final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
 	for (RawDataFile file : rawDataFiles) {
-	    final String fileValue = String.valueOf(MZmineCore
-		    .getCurrentProject()
-		    .getParameterValue(groupParameter, file));
+	    final String fileValue = String.valueOf(project.getParameterValue(
+		    groupParameter, file));
 	    int count = 0;
 	    for (RawDataFile countFile : rawDataFiles) {
-		final String countValue = String.valueOf(MZmineCore
-			.getCurrentProject().getParameterValue(groupParameter,
-				countFile));
+		final String countValue = String.valueOf(project
+			.getParameterValue(groupParameter, countFile));
 		if (countValue.equals(fileValue))
 		    count++;
 	    }
@@ -157,8 +158,8 @@ class MetaboAnalystExportTask extends AbstractTask {
 
 	for (RawDataFile file : rawDataFiles) {
 	    line.append(fieldSeparator);
-	    String value = String.valueOf(MZmineCore.getCurrentProject()
-		    .getParameterValue(groupParameter, file));
+	    String value = String.valueOf(project.getParameterValue(
+		    groupParameter, file));
 	    value = value.replace('"', '\'');
 	    line.append("\"");
 	    line.append(value);

@@ -33,7 +33,6 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -50,6 +49,7 @@ public class PeakExtenderTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private final MZmineProject project;
     private PeakList peakList, extendedPeakList;
 
     // peaks counter
@@ -63,8 +63,10 @@ public class PeakExtenderTask extends AbstractTask {
 
     private ParameterSet parameters;
 
-    public PeakExtenderTask(PeakList peakList, ParameterSet parameters) {
+    public PeakExtenderTask(MZmineProject project, PeakList peakList,
+	    ParameterSet parameters) {
 
+	this.project = project;
 	this.peakList = peakList;
 	this.parameters = parameters;
 
@@ -144,8 +146,7 @@ public class PeakExtenderTask extends AbstractTask {
 	}
 
 	// Add new peakList to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(extendedPeakList);
+	project.addPeakList(extendedPeakList);
 
 	// Load previous applied methods
 	for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
@@ -159,7 +160,7 @@ public class PeakExtenderTask extends AbstractTask {
 
 	// Remove the original peakList if requested
 	if (removeOriginal)
-	    currentProject.removePeakList(peakList);
+	    project.removePeakList(peakList);
 
 	logger.info("Finished peak extender on " + peakList);
 	setStatus(TaskStatus.FINISHED);

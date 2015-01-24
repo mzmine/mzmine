@@ -45,8 +45,8 @@ public class MZRangeComponent extends RangeComponent implements ActionListener {
 
 	setAutoButton = new JButton("Auto range");
 	setAutoButton.addActionListener(this);
-	RawDataFile currentFiles[] = MZmineCore.getCurrentProject()
-		.getDataFiles();
+	RawDataFile currentFiles[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getDataFiles();
 	setAutoButton.setEnabled(currentFiles.length > 0);
 	add(setAutoButton, 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
@@ -63,8 +63,8 @@ public class MZRangeComponent extends RangeComponent implements ActionListener {
 
 	if (src == setAutoButton) {
 	    Range<Double> mzRange = null;
-	    RawDataFile currentFiles[] = MZmineCore.getCurrentProject()
-		    .getDataFiles();
+	    RawDataFile currentFiles[] = MZmineCore.getProjectManager()
+		    .getCurrentProject().getDataFiles();
 	    for (RawDataFile file : currentFiles) {
 		Range<Double> fileRange = file.getDataMZRange(1);
 		if (fileRange == null)

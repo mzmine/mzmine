@@ -30,6 +30,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.xml.transform.TransformerConfigurationException;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.impl.MainWindow;
@@ -68,7 +69,8 @@ public class ProjectSavingTask extends AbstractTask {
     // This hashtable maps raw data files to their ID within the saved project
     private Hashtable<RawDataFile, String> dataFilesIDMap;
 
-    public ProjectSavingTask(ParameterSet parameters) {
+    public ProjectSavingTask(MZmineProject project, ParameterSet parameters) {
+	this.savedProject = (MZmineProjectImpl) project;
 	this.saveFile = parameters.getParameter(
 		ProjectLoaderParameters.projectFile).getValue();
 	dataFilesIDMap = new Hashtable<RawDataFile, String>();
@@ -138,9 +140,6 @@ public class ProjectSavingTask extends AbstractTask {
 
 	    logger.info("Saving project to " + saveFile);
 	    setStatus(TaskStatus.PROCESSING);
-
-	    // Get current project
-	    savedProject = (MZmineProjectImpl) MZmineCore.getCurrentProject();
 
 	    // Prepare a temporary ZIP file. We create this file in the same
 	    // directory as the final saveFile to avoid moving between

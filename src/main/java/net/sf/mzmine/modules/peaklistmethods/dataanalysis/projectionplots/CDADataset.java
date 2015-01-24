@@ -30,7 +30,6 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -51,8 +50,8 @@ public class CDADataset extends AbstractXYDataset implements
     private double[] component1Coords;
     private double[] component2Coords;
 
-    private ParameterSet parameters;
-    private PeakList peakList;
+    private final ParameterSet parameters;
+    private final PeakList peakList;
 
     private ColoringType coloringType;
 
@@ -72,7 +71,7 @@ public class CDADataset extends AbstractXYDataset implements
 
     private ProjectionStatus projectionStatus;
 
-    public CDADataset(ParameterSet parameters) {
+    public CDADataset(MZmineProject project, ParameterSet parameters) {
 
 	this.peakList = parameters.getParameter(
 		ProjectionPlotParameters.peakLists).getMatchingPeakLists()[0];
@@ -113,7 +112,6 @@ public class CDADataset extends AbstractXYDataset implements
 
 	if (coloringType.isByParameter()) {
 	    // Group files with same parameter value to same group
-	    MZmineProject project = MZmineCore.getCurrentProject();
 	    Vector<Object> availableParameterValues = new Vector<Object>();
 	    UserParameter<?, ?> selectedParameter = coloringType.getParameter();
 	    for (RawDataFile rawDataFile : selectedRawDataFiles) {

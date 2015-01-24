@@ -33,7 +33,6 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -49,6 +48,7 @@ class JoinAlignerTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private final MZmineProject project;
     private PeakList peakLists[], alignedPeakList;
 
     // Processed rows counter
@@ -64,8 +64,9 @@ class JoinAlignerTask extends AbstractTask {
     // ID counter for the new peaklist
     private int newRowID = 1;
 
-    JoinAlignerTask(ParameterSet parameters) {
+    JoinAlignerTask(MZmineProject project, ParameterSet parameters) {
 
+	this.project = project;
 	this.parameters = parameters;
 
 	peakLists = parameters.getParameter(JoinAlignerParameters.peakLists)
@@ -271,8 +272,7 @@ class JoinAlignerTask extends AbstractTask {
 	} // Next peak list
 
 	// Add new aligned peak list to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(alignedPeakList);
+	project.addPeakList(alignedPeakList);
 
 	// Add task description to peakList
 	alignedPeakList

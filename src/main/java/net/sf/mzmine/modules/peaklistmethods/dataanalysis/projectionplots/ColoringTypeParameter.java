@@ -66,8 +66,8 @@ public class ColoringTypeParameter implements
 	ArrayList<ColoringType> choicesList = new ArrayList<ColoringType>();
 	choicesList.add(ColoringType.NOCOLORING);
 	choicesList.add(ColoringType.COLORBYFILE);
-	for (UserParameter<?, ?> p : MZmineCore.getCurrentProject()
-		.getParameters()) {
+	for (UserParameter<?, ?> p : MZmineCore.getProjectManager()
+		.getCurrentProject().getParameters()) {
 	    choicesList.add(new ColoringType(p));
 	}
 	ColoringType choices[] = choicesList.toArray(new ColoringType[0]);
@@ -112,8 +112,8 @@ public class ColoringTypeParameter implements
 	    return;
 	String attrValue = xmlElement.getAttribute("type");
 	if (attrValue.equals("parameter")) {
-	    for (UserParameter<?, ?> p : MZmineCore.getCurrentProject()
-		    .getParameters()) {
+	    for (UserParameter<?, ?> p : MZmineCore.getProjectManager()
+		    .getCurrentProject().getParameters()) {
 		if (p.getName().equals(elementString)) {
 		    value = new ColoringType(p);
 		    break;

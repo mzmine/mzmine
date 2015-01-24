@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -46,9 +47,10 @@ public class MetaboAnalystExportModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
-	MetaboAnalystExportTask task = new MetaboAnalystExportTask(parameters);
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+	MetaboAnalystExportTask task = new MetaboAnalystExportTask(project,
+		parameters);
 	tasks.add(task);
 	return ExitCode.OK;
 

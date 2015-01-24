@@ -23,16 +23,16 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Task that performs baseline correction.
@@ -52,6 +52,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 	    .getLogger(BaselineCorrectionTask.class.getName());
 
     // Original data file and newly created baseline corrected file.
+    private final MZmineProject project;
     private final RawDataFile origDataFile;
 
     // Remove original data file.
@@ -75,14 +76,15 @@ public class BaselineCorrectionTask extends AbstractTask {
      * @param parameters
      *            correction parameters.
      */
-    public BaselineCorrectionTask(final RawDataFile dataFile,
-	    final ParameterSet parameters) {
+    public BaselineCorrectionTask(MZmineProject project,
+	    final RawDataFile dataFile, final ParameterSet parameters) {
 
 	// Initialize.
 	// this.rEngineType =
 	// parameters.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
 	this.rEngineType = RengineType.JRIengine;
 
+	this.project = project;
 	this.origDataFile = dataFile;
 	this.removeOriginal = parameters.getParameter(
 		BaselineCorrectionParameters.REMOVE_ORIGINAL).getValue();
@@ -148,7 +150,6 @@ public class BaselineCorrectionTask extends AbstractTask {
 	    if (!isCanceled() && correctedDataFile != null) {
 
 		// Add the newly created file to the project
-		final MZmineProject project = MZmineCore.getCurrentProject();
 		project.addFile(correctedDataFile);
 
 		// Remove the original data file if requested

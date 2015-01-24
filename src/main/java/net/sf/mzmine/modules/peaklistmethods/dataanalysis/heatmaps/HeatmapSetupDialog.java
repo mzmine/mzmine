@@ -73,9 +73,10 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
 	    ArrayList<Object> values = new ArrayList<Object>();
 
 	    // Obtain all possible values
-	    for (RawDataFile dataFile : MZmineCore.getCurrentProject()
-		    .getDataFiles()) {
-		Object paramValue = MZmineCore.getCurrentProject()
+	    for (RawDataFile dataFile : MZmineCore.getProjectManager()
+		    .getCurrentProject().getDataFiles()) {
+		Object paramValue = MZmineCore.getProjectManager()
+			.getCurrentProject()
 			.getParameterValue(currentParameterSelection, dataFile);
 		if (paramValue == null)
 		    continue;

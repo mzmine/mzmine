@@ -32,6 +32,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -142,8 +143,10 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		    .setValue(selectedFiles);
 	    ExitCode exitCode = parameters.showSetupDialog(MZmineCore
 		    .getDesktop().getMainWindow(), true);
+	    MZmineProject project = MZmineCore.getProjectManager()
+		    .getCurrentProject();
 	    if (exitCode == ExitCode.OK)
-		module.runModule(parameters, new ArrayList<Task>());
+		module.runModule(project, parameters, new ArrayList<Task>());
 	}
 
 	if (command.equals("SHOW_2D")) {
@@ -219,8 +222,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	if (command.equals("REMOVE_FILE")) {
 	    RawDataFile[] selectedFiles = tree
 		    .getSelectedObjects(RawDataFile.class);
-	    PeakList allPeakLists[] = MZmineCore.getCurrentProject()
-		    .getPeakLists();
+	    PeakList allPeakLists[] = MZmineCore.getProjectManager()
+		    .getCurrentProject().getPeakLists();
 	    for (RawDataFile file : selectedFiles) {
 		for (PeakList peakList : allPeakLists) {
 		    if (peakList.hasRawDataFile(file)) {
@@ -232,7 +235,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 			return;
 		    }
 		}
-		MZmineCore.getCurrentProject().removeFile(file);
+		MZmineCore.getProjectManager().getCurrentProject()
+			.removeFile(file);
 	    }
 	}
 
@@ -273,8 +277,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		    .getSelectedObjects(MassList.class);
 	    for (MassList massList : selectedMassLists) {
 		String massListName = massList.getName();
-		RawDataFile dataFiles[] = MZmineCore.getCurrentProject()
-			.getDataFiles();
+		RawDataFile dataFiles[] = MZmineCore.getProjectManager()
+			.getCurrentProject().getDataFiles();
 		for (RawDataFile dataFile : dataFiles) {
 		    int scanNumbers[] = dataFile.getScanNumbers();
 		    for (int scanNum : scanNumbers) {
@@ -370,7 +374,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	    PeakList[] selectedPeakLists = tree
 		    .getSelectedObjects(PeakList.class);
 	    for (PeakList peakList : selectedPeakLists)
-		MZmineCore.getCurrentProject().removePeakList(peakList);
+		MZmineCore.getProjectManager().getCurrentProject()
+			.removePeakList(peakList);
 	}
 
 	// Actions for peak list rows

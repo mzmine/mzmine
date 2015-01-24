@@ -69,8 +69,8 @@ public class ScatterPlotAxisSelection {
 	double totalArea = 0;
 	int numOfFiles = 0;
 	for (RawDataFile dataFile : row.getRawDataFiles()) {
-	    Object fileValue = MZmineCore.getCurrentProject()
-		    .getParameterValue(parameter, dataFile);
+	    Object fileValue = MZmineCore.getProjectManager()
+		    .getCurrentProject().getParameterValue(parameter, dataFile);
 	    if (fileValue == parameterValue) {
 		Feature peak = row.getPeak(dataFile);
 		if ((peak != null) && (peak.getArea() > 0)) {
@@ -97,8 +97,8 @@ public class ScatterPlotAxisSelection {
 	    options.add(newOption);
 	}
 
-	for (UserParameter<?, ?> parameter : MZmineCore.getCurrentProject()
-		.getParameters()) {
+	for (UserParameter<?, ?> parameter : MZmineCore.getProjectManager()
+		.getCurrentProject().getParameters()) {
 	    if (!(parameter instanceof ComboParameter))
 		continue;
 

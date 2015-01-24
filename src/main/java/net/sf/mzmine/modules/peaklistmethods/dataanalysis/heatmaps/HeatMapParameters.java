@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 import java.awt.Window;
 import java.util.ArrayList;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -92,15 +93,15 @@ public class HeatMapParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
 	// Update the parameter choices
-	UserParameter<?, ?> newChoices[] = MZmineCore.getCurrentProject()
-		.getParameters();
+	MZmineProject project = MZmineCore.getProjectManager()
+		.getCurrentProject();
+	UserParameter<?, ?> newChoices[] = project.getParameters();
 	getParameter(HeatMapParameters.selectionData).setChoices(newChoices);
 	if (newChoices.length > 0) {
 	    ArrayList<Object> values = new ArrayList<Object>();
-	    for (RawDataFile dataFile : MZmineCore.getCurrentProject()
-		    .getDataFiles()) {
-		Object paramValue = MZmineCore.getCurrentProject()
-			.getParameterValue(newChoices[0], dataFile);
+	    for (RawDataFile dataFile : project.getDataFiles()) {
+		Object paramValue = project.getParameterValue(newChoices[0],
+			dataFile);
 		if (paramValue == null) {
 		    continue;
 		}

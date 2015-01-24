@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -47,14 +48,14 @@ public class SameRangeGapFillerModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
 	PeakList[] peakLists = parameters.getParameter(
 		SameRangeGapFillerParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
-	    Task newTask = new SameRangeTask(peakList, parameters);
+	    Task newTask = new SameRangeTask(project, peakList, parameters);
 	    tasks.add(newTask);
 	}
 

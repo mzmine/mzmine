@@ -153,8 +153,8 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
 
 	PeakList selectedPeakList = (PeakList) peakListSelector
 		.getSelectedItem();
-	PeakList currentPeakLists[] = MZmineCore.getCurrentProject()
-		.getPeakLists(dataFile);
+	PeakList currentPeakLists[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getPeakLists(dataFile);
 	peakListSelector.setEnabled(false);
 	peakListSelector.removeActionListener(masterFrame);
 	peakListSelector.removeAllItems();

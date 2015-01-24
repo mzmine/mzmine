@@ -116,7 +116,8 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
 	if (src == selectFilesButton) {
 	    final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
 		    "Select files", "Select files", MZmineCore
-			    .getCurrentProject().getDataFiles());
+			    .getProjectManager().getCurrentProject()
+			    .getDataFiles());
 	    final SimpleParameterSet paramSet = new SimpleParameterSet(
 		    new Parameter[] { filesParameter });
 	    Window parent = (Window) SwingUtilities.getAncestorOfClass(

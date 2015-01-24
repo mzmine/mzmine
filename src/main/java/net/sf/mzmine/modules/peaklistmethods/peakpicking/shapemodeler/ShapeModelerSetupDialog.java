@@ -254,7 +254,8 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
      */
     private void addComponents() {
 
-	PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+	PeakList peakLists[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getPeakLists();
 
 	// Elements of pnlpreview
 	JPanel pnlpreview = new JPanel(new BorderLayout());

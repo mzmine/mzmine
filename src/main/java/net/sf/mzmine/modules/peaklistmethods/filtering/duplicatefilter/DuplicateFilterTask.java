@@ -32,7 +32,6 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
@@ -53,6 +52,7 @@ public class DuplicateFilterTask extends AbstractTask {
 	    .getLogger(DuplicateFilterTask.class.getName());
 
     // Original and resultant peak lists.
+    private final MZmineProject project;
     private final PeakList peakList;
     private PeakList filteredPeakList;
 
@@ -63,9 +63,11 @@ public class DuplicateFilterTask extends AbstractTask {
     // Parameters.
     private final ParameterSet parameters;
 
-    public DuplicateFilterTask(final PeakList list, final ParameterSet params) {
+    public DuplicateFilterTask(final MZmineProject project,
+	    final PeakList list, final ParameterSet params) {
 
 	// Initialize.
+	this.project = project;
 	parameters = params;
 	peakList = list;
 	filteredPeakList = null;
@@ -114,8 +116,6 @@ public class DuplicateFilterTask extends AbstractTask {
 		if (!isCanceled()) {
 
 		    // Add new peakList to the project.
-		    final MZmineProject project = MZmineCore
-			    .getCurrentProject();
 		    project.addPeakList(filteredPeakList);
 
 		    // Remove the original peakList if requested.

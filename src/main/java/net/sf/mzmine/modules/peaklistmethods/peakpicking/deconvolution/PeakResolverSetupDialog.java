@@ -276,8 +276,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
 	super.addDialogComponents();
 
-	final PeakList[] peakLists = MZmineCore.getCurrentProject()
-		.getPeakLists();
+	final PeakList[] peakLists = MZmineCore.getProjectManager()
+		.getCurrentProject().getPeakLists();
 
 	// Elements of panel.
 	preview = new JCheckBox("Show preview");

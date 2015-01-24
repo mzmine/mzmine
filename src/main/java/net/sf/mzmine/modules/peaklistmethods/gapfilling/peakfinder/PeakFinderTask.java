@@ -32,7 +32,6 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
@@ -44,6 +43,8 @@ import com.google.common.collect.Range;
 class PeakFinderTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private final MZmineProject project;
     private PeakList peakList, processedPeakList;
     private String suffix;
     private double intTolerance;
@@ -55,8 +56,10 @@ class PeakFinderTask extends AbstractTask {
     private boolean MASTERLIST = true, removeOriginal;
     private int masterSample = 0;
 
-    PeakFinderTask(PeakList peakList, ParameterSet parameters) {
+    PeakFinderTask(MZmineProject project, PeakList peakList,
+	    ParameterSet parameters) {
 
+	this.project = project;
 	this.peakList = peakList;
 	this.parameters = parameters;
 
@@ -193,8 +196,7 @@ class PeakFinderTask extends AbstractTask {
 	}
 
 	// Append processed peak list to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(processedPeakList);
+	project.addPeakList(processedPeakList);
 
 	// Add task description to peakList
 	processedPeakList
@@ -203,7 +205,7 @@ class PeakFinderTask extends AbstractTask {
 
 	// Remove the original peaklist if requested
 	if (removeOriginal)
-	    currentProject.removePeakList(peakList);
+	    project.removePeakList(peakList);
 
 	logger.info("Finished gap-filling on " + peakList);
 	setStatus(TaskStatus.FINISHED);

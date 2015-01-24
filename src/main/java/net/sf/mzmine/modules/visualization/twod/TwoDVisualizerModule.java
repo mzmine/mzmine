@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -53,8 +54,8 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 	RawDataFile dataFiles[] = parameters.getParameter(
 		TwoDParameters.dataFiles).getMatchingRawDataFiles();
 	int msLevel = parameters.getParameter(TwoDParameters.msLevel)

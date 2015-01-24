@@ -47,6 +47,7 @@ class SameRangeTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private final MZmineProject project;
     private PeakList peakList, processedPeakList;
 
     private String suffix;
@@ -57,8 +58,10 @@ class SameRangeTask extends AbstractTask {
 
     private ParameterSet parameters;
 
-    SameRangeTask(PeakList peakList, ParameterSet parameters) {
+    SameRangeTask(MZmineProject project, PeakList peakList,
+	    ParameterSet parameters) {
 
+	this.project = project;
 	this.peakList = peakList;
 	this.parameters = parameters;
 
@@ -133,8 +136,7 @@ class SameRangeTask extends AbstractTask {
 	}
 
 	// Append processed peak list to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(processedPeakList);
+	project.addPeakList(processedPeakList);
 
 	// Add task description to peakList
 	processedPeakList
@@ -143,7 +145,7 @@ class SameRangeTask extends AbstractTask {
 
 	// Remove the original peaklist if requested
 	if (removeOriginal)
-	    currentProject.removePeakList(peakList);
+	    project.removePeakList(peakList);
 
 	setStatus(TaskStatus.FINISHED);
 

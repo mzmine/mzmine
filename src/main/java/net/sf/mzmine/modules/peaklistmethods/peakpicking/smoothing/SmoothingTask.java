@@ -38,7 +38,6 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -56,6 +55,7 @@ public class SmoothingTask extends AbstractTask {
 	    .getName());
 
     // Peak lists: original and processed.
+    private final MZmineProject project;
     private final PeakList origPeakList;
     private SimplePeakList newPeakList;
 
@@ -76,10 +76,11 @@ public class SmoothingTask extends AbstractTask {
      * @param smoothingParameters
      *            smoothing parameters.
      */
-    public SmoothingTask(final PeakList peakList,
+    public SmoothingTask(final MZmineProject project, final PeakList peakList,
 	    final ParameterSet smoothingParameters) {
 
 	// Initialize.
+	this.project = project;
 	origPeakList = peakList;
 	progress = 0;
 	progressMax = peakList.getNumberOfRows();
@@ -239,14 +240,11 @@ public class SmoothingTask extends AbstractTask {
 	    if (!isCanceled()) {
 
 		// Add new peak-list to the project.
-		final MZmineProject currentProject = MZmineCore
-			.getCurrentProject();
-		currentProject.addPeakList(newPeakList);
+		project.addPeakList(newPeakList);
 
 		// Remove the original peak-list if requested.
 		if (removeOriginal) {
-
-		    currentProject.removePeakList(origPeakList);
+		    project.removePeakList(origPeakList);
 		}
 
 		// Copy previously applied methods

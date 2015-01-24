@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -47,14 +48,15 @@ public class MsMsPeakPickerModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
 		MsMsPeakPickerParameters.dataFiles).getMatchingRawDataFiles();
 
 	for (RawDataFile dataFile : dataFiles) {
-	    Task newTask = new MsMsPeakPickingTask(dataFile, parameters);
+	    Task newTask = new MsMsPeakPickingTask(project, dataFile,
+		    parameters);
 	    tasks.add(newTask);
 	}
 

@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
@@ -235,7 +234,8 @@ public final class MZmineCore {
 		logger.severe("Cannot read batch file " + batchFile);
 		System.exit(1);
 	    }
-	    ExitCode exitCode = BatchModeModule.runBatch(batchFile);
+	    ExitCode exitCode = BatchModeModule.runBatch(
+		    projectManager.getCurrentProject(), batchFile);
 	    if (exitCode == ExitCode.OK)
 		System.exit(0);
 	    else
@@ -257,11 +257,6 @@ public final class MZmineCore {
     @Nonnull
     public static ProjectManager getProjectManager() {
 	return projectManager;
-    }
-
-    @Nonnull
-    public static MZmineProject getCurrentProject() {
-	return projectManager.getCurrentProject();
     }
 
     @Nonnull

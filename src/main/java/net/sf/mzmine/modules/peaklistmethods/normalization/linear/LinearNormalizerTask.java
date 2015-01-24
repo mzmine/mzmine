@@ -33,7 +33,6 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -46,6 +45,7 @@ class LinearNormalizerTask extends AbstractTask {
 
     static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
 
+    private final MZmineProject project;
     private PeakList originalPeakList, normalizedPeakList;
 
     private int processedDataFiles, totalDataFiles;
@@ -56,8 +56,10 @@ class LinearNormalizerTask extends AbstractTask {
     private boolean removeOriginal;
     private ParameterSet parameters;
 
-    public LinearNormalizerTask(PeakList peakList, ParameterSet parameters) {
+    public LinearNormalizerTask(MZmineProject project, PeakList peakList,
+	    ParameterSet parameters) {
 
+	this.project = project;
 	this.originalPeakList = peakList;
 	this.parameters = parameters;
 
@@ -247,8 +249,7 @@ class LinearNormalizerTask extends AbstractTask {
 	}
 
 	// Add new peaklist to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(normalizedPeakList);
+	project.addPeakList(normalizedPeakList);
 
 	// Load previous applied methods
 	for (PeakListAppliedMethod proc : originalPeakList.getAppliedMethods()) {
@@ -263,7 +264,7 @@ class LinearNormalizerTask extends AbstractTask {
 
 	// Remove the original peaklist if requested
 	if (removeOriginal)
-	    currentProject.removePeakList(originalPeakList);
+	    project.removePeakList(originalPeakList);
 
 	logger.info("Finished linear normalizer");
 	setStatus(TaskStatus.FINISHED);

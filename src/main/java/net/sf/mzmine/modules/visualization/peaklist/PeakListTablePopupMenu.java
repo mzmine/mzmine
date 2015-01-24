@@ -313,7 +313,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			.convertRowIndexToModel(selectedTableRows[i]));
 	    }
 
-	    IntensityPlotModule.showIntensityPlot(peakList, selectedRows);
+	    IntensityPlotModule.showIntensityPlot(MZmineCore
+		    .getProjectManager().getCurrentProject(), peakList,
+		    selectedRows);
 	}
 
 	if (showXICItem.equals(src) && allClickedPeakListRows.length != 0) {
@@ -397,14 +399,13 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		}
 	    }
 
-	    TICVisualizerModule
-		    .setupNewTICVisualizer(MZmineCore.getCurrentProject()
-			    .getDataFiles(), selectedDataFiles, allClickedPeaks
+	    TICVisualizerModule.setupNewTICVisualizer(MZmineCore
+		    .getProjectManager().getCurrentProject().getDataFiles(),
+		    selectedDataFiles, allClickedPeaks
 			    .toArray(new Feature[allClickedPeaks.size()]),
-			    selectedClickedPeaks
-				    .toArray(new Feature[selectedClickedPeaks
-					    .size()]), labelsMap,
-			    selectedDataFiles[0].getDataRTRange(1), mzRange);
+		    selectedClickedPeaks
+			    .toArray(new Feature[selectedClickedPeaks.size()]),
+		    labelsMap, selectedDataFiles[0].getDataRTRange(1), mzRange);
 	}
 
 	if (show2DItem.equals(src)) {
@@ -573,7 +574,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
      */
     private void updateTableGUI() {
 	((AbstractTableModel) table.getModel()).fireTableDataChanged();
-	MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true);
+	MZmineCore.getProjectManager().getCurrentProject()
+		.notifyObjectChanged(peakList, true);
     }
 
     /**

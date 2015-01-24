@@ -95,7 +95,8 @@ class ProjectTreeDnDHandler extends TransferHandler {
 	ProjectTree projectTree = (ProjectTree) info.getComponent();
 	DefaultTreeModel treeModel = (DefaultTreeModel) projectTree.getModel();
 
-	MZmineProject project = MZmineCore.getCurrentProject();
+	MZmineProject project = MZmineCore.getProjectManager()
+		.getCurrentProject();
 
 	JTree.DropLocation dl = (JTree.DropLocation) info.getDropLocation();
 	TreePath dropPath = dl.getPath();

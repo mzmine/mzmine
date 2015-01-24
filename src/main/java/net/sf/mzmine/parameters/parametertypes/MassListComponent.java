@@ -76,8 +76,8 @@ public class MassListComponent extends JPanel implements ActionListener {
 
 	if (src == lookupButton) {
 	    ArrayList<String> currentNames = new ArrayList<String>();
-	    RawDataFile dataFiles[] = MZmineCore.getCurrentProject()
-		    .getDataFiles();
+	    RawDataFile dataFiles[] = MZmineCore.getProjectManager()
+		    .getCurrentProject().getDataFiles();
 	    for (RawDataFile dataFile : dataFiles) {
 		int scanNums[] = dataFile.getScanNumbers();
 		for (int scanNum : scanNums) {

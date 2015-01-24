@@ -46,7 +46,6 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -65,6 +64,7 @@ public class RowsFilterTask extends AbstractTask {
     private static final Logger LOG = Logger.getLogger(RowsFilterTask.class
 	    .getName());
     // Peak lists.
+    private final MZmineProject project;
     private final PeakList origPeakList;
     private PeakList filteredPeakList;
     // Processed rows counter
@@ -81,9 +81,11 @@ public class RowsFilterTask extends AbstractTask {
      * @param parameterSet
      *            task parameters.
      */
-    public RowsFilterTask(final PeakList list, final ParameterSet parameterSet) {
+    public RowsFilterTask(final MZmineProject project, final PeakList list,
+	    final ParameterSet parameterSet) {
 
 	// Initialize.
+	this.project = project;
 	parameters = parameterSet;
 	origPeakList = list;
 	filteredPeakList = null;
@@ -119,14 +121,11 @@ public class RowsFilterTask extends AbstractTask {
 		if (!isCanceled()) {
 
 		    // Add new peaklist to the project
-		    final MZmineProject currentProject = MZmineCore
-			    .getCurrentProject();
-		    currentProject.addPeakList(filteredPeakList);
+		    project.addPeakList(filteredPeakList);
 
 		    // Remove the original peaklist if requested
 		    if (parameters.getParameter(AUTO_REMOVE).getValue()) {
-
-			currentProject.removePeakList(origPeakList);
+			project.removePeakList(origPeakList);
 		    }
 
 		    setStatus(TaskStatus.FINISHED);
@@ -285,17 +284,14 @@ public class RowsFilterTask extends AbstractTask {
     private int getPeakCount(PeakListRow row, String groupingParameter) {
 	if (groupingParameter.contains("Filtering by ")) {
 	    HashMap<String, Integer> groups = new HashMap<String, Integer>();
-	    for (RawDataFile file : MZmineCore.getCurrentProject()
-		    .getDataFiles()) {
-		UserParameter<?, ?> params[] = MZmineCore.getCurrentProject()
-			.getParameters();
+	    for (RawDataFile file : project.getDataFiles()) {
+		UserParameter<?, ?> params[] = project.getParameters();
 		for (UserParameter<?, ?> p : params) {
 		    groupingParameter = groupingParameter.replace(
 			    "Filtering by ", "");
 		    if (groupingParameter.equals(p.getName())) {
-			String parameterValue = String
-				.valueOf(MZmineCore.getCurrentProject()
-					.getParameterValue(p, file));
+			String parameterValue = String.valueOf(project
+				.getParameterValue(p, file));
 			if (row.hasPeak(file)) {
 			    if (groups.containsKey(parameterValue)) {
 				groups.put(parameterValue,

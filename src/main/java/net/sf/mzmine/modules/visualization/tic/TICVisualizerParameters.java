@@ -125,8 +125,9 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
 	return showSetupDialog(parent, valueCheckRequired, MZmineCore
-		.getCurrentProject().getDataFiles(), MZmineCore.getDesktop()
-		.getSelectedDataFiles(), new Feature[0], new Feature[0]);
+		.getProjectManager().getCurrentProject().getDataFiles(),
+		MZmineCore.getDesktop().getSelectedDataFiles(), new Feature[0],
+		new Feature[0]);
     }
 
     /**

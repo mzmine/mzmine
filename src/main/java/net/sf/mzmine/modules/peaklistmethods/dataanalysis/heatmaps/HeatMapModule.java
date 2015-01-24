@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -48,11 +49,11 @@ public class HeatMapModule implements MZmineRunnableModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 	PeakList[] selectedDatasets = MZmineCore.getDesktop()
 		.getSelectedPeakLists();
-	HeatMapTask heatMapTask = new HeatMapTask(selectedDatasets[0],
+	HeatMapTask heatMapTask = new HeatMapTask(project, selectedDatasets[0],
 		parameters);
 	tasks.add(heatMapTask);
 	return ExitCode.OK;

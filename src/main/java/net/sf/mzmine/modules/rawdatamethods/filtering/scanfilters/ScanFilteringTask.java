@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
@@ -35,6 +36,7 @@ class ScanFilteringTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private final MZmineProject project;
     private RawDataFile dataFile, filteredRawDataFile;
 
     // scan counter
@@ -52,8 +54,9 @@ class ScanFilteringTask extends AbstractTask {
      * @param dataFile
      * @param parameters
      */
-    ScanFilteringTask(RawDataFile dataFile, ParameterSet parameters) {
+    ScanFilteringTask(MZmineProject project, RawDataFile dataFile, ParameterSet parameters) {
 
+	this.project = project;
 	this.dataFile = dataFile;
 
 	rawDataFilter = parameters.getParameter(ScanFiltersParameters.filter)
@@ -129,13 +132,14 @@ class ScanFilteringTask extends AbstractTask {
 	    // Finalize writing
 	    try {
 		filteredRawDataFile = rawDataFileWriter.finishWriting();
-		MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
+		project.addFile(filteredRawDataFile);
 
 		// Remove the original file if requested
 		if (removeOriginal) {
-		    MZmineCore.getCurrentProject().removeFile(dataFile);
+		    project.removeFile(dataFile);
 		}
 	    } catch (Exception exception) {
+		exception.printStackTrace();
 	    }
 
 	    setStatus(TaskStatus.FINISHED);

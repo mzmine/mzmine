@@ -73,7 +73,8 @@ class IntensityPlotDataset extends AbstractDataset implements
 		IntensityPlotParameters.selectedRows).getValue();
 
 	if (xAxisValueSource instanceof ParameterWrapper) {
-	    MZmineProject project = MZmineCore.getCurrentProject();
+	    MZmineProject project = MZmineCore.getProjectManager()
+		    .getCurrentProject();
 	    UserParameter xAxisParameter = ((ParameterWrapper) xAxisValueSource)
 		    .getParameter();
 	    LinkedHashSet<Comparable> parameterValues = new LinkedHashSet<Comparable>();
@@ -123,7 +124,8 @@ class IntensityPlotDataset extends AbstractDataset implements
 	    HashSet<RawDataFile> files = new HashSet<RawDataFile>();
 	    UserParameter<?, ?> xAxisParameter = ((ParameterWrapper) xAxisValueSource)
 		    .getParameter();
-	    MZmineProject project = MZmineCore.getCurrentProject();
+	    MZmineProject project = MZmineCore.getProjectManager()
+		    .getCurrentProject();
 	    for (RawDataFile file : selectedFiles) {
 		Object fileValue = project.getParameterValue(xAxisParameter,
 			file);

@@ -116,7 +116,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 
 	super.addDialogComponents();
 
-	PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+	PeakList peakLists[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getPeakLists();
 	if (peakLists.length < 2)
 	    return;
 

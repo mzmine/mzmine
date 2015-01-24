@@ -359,8 +359,8 @@ public class NistMsSearchTask extends AbstractTask {
 			}
 
 			// Notify the GUI about the change in the project
-			MZmineCore.getCurrentProject().notifyObjectChanged(row,
-				false);
+			MZmineCore.getProjectManager().getCurrentProject()
+				.notifyObjectChanged(row, false);
 		    }
 		    progress++;
 		}

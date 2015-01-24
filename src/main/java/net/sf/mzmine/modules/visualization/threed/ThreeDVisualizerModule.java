@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
@@ -62,8 +63,8 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
 	final RawDataFile[] dataFiles = parameters.getParameter(
 		ThreeDVisualizerParameters.dataFiles).getMatchingRawDataFiles();
@@ -145,7 +146,8 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
 		mzRange);
 	if (myParameters.showSetupDialog(MZmineCore.getDesktop()
 		.getMainWindow(), true) == ExitCode.OK) {
-	    myInstance.runModule(myParameters.cloneParameterSet(),
+	    myInstance.runModule(MZmineCore.getProjectManager()
+		    .getCurrentProject(), myParameters.cloneParameterSet(),
 		    new ArrayList<Task>());
 	}
     }

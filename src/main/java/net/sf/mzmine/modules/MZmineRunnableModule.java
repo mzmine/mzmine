@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -47,6 +48,8 @@ public interface MZmineRunnableModule extends MZmineModule {
      * and add them to the 'tasks' collection. The module is not supposed to
      * submit the tasks to the TaskController by itself.
      * 
+     * @param project
+     *            Project to apply this module on.
      * @param parameters
      *            ParameterSet to invoke this module with. The ParameterSet has
      *            already been cloned for exclusive use by this module,
@@ -65,8 +68,8 @@ public interface MZmineRunnableModule extends MZmineModule {
      *         problem starting the module.
      */
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks);
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks);
 
     /**
      * Returns the category of the module (e.g. raw data processing, peak

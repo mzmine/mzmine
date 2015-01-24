@@ -37,7 +37,6 @@ import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
@@ -65,6 +64,7 @@ class IsotopeGrouperTask extends AbstractTask {
      */
     private static final double isotopeDistance = 1.0033;
 
+    private final MZmineProject project;
     private PeakList peakList, deisotopedPeakList;
 
     // peaks counter
@@ -82,8 +82,9 @@ class IsotopeGrouperTask extends AbstractTask {
      * @param rawDataFile
      * @param parameters
      */
-    IsotopeGrouperTask(PeakList peakList, ParameterSet parameters) {
+    IsotopeGrouperTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
 
+	this.project=project;
 	this.peakList = peakList;
 	this.parameters = parameters;
 
@@ -240,8 +241,7 @@ class IsotopeGrouperTask extends AbstractTask {
 	}
 
 	// Add new peakList to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(deisotopedPeakList);
+	project.addPeakList(deisotopedPeakList);
 
 	// Load previous applied methods
 	for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
@@ -255,7 +255,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
 	// Remove the original peakList if requested
 	if (removeOriginal)
-	    currentProject.removePeakList(peakList);
+	    project.removePeakList(peakList);
 
 	logger.info("Finished isotopic peak grouper on " + peakList);
 	setStatus(TaskStatus.FINISHED);

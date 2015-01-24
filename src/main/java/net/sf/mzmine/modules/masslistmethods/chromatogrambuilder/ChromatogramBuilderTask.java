@@ -30,7 +30,6 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -45,6 +44,8 @@ import net.sf.mzmine.util.SortingProperty;
 public class ChromatogramBuilderTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private MZmineProject project;
     private RawDataFile dataFile;
 
     // scan counter
@@ -63,8 +64,10 @@ public class ChromatogramBuilderTask extends AbstractTask {
      * @param dataFile
      * @param parameters
      */
-    public ChromatogramBuilderTask(RawDataFile dataFile, ParameterSet parameters) {
+    public ChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
+	    ParameterSet parameters) {
 
+	this.project = project;
 	this.dataFile = dataFile;
 
 	this.massListName = parameters.getParameter(
@@ -166,8 +169,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 	}
 
 	// Add new peaklist to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(newPeakList);
+	project.addPeakList(newPeakList);
 
 	setStatus(TaskStatus.FINISHED);
 

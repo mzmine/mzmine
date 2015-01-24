@@ -41,7 +41,8 @@ class ShapeModelerTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakList originalPeakList;
+    private final MZmineProject project;
+    private final PeakList originalPeakList;
 
     // scan counter
     private int processedRows = 0, totalRows;
@@ -58,8 +59,10 @@ class ShapeModelerTask extends AbstractTask {
 
     private ParameterSet parameters;
 
-    public ShapeModelerTask(PeakList peakList, ParameterSet parameters) {
+    public ShapeModelerTask(MZmineProject project, PeakList peakList,
+	    ParameterSet parameters) {
 
+	this.project = project;
 	this.originalPeakList = peakList;
 	this.parameters = parameters;
 
@@ -160,12 +163,11 @@ class ShapeModelerTask extends AbstractTask {
 	}
 
 	// Add new peaklist to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(newPeakList);
+	project.addPeakList(newPeakList);
 
 	// Remove the original peaklist if requested
 	if (removeOriginal)
-	    currentProject.removePeakList(originalPeakList);
+	    project.removePeakList(originalPeakList);
 
 	// Load previous applied methods
 	for (PeakListAppliedMethod proc : originalPeakList.getAppliedMethods()) {

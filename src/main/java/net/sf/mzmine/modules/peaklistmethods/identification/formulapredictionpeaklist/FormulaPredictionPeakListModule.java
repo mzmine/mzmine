@@ -22,6 +22,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -53,8 +54,8 @@ public class FormulaPredictionPeakListModule implements MZmineProcessingModule {
     }
 
     @Override
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 	PeakList peakLists[] = parameters.getParameter(
 		FormulaPredictionPeakListParameters.PEAK_LISTS)
 		.getMatchingPeakLists();

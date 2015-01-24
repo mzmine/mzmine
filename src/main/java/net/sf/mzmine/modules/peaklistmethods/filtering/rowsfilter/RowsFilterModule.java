@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -51,15 +52,15 @@ public class RowsFilterModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
 	final PeakList[] peakLists = parameters.getParameter(
 		RowsFilterParameters.PEAK_LISTS).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 
-	    Task newTask = new RowsFilterTask(peakList, parameters);
+	    Task newTask = new RowsFilterTask(project, peakList, parameters);
 	    tasks.add(newTask);
 
 	}

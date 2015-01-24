@@ -26,12 +26,12 @@ import java.util.logging.Logger;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -45,16 +45,18 @@ class ManualPickerTask extends AbstractTask {
 
     private int processedScans, totalScans;
 
-    private PeakListTable table;
-    private PeakList peakList;
+    private final MZmineProject project;
+    private final PeakListTable table;
+    private final PeakList peakList;
     private PeakListRow peakListRow;
     private RawDataFile dataFiles[];
     private Range<Double> rtRange, mzRange;
 
-    ManualPickerTask(PeakListRow peakListRow, RawDataFile dataFiles[],
-	    ManualPickerParameters parameters, PeakList peakList,
-	    PeakListTable table) {
+    ManualPickerTask(MZmineProject project, PeakListRow peakListRow,
+	    RawDataFile dataFiles[], ManualPickerParameters parameters,
+	    PeakList peakList, PeakListTable table) {
 
+	this.project = project;
 	this.peakListRow = peakListRow;
 	this.dataFiles = dataFiles;
 	this.peakList = peakList;
@@ -140,7 +142,7 @@ class ManualPickerTask extends AbstractTask {
 	    if (!rows.contains(peakListRow)) {
 		peakList.addRow(peakListRow);
 	    }
-	    MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true);
+	    project.notifyObjectChanged(peakList, true);
 	}
 	if (table != null) {
 	    ((AbstractTableModel) table.getModel()).fireTableDataChanged();

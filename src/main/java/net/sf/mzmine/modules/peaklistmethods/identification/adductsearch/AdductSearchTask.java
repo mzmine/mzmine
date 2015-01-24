@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
 import static net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchParameters.ADDUCTS;
@@ -170,8 +171,8 @@ public class AdductSearchTask extends AbstractTask {
 		// Add adduct identity and notify GUI.
 		possibleAdduct.addPeakIdentity(new AdductIdentity(mainRow,
 			adduct), false);
-		MZmineCore.getCurrentProject().notifyObjectChanged(
-			possibleAdduct, false);
+		MZmineCore.getProjectManager().getCurrentProject()
+			.notifyObjectChanged(possibleAdduct, false);
 	    }
 	}
     }

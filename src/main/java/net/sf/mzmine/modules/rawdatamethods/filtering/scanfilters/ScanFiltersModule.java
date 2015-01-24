@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -47,14 +48,14 @@ public class ScanFiltersModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
 		ScanFiltersParameters.dataFiles).getMatchingRawDataFiles();
 
 	for (RawDataFile dataFile : dataFiles) {
-	    Task newTask = new ScanFilteringTask(dataFile, parameters);
+	    Task newTask = new ScanFilteringTask(project, dataFile, parameters);
 	    tasks.add(newTask);
 	}
 	return ExitCode.OK;

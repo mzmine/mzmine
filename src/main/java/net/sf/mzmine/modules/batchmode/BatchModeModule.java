@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -62,9 +63,9 @@ public class BatchModeModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
-	BatchTask newTask = new BatchTask(parameters);
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+	BatchTask newTask = new BatchTask(project, parameters);
 
 	/*
 	 * We do not add the task to the tasks collection, but instead directly
@@ -83,7 +84,8 @@ public class BatchModeModule implements MZmineProcessingModule {
 	return MZmineModuleCategory.PROJECT;
     }
 
-    public static ExitCode runBatch(File batchFile) {
+    public static ExitCode runBatch(@Nonnull MZmineProject project,
+	    File batchFile) {
 
 	logger.info("Running batch from file " + batchFile);
 
@@ -96,7 +98,7 @@ public class BatchModeModule implements MZmineProcessingModule {
 	    ParameterSet parameters = new BatchModeParameters();
 	    parameters.getParameter(BatchModeParameters.batchQueue).setValue(
 		    newQueue);
-	    Task batchTask = new BatchTask(parameters);
+	    Task batchTask = new BatchTask(project, parameters);
 	    batchTask.run();
 	    if (batchTask.getStatus() == TaskStatus.FINISHED)
 		return ExitCode.OK;

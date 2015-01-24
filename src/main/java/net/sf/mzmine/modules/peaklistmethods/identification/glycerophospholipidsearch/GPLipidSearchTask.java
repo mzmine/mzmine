@@ -188,8 +188,8 @@ public class GPLipidSearchTask extends AbstractTask {
 		rows[rowIndex].addPeakIdentity(lipid, false);
 
 		// Notify the GUI about the change in the project
-		MZmineCore.getCurrentProject().notifyObjectChanged(
-			rows[rowIndex], false);
+		MZmineCore.getProjectManager().getCurrentProject()
+			.notifyObjectChanged(rows[rowIndex], false);
 	    }
 
 	}

@@ -178,8 +178,8 @@ class CustomDBSearchTask extends AbstractTask {
 		peakRow.addPeakIdentity(newIdentity, false);
 
 		// Notify the GUI about the change in the project
-		MZmineCore.getCurrentProject().notifyObjectChanged(peakRow,
-			false);
+		MZmineCore.getProjectManager().getCurrentProject()
+			.notifyObjectChanged(peakRow, false);
 
 	    }
 	}

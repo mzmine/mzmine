@@ -42,18 +42,19 @@ public class XMLImportTask extends AbstractTask {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     // task variables
-    private TaskStatus status = TaskStatus.WAITING;
     private PeakListOpenHandler peakListOpenHander;
     private PeakList buildingPeakList;
 
     // parameter values
-    private File fileName;
+    private final MZmineProject project;
+    private final File fileName;
 
     /**
      * 
      * @param parameters
      */
-    public XMLImportTask(ParameterSet parameters) {
+    public XMLImportTask(MZmineProject project, ParameterSet parameters) {
+	this.project = project;
 	fileName = parameters.getParameter(XMLImportParameters.filename)
 		.getValue();
     }
@@ -116,8 +117,7 @@ public class XMLImportTask extends AbstractTask {
 	    }
 
 	    Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<String, RawDataFile>();
-	    for (RawDataFile file : MZmineCore.getCurrentProject()
-		    .getDataFiles()) {
+	    for (RawDataFile file : project.getDataFiles()) {
 		dataFilesIDMap.put(file.getName(), file);
 	    }
 
@@ -128,7 +128,7 @@ public class XMLImportTask extends AbstractTask {
 
 	} catch (Throwable e) {
 	    /* we may already have set the status to CANCELED */
-	    if (status == TaskStatus.PROCESSING)
+	    if (getStatus() == TaskStatus.PROCESSING)
 		setStatus(TaskStatus.ERROR);
 	    setErrorMessage(e.toString());
 	    e.printStackTrace();
@@ -136,8 +136,7 @@ public class XMLImportTask extends AbstractTask {
 	}
 
 	// Add new peaklist to the project or MZviewer.desktop
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(buildingPeakList);
+	project.addPeakList(buildingPeakList);
 
 	logger.info("Finished parsing " + fileName);
 	setStatus(TaskStatus.FINISHED);

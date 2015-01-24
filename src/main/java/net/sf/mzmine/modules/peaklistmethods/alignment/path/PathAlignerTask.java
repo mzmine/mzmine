@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.Aligner;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.ScoreAligner;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -36,17 +35,20 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 class PathAlignerTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private final MZmineProject project;
     private PeakList peakLists[], alignedPeakList;
     private String peakListName;
     private ParameterSet parameters;
     private Aligner aligner;
 
-    PathAlignerTask(ParameterSet parameters) {
+    PathAlignerTask(MZmineProject project, ParameterSet parameters) {
 
+	this.project = project;
 	this.parameters = parameters;
 	peakLists = parameters.getParameter(PathAlignerParameters.peakLists)
 		.getMatchingPeakLists();
-	;
+
 	peakListName = parameters.getParameter(
 		PathAlignerParameters.peakListName).getValue();
     }
@@ -80,8 +82,7 @@ class PathAlignerTask extends AbstractTask {
 	aligner = (Aligner) new ScoreAligner(this.peakLists, parameters);
 	alignedPeakList = aligner.align();
 	// Add new aligned peak list to the project
-	MZmineProject currentProject = MZmineCore.getCurrentProject();
-	currentProject.addPeakList(alignedPeakList);
+	project.addPeakList(alignedPeakList);
 
 	// Add task description to peakList
 	alignedPeakList

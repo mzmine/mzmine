@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -53,14 +54,15 @@ public class IntensityPlotModule implements MZmineRunnableModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 	IntensityPlotWindow newFrame = new IntensityPlotWindow(parameters);
 	newFrame.setVisible(true);
 	return ExitCode.OK;
     }
 
-    public static void showIntensityPlot(PeakList peakList, PeakListRow rows[]) {
+    public static void showIntensityPlot(@Nonnull MZmineProject project,
+	    PeakList peakList, PeakListRow rows[]) {
 
 	ParameterSet parameters = MZmineCore.getConfiguration()
 		.getModuleParameters(IntensityPlotModule.class);
@@ -79,8 +81,7 @@ public class IntensityPlotModule implements MZmineRunnableModule {
 	parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(
 		rows);
 
-	UserParameter<?, ?> projectParams[] = MZmineCore.getCurrentProject()
-		.getParameters();
+	UserParameter<?, ?> projectParams[] = project.getParameters();
 	Object xAxisSources[] = new Object[projectParams.length + 1];
 	xAxisSources[0] = IntensityPlotParameters.rawDataFilesOption;
 

@@ -198,7 +198,8 @@ public class ComplexSearchTask extends AbstractTask {
 	complexRow.addPeakIdentity(newIdentity, false);
 
 	// Notify the GUI about the change in the project
-	MZmineCore.getCurrentProject().notifyObjectChanged(complexRow, false);
+	MZmineCore.getProjectManager().getCurrentProject()
+		.notifyObjectChanged(complexRow, false);
     }
 
 }

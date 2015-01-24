@@ -83,8 +83,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
 	// Update the parameter choices
-	UserParameter<?, ?> newChoices[] = MZmineCore.getCurrentProject()
-		.getParameters();
+	UserParameter<?, ?> newChoices[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getParameters();
 	String[] choices;
 	if (newChoices == null || newChoices.length == 0) {
 	    choices = new String[1];

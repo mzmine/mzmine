@@ -23,6 +23,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -47,15 +48,15 @@ public class ChromatogramBuilderModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
 		ChromatogramBuilderParameters.dataFiles)
 		.getMatchingRawDataFiles();
 
 	for (int i = 0; i < dataFiles.length; i++) {
-	    Task newTask = new ChromatogramBuilderTask(dataFiles[i],
+	    Task newTask = new ChromatogramBuilderTask(project, dataFiles[i],
 		    parameters.cloneParameterSet());
 	    tasks.add(newTask);
 	}

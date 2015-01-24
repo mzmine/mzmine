@@ -34,6 +34,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
@@ -76,7 +77,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	    showAbout, checkUpdate;
 
     private int projectIOMenuIndex = 0, projectMenuIndex = 1,
-	    rawDataMenuIndex = 0, visualizationMenuIndex = 0, exportMenuIndex = 0;
+	    rawDataMenuIndex = 0, visualizationMenuIndex = 0,
+	    exportMenuIndex = 0;
 
     private Map<JMenuItem, MZmineRunnableModule> moduleMenuItems = new Hashtable<JMenuItem, MZmineRunnableModule>();
 
@@ -307,7 +309,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	}
 
 	moduleMenuItems.put(newItem, module);
-	
+
 	addMenuItem(parentMenu, newItem);
 
     }
@@ -355,7 +357,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		logger.finest("Starting module " + module.getName()
 			+ " with parameters " + parametersCopy);
 		ArrayList<Task> tasks = new ArrayList<Task>();
-		module.runModule(parametersCopy, tasks);
+		MZmineProject project = MZmineCore.getProjectManager()
+			.getCurrentProject();
+		module.runModule(project, parametersCopy, tasks);
 		MZmineCore.getTaskController().addTasks(
 			tasks.toArray(new Task[0]));
 	    }

@@ -99,8 +99,9 @@ public class ManualPeakPickerModule implements MZmineModule {
 	if (exitCode != ExitCode.OK)
 	    return exitCode;
 
-	ManualPickerTask task = new ManualPickerTask(peakListRow, dataFiles,
-		parameters, peakList, table);
+	ManualPickerTask task = new ManualPickerTask(MZmineCore
+		.getProjectManager().getCurrentProject(), peakListRow,
+		dataFiles, parameters, peakList, table);
 
 	MZmineCore.getTaskController().addTask(task);
 	return exitCode;

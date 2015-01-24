@@ -52,7 +52,8 @@ public class IdentityItemsParameter extends MultiChoiceParameter<String> {
 
 	elements.add(ALL_IDENTITIES);
 
-	for (PeakList peakList : MZmineCore.getCurrentProject().getPeakLists()) {
+	for (PeakList peakList : MZmineCore.getProjectManager()
+		.getCurrentProject().getPeakLists()) {
 	    for (PeakListRow peakListRow : peakList.getRows()) {
 
 		PeakIdentity peakIdentity = peakListRow

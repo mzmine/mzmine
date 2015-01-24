@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
@@ -41,9 +42,11 @@ public class BatchTask extends AbstractTask {
 
     private int totalSteps, processedSteps;
 
+    private MZmineProject project;
     private BatchQueue queue;
 
-    BatchTask(ParameterSet parameters) {
+    BatchTask(MZmineProject project, ParameterSet parameters) {
+	this.project = project;
 	this.queue = parameters.getParameter(BatchModeParameters.batchQueue)
 		.getValue();
 	totalSteps = queue.size();
@@ -90,7 +93,7 @@ public class BatchTask extends AbstractTask {
 	}
 
 	ArrayList<Task> currentStepTasks = new ArrayList<Task>();
-	ExitCode exitCode = method.runModule(batchStepParameters,
+	ExitCode exitCode = method.runModule(project, batchStepParameters,
 		currentStepTasks);
 
 	if (exitCode != ExitCode.OK) {

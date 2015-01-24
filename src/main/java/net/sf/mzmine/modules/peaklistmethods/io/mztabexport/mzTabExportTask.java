@@ -24,8 +24,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.net.URL;
 
-import uk.ac.ebi.pride.jmztab.model.*;
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -36,20 +36,35 @@ import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import uk.ac.ebi.pride.jmztab.model.Assay;
+import uk.ac.ebi.pride.jmztab.model.CVParam;
+import uk.ac.ebi.pride.jmztab.model.MZTabColumnFactory;
+import uk.ac.ebi.pride.jmztab.model.MZTabDescription;
+import uk.ac.ebi.pride.jmztab.model.Metadata;
+import uk.ac.ebi.pride.jmztab.model.MsRun;
+import uk.ac.ebi.pride.jmztab.model.Section;
+import uk.ac.ebi.pride.jmztab.model.SmallMolecule;
+import uk.ac.ebi.pride.jmztab.model.SmallMoleculeColumn;
+import uk.ac.ebi.pride.jmztab.model.StudyVariable;
 
 class mzTabExportTask extends AbstractTask {
 
     private int processedRows = 0, totalRows = 0;
 
     // parameter values
-    private File fileName;
-    private PeakList peakList;
-    private boolean exportall;
+    private final MZmineProject project;
+    private final File fileName;
+    private final PeakList peakList;
+    private final boolean exportall;
 
-    mzTabExportTask(ParameterSet parameters) {
-	this.peakList = parameters.getParameter(mzTabExportParameters.peakList).getMatchingPeakLists()[0];
-	this.fileName = parameters.getParameter(mzTabExportParameters.filename).getValue();
-	this.exportall = parameters.getParameter(mzTabExportParameters.exportall).getValue();
+    mzTabExportTask(MZmineProject project, ParameterSet parameters) {
+	this.project = project;
+	this.peakList = parameters.getParameter(mzTabExportParameters.peakList)
+		.getMatchingPeakLists()[0];
+	this.fileName = parameters.getParameter(mzTabExportParameters.filename)
+		.getValue();
+	this.exportall = parameters.getParameter(
+		mzTabExportParameters.exportall).getValue();
     }
 
     public double getFinishedPercentage() {
@@ -77,54 +92,70 @@ class mzTabExportTask extends AbstractTask {
 	    mtd.setMZTabMode(MZTabDescription.Mode.Summary);
 	    mtd.setMZTabType(MZTabDescription.Type.Quantification);
 	    mtd.setDescription(peakList.getName());
-	    mtd.addSoftwareParam(1, new CVParam("MS", "MS:1002342", "MZmine", MZmineCore.getMZmineVersion()));
-	    mtd.setSmallMoleculeQuantificationUnit(new CVParam("PRIDE", "PRIDE:0000330", "Arbitrary quantification unit", null));
-	    mtd.addSmallMoleculeSearchEngineScoreParam(1, new CVParam("MS", "MS:1001153", "search engine specific score", null));
+	    mtd.addSoftwareParam(1, new CVParam("MS", "MS:1002342", "MZmine",
+		    MZmineCore.getMZmineVersion()));
+	    mtd.setSmallMoleculeQuantificationUnit(new CVParam("PRIDE",
+		    "PRIDE:0000330", "Arbitrary quantification unit", null));
+	    mtd.addSmallMoleculeSearchEngineScoreParam(1, new CVParam("MS",
+		    "MS:1001153", "search engine specific score", null));
 
 	    // Create stable columns
-	    MZTabColumnFactory factory = MZTabColumnFactory.getInstance(Section.Small_Molecule);
+	    MZTabColumnFactory factory = MZTabColumnFactory
+		    .getInstance(Section.Small_Molecule);
 
 	    // Variable descriptions
 	    int parameterCounter = 0;
-	    for (UserParameter<?, ?> p : MZmineCore.getCurrentProject().getParameters()) {
+	    for (UserParameter<?, ?> p : project.getParameters()) {
 		for (Object e : ((ComboParameter<?>) p).getChoices()) {
 		    parameterCounter++;
-		    mtd.addStudyVariableDescription(parameterCounter, String.valueOf(p) + ": " + String.valueOf(e));
-		    StudyVariable studyVariable = new StudyVariable(parameterCounter);
+		    mtd.addStudyVariableDescription(parameterCounter,
+			    String.valueOf(p) + ": " + String.valueOf(e));
+		    StudyVariable studyVariable = new StudyVariable(
+			    parameterCounter);
 		    factory.addAbundanceOptionalColumn(studyVariable);
 		}
 	    }
 
 	    final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
-	    int fileCounter = 0; 
+	    int fileCounter = 0;
 	    for (RawDataFile file : rawDataFiles) {
 		fileCounter++;
 
-		/** 
-		 * TO DO: Add path to original imported raw file to MZmine and write it out here instead
+		/**
+		 * TO DO: Add path to original imported raw file to MZmine and
+		 * write it out here instead
 		 * */
 		// MS run location
 		MsRun msRun = new MsRun(fileCounter);
-		msRun.setLocation(new URL("file:///"+file.getName()));
+		msRun.setLocation(new URL("file:///" + file.getName()));
 		mtd.addMsRun(msRun);
-		mtd.addAssayMsRun(fileCounter, msRun);     
+		mtd.addAssayMsRun(fileCounter, msRun);
 
 		// Add samples to study variable assay
-		for (UserParameter<?, ?> p : MZmineCore.getCurrentProject().getParameters()) {
+		for (UserParameter<?, ?> p : project.getParameters()) {
 		    Assay assay = mtd.getAssayMap().get(fileCounter);
-		    for (StudyVariable studyVariable : mtd.getStudyVariableMap().values()) {
-			if (studyVariable.getDescription().equals(String.valueOf(p) + ": " + 
-				String.valueOf(MZmineCore.getCurrentProject().getParameterValue(p, file)))) {
-			    mtd.addStudyVariableAssay(studyVariable.getId(), assay);
+		    for (StudyVariable studyVariable : mtd
+			    .getStudyVariableMap().values()) {
+			if (studyVariable.getDescription().equals(
+				String.valueOf(p)
+					+ ": "
+					+ String.valueOf(project
+						.getParameterValue(p, file)))) {
+			    mtd.addStudyVariableAssay(studyVariable.getId(),
+				    assay);
 			}
 		    }
 		}
 
 		// Additional columns
-		factory.addBestSearchEngineScoreOptionalColumn(SmallMoleculeColumn.BEST_SEARCH_ENGINE_SCORE, 1);
-		factory.addOptionalColumn(new Assay(fileCounter), "peak_mz", String.class);
-		factory.addOptionalColumn(new Assay(fileCounter), "peak_rt", String.class);
-		factory.addOptionalColumn(new Assay(fileCounter), "peak_height", String.class);
+		factory.addBestSearchEngineScoreOptionalColumn(
+			SmallMoleculeColumn.BEST_SEARCH_ENGINE_SCORE, 1);
+		factory.addOptionalColumn(new Assay(fileCounter), "peak_mz",
+			String.class);
+		factory.addOptionalColumn(new Assay(fileCounter), "peak_rt",
+			String.class);
+		factory.addOptionalColumn(new Assay(fileCounter),
+			"peak_height", String.class);
 		factory.addURIOptionalColumn();
 		factory.addAbundanceOptionalColumn(new Assay(fileCounter));
 	    }
@@ -145,31 +176,51 @@ class mzTabExportTask extends AbstractTask {
 		    return;
 		}
 
-		PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
+		PeakIdentity peakIdentity = peakListRow
+			.getPreferredPeakIdentity();
 		if (exportall || peakIdentity != null) {
 		    SmallMolecule sm = new SmallMolecule(factory, mtd);
 		    if (peakIdentity != null) {
 			// Identity information
-    		    	String identifier = peakIdentity.getPropertyValue("ID");
-    		    	String database = peakIdentity.getPropertyValue("Identification method");
-    		    	String formula = peakIdentity.getPropertyValue("Molecular formula");
-    		    	String description = peakIdentity.getPropertyValue("Name");
-    		    	String url = peakIdentity.getPropertyValue("URL");
-    
-    		    	if (identifier != null) { sm.setIdentifier(identifier); }
-    		    	if (database != null) { sm.setDatabase(database); }
-    		    	if (formula != null) { sm.setChemicalFormula(formula); }
-    		    	if (description != null) { sm.setDescription(description); }
-    		    	if (url != null) { sm.setURI(url); }
-    		    }
+			String identifier = peakIdentity.getPropertyValue("ID");
+			String database = peakIdentity
+				.getPropertyValue("Identification method");
+			String formula = peakIdentity
+				.getPropertyValue("Molecular formula");
+			String description = peakIdentity
+				.getPropertyValue("Name");
+			String url = peakIdentity.getPropertyValue("URL");
+
+			if (identifier != null) {
+			    sm.setIdentifier(identifier);
+			}
+			if (database != null) {
+			    sm.setDatabase(database);
+			}
+			if (formula != null) {
+			    sm.setChemicalFormula(formula);
+			}
+			if (description != null) {
+			    sm.setDescription(description);
+			}
+			if (url != null) {
+			    sm.setURI(url);
+			}
+		    }
 
 		    Double rowMZ = peakListRow.getAverageMZ();
 		    int rowCharge = peakListRow.getRowCharge();
 		    String rowRT = String.valueOf(peakListRow.getAverageRT());
 
-		    if (rowMZ != null) { sm.setExpMassToCharge(rowMZ); }
-		    if (rowCharge > 0) { sm.setCharge(rowCharge); }
-		    if (rowRT != null) { sm.setRetentionTime(rowRT); }
+		    if (rowMZ != null) {
+			sm.setExpMassToCharge(rowMZ);
+		    }
+		    if (rowCharge > 0) {
+			sm.setCharge(rowCharge);
+		    }
+		    if (rowRT != null) {
+			sm.setRetentionTime(rowRT);
+		    }
 
 		    int dataFileCount = 0;
 		    for (RawDataFile dataFile : rawDataFiles) {
@@ -177,14 +228,20 @@ class mzTabExportTask extends AbstractTask {
 			Feature peak = peakListRow.getPeak(dataFile);
 			if (peak != null) {
 			    String peakMZ = String.valueOf(peak.getMZ());
-			    String peakRT = String.valueOf(String.valueOf(peak.getRT()));
-			    String peakHeight = String.valueOf(peak.getHeight());
+			    String peakRT = String.valueOf(String.valueOf(peak
+				    .getRT()));
+			    String peakHeight = String
+				    .valueOf(peak.getHeight());
 			    Double peakArea = peak.getArea();
 
-			    sm.setOptionColumnValue(new Assay(dataFileCount), "peak_mz", peakMZ);
-			    sm.setOptionColumnValue(new Assay(dataFileCount), "peak_rt", peakRT);
-			    sm.setOptionColumnValue(new Assay(dataFileCount), "peak_height", peakHeight);
-			    sm.setAbundanceColumnValue(new Assay(dataFileCount), peakArea);
+			    sm.setOptionColumnValue(new Assay(dataFileCount),
+				    "peak_mz", peakMZ);
+			    sm.setOptionColumnValue(new Assay(dataFileCount),
+				    "peak_rt", peakRT);
+			    sm.setOptionColumnValue(new Assay(dataFileCount),
+				    "peak_height", peakHeight);
+			    sm.setAbundanceColumnValue(
+				    new Assay(dataFileCount), peakArea);
 			}
 		    }
 

@@ -52,8 +52,8 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	UserParameter<?, ?> projectParams[] = MZmineCore.getCurrentProject()
-		.getParameters();
+	UserParameter<?, ?> projectParams[] = MZmineCore.getProjectManager()
+		.getCurrentProject().getParameters();
 	getParameter(MetaboAnalystExportParameters.groupParameter).setChoices(
 		projectParams);
 

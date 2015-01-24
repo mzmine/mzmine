@@ -60,8 +60,8 @@ public class ProjectCloseModule implements MZmineProcessingModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
 	int selectedValue = JOptionPane.showInternalConfirmDialog(MZmineCore
 		.getDesktop().getMainWindow().getContentPane(),

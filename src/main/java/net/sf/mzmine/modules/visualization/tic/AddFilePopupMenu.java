@@ -59,7 +59,8 @@ class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 	removeAll();
 
 	// get all project files
-	RawDataFile[] openFiles = MZmineCore.getCurrentProject().getDataFiles();
+	RawDataFile[] openFiles = MZmineCore.getProjectManager()
+		.getCurrentProject().getDataFiles();
 	HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
 	for (RawDataFile file : visualizer.getRawDataFiles())
 	    visualizedFiles.add(file);

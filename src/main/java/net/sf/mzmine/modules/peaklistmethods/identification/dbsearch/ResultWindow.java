@@ -139,8 +139,8 @@ public class ResultWindow extends JFrame implements ActionListener {
 		    false);
 
 	    // Notify the GUI about the change in the project
-	    MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
-		    false);
+	    MZmineCore.getProjectManager().getCurrentProject()
+		    .notifyObjectChanged(peakListRow, false);
 
 	    // Repaint the window to reflect the change in the peak list
 	    MZmineCore.getDesktop().getMainWindow().repaint();

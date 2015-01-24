@@ -26,6 +26,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -56,8 +57,8 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 
     @Override
     @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
+    public ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 	final RawDataFile[] dataFiles = parameters.getParameter(
 		TICVisualizerParameters.DATA_FILES).getMatchingRawDataFiles();
 	final int msLevel = parameters.getParameter(
@@ -104,9 +105,9 @@ public class TICVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void setupNewTICVisualizer(final RawDataFile[] dataFiles) {
-
-	setupNewTICVisualizer(MZmineCore.getCurrentProject().getDataFiles(),
-		dataFiles, new Feature[0], new Feature[0], null, null, null);
+	setupNewTICVisualizer(MZmineCore.getProjectManager()
+		.getCurrentProject().getDataFiles(), dataFiles, new Feature[0],
+		new Feature[0], null, null, null);
     }
 
     public static void setupNewTICVisualizer(final RawDataFile[] allFiles,
@@ -149,7 +150,8 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 		p.setPeakLabelMap(peakLabels);
 	    }
 
-	    myInstance.runModule(p, new ArrayList<Task>());
+	    myInstance.runModule(MZmineCore.getProjectManager()
+		    .getCurrentProject(), p, new ArrayList<Task>());
 	}
     }
 
