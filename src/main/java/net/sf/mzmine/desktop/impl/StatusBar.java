@@ -166,8 +166,14 @@ public class StatusBar extends JPanel implements Runnable, MouseListener {
     }
 
     public void mouseClicked(MouseEvent arg0) {
-	logger.info("Running garbage collector");
-	System.gc();
+	// Run garbage collector on a new thread, so it does not block the GUI
+	new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		logger.info("Running garbage collector");
+		System.gc();
+	    }
+	}).start();
     }
 
 }
