@@ -30,7 +30,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class mzTabExportModule implements MZmineProcessingModule {
+public class MzTabExportModule implements MZmineProcessingModule {
 
     private static final String MODULE_NAME = "Export to mzTab file";
     private static final String MODULE_DESCRIPTION = "This method exports the peak list contents into a mzTab file.";
@@ -52,13 +52,13 @@ public class mzTabExportModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return mzTabExportParameters.class;
+	return MzTabExportParameters.class;
     }
 
     @Override
     public ExitCode runModule(@Nonnull MZmineProject project,
 	    ParameterSet parameters, Collection<Task> tasks) {
-	mzTabExportTask task = new mzTabExportTask(project, parameters);
+	MzTabExportTask task = new MzTabExportTask(project, parameters);
 	tasks.add(task);
 	return ExitCode.OK;
     }

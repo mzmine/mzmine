@@ -25,7 +25,7 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
-public class mzTabExportParameters extends SimpleParameterSet {
+public class MzTabExportParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakList = new PeakListsParameter(1,1);
 
@@ -38,7 +38,7 @@ public class mzTabExportParameters extends SimpleParameterSet {
     public static final BooleanParameter exportall = new BooleanParameter(
 	    "Include all peaks", "Includes peaks with unknown identity"); 
 
-    public mzTabExportParameters() {
+    public MzTabExportParameters() {
 	super(new Parameter[] { peakList, filename, exportall});
     }
 }

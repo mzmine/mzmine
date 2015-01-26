@@ -47,7 +47,7 @@ import uk.ac.ebi.pride.jmztab.model.SmallMolecule;
 import uk.ac.ebi.pride.jmztab.model.SmallMoleculeColumn;
 import uk.ac.ebi.pride.jmztab.model.StudyVariable;
 
-class mzTabExportTask extends AbstractTask {
+class MzTabExportTask extends AbstractTask {
 
     private int processedRows = 0, totalRows = 0;
 
@@ -57,14 +57,14 @@ class mzTabExportTask extends AbstractTask {
     private final PeakList peakList;
     private final boolean exportall;
 
-    mzTabExportTask(MZmineProject project, ParameterSet parameters) {
+    MzTabExportTask(MZmineProject project, ParameterSet parameters) {
 	this.project = project;
-	this.peakList = parameters.getParameter(mzTabExportParameters.peakList)
+	this.peakList = parameters.getParameter(MzTabExportParameters.peakList)
 		.getMatchingPeakLists()[0];
-	this.fileName = parameters.getParameter(mzTabExportParameters.filename)
+	this.fileName = parameters.getParameter(MzTabExportParameters.filename)
 		.getValue();
 	this.exportall = parameters.getParameter(
-		mzTabExportParameters.exportall).getValue();
+		MzTabExportParameters.exportall).getValue();
     }
 
     public double getFinishedPercentage() {
