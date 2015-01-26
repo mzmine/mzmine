@@ -33,29 +33,31 @@ import java.util.regex.Pattern;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataFileType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.TextUtils;
 
+import com.google.common.collect.Range;
+
 /**
- * This module binds to the XRawfile2.dll library from MSFileReader and reads
- * directly the contents of the Thermo RAW file. We use external utility
- * (ThermoRawDump.exe) to perform the binding to the XRawfile2.dll.
- * ThermoRawDump.exe is a 32-bit application running in separate process from
- * the JVM, therefore it can bind to the XRawfile2.dll (also 32-bit) even when
- * the JVM is running in 64-bit mode.
+ * This module binds spawns a separate process that dumps the native format's
+ * data in a text+binary form into its standard output. This class then reads
+ * the output of that process.
  */
-public class XcaliburRawFileReadTask extends AbstractTask {
+public class NativeFileReadTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private File file;
+    private RawDataFileType fileType;
     private MZmineProject project;
     private RawDataFileWriter newMZmineFile;
     private RawDataFile finalRawDataFile;
@@ -81,14 +83,19 @@ public class XcaliburRawFileReadTask extends AbstractTask {
     /*
      * These variables are used during parsing of the RAW dump.
      */
-    private int scanNumber = 0, msLevel = 0, precursorCharge = 0;
+    private int scanNumber = 0, msLevel = 0, precursorCharge = 0,
+	    numOfDataPoints;
+    private String scanId;
+    private Polarity polarity;
+    private Range<Double> mzRange;
     private double retentionTime = 0, precursorMZ = 0;
 
-    public XcaliburRawFileReadTask(MZmineProject project, File fileToOpen,
-	    RawDataFileWriter newMZmineFile) {
+    public NativeFileReadTask(MZmineProject project, File fileToOpen,
+	    RawDataFileType fileType, RawDataFileWriter newMZmineFile) {
 	parentStack = new LinkedList<SimpleScan>();
 	this.project = project;
 	this.file = fileToOpen;
+	this.fileType = fileType;
 	this.newMZmineFile = newMZmineFile;
     }
 
@@ -109,10 +116,23 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 
 	// Check the OS we are running
 	String osName = System.getProperty("os.name").toUpperCase();
+	String rawDumpPath;
+	switch (fileType) {
+	case THERMO_RAW:
+	    rawDumpPath = System.getProperty("user.dir") + File.separator
+		    + "lib" + File.separator + "vendor_lib" + File.separator
+		    + "thermo" + File.separator + "ThermoRawDump.exe";
+	    break;
+	case WATERS_RAW:
+	    rawDumpPath = System.getProperty("user.dir") + File.separator
+		    + "lib" + File.separator + "vendor_lib" + File.separator
+		    + "waters" + File.separator + "WatersRawDump.exe";
+	    break;
+	default:
+	    throw new IllegalArgumentException(
+		    "This module cannot open files of type " + fileType);
+	}
 
-	String rawDumpPath = System.getProperty("user.dir") + File.separator
-		+ "lib" + File.separator + "vendor_lib" + File.separator
-		+ "thermo" + File.separator + "ThermoRawDump.exe";
 	String cmdLine[];
 
 	if (osName.toUpperCase().contains("WINDOWS")) {
@@ -157,6 +177,8 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 
 	} catch (Throwable e) {
 
+	    e.printStackTrace();
+
 	    if (dumper != null)
 		dumper.destroy();
 
@@ -175,7 +197,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
     }
 
     public String getTaskDescription() {
-	return "Opening file" + file;
+	return "Opening file " + file;
     }
 
     /**
@@ -185,7 +207,9 @@ public class XcaliburRawFileReadTask extends AbstractTask {
     private void readRAWDump(InputStream dumpStream) throws IOException {
 
 	String line;
-	byte byteBuffer[] = new byte[1000000];
+	byte byteBuffer[] = new byte[100000];
+	double mzValuesBuffer[] = new double[10000];
+	double intensityValuesBuffer[] = new double[10000];
 
 	while ((line = TextUtils.readLineFromStream(dumpStream)) != null) {
 
@@ -207,31 +231,26 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 			.length()));
 	    }
 
-	    if (line.startsWith("SCAN FILTER: ")) {
+	    if (line.startsWith("SCAN ID: ")) {
+		scanId = line.substring("SCAN ID: ".length());
+	    }
 
-		/*
-		 * A typical filter line for MS/MS scan looks like this:
-		 * 
-		 * ITMS - c ESI d Full ms3 587.03@cid35.00 323.00@cid35.00
-		 */
-		Pattern p = Pattern.compile("ms(\\d).* (\\d+\\.\\d+)@");
-		Matcher m = p.matcher(line);
-		if (m.find()) {
-		    msLevel = Integer.parseInt(m.group(1));
+	    if (line.startsWith("MS LEVEL: ")) {
+		msLevel = Integer
+			.parseInt(line.substring("MS LEVEL: ".length()));
+	    }
 
-		    // Initially we obtain precursor m/z from this filter line,
-		    // even though the precision is not good. Later more precise
-		    // precursor m/z may be reported using PRECURSOR: line, but
-		    // sometimes it is missing (equal to 0)
-		    precursorMZ = Double.parseDouble(m.group(2));
-		} else {
-		    msLevel = 1;
-		}
-
+	    if (line.startsWith("POLARITY: ")) {
+		if (line.contains("-"))
+		    polarity = Polarity.NEGATIVE;
+		else if (line.contains("+"))
+		    polarity = Polarity.POSITIVE;
+		else
+		    polarity = Polarity.UNKNOWN;
 	    }
 
 	    if (line.startsWith("RETENTION TIME: ")) {
-		// Retention time in the RAW file is reported in minutes.
+		// Retention time is reported in minutes.
 		retentionTime = Double.parseDouble(line
 			.substring("RETENTION TIME: ".length()));
 	    }
@@ -246,33 +265,76 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 		}
 	    }
 
-	    if (line.startsWith("DATA POINTS: ")) {
+	    if (line.startsWith("MASS VALUES: ")) {
+		Pattern p = Pattern
+			.compile("MASS VALUES: (\\d+) x (\\d+) BYTES");
+		Matcher m = p.matcher(line);
+		if (!m.matches())
+		    throw new IOException("Could not parse line " + line);
+		numOfDataPoints = Integer.parseInt(m.group(1));
+		final int byteSize = Integer.parseInt(m.group(2));
 
-		int numOfDataPoints = Integer.parseInt(line
-			.substring("DATA POINTS: ".length()));
-
-		// 8 should be replaced with Double.BYTES in Java 1.8
-		int numOfBytes = numOfDataPoints * 8 * 2;
-
-		// Read the byte array which contains numOfDataPoints of little
-		// endian-encoded doubles for mz values, followed by
-		// numOfDataPoints of little endian-encoded doubles for
-		// intensity values
+		final int numOfBytes = numOfDataPoints * byteSize;
 		if (byteBuffer.length < numOfBytes)
 		    byteBuffer = new byte[numOfBytes * 2];
 		dumpStream.read(byteBuffer, 0, numOfBytes);
 
-		// Convert the bytes to DataPoint[] array
-		DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
 		ByteBuffer mzByteBuffer = ByteBuffer.wrap(byteBuffer, 0,
-			numOfBytes / 2).order(ByteOrder.LITTLE_ENDIAN);
-		ByteBuffer intensityByteBuffer = ByteBuffer.wrap(byteBuffer,
-			numOfBytes / 2, numOfBytes / 2).order(
-			ByteOrder.LITTLE_ENDIAN);
+			numOfBytes).order(ByteOrder.LITTLE_ENDIAN);
+		if (mzValuesBuffer.length < numOfDataPoints)
+		    mzValuesBuffer = new double[numOfDataPoints * 2];
+
 		for (int i = 0; i < numOfDataPoints; i++) {
-		    double mz = mzByteBuffer.getDouble();
-		    double intensity = intensityByteBuffer.getDouble();
-		    dataPoints[i] = new SimpleDataPoint(mz, intensity);
+		    double newValue;
+		    if (byteSize == 8)
+			newValue = mzByteBuffer.getDouble();
+		    else
+			newValue = mzByteBuffer.getFloat();
+		    mzValuesBuffer[i] = newValue;
+		}
+
+	    }
+
+	    if (line.startsWith("INTENSITY VALUES: ")) {
+		Pattern p = Pattern
+			.compile("INTENSITY VALUES: (\\d+) x (\\d+) BYTES");
+		Matcher m = p.matcher(line);
+		if (!m.matches())
+		    throw new IOException("Could not parse line " + line);
+		// numOfDataPoints must be same for MASS VALUES and INTENSITY
+		// VALUES
+		if (numOfDataPoints != Integer.parseInt(m.group(1))) {
+		    throw new IOException("Scan " + scanNumber + " contained "
+			    + numOfDataPoints + " mass values, but "
+			    + m.group(1) + " intensity values");
+		}
+		final int byteSize = Integer.parseInt(m.group(2));
+
+		final int numOfBytes = numOfDataPoints * byteSize;
+		if (byteBuffer.length < numOfBytes)
+		    byteBuffer = new byte[numOfBytes * 2];
+		dumpStream.read(byteBuffer, 0, numOfBytes);
+
+		ByteBuffer intensityByteBuffer = ByteBuffer.wrap(byteBuffer, 0,
+			numOfBytes).order(ByteOrder.LITTLE_ENDIAN);
+		if (intensityValuesBuffer.length < numOfDataPoints)
+		    intensityValuesBuffer = new double[numOfDataPoints * 2];
+		for (int i = 0; i < numOfDataPoints; i++) {
+		    double newValue;
+		    if (byteSize == 8)
+			newValue = intensityByteBuffer.getDouble();
+		    else
+			newValue = intensityByteBuffer.getFloat();
+		    intensityValuesBuffer[i] = newValue;
+		}
+
+		// INTENSITY VALUES was the last item of the scan, so now we can
+		// convert the data to DataPoint[] array and create a new scan
+
+		DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
+		for (int i = 0; i < numOfDataPoints; i++) {
+		    dataPoints[i] = new SimpleDataPoint(mzValuesBuffer[i],
+			    intensityValuesBuffer[i]);
 		}
 
 		// Auto-detect whether this scan is centroided
@@ -310,17 +372,22 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 
 		SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, parentScan, precursorMZ,
-			precursorCharge, null, dataPoints, spectrumType);
+			precursorCharge, null, dataPoints, spectrumType,
+			polarity, scanId, mzRange);
 
 		parentStack.add(newScan);
 		parsedScans++;
 
 		// Clean the variables for next scan
 		scanNumber = 0;
+		scanId = null;
+		polarity = null;
+		mzRange = null;
 		msLevel = 0;
 		retentionTime = 0;
 		precursorMZ = 0;
 		precursorCharge = 0;
+		numOfDataPoints = 0;
 
 	    }
 

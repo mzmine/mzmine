@@ -53,6 +53,9 @@ public class SimpleScan implements Scan {
     private DataPoint basePeak;
     private double totalIonCurrent;
     private MassSpectrumType spectrumType;
+    private Polarity polarity;
+    private String scanDefinition;
+    private Range<Double> scanMZRange;
 
     /**
      * Clone constructor
@@ -62,7 +65,8 @@ public class SimpleScan implements Scan {
 		.getRetentionTime(), sc.getParentScanNumber(), sc
 		.getPrecursorMZ(), sc.getPrecursorCharge(), sc
 		.getFragmentScanNumbers(), sc.getDataPoints(), sc
-		.getSpectrumType());
+		.getSpectrumType(), sc.getPolarity(), sc.getScanDefinition(),
+		sc.getScaningMZRange());
     }
 
     /**
@@ -71,7 +75,8 @@ public class SimpleScan implements Scan {
     public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel,
 	    double retentionTime, int parentScan, double precursorMZ,
 	    int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
-	    MassSpectrumType spectrumType) {
+	    MassSpectrumType spectrumType, Polarity polarity,
+	    String scanDefinition, Range<Double> scanMZRange) {
 
 	// save scan data
 	this.dataFile = dataFile;
@@ -83,6 +88,9 @@ public class SimpleScan implements Scan {
 	this.fragmentScans = fragmentScans;
 	this.spectrumType = spectrumType;
 	this.precursorCharge = precursorCharge;
+	this.polarity = polarity;
+	this.scanDefinition = scanDefinition;
+	this.scanMZRange = scanMZRange;
 
 	if (dataPoints != null)
 	    setDataPoints(dataPoints);
@@ -256,7 +264,7 @@ public class SimpleScan implements Scan {
     /**
      * @see net.sf.mzmine.datamodel.Scan#getMZRangeMax()
      */
-    public @Nonnull Range<Double> getMZRange() {
+    public @Nonnull Range<Double> getDataPointMZRange() {
 	return mzRange;
     }
 
@@ -341,7 +349,6 @@ public class SimpleScan implements Scan {
 
     @Override
     public synchronized void removeMassList(@Nonnull MassList massList) {
-
 	throw new UnsupportedOperationException();
     }
 
@@ -357,6 +364,22 @@ public class SimpleScan implements Scan {
 
     @Override
     public Polarity getPolarity() {
-	return Polarity.UNKNOWN;
+	if (polarity == null)
+	    polarity = Polarity.UNKNOWN;
+	return polarity;
+    }
+
+    @Override
+    public String getScanDefinition() {
+	if (scanDefinition == null)
+	    scanDefinition = "";
+	return scanDefinition;
+    }
+
+    @Override
+    public Range<Double> getScaningMZRange() {
+	if (scanMZRange == null)
+	    scanMZRange = getDataPointMZRange();
+	return scanMZRange;
     }
 }

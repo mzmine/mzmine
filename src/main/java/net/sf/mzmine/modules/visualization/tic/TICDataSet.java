@@ -355,7 +355,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	    final Scan scan = dataFile.getScan(scanNumbers[index]);
 
 	    // Determine base peak value.
-	    final DataPoint basePeak = mzRange.encloses(scan.getMZRange()) ? scan
+	    final DataPoint basePeak = mzRange.encloses(scan.getDataPointMZRange()) ? scan
 		    .getHighestDataPoint() : ScanUtils.findBasePeak(scan,
 		    mzRange);
 	    if (basePeak != null) {
@@ -368,7 +368,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	    if (plotType == PlotType.TIC) {
 
 		// Total ion count.
-		intensity = mzRange.encloses(scan.getMZRange()) ? scan.getTIC()
+		intensity = mzRange.encloses(scan.getDataPointMZRange()) ? scan.getTIC()
 			: ScanUtils.calculateTIC(scan, mzRange);
 
 	    } else if (plotType == PlotType.BASEPEAK && basePeak != null) {

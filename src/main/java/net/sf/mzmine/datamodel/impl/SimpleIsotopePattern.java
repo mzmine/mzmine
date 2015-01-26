@@ -82,7 +82,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
 
     @Override
     @Nonnull
-    public Range<Double> getMZRange() {
+    public Range<Double> getDataPointMZRange() {
 	return mzRange;
     }
 

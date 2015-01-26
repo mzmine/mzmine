@@ -24,15 +24,17 @@ package net.sf.mzmine.datamodel;
  */
 public enum Polarity {
 
-    POSITIVE(+1), //
-    NEGATIVE(-1), //
-    NEUTRAL(0), //
-    UNKNOWN(0);
+    POSITIVE(+1, "+"), //
+    NEGATIVE(-1, "-"), //
+    NEUTRAL(0, "n"), //
+    UNKNOWN(0, "?");
 
     private final int sign;
+    private final String stringValue;
 
-    Polarity(int sign) {
+    Polarity(int sign, String stringValue) {
 	this.sign = sign;
+	this.stringValue = stringValue;
     }
 
     /**
@@ -41,5 +43,18 @@ public enum Polarity {
      */
     public int getSign() {
 	return sign;
+    }
+
+    @Override
+    public String toString() {
+	return stringValue;
+    }
+
+    public static Polarity fromString(String s) {
+	for (Polarity p : values()) {
+	    if (p.toString().equals(s))
+		return p;
+	}
+	return UNKNOWN;
     }
 }

@@ -24,6 +24,7 @@ import java.util.Scanner;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -112,7 +113,8 @@ public class AgilentCsvReadTask extends AbstractTask {
 		}
 		newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1,
 			msLevel, retentionTime, -1, 0.0, charge, null,
-			dataPoints, ScanUtils.detectSpectrumType(dataPoints)));
+			dataPoints, ScanUtils.detectSpectrumType(dataPoints),
+			Polarity.UNKNOWN, "", null));
 
 		scanner.nextLine();
 	    }

@@ -28,7 +28,8 @@ enum RawDataElementName {
 	    "precursor_charge"), RETENTION_TIME("rt"), CENTROIDED("centroid"), QUANTITY_DATAPOINTS(
 	    "num_dp"), MASS_LIST("mass_list"), STORED_DATAPOINTS(
 	    "stored_datapoints"), STORED_DATA("stored_data"), STORAGE_ID(
-	    "storage_id");
+	    "storage_id"), POLARITY("polarity"), SCAN_DESCRIPTION(
+	    "scan_description"), SCAN_MZ_RANGE("scan_mz_range");
 
     private String elementName;
 

@@ -34,6 +34,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
@@ -45,6 +46,8 @@ import net.sf.mzmine.util.StreamCopy;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import com.google.common.collect.Range;
 
 public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	RawDataFileOpenHandler {
@@ -73,6 +76,9 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
     private TreeMap<Integer, Integer> dataPointsLengths;
     private StreamCopy copyMachine;
     private ArrayList<StorableMassList> massLists;
+    private Polarity polarity = Polarity.UNKNOWN;
+    private String scanDescription = "";
+    private Range<Double> scanMZRange = null;
 
     private boolean canceled = false;
 
@@ -247,8 +253,24 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	    parentScan = Integer.parseInt(getTextOfElement());
 	}
 
-	if (qName.equals(RawDataElementName_2_5.PRECURSOR_MZ.getElementName())) {
-	    precursorMZ = Double.parseDouble(getTextOfElement());
+	if (qName.equals(RawDataElementName_2_5.PARENT_SCAN.getElementName())) {
+	    parentScan = Integer.parseInt(getTextOfElement());
+	}
+
+	if (qName.equals(RawDataElementName_2_5.POLARITY.getElementName())) {
+	    polarity = Polarity.fromString(getTextOfElement());
+	}
+
+	if (qName.equals(RawDataElementName_2_5.SCAN_DESCRIPTION
+		.getElementName())) {
+	    scanDescription = getTextOfElement();
+	}
+
+	if (qName.equals(RawDataElementName_2_5.SCAN_MZ_RANGE.getElementName())) {
+	    String rangeItems[] = getTextOfElement().split("-");
+	    double low = Double.parseDouble(rangeItems[0]);
+	    double high = Double.parseDouble(rangeItems[1]);
+	    scanMZRange = Range.closed(low, high);
 	}
 
 	if (qName.equals(RawDataElementName_2_5.PRECURSOR_CHARGE
@@ -286,7 +308,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	    StorableScan storableScan = new StorableScan(newRawDataFile,
 		    currentStorageID, dataPointsNumber, scanNumber, msLevel,
 		    retentionTime, parentScan, precursorMZ, precursorCharge,
-		    fragmentScan, spectrumType);
+		    fragmentScan, spectrumType, polarity, scanDescription,
+		    scanMZRange);
 
 	    try {
 		newRawDataFile.addScan(storableScan);
@@ -298,7 +321,22 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 		newML.setScan(storableScan);
 		storableScan.addMassList(newML);
 	    }
+	    
+	    // Cleanup
 	    massLists.clear();
+	    currentStorageID = -1;
+	    dataPointsNumber = -1;
+	    scanNumber = -1;
+	    msLevel = -1;
+	    retentionTime = -1;
+	    parentScan= -1;
+	    precursorMZ = -1;
+	    precursorCharge = -1;
+	    fragmentScan = null;
+	    spectrumType = null;
+	    polarity = Polarity.UNKNOWN;
+	    scanDescription = "";
+	    scanMZRange = null;
 
 	}
     }

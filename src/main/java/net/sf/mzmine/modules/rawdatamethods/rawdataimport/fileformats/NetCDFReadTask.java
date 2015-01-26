@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
@@ -215,9 +216,8 @@ public class NetCDFReadTask extends AbstractTask {
 	// This defines the end index of the last scan
 	scanStartPositions[totalScans] = (int) massValueVariable.getSize();
 
-	// Read retention times
+	// Start scan RT
 	double[] retentionTimes = new double[totalScans];
-
 	Variable scanTimeVariable = inputFile
 		.findVariable("scan_acquisition_time");
 	if (scanTimeVariable == null) {
@@ -236,7 +236,6 @@ public class NetCDFReadTask extends AbstractTask {
 		    "Could not read from variable scan_acquisition_time from file "
 			    + file));
 	}
-
 	IndexIterator scanTimeIterator = scanTimeArray.getIndexIterator();
 	ind = 0;
 	while (scanTimeIterator.hasNext()) {
@@ -248,7 +247,9 @@ public class NetCDFReadTask extends AbstractTask {
 	    }
 	    ind++;
 	}
+	// End scan RT
 
+	// Cleanup
 	scanTimeIterator = null;
 	scanTimeArray = null;
 	scanTimeVariable = null;
@@ -401,12 +402,13 @@ public class NetCDFReadTask extends AbstractTask {
 		    + scanNum));
 	}
 
-	// An empty scan needs some special attention..
+	// An empty scan needs special attention..
 	if (scanLength[0] == 0) {
 	    scanNum++;
 	    return new SimpleScan(null, scanNum, 1,
 		    retentionTime.doubleValue(), -1, 0, 0, null,
-		    new DataPoint[0], null);
+		    new DataPoint[0], MassSpectrumType.CENTROIDED,
+		    Polarity.UNKNOWN, "", null);
 	}
 
 	// Read mass and intensity values
@@ -453,7 +455,7 @@ public class NetCDFReadTask extends AbstractTask {
 
 	SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
 		retentionTime.doubleValue(), -1, 0, 0, null, dataPoints,
-		spectrumType);
+		spectrumType, Polarity.UNKNOWN, "", null);
 
 	return buildingScan;
 

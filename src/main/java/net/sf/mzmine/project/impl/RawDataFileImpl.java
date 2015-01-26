@@ -440,9 +440,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		continue;
 
 	    if (mzRange == null)
-		mzRange = scan.getMZRange();
+		mzRange = scan.getDataPointMZRange();
 	    else
-		mzRange = mzRange.span(scan.getMZRange());
+		mzRange = mzRange.span(scan.getDataPointMZRange());
 
 	}
 

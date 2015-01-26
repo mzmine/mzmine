@@ -20,8 +20,9 @@
 package net.sf.mzmine.modules.rawdatamethods.rawdataimport;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,8 +38,8 @@ import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.AgilentCsv
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzDataReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzMLReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzXMLReadTask;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NativeFileReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NetCDFReadTask;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.XcaliburRawFileReadTask;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -52,6 +53,15 @@ public class RawDataImportModule implements MZmineProcessingModule {
 
     private static final String MODULE_NAME = "Raw data import";
     private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
+
+    private static final String CDF_HEADER = "CDF";
+    private static final String XML_HEADER = "<?xml";
+    private static final String MZML_HEADER = "<mzML";
+    private static final String MZXML_HEADER = "<mzXML";
+    private static final String MZDATA_HEADER = "<mzData";
+    private static final String THERMO_HEADER = String.valueOf(new char[] {
+	    0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0,
+	    'n', 0 });
 
     @Override
     public @Nonnull String getName() {
@@ -94,62 +104,44 @@ public class RawDataImportModule implements MZmineProcessingModule {
 		return ExitCode.ERROR;
 	    }
 
-	    String extension = fileNames[i].getName()
-		    .substring(fileNames[i].getName().lastIndexOf(".") + 1)
-		    .toLowerCase();
 	    Task newTask = null;
 
-	    if (extension.endsWith("mzdata")) {
+	    RawDataFileType fileType = detectDataFileType(fileNames[i]);
+	    logger.finest("File " + fileNames[i] + " type detected as "
+		    + fileType);
+
+	    if (fileType == null) {
+		MZmineCore.getDesktop().displayErrorMessage(
+			MZmineCore.getDesktop().getMainWindow(),
+			"Could not determine the file type of file "
+				+ fileNames[i]);
+		continue;
+	    }
+
+	    switch (fileType) {
+	    case MZDATA:
 		newTask = new MzDataReadTask(project, fileNames[i],
 			newMZmineFile);
-	    }
-	    if (extension.endsWith("mzxml")) {
+		break;
+	    case MZML:
+		newTask = new MzMLReadTask(project, fileNames[i], newMZmineFile);
+		break;
+	    case MZXML:
 		newTask = new MzXMLReadTask(project, fileNames[i],
 			newMZmineFile);
-	    }
-	    if (extension.endsWith("mzml")) {
-		newTask = new MzMLReadTask(project, fileNames[i], newMZmineFile);
-	    }
-	    if (extension.endsWith("cdf")) {
+		break;
+	    case NETCDF:
 		newTask = new NetCDFReadTask(project, fileNames[i],
 			newMZmineFile);
-	    }
-	    if (extension.endsWith("raw")) {
-		newTask = new XcaliburRawFileReadTask(project, fileNames[i],
-			newMZmineFile);
-	    }
-	    if (extension.endsWith("xml")) {
-
-		try {
-		    // Check the first 512 bytes of the file, to determine the
-		    // file type
-		    FileReader reader = new FileReader(fileNames[i]);
-		    char buffer[] = new char[512];
-		    reader.read(buffer);
-		    reader.close();
-		    String fileHeader = new String(buffer);
-		    if (fileHeader.contains("mzXML")) {
-			newTask = new MzXMLReadTask(project, fileNames[i],
-				newMZmineFile);
-		    }
-		    if (fileHeader.contains("mzData")) {
-			newTask = new MzDataReadTask(project, fileNames[i],
-				newMZmineFile);
-		    }
-		    if (fileHeader.contains("mzML")) {
-			newTask = new MzMLReadTask(project, fileNames[i],
-				newMZmineFile);
-		    }
-		} catch (Exception e) {
-		    logger.warning("Cannot read file " + fileNames[i] + ": "
-			    + e);
-		    return ExitCode.ERROR;
-		}
-	    }
-
-	    if (extension.endsWith("csv")) {
+		break;
+	    case AGILENT_CSV:
 		newTask = new AgilentCsvReadTask(project, fileNames[i],
 			newMZmineFile);
+		break;
+	    case THERMO_RAW:
+	    case WATERS_RAW:
+		newTask = new NativeFileReadTask(project, fileNames[i],
+			fileType, newMZmineFile);
 	    }
 
 	    if (newTask == null) {
@@ -163,6 +155,55 @@ public class RawDataImportModule implements MZmineProcessingModule {
 	}
 
 	return ExitCode.OK;
+    }
+
+    private RawDataFileType detectDataFileType(File fileName) {
+
+	if (fileName.isDirectory()) {
+	    // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
+	    for (File f : fileName.listFiles()) {
+		if (f.isFile() && f.getName().matches("_FUNC[0-9]{3}.DAT"))
+		    return RawDataFileType.WATERS_RAW;
+	    }
+	    // We don't recognize any other directory type than Waters
+	    return null;
+	}
+
+	if (fileName.getName().toLowerCase().endsWith(".csv")) {
+	    return RawDataFileType.AGILENT_CSV;
+	}
+
+	try {
+	    InputStreamReader reader = new InputStreamReader(
+		    new FileInputStream(fileName), "ISO-8859-1");
+	    char buffer[] = new char[512];
+	    reader.read(buffer);
+	    reader.close();
+	    String fileHeader = new String(buffer);
+
+	    if (fileHeader.startsWith(THERMO_HEADER)) {
+		return RawDataFileType.THERMO_RAW;
+	    }
+
+	    if (fileHeader.startsWith(CDF_HEADER)) {
+		return RawDataFileType.NETCDF;
+	    }
+
+	    if (fileHeader.trim().startsWith(XML_HEADER)) {
+		if (fileHeader.contains(MZML_HEADER))
+		    return RawDataFileType.MZML;
+		if (fileHeader.contains(MZDATA_HEADER))
+		    return RawDataFileType.MZDATA;
+		if (fileHeader.contains(MZXML_HEADER))
+		    return RawDataFileType.MZXML;
+	    }
+
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+
+	return null;
+
     }
 
     @Override

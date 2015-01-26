@@ -32,6 +32,7 @@ import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -309,7 +310,8 @@ public class MzDataReadTask extends AbstractTask {
 
 		buildingScan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, parentScan, precursorMz,
-			precursorCharge, null, dataPoints, spectrumType);
+			precursorCharge, null, dataPoints, spectrumType,
+			Polarity.UNKNOWN, "", null);
 
 		/*
 		 * Update of fragmentScanNumbers of each Scan in the parentStack

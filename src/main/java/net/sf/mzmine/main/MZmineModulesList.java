@@ -48,7 +48,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchMod
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.mzTabExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
@@ -128,7 +128,7 @@ public class MZmineModulesList {
 	    // I/O
 	    CSVExportModule.class,
 	    MetaboAnalystExportModule.class,
-	    mzTabExportModule.class,
+	    MzTabExportModule.class,
 	    SQLExportModule.class,
 	    XMLExportModule.class,
 	    CasmiImportModule.class,

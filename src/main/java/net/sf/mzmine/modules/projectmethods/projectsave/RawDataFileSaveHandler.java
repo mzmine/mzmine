@@ -44,6 +44,8 @@ import net.sf.mzmine.project.impl.StorableScan;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
+import com.google.common.collect.Range;
+
 class RawDataFileSaveHandler {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -337,8 +339,32 @@ class RawDataFileSaveHandler {
 		    RawDataElementName.MASS_LIST.getElementName(), atts);
 	    atts.clear();
 	    hd.endElement("", "", RawDataElementName.MASS_LIST.getElementName());
-
 	}
+
+	// <POLARITY>
+	hd.startElement("", "", RawDataElementName.POLARITY.getElementName(),
+		atts);
+	String pol = scan.getPolarity().toString();
+	hd.characters(pol.toCharArray(), 0, pol.length());
+	hd.endElement("", "", RawDataElementName.POLARITY.getElementName());
+
+	// <SCAN_DESCRIPTION>
+	hd.startElement("", "",
+		RawDataElementName.SCAN_DESCRIPTION.getElementName(), atts);
+	String scanDesc = scan.getScanDefinition();
+	hd.characters(scanDesc.toCharArray(), 0, scanDesc.length());
+	hd.endElement("", "",
+		RawDataElementName.SCAN_DESCRIPTION.getElementName());
+	
+	// <SCAN_MZ_RANGE>
+	hd.startElement("", "",
+		RawDataElementName.SCAN_MZ_RANGE.getElementName(), atts);
+	Range<Double> mzRange = scan.getScaningMZRange();
+	String mzRangeStr = mzRange.lowerEndpoint() + "-" + mzRange.upperEndpoint();
+	hd.characters(mzRangeStr.toCharArray(), 0, mzRangeStr.length());
+	hd.endElement("", "",
+		RawDataElementName.SCAN_MZ_RANGE.getElementName());
+
     }
 
     /**

@@ -39,7 +39,7 @@ public class CropFilter implements ScanFilter {
 	// Check if whole m/z range is within cropping region or
 	// scan is a fragmentation scan. In such case we copy the
 	// scan unmodified.
-	if ((scan.getMSLevel() > 1) || (mzRange.encloses(scan.getMZRange()))) {
+	if ((scan.getMSLevel() > 1) || (mzRange.encloses(scan.getDataPointMZRange()))) {
 	    return scan;
 	}
 

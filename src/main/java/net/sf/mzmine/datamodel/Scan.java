@@ -22,6 +22,8 @@ package net.sf.mzmine.datamodel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import com.google.common.collect.Range;
+
 /**
  * This class represent one spectrum of a raw data file.
  */
@@ -42,6 +44,12 @@ public interface Scan extends MassSpectrum {
 
     /**
      * 
+     * @return Instrument-specific scan definition as String
+     */
+    public String getScanDefinition();
+
+    /**
+     * 
      * @return MS level
      */
     public int getMSLevel();
@@ -52,8 +60,11 @@ public interface Scan extends MassSpectrum {
      */
     public double getRetentionTime();
 
-    // TODO: public Range getScanRange(); return the actual scanning range of
-    // the instrument
+    /**
+     * 
+     * @return The actual scanning range of the instrument
+     */
+    public @Nonnull Range<Double> getScaningMZRange();
 
     /**
      * 

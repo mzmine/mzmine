@@ -37,7 +37,23 @@
  * 4) We use Console.Write and add \n (UNIX-style end of line) in the end, which 
  * is what the MZmine import module expects. If we use Console.WriteLine, it would
  * add \r\n (Windows-style end of line).
- * 
+
+ NUMBER OF SCANS: int
+ SCAN NUMBER: int
+ SCAN ID: string
+ POLARITY: char
+ MS LEVEL: int
+ RETENTION TIME: double
+ MZ RANGE: double - double
+ PRECURSOR: double int
+ MASS VALUES: int x int BYTES
+ INTENSITY VALUES: int x int BYTES
+
+ notes: 
+ RT is in minutes
+ polarity is + or - or ?
+ precursor corresponds to m/z and charge (0 if unknown)
+ 
  */
 
 using System;
@@ -71,11 +87,13 @@ namespace ThermoRawDump
             }
 
             // Open the raw file
-            MSFileReader_XRawfile rawFile = new MSFileReader_XRawfile();
+            IXRawfile4 rawFile = (IXRawfile4)new MSFileReader_XRawfile();
             rawFile.Open(filename);
 
-            // Look for data that belong to the first mass spectra device in the file
-            rawFile.SetCurrentController(0, 1);
+            // Set the controller number, otherwise no data can be accessed
+            int nControllerType = 0; // 0 == mass spec device
+            int nContorllerNumber = 1; // first MS device
+            rawFile.SetCurrentController(nControllerType, nContorllerNumber);
 
             // Number of scans
             int totalNumScans = 0;
@@ -105,7 +123,21 @@ namespace ThermoRawDump
                     Console.Write("ERROR: Could not extract scan filter line for scan #" + curScanNum + "\n");
                     Environment.Exit(1);
                 }
-                Console.Write("SCAN FILTER: " + scanFilter + "\n");
+                Console.Write("SCAN ID: " + scanFilter + "\n");
+
+                // Polarity
+                char polarity;
+                if (scanFilter.Contains("-")) polarity = '-';
+                else if (scanFilter.Contains("+")) polarity = '+';
+                else polarity = '?';
+                Console.Write("POLARITY: " + polarity + "\n");
+
+                // MS level
+                int msLevel = -1;
+                rawFile.GetMSOrderForScanNum(curScanNum, ref msLevel);
+                if (msLevel < -1) msLevel = 2; // e.g., neutral gain scan returns -3, see MSFileReader doc
+                if (msLevel < 1) msLevel = 1; // e.g., parent scan scan returns -1, see MSFileReader doc
+                Console.Write("MS LEVEL: " + msLevel + "\n");
 
                 int numDataPoints = -1; // points in both the m/z and intensity arrays
                 double retentionTimeInMinutes = -1;
@@ -133,12 +165,18 @@ namespace ThermoRawDump
                 // Retention time
                 Console.Write("RETENTION TIME: " + retentionTimeInMinutes + "\n");
 
+                // m/z range
+                Console.Write("MZ RANGE: " + minObservedMZ + " - " + maxObservedMZ + "\n");
+
                 // Precursor
-                object precursorMz = null;
-                object precursorCharge = null;
-                rawFile.GetTrailerExtraValueForScanNum(curScanNum, "Monoisotopic M/Z:", ref precursorMz);
-                rawFile.GetTrailerExtraValueForScanNum(curScanNum, "Charge State:", ref precursorCharge);
-                Console.Write("PRECURSOR: " + precursorMz + " " + precursorCharge + "\n");
+                if (msLevel > 1)
+                {
+                    object precursorMz = null;
+                    object precursorCharge = null;
+                    rawFile.GetTrailerExtraValueForScanNum(curScanNum, "Monoisotopic M/Z:", ref precursorMz);
+                    rawFile.GetTrailerExtraValueForScanNum(curScanNum, "Charge State:", ref precursorCharge);
+                    Console.Write("PRECURSOR: " + precursorMz + " " + precursorCharge + "\n");
+                }
 
                 // Scan raw data points
                 int arraySize = -1;
@@ -165,12 +203,13 @@ namespace ThermoRawDump
                                                 ref arraySize);        // array size
 
                 // Print data points
-                Console.Write("DATA POINTS: " + arraySize + "\n");
+                Console.Write("MASS VALUES: " + arraySize + " x " + sizeof(double) + " BYTES\n");
+
 
                 // Calculate the byte size of rawData.
                 // rawData contains arraySize of doubles for mz values,
                 // followed by arraySize of doubles for intensity values
-                int numOfBytes = sizeof(double) * arraySize * 2;
+                int numOfBytes = sizeof(double) * arraySize;
 
                 // Make sure our buffer is big enough
                 if (byteBuffer.Length < numOfBytes)
@@ -179,6 +218,13 @@ namespace ThermoRawDump
                 // Dump the binary data
                 Buffer.BlockCopy((Array)rawData, 0, byteBuffer, 0, numOfBytes);
                 stdout.Write(byteBuffer, 0, numOfBytes);
+
+                Console.Write("INTENSITY VALUES: " + arraySize + " x " + sizeof(double) + " BYTES\n");
+
+                // Dump the binary data
+                Buffer.BlockCopy((Array)rawData, numOfBytes, byteBuffer, 0, numOfBytes);
+                stdout.Write(byteBuffer, 0, numOfBytes);
+
 
             }
 

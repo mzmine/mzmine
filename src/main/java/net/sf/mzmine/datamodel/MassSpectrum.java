@@ -35,7 +35,7 @@ public interface MassSpectrum {
      * @return m/z range of this Scan
      */
     @Nonnull
-    public Range<Double> getMZRange();
+    public Range<Double> getDataPointMZRange();
 
     /**
      * Returns the top intensity data point. May return null if there are no

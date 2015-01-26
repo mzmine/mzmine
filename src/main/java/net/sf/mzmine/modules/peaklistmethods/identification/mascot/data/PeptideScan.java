@@ -249,7 +249,7 @@ public class PeptideScan implements Scan {
     /**
      * @see net.sf.mzmine.datamodel.Scan#getMZRangeMax()
      */
-    public @Nonnull Range<Double> getMZRange() {
+    public @Nonnull Range<Double> getDataPointMZRange() {
 	return mzRange;
     }
 
@@ -418,6 +418,18 @@ public class PeptideScan implements Scan {
 
     @Override
     public @Nonnull Polarity getPolarity() {
+	// TODO Auto-generated method stub
+	return null;
+    }
+
+    @Override
+    public String getScanDefinition() {
+	// TODO Auto-generated method stub
+	return null;
+    }
+
+    @Override
+    public Range<Double> getScaningMZRange() {
 	// TODO Auto-generated method stub
 	return null;
     }

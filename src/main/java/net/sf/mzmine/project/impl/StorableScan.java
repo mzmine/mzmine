@@ -59,6 +59,10 @@ public class StorableScan implements Scan {
     private int numberOfDataPoints;
     private RawDataFileImpl rawDataFile;
     private ArrayList<MassList> massLists = new ArrayList<MassList>();
+    private Polarity polarity;
+    private String scanDefinition;
+    private Range<Double> scanMZRange;
+
     private int storageID;
 
     /**
@@ -80,9 +84,12 @@ public class StorableScan implements Scan {
 	this.precursorCharge = originalScan.getPrecursorCharge();
 	this.fragmentScans = originalScan.getFragmentScanNumbers();
 	this.spectrumType = originalScan.getSpectrumType();
-	this.mzRange = originalScan.getMZRange();
+	this.mzRange = originalScan.getDataPointMZRange();
 	this.basePeak = originalScan.getHighestDataPoint();
 	this.totalIonCurrent = originalScan.getTIC();
+	this.polarity = originalScan.getPolarity();
+	this.scanDefinition = originalScan.getScanDefinition();
+	this.scanMZRange = originalScan.getScaningMZRange();
 
     }
 
@@ -90,7 +97,8 @@ public class StorableScan implements Scan {
 	    int numberOfDataPoints, int scanNumber, int msLevel,
 	    double retentionTime, int parentScan, double precursorMZ,
 	    int precursorCharge, int fragmentScans[],
-	    MassSpectrumType spectrumType) {
+	    MassSpectrumType spectrumType, Polarity polarity,
+	    String scanDefinition, Range<Double> scanMZRange) {
 
 	this.rawDataFile = rawDataFile;
 	this.numberOfDataPoints = numberOfDataPoints;
@@ -104,6 +112,9 @@ public class StorableScan implements Scan {
 	this.precursorCharge = precursorCharge;
 	this.fragmentScans = fragmentScans;
 	this.spectrumType = spectrumType;
+	this.polarity = polarity;
+	this.scanDefinition = scanDefinition;
+	this.scanMZRange = scanMZRange;
     }
 
     /**
@@ -253,7 +264,7 @@ public class StorableScan implements Scan {
     /**
      * @see net.sf.mzmine.datamodel.Scan#getMZRangeMax()
      */
-    public @Nonnull Range<Double> getMZRange() {
+    public @Nonnull Range<Double> getDataPointMZRange() {
 	if (mzRange == null)
 	    updateValues();
 	return mzRange;
@@ -419,9 +430,24 @@ public class StorableScan implements Scan {
     }
 
     @Override
-    public @Nonnull Polarity getPolarity() {
-	// TODO
-	return Polarity.UNKNOWN;
+    public Polarity getPolarity() {
+	if (polarity == null)
+	    polarity = Polarity.UNKNOWN;
+	return polarity;
+    }
+
+    @Override
+    public String getScanDefinition() {
+	if (scanDefinition == null)
+	    scanDefinition = "";
+	return scanDefinition;
+    }
+
+    @Override
+    public Range<Double> getScaningMZRange() {
+	if (scanMZRange == null)
+	    scanMZRange = getDataPointMZRange();
+	return scanMZRange;
     }
 
 }

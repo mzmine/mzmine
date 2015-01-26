@@ -39,7 +39,8 @@ public class RawDataImportParameters extends SimpleParameterSet {
 	    new FileNameExtensionFilter("NetCDF files", "cdf", "nc"),
 	    new FileNameExtensionFilter("mzData files", "mzData"),
 	    new FileNameExtensionFilter("mzML files", "mzML"),
-	    new FileNameExtensionFilter("XCalibur RAW files", "raw"),
+	    new FileNameExtensionFilter("Thermo RAW files", "raw"),
+	    new FileNameExtensionFilter("Waters RAW folders", "raw"),
 	    new FileNameExtensionFilter("mzXML files", "mzXML"),
 	    new FileNameExtensionFilter("Agilent CSV files", "csv") };
 
@@ -53,6 +54,10 @@ public class RawDataImportParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
 	JFileChooser chooser = new JFileChooser();
+
+	// We need to allow directories, because Waters raw data come in
+	// directories, not files
+	chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
 	for (FileFilter filter : filters)
 	    chooser.setFileFilter(filter);
