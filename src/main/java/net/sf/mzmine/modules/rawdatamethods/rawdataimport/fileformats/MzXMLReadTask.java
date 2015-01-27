@@ -158,7 +158,7 @@ public class MzXMLReadTask extends AbstractTask {
     }
 
     public String getTaskDescription() {
-	return "Opening file" + file;
+	return "Opening file " + file;
     }
 
     private class MzXMLHandler extends DefaultHandler {

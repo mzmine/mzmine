@@ -469,7 +469,7 @@ public class MzMLReadTask extends AbstractTask {
     }
 
     public String getTaskDescription() {
-	return "Opening file" + file;
+	return "Opening file " + file;
     }
 
 }

@@ -134,7 +134,7 @@ public class NetCDFReadTask extends AbstractTask {
     }
 
     public String getTaskDescription() {
-	return "Opening file" + file;
+	return "Opening file " + file;
     }
 
     public void startReading() throws IOException {

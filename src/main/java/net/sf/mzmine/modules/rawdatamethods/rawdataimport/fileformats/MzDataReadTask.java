@@ -162,7 +162,7 @@ public class MzDataReadTask extends AbstractTask {
     }
 
     public String getTaskDescription() {
-	return "Opening file" + file;
+	return "Opening file " + file;
     }
 
     private class MzDataHandler extends DefaultHandler {

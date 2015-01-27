@@ -161,7 +161,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 
     @Override
     public String getTaskDescription() {
-	return "Opening file" + file;
+	return "Opening file " + file;
     }
 
 }
