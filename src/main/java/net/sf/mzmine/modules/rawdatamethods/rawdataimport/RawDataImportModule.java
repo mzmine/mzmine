@@ -54,11 +54,30 @@ public class RawDataImportModule implements MZmineProcessingModule {
     private static final String MODULE_NAME = "Raw data import";
     private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
 
+    /*
+     * See
+     * "http://www.unidata.ucar.edu/software/netcdf/docs/netcdf/File-Format-Specification.html"
+     */
     private static final String CDF_HEADER = "CDF";
-    private static final String XML_HEADER = "<?xml";
+
+    /*
+     * mzML files with index start with <indexedmzML><mzML>tags, but files with
+     * no index contain only the <mzML> tag. See
+     * "http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/schema/mzML1.1.0.xsd"
+     */
     private static final String MZML_HEADER = "<mzML";
-    private static final String MZXML_HEADER = "<mzXML";
+
+    /*
+     * mzXML files with index start with <mzXML><msRun> tags, but files with no
+     * index contain only the <msRun> tag. See
+     * "http://sashimi.sourceforge.net/schema_revision/mzXML_3.2/mzXML_3.2.xsd"
+     */
+    private static final String MZXML_HEADER = "<msRun";
+
+    // See "http://www.psidev.info/sites/default/files/mzdata.xsd.txt"
     private static final String MZDATA_HEADER = "<mzData";
+
+    // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
     private static final String THERMO_HEADER = String.valueOf(new char[] {
 	    0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0,
 	    'n', 0 });
@@ -174,9 +193,11 @@ public class RawDataImportModule implements MZmineProcessingModule {
 	}
 
 	try {
+
+	    // Read the first 1kB of the file into a String
 	    InputStreamReader reader = new InputStreamReader(
 		    new FileInputStream(fileName), "ISO-8859-1");
-	    char buffer[] = new char[512];
+	    char buffer[] = new char[1024];
 	    reader.read(buffer);
 	    reader.close();
 	    String fileHeader = new String(buffer);
@@ -189,14 +210,14 @@ public class RawDataImportModule implements MZmineProcessingModule {
 		return RawDataFileType.NETCDF;
 	    }
 
-	    if (fileHeader.trim().startsWith(XML_HEADER)) {
-		if (fileHeader.contains(MZML_HEADER))
-		    return RawDataFileType.MZML;
-		if (fileHeader.contains(MZDATA_HEADER))
-		    return RawDataFileType.MZDATA;
-		if (fileHeader.contains(MZXML_HEADER))
-		    return RawDataFileType.MZXML;
-	    }
+	    if (fileHeader.contains(MZML_HEADER))
+		return RawDataFileType.MZML;
+
+	    if (fileHeader.contains(MZDATA_HEADER))
+		return RawDataFileType.MZDATA;
+
+	    if (fileHeader.contains(MZXML_HEADER))
+		return RawDataFileType.MZXML;
 
 	} catch (Exception e) {
 	    e.printStackTrace();
