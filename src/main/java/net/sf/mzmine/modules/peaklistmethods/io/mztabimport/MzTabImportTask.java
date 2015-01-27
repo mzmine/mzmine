@@ -25,24 +25,17 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
-import com.google.common.collect.Range;
-
-import uk.ac.ebi.pride.jmztab.model.*;
-import uk.ac.ebi.pride.jmztab.utils.MZTabFileParser;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
-import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
@@ -54,19 +47,27 @@ import net.sf.mzmine.desktop.impl.projecttree.ProjectTree;
 import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataFileType;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataFileTypeDetector;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.AgilentCsvReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzDataReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzMLReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzXMLReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NativeFileReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NetCDFReadTask;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.impl.TaskQueue;
+import uk.ac.ebi.pride.jmztab.model.Assay;
+import uk.ac.ebi.pride.jmztab.model.MZTabFile;
+import uk.ac.ebi.pride.jmztab.model.MsRun;
+import uk.ac.ebi.pride.jmztab.model.SmallMolecule;
+import uk.ac.ebi.pride.jmztab.model.SplitList;
+import uk.ac.ebi.pride.jmztab.utils.MZTabFileParser;
+
+import com.google.common.collect.Range;
 
 class MzTabImportTask extends AbstractTask {
 
@@ -121,8 +122,7 @@ class MzTabImportTask extends AbstractTask {
     	        newMZmineFile = MZmineCore.createNewFile(f.getName());
     	        if (importrawfiles) {
     	    	    if(testFile.exists() && !testFile.isDirectory()) {
-        		final RawDataImportModule RDI = RawDataImportModule.class.newInstance();
-        		RawDataFileType fileType = RDI.detectDataFileType(f);
+        		RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(f);
         		switch (fileType) {
         		    case MZDATA:
         			newTasks[0] = new MzDataReadTask(project, f, newMZmineFile);

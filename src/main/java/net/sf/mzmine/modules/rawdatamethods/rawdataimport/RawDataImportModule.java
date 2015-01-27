@@ -20,9 +20,7 @@
 package net.sf.mzmine.modules.rawdatamethods.rawdataimport;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,34 +51,6 @@ public class RawDataImportModule implements MZmineProcessingModule {
 
     private static final String MODULE_NAME = "Raw data import";
     private static final String MODULE_DESCRIPTION = "This module imports raw data into the project.";
-
-    /*
-     * See
-     * "http://www.unidata.ucar.edu/software/netcdf/docs/netcdf/File-Format-Specification.html"
-     */
-    private static final String CDF_HEADER = "CDF";
-
-    /*
-     * mzML files with index start with <indexedmzML><mzML>tags, but files with
-     * no index contain only the <mzML> tag. See
-     * "http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/schema/mzML1.1.0.xsd"
-     */
-    private static final String MZML_HEADER = "<mzML";
-
-    /*
-     * mzXML files with index start with <mzXML><msRun> tags, but files with no
-     * index contain only the <msRun> tag. See
-     * "http://sashimi.sourceforge.net/schema_revision/mzXML_3.2/mzXML_3.2.xsd"
-     */
-    private static final String MZXML_HEADER = "<msRun";
-
-    // See "http://www.psidev.info/sites/default/files/mzdata.xsd.txt"
-    private static final String MZDATA_HEADER = "<mzData";
-
-    // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
-    private static final String THERMO_HEADER = String.valueOf(new char[] {
-	    0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0,
-	    'n', 0 });
 
     @Override
     public @Nonnull String getName() {
@@ -125,7 +95,8 @@ public class RawDataImportModule implements MZmineProcessingModule {
 
 	    Task newTask = null;
 
-	    RawDataFileType fileType = detectDataFileType(fileNames[i]);
+	    RawDataFileType fileType = RawDataFileTypeDetector
+		    .detectDataFileType(fileNames[i]);
 	    logger.finest("File " + fileNames[i] + " type detected as "
 		    + fileType);
 
@@ -174,57 +145,6 @@ public class RawDataImportModule implements MZmineProcessingModule {
 	}
 
 	return ExitCode.OK;
-    }
-
-    public RawDataFileType detectDataFileType(File fileName) {
-
-	if (fileName.isDirectory()) {
-	    // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
-	    for (File f : fileName.listFiles()) {
-		if (f.isFile() && f.getName().matches("_FUNC[0-9]{3}.DAT"))
-		    return RawDataFileType.WATERS_RAW;
-	    }
-	    // We don't recognize any other directory type than Waters
-	    return null;
-	}
-
-	if (fileName.getName().toLowerCase().endsWith(".csv")) {
-	    return RawDataFileType.AGILENT_CSV;
-	}
-
-	try {
-
-	    // Read the first 1kB of the file into a String
-	    InputStreamReader reader = new InputStreamReader(
-		    new FileInputStream(fileName), "ISO-8859-1");
-	    char buffer[] = new char[1024];
-	    reader.read(buffer);
-	    reader.close();
-	    String fileHeader = new String(buffer);
-
-	    if (fileHeader.startsWith(THERMO_HEADER)) {
-		return RawDataFileType.THERMO_RAW;
-	    }
-
-	    if (fileHeader.startsWith(CDF_HEADER)) {
-		return RawDataFileType.NETCDF;
-	    }
-
-	    if (fileHeader.contains(MZML_HEADER))
-		return RawDataFileType.MZML;
-
-	    if (fileHeader.contains(MZDATA_HEADER))
-		return RawDataFileType.MZDATA;
-
-	    if (fileHeader.contains(MZXML_HEADER))
-		return RawDataFileType.MZXML;
-
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
-
-	return null;
-
     }
 
     @Override
