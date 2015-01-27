@@ -88,6 +88,8 @@ public class PeakListTableModel extends AbstractTableModel {
 	    case AVERAGEMZ:
 		return new Double(peakListRow.getAverageMZ());
 	    case AVERAGERT:
+		if (peakListRow.getAverageRT() <= 0)
+		    return null;
 		return new Double(peakListRow.getAverageRT());
 	    case COMMENT:
 		return peakListRow.getComment();
@@ -118,8 +120,12 @@ public class PeakListTableModel extends AbstractTableModel {
 	    case MZ:
 		return peak.getMZ();
 	    case RT:
+		if (peak.getRT() <= 0)
+		    return null;
 		return peak.getRT();
 	    case HEIGHT:
+		if (peak.getHeight() <= 0)
+		    return null;
 		return peak.getHeight();
 	    case AREA:
 		return peak.getArea();
