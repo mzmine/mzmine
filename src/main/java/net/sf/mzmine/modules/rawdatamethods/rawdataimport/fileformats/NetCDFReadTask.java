@@ -65,8 +65,7 @@ public class NetCDFReadTask extends AbstractTask {
     private RawDataFileWriter newMZmineFile;
     private RawDataFile finalRawDataFile;
 
-    private Variable massValueVariable;
-    private Variable intensityValueVariable;
+    private Variable massValueVariable, intensityValueVariable;
 
     // Some software produces netcdf files with a scale factor such as 0.05
     private double massValueScaleFactor = 1;
@@ -147,6 +146,11 @@ public class NetCDFReadTask extends AbstractTask {
 	    logger.severe(e.toString());
 	    throw (new IOException("Couldn't open input file" + file));
 	}
+
+	/*
+	 * DEBUG: dump all variables for (Variable v : inputFile.getVariables())
+	 * { System.out.println("variable " + v.getShortName()); }
+	 */
 
 	// Find mass_values and intensity_values variables
 	massValueVariable = inputFile.findVariable("mass_values");
@@ -406,10 +410,15 @@ public class NetCDFReadTask extends AbstractTask {
 	if (scanLength[0] == 0) {
 	    scanNum++;
 	    return new SimpleScan(null, scanNum, 1,
-		    retentionTime.doubleValue(), 0, 0, null,
-		    new DataPoint[0], MassSpectrumType.CENTROIDED,
-		    Polarity.UNKNOWN, "", null);
+		    retentionTime.doubleValue(), 0, 0, null, new DataPoint[0],
+		    MassSpectrumType.CENTROIDED, Polarity.UNKNOWN, "", null);
 	}
+
+	// Is there any way how to extract polarity from netcdf?
+	Polarity polarity = Polarity.UNKNOWN;
+
+	// Is there any way how to extract scan definition from netcdf?
+	String scanDefinition = "";
 
 	// Read mass and intensity values
 	Array massValueArray;
@@ -455,7 +464,7 @@ public class NetCDFReadTask extends AbstractTask {
 
 	SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
 		retentionTime.doubleValue(), 0, 0, null, dataPoints,
-		spectrumType, Polarity.UNKNOWN, "", null);
+		spectrumType, polarity, scanDefinition, null);
 
 	return buildingScan;
 

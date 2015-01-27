@@ -122,14 +122,14 @@ public class MzMLReadTask extends AbstractTask {
 		String scanId = spectrum.getId();
 		int scanNumber = convertScanIdToScanNumber(scanId);
 
+		// Extract scan data
 		int msLevel = extractMSLevel(spectrum);
 		double retentionTime = extractRetentionTime(spectrum);
-
-		// Get parent scan number
+		Polarity polarity = extractPolarity(spectrum);
 		int parentScan = extractParentScanNumber(spectrum);
 		double precursorMz = extractPrecursorMz(spectrum);
 		int precursorCharge = extractPrecursorCharge(spectrum);
-
+		String scanDefinition = extractScanDefinition(spectrum);
 		DataPoint dataPoints[] = extractDataPoints(spectrum);
 
 		// Auto-detect whether this scan is centroided
@@ -137,9 +137,9 @@ public class MzMLReadTask extends AbstractTask {
 			.detectSpectrumType(dataPoints);
 
 		SimpleScan scan = new SimpleScan(null, scanNumber, msLevel,
-			retentionTime, precursorMz,
-			precursorCharge, null, dataPoints, spectrumType,
-			Polarity.UNKNOWN, "", null);
+			retentionTime, precursorMz, precursorCharge, null,
+			dataPoints, spectrumType, polarity, scanDefinition,
+			null);
 
 		for (SimpleScan s : parentStack) {
 		    if (s.getScanNumber() == parentScan) {
@@ -393,6 +393,79 @@ public class MzMLReadTask extends AbstractTask {
 	    }
 	}
 	return 0;
+    }
+
+    private Polarity extractPolarity(Spectrum spectrum) {
+	List<CVParam> cvParams = spectrum.getCvParam();
+	if (cvParams != null) {
+	    for (CVParam param : cvParams) {
+		String accession = param.getAccession();
+
+		if (accession == null)
+		    continue;
+		if (accession.equals("MS:1000130"))
+		    return Polarity.POSITIVE;
+		if (accession.equals("MS:1000129"))
+		    return Polarity.NEGATIVE;
+	    }
+	}
+	ScanList scanListElement = spectrum.getScanList();
+	if (scanListElement != null) {
+	    List<Scan> scanElements = scanListElement.getScan();
+	    if (scanElements != null) {
+		for (Scan scan : scanElements) {
+		    cvParams = scan.getCvParam();
+		    if (cvParams == null)
+			continue;
+		    for (CVParam param : cvParams) {
+			String accession = param.getAccession();
+			if (accession == null)
+			    continue;
+			if (accession.equals("MS:1000130"))
+			    return Polarity.POSITIVE;
+			if (accession.equals("MS:1000129"))
+			    return Polarity.NEGATIVE;
+		    }
+
+		}
+	    }
+	}
+	return Polarity.UNKNOWN;
+
+    }
+
+    private String extractScanDefinition(Spectrum spectrum) {
+	List<CVParam> cvParams = spectrum.getCvParam();
+	if (cvParams != null) {
+	    for (CVParam param : cvParams) {
+		String accession = param.getAccession();
+
+		if (accession == null)
+		    continue;
+		if (accession.equals("MS:1000512"))
+		    return param.getValue();
+	    }
+	}
+	ScanList scanListElement = spectrum.getScanList();
+	if (scanListElement != null) {
+	    List<Scan> scanElements = scanListElement.getScan();
+	    if (scanElements != null) {
+		for (Scan scan : scanElements) {
+		    cvParams = scan.getCvParam();
+		    if (cvParams == null)
+			continue;
+		    for (CVParam param : cvParams) {
+			String accession = param.getAccession();
+			if (accession == null)
+			    continue;
+			if (accession.equals("MS:1000512"))
+			    return param.getValue();
+		    }
+
+		}
+	    }
+	}
+	return spectrum.getId();
     }
 
     public String getTaskDescription() {

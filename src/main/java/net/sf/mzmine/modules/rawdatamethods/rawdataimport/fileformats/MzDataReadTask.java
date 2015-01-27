@@ -69,6 +69,7 @@ public class MzDataReadTask extends AbstractTask {
     private int scanNumber;
     private int msLevel;
     private int parentScan;
+    private Polarity polarity = Polarity.UNKNOWN;
     private double retentionTime;
     private double precursorMz;
     private int precursorCharge = 0;
@@ -205,11 +206,23 @@ public class MzDataReadTask extends AbstractTask {
 	     */
 	    if (qName.equalsIgnoreCase("cvParam")) {
 		if (spectrumInstrumentFlag) {
+		    if ((attrs.getValue("accession").equals("PSI:1000037"))
+			    || (attrs.getValue("name").equals("Polarity"))) {
+			if (attrs.getValue("value").toLowerCase()
+				.equals("positive"))
+			    polarity = Polarity.POSITIVE;
+			else if (attrs.getValue("value").toLowerCase()
+				.equals("negative"))
+			    polarity = Polarity.NEGATIVE;
+			else
+			    polarity = Polarity.UNKNOWN;
+		    }
 		    if ((attrs.getValue("accession").equals("PSI:1000038"))
 			    || (attrs.getValue("name").equals("time.min"))) {
 			retentionTime = Double.parseDouble(attrs
 				.getValue("value"));
 		    }
+
 		    if ((attrs.getValue("accession").equals("PSI:1000039"))
 			    || (attrs.getValue("name").equals("time.sec"))) {
 			retentionTime = Double.parseDouble(attrs
@@ -309,17 +322,17 @@ public class MzDataReadTask extends AbstractTask {
 			.detectSpectrumType(dataPoints);
 
 		buildingScan = new SimpleScan(null, scanNumber, msLevel,
-			retentionTime, precursorMz,
-			precursorCharge, null, dataPoints, spectrumType,
-			Polarity.UNKNOWN, "", null);
+			retentionTime, precursorMz, precursorCharge, null,
+			dataPoints, spectrumType, polarity, "", null);
 
 		/*
 		 * Update of fragmentScanNumbers of each Scan in the parentStack
 		 */
 		for (SimpleScan s : parentStack) {
-		    //if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
-			s.addFragmentScan(buildingScan.getScanNumber());
-		    //}
+		    // if (s.getScanNumber() ==
+		    // buildingScan.getParentScanNumber()) {
+		    s.addFragmentScan(buildingScan.getScanNumber());
+		    // }
 		}
 
 		/*
