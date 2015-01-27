@@ -92,11 +92,6 @@ public class MsMsPeakPickingTask extends AbstractTask {
 	    // Get next MS/MS scan
 	    Scan scan = dataFile.getScan(scanNumber);
 
-	    // no parents scan for this msms scan
-	    if (scan.getParentScanNumber() <= 0) {
-		continue;
-	    }
-
 	    // Get the MS Scan
 	    Scan bestScan = null;
 	    Range<Double> rtWindow = Range.closed(scan.getRetentionTime()

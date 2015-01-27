@@ -151,7 +151,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 
 		NeutralLossDataPoint newPoint = new NeutralLossDataPoint(
 			scanDataPoints[peakIndex].getMZ(),
-			scan.getScanNumber(), scan.getParentScanNumber(),
+			scan.getScanNumber(), 
 			scan.getPrecursorMZ(), scan.getPrecursorCharge(),
 			scan.getRetentionTime());
 

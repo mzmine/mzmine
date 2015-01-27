@@ -292,7 +292,8 @@ public class SpectraPlot extends ChartPanel {
     }
 
     public void setTitle(String title, String subTitle) {
-	chartTitle.setText(title);
+	// let's not use the title, it takes too much space
+	// chartTitle.setText(title);
 	chartSubTitle.setText(subTitle);
     }
 

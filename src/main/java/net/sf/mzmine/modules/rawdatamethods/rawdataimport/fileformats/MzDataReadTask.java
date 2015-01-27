@@ -309,7 +309,7 @@ public class MzDataReadTask extends AbstractTask {
 			.detectSpectrumType(dataPoints);
 
 		buildingScan = new SimpleScan(null, scanNumber, msLevel,
-			retentionTime, parentScan, precursorMz,
+			retentionTime, precursorMz,
 			precursorCharge, null, dataPoints, spectrumType,
 			Polarity.UNKNOWN, "", null);
 
@@ -317,9 +317,9 @@ public class MzDataReadTask extends AbstractTask {
 		 * Update of fragmentScanNumbers of each Scan in the parentStack
 		 */
 		for (SimpleScan s : parentStack) {
-		    if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
+		    //if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
 			s.addFragmentScan(buildingScan.getScanNumber());
-		    }
+		    //}
 		}
 
 		/*

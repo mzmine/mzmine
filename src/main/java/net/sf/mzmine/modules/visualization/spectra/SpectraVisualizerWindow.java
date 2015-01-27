@@ -168,25 +168,6 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	NumberFormat intensityFormat = MZmineCore.getConfiguration()
 		.getIntensityFormat();
 
-	int parentNumber = currentScan.getParentScanNumber();
-	if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {
-
-	    Scan parentScan = dataFile.getScan(parentNumber);
-	    if (parentScan != null) {
-		String itemText = "Parent scan #" + parentNumber + ", RT: "
-			+ rtFormat.format(parentScan.getRetentionTime())
-			+ ", precursor m/z: "
-			+ mzFormat.format(currentScan.getPrecursorMZ());
-
-		if (currentScan.getPrecursorCharge() > 0)
-		    itemText += " (chrg " + currentScan.getPrecursorCharge()
-			    + ")";
-
-		msmsSelector.addItem(itemText);
-		msmsVisible = true;
-	    }
-	}
-
 	// Add all fragment scans to MS/MS selector combo
 	int fragmentScans[] = currentScan.getFragmentScanNumbers();
 	if (fragmentScans != null) {
@@ -218,14 +199,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	String title = "Spectrum: [" + dataFile.getName() + "; scan #"
 		+ currentScan.getScanNumber() + "]";
 
-	String subTitle = "MS" + currentScan.getMSLevel();
-
-	if (currentScan.getMSLevel() > 1) {
-	    subTitle += " (" + mzFormat.format(currentScan.getPrecursorMZ())
-		    + " precursor m/z)";
-	}
-
-	subTitle += ", RT " + rtFormat.format(currentScan.getRetentionTime());
+	String subTitle = dataFile.getName()+ " " + currentScan.toString();
 
 	DataPoint basePeak = currentScan.getHighestDataPoint();
 	if (basePeak != null) {
@@ -235,7 +209,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	setTitle(title);
-	spectrumPlot.setTitle(title, subTitle);
+	spectrumPlot.setTitle(null, subTitle);
 
 	// Set plot data set
 	spectrumPlot.removeAllDataSets();

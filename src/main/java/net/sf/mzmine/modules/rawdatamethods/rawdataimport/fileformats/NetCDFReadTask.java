@@ -406,7 +406,7 @@ public class NetCDFReadTask extends AbstractTask {
 	if (scanLength[0] == 0) {
 	    scanNum++;
 	    return new SimpleScan(null, scanNum, 1,
-		    retentionTime.doubleValue(), -1, 0, 0, null,
+		    retentionTime.doubleValue(), 0, 0, null,
 		    new DataPoint[0], MassSpectrumType.CENTROIDED,
 		    Polarity.UNKNOWN, "", null);
 	}
@@ -454,7 +454,7 @@ public class NetCDFReadTask extends AbstractTask {
 		.detectSpectrumType(dataPoints);
 
 	SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
-		retentionTime.doubleValue(), -1, 0, 0, null, dataPoints,
+		retentionTime.doubleValue(), 0, 0, null, dataPoints,
 		spectrumType, Polarity.UNKNOWN, "", null);
 
 	return buildingScan;

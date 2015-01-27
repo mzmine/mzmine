@@ -29,7 +29,7 @@ import net.sf.mzmine.main.MZmineCore;
 class NeutralLossDataPoint {
 
     private double mzValue;
-    private int scanNumber, precursorScanNumber;
+    private int scanNumber;
     private double precursorMZ;
     private int precursorCharge;
     private double retentionTime;
@@ -46,7 +46,7 @@ class NeutralLossDataPoint {
      * @param retentionTime
      */
     NeutralLossDataPoint(double mzValue, int scanNumber,
-	    int precursorScanNumber, double precursorMZ, int precursorCharge,
+	    double precursorMZ, int precursorCharge,
 	    double retentionTime) {
 
 	NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -54,7 +54,6 @@ class NeutralLossDataPoint {
 
 	this.mzValue = mzValue;
 	this.scanNumber = scanNumber;
-	this.precursorScanNumber = precursorScanNumber;
 	this.precursorMZ = precursorMZ;
 	this.precursorCharge = precursorCharge;
 	this.retentionTime = retentionTime;
@@ -75,7 +74,6 @@ class NeutralLossDataPoint {
 	sb.append(mzFormat.format(mzValue));
 	sb.append(", scan #" + scanNumber + ", RT ");
 	sb.append(rtFormat.format(retentionTime));
-	sb.append(", precursor scan #" + precursorScanNumber);
 	sb.append(", m/z ");
 	sb.append(mzFormat.format(precursorMZ));
 	if (precursorCharge > 0)
@@ -110,13 +108,6 @@ class NeutralLossDataPoint {
      */
     double getPrecursorMass() {
 	return precursorMass;
-    }
-
-    /**
-     * @return Returns the precursorScanNumber.
-     */
-    int getPrecursorScanNumber() {
-	return precursorScanNumber;
     }
 
     /**

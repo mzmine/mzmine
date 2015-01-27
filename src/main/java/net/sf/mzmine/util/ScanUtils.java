@@ -77,7 +77,15 @@ public class ScanUtils {
 	    buf.append(" t");
 	    break;
 	}
-
+	
+	
+	buf.append(" ");
+	buf.append(scan.getPolarity());
+	
+	buf.append(" [");
+	buf.append(scan.getScanDefinition());
+	buf.append("]");
+	
 	return buf.toString();
     }
 

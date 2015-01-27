@@ -97,7 +97,7 @@ public class MeanFilter implements ScanFilter {
 	// Create filtered scan
 	Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(),
 		sc.getMSLevel(), sc.getRetentionTime(),
-		sc.getParentScanNumber(), sc.getPrecursorMZ(),
+		sc.getPrecursorMZ(),
 		sc.getPrecursorCharge(), sc.getFragmentScanNumbers(),
 		newDataPoints, MassSpectrumType.CENTROIDED, sc.getPolarity(),
 		sc.getScanDefinition(), sc.getScaningMZRange());

@@ -48,7 +48,7 @@ public class StorableScan implements Scan {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private int scanNumber, msLevel, parentScan, fragmentScans[];
+    private int scanNumber, msLevel, fragmentScans[];
     private double precursorMZ;
     private int precursorCharge;
     private double retentionTime;
@@ -79,7 +79,6 @@ public class StorableScan implements Scan {
 	this.scanNumber = originalScan.getScanNumber();
 	this.msLevel = originalScan.getMSLevel();
 	this.retentionTime = originalScan.getRetentionTime();
-	this.parentScan = originalScan.getParentScanNumber();
 	this.precursorMZ = originalScan.getPrecursorMZ();
 	this.precursorCharge = originalScan.getPrecursorCharge();
 	this.fragmentScans = originalScan.getFragmentScanNumbers();
@@ -95,7 +94,7 @@ public class StorableScan implements Scan {
 
     public StorableScan(RawDataFileImpl rawDataFile, int storageID,
 	    int numberOfDataPoints, int scanNumber, int msLevel,
-	    double retentionTime, int parentScan, double precursorMZ,
+	    double retentionTime, double precursorMZ,
 	    int precursorCharge, int fragmentScans[],
 	    MassSpectrumType spectrumType, Polarity polarity,
 	    String scanDefinition, Range<Double> scanMZRange) {
@@ -107,7 +106,6 @@ public class StorableScan implements Scan {
 	this.scanNumber = scanNumber;
 	this.msLevel = msLevel;
 	this.retentionTime = retentionTime;
-	this.parentScan = parentScan;
 	this.precursorMZ = precursorMZ;
 	this.precursorCharge = precursorCharge;
 	this.fragmentScans = fragmentScans;
@@ -277,21 +275,6 @@ public class StorableScan implements Scan {
 	if ((basePeak == null) && (numberOfDataPoints > 0))
 	    updateValues();
 	return basePeak;
-    }
-
-    /**
-     * @see net.sf.mzmine.datamodel.Scan#getParentScanNumber()
-     */
-    public int getParentScanNumber() {
-	return parentScan;
-    }
-
-    /**
-     * @param parentScan
-     *            The parentScan to set.
-     */
-    public void setParentScanNumber(int parentScan) {
-	this.parentScan = parentScan;
     }
 
     /**

@@ -68,12 +68,6 @@ public interface Scan extends MassSpectrum {
 
     /**
      * 
-     * @return parent scan number or -1 if there is no parent scan
-     */
-    public int getParentScanNumber();
-
-    /**
-     * 
      * @return Precursor m/z or 0 if this is not MSn scan
      */
     public double getPrecursorMZ();

@@ -246,17 +246,6 @@ class RawDataFileSaveHandler {
 		String.valueOf(scan.getMSLevel()).length());
 	hd.endElement("", "", RawDataElementName.MS_LEVEL.getElementName());
 
-	// <PARENT_SCAN>
-	if (scan.getParentScanNumber() > 0) {
-	    hd.startElement("", "",
-		    RawDataElementName.PARENT_SCAN.getElementName(), atts);
-	    hd.characters(String.valueOf(scan.getParentScanNumber())
-		    .toCharArray(), 0,
-		    String.valueOf(scan.getParentScanNumber()).length());
-	    hd.endElement("", "",
-		    RawDataElementName.PARENT_SCAN.getElementName());
-	}
-
 	if (scan.getMSLevel() >= 2) {
 	    // <PRECURSOR_MZ>
 	    hd.startElement("", "",

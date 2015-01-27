@@ -116,10 +116,6 @@ class ScanFilteringTask extends AbstractTask {
 		}
 
 		Scan scan = dataFile.getScan(scanNumbers[i]);
-		if ((scan.getMSLevel() != 1)
-			&& (scan.getParentScanNumber() <= 0)) {
-		    return;
-		}
 		Scan newScan = rawDataFilter.getModule().filterScan(scan,
 			rawDataFilter.getParameterSet());
 		if (newScan != null) {

@@ -255,7 +255,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 
 		StorableScan storableScan = new StorableScan(newRawDataFile,
 			newStorageID, dataPointsNumber, scanNumber, msLevel,
-			retentionTime, parentScan, precursorMZ,
+			retentionTime, precursorMZ,
 			precursorCharge, fragmentScan, spectrumType,
 			Polarity.UNKNOWN, "", null);
 		newRawDataFile.addScan(storableScan);

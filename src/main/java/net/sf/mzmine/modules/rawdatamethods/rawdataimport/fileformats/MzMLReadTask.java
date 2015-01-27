@@ -137,7 +137,7 @@ public class MzMLReadTask extends AbstractTask {
 			.detectSpectrumType(dataPoints);
 
 		SimpleScan scan = new SimpleScan(null, scanNumber, msLevel,
-			retentionTime, parentScan, precursorMz,
+			retentionTime, precursorMz,
 			precursorCharge, null, dataPoints, spectrumType,
 			Polarity.UNKNOWN, "", null);
 

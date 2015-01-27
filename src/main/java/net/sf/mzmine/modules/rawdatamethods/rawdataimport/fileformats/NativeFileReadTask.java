@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.LinkedList;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,20 +66,6 @@ public class NativeFileReadTask extends AbstractTask {
     private int totalScans = 0, parsedScans = 0;
 
     /*
-     * This array is used to set the number of fragments that one single scan
-     * can have. The initial size of array is set to 10, but it depends of
-     * fragmentation level.
-     */
-    private int parentTreeValue[] = new int[10];
-
-    /*
-     * This FIFO queue stores the scans until information about fragments is
-     * added. After completing fragment info, the scans can be added to the raw
-     * data file.
-     */
-    private LinkedList<SimpleScan> parentStack;
-
-    /*
      * These variables are used during parsing of the RAW dump.
      */
     private int scanNumber = 0, msLevel = 0, precursorCharge = 0,
@@ -92,7 +77,6 @@ public class NativeFileReadTask extends AbstractTask {
 
     public NativeFileReadTask(MZmineProject project, File fileToOpen,
 	    RawDataFileType fileType, RawDataFileWriter newMZmineFile) {
-	parentStack = new LinkedList<SimpleScan>();
 	this.project = project;
 	this.file = fileToOpen;
 	this.fileType = fileType;
@@ -341,41 +325,12 @@ public class NativeFileReadTask extends AbstractTask {
 		MassSpectrumType spectrumType = ScanUtils
 			.detectSpectrumType(dataPoints);
 
-		/*
-		 * If this scan is a full scan (ms level = 1), it means that the
-		 * previous scans stored in the stack, are complete and ready to
-		 * be written to the raw data file.
-		 */
-		if (msLevel == 1) {
-		    while (!parentStack.isEmpty()) {
-			SimpleScan currentScan = parentStack.removeFirst();
-			newMZmineFile.addScan(currentScan);
-		    }
-		}
-
-		// Setting the current parentScan
-		int parentScan = -1;
-		if (msLevel > 1) {
-		    parentScan = parentTreeValue[msLevel - 1];
-
-		    if (!parentStack.isEmpty()) {
-			for (SimpleScan s : parentStack) {
-			    if (s.getScanNumber() == parentScan) {
-				s.addFragmentScan(scanNumber);
-			    }
-			}
-		    }
-		}
-
-		// Setting the parent scan number for this level of fragments
-		parentTreeValue[msLevel] = scanNumber;
-
 		SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel,
-			retentionTime, parentScan, precursorMZ,
+			retentionTime, precursorMZ,
 			precursorCharge, null, dataPoints, spectrumType,
 			polarity, scanId, mzRange);
+		newMZmineFile.addScan(newScan);
 
-		parentStack.add(newScan);
 		parsedScans++;
 
 		// Clean the variables for next scan
@@ -391,12 +346,6 @@ public class NativeFileReadTask extends AbstractTask {
 
 	    }
 
-	}
-
-	// Add remaining scans in the parentStack
-	while (!parentStack.isEmpty()) {
-	    SimpleScan currentScan = parentStack.removeFirst();
-	    newMZmineFile.addScan(currentScan);
 	}
 
     }

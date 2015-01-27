@@ -43,7 +43,6 @@ public class SimpleScan implements Scan {
     private RawDataFile dataFile;
     private int scanNumber;
     private int msLevel;
-    private int parentScan;
     private int fragmentScans[];
     private DataPoint dataPoints[];
     private double precursorMZ;
@@ -62,7 +61,7 @@ public class SimpleScan implements Scan {
      */
     public SimpleScan(Scan sc) {
 	this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc
-		.getRetentionTime(), sc.getParentScanNumber(), sc
+		.getRetentionTime(), sc
 		.getPrecursorMZ(), sc.getPrecursorCharge(), sc
 		.getFragmentScanNumbers(), sc.getDataPoints(), sc
 		.getSpectrumType(), sc.getPolarity(), sc.getScanDefinition(),
@@ -73,7 +72,7 @@ public class SimpleScan implements Scan {
      * Constructor for creating scan with given data
      */
     public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel,
-	    double retentionTime, int parentScan, double precursorMZ,
+	    double retentionTime, double precursorMZ,
 	    int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
 	    MassSpectrumType spectrumType, Polarity polarity,
 	    String scanDefinition, Range<Double> scanMZRange) {
@@ -83,7 +82,6 @@ public class SimpleScan implements Scan {
 	this.scanNumber = scanNumber;
 	this.msLevel = msLevel;
 	this.retentionTime = retentionTime;
-	this.parentScan = parentScan;
 	this.precursorMZ = precursorMZ;
 	this.fragmentScans = fragmentScans;
 	this.spectrumType = spectrumType;
@@ -273,21 +271,6 @@ public class SimpleScan implements Scan {
      */
     public DataPoint getHighestDataPoint() {
 	return basePeak;
-    }
-
-    /**
-     * @see net.sf.mzmine.datamodel.Scan#getParentScanNumber()
-     */
-    public int getParentScanNumber() {
-	return parentScan;
-    }
-
-    /**
-     * @param parentScan
-     *            The parentScan to set.
-     */
-    public void setParentScanNumber(int parentScan) {
-	this.parentScan = parentScan;
     }
 
     /**
