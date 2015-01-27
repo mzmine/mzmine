@@ -20,6 +20,9 @@
 package net.sf.mzmine.main;
 
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.taskcontrol.impl.WrappedTask;
 
 /**
  * Shutdown hook - invoked on JRE shutdown. This method saves current
@@ -28,6 +31,19 @@ import net.sf.mzmine.datamodel.RawDataFile;
 class ShutDownHook extends Thread {
 
     public void start() {
+
+	// Cancel all running tasks - this is important because tasks can spawn
+	// additional processes (such as ThermoRawDump.exe on Windows) and these
+	// will block the shutdown of the JVM. If we cancel the tasks, the
+	// processes will be killed immediately.
+	for (WrappedTask wt : MZmineCore.getTaskController().getTaskQueue()
+		.getQueueSnapshot()) {
+	    Task t = wt.getActualTask();
+	    if ((t.getStatus() == TaskStatus.WAITING)
+		    || (t.getStatus() == TaskStatus.PROCESSING)) {
+		t.cancel();
+	    }
+	}
 
 	// Save configuration
 	try {
