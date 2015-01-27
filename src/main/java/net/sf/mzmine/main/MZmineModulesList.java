@@ -49,6 +49,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
@@ -132,6 +133,7 @@ public class MZmineModulesList {
 	    SQLExportModule.class,
 	    XMLExportModule.class,
 	    CasmiImportModule.class,
+	    MzTabImportModule.class,
 	    XMLImportModule.class,
 
 	    // Gap filling

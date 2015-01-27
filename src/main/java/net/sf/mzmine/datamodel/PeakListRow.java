@@ -97,6 +97,16 @@ public interface PeakListRow {
     public void setComment(String comment);
 
     /**
+     * Sets average mz for this row
+     */
+    public void setAverageMZ(double mz);
+
+    /**
+     * Sets average rt for this row
+     */
+    public void setAverageRT(double rt);
+
+    /**
      * Add a new identity candidate (result of identification method)
      * 
      * @param identity

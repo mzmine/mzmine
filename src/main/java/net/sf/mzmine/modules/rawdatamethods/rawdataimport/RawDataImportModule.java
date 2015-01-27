@@ -176,7 +176,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
 	return ExitCode.OK;
     }
 
-    private RawDataFileType detectDataFileType(File fileName) {
+    public RawDataFileType detectDataFileType(File fileName) {
 
 	if (fileName.isDirectory()) {
 	    // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT

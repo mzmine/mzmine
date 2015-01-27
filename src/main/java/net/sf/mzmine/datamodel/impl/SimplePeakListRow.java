@@ -186,6 +186,20 @@ public class SimplePeakListRow implements PeakListRow {
     public void setComment(String comment) {
 	this.comment = comment;
     }
+    
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#setAverageMZ(java.lang.String)
+     */
+    public void setAverageMZ(double mz) {
+	this.averageMZ = mz;
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#setAverageRT(java.lang.String)
+     */
+    public void setAverageRT(double rt) {
+	this.averageRT = rt;
+    }
 
     /**
      * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)

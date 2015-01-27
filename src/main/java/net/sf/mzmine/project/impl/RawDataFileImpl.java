@@ -514,8 +514,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     public synchronized void close() {
 	try {
-	    dataPointsFile.close();
-	    dataPointsFileName.delete();
+	    if(dataPointsFileName != null) {
+    	    	dataPointsFile.close();
+    	    	dataPointsFileName.delete();
+	    }
 	} catch (IOException e) {
 	    logger.warning("Could not close file " + dataPointsFileName + ": "
 		    + e.toString());
