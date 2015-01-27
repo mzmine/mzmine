@@ -127,8 +127,8 @@ namespace ThermoRawDump
 
                 // Polarity
                 char polarity;
-                if (scanFilter.Contains("-")) polarity = '-';
-                else if (scanFilter.Contains("+")) polarity = '+';
+                if (scanFilter.Contains(" - ")) polarity = '-';
+                else if (scanFilter.Contains(" + ")) polarity = '+';
                 else polarity = '?';
                 Console.Write("POLARITY: " + polarity + "\n");
 
