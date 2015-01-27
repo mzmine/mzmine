@@ -75,7 +75,7 @@ using namespace Waters::Lib::MassLynxRaw;
 int main(int argc, char* argv[])
 {
 
-	// Disable output buffering and set output to binary mode
+	// Disable output buffering and set output to binary mode, otherwise cout would automatically translate \n to \r\n
 	setvbuf(stdout, 0, _IONBF, 0);
 	_setmode(fileno(stdout), _O_BINARY);
 
