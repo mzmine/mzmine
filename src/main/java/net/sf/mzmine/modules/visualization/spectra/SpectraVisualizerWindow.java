@@ -57,6 +57,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 
 /**
@@ -196,20 +197,25 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	bottomPanel.setMSMSSelectorVisible(msmsVisible);
 
 	// Set window and plot titles
-	String title = "Spectrum: [" + dataFile.getName() + "; scan #"
+	String windowTitle = "Spectrum: [" + dataFile.getName() + "; scan #"
 		+ currentScan.getScanNumber() + "]";
 
-	String subTitle = dataFile.getName()+ " " + currentScan.toString();
+	String spectrumTitle = dataFile.getName() + " scan"
+		+ currentScan.toString();
 
 	DataPoint basePeak = currentScan.getHighestDataPoint();
 	if (basePeak != null) {
-	    subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ())
-		    + " m/z ("
+	    spectrumTitle += ", base peak: "
+		    + mzFormat.format(basePeak.getMZ()) + " m/z ("
 		    + intensityFormat.format(basePeak.getIntensity()) + ")";
 	}
+	String spectrumSubtitle = null;
+	if (!Strings.isNullOrEmpty(currentScan.getScanDefinition())) {
+	    spectrumSubtitle = "Scan definition: " + currentScan.getScanDefinition();
+	}
 
-	setTitle(title);
-	spectrumPlot.setTitle(null, subTitle);
+	setTitle(windowTitle);
+	spectrumPlot.setTitle(spectrumTitle, spectrumSubtitle);
 
 	// Set plot data set
 	spectrumPlot.removeAllDataSets();

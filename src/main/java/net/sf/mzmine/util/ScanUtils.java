@@ -81,11 +81,12 @@ public class ScanUtils {
 	buf.append(" ");
 	buf.append(scan.getPolarity());
 
-	if ((scan.getScanDefinition() != null)
+	/*if ((scan.getScanDefinition() != null)
 		&& (scan.getScanDefinition().length() > 0)) {
-	    buf.append(" ");
+	    buf.append(" (");
 	    buf.append(scan.getScanDefinition());
-	}
+	    buf.append(")");
+	}*/
 
 	return buf.toString();
     }

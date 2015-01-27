@@ -52,6 +52,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.google.common.base.Strings;
+
 /**
  * 
  */
@@ -189,6 +191,16 @@ public class MzXMLReadTask extends AbstractTask {
 		 */
 		int scanNumber = Integer.parseInt(attrs.getValue("num"));
 		int msLevel = Integer.parseInt(attrs.getValue("msLevel"));
+		String scanType = attrs.getValue("scanType");
+		String filterLine = attrs.getValue("filterLine");
+		String scanId = filterLine;
+		if (Strings.isNullOrEmpty(scanId)) scanId = scanType;
+		
+		Polarity polarity;
+		String polarityAttr = attrs.getValue("polarity");
+		if ((polarityAttr != null) && (polarityAttr.length() == 1))
+		    polarity = Polarity.fromString(polarityAttr); 
+		else polarity = Polarity.UNKNOWN;
 		peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
 		// Parse retention time
@@ -229,7 +241,7 @@ public class MzXMLReadTask extends AbstractTask {
 
 		buildingScan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, 0, 0, null,
-			new DataPoint[0], null, Polarity.UNKNOWN, "", null);
+			new DataPoint[0], null, polarity, scanId, null);
 
 	    }
 
