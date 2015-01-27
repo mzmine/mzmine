@@ -77,15 +77,16 @@ public class ScanUtils {
 	    buf.append(" t");
 	    break;
 	}
-	
-	
+
 	buf.append(" ");
 	buf.append(scan.getPolarity());
-	
-	buf.append(" [");
-	buf.append(scan.getScanDefinition());
-	buf.append("]");
-	
+
+	if ((scan.getScanDefinition() != null)
+		&& (scan.getScanDefinition().length() > 0)) {
+	    buf.append(" ");
+	    buf.append(scan.getScanDefinition());
+	}
+
 	return buf.toString();
     }
 
