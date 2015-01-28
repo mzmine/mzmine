@@ -145,6 +145,9 @@ public class MzXMLReadTask extends AbstractTask {
 	    return;
 	}
 
+	if (isCanceled())
+	    return;
+
 	if (parsedScans == 0) {
 	    setStatus(TaskStatus.ERROR);
 	    setErrorMessage("No scans found");
@@ -194,13 +197,15 @@ public class MzXMLReadTask extends AbstractTask {
 		String scanType = attrs.getValue("scanType");
 		String filterLine = attrs.getValue("filterLine");
 		String scanId = filterLine;
-		if (Strings.isNullOrEmpty(scanId)) scanId = scanType;
-		
+		if (Strings.isNullOrEmpty(scanId))
+		    scanId = scanType;
+
 		Polarity polarity;
 		String polarityAttr = attrs.getValue("polarity");
 		if ((polarityAttr != null) && (polarityAttr.length() == 1))
-		    polarity = Polarity.fromString(polarityAttr); 
-		else polarity = Polarity.UNKNOWN;
+		    polarity = Polarity.fromString(polarityAttr);
+		else
+		    polarity = Polarity.UNKNOWN;
 		peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
 		// Parse retention time
@@ -240,8 +245,8 @@ public class MzXMLReadTask extends AbstractTask {
 		parentTreeValue[msLevel] = scanNumber;
 
 		buildingScan = new SimpleScan(null, scanNumber, msLevel,
-			retentionTime, 0, 0, null,
-			new DataPoint[0], null, polarity, scanId, null);
+			retentionTime, 0, 0, null, new DataPoint[0], null,
+			polarity, scanId, null);
 
 	    }
 

@@ -117,6 +117,9 @@ public class MzMLReadTask extends AbstractTask {
 
 	    while (spectrumIterator.hasNext()) {
 
+		if (isCanceled())
+		    return;
+
 		Spectrum spectrum = spectrumIterator.next();
 
 		String scanId = spectrum.getId();
