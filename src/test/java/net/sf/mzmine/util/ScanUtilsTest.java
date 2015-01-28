@@ -19,21 +19,27 @@
 
 package net.sf.mzmine.util;
 
+import java.io.File;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.MZmineTest;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzDataReadTask;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzMLReadTask;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzXMLReadTask;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
+import net.sf.mzmine.project.impl.RawDataFileImpl;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public class ScanUtilsTest extends MZmineTest {
+public class ScanUtilsTest {
 
-    private static final Logger logger = Logger.getLogger(ScanUtilsTest.class
-	    .getName());
+    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     /**
      * Test the detectSpectrumType() method
@@ -41,21 +47,54 @@ public class ScanUtilsTest extends MZmineTest {
     @Test
     public void testDetectSpectrumType() throws Exception {
 
-	RawDataFile files[] = project.getDataFiles();
-	Assert.assertNotEquals(0, files.length);
+	File inputFiles[] = new File("src/test/resources").listFiles();
+
+	Assert.assertNotNull(inputFiles);
+	Assert.assertNotEquals(0, inputFiles.length);
+
 	int filesTested = 0;
-	for (RawDataFile file : files) {
+
+	for (File inputFile : inputFiles) {
+
 	    MassSpectrumType trueType;
-	    if (file.getName().startsWith("centroided"))
+	    if (inputFile.getName().startsWith("centroided"))
 		trueType = MassSpectrumType.CENTROIDED;
-	    else if (file.getName().startsWith("thresholded"))
+	    else if (inputFile.getName().startsWith("thresholded"))
 		trueType = MassSpectrumType.THRESHOLDED;
-	    else if (file.getName().startsWith("profile"))
+	    else if (inputFile.getName().startsWith("profile"))
 		trueType = MassSpectrumType.PROFILE;
 	    else
 		continue;
-	    logger.finest("Checking autodetection of centroided/thresholded/profile scans on file "
-		    + file.getName());
+
+	    logger.info("Checking autodetection of centroided/thresholded/profile scans on file "
+		    + inputFile.getName());
+
+	    MZmineProject project = new MZmineProjectImpl();
+
+	    Task newTask = null;
+	    String extension = inputFile.getName()
+		    .substring(inputFile.getName().lastIndexOf(".") + 1)
+		    .toLowerCase();
+
+	    RawDataFileImpl file = new RawDataFileImpl(inputFile.getName());
+
+	    if (extension.endsWith("mzdata")) {
+		newTask = new MzDataReadTask(project, inputFile, file);
+	    }
+
+	    if (extension.endsWith("mzxml")) {
+		newTask = new MzXMLReadTask(project, inputFile, file);
+	    }
+
+	    if (extension.endsWith("mzml")) {
+		newTask = new MzMLReadTask(project, inputFile, file);
+	    }
+
+	    Assert.assertNotNull(newTask);
+	    newTask.run();
+	    Assert.assertEquals(TaskStatus.FINISHED, newTask.getStatus());
+	    Assert.assertEquals(1, project.getDataFiles().length);
+
 	    int scanNumbers[] = file.getScanNumbers(1);
 	    for (int scanNumber : scanNumbers) {
 		Scan scan = file.getScan(scanNumber);
