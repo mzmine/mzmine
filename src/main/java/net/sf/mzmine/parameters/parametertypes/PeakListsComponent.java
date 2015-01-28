@@ -42,13 +42,8 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
-/**
- */
 public class PeakListsComponent extends JPanel implements ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private final DefaultListModel<String> listModel = new DefaultListModel<String>();
     private final JList<String> nameList;
@@ -60,6 +55,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 	super(new BorderLayout());
 
 	nameList = new JList<String>(listModel);
+	nameList.setCellRenderer(new PeakListsCellRenderer());
 	nameList.setVisibleRowCount(rows);
 
 	JScrollPane scroll = new JScrollPane(nameList,

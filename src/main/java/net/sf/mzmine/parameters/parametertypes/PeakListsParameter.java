@@ -21,6 +21,7 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -40,7 +41,7 @@ public class PeakListsParameter implements
 
     private int minCount, maxCount;
     private String values[];
-    private int inputsize = 300;
+    private int inputsize = 400;
 
     public PeakListsParameter() {
 	this(1, Integer.MAX_VALUE);
@@ -71,37 +72,46 @@ public class PeakListsParameter implements
 	if ((values == null) || (values.length == 0))
 	    return new PeakList[0];
 
+	ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
+
+	for (String singleValue : values) {
+	    matchingPeakLists.addAll(getMatchingPeakLists(singleValue));
+	}
+
+	return matchingPeakLists.toArray(new PeakList[0]);
+    }
+
+    static List<PeakList> getMatchingPeakLists(String pattern) {
+
 	PeakList allPeakLists[] = MZmineCore.getProjectManager()
 		.getCurrentProject().getPeakLists();
 	ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
 
 	plCheck: for (PeakList pl : allPeakLists) {
-	    for (String singleValue : values) {
-		final String fileName = pl.getName();
+	    final String fileName = pl.getName();
 
-		// Generate a regular expression, replacing * with .*
-		try {
-		    final StringBuilder regex = new StringBuilder("^");
-		    String sections[] = singleValue.split("\\*", -1);
-		    for (int i = 0; i < sections.length; i++) {
-			if (i > 0)
-			    regex.append(".*");
-			regex.append(Pattern.quote(sections[i]));
-		    }
-		    regex.append("$");
-
-		    if (fileName.matches(regex.toString())) {
-			matchingPeakLists.add(pl);
-			continue plCheck;
-		    }
-		} catch (PatternSyntaxException e) {
-		    e.printStackTrace();
-		    continue;
+	    // Generate a regular expression, replacing * with .*
+	    try {
+		final StringBuilder regex = new StringBuilder("^");
+		String sections[] = pattern.split("\\*", -1);
+		for (int i = 0; i < sections.length; i++) {
+		    if (i > 0)
+			regex.append(".*");
+		    regex.append(Pattern.quote(sections[i]));
 		}
+		regex.append("$");
 
+		if (fileName.matches(regex.toString())) {
+		    matchingPeakLists.add(pl);
+		    continue plCheck;
+		}
+	    } catch (PatternSyntaxException e) {
+		e.printStackTrace();
+		continue;
 	    }
+
 	}
-	return matchingPeakLists.toArray(new PeakList[0]);
+	return matchingPeakLists;
     }
 
     @Override

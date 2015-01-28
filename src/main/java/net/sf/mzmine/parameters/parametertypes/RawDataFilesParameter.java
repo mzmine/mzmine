@@ -21,6 +21,7 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -64,37 +65,46 @@ public class RawDataFilesParameter implements
 	if ((values == null) || (values.length == 0))
 	    return new RawDataFile[0];
 
+	ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
+
+	for (String singleValue : values) {
+	    matchingDataFiles.addAll(getMatchingRawDataFiles(singleValue));
+	}
+
+	return matchingDataFiles.toArray(new RawDataFile[0]);
+    }
+
+    static List<RawDataFile> getMatchingRawDataFiles(String pattern) {
+
 	RawDataFile allDataFiles[] = MZmineCore.getProjectManager()
 		.getCurrentProject().getDataFiles();
 	ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
 
 	fileCheck: for (RawDataFile file : allDataFiles) {
-	    for (String singleValue : values) {
-		final String fileName = file.getName();
 
-		// Generate a regular expression, replacing * with .*
-		try {
-		    final StringBuilder regex = new StringBuilder("^");
-		    String sections[] = singleValue.split("\\*", -1);
-		    for (int i = 0; i < sections.length; i++) {
-			if (i > 0)
-			    regex.append(".*");
-			regex.append(Pattern.quote(sections[i]));
-		    }
-		    regex.append("$");
+	    final String fileName = file.getName();
 
-		    if (fileName.matches(regex.toString())) {
-			matchingDataFiles.add(file);
-			continue fileCheck;
-		    }
-		} catch (PatternSyntaxException e) {
-		    e.printStackTrace();
-		    continue;
+	    // Generate a regular expression, replacing * with .*
+	    try {
+		final StringBuilder regex = new StringBuilder("^");
+		String sections[] = pattern.split("\\*", -1);
+		for (int i = 0; i < sections.length; i++) {
+		    if (i > 0)
+			regex.append(".*");
+		    regex.append(Pattern.quote(sections[i]));
 		}
+		regex.append("$");
 
+		if (fileName.matches(regex.toString())) {
+		    matchingDataFiles.add(file);
+		    continue fileCheck;
+		}
+	    } catch (PatternSyntaxException e) {
+		e.printStackTrace();
+		continue;
 	    }
 	}
-	return matchingDataFiles.toArray(new RawDataFile[0]);
+	return matchingDataFiles;
     }
 
     @Override

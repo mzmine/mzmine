@@ -42,13 +42,8 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
-/**
- */
 public class RawDataFilesComponent extends JPanel implements ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private final DefaultListModel<String> listModel = new DefaultListModel<String>();
     private final JList<String> nameList;
@@ -59,12 +54,13 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
 	super(new BorderLayout());
 
 	nameList = new JList<String>(listModel);
+	nameList.setCellRenderer(new RawDataFilesCellRenderer());
 	nameList.setVisibleRowCount(rows);
 
 	JScrollPane scroll = new JScrollPane(nameList,
 		ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 		ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-	scroll.setPreferredSize(new Dimension(300, 10));
+	scroll.setPreferredSize(new Dimension(400, 10));
 	add(scroll, BorderLayout.CENTER);
 
 	JPanel buttonsPanel = new JPanel();
