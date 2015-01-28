@@ -59,7 +59,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
     private int numberOfScans = 0, parsedScans = 0;
     private int scanNumber;
     private int msLevel;
-    private int parentScan;
+    // private int parentScan;
     private int[] fragmentScan;
     private int numberOfFragments;
     private double precursorMZ;
@@ -250,11 +250,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	}
 
 	if (qName.equals(RawDataElementName_2_5.PARENT_SCAN.getElementName())) {
-	    parentScan = Integer.parseInt(getTextOfElement());
-	}
-
-	if (qName.equals(RawDataElementName_2_5.PARENT_SCAN.getElementName())) {
-	    parentScan = Integer.parseInt(getTextOfElement());
+	    // parentScan = Integer.parseInt(getTextOfElement());
 	}
 
 	if (qName.equals(RawDataElementName_2_5.POLARITY.getElementName())) {
@@ -329,7 +325,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	    scanNumber = -1;
 	    msLevel = -1;
 	    retentionTime = -1;
-	    parentScan= -1;
+	    // parentScan= -1;
 	    precursorMZ = -1;
 	    precursorCharge = -1;
 	    fragmentScan = null;
