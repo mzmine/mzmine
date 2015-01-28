@@ -145,6 +145,9 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements
 	if (canceled)
 	    throw new SAXException("Parsing canceled");
 
+	// This will remove any remaining characters from previous elements
+	getTextOfElement();
+	
 	// <ROW>
 	if (qName.equals(PeakListElementName_2_0.ROW.getElementName())) {
 

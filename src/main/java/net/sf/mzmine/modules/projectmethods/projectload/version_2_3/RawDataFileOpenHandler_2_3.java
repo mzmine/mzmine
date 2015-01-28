@@ -177,6 +177,9 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements
 	if (canceled)
 	    throw new SAXException("Parsing canceled");
 
+	// This will remove any remaining characters from previous elements
+	getTextOfElement();
+	
 	if (qName.equals(RawDataElementName_2_3.QUANTITY_FRAGMENT_SCAN
 		.getElementName())) {
 	    numberOfFragments = Integer
