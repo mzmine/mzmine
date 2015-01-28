@@ -68,7 +68,7 @@ public class MzDataReadTask extends AbstractTask {
     private String precision, endian;
     private int scanNumber;
     private int msLevel;
-    private int parentScan;
+    // private int parentScan;
     private Polarity polarity = Polarity.UNKNOWN;
     private double retentionTime;
     private double precursorMz;
@@ -186,7 +186,8 @@ public class MzDataReadTask extends AbstractTask {
 	    if (qName.equalsIgnoreCase("spectrum")) {
 		msLevel = 0;
 		retentionTime = 0f;
-		parentScan = -1;
+		// parentScan = -1;
+		polarity = Polarity.UNKNOWN;
 		precursorMz = 0f;
 		precursorCharge = 0;
 		scanNumber = Integer.parseInt(attrs.getValue("id"));
@@ -276,11 +277,11 @@ public class MzDataReadTask extends AbstractTask {
 
 	    // <precursor>
 	    if (qName.equalsIgnoreCase("precursor")) {
-		String parent = attrs.getValue("spectrumRef");
-		if (parent != null)
-		    parentScan = Integer.parseInt(parent);
-		else
-		    parentScan = -1;
+		/*
+		 * String parent = attrs.getValue("spectrumRef"); if (parent !=
+		 * null) parentScan = Integer.parseInt(parent); else parentScan
+		 * = -1;
+		 */
 		precursorFlag = true;
 	    }
 	}
