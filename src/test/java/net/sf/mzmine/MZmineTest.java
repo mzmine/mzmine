@@ -45,7 +45,7 @@ public class MZmineTest {
     @BeforeClass
     public static void loadTestData() throws Exception {
 
-	File inputFiles[] = new File("src/test/data").listFiles();
+	File inputFiles[] = new File("src/test/resources").listFiles();
 
 	Assert.assertNotNull(inputFiles);
 	Assert.assertNotEquals(0, inputFiles.length);
