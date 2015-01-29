@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 
@@ -46,15 +47,11 @@ import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.desktop.impl.projecttree.ProjectTree;
 import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataFileType;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataFileTypeDetector;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.AgilentCsvReadTask;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzDataReadTask;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzMLReadTask;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzXMLReadTask;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NativeFileReadTask;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NetCDFReadTask;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportParameters;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
@@ -65,6 +62,7 @@ import uk.ac.ebi.pride.jmztab.model.MZTabFile;
 import uk.ac.ebi.pride.jmztab.model.MsRun;
 import uk.ac.ebi.pride.jmztab.model.SmallMolecule;
 import uk.ac.ebi.pride.jmztab.model.SplitList;
+import uk.ac.ebi.pride.jmztab.model.StudyVariable;
 import uk.ac.ebi.pride.jmztab.utils.MZTabFileParser;
 
 import com.google.common.collect.Range;
@@ -74,6 +72,7 @@ class MzTabImportTask extends AbstractTask {
     // parameter values
     private File file;
     private boolean importrawfiles;
+    private double currentStage = 0;
 
     MzTabImportTask(ParameterSet parameters) {
 	this.file = parameters.getParameter(MzTabImportParameters.file).getValue();
@@ -84,11 +83,17 @@ class MzTabImportTask extends AbstractTask {
 	/**
 	 * TODO: WRITE PERCENTRAGE HANDLER!
 	 **/
-	return 0.5d;
+	//return 0.5d;
+	return (currentStage * 1/10);
     }
 
     public String getTaskDescription() {
 	return "Loading data from " + file;
+    }
+
+    public void cancel() {
+	System.out.println("Cancel!");
+	super.cancel();
     }
 
     public void run() {
@@ -103,64 +108,63 @@ class MzTabImportTask extends AbstractTask {
 	    // Load mzTab file
 	    MZTabFileParser mzTabFileParser = new MZTabFileParser(file, ps);
 	    MZTabFile mzTabFile = mzTabFileParser.getMZTabFile();
+	    currentStage=1;
 
 	    // Import raw data files
 	    final MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
 
 	    SortedMap<Integer, MsRun> msrun = mzTabFile.getMetadata().getMsRunMap();
-	    Task newTasks[] = new Task[1];
 	    RawDataFileWriter newMZmineFile;
+	    RawDataFile[] rawDataFiles = new RawDataFile[msrun.size()];
 
+	    final RawDataImportModule RDI = new RawDataImportModule();
+	    ParameterSet parameters = RDI.getParameterSetClass().newInstance();
+	    List<Task> tasksList = new ArrayList<Task>();
+	    File newFiles[] = new File[msrun.size()];
+
+	    int rawFileCounter = 0;
     	    for(Entry<Integer, MsRun> entry : msrun.entrySet()) {
-    	        File testFile = new File(entry.getValue().getLocation().getPath());
+    		File testFile = new File(entry.getValue().getLocation().getPath());
     	        File f = new File(entry.getValue().getLocation().getPath());
     	        newMZmineFile = MZmineCore.createNewFile(f.getName());
+    	        RawDataFile newDataFile2 = newMZmineFile.finishWriting();
+
     	        if (importrawfiles) {
     	    	    if(testFile.exists() && !testFile.isDirectory()) {
-        		RawDataFileType fileType = RawDataFileTypeDetector.detectDataFileType(f);
-        		switch (fileType) {
-        		    case MZDATA:
-        			newTasks[0] = new MzDataReadTask(project, f, newMZmineFile);
-        			break;
-        		    case MZML:
-        			newTasks[0] = new MzMLReadTask(project, f, newMZmineFile);
-        			break;
-        		    case MZXML:
-        			newTasks[0] = new MzXMLReadTask(project, f, newMZmineFile);
-        			break;
-        		    case NETCDF:
-        			newTasks[0] = new NetCDFReadTask(project, f, newMZmineFile);
-        			break;
-        		    case AGILENT_CSV:
-        			newTasks[0] = new AgilentCsvReadTask(project, f, newMZmineFile);
-        			break;
-        		    case THERMO_RAW:
-        		    case WATERS_RAW:
-        			newTasks[0] = new NativeFileReadTask(project, f, fileType, newMZmineFile);
-        			break;
-        		}
-        		// Process task
-        		MZmineCore.getTaskController().addTasks(newTasks);
-
+    	    		newFiles[rawFileCounter] = new File(entry.getValue().getLocation().getPath());
     	    	    }
 
     	    	    else {
     	    		// Add dummy raw file
-            		RawDataFile newDataFile2 = newMZmineFile.finishWriting();
             		project.addFile(newDataFile2);
     	    	    }
     	    	}
     	    	else {
     	    	    // Add dummy raw file
-    	    	    RawDataFile newDataFile2 = newMZmineFile.finishWriting();
     	    	    project.addFile(newDataFile2);
     	    	}
 
+    	        currentStage=currentStage+8/msrun.size();
+    	        rawFileCounter++;
+    	    }
+
+    	    parameters.getParameter(RawDataImportParameters.fileNames).setValue(newFiles);
+    	    RDI.runModule(project, parameters, tasksList);
+
+    	    // Process tasks
+    	    Task newTasks[] = new Task[1];
+    	    for (Task stepTask : tasksList) {
+		newTasks[0] = stepTask;
+		MZmineCore.getTaskController().addTasks(newTasks);
     	    }
 
 	    // Wait until all raw data file imports have completed
 	    TaskQueue taskQueue = MZmineCore.getTaskController().getTaskQueue();
-	    while (taskQueue.getNumOfWaitingTasks() > 1) { Thread.sleep(1000); }
+	    while (taskQueue.getNumOfWaitingTasks() > 1) { 
+		if (isCanceled()) { return; }
+		Thread.sleep(1000);
+	    }
+	    currentStage=9;
 
 	    // Sort raw data files based on order in mzTab file
 	    // Get all rows in raw data file tree
@@ -197,11 +201,19 @@ class MzTabImportTask extends AbstractTask {
 	    /**
 	     * TODO: Add sample parameters if available in mzTab file
 	     */
-	    int rawFileCounter = 0;
 
 	    // Create Peak list
-	    RawDataFile[] RawDataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-	    PeakList newPeakList = new SimplePeakList(file.getName().replace(".mzTab", ""), RawDataFiles);
+	    fileCounter = 0;
+	    for (RawDataFile rawData : project.getDataFiles()) {
+		for(Entry<Integer, MsRun> entry : msrun.entrySet()) {
+		    File f = new File(entry.getValue().getLocation().getPath());
+		    if(rawData.toString().equals(f.getName())) {
+		        rawDataFiles[fileCounter] = rawData;
+		        fileCounter++;
+		    }
+		}
+	    }
+	    PeakList newPeakList = new SimplePeakList(file.getName().replace(".mzTab", ""), rawDataFiles);
 
 	    // Loop through SML data
 	    String formula, description, database, url = "";
@@ -259,55 +271,60 @@ class MzTabImportTask extends AbstractTask {
 		}
 
 		// Add raw data file entries to row
-		rawFileCounter = 0;
-		for (RawDataFile rawData : MZmineCore.getProjectManager().getCurrentProject().getDataFiles()) {
-		    abundance=0; peak_mz=0; peak_rt=0; peak_height=0;
-		    rawFileCounter ++;
-    	    	    if (smallMolecule.getAbundanceColumnValue(assayMap.get(rawFileCounter)) != null) {
-    	    		abundance = smallMolecule.getAbundanceColumnValue(assayMap.get(rawFileCounter));
-    	    	    }
+		fileCounter = 0;
+		for (RawDataFile rawData : project.getDataFiles()) {
+		    if (isCanceled()) { return; }
+		    if (fileCounter+1 <= rawFileCounter) {
+		        abundance=0; peak_mz=0; peak_rt=0; peak_height=0;
+		        fileCounter ++;
+    	    	        if (smallMolecule.getAbundanceColumnValue(assayMap.get(fileCounter)) != null) {
+    	    		    abundance = smallMolecule.getAbundanceColumnValue(assayMap.get(fileCounter));
+    	    	        }
 
-    	    	    if (smallMolecule.getOptionColumnValue(assayMap.get(rawFileCounter), "peak_mz") != null) {
-    	    		peak_mz = Double.parseDouble(smallMolecule.getOptionColumnValue(assayMap.get(rawFileCounter), "peak_mz"));
-    	    	    }
-    	    	    else { peak_mz = mzExp; }
+    	    	        if (smallMolecule.getOptionColumnValue(assayMap.get(fileCounter), "peak_mz") != null) {
+    	    	  	    peak_mz = Double.parseDouble(smallMolecule.getOptionColumnValue(assayMap.get(fileCounter), "peak_mz"));
+    	    	        }
+    	    	        else { peak_mz = mzExp; }
 
-    	    	    if (smallMolecule.getOptionColumnValue(assayMap.get(rawFileCounter), "peak_rt") != null) {
-    	    		peak_rt = Double.parseDouble(smallMolecule.getOptionColumnValue(assayMap.get(rawFileCounter), "peak_rt"));
-    	    	    }
-    	    	    else { peak_rt = rtValue; }
+    	    	        if (smallMolecule.getOptionColumnValue(assayMap.get(fileCounter), "peak_rt") != null) {
+    	    		    peak_rt = Double.parseDouble(smallMolecule.getOptionColumnValue(assayMap.get(fileCounter), "peak_rt"));
+    	    	        }
+    	    	        else { peak_rt = rtValue; }
 
-    	    	    if (smallMolecule.getOptionColumnValue(assayMap.get(rawFileCounter), "peak_height") != null) {
-    	    		peak_height = Double.parseDouble(smallMolecule.getOptionColumnValue(assayMap.get(rawFileCounter), "peak_height"));
-    	    	    }
-    	    	    else { peak_height = 0.0; }
+    	    	        if (smallMolecule.getOptionColumnValue(assayMap.get(fileCounter), "peak_height") != null) {
+    	    		    peak_height = Double.parseDouble(smallMolecule.getOptionColumnValue(assayMap.get(fileCounter), "peak_height"));
+    	    	        }
+    	    	        else { peak_height = 0.0; }
 
-    	    	    int scanNumbers[] = {};
-    	    	    DataPoint finalDataPoint[] = new DataPoint[1];
-    	    	    finalDataPoint[0] = new SimpleDataPoint(peak_mz, peak_height);
-    	    	    int representativeScan = 0;
-    	    	    int fragmentScan = 0;
-    	    	    Range<Double> finalRTRange = Range.singleton(peak_rt);
-    	    	    Range<Double> finalMZRange = Range.singleton(peak_mz);
-    	    	    Range<Double> finalIntensityRange = Range.singleton(peak_height);
-    	    	    FeatureStatus status = FeatureStatus.MANUAL;
+    	    	        int scanNumbers[] = {};
+    	    	        DataPoint finalDataPoint[] = new DataPoint[1];
+    	    	        finalDataPoint[0] = new SimpleDataPoint(peak_mz, peak_height);
+    	    	        int representativeScan = 0;
+    	    	        int fragmentScan = 0;
+    	    	        Range<Double> finalRTRange = Range.singleton(peak_rt);
+    	    	        Range<Double> finalMZRange = Range.singleton(peak_mz);
+    	    	        Range<Double> finalIntensityRange = Range.singleton(peak_height);
+    	    	        FeatureStatus status = FeatureStatus.MANUAL;
 
-    		    Feature peak = new SimpleFeature(rawData, peak_mz, peak_rt, peak_height, abundance,
+    		        Feature peak = new SimpleFeature(rawData, peak_mz, peak_rt, peak_height, abundance,
     			    scanNumbers, finalDataPoint, status, representativeScan,
     			    fragmentScan, finalRTRange, finalMZRange, finalIntensityRange);
 
-    		    if (abundance > 0) {
-    			newRow.addPeak(rawData, peak);
+    		        if (abundance > 0) {
+    		            newRow.addPeak(rawData, peak);
+    		        }
+    		        
     		    }
 
-    	    	}
+		}
 
-    	    	// Add row to peak list
+		// Add row to peak list
 		newPeakList.addRow(newRow);
 
 	    }
 
 	    MZmineCore.getProjectManager().getCurrentProject().addPeakList(newPeakList);
+	    currentStage=10;
 
 	} catch (Exception e) {
 	    e.printStackTrace();

@@ -71,6 +71,9 @@ public class RawDataImportModule implements MZmineProcessingModule {
 		RawDataImportParameters.fileNames).getValue();
 
 	for (int i = 0; i < fileNames.length; i++) {
+	    if (fileNames[i] == null) {
+		return ExitCode.OK;
+	    }
 
 	    if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
 		MZmineCore.getDesktop().displayErrorMessage(
