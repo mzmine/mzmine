@@ -80,10 +80,6 @@ class MzTabImportTask extends AbstractTask {
     }
 
     public double getFinishedPercentage() {
-	/**
-	 * TODO: WRITE PERCENTRAGE HANDLER!
-	 **/
-	//return 0.5d;
 	return (currentStage * 1/10);
     }
 
@@ -92,7 +88,6 @@ class MzTabImportTask extends AbstractTask {
     }
 
     public void cancel() {
-	System.out.println("Cancel!");
 	super.cancel();
     }
 
@@ -144,7 +139,6 @@ class MzTabImportTask extends AbstractTask {
     	    	    project.addFile(newDataFile2);
     	    	}
 
-    	        currentStage=currentStage+8/msrun.size();
     	        rawFileCounter++;
     	    }
 
@@ -159,12 +153,18 @@ class MzTabImportTask extends AbstractTask {
     	    }
 
 	    // Wait until all raw data file imports have completed
+    	    double FinishedPercentage;
 	    TaskQueue taskQueue = MZmineCore.getTaskController().getTaskQueue();
 	    while (taskQueue.getNumOfWaitingTasks() > 1) { 
-		if (isCanceled()) { return; }
+		FinishedPercentage = 0;
+	    	for (Task task : tasksList) {
+	    	if (isCanceled()) { task.cancel(); } 
+	    	    FinishedPercentage = FinishedPercentage + task.getFinishedPercentage();
+	    	}
+	    	if (isCanceled()) { return; }
+	    	currentStage=1+(FinishedPercentage/msrun.size())*8.5;
 		Thread.sleep(1000);
 	    }
-	    currentStage=9;
 
 	    // Sort raw data files based on order in mzTab file
 	    // Get all rows in raw data file tree
@@ -203,7 +203,7 @@ class MzTabImportTask extends AbstractTask {
 	    if (variableMap.size() > 0) {
 		UserParameter<?, ?> Parameter = new StringParameter("Parameter", null);
 		 MZmineCore.getProjectManager().getCurrentProject().addParameter(Parameter);
-	    
+
 		 for (int i=1; i<variableMap.size()+1; i++) {
 		     fileCounter = 0;
 		     for (RawDataFile rawData : MZmineCore.getProjectManager().getCurrentProject().getDataFiles()) {
@@ -335,7 +335,7 @@ class MzTabImportTask extends AbstractTask {
     		        if (abundance > 0) {
     		            newRow.addPeak(rawData, peak);
     		        }
-    		        
+
     		    }
 
 		}
