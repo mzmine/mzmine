@@ -197,10 +197,32 @@ class MzTabImportTask extends AbstractTask {
 	    	}
 	    }
 
-	    // Add sample parameters
-	    /**
-	     * TODO: Add sample parameters if available in mzTab file
-	     */
+	    // Add sample parameters if available in mzTab file
+	    fileCounter = 0;
+	    SortedMap<Integer, StudyVariable> variableMap = mzTabFile.getMetadata().getStudyVariableMap();
+	    if (variableMap.size() > 0) {
+		UserParameter<?, ?> Parameter = new StringParameter("Parameter", null);
+		 MZmineCore.getProjectManager().getCurrentProject().addParameter(Parameter);
+	    
+		 for (int i=1; i<variableMap.size()+1; i++) {
+		     fileCounter = 0;
+		     for (RawDataFile rawData : MZmineCore.getProjectManager().getCurrentProject().getDataFiles()) {
+			 SortedMap<Integer, Assay> assayMap = variableMap.get(i).getAssayMap();
+			 fileCounter++;
+
+			 for (int x=1; x<rawFileCounter+1; x++) {
+			     if (assayMap.get(x) != null) {
+				 if (assayMap.get(x).toString().contains("ms_run["+fileCounter+"]")) {
+				 	MZmineCore.getProjectManager().getCurrentProject().
+				 	setParameterValue(Parameter, rawData, variableMap.get(i).getDescription());
+			     	}
+			     }
+			 }
+		     }
+    
+		 }
+
+	    }
 
 	    // Create Peak list
 	    fileCounter = 0;
