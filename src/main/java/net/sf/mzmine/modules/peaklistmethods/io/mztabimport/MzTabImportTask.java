@@ -71,8 +71,7 @@ class MzTabImportTask extends AbstractTask {
     private double finishedPercentage = 0.0;
 
     // underlying tasks for importing raw data
-    private final List<Task> underlyingTasks = Collections
-	    .synchronizedList(new ArrayList<Task>());
+    private final List<Task> underlyingTasks = new ArrayList<Task>();
 
     MzTabImportTask(MZmineProject project, ParameterSet parameters) {
 	this.project = project;
@@ -87,10 +86,12 @@ class MzTabImportTask extends AbstractTask {
 	if (importRawFiles && (getStatus() == TaskStatus.PROCESSING)
 		&& (!underlyingTasks.isEmpty())) {
 	    double newPercentage = 0.0;
-	    for (Task t : underlyingTasks) {
-		newPercentage += t.getFinishedPercentage();
+	    synchronized (underlyingTasks) {
+		for (Task t : underlyingTasks) {
+		    newPercentage += t.getFinishedPercentage();
+		}
+		newPercentage /= underlyingTasks.size();
 	    }
-	    newPercentage /= underlyingTasks.size();
 	    // Let's say that raw data import takes 90% of the time
 	    finishedPercentage = newPercentage * 0.9;
 	}
@@ -201,27 +202,27 @@ class MzTabImportTask extends AbstractTask {
 		    .newInstance();
 	    rdiParameters.getParameter(RawDataImportParameters.fileNames)
 		    .setValue(filesToImport.toArray(new File[0]));
-
-	    RDI.runModule(project, rdiParameters, underlyingTasks);
+	    synchronized (underlyingTasks) {
+		RDI.runModule(project, rdiParameters, underlyingTasks);
+	    }
 	    if (underlyingTasks.size() > 0) {
 		MZmineCore.getTaskController().addTasks(
 			underlyingTasks.toArray(new Task[0]));
 	    }
 
 	    // Wait until all raw data file imports have completed
-	    for (Task task : underlyingTasks) {
+	    while (true) {
 		if (isCanceled())
 		    return null;
-
+		boolean tasksFinished = true;
+		for (Task task : underlyingTasks) {
+		    if ((task.getStatus() == TaskStatus.WAITING)
+			    || (task.getStatus() == TaskStatus.PROCESSING))
+			tasksFinished = false;
+		}
+		if (tasksFinished)
+		    break;
 		Thread.sleep(1000);
-
-		if ((task.getStatus() == TaskStatus.WAITING)
-			|| (task.getStatus() == TaskStatus.PROCESSING))
-		    continue;
-
-		// Stop waiting when all tasks are either FINISHED, CANCELED, or
-		// ERROR
-		break;
 	    }
 
 	    /*
