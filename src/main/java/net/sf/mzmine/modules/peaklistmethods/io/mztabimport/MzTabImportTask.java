@@ -92,8 +92,8 @@ class MzTabImportTask extends AbstractTask {
 		}
 		newPercentage /= underlyingTasks.size();
 	    }
-	    // Let's say that raw data import takes 90% of the time
-	    finishedPercentage = newPercentage * 0.9;
+	    // Let's say that raw data import takes 80% of the time
+	    finishedPercentage = 0.1 + newPercentage * 0.8;
 	}
 	return finishedPercentage;
     }
@@ -127,6 +127,9 @@ class MzTabImportTask extends AbstractTask {
 	    MZTabFileParser mzTabFileParser = new MZTabFileParser(inputFile,
 		    logStream);
 	    MZTabFile mzTabFile = mzTabFileParser.getMZTabFile();
+
+	    // Let's say the initial parsing took 10% of the time
+	    finishedPercentage = 0.1;
 
 	    // Import raw data files
 	    SortedMap<Integer, RawDataFile> rawDataFiles = importRawDataFiles(mzTabFile);
@@ -226,32 +229,42 @@ class MzTabImportTask extends AbstractTask {
 	    }
 
 	    /*
-	     * // Sort raw data files based on order in mzTab file // Get all
-	     * rows in raw data file tree MainWindow mainWindow = (MainWindow)
-	     * MZmineCore.getDesktop(); ProjectTree rawDataTree =
-	     * mainWindow.getMainPanel().getRawDataTree(); MZmineProjectImpl
-	     * project2 = (MZmineProjectImpl)
-	     * MZmineCore.getProjectManager().getCurrentProject(); final
-	     * RawDataTreeModel treeModel = project2.getRawDataTreeModel();
-	     * final DefaultMutableTreeNode rootNode = treeModel.getRoot();
-	     * int[] selectedRows = new int[rootNode.getChildCount()]; for (int
-	     * i=1; i<rootNode.getChildCount()+1; i++) { selectedRows[i-1] = i;
-	     * } final ArrayList<DefaultMutableTreeNode> selectedNodes = new
-	     * ArrayList<DefaultMutableTreeNode>(); for (int row : selectedRows)
-	     * { TreePath path = rawDataTree.getPathForRow(row);
-	     * DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode)
-	     * path.getLastPathComponent(); selectedNodes.add(selectedNode); }
-	     * 
-	     * // Reorder the nodes in the tree model based on order in mzTab
-	     * file int fileCounter = 0; for(Entry<Integer, MsRun> entry :
-	     * msrun.entrySet()) { fileCounter++; File f = new
-	     * File(entry.getValue().getLocation().getPath()); for
-	     * (DefaultMutableTreeNode node : selectedNodes) { if
-	     * (node.toString().equals(f.getName())) {
-	     * treeModel.removeNodeFromParent(node);
-	     * treeModel.insertNodeInto(node, rootNode, fileCounter-1); } } }
-	     */
+	    // Sort raw data files based on order in mzTab file 
+	    MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+	    ProjectTree rawDataTree = mainWindow.getMainPanel()
+		    .getRawDataTree();
+	    final RawDataTreeModel treeModel = ((MZmineProjectImpl) project).getRawDataTreeModel();
+	    final DefaultMutableTreeNode rootNode = treeModel.getRoot();
+	    int[] selectedRows = new int[rootNode.getChildCount()];
+	    for (int i = 1; i < rootNode.getChildCount() + 1; i++) {
+		selectedRows[i - 1] = i;
+	    }
+	    final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
+	    for (int row : selectedRows) {
+		TreePath path = rawDataTree.getPathForRow(row);
+		DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
+			.getLastPathComponent();
+		selectedNodes.add(selectedNode);
+	    }
 
+	    // Reorder the nodes in the tree model based on order in mzTab
+	    // file
+	    int fileCounter = 0;
+	    for (Entry<Integer, MsRun> entry : msrun.entrySet()) {
+		fileCounter++;
+		File f = new File(entry.getValue().getLocation().getPath());
+		for (DefaultMutableTreeNode node : selectedNodes) {
+		    if (node.toString().equals(f.getName())) {
+			treeModel.removeNodeFromParent(node);
+			treeModel.insertNodeInto(node, rootNode,
+				fileCounter - 1);
+		    }
+		}
+	    }
+	    */
+
+	} else {
+	    finishedPercentage = 0.5;
 	}
 
 	// Find a matching RawDataFile for each MsRun entry

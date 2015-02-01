@@ -26,16 +26,14 @@ import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 
 public class MzTabImportParameters extends SimpleParameterSet {
 
-    public static final FileNameParameter file = new FileNameParameter(
-	    "File",
-	    "mzTab file to import.",
-	    "mzTab",
-	    32);
-    
+    public static final FileNameParameter file = new FileNameParameter("File",
+	    "mzTab file to import.", "mzTab", 32);
+
     public static final BooleanParameter importrawfiles = new BooleanParameter(
-	    "Import RAW files?", "If selected, RAW files will also be imported if they are available."); 
+	    "Import raw data files?",
+	    "If selected, raw data files will also be imported if they are available. If some raw data files cannot be found, empty files will be generated instead.");
 
     public MzTabImportParameters() {
-	super(new Parameter[] { file, importrawfiles});
+	super(new Parameter[] { file, importrawfiles });
     }
 }
