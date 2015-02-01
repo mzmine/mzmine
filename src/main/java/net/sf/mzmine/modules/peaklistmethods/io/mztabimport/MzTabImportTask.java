@@ -23,12 +23,11 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -61,6 +60,7 @@ import uk.ac.ebi.pride.jmztab.utils.MZTabFileParser;
 
 import com.google.common.collect.Range;
 import com.google.common.io.ByteStreams;
+import com.google.common.math.DoubleMath;
 
 class MzTabImportTask extends AbstractTask {
 
@@ -129,7 +129,7 @@ class MzTabImportTask extends AbstractTask {
 	    MZTabFile mzTabFile = mzTabFileParser.getMZTabFile();
 
 	    // Import raw data files
-	    Map<Integer, RawDataFile> rawDataFiles = importRawDataFiles(mzTabFile);
+	    SortedMap<Integer, RawDataFile> rawDataFiles = importRawDataFiles(mzTabFile);
 
 	    // Check if not canceled
 	    if (isCanceled())
@@ -177,12 +177,12 @@ class MzTabImportTask extends AbstractTask {
 
     }
 
-    private Map<Integer, RawDataFile> importRawDataFiles(MZTabFile mzTabFile)
-	    throws Exception {
+    private SortedMap<Integer, RawDataFile> importRawDataFiles(
+	    MZTabFile mzTabFile) throws Exception {
 
 	SortedMap<Integer, MsRun> msrun = mzTabFile.getMetadata().getMsRunMap();
 
-	Map<Integer, RawDataFile> rawDataFiles = new Hashtable<>();
+	SortedMap<Integer, RawDataFile> rawDataFiles = new TreeMap<>();
 
 	// If we are importing files, let's run RawDataImportModule
 	if (importRawFiles) {
@@ -367,21 +367,11 @@ class MzTabImportTask extends AbstractTask {
 	    // smallMolecule.getCharge();
 
 	    // Calculate average RT if multiple values are available
-	    if (rt.size() > 1) {
-		Object[] rtArray = rt.toArray();
-		double rtTotal = 0;
-		for (int i = 0; i < rt.size(); i++) {
-		    rtTotal = rtTotal
-			    + Double.parseDouble(rtArray[i].toString());
-		}
-		rtValue = rtTotal / rt.size();
-	    } else {
-		if (rt != null && !rt.toString().equals("")) {
-		    rtValue = Double.parseDouble(rt.toString());
-		}
+	    if (rt != null) {
+		rtValue = DoubleMath.mean(rt);
 	    }
 
-	    if (url.equals("null")) {
+	    if ((url != null) && (url.equals("null"))) {
 		url = null;
 	    }
 	    if (identifier.equals("null")) {
