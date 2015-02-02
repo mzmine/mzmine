@@ -380,7 +380,7 @@ class MzTabImportTask extends AbstractTask {
 	    // smallMolecule.getCharge();
 
 	    // Calculate average RT if multiple values are available
-	    if (rt != null) {
+	    if (rt != null && !rt.isEmpty()) {
 		rtValue = DoubleMath.mean(rt);
 	    }
 
