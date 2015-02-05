@@ -30,6 +30,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
+import org.apache.commons.io.FilenameUtils;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
@@ -85,6 +87,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		"SHOW_3D");
 	GUIUtils.addMenuItem(dataFilePopupMenu, "Sort alphabetically", this,
 		"SORT_FILES");
+	GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file extension", this,
+		"REMOVE_EXTENSION");
 	GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
 
 	scanPopupMenu = new JPopupMenu();
@@ -178,6 +182,14 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	    params.getParameter(OrderDataFilesParameters.dataFiles).setValue(
 		    selectedFiles);
 	    module.runModule(null, params, null);
+	}
+
+	if (command.equals("REMOVE_EXTENSION")) {
+	    RawDataFile[] selectedFiles = tree
+		    .getSelectedObjects(RawDataFile.class);
+	    for (RawDataFile file : selectedFiles) {
+		file.setName(FilenameUtils.removeExtension(file.toString()));
+	    }
 	}
 
 	if (command.equals("REMOVE_FILE")) {
