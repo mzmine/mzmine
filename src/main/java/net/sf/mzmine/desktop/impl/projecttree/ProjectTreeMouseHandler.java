@@ -25,8 +25,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -39,6 +37,10 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
+import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParameters;
+import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
+import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
@@ -167,56 +169,15 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	}
 
 	if (command.equals("SORT_FILES")) {
-	    final RawDataTreeModel model = (RawDataTreeModel) tree.getModel();
-	    final DefaultMutableTreeNode rootNode = model.getRoot();
-	    final int selectedRows[] = tree.getSelectionRows();
-
-	    // getSelectionRows() may return null or empty array, depending on
-	    // TreeModel implementation
-	    if ((selectedRows == null) || (selectedRows.length == 0))
-		return;
-
-	    // Get all tree nodes that represent selected peak lists, and remove
-	    // them from
-	    final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
-	    for (int row : selectedRows) {
-		TreePath path = tree.getPathForRow(row);
-		DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
-			.getLastPathComponent();
-		Object selectedObject = selectedNode.getUserObject();
-		if (selectedObject instanceof RawDataFile) {
-		    selectedNodes.add(selectedNode);
-		}
-	    }
-
-	    // Get the index of the first selected item
-	    final ArrayList<Integer> positions = new ArrayList<Integer>();
-	    for (DefaultMutableTreeNode node : selectedNodes) {
-		int nodeIndex = rootNode.getIndex(node);
-		if (nodeIndex != -1)
-		    positions.add(nodeIndex);
-	    }
-	    if (positions.isEmpty())
-		return;
-	    int insertPosition = Collections.min(positions);
-
-	    // Sort the peak lists by name
-	    Collections.sort(selectedNodes,
-		    new Comparator<DefaultMutableTreeNode>() {
-			@Override
-			public int compare(DefaultMutableTreeNode o1,
-				DefaultMutableTreeNode o2) {
-			    return o1.getUserObject().toString()
-				    .compareTo(o2.getUserObject().toString());
-			}
-		    });
-
-	    // Reorder the nodes in the tree model
-	    for (DefaultMutableTreeNode node : selectedNodes) {
-		model.removeNodeFromParent(node);
-		model.insertNodeInto(node, rootNode, insertPosition);
-		insertPosition++;
-	    }
+	    RawDataFile selectedFiles[] = tree
+		    .getSelectedObjects(RawDataFile.class);
+	    OrderDataFilesModule module = MZmineCore
+		    .getModuleInstance(OrderDataFilesModule.class);
+	    ParameterSet params = MZmineCore.getConfiguration()
+		    .getModuleParameters(OrderDataFilesModule.class);
+	    params.getParameter(OrderDataFilesParameters.dataFiles).setValue(
+		    selectedFiles);
+	    module.runModule(null, params, null);
 	}
 
 	if (command.equals("REMOVE_FILE")) {
@@ -318,56 +279,15 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	}
 
 	if (command.equals("SORT_PEAKLISTS")) {
-	    final PeakListTreeModel model = (PeakListTreeModel) tree.getModel();
-	    final DefaultMutableTreeNode rootNode = model.getRoot();
-	    final int selectedRows[] = tree.getSelectionRows();
-
-	    // getSelectionRows() may return null or empty array, depending on
-	    // TreeModel implementation
-	    if ((selectedRows == null) || (selectedRows.length == 0))
-		return;
-
-	    // Get all tree nodes that represent selected peak lists, and remove
-	    // them from
-	    final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
-	    for (int row : selectedRows) {
-		TreePath path = tree.getPathForRow(row);
-		DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
-			.getLastPathComponent();
-		Object selectedObject = selectedNode.getUserObject();
-		if (selectedObject instanceof PeakList) {
-		    selectedNodes.add(selectedNode);
-		}
-	    }
-
-	    // Get the index of the first selected item
-	    final ArrayList<Integer> positions = new ArrayList<Integer>();
-	    for (DefaultMutableTreeNode node : selectedNodes) {
-		int nodeIndex = rootNode.getIndex(node);
-		if (nodeIndex != -1)
-		    positions.add(nodeIndex);
-	    }
-	    if (positions.isEmpty())
-		return;
-	    int insertPosition = Collections.min(positions);
-
-	    // Sort the peak lists by name
-	    Collections.sort(selectedNodes,
-		    new Comparator<DefaultMutableTreeNode>() {
-			@Override
-			public int compare(DefaultMutableTreeNode o1,
-				DefaultMutableTreeNode o2) {
-			    return o1.getUserObject().toString()
-				    .compareTo(o2.getUserObject().toString());
-			}
-		    });
-
-	    // Reorder the nodes in the tree model
-	    for (DefaultMutableTreeNode node : selectedNodes) {
-		model.removeNodeFromParent(node);
-		model.insertNodeInto(node, rootNode, insertPosition);
-		insertPosition++;
-	    }
+	    PeakList selectedPeakLists[] = tree
+		    .getSelectedObjects(PeakList.class);
+	    OrderPeakListsModule module = MZmineCore
+		    .getModuleInstance(OrderPeakListsModule.class);
+	    ParameterSet params = MZmineCore.getConfiguration()
+		    .getModuleParameters(OrderPeakListsModule.class);
+	    params.getParameter(OrderPeakListsParameters.peakLists).setValue(
+		    selectedPeakLists);
+	    module.runModule(null, params, null);
 	}
 
 	if (command.equals("REMOVE_PEAKLIST")) {

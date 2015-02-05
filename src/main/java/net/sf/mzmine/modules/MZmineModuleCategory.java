@@ -28,6 +28,7 @@ public enum MZmineModuleCategory {
     PEAKPICKING("Peak picking"), //
     GAPFILLING("Gap filling"), //
     ISOTOPES("Isotopes"), //
+    PEAKLIST("Peak list methods"), //
     PEAKLISTPICKING("Peak list processing"), //
     PEAKLISTFILTERING("Peak list filtering"), //
     ALIGNMENT("Alignment"), //

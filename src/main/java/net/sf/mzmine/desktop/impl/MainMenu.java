@@ -77,7 +77,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	    showAbout, checkUpdate;
 
     private int projectIOMenuIndex = 0, projectMenuIndex = 1,
-	    rawDataMenuIndex = 0, visualizationMenuIndex = 0,
+	    rawDataMenuIndex = 0, peakListMenuIndex=0, visualizationMenuIndex = 0,
 	    exportMenuIndex = 0;
 
     private Map<JMenuItem, MZmineRunnableModule> moduleMenuItems = new Hashtable<JMenuItem, MZmineRunnableModule>();
@@ -230,6 +230,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	case RAWDATA:
 	    rawDataMenu.add(newItem, rawDataMenuIndex);
 	    rawDataMenuIndex++;
+	    break;
+	case PEAKLIST:
+	    peakListMenu.add(newItem, peakListMenuIndex);
+	    peakListMenuIndex++;
 	    break;
 	case RAWDATAFILTERING:
 	    rawDataFilteringMenu.add(newItem);

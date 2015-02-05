@@ -53,8 +53,10 @@ public class CVParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 	PeakList selectedPeakLists[] = getParameter(peakLists)
 		.getMatchingPeakLists();
-	RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
-	getParameter(dataFiles).setChoices(plDataFiles);
+	if (selectedPeakLists.length > 0) {
+	    RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
+	    getParameter(dataFiles).setChoices(plDataFiles);
+	}
 	return super.showSetupDialog(parent, valueCheckRequired);
     }
 

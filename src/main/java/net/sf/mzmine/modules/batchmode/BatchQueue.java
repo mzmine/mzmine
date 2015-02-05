@@ -39,9 +39,6 @@ import org.w3c.dom.NodeList;
 public class BatchQueue extends
 	Vector<MZmineProcessingStep<MZmineProcessingModule>> {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     // Batch step element name.
