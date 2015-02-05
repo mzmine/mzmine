@@ -76,7 +76,8 @@
 			<!-- jmzreader repository -->
 			<id>ebi-repo</id>
 			<name>The EBI Maven repository</name>
-			<url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
+			<url>http://www.ebi.ac.uk/~maven/m2repo/</url>
+			<!-- <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url> -->
 		</repository>
 		<repository>
 			<id>lib</id>
@@ -353,18 +354,18 @@
 			<artifactId>vecmath</artifactId>
 			<version>1.6.0-pre11</version>
 		</dependency>
-        <dependency>
-            <groupId>uk.ac.ebi.pride</groupId>
-            <artifactId>jmztab-modular-model</artifactId>
-            <version>${jmztab.version}</version>
-            <!-- based on mzTab specification version 1.0 RC5-->
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.ebi.pride</groupId>
-            <artifactId>jmztab-modular-util</artifactId>
-            <version>${jmztab.version}</version>
-            <!-- based on mzTab specification version 1.0 RC5-->
-        </dependency>
+		<dependency>
+			<groupId>uk.ac.ebi.pride</groupId>
+			<artifactId>jmztab-modular-model</artifactId>
+			<version>${jmztab.version}</version>
+			<!-- based on mzTab specification version 1.0 RC5 -->
+		</dependency>
+		<dependency>
+			<groupId>uk.ac.ebi.pride</groupId>
+			<artifactId>jmztab-modular-util</artifactId>
+			<version>${jmztab.version}</version>
+			<!-- based on mzTab specification version 1.0 RC5 -->
+		</dependency>
 
 	</dependencies>
 
