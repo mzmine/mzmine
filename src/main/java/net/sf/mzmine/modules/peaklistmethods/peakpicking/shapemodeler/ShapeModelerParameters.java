@@ -41,7 +41,7 @@ public class ShapeModelerParameters extends SimpleParameterSet {
     public static final DoubleParameter massResolution = new DoubleParameter(
 	    "Mass resolution",
 	    "Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
-		    + " Peak width is taken as the full width at half maximum intensity (FWHM).");
+		    + "\nPeak width is taken as the full width at half maximum intensity (FWHM).");
 
     public static final BooleanParameter autoRemove = new BooleanParameter(
 	    "Remove original peak list",

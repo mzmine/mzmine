@@ -34,27 +34,27 @@ public class ScanSmoothingParameters extends SimpleParameterSet {
 
     public static final DoubleParameter timeSpan = new DoubleParameter(
 	    "Time (min)",
-	    "Time span over which intensities will be averaged in the same m/z over scans. The max between this and Scan Span will be used.",
+	    "Time span over which intensities will be averaged in the same m/z over scans.\nThe max between this and Scan Span will be used.",
 	    MZmineCore.getConfiguration().getRTFormat(), 0.05);
 
     public static final IntegerParameter scanSpan = new IntegerParameter(
 	    "Scan span",
-	    "Number of scan in which intensities will be averaged in the same m/z. The max between this and Time Span will be used.",
+	    "Number of scan in which intensities will be averaged in the same m/z.\nThe max between this and Time Span will be used.",
 	    5);
 
     public static final DoubleParameter mzTolerance = new DoubleParameter(
 	    "MZ tolerance",
-	    "MZ range in which intensities will be averaged . The max between this and mz points will be used. If both 0 no mz smoothing will be performed.",
+	    "M/Z range in which intensities will be averaged. The max between this\nand m/z points will be used. If both 0 no mz smoothing will be performed.",
 	    MZmineCore.getConfiguration().getRTFormat(), 0.05);
 
     public static final IntegerParameter mzPoints = new IntegerParameter(
 	    "MZ min points",
-	    "Number of mz points used to smooth. The max between this and mz tol will be used. If both 0 no mz smoothing will be performed.",
+	    "Number of m/z points used to smooth. The max between this and m/z tol will be used.\nIf both 0 no m/z smoothing will be performed.",
 	    3);
 
     public static final DoubleParameter minimumHeight = new DoubleParameter(
 	    "Min height",
-	    "Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is not used in the average calculation.",
+	    "Minimum intensity of the highest data point in the chromatogram.\nIf chromatogram height is below this level, it is not used in the average calculation.",
 	    MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
 
     public static final BooleanParameter removeOld = new BooleanParameter(

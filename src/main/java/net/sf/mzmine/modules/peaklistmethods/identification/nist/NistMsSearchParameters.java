@@ -69,7 +69,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
      */
     public static final RTToleranceParameter SPECTRUM_RT_WIDTH = new RTToleranceParameter(
 	    "Spectrum RT tolerance",
-	    "The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak");
+	    "The RT tolerance (>= 0) to use when forming search spectra; include all other"
+	    	+"\ndetected peaks whose RT is within the specified tolerance of a given peak");
 
     /**
      * Maximum number of peaks per spectrum.

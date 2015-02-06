@@ -45,7 +45,8 @@ public class PeakFinderParameters extends SimpleParameterSet {
 
     public static final BooleanParameter RTCorrection = new BooleanParameter(
 	    "RT correction",
-	    "If it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation of the retention time between the samples.");
+	    "If checked, correction of the retention time will be applied to avoid the"
+	    	+"\nproblems caused by the deviation of the retention time between the samples.");
 
     public static final BooleanParameter autoRemove = new BooleanParameter(
 	    "Remove original peak list",

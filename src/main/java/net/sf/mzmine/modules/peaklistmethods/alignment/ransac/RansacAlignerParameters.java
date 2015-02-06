@@ -44,15 +44,18 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 
     public static final RTToleranceParameter RTToleranceBefore = new RTToleranceParameter(
 	    "RT tolerance",
-	    "This value sets the range, in terms of retention time, to create the model using RANSAC and non-linear regression algorithm. Maximum allowed retention time difference.");
+	    "This value sets the range, in terms of retention time, to create the model using RANSAC"
+	    	+"\nand non-linear regression algorithm. Maximum allowed retention time difference.");
 
     public static final RTToleranceParameter RTToleranceAfter = new RTToleranceParameter(
 	    "RT tolerance after correction",
-	    "This value sets the range, in terms of retention time, to verify for possible peak rows to be aligned. Maximum allowed retention time difference.");
+	    "This value sets the range, in terms of retention time, to verify for possible peak"
+	    	+"\nrows to be aligned. Maximum allowed retention time difference.");
 
     public static final IntegerParameter Iterations = new IntegerParameter(
 	    "RANSAC iterations",
-	    "Maximum number of iterations allowed in the algorithm to find the right model consistent in all the pairs of aligned peaks. When its value is 0, the number of iterations (k) will be estimate automatically.");
+	    "Maximum number of iterations allowed in the algorithm to find the right model consistent in all the"
+		+ "\npairs of aligned peaks. When its value is 0, the number of iterations (k) will be estimate automatically.");
 
     public static final PercentParameter NMinPoints = new PercentParameter(
 	    "Minimum number of points",

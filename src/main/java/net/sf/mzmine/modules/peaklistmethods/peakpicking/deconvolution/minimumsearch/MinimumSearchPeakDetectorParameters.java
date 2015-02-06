@@ -36,7 +36,8 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
     public static final PercentParameter CHROMATOGRAPHIC_THRESHOLD_LEVEL = new PercentParameter(
 	    "Chromatographic threshold",
-	    "Threshold for removing noise. The algorithm finds such intensity that given percentage of the chromatogram data points is below that intensity, and removes all data points below that level.");
+	    "Threshold for removing noise. The algorithm finds such intensity that given percentage of the"
+	    	+"\nchromatogram data points is below that intensity, and removes all data points below that level.");
 
     public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
 	    "Search minimum in RT range (min)",
@@ -54,7 +55,8 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
     public static final DoubleParameter MIN_RATIO = new DoubleParameter(
 	    "Min ratio of peak top/edge",
-	    "Minimum ratio between peak's top intensity and side (lowest) data points. This parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.");
+	    "Minimum ratio between peak's top intensity and side (lowest) data points."
+	    	+"\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.");
 
     public static final RangeParameter PEAK_DURATION = new RangeParameter(
 	    "Peak duration range (min)", "Range of acceptable peak lengths",

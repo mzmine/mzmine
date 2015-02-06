@@ -40,7 +40,7 @@ public class ShoulderPeaksFilterParameters extends SimpleParameterSet {
     public static final DoubleParameter resolution = new DoubleParameter(
 	    "Mass resolution",
 	    "Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
-		    + " Peak width is taken as the full width at half maximum intensity (FWHM).");
+		    + "\nPeak width is taken as the full width at half maximum intensity (FWHM).");
 
     public static final ComboParameter<PeakModelType> peakModel = new ComboParameter<PeakModelType>(
 	    "Peak model function",

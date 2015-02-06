@@ -44,7 +44,7 @@ public class AlignScansParameters extends SimpleParameterSet {
 
     public static final DoubleParameter minimumHeight = new DoubleParameter(
 	    "Minimum height",
-	    "Minimum intensity to be considered for the align correlation. If chromatogram height is below this level, it is not used in the correlation calculation.",
+	    "Minimum intensity to be considered for the align correlation.\nIf chromatogram height is below this level, it is not used in the correlation calculation.",
 	    MZmineCore.getConfiguration().getIntensityFormat(), 1000.0);
 
     public static final BooleanParameter logTransform = new BooleanParameter(

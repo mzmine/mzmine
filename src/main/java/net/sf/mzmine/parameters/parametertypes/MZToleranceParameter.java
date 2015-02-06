@@ -36,8 +36,8 @@ public class MZToleranceParameter implements
     public MZToleranceParameter() {
 	this(
 		"m/z tolerance",
-		"Maximum allowed difference between two m/z values to be considered same. "
-			+ "The value is specified both as absolute tolerance (in m/z) and relative tolerance (in ppm). "
+		"Maximum allowed difference between two m/z values to be considered same.\n"
+			+ "The value is specified both as absolute tolerance (in m/z) and relative tolerance (in ppm).\n"
 			+ "The tolerance range is calculated using maximum of the absolute and relative tolerances.");
     }
 

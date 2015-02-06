@@ -36,8 +36,8 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
     public static final DoubleParameter minimumTimeSpan = new DoubleParameter(
 	    "Min time span (min)",
-	    "Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram. "
-		    + "The optimal value depends on the chromatography system setup. The best way to set this parameter "
+	    "Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram.\n"
+		    + "The optimal value depends on the chromatography system setup. The best way to set this parameter\n"
 		    + "is by studying the raw data and determining what is the typical time span of chromatographic peaks.",
 	    MZmineCore.getConfiguration().getRTFormat());
 
