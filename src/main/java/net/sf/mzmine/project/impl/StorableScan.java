@@ -94,10 +94,10 @@ public class StorableScan implements Scan {
 
     public StorableScan(RawDataFileImpl rawDataFile, int storageID,
 	    int numberOfDataPoints, int scanNumber, int msLevel,
-	    double retentionTime, double precursorMZ,
-	    int precursorCharge, int fragmentScans[],
-	    MassSpectrumType spectrumType, PolarityType polarity,
-	    String scanDefinition, Range<Double> scanMZRange) {
+	    double retentionTime, double precursorMZ, int precursorCharge,
+	    int fragmentScans[], MassSpectrumType spectrumType,
+	    PolarityType polarity, String scanDefinition,
+	    Range<Double> scanMZRange) {
 
 	this.rawDataFile = rawDataFile;
 	this.numberOfDataPoints = numberOfDataPoints;
@@ -296,6 +296,9 @@ public class StorableScan implements Scan {
      * @see net.sf.mzmine.datamodel.Scan#getSpectrumType()
      */
     public MassSpectrumType getSpectrumType() {
+	if (spectrumType == null) {
+	    spectrumType = ScanUtils.detectSpectrumType(getDataPoints());
+	}
 	return spectrumType;
     }
 

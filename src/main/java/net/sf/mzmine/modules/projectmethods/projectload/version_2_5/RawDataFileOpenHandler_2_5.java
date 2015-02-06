@@ -33,7 +33,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -65,7 +64,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
     private double precursorMZ;
     private int precursorCharge;
     private double retentionTime;
-    private MassSpectrumType spectrumType;
     private int dataPointsNumber;
     private int stepNumber;
     private int fragmentCount;
@@ -175,7 +173,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 
 	// This will remove any remaining characters from previous elements
 	getTextOfElement();
-	
+
 	if (qName.equals(RawDataElementName_2_5.QUANTITY_FRAGMENT_SCAN
 		.getElementName())) {
 	    numberOfFragments = Integer
@@ -284,14 +282,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	    retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
 	}
 
-	if (qName.equals(RawDataElementName_2_5.CENTROIDED.getElementName())) {
-	    boolean centroided = Boolean.parseBoolean(getTextOfElement());
-	    if (centroided)
-		spectrumType = MassSpectrumType.CENTROIDED;
-	    else
-		spectrumType = MassSpectrumType.PROFILE;
-	}
-
 	if (qName.equals(RawDataElementName_2_5.QUANTITY_DATAPOINTS
 		.getElementName())) {
 	    dataPointsNumber = Integer.parseInt(getTextOfElement());
@@ -306,9 +296,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 
 	    StorableScan storableScan = new StorableScan(newRawDataFile,
 		    currentStorageID, dataPointsNumber, scanNumber, msLevel,
-		    retentionTime, precursorMZ, precursorCharge,
-		    fragmentScan, spectrumType, polarity, scanDescription,
-		    scanMZRange);
+		    retentionTime, precursorMZ, precursorCharge, fragmentScan,
+		    null, polarity, scanDescription, scanMZRange);
 
 	    try {
 		newRawDataFile.addScan(storableScan);
@@ -320,7 +309,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 		newML.setScan(storableScan);
 		storableScan.addMassList(newML);
 	    }
-	    
+
 	    // Cleanup
 	    massLists.clear();
 	    currentStorageID = -1;
@@ -332,7 +321,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	    precursorMZ = -1;
 	    precursorCharge = -1;
 	    fragmentScan = null;
-	    spectrumType = null;
 	    polarity = PolarityType.UNKNOWN;
 	    scanDescription = "";
 	    scanMZRange = null;
