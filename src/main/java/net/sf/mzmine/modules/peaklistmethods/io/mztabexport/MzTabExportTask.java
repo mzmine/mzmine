@@ -182,13 +182,13 @@ class MzTabExportTask extends AbstractTask {
 		    SmallMolecule sm = new SmallMolecule(factory, mtd);
 		    if (peakIdentity != null) {
 			// Identity information
-			String identifier = peakIdentity.getPropertyValue("ID");
+			String identifier = escapeString(peakIdentity.getPropertyValue("ID"));
 			String database = peakIdentity
 				.getPropertyValue("Identification method");
 			String formula = peakIdentity
 				.getPropertyValue("Molecular formula");
-			String description = peakIdentity
-				.getPropertyValue("Name");
+			String description = escapeString(peakIdentity
+				.getPropertyValue("Name"));
 			String url = peakIdentity.getPropertyValue("URL");
 
 			if (identifier != null) {
@@ -266,6 +266,15 @@ class MzTabExportTask extends AbstractTask {
 	if (getStatus() == TaskStatus.PROCESSING)
 	    setStatus(TaskStatus.FINISHED);
 
+    }
+
+    private String escapeString(final String inputString) {
+
+	if (inputString == null)
+	    return "";
+
+	// Remove all special characters e.g. \n \t
+	return inputString.replaceAll("[\\p{Cntrl}]", " ");
     }
 
 }
