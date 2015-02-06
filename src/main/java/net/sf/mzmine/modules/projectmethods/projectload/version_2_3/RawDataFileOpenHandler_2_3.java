@@ -35,7 +35,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleMassList;
@@ -294,7 +294,7 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements
 			newStorageID, dataPointsNumber, scanNumber, msLevel,
 			retentionTime, precursorMZ,
 			precursorCharge, fragmentScan, spectrumType,
-			Polarity.UNKNOWN, "", null);
+			PolarityType.UNKNOWN, "", null);
 		newRawDataFile.addScan(storableScan);
 
 		dataPointsOffsets.put(newStorageID, storageFileOffset);

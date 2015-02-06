@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -128,7 +128,7 @@ public class MzMLReadTask extends AbstractTask {
 		// Extract scan data
 		int msLevel = extractMSLevel(spectrum);
 		double retentionTime = extractRetentionTime(spectrum);
-		Polarity polarity = extractPolarity(spectrum);
+		PolarityType polarity = extractPolarity(spectrum);
 		int parentScan = extractParentScanNumber(spectrum);
 		double precursorMz = extractPrecursorMz(spectrum);
 		int precursorCharge = extractPrecursorCharge(spectrum);
@@ -398,7 +398,7 @@ public class MzMLReadTask extends AbstractTask {
 	return 0;
     }
 
-    private Polarity extractPolarity(Spectrum spectrum) {
+    private PolarityType extractPolarity(Spectrum spectrum) {
 	List<CVParam> cvParams = spectrum.getCvParam();
 	if (cvParams != null) {
 	    for (CVParam param : cvParams) {
@@ -407,9 +407,9 @@ public class MzMLReadTask extends AbstractTask {
 		if (accession == null)
 		    continue;
 		if (accession.equals("MS:1000130"))
-		    return Polarity.POSITIVE;
+		    return PolarityType.POSITIVE;
 		if (accession.equals("MS:1000129"))
-		    return Polarity.NEGATIVE;
+		    return PolarityType.NEGATIVE;
 	    }
 	}
 	ScanList scanListElement = spectrum.getScanList();
@@ -425,15 +425,15 @@ public class MzMLReadTask extends AbstractTask {
 			if (accession == null)
 			    continue;
 			if (accession.equals("MS:1000130"))
-			    return Polarity.POSITIVE;
+			    return PolarityType.POSITIVE;
 			if (accession.equals("MS:1000129"))
-			    return Polarity.NEGATIVE;
+			    return PolarityType.NEGATIVE;
 		    }
 
 		}
 	    }
 	}
-	return Polarity.UNKNOWN;
+	return PolarityType.UNKNOWN;
 
     }
 

@@ -72,7 +72,7 @@ public interface Scan extends MassSpectrum {
      */
     public double getPrecursorMZ();
 
-    public @Nonnull Polarity getPolarity();
+    public @Nonnull PolarityType getPolarity();
 
     /**
      * 

@@ -19,8 +19,10 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.casmiimport;
 
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.TextParameter;
 
@@ -39,8 +41,13 @@ public class CasmiImportParameters extends SimpleParameterSet {
 	    "MS/MS spectrum",
 	    "MS/MS spectrum in text format, consisting of two values (m/z and intensity) on each line");
 
+    public static final ComboParameter<PolarityType> polarity = new ComboParameter<>(
+	    "Polarity", "Polarity - positive or negative?",
+	    PolarityType.values());
+
     public CasmiImportParameters() {
-	super(new Parameter[] { casmiProblemName, msSpectrum, msMsSpectrum });
+	super(new Parameter[] { casmiProblemName, msSpectrum, msMsSpectrum,
+		polarity });
     }
 
 }

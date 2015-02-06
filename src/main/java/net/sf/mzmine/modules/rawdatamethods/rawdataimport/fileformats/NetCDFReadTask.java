@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
@@ -411,11 +411,11 @@ public class NetCDFReadTask extends AbstractTask {
 	    scanNum++;
 	    return new SimpleScan(null, scanNum, 1,
 		    retentionTime.doubleValue(), 0, 0, null, new DataPoint[0],
-		    MassSpectrumType.CENTROIDED, Polarity.UNKNOWN, "", null);
+		    MassSpectrumType.CENTROIDED, PolarityType.UNKNOWN, "", null);
 	}
 
 	// Is there any way how to extract polarity from netcdf?
-	Polarity polarity = Polarity.UNKNOWN;
+	PolarityType polarity = PolarityType.UNKNOWN;
 
 	// Is there any way how to extract scan definition from netcdf?
 	String scanDefinition = "";

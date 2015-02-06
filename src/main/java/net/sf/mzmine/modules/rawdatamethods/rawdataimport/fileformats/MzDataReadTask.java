@@ -32,7 +32,7 @@ import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -69,7 +69,7 @@ public class MzDataReadTask extends AbstractTask {
     private int scanNumber;
     private int msLevel;
     // private int parentScan;
-    private Polarity polarity = Polarity.UNKNOWN;
+    private PolarityType polarity = PolarityType.UNKNOWN;
     private double retentionTime;
     private double precursorMz;
     private int precursorCharge = 0;
@@ -187,7 +187,7 @@ public class MzDataReadTask extends AbstractTask {
 		msLevel = 0;
 		retentionTime = 0f;
 		// parentScan = -1;
-		polarity = Polarity.UNKNOWN;
+		polarity = PolarityType.UNKNOWN;
 		precursorMz = 0f;
 		precursorCharge = 0;
 		scanNumber = Integer.parseInt(attrs.getValue("id"));
@@ -211,12 +211,12 @@ public class MzDataReadTask extends AbstractTask {
 			    || (attrs.getValue("name").equals("Polarity"))) {
 			if (attrs.getValue("value").toLowerCase()
 				.equals("positive"))
-			    polarity = Polarity.POSITIVE;
+			    polarity = PolarityType.POSITIVE;
 			else if (attrs.getValue("value").toLowerCase()
 				.equals("negative"))
-			    polarity = Polarity.NEGATIVE;
+			    polarity = PolarityType.NEGATIVE;
 			else
-			    polarity = Polarity.UNKNOWN;
+			    polarity = PolarityType.UNKNOWN;
 		    }
 		    if ((attrs.getValue("accession").equals("PSI:1000038"))
 			    || (attrs.getValue("name").equals("time.min"))) {

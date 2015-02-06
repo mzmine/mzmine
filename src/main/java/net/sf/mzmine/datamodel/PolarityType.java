@@ -22,7 +22,7 @@ package net.sf.mzmine.datamodel;
 /**
  * Represents the polarity of ionization.
  */
-public enum Polarity {
+public enum PolarityType {
 
     POSITIVE(+1, "+"), //
     NEGATIVE(-1, "-"), //
@@ -32,7 +32,7 @@ public enum Polarity {
     private final int sign;
     private final String stringValue;
 
-    Polarity(int sign, String stringValue) {
+    PolarityType(int sign, String stringValue) {
 	this.sign = sign;
 	this.stringValue = stringValue;
     }
@@ -50,8 +50,8 @@ public enum Polarity {
 	return stringValue;
     }
 
-    public static Polarity fromString(String s) {
-	for (Polarity p : values()) {
+    public static PolarityType fromString(String s) {
+	for (PolarityType p : values()) {
 	    if (p.toString().equals(s))
 		return p;
 	}

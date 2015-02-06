@@ -34,7 +34,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
@@ -76,7 +76,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
     private TreeMap<Integer, Integer> dataPointsLengths;
     private StreamCopy copyMachine;
     private ArrayList<StorableMassList> massLists;
-    private Polarity polarity = Polarity.UNKNOWN;
+    private PolarityType polarity = PolarityType.UNKNOWN;
     private String scanDescription = "";
     private Range<Double> scanMZRange = null;
 
@@ -257,7 +257,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	}
 
 	if (qName.equals(RawDataElementName_2_5.POLARITY.getElementName())) {
-	    polarity = Polarity.fromString(getTextOfElement());
+	    polarity = PolarityType.fromString(getTextOfElement());
 	}
 
 	if (qName.equals(RawDataElementName_2_5.SCAN_DESCRIPTION
@@ -333,7 +333,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	    precursorCharge = -1;
 	    fragmentScan = null;
 	    spectrumType = null;
-	    polarity = Polarity.UNKNOWN;
+	    polarity = PolarityType.UNKNOWN;
 	    scanDescription = "";
 	    scanMZRange = null;
 

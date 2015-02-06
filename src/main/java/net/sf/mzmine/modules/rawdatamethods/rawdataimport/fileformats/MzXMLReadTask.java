@@ -36,7 +36,7 @@ import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -200,12 +200,12 @@ public class MzXMLReadTask extends AbstractTask {
 		if (Strings.isNullOrEmpty(scanId))
 		    scanId = scanType;
 
-		Polarity polarity;
+		PolarityType polarity;
 		String polarityAttr = attrs.getValue("polarity");
 		if ((polarityAttr != null) && (polarityAttr.length() == 1))
-		    polarity = Polarity.fromString(polarityAttr);
+		    polarity = PolarityType.fromString(polarityAttr);
 		else
-		    polarity = Polarity.UNKNOWN;
+		    polarity = PolarityType.UNKNOWN;
 		peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
 		// Parse retention time

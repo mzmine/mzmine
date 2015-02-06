@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction;
 
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -38,10 +38,10 @@ public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
 	    "Charge", "Charge of the molecule (z for calculating m/z values)",
 	    1);
 
-    public static final ComboParameter<Polarity> polarity = new ComboParameter<Polarity>(
+    public static final ComboParameter<PolarityType> polarity = new ComboParameter<PolarityType>(
 	    "Polarity",
 	    "Set positive or negative charge of the molecule. Depending on polarity, electron mass is added or removed.",
-	    Polarity.values());
+	    PolarityType.values());
 
     public static final PercentParameter minAbundance = new PercentParameter(
 	    "Minimum abundance", "Minimum abundance of the predicted isotopes",

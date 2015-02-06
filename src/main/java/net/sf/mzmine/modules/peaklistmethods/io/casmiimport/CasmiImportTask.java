@@ -34,7 +34,7 @@ import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
@@ -59,6 +59,7 @@ class CasmiImportTask extends AbstractTask {
 
     private final MZmineProject project;
     private final String casmiProblemName, msSpectrum, msMsSpectrum;
+    private final PolarityType polarity;
     private PeakList newPeakList;
     private RawDataFile newDataFile;
 
@@ -71,6 +72,8 @@ class CasmiImportTask extends AbstractTask {
 		.getValue();
 	msMsSpectrum = parameters.getParameter(
 		CasmiImportParameters.msMsSpectrum).getValue();
+	polarity = parameters.getParameter(CasmiImportParameters.polarity)
+		.getValue();
 
     }
 
@@ -114,10 +117,10 @@ class CasmiImportTask extends AbstractTask {
 	    double precursorMz = topDataPoint.getMZ();
 	    Scan msScan = new SimpleScan(null, msScanNumber, 1, 1.0, 0, 0,
 		    new int[] { 2 }, msSpectrumDataPoints,
-		    MassSpectrumType.CENTROIDED, Polarity.UNKNOWN, "", null);
+		    MassSpectrumType.CENTROIDED, polarity, "", null);
 	    Scan msMsScan = new SimpleScan(null, msMsScanNumber, 2, 1.1,
 		    precursorMz, 1, null, msMsSpectrumDataPoints,
-		    MassSpectrumType.CENTROIDED, Polarity.UNKNOWN, "", null);
+		    MassSpectrumType.CENTROIDED, polarity, "", null);
 	    dataFileWriter.addScan(msScan);
 	    dataFileWriter.addScan(msMsScan);
 	    newDataFile = dataFileWriter.finishWriting();

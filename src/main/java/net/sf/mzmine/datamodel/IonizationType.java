@@ -21,21 +21,21 @@ package net.sf.mzmine.datamodel;
 
 public enum IonizationType {
 
-    NO_IONIZATION("No ionization", "", 0, Polarity.NEUTRAL), //
-    POSITIVE_HYDROGEN("[M+H]+", "H", 1.00728, Polarity.POSITIVE), //
-    NEGATIVE_HYDROGEN("[M-H]-", "H-1", -1.00728, Polarity.NEGATIVE), //
-    POTASSIUM("[M+K]+", "K", 38.96316, Polarity.POSITIVE), //
-    SODIUM("[M+Na]+", "Na", 22.98922, Polarity.POSITIVE), //
-    AMMONIUM("[M+NH4]+", "NH4", 18.03383, Polarity.POSITIVE), //
-    CARBONATE("[M+CO3]-", "CO3", 59.98529, Polarity.NEGATIVE), //
-    PHOSPHATE("[M+H2PO4]-", "H2PO4", 96.96962, Polarity.NEGATIVE);
+    NO_IONIZATION("No ionization", "", 0, PolarityType.NEUTRAL), //
+    POSITIVE_HYDROGEN("[M+H]+", "H", 1.00728, PolarityType.POSITIVE), //
+    NEGATIVE_HYDROGEN("[M-H]-", "H-1", -1.00728, PolarityType.NEGATIVE), //
+    POTASSIUM("[M+K]+", "K", 38.96316, PolarityType.POSITIVE), //
+    SODIUM("[M+Na]+", "Na", 22.98922, PolarityType.POSITIVE), //
+    AMMONIUM("[M+NH4]+", "NH4", 18.03383, PolarityType.POSITIVE), //
+    CARBONATE("[M+CO3]-", "CO3", 59.98529, PolarityType.NEGATIVE), //
+    PHOSPHATE("[M+H2PO4]-", "H2PO4", 96.96962, PolarityType.NEGATIVE);
 
     private final String name, adductFormula;
-    private final Polarity polarity;
+    private final PolarityType polarity;
     private final double addedMass;
 
     IonizationType(String name, String adductFormula, double addedMass,
-	    Polarity polarity) {
+	    PolarityType polarity) {
 
 	this.name = name;
 	this.adductFormula = adductFormula;
@@ -51,7 +51,7 @@ public enum IonizationType {
 	return addedMass;
     }
 
-    public Polarity getPolarity() {
+    public PolarityType getPolarity() {
 	return polarity;
     }
 

@@ -31,7 +31,7 @@ import javax.swing.SwingUtilities;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
@@ -59,7 +59,7 @@ public class StorableScan implements Scan {
     private int numberOfDataPoints;
     private RawDataFileImpl rawDataFile;
     private ArrayList<MassList> massLists = new ArrayList<MassList>();
-    private Polarity polarity;
+    private PolarityType polarity;
     private String scanDefinition;
     private Range<Double> scanMZRange;
 
@@ -96,7 +96,7 @@ public class StorableScan implements Scan {
 	    int numberOfDataPoints, int scanNumber, int msLevel,
 	    double retentionTime, double precursorMZ,
 	    int precursorCharge, int fragmentScans[],
-	    MassSpectrumType spectrumType, Polarity polarity,
+	    MassSpectrumType spectrumType, PolarityType polarity,
 	    String scanDefinition, Range<Double> scanMZRange) {
 
 	this.rawDataFile = rawDataFile;
@@ -413,9 +413,9 @@ public class StorableScan implements Scan {
     }
 
     @Override
-    public Polarity getPolarity() {
+    public PolarityType getPolarity() {
 	if (polarity == null)
-	    polarity = Polarity.UNKNOWN;
+	    polarity = PolarityType.UNKNOWN;
 	return polarity;
     }
 

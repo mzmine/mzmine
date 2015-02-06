@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.PeptideSorter;
@@ -417,7 +417,7 @@ public class PeptideScan implements Scan {
     }
 
     @Override
-    public @Nonnull Polarity getPolarity() {
+    public @Nonnull PolarityType getPolarity() {
 	// TODO Auto-generated method stub
 	return null;
     }

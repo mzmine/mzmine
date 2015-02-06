@@ -27,7 +27,7 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import net.sf.mzmine.datamodel.Polarity;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
@@ -59,7 +59,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     public static IsotopePattern calculateIsotopePattern(
 	    String molecularFormula, double minAbundance, int charge,
-	    Polarity polarity) {
+	    PolarityType polarity) {
 
 	IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 
@@ -73,7 +73,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     public static IsotopePattern calculateIsotopePattern(
 	    IMolecularFormula cdkFormula, double minAbundance, int charge,
-	    Polarity polarity) {
+	    PolarityType polarity) {
 
 	// TODO: check if the formula is not too big (>100 of a single atom?).
 	// if so, just cancel the prediction
@@ -207,7 +207,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 		IsotopePatternCalculatorParameters.formula).getValue();
 	int charge = parameters.getParameter(
 		IsotopePatternCalculatorParameters.charge).getValue();
-	Polarity polarity = parameters.getParameter(
+	PolarityType polarity = parameters.getParameter(
 		IsotopePatternCalculatorParameters.polarity).getValue();
 	double minAbundance = parameters.getParameter(
 		IsotopePatternCalculatorParameters.minAbundance).getValue();

@@ -21,7 +21,11 @@ package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.PolarityType;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -39,6 +43,27 @@ public class FormulaPredictionModule implements MZmineModule {
 	double mzValue = row.getAverageMZ();
 	parameters.getParameter(FormulaPredictionParameters.neutralMass)
 		.setIonMass(mzValue);
+
+	int bestScanNum = row.getBestPeak().getRepresentativeScanNumber();
+	if (bestScanNum > 0) {
+	    RawDataFile dataFile = row.getBestPeak().getDataFile();
+	    Scan bestScan = dataFile.getScan(bestScanNum);
+	    PolarityType scanPolarity = bestScan.getPolarity();
+	    switch (scanPolarity) {
+	    case POSITIVE:
+		parameters
+			.getParameter(FormulaPredictionParameters.neutralMass)
+			.setIonType(IonizationType.POSITIVE_HYDROGEN);
+		break;
+	    case NEGATIVE:
+		parameters
+			.getParameter(FormulaPredictionParameters.neutralMass)
+			.setIonType(IonizationType.NEGATIVE_HYDROGEN);
+		break;
+	    default:
+		break;
+	    }
+	}
 
 	int charge = row.getBestPeak().getCharge();
 	if (charge > 0) {

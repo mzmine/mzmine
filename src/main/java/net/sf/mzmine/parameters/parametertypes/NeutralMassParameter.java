@@ -122,6 +122,10 @@ public class NeutralMassParameter implements
     public void setIonMass(Double newValue) {
 	this.ionMass = newValue;
     }
+    
+    public void setIonType(IonizationType newType) {
+	this.ionType = newType;
+    }
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
