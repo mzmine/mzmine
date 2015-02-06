@@ -36,8 +36,8 @@ import com.google.common.collect.Range;
 
 public class YMDBGateway implements DBGateway {
 
-    private static final String ymdbSeachAddress = "http://www.ymdb.ca/chemquery/mass?";
-    private static final String ymdbEntryAddress = "http://www.ymdb.ca/compounds/";
+    private static final String ymdbSeachAddress = "http://www.ymdb.ca/structures/search/compounds/mass?";
+    private static final String ymdbEntryAddress = "http://www.ymdb.ca/structures/structures/compounds/";
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
@@ -57,7 +57,7 @@ public class YMDBGateway implements DBGateway {
 	TreeSet<String> results = new TreeSet<String>();
 
 	// Find IDs in the HTML data
-	Pattern pat = Pattern.compile("\"/compounds/(YMDB[0-9]{5})\"");
+	Pattern pat = Pattern.compile("/compounds/(YMDB[0-9]{5})");
 	Matcher matcher = pat.matcher(queryResult);
 	while (matcher.find()) {
 	    String ymdbID = matcher.group(1);
@@ -102,7 +102,7 @@ public class YMDBGateway implements DBGateway {
 		compoundName = lines[i + 1];
 	    }
 
-	    if (lines[i].contains("> <CHEMICAL_FORMULA>")) {
+	    if (lines[i].contains("> <JCHEM_FORMULA>")) {
 		compoundFormula = lines[i + 1];
 	    }
 	}
