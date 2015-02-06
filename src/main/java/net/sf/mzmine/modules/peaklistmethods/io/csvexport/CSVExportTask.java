@@ -123,13 +123,14 @@ class CSVExportTask extends AbstractTask {
 	for (int i = 0; i < length; i++) {
 	    name = commonElements[i].toString();
 	    name = name.replace("Export ", "");
+	    name = escapeStringForCSV(name);
 	    line.append(name + fieldSeparator);
 	}
 
 	// Peak identity elements
 	length = identityElements.length;
 	for (int i = 0; i < length; i++) {
-	    name = identityElements[i];
+	    name = escapeStringForCSV(identityElements[i]);
 	    line.append(name + fieldSeparator);
 	}
 
@@ -139,6 +140,7 @@ class CSVExportTask extends AbstractTask {
 	    for (int i = 0; i < length; i++) {
 		name = dataFileElements[i].toString();
 		name = name.replace("Export", rawDataFiles[df].getName());
+		name = escapeStringForCSV(name);
 		line.append(name + fieldSeparator);
 	    }
 	}
@@ -178,16 +180,8 @@ class CSVExportTask extends AbstractTask {
 		    line.append(peakListRow.getAverageRT() + fieldSeparator);
 		    break;
 		case ROW_COMMENT:
-		    String comment = peakListRow.getComment();
-		    if (comment == null) {
-			line.append(fieldSeparator);
-			break;
-		    }
-		    // If the text contains fieldSeparator, we will add
-		    // parenthesis
-		    if (comment.contains(fieldSeparator)) {
-			comment = "\"" + comment.replaceAll("\"", "'") + "\"";
-		    }
+		    String comment = escapeStringForCSV(peakListRow
+			    .getComment());
 		    line.append(comment + fieldSeparator);
 		    break;
 		case ROW_PEAK_NUMBER:
@@ -207,19 +201,8 @@ class CSVExportTask extends AbstractTask {
 	    PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
 	    if (peakIdentity != null) {
 		for (int i = 0; i < length; i++) {
-		    String propertyValue = peakIdentity
-			    .getPropertyValue(identityElements[i]);
-		    if (propertyValue == null) {
-			propertyValue = "";
-		    }
-
-		    // If the text contains fieldSeparator, we will add
-		    // parenthesis
-		    if (propertyValue.contains(fieldSeparator)) {
-			propertyValue = "\""
-				+ propertyValue.replaceAll("\"", "'") + "\"";
-		    }
-
+		    String propertyValue = escapeStringForCSV(peakIdentity
+			    .getPropertyValue(identityElements[i]));
 		    line.append(propertyValue + fieldSeparator);
 		}
 	    } else {
@@ -285,5 +268,23 @@ class CSVExportTask extends AbstractTask {
 
 	    processedRows++;
 	}
+    }
+
+    private String escapeStringForCSV(final String inputString) {
+
+	if (inputString == null)
+	    return "";
+
+	// Remove all special characters (particularly \n would mess up our CSV
+	// format).
+	String result = inputString.replaceAll("[\\p{Cntrl}]", " ");
+
+	// If the text contains fieldSeparator, we will add
+	// parenthesis
+	if (result.contains(fieldSeparator)) {
+	    result = "\"" + result.replaceAll("\"", "'") + "\"";
+	}
+
+	return result;
     }
 }
