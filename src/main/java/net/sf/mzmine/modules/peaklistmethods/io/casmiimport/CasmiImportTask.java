@@ -104,8 +104,7 @@ class CasmiImportTask extends AbstractTask {
 	    assert msSpectrumDataPoints.length > 0;
 	    assert msMsSpectrumDataPoints.length > 0;
 
-	    final DataPoint topDataPoint = ScanUtils
-		    .findTopDataPoint(msSpectrumDataPoints);
+	    final DataPoint firstDataPoint = msSpectrumDataPoints[0];
 	    final int msScanNumber = 1;
 	    final int msMsScanNumber = 2;
 
@@ -114,7 +113,7 @@ class CasmiImportTask extends AbstractTask {
 
 	    dataFileWriter = MZmineCore.createNewFile(casmiProblemName
 		    + " raw data");
-	    double precursorMz = topDataPoint.getMZ();
+	    double precursorMz = firstDataPoint.getMZ();
 	    Scan msScan = new SimpleScan(null, msScanNumber, 1, 1.0, 0, 0,
 		    new int[] { 2 }, msSpectrumDataPoints,
 		    MassSpectrumType.CENTROIDED, polarity, "", null);
@@ -136,16 +135,16 @@ class CasmiImportTask extends AbstractTask {
 	    finalMsMsScan.addMassList(msMsScanMassList);
 
 	    // Generate the peak
-	    double mz = topDataPoint.getMZ();
+	    double mz = firstDataPoint.getMZ();
 	    double rt = msScan.getRetentionTime();
-	    double height = topDataPoint.getIntensity();
-	    double area = topDataPoint.getIntensity();
+	    double height = firstDataPoint.getIntensity();
+	    double area = firstDataPoint.getIntensity();
 	    int scanNumbers[] = new int[] { 1 };
-	    DataPoint dataPointsPerScan[] = new DataPoint[] { topDataPoint };
+	    DataPoint dataPointsPerScan[] = new DataPoint[] { firstDataPoint };
 	    Range<Double> mzRange = ScanUtils.findMzRange(msSpectrumDataPoints);
 	    Range<Double> rtRange = Range.singleton(msScan.getRetentionTime());
 	    Range<Double> intensityRange = Range.closed(0.0,
-		    topDataPoint.getIntensity());
+		    firstDataPoint.getIntensity());
 	    Feature newPeak = new SimpleFeature(newDataFile, mz, rt, height,
 		    area, scanNumbers, dataPointsPerScan, FeatureStatus.MANUAL,
 		    msScanNumber, msMsScanNumber, rtRange, mzRange,
