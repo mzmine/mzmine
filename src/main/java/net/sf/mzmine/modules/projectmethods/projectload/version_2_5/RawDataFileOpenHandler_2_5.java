@@ -275,6 +275,10 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	    precursorCharge = Integer.parseInt(getTextOfElement());
 	}
 
+	if (qName.equals(RawDataElementName_2_5.PRECURSOR_MZ.getElementName())) {
+	    precursorMZ = Double.parseDouble(getTextOfElement());
+	}
+
 	if (qName
 		.equals(RawDataElementName_2_5.RETENTION_TIME.getElementName())) {
 	    // Before MZmine 2.6 retention time was saved in seconds, but now we
