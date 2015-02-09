@@ -32,7 +32,7 @@
 				<version>2.4.1</version>
 				<configuration>
 					<descriptors>
-						<descriptor>assembly.xml</descriptor>
+						<descriptor>src/main/assembly/assembly.xml</descriptor>
 					</descriptors>
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
