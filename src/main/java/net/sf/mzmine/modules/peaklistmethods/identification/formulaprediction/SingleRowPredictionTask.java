@@ -47,12 +47,12 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.FormulaUtils;
 
-import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.google.common.collect.Range;
@@ -166,9 +166,10 @@ public class SingleRowPredictionTask extends AbstractTask {
 	    MZmineCore.getDesktop().displayMessage(resultWindow, msg);
 	}
 
-	IChemObjectBuilder chemBuilder = DefaultChemObjectBuilder.getInstance();
+	IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+
 	try {
-	    generator = new MolecularFormulaGenerator(chemBuilder,
+	    generator = new MolecularFormulaGenerator(builder,
 		    massRange.lowerEndpoint(), massRange.upperEndpoint(),
 		    elementCounts);
 	} catch (CDKException e) {

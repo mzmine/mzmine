@@ -28,13 +28,13 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 
-import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import com.google.common.collect.Range;
@@ -113,11 +113,11 @@ public class MSMSScoreCalculator {
 	    Range<Double> msmsTargetRange = msmsTolerance
 		    .getToleranceRange(neutralLoss);
 
-	    IChemObjectBuilder chemBuilder = DefaultChemObjectBuilder
-		    .getInstance();
+	    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+
 	    MolecularFormulaGenerator msmsEngine;
 	    try {
-		msmsEngine = new MolecularFormulaGenerator(chemBuilder,
+		msmsEngine = new MolecularFormulaGenerator(builder,
 			msmsTargetRange.lowerEndpoint(),
 			msmsTargetRange.upperEndpoint(), msmsElementRange);
 	    } catch (CDKException e) {

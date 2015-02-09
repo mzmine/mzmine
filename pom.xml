@@ -178,7 +178,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
-			<artifactId>cdk-data</artifactId>
+			<artifactId>cdk-silent</artifactId>
 			<version>${cdk.version}</version>
 		</dependency>
 		<dependency>

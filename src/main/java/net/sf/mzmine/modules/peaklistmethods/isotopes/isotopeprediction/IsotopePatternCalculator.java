@@ -35,11 +35,11 @@ import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
 
-import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 /**
@@ -61,7 +61,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 	    String molecularFormula, double minAbundance, int charge,
 	    PolarityType polarity) {
 
-	IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+	IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
 	IMolecularFormula cdkFormula = MolecularFormulaManipulator
 		.getMolecularFormula(molecularFormula, builder);

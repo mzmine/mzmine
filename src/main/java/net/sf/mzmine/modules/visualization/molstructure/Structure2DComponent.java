@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.molstructure;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -30,18 +31,22 @@ import java.util.List;
 
 import javax.swing.JComponent;
 
-import org.openscience.cdk.AtomContainer;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtomContainer;
-import org.openscience.cdk.io.MDLReader;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
+import org.openscience.cdk.renderer.RendererModel;
+import org.openscience.cdk.renderer.color.CDK2DAtomColors;
 import org.openscience.cdk.renderer.font.AWTFontManager;
-import org.openscience.cdk.renderer.generators.BasicAtomGenerator;
-import org.openscience.cdk.renderer.generators.BasicBondGenerator;
 import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
 import org.openscience.cdk.renderer.generators.IGenerator;
+import org.openscience.cdk.renderer.generators.standard.StandardGenerator;
 import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 
 public class Structure2DComponent extends JComponent {
 
@@ -53,32 +58,41 @@ public class Structure2DComponent extends JComponent {
     public Structure2DComponent(String structure) throws CDKException,
 	    IOException {
 
-	// Load the structure
-	StringReader reader = new StringReader(structure);
+	// Create a silend CDK builder
+	IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
-	MDLReader molReader = new MDLReader(reader);
+	// Create a new molecule instance
+	molecule = builder.newInstance(IAtomContainer.class);
 
-	/*
-	 * ChemModel chemModel = new ChemModel(); chemModel = (ChemModel)
-	 * molReader.read(chemModel);
-	 */
-	molecule = new AtomContainer();
+	// Load the structure into the molecule
+	MDLV2000Reader molReader = new MDLV2000Reader(new StringReader(
+		structure));
 	molReader.read(molecule);
 	molReader.close();
 
-	StructureDiagramGenerator sdg = new StructureDiagramGenerator();
-	sdg.setMolecule(molecule);
-	sdg.generateCoordinates();
-	molecule = sdg.getMolecule();
+	// Suppress the hydrogens
+	AtomContainerManipulator.suppressHydrogens(molecule);
 
-	// generators make the image elements
+	// If the model has no coordinates, let's generate them
+	if (!GeometryUtil.has2DCoordinates(molecule)) {
+	    StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+	    sdg.setMolecule(molecule, false);
+	    sdg.generateCoordinates();
+	}
+
+	// Generators make the image elements
+	Font font = new Font("Verdana", Font.PLAIN, 14);
 	List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
 	generators.add(new BasicSceneGenerator());
-	generators.add(new BasicBondGenerator());
-	generators.add(new BasicAtomGenerator());
+	generators.add(new StandardGenerator(font));
 
-	// the renderer needs to have a toolkit-specific font manager
+	// Renderer needs to have a toolkit-specific font manager
 	renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+
+	// Set default atom colors for the renderer
+	RendererModel rendererModel = renderer.getRenderer2DModel();
+	rendererModel.set(StandardGenerator.AtomColor.class,
+		new CDK2DAtomColors());
 
     }
 
@@ -91,7 +105,7 @@ public class Structure2DComponent extends JComponent {
 
 	final Rectangle drawArea = new Rectangle(getWidth(), getHeight());
 	renderer.setup(molecule, drawArea);
-	renderer.paint(molecule, new AWTDrawVisitor(g2));
+	renderer.paint(molecule, new AWTDrawVisitor(g2), drawArea, true);
     }
 
 }
