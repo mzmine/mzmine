@@ -190,6 +190,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	    for (RawDataFile file : selectedFiles) {
 		file.setName(FilenameUtils.removeExtension(file.toString()));
 	    }
+	    tree.updateUI();
 	}
 
 	if (command.equals("REMOVE_FILE")) {
