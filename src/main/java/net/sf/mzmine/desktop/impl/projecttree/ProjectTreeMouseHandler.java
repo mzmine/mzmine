@@ -173,6 +173,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	}
 
 	if (command.equals("SORT_FILES")) {
+	    // save current selection
+	    TreePath savedSelection[] = tree.getSelectionPaths();
 	    RawDataFile selectedFiles[] = tree
 		    .getSelectedObjects(RawDataFile.class);
 	    OrderDataFilesModule module = MZmineCore
@@ -182,6 +184,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	    params.getParameter(OrderDataFilesParameters.dataFiles).setValue(
 		    selectedFiles);
 	    module.runModule(null, params, null);
+	    // restore selection
+	    tree.setSelectionPaths(savedSelection);
 	}
 
 	if (command.equals("REMOVE_EXTENSION")) {
@@ -292,6 +296,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	}
 
 	if (command.equals("SORT_PEAKLISTS")) {
+	    // save current selection
+	    TreePath savedSelection[] = tree.getSelectionPaths();
 	    PeakList selectedPeakLists[] = tree
 		    .getSelectedObjects(PeakList.class);
 	    OrderPeakListsModule module = MZmineCore
@@ -301,6 +307,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	    params.getParameter(OrderPeakListsParameters.peakLists).setValue(
 		    selectedPeakLists);
 	    module.runModule(null, params, null);
+	    // restore selection
+	    tree.setSelectionPaths(savedSelection);
 	}
 
 	if (command.equals("REMOVE_PEAKLIST")) {
