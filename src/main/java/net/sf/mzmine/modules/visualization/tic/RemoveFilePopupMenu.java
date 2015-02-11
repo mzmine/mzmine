@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import javax.swing.JMenu;
@@ -29,6 +30,7 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * 
@@ -53,14 +55,22 @@ class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener 
      */
     public void menuSelected(MenuEvent event) {
 	removeAll();
-	RawDataFile[] files = visualizer.getRawDataFiles();
 
-	// if we have only one file, we cannot remove it
-	if (files.length == 1)
-	    return;
+	// get all project files
+	RawDataFile[] openFiles = MZmineCore.getProjectManager()
+		.getCurrentProject().getDataFiles();
+	HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
+	for (RawDataFile file : visualizer.getRawDataFiles())
+	    visualizedFiles.add(file);
 
 	menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
-	for (RawDataFile file : files) {
+	for (RawDataFile file : openFiles) {
+
+	    // if file is not part of plot, skip it
+	    if (!visualizedFiles.contains(file))
+		continue;
+
+	    // add a menu item for file
 	    JMenuItem newItem = new JMenuItem(file.getName());
 	    newItem.addActionListener(this);
 	    menuItemFiles.put(newItem, file);
