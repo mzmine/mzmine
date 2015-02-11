@@ -52,6 +52,7 @@ public class TICToolBar extends JToolBar {
 	    "icons/annotationsicon.png");
     private static final Icon AXES_ICON = new ImageIcon("icons/axesicon.png");
     private static final Icon LEGEND_ICON = new ImageIcon("icons/legendkey.png");
+    private static final Icon BACKGROUND_ICON = new ImageIcon("icons/bgicon.png");
 
     public TICToolBar(final ActionListener listener) {
 
@@ -82,5 +83,10 @@ public class TICToolBar extends JToolBar {
 
 	GUIUtils.addButton(this, null, LEGEND_ICON, listener, "SHOW_LEGEND",
 		"Toggle display of the legend");
+
+	addSeparator();
+
+	GUIUtils.addButton(this, null, BACKGROUND_ICON, listener, "GRAY_BACKGROUND",
+		"Toggle between white or gray background color");
     }
 }

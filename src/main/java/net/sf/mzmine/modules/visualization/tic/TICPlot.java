@@ -23,6 +23,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.Window;
@@ -56,6 +57,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -415,10 +417,26 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	}
 
 	if ("SHOW_LEGEND".equals(command)) {
-
 	    // Toggle legend visibility.
 	    final LegendTitle legend = getChart().getLegend();
 	    legend.setVisible(!legend.isVisible());
+	}
+
+	if ("GRAY_BACKGROUND".equals(command)) {
+	    // Toggle background color
+	    final Paint color = getChart().getPlot().getBackgroundPaint();
+	    Color bgColor, liColor;
+	    if (color.equals(Color.lightGray)) {
+		bgColor = Color.white;
+		liColor = Color.lightGray;
+	    }
+	    else {
+		bgColor = Color.lightGray;
+		liColor = Color.white;		
+	    }
+	    getChart().getPlot().setBackgroundPaint(bgColor);
+	    getChart().getXYPlot().setDomainGridlinePaint(liColor);
+	    getChart().getXYPlot().setRangeGridlinePaint(liColor);
 	}
     }
 
