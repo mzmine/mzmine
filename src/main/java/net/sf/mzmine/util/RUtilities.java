@@ -78,8 +78,8 @@ public class RUtilities {
 			    + System.getenv().get("R_DOC_DIR")
 			    + "\n R_LIBS_USER="
 			    + System.getenv().get("R_LIBS_USER")
-			    + "\n PATH="
-			    + System.getenv().get("PATH") + "\n";
+			    + "\n JRI_LIB_PATH="
+			    + System.getenv().get("JRI_LIB_PATH") + "\n";
 		} else {
 		    ErrorMsg = "Could not start R. Please check if R is installed and path to the "
 			    + "libraries is set properly in the startMZmine script. (R_HOME="
