@@ -25,6 +25,9 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -32,6 +35,7 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * A pop-up menu to select chromatograms for export.
@@ -44,6 +48,7 @@ public class ExportPopUpMenu extends JMenu implements MenuListener {
     private static final long serialVersionUID = 1L;
     // The visualizer window.
     private final TICVisualizerWindow visualizer;
+    private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
 
     /**
      * Create the menu item.
@@ -61,28 +66,42 @@ public class ExportPopUpMenu extends JMenu implements MenuListener {
     @Override
     public void menuSelected(final MenuEvent e) {
 
-	// Clear the menu.
+	// Clear the menu
 	removeAll();
 
-	// Add the raw data files to the menu and hash table.
-	for (final RawDataFile dataFile : visualizer.getRawDataFiles()) {
+	// get all project files
+	RawDataFile[] openFiles = MZmineCore.getProjectManager()
+		.getCurrentProject().getDataFiles();
+	List<RawDataFile> visualizedFiles = new LinkedList<RawDataFile>();
+	for (RawDataFile file : visualizer.getRawDataFiles())
+	    visualizedFiles.add(file);
 
-	    // Add menu item for file.
-	    final JMenuItem item = new JMenuItem(dataFile.getName());
-	    add(item);
+	menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
+	for (final RawDataFile file : openFiles) {
+
+	    // if file is not part of plot, skip it
+	    if (!visualizedFiles.contains(file))
+		continue;
+
+	    // add a menu item for file
+	    JMenuItem newItem = new JMenuItem(file.getName());
 
 	    // Handle item selection.
-	    item.addActionListener(new ActionListener() {
+	    newItem.addActionListener(new ActionListener() {
 
 		@Override
 		public void actionPerformed(final ActionEvent event) {
 
-		    if (dataFile != null) {
-			visualizer.exportChromatogram(dataFile);
+		    if (file != null) {
+			visualizer.exportChromatogram(file);
 		    }
 		}
 	    });
+
+	    menuItemFiles.put(newItem, file);
+	    add(newItem);
 	}
+
     }
 
     @Override

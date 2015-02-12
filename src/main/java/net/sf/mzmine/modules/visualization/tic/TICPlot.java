@@ -57,7 +57,6 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -302,7 +301,6 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    popupMenu.add(new AddFilePopupMenu((TICVisualizerWindow) listener));
 	    RemoveFilePopupMenu = popupMenu.add(new RemoveFilePopupMenu(
 		    (TICVisualizerWindow) listener));
-	    popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
 	    popupMenu.addSeparator();
 	    RemoveFilePopupMenu.setEnabled(false);
 	}

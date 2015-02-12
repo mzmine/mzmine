@@ -21,8 +21,9 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -54,12 +55,14 @@ class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener 
      * @see javax.swing.event.MenuListener#menuSelected(javax.swing.event.MenuEvent)
      */
     public void menuSelected(MenuEvent event) {
+
+	// Clear the menu
 	removeAll();
 
 	// get all project files
 	RawDataFile[] openFiles = MZmineCore.getProjectManager()
 		.getCurrentProject().getDataFiles();
-	HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
+	List<RawDataFile> visualizedFiles = new LinkedList<RawDataFile>();
 	for (RawDataFile file : visualizer.getRawDataFiles())
 	    visualizedFiles.add(file);
 
