@@ -19,8 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -48,8 +51,14 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.SimpleSorter;
 import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
 
+import org.jfree.chart.ChartMouseEvent;
+import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.LegendItemEntity;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Range;
@@ -147,6 +156,61 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);
 	this.addComponentListener(settings);
+
+	// Listen for clicks on legend items
+	ticPlot.addChartMouseListener(new ChartMouseListener() {
+	    @Override
+	    public void chartMouseClicked(ChartMouseEvent event) {
+	        ChartEntity entity = event.getEntity();
+	        XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
+		
+	        if ((entity != null) && entity instanceof LegendItemEntity && 
+	        	plot.getRenderer().getClass().getName().indexOf
+	        	(".TICPlotRenderer")>-1) {
+	            LegendItemEntity itemEntity = (LegendItemEntity) entity;
+	            XYLineAndShapeRenderer rendererAll = (XYLineAndShapeRenderer)
+	        	    plot.getRenderer();
+	            
+	            // Find index value
+	            int index = -1;
+	            for (int i = 0; i < plot.getDatasetCount(); i++) {
+	                if (rendererAll.getLegendItem(i, 1) != null && rendererAll.
+	                	getLegendItem(i, 1).getDescription().equals(
+	                		itemEntity.getSeriesKey())) {
+	                    index = i;
+	                    break;
+	                }
+	            }
+	            XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) 
+	        	    plot.getRenderer(index);
+	            
+	            // Select or deselect dataset
+	            Font font = new Font("Helvetica", Font.BOLD, 11);
+	            BasicStroke stroke = new BasicStroke(4);
+	            if (renderer.getBaseLegendTextFont() != null && renderer.
+	        	    getBaseLegendTextFont().isBold()) {
+	        	font = new Font("Helvetica",Font.PLAIN, 11);
+	        	stroke = new BasicStroke(1);
+	            }
+	            renderer.setBaseLegendTextFont(font);
+    	            renderer.setSeriesStroke(0,stroke);
+	        }
+	    }
+
+	    @Override
+	    public void chartMouseMoved(ChartMouseEvent event) {
+		ChartEntity entity = event.getEntity();
+	        XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
+		if ((entity != null) && entity instanceof LegendItemEntity &&
+			plot.getRenderer().getClass().getName().indexOf
+			(".TICPlotRenderer")>-1) {
+		    ticPlot.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		}
+		else {
+		    ticPlot.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+		}
+	    }
+	});
 
     }
 
