@@ -25,8 +25,8 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JMenu;
@@ -72,9 +72,8 @@ public class ExportPopUpMenu extends JMenu implements MenuListener {
 	// get all project files
 	RawDataFile[] openFiles = MZmineCore.getProjectManager()
 		.getCurrentProject().getDataFiles();
-	List<RawDataFile> visualizedFiles = new LinkedList<RawDataFile>();
-	for (RawDataFile file : visualizer.getRawDataFiles())
-	    visualizedFiles.add(file);
+	List<RawDataFile> visualizedFiles = Arrays.asList(visualizer
+		.getRawDataFiles());
 
 	menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
 	for (final RawDataFile file : openFiles) {

@@ -21,8 +21,9 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -61,9 +62,8 @@ class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 	// get all project files
 	RawDataFile[] openFiles = MZmineCore.getProjectManager()
 		.getCurrentProject().getDataFiles();
-	HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
-	for (RawDataFile file : visualizer.getRawDataFiles())
-	    visualizedFiles.add(file);
+	List<RawDataFile> visualizedFiles = Arrays.asList(visualizer
+		.getRawDataFiles());
 
 	menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
 	for (RawDataFile file : openFiles) {
