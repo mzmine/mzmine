@@ -72,6 +72,8 @@ using std::cout;
 using namespace std;
 using namespace Waters::Lib::MassLynxRaw;
 
+const int DEBUG = false;
+
 int main(int argc, char* argv[])
 {
 
@@ -106,8 +108,64 @@ int main(int argc, char* argv[])
 		vector<float> masses;
 		vector<float> intensities;
 
-		// Calculate total number of scans
+		// Get number of functions in the file
 		int nFuncs = RI.GetFunctionCount();
+		
+		if (DEBUG) {
+			for (int func = 0; func < nFuncs; func++) {
+				
+				string funcTypeString = RI.GetFunctionTypeString(func);
+				FunctionType funcType = RI.GetFunctionType(func);
+				cout << "DEBUG: function " << func << " type " << funcType << " = " << funcTypeString << "\n";
+
+				int scans = RI.GetScansInFunction(func);
+				cout << "DEBUG: " << scans << " scans\n";
+
+				RSSR.getExtendedStatsTypes(func, extStatsTypes);
+				cout << "DEBUG: " << extStatsTypes.size() << " extended stats fields:\n";
+
+				for (int i = 0; i < extStatsTypes.size(); ++i) {
+					vector<char>   char_values;
+					vector<short>  short_values;
+					vector<int>    long_values;
+					vector<float>  float_values;
+					vector<double> double_values;
+					int nScan = 10;
+					switch (extStatsTypes[i].typeCode)
+					{
+					case CHAR:
+						RSSR.getExtendedStatsField<char>(func, extStatsTypes[i], char_values);
+						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << char_values[nScan] << "\n";
+						break;
+					case SHORT_INT:
+						RSSR.getExtendedStatsField<short>(func, extStatsTypes[i], short_values);
+						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << short_values[nScan] << "\n";
+						break;
+					case LONG_INT:
+						RSSR.getExtendedStatsField<int>(func, extStatsTypes[i], long_values);
+						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << long_values[nScan] << "\n";
+						break;
+					case SINGLE_FLOAT:
+						RSSR.getExtendedStatsField<float>(func, extStatsTypes[i], float_values);
+						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << float_values[nScan] << "\n";
+						break;
+					case DOUBLE_FLOAT:
+						RSSR.getExtendedStatsField<double>(func, extStatsTypes[i], double_values);
+						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << double_values[nScan] << "\n";
+						break;
+					default:
+						break;
+					}
+				}
+
+			}
+
+			getchar();
+
+		}
+
+		
+		// Calculate total number of scans
 		long totalNumScans = 0;
 		for (int func = 0; func < nFuncs; func++) {
 			totalNumScans += RI.GetScansInFunction(func);
@@ -118,8 +176,12 @@ int main(int argc, char* argv[])
 
 		for (int func = 0; func < nFuncs; func++) {
 
-			int nScans = RI.GetScansInFunction(func);
+			const int nScans = RI.GetScansInFunction(func);
 
+			// If there are no scans, skip this functino (otherwise, RSSR.readScanStats() would thrown an exception)
+			if (nScans == 0) continue;
+
+			// Get details about scans
 			RSSR.getExtendedStatsTypes(func, extStatsTypes);
 
 			// Obtain precursor data
@@ -176,7 +238,6 @@ int main(int argc, char* argv[])
 			}
 
 			DataType dataType = RI.GetDataType(func);
-
 			float mzRangeLow, mzRangeHigh;
 			RI.GetAcquisitionMassRange(func, mzRangeLow, mzRangeHigh);
 
@@ -204,11 +265,11 @@ int main(int argc, char* argv[])
 
 				cout << "MASS VALUES: " << stats[scanIndex].peaksInScan << " x " << sizeof(masses[0]) << " BYTES\n";
 
-				fwrite(&masses[0], sizeof(masses[0]), stats[scanIndex].peaksInScan, stdout);
+				if (!DEBUG) fwrite(&masses[0], sizeof(masses[0]), stats[scanIndex].peaksInScan, stdout);
 
 				cout << "INTENSITY VALUES: " << stats[scanIndex].peaksInScan << " x " << sizeof(intensities[0]) << " BYTES\n";
 
-				fwrite(&intensities[0], sizeof(intensities[0]), stats[scanIndex].peaksInScan, stdout);
+				if (!DEBUG) fwrite(&intensities[0], sizeof(intensities[0]), stats[scanIndex].peaksInScan, stdout);
 
 			}
 
@@ -218,7 +279,7 @@ int main(int argc, char* argv[])
 
 	}
 	catch (MassLynxRawException &e) {
-		cout << "ERROR: " << e.what() << endl;
+		cout << "ERROR: " << e.what() << "\n";
 		return 1;
 	}
 
