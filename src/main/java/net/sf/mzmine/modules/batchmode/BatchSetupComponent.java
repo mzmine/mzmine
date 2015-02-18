@@ -59,7 +59,10 @@ import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
+import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterModule;
+import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.DragOrderedJList;
@@ -401,6 +404,13 @@ public class BatchSetupComponent extends JPanel implements ActionListener,
      */
     public void loadBatchSteps(final File file)
 	    throws ParserConfigurationException, IOException, SAXException {
+
+	// Set the parameter choice for the RowsFilterModule
+	String[] choices;
+	choices = new String[1];
+	choices[0] = "No parameters defined";
+	MZmineCore.getConfiguration().getModuleParameters(RowsFilterModule.class).
+	    getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
 
 	final BatchQueue queue = BatchQueue.loadFromXml(DocumentBuilderFactory
 		.newInstance().newDocumentBuilder().parse(file)
