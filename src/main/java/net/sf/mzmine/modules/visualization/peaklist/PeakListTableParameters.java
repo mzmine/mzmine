@@ -30,7 +30,8 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 public class PeakListTableParameters extends SimpleParameterSet {
 
     public static final ColumnSettingParameter<CommonColumnType> commonColumns = new ColumnSettingParameter<CommonColumnType>(
-	    "Common columns", "Visible common columns",
+	    "Common columns",
+	    "Visible common columns. Note: The ID, m/z and RT columns will always be visible, no matter what the setting is.",
 	    CommonColumnType.values());
 
     public static final ColumnSettingParameter<DataFileColumnType> dataFileColumns = new ColumnSettingParameter<DataFileColumnType>(

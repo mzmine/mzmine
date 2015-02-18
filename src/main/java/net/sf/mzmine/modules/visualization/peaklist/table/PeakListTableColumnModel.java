@@ -23,6 +23,7 @@ import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 
@@ -128,6 +129,20 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 	ColumnSettingParameter<CommonColumnType> csPar = parameters
 		.getParameter(PeakListTableParameters.commonColumns);
 	CommonColumnType visibleCommonColumns[] = csPar.getValue();
+
+	// This is a workaround for a bug - we need to always show the ID, m/z
+	// and RT columns, otherwise manual editing of peak identities does not
+	// work.
+	ArrayList<CommonColumnType> commonColumnsList = new ArrayList<>(
+		Arrays.asList(visibleCommonColumns));
+	commonColumnsList.remove(CommonColumnType.ROWID);
+	commonColumnsList.remove(CommonColumnType.AVERAGEMZ);
+	commonColumnsList.remove(CommonColumnType.AVERAGERT);
+	commonColumnsList.add(0, CommonColumnType.ROWID);
+	commonColumnsList.add(1, CommonColumnType.AVERAGEMZ);
+	commonColumnsList.add(2, CommonColumnType.AVERAGERT);
+
+	visibleCommonColumns = commonColumnsList.toArray(visibleCommonColumns);
 
 	ColumnSettingParameter<DataFileColumnType> dfPar = parameters
 		.getParameter(PeakListTableParameters.dataFileColumns);
