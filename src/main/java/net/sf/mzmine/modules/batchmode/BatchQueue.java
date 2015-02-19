@@ -27,6 +27,8 @@ import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
+import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterModule;
+import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 
 import org.w3c.dom.Document;
@@ -69,6 +71,13 @@ public class BatchQueue extends
      * @return the de-serialized value.
      */
     public static BatchQueue loadFromXml(final Element xmlElement) {
+
+	// Set the parameter choice for the RowsFilterModule
+	String[] choices;
+	choices = new String[1];
+	choices[0] = "No parameters defined";
+	MZmineCore.getConfiguration().getModuleParameters(RowsFilterModule.class).
+	    getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
 
 	// Create an empty queue.
 	final BatchQueue queue = new BatchQueue();

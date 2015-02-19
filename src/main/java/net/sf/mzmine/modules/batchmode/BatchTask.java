@@ -76,6 +76,8 @@ public class BatchTask extends AbstractTask {
 
     private void processQueueStep(int stepNumber) {
 
+	logger.info("Starting step # " + (stepNumber+1));
+
 	// Run next step of the batch
 	MZmineProcessingStep<?> currentStep = queue.get(stepNumber);
 	MZmineProcessingModule method = (MZmineProcessingModule) currentStep
