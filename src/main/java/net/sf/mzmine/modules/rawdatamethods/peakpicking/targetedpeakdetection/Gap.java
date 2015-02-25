@@ -43,6 +43,7 @@ class Gap {
     private List<GapDataPoint> bestPeakDataPoints;
     private double bestPeakHeight;
     private double intTolerance;
+    private double noiseLevel;
 
     /**
      * Constructor: Initializes an empty gap
@@ -53,13 +54,14 @@ class Gap {
      *            RT coordinate of this empty gap
      */
     Gap(PeakListRow peakListRow, RawDataFile rawDataFile,
-	    Range<Double> mzRange, Range<Double> rtRange, double intTolerance) {
+	    Range<Double> mzRange, Range<Double> rtRange, double intTolerance, double noiseLevel) {
 
 	this.peakListRow = peakListRow;
 	this.rawDataFile = rawDataFile;
 	this.mzRange = mzRange;
 	this.rtRange = rtRange;
 	this.intTolerance = intTolerance;
+	this.noiseLevel = noiseLevel;
     }
 
     void offerNextScan(Scan scan) {
@@ -197,13 +199,16 @@ class Gap {
 	    int fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile,
 		    finalRTRange, finalMZRange);
 
-	    SimpleFeature newPeak = new SimpleFeature(rawDataFile, mz, rt,
-		    height, area, scanNumbers, finalDataPoint,
-		    FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
-		    finalRTRange, finalMZRange, finalIntensityRange);
-
-	    // Fill the gap
-	    peakListRow.addPeak(rawDataFile, newPeak);
+	    // Is intensity above the noise level?
+	    if (height >= noiseLevel) {
+    	    	SimpleFeature newPeak = new SimpleFeature(rawDataFile, mz, rt,
+    		    height, area, scanNumbers, finalDataPoint,
+    		    FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
+    		    finalRTRange, finalMZRange, finalIntensityRange);
+    
+    	    	// Fill the gap
+    	    	peakListRow.addPeak(rawDataFile, newPeak);
+	    }
 	}
 
     }

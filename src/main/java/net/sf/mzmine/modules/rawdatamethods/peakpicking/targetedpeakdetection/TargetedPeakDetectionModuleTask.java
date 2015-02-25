@@ -34,6 +34,7 @@ import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
@@ -61,6 +62,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     private boolean ignoreFirstLine;
     private int finishedLines = 0;
     private int ID = 0;
+    private double noiseLevel;
 
     TargetedPeakDetectionModuleTask(MZmineProject project,
 	    ParameterSet parameters, RawDataFile dataFile) {
@@ -84,6 +86,8 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 		TargetedPeakDetectionParameters.MZTolerance).getValue();
 	rtTolerance = parameters.getParameter(
 		TargetedPeakDetectionParameters.RTTolerance).getValue();
+	noiseLevel = parameters.getParameter(
+		CentroidMassDetectorParameters.noiseLevel).getValue();	
 
 	this.dataFile = dataFile;
     }
@@ -135,7 +139,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 		    .getName()), true);
 
 	    Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange,
-		    intTolerance);
+		    intTolerance, noiseLevel);
 
 	    gaps.add(newGap);
 

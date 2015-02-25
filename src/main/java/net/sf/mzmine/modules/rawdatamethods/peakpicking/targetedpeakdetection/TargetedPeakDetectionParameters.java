@@ -18,9 +18,11 @@
  */
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
@@ -45,12 +47,16 @@ public class TargetedPeakDetectionParameters extends SimpleParameterSet {
     public static final PercentParameter intTolerance = new PercentParameter(
 	    "Intensity tolerance",
 	    "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+	    "Noise level",
+	    "Intensities less than this value are interpreted as noise",
+	    MZmineCore.getConfiguration().getIntensityFormat());
     public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
     public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
     public TargetedPeakDetectionParameters() {
 	super(new Parameter[] { rawDataFile, suffix, peakListFile,
-		fieldSeparator, ignoreFirstLine, intTolerance, MZTolerance,
-		RTTolerance });
+		fieldSeparator, ignoreFirstLine, intTolerance, noiseLevel, 
+		MZTolerance, RTTolerance });
     }
 }
