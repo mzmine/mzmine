@@ -229,9 +229,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	    show3DItem.setEnabled(oneRowSelected);
 	    showPeakRowSummaryItem.setEnabled(oneRowSelected);
 
+	    if (clickedPeakListRow.getBestPeak() != null) {
 	    exportMSMSItem.setEnabled(oneRowSelected
 		    && clickedPeakListRow.getBestPeak()
 			    .getMostIntenseFragmentScanNumber() > 0);
+	    }
 
 	    // If we clicked on data file columns, check the peak
 	    if (clickedColumn >= CommonColumnType.values().length) {
@@ -261,9 +263,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 		showIsotopePatternItem.setEnabled(clickedPeakListRow
 			.getBestIsotopePattern() != null && oneRowSelected);
-		showMSMSItem.setEnabled(clickedPeakListRow.getBestPeak()
+		if (clickedPeakListRow.getBestPeak() != null) {
+		    showMSMSItem.setEnabled(clickedPeakListRow.getBestPeak()
 			.getMostIntenseFragmentScanNumber() > 0
 			&& oneRowSelected);
+		}
 	    }
 	}
 
