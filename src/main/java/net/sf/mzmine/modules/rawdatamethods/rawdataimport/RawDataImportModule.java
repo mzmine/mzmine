@@ -26,6 +26,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
@@ -70,6 +75,44 @@ public class RawDataImportModule implements MZmineProcessingModule {
 	File fileNames[] = parameters.getParameter(
 		RawDataImportParameters.fileNames).getValue();
 
+	// Find common prefix in raw file names if in GUI mode
+	String commonPrefix = "";
+	if (MZmineCore.getDesktop().getMainWindow() != null) {
+    	    String fileName = fileNames[0].getName().toString(); 
+    	    int length=0;
+    	    outerloop:
+    		for(int x=0; x<fileName.length(); x++){
+    		    for (int i = 0; i < fileNames.length; i++) {
+    			if (!fileName.substring(0, x).equals(fileNames[i].getName().toString().substring(0, x))) {
+    			    length = x-1; 
+    			    break outerloop;
+    			}
+    		    }
+    		}
+
+    	    // Show a dialog to allow user to remove common prefix
+    	    Object[] options1 = { "Remove", "Do not remove", "Cancel" };
+    	    JPanel panel = new JPanel();
+    	    panel.add(new JLabel("The files you have chosen have a common prefix."));
+    	    panel.add(new JLabel("Would you like to remove some or all of this prefix to shorten the names?"));
+    	    panel.add(new JLabel(" "));
+    	    panel.add(new JLabel("Common prefix:"));
+    	    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    	    JTextField textField = new JTextField(6);
+    	    textField.setText(fileName.substring(0, length));  
+    	    panel.add(textField);
+
+    	    int result = JOptionPane.showOptionDialog(null, panel, "Common prefix",
+    		JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+    		null, options1, null);
+
+    	    // Cancel import if users click cancel
+    	    if (result == 2) { return ExitCode.ERROR; }
+
+    	    // Only remove if user selected to do so
+    	    if (result == 0) { commonPrefix = textField.getText(); }
+	}
+
 	for (int i = 0; i < fileNames.length; i++) {
 	    if (fileNames[i] == null) {
 		return ExitCode.OK;
@@ -86,7 +129,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
 	    RawDataFileWriter newMZmineFile;
 	    try {
 		newMZmineFile = MZmineCore
-			.createNewFile(fileNames[i].getName());
+			.createNewFile(fileNames[i].getName().replace(commonPrefix, ""));
 	    } catch (IOException e) {
 		MZmineCore.getDesktop().displayErrorMessage(
 			MZmineCore.getDesktop().getMainWindow(),
