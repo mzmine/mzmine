@@ -126,10 +126,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	showMenu = new JMenu("Show");
 	add(showMenu);
 
-	showXICItem = GUIUtils.addMenuItem(showMenu, "Chromatogram (quick)",
+	showXICItem = GUIUtils.addMenuItem(showMenu, "XIC (base peak) (quick)",
 		this);
 	showXICSetupItem = GUIUtils.addMenuItem(showMenu,
-		"Chromatogram (dialog)", this);
+		"XIC (dialog)", this);
 	showSpectrumItem = GUIUtils
 		.addMenuItem(showMenu, "Mass spectrum", this);
 	show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);

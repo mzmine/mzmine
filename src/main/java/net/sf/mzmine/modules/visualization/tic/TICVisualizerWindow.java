@@ -61,6 +61,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 
 /**
@@ -224,20 +225,27 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	StringBuffer mainTitle = new StringBuffer();
 	StringBuffer subTitle = new StringBuffer();
 
-	if (plotType == PlotType.BASEPEAK) {
-	    mainTitle.append("Base peak plot");
-	} else {
-	    // If all datafiles have m/z range less than or equal to range of
-	    // the plot (mzMin, mzMax), then call this TIC, otherwise XIC
-	    Set<RawDataFile> fileSet = ticDataSets.keySet();
-	    String ticOrXIC = "TIC";
-	    for (RawDataFile df : fileSet) {
-		if (!mzRange.encloses(df.getDataMZRange(msLevel))) {
-		    ticOrXIC = "XIC";
-		    break;
-		}
+	// If all data files have m/z range less than or equal to range of
+	// the plot (mzMin, mzMax), then call this TIC, otherwise XIC
+	Set<RawDataFile> fileSet = ticDataSets.keySet();
+	String ticOrXIC = "TIC";
+
+	// Enlarge range a bit to avoid rounding errors
+	Range<Double> mzRange2 = Range.range(mzRange.lowerEndpoint()-1, 
+		BoundType.CLOSED, mzRange.upperEndpoint()+1, BoundType.CLOSED);
+	for (RawDataFile df : fileSet) {
+	    if (!mzRange2.encloses(df.getDataMZRange(msLevel))) {
+		ticOrXIC = "XIC";
+		break;
 	    }
-	    mainTitle.append(ticOrXIC);
+	}
+
+	if (plotType == PlotType.BASEPEAK) {
+	    if (ticOrXIC.equals("TIC")) {mainTitle.append("Base peak chromatogram");}
+	    else { mainTitle.append("XIC (base peak)"); }
+	} else {
+	    if (ticOrXIC.equals("TIC")) {mainTitle.append("TIC");}
+	    else { mainTitle.append("XIC"); }
 	}
 
 	mainTitle.append(", MS" + msLevel);
