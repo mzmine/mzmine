@@ -77,7 +77,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
 
 	// Find common prefix in raw file names if in GUI mode
 	String commonPrefix = "";
-	if (MZmineCore.getDesktop().getMainWindow() != null) {
+	if (MZmineCore.getDesktop().getMainWindow() != null && fileNames.length > 1) {
     	    String fileName = fileNames[0].getName().toString(); 
     	    int length=0;
     	    outerloop:
