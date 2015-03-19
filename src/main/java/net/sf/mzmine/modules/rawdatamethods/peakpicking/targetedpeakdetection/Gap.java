@@ -278,13 +278,13 @@ class Gap {
 	int startInd = highestMaximumInd;
 	double currentInt = currentPeakDataPoints.get(startInd).getIntensity();
 	while (startInd > 0) {
-
 	    double nextInt = currentPeakDataPoints.get(startInd - 1)
 		    .getIntensity();
 	    if (currentInt < nextInt * (1 - intTolerance)) {
 		break;
 	    }
 	    startInd--;
+	    if (nextInt == 0) { break; }
 	    currentInt = nextInt;
 	}
 
@@ -297,6 +297,7 @@ class Gap {
 		break;
 	    }
 	    stopInd++;
+	    if (nextInt == 0) { break; }
 	    currentInt = nextInt;
 	}
 
