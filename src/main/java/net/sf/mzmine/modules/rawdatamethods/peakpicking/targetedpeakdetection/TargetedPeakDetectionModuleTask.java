@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -195,6 +196,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 	try {
 	    List<PeakInformation> list = new ArrayList<PeakInformation>();
 	    dbFileReader = new FileReader(peakListFile);
+	    
 	    String[][] peakListValues = CSVParser.parse(dbFileReader,
 		    fieldSeparator.charAt(0));
 	    if (ignoreFirstLine) {
@@ -216,6 +218,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 	    return list;
 
 	} catch (Exception e) {
+	    e.printStackTrace();
 	    logger.log(Level.WARNING, "Could not read file " + peakListFile, e);
 	    setStatus(TaskStatus.ERROR);
 	    setErrorMessage(e.toString());
