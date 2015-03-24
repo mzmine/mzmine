@@ -82,10 +82,10 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 	}
 
 	if (weHaveData) {
-
 	    TICVisualizerWindow window = new TICVisualizerWindow(dataFiles,
 		    plotType, msLevel, rtRange, mzRange, selectionPeaks,
-		    ((TICVisualizerParameters) parameters).getPeakLabelMap());
+		    ((TICVisualizerParameters) parameters).getPeakLabelMap(),
+		    ((TICVisualizerParameters) parameters).getHiddenMzRange());
 	    window.setVisible(true);
 
 	} else {
@@ -134,7 +134,6 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 	}
 
 	if (mzRange != null) {
-
 	    myParameters.getParameter(TICVisualizerParameters.MZ_RANGE)
 		    .setValue(mzRange);
 	}
@@ -150,6 +149,10 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 		p.setPeakLabelMap(peakLabels);
 	    }
 
+	    if (mzRange != null) {
+		p.setHiddenMzRange(mzRange);
+	    }
+
 	    myInstance.runModule(MZmineCore.getProjectManager()
 		    .getCurrentProject(), p, new ArrayList<Task>());
 	}
@@ -162,7 +165,8 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 	    final Range<Double> mzRange) {
 
 	TICVisualizerWindow window = new TICVisualizerWindow(dataFiles,
-		plotType, msLevel, rtRange, mzRange, selectionPeaks, peakLabels);
+		plotType, msLevel, rtRange, mzRange, selectionPeaks, peakLabels,
+		null);
 	window.setVisible(true);
     }
 

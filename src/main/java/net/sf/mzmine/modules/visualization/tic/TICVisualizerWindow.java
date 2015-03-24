@@ -27,6 +27,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.text.Format;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -82,7 +83,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
     private PlotType plotType;
     private int msLevel;
-    private Range<Double> rtRange, mzRange;
+    private Range<Double> rtRange, mzRange, hiddenMzRange;
 
     private Desktop desktop;
 
@@ -94,7 +95,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], PlotType plotType,
 	    int msLevel, Range<Double> rtRange, Range<Double> mzRange,
-	    Feature[] peaks, Map<Feature, String> peakLabels) {
+	    Feature[] peaks, Map<Feature, String> peakLabels,
+	    Range<Double> hiddenMzRange) {
 
 	super("Chromatogram loading...");
 
@@ -107,6 +109,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
 	this.rtRange = rtRange;
 	this.mzRange = mzRange;
+	this.hiddenMzRange = hiddenMzRange;
 
 	// setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	setBackground(Color.white);
@@ -249,6 +252,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	mainTitle.append(", MS" + msLevel);
+	mainTitle.append(", m/z full" + mzRange);
 	mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint())
 		+ " - " + mzFormat.format(mzRange.upperEndpoint()));
 
@@ -333,6 +337,16 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 		    + msLevel + " within given retention time range.");
 	    return;
 	}
+
+        // Use exact m/z value if user has not defined new m/z range
+        if (hiddenMzRange != null) {
+            Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+            if(mzFormat.format(mzRange.lowerEndpoint()).equals(mzFormat.format(
+        	hiddenMzRange.lowerEndpoint())) & mzFormat.format(mzRange.
+        	upperEndpoint()).equals(mzFormat.format(hiddenMzRange.upperEndpoint())) ) {
+        	mzRange = hiddenMzRange;
+            }
+        }
 
 	TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange,
 		this);

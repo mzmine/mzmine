@@ -23,6 +23,8 @@ import java.awt.Window;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -69,6 +71,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * m/z range.
      */
     public static final RangeParameter MZ_RANGE = new MZRangeParameter();
+    private Range<Double> MZ_RANGE_HIDDEN;
 
     /**
      * Peaks to display.
@@ -92,6 +95,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
 	super(new Parameter[] { DATA_FILES, MS_LEVEL, PLOT_TYPE, RT_RANGE,
 		MZ_RANGE, PEAKS, WINDOWSETTINGSPARAMETER });
 	peakLabelMap = null;
+	MZ_RANGE_HIDDEN = null;
     }
 
     /**
@@ -114,6 +118,26 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     public void setPeakLabelMap(final Map<Feature, String> map) {
 
 	peakLabelMap = map == null ? null : new HashMap<Feature, String>(map);
+    }
+
+    /**
+     * Gets the hidden m/z range
+     * @return 
+     * 
+     * @return Range<Double>.
+     */
+    public Range<Double> getHiddenMzRange() {
+	return MZ_RANGE_HIDDEN;
+    }
+
+    /**
+     * Sets the hidden m/z range.
+     * 
+     * @param Range<Double> 
+     *            m/z range.
+     */
+    public void setHiddenMzRange(final Range<Double> mzRange) {
+	MZ_RANGE_HIDDEN = mzRange;
     }
 
     /**
