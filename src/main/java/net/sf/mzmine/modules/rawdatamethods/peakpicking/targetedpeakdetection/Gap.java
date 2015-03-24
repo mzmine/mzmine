@@ -274,7 +274,6 @@ class Gap {
 	}
 
 	// 2) Find elution start and stop
-
 	int startInd = highestMaximumInd;
 	double currentInt = currentPeakDataPoints.get(startInd).getIntensity();
 	while (startInd > 0) {
@@ -297,7 +296,7 @@ class Gap {
 		break;
 	    }
 	    stopInd++;
-	    if (nextInt == 0) { break; }
+	    if (nextInt == 0) { stopInd++; break; }
 	    currentInt = nextInt;
 	}
 
