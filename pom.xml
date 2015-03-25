@@ -3,9 +3,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.sf.mzmine</groupId>
-	<artifactId>MZmine</artifactId>
-	<version>2.13.1</version>
-	<name>mzmine2</name>
+	<artifactId>mzmine</artifactId>
+	<version>2.14</version>
+	<name>MZmine 2</name>
 	<description>MZmine 2 is an open-source project delivering a software for mass-spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>http://mzmine.sourceforge.net/</url>
 	<properties>
