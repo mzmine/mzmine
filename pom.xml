@@ -8,12 +8,37 @@
 	<name>MZmine 2</name>
 	<description>MZmine 2 is an open-source project delivering a software for mass-spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>http://mzmine.sourceforge.net/</url>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>1.5.10</cdk.version>
 		<jmztab.version>3.0.0</jmztab.version>
 	</properties>
+
+	<mailingLists>
+			<mailingList>
+			<name>mzmine-info</name>
+			<subscribe>mzmine-info-join@lists.sourceforge.net</subscribe>
+			<unsubscribe>mzmine-info-leave@lists.sourceforge.net</unsubscribe>
+			<post>mzmine-info@lists.sourceforge.net</post>
+			<archive>https://sourceforge.net/p/mzmine/mailman/mzmine-info</archive>
+		</mailingList>
+		<mailingList>
+			<name>mzmine-devel</name>
+			<subscribe>mzmine-devel-join@lists.sourceforge.net</subscribe>
+			<unsubscribe>mzmine-devel-leave@lists.sourceforge.net</unsubscribe>
+			<post>mzmine-devel@lists.sourceforge.net</post>
+			<archive>https://sourceforge.net/p/mzmine/mailman/mzmine-devel</archive>
+		</mailingList>
+	</mailingLists>
+	
+	<scm>
+		<url>https://github.com/mzmine/mzmine2</url>
+		<connection>scm:git:git://github.com/mzmine/mzmine2.git</connection>
+		<developerConnection>scm:git:git@github.com/mzmine/mzmine2.git</developerConnection>
+	</scm>
+
 	<build>
 		<plugins>
 			<plugin>
