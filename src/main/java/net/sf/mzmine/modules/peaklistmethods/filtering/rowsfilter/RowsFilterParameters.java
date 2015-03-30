@@ -30,6 +30,7 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
@@ -45,22 +46,26 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public static final StringParameter SUFFIX = new StringParameter(
             "Name suffix", "Suffix to be added to peak list name", "filtered");
 
-    public static final IntegerParameter MIN_PEAK_COUNT = new IntegerParameter(
-            "Minimum peaks in a row",
-            "Minimum number of peak detections required per row", 1, 0, null);
+    public static final OptionalParameter<IntegerParameter> MIN_PEAK_COUNT = new OptionalParameter<>(
+            new IntegerParameter("Minimum peaks in a row",
+                    "Minimum number of peak detections required per row", 1, 0,
+                    null));
 
-    public static final IntegerParameter MIN_ISOTOPE_PATTERN_COUNT = new IntegerParameter(
-            "Minimum peaks in an isotope pattern",
-            "Minimum number of peaks required in an isotope pattern");
+    public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
+            new IntegerParameter("Minimum peaks in an isotope pattern",
+                    "Minimum number of peaks required in an isotope pattern"));
 
-    public static final MZRangeParameter MZ_RANGE = new MZRangeParameter();
+    public static final OptionalParameter<MZRangeParameter> MZ_RANGE = new OptionalParameter<>(
+            new MZRangeParameter());
 
-    public static final RTRangeParameter RT_RANGE = new RTRangeParameter();
+    public static final OptionalParameter<RTRangeParameter> RT_RANGE = new OptionalParameter<>(
+            new RTRangeParameter());
 
-    public static final RangeParameter PEAK_DURATION = new RangeParameter(
-            "Peak duration range",
-            "Permissible range of (average) peak durations per row", MZmineCore
-                    .getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
+    public static final OptionalParameter<RangeParameter> PEAK_DURATION = new OptionalParameter<>(
+            new RangeParameter("Peak duration range",
+                    "Permissible range of (average) peak durations per row",
+                    MZmineCore.getConfiguration().getRTFormat(), Range.closed(
+                            0.0, 10.0)));
 
     public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
             "Parameter", "Paremeter defining the group of each sample.",
@@ -69,13 +74,14 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter(
             "Only identified?", "Select to filter only identified compounds");
 
-    public static final StringParameter IDENTITY_TEXT = new StringParameter(
-            "Text in identity",
-            "Only rows that contain this text in their peak identity field will be retained.");
+    public static final OptionalParameter<StringParameter> IDENTITY_TEXT = new OptionalParameter<>(
+            new StringParameter(
+                    "Text in identity",
+                    "Only rows that contain this text in their peak identity field will be retained."));
 
-    public static final StringParameter COMMENT_TEXT = new StringParameter(
-            "Text in comment",
-            "Only rows that contain this text in their comment field will be retained.");
+    public static final OptionalParameter<StringParameter> COMMENT_TEXT = new OptionalParameter<>(
+            new StringParameter("Text in comment",
+                    "Only rows that contain this text in their comment field will be retained."));
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",

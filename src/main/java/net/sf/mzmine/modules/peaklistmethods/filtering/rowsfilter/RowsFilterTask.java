@@ -43,7 +43,6 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 
 /**
@@ -159,23 +158,23 @@ public class RowsFilterTask extends AbstractTask {
                         getTaskDescription(), parameters));
 
         // Get parameters.
-        final boolean identified = parameters.getParameter(
+        final boolean onlyIdentified = parameters.getParameter(
                 RowsFilterParameters.HAS_IDENTITIES).getValue();
-        final String identityText = parameters.getParameter(
+        final boolean filterByIdentityText = parameters.getParameter(
                 RowsFilterParameters.IDENTITY_TEXT).getValue();
-        final String commentText = parameters.getParameter(
+        final boolean filterByCommentText = parameters.getParameter(
                 RowsFilterParameters.COMMENT_TEXT).getValue();
         final String groupingParameter = (String) parameters.getParameter(
                 RowsFilterParameters.GROUPSPARAMETER).getValue();
-        final int minPresent = parameters.getParameter(
+        final boolean filterByMinPeakCount = parameters.getParameter(
                 RowsFilterParameters.MIN_PEAK_COUNT).getValue();
-        final int minIsotopePatternSize = parameters.getParameter(
+        final boolean filterByMinIsotopePatternSize = parameters.getParameter(
                 RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getValue();
-        final Range<Double> mzRange = parameters.getParameter(
+        final boolean filterByMzRange = parameters.getParameter(
                 RowsFilterParameters.MZ_RANGE).getValue();
-        final Range<Double> rtRange = parameters.getParameter(
+        final boolean filterByRtRange = parameters.getParameter(
                 RowsFilterParameters.RT_RANGE).getValue();
-        final Range<Double> durationRange = parameters.getParameter(
+        final boolean filterByDuration = parameters.getParameter(
                 RowsFilterParameters.PEAK_DURATION).getValue();
 
         // Filter rows.
@@ -185,28 +184,47 @@ public class RowsFilterTask extends AbstractTask {
 
             final PeakListRow row = rows[processedRows];
 
-            // Check number of peaks.
             final int peakCount = getPeakCount(row, groupingParameter);
-            if (peakCount < minPresent)
-                continue;
+
+            // Check number of peaks.
+            if (filterByMinPeakCount) {
+                final int minPeakCount = parameters
+                        .getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
+                        .getEmbeddedParameter().getValue();
+                if (peakCount < minPeakCount)
+                    continue;
+            }
 
             // Check identities.
-            if (identified && row.getPreferredPeakIdentity() == null)
+            if (onlyIdentified && row.getPreferredPeakIdentity() == null)
                 continue;
 
             // Check average m/z.
-            if (!mzRange.contains(row.getAverageMZ()))
-                continue;
+            if (filterByMzRange) {
+                final Range<Double> mzRange = parameters
+                        .getParameter(RowsFilterParameters.MZ_RANGE)
+                        .getEmbeddedParameter().getValue();
+                if (!mzRange.contains(row.getAverageMZ()))
+                    continue;
+            }
 
             // Check average RT.
-            if (!rtRange.contains(row.getAverageRT()))
-                continue;
+            if (filterByRtRange) {
+                final Range<Double> rtRange = parameters
+                        .getParameter(RowsFilterParameters.RT_RANGE)
+                        .getEmbeddedParameter().getValue();
+
+                if (!rtRange.contains(row.getAverageRT()))
+                    continue;
+            }
 
             // Search peak identity text.
-            if (!Strings.isNullOrEmpty(identityText)) {
+            if (filterByIdentityText) {
                 if (row.getPreferredPeakIdentity() == null)
                     continue;
-                final String searchText = identityText.toLowerCase().trim();
+                final String searchText = parameters
+                        .getParameter(RowsFilterParameters.IDENTITY_TEXT)
+                        .getEmbeddedParameter().getValue().toLowerCase().trim();
                 final String rowText = row.getPreferredPeakIdentity().getName()
                         .toLowerCase().trim();
                 if (!rowText.contains(searchText))
@@ -214,10 +232,12 @@ public class RowsFilterTask extends AbstractTask {
             }
 
             // Search peak comment text.
-            if (!Strings.isNullOrEmpty(commentText)) {
+            if (filterByCommentText) {
                 if (row.getComment() == null)
                     continue;
-                final String searchText = commentText.toLowerCase().trim();
+                final String searchText = parameters
+                        .getParameter(RowsFilterParameters.COMMENT_TEXT)
+                        .getEmbeddedParameter().getValue().toLowerCase().trim();
                 final String rowText = row.getComment().toLowerCase().trim();
                 if (!rowText.contains(searchText))
                     continue;
@@ -243,13 +263,24 @@ public class RowsFilterTask extends AbstractTask {
             }
 
             // Check isotope pattern count.
-            if (maxIsotopePatternSizeOnRow < minIsotopePatternSize)
-                continue;
+            if (filterByMinIsotopePatternSize) {
+                final int minIsotopePatternSize = parameters
+                        .getParameter(
+                                RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT)
+                        .getEmbeddedParameter().getValue();
+                if (maxIsotopePatternSizeOnRow < minIsotopePatternSize)
+                    continue;
+            }
 
             // Check average duration.
             avgDuration /= (double) peakCount;
-            if (!durationRange.contains(avgDuration))
-                continue;
+            if (filterByDuration) {
+                final Range<Double> durationRange = parameters
+                        .getParameter(RowsFilterParameters.PEAK_DURATION)
+                        .getEmbeddedParameter().getValue();
+                if (!durationRange.contains(avgDuration))
+                    continue;
+            }
 
             // Good row?
             newPeakList.addRow(copyPeakRow(row));
