@@ -17,7 +17,7 @@
 	</properties>
 
 	<mailingLists>
-			<mailingList>
+		<mailingList>
 			<name>mzmine-info</name>
 			<subscribe>mzmine-info-join@lists.sourceforge.net</subscribe>
 			<unsubscribe>mzmine-info-leave@lists.sourceforge.net</unsubscribe>
@@ -32,7 +32,7 @@
 			<archive>https://sourceforge.net/p/mzmine/mailman/mzmine-devel</archive>
 		</mailingList>
 	</mailingLists>
-	
+
 	<scm>
 		<url>https://github.com/mzmine/mzmine2</url>
 		<connection>scm:git:git://github.com/mzmine/mzmine2.git</connection>
@@ -44,7 +44,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.3</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -54,11 +54,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4.1</version>
+				<version>2.5.3</version>
 				<configuration>
 					<descriptors>
 						<descriptor>src/main/assembly/assembly.xml</descriptor>
 					</descriptors>
+					<finalName>MZmine-${project.version}</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 				<executions>
@@ -74,7 +75,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.5</version>
+				<version>2.6</version>
 				<configuration>
 					<archive>
 						<index>true</index>
