@@ -31,58 +31,61 @@ import com.google.common.collect.Range;
 
 public class RangeComponent extends GridBagPanel {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private JTextField minTxtField, maxTxtField;
     private NumberFormat format;
 
     public RangeComponent(NumberFormat format) {
 
-	this.format = format;
+        this.format = format;
 
-	minTxtField = new JTextField();
-	minTxtField.setColumns(8);
+        minTxtField = new JTextField();
+        minTxtField.setColumns(8);
 
-	maxTxtField = new JTextField();
-	maxTxtField.setColumns(8);
+        maxTxtField = new JTextField();
+        maxTxtField.setColumns(8);
 
-	add(minTxtField, 0, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
-	add(new JLabel(" - "), 1, 0, 1, 1, 0, 0);
-	add(maxTxtField, 2, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
+        add(minTxtField, 0, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
+        add(new JLabel(" - "), 1, 0, 1, 1, 0, 0);
+        add(maxTxtField, 2, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
     }
 
     public Range<Double> getValue() {
-	String minString = minTxtField.getText();
-	String maxString = maxTxtField.getText();
+        String minString = minTxtField.getText();
+        String maxString = maxTxtField.getText();
 
-	try {
-	    Number minValue = format.parse(minString);
-	    Number maxValue = format.parse(maxString);
+        try {
+            Number minValue = format.parse(minString);
+            Number maxValue = format.parse(maxString);
 
-	    if ((minValue == null) || (maxValue == null))
-		return null;
-	    return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
+            if ((minValue == null) || (maxValue == null))
+                return null;
+            return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
 
-	} catch (Exception e) {
-	    return null;
-	}
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public void setNumberFormat(NumberFormat format) {
-	this.format = format;
+        this.format = format;
     }
 
     public void setValue(Range<Double> value) {
-	minTxtField.setText(format.format(value.lowerEndpoint()));
-	maxTxtField.setText(format.format(value.upperEndpoint()));
+        minTxtField.setText(format.format(value.lowerEndpoint()));
+        maxTxtField.setText(format.format(value.upperEndpoint()));
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-	minTxtField.setToolTipText(toolTip);
-	maxTxtField.setToolTipText(toolTip);
+        minTxtField.setToolTipText(toolTip);
+        maxTxtField.setToolTipText(toolTip);
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        minTxtField.setEnabled(enabled);
+        maxTxtField.setEnabled(enabled);
+    }
 }
