@@ -264,16 +264,15 @@ class Gap {
 	    return;
 
 	// 2) Find elution start and stop
-
 	int startInd = highestMaximumInd;
 	double currentInt = currentPeakDataPoints.get(startInd).getIntensity();
 	while (startInd > 0) {
-
 	    double nextInt = currentPeakDataPoints.get(startInd - 1)
 		    .getIntensity();
 	    if (currentInt < (nextInt * (1 - intTolerance)))
 		break;
 	    startInd--;
+	    if (nextInt == 0) { break; }
 	    currentInt = nextInt;
 	}
 
@@ -285,13 +284,18 @@ class Gap {
 	    if (nextInt > (currentInt * (1 + intTolerance)))
 		break;
 	    stopInd++;
+	    if (nextInt == 0) { stopInd++; break; }
 	    currentInt = nextInt;
 	}
+
+	// Since subList does not include toIndex value then find highest
+	// possible value of stopInd+1 and currentPeakDataPoints.size()
+	int toIndex = Math.min(currentPeakDataPoints.size(), stopInd+1);
 
 	// 3) Check if this is the best candidate for a peak
 	if ((bestPeakDataPoints == null) || (bestPeakHeight < currentMaxHeight)) {
 	    bestPeakDataPoints = currentPeakDataPoints.subList(startInd,
-		    stopInd);
+		    toIndex);
 	}
 
     }
