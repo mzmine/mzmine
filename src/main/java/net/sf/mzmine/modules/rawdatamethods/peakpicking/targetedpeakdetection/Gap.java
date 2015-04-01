@@ -303,7 +303,7 @@ class Gap {
 	// 3) Check if this is the best candidate for a peak
 	if ((bestPeakDataPoints == null) || (bestPeakHeight < currentMaxHeight)) {
 	    bestPeakDataPoints = currentPeakDataPoints.subList(startInd,
-		    stopInd);
+		    Math.min(currentPeakDataPoints.size(), stopInd+1));
 	}
 
     }
