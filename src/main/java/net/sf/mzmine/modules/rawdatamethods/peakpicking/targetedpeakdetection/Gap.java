@@ -300,10 +300,14 @@ class Gap {
 	    currentInt = nextInt;
 	}
 
+	// Since subList does not include toIndex value then find highest
+	// possible value of stopInd+1 and currentPeakDataPoints.size()
+	int toIndex = Math.min(currentPeakDataPoints.size(), stopInd+1);
+
 	// 3) Check if this is the best candidate for a peak
 	if ((bestPeakDataPoints == null) || (bestPeakHeight < currentMaxHeight)) {
 	    bestPeakDataPoints = currentPeakDataPoints.subList(startInd,
-		    Math.min(currentPeakDataPoints.size(), stopInd+1));
+		    toIndex);
 	}
 
     }
