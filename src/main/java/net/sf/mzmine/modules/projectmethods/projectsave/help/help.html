@@ -22,12 +22,21 @@ Project file has a <i>.mzmine</i> extension by default. It is in fact a compress
 <ul>
 <li><b>MZMINE_VERSION</b> contains the version of MZmine that saved the project file</li>          
 <li><b>configuration.xml</b> contains configuration of all MZmine modules at the time of saving</li>
+<li><b>Raw data file #<i>number</i> <i>name</i>.scans</b> for each raw data file in the project</li>
 <li><b>Raw data file #<i>number</i> <i>name</i>.xml</b> for each raw data file in the project</li>
 <li><b>Peak list #<i>number</i> <i>name</i>.xml</b> for each peak list in the project</li>
 </ul>
 
+<h3>Scans data file format (.scans)</h3>
+
 <p>
-The format of each XML file is intuitive, with tag names defined by the classes RawDataElementName and PeakListElementName in the net.sf.mzmine.modules.io.projectsave package. 
+This file contains all data point information for all scans of the raw data file in binary form. Data is saved scan after scan, from first data point to the last, with no delimiters. Each data point is saved as 8 bytes, where the first 4 bytes represent the m/z value in float Java type and the second 4 bytes represent the data point intensity value in float Java type.
+</p>
+
+<h3>Raw data file and peak list XML file formats</h3>
+
+<p>
+Please refer to the MZmine source code for more detailed information about the project file formats.
 </p>
 
 </body>
