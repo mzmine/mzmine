@@ -44,7 +44,7 @@ import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParame
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableModule;
+import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;

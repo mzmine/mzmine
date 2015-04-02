@@ -11,12 +11,12 @@
 
 <h2>Supported file formats</h2>
 <p>
-MZmine 2 can read and process both unit mass resolution and exact mass resolution (e.g. FTMS) 
+MZmine 2 can read and process both low-resolution (unit mass) and high-resolution (exact mass) 
 data in both continuous and centroided modes, including fragmentation (MS<sup>n</sup>) scans.
 </p>
 
 <p>
-Supported data formats are:
+Supported raw data formats are:
 </p>
 
 <ul>
@@ -24,16 +24,17 @@ Supported data formats are:
 <li><b>mzXML</b> (versions 2.0, 2.1 and 3.0)</li>
 <li><b>mzData</b> (versions 1.04 and 1.05)</li>
 <li><b>NetCDF</b></li>
-<li><b>Thermo RAW</b> (only on Windows with Thermo Xcalibur installed)</li>
+<li><b>Thermo RAW</b> (native data format)</li>
+<li><b>Waters RAW</b> (native data format)</li>
 </ul>
 
-<h2>Thermo RAW support</h2>
+<h2>Native data format support</h2>
 
 <p>
-The support for Thermo RAW is implemented using a small external program RAWdump.exe in <i>lib/</i> folder.
-First, the MZmine importing module creates a separate RAWdump process, which binds to the Thermo Excalibur COM library and extracts the contents of the RAW file as plain text.
-The MZmine importing module then reads the plain text data and imports it into MZmine. 
-Please see the source file RAWdump.cpp (written in C++) for details. 
+The support for native data formats is implemented using a small external program, 
+which runs only on Microsoft Windows. On Linux or other platforms, MZmine will
+attempt to execute the external program through the Windows emulator 
+<a href="http://www.winehq.org">Wine</a>, so you can try to install it.
 </p> 
 
 </body>
