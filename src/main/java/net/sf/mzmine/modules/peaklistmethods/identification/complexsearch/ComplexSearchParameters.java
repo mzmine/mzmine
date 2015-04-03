@@ -33,21 +33,25 @@ public class ComplexSearchParameters extends SimpleParameterSet {
     public static final PeakListsParameter peakLists = new PeakListsParameter();
 
     public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
-	    "Ionization method",
-	    "Type of ion used to calculate the neutral mass",
-	    IonizationType.values());
+            "Ionization method",
+            "Type of ion used to calculate the neutral mass",
+            IonizationType.values());
 
     public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
+    /*
+     * Max value 10000% so even high-intensity complexes can be searched for.
+     */
     public static final PercentParameter maxComplexHeight = new PercentParameter(
-	    "Max complex peak height",
-	    "Maximum height of the recognized complex peak, relative to the highest of component peaks");
+            "Max complex peak height",
+            "Maximum height of the recognized complex peak, relative to the highest of component peaks",
+            0.5, 0, 100);
 
     public ComplexSearchParameters() {
-	super(new Parameter[] { peakLists, ionizationMethod, rtTolerance,
-		mzTolerance, maxComplexHeight });
+        super(new Parameter[] { peakLists, ionizationMethod, rtTolerance,
+                mzTolerance, maxComplexHeight });
     }
 
 }
