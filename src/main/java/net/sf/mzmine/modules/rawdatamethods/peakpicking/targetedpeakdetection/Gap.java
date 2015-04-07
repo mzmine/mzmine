@@ -287,22 +287,22 @@ class Gap {
 	    currentInt = nextInt;
 	}
 
-	int stopInd = highestMaximumInd;
+	// Since subList does not include toIndex value then find highest
+	// possible value of stopInd+1 and currentPeakDataPoints.size()
+	int stopInd = highestMaximumInd, toIndex = highestMaximumInd;
 	currentInt = currentPeakDataPoints.get(stopInd).getIntensity();
 	while (stopInd < (currentPeakDataPoints.size() - 1)) {
 	    double nextInt = currentPeakDataPoints.get(stopInd + 1)
 		    .getIntensity();
 	    if (nextInt > currentInt * (1 + intTolerance)) {
+		toIndex = Math.min(currentPeakDataPoints.size(), stopInd+1);
 		break;
 	    }
 	    stopInd++;
-	    if (nextInt == 0) { stopInd++; break; }
+	    toIndex = Math.min(currentPeakDataPoints.size(), stopInd+1);
+	    if (nextInt == 0) { stopInd++; toIndex=stopInd; break; }
 	    currentInt = nextInt;
 	}
-
-	// Since subList does not include toIndex value then find highest
-	// possible value of stopInd+1 and currentPeakDataPoints.size()
-	int toIndex = Math.min(currentPeakDataPoints.size(), stopInd+1);
 
 	// 3) Check if this is the best candidate for a peak
 	if ((bestPeakDataPoints == null) || (bestPeakHeight < currentMaxHeight)) {
