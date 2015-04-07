@@ -252,7 +252,6 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	mainTitle.append(", MS" + msLevel);
-	mainTitle.append(", m/z full" + mzRange);
 	mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint())
 		+ " - " + mzFormat.format(mzRange.upperEndpoint()));
 
