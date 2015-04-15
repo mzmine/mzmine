@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.io.sqlexport;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -41,9 +42,12 @@ public class SQLExportParameters extends SimpleParameterSet {
 
     public static final SQLColumnSettingsParameter exportColumns = new SQLColumnSettingsParameter();
 
+    public static final BooleanParameter emptyExport = new BooleanParameter(
+	    "Export empty peak list", "If selected, an empty peak list will be exported with null values for all column other than the rawdatafile and any constant values."); 
+
     public SQLExportParameters() {
 	super(new Parameter[] { peakList, connectionString, tableName,
-		exportColumns });
+		exportColumns, emptyExport });
     }
 
 }

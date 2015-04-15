@@ -35,6 +35,7 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -47,6 +48,7 @@ class SQLExportTask extends AbstractTask {
     private final String connectionString;
     private final String tableName;
     private final SQLColumnSettings exportColumns;
+    private final boolean emptyExport;
 
     private int processedRows = 0, totalRows = 0;
 
@@ -63,6 +65,8 @@ class SQLExportTask extends AbstractTask {
 		.getValue();
 	this.exportColumns = parameters.getParameter(
 		SQLExportParameters.exportColumns).getValue();
+	this.emptyExport = parameters.getParameter(
+		SQLExportParameters.emptyExport).getValue();
 
     }
 
@@ -97,11 +101,19 @@ class SQLExportTask extends AbstractTask {
 
 	try {
 	    dbConnection.setAutoCommit(false);
-	    for (PeakListRow row : rows) {
-		if (getStatus() != TaskStatus.PROCESSING)
-		    break;
-		exportPeakListRow(row);
-		processedRows++;
+	    
+	    // If select, an empty row with just the raw data file
+	    // information will be exported
+	    if (rows.length < 1 && emptyExport) {
+		exportPeakListRow(null);
+	    }
+	    else {
+		for (PeakListRow row : rows) {
+		    if (getStatus() != TaskStatus.PROCESSING)
+			break;
+		    exportPeakListRow(row);
+		    processedRows++;
+		}
 	    }
 	    dbConnection.commit();
 	    dbConnection.close();
@@ -145,120 +157,143 @@ class SQLExportTask extends AbstractTask {
 
 	PreparedStatement statement = dbConnection.prepareStatement(sql
 		.toString());
-
-	for (RawDataFile rawDataFile : row.getRawDataFiles()) {
-	    Feature peak = row.getPeak(rawDataFile);
-
+	
+	if (row == null) {
 	    for (int i = 0; i < exportColumns.getRowCount(); i++) {
 		SQLExportDataType dataType = (SQLExportDataType) exportColumns
-			.getValueAt(i, 1);
+		    .getValueAt(i, 1);
 		String dataValue = (String) exportColumns.getValueAt(i, 2);
 		switch (dataType) {
-		case CONSTANT:
-		    statement.setString(i + 1, dataValue);
-		    break;
-		case MZ:
-		    statement.setDouble(i + 1, row.getAverageMZ());
-		    break;
-		case RT:
-		    statement.setDouble(i + 1, row.getAverageRT());
-		    break;
-		case ID:
-		    statement.setInt(i + 1, row.getID());
-		    break;
-		case PEAKCHARGE:
-		    statement.setDouble(i + 1, peak.getCharge());
-		    loopDataFiles = true;
-		    break;
-		case PEAKDURATION:
-		    statement.setDouble(i + 1, RangeUtils.rangeLength(peak
-			    .getRawDataPointsRTRange()));
-		    loopDataFiles = true;
-		    break;
-		case PEAKSTATUS:
-		    statement.setString(i + 1, peak.getFeatureStatus().name());
-		    loopDataFiles = true;
-		    break;
-		case PEAKMZ:
-		    statement.setDouble(i + 1, peak.getMZ());
-		    loopDataFiles = true;
-		    break;
-		case PEAKRT:
-		    statement.setDouble(i + 1, peak.getRT());
-		    loopDataFiles = true;
-		    break;
-		case PEAKHEIGHT:
-		    statement.setDouble(i + 1, peak.getHeight());
-		    loopDataFiles = true;
-		    break;
-		case PEAKAREA:
-		    statement.setDouble(i + 1, peak.getArea());
-		    loopDataFiles = true;
-		    break;
-		case RAWFILE:
-		    statement.setString(i + 1, rawDataFile.getName());
-		    loopDataFiles = true;
-		    break;
-		case HEIGHT:
-		    statement.setDouble(i + 1, row.getAverageHeight());
-		    break;
-		case AREA:
-		    statement.setDouble(i + 1, row.getAverageArea());
-		    break;
-		case COMMENT:
-		    statement.setString(i + 1, row.getComment());
-		    break;
-		case IDENTITY:
-		    PeakIdentity id = row.getPreferredPeakIdentity();
-		    if (id != null) {
-			statement.setString(i + 1, id.getName());
-		    } else {
-			statement.setNull(i + 1, Types.VARCHAR);
-		    }
-		    break;
-		case ISOTOPEPATTERN:
-		    IsotopePattern isotopes = row.getBestIsotopePattern();
-		    if (isotopes == null) {
-			statement.setNull(i + 1, Types.BLOB);
+		    case CONSTANT:
+			statement.setString(i + 1, dataValue);
 			break;
-		    }
-		    DataPoint dataPoints[] = isotopes.getDataPoints();
-		    byte bytes[] = ScanUtils
-			    .encodeDataPointsToBytes(dataPoints);
-		    ByteArrayInputStream is = new ByteArrayInputStream(bytes);
-		    statement.setBlob(i + 1, is);
-		    break;
-		case MSMS:
-		    int msmsScanNum = row.getBestPeak()
-			    .getMostIntenseFragmentScanNumber();
-		    // Check if there is any MS/MS scan
-		    if (msmsScanNum <= 0) {
-			statement.setNull(i + 1, Types.BLOB);
+		    case RAWFILE:
+			RawDataFile rawdatafiles[] = peakList.getRawDataFiles();
+			statement.setString(i + 1, rawdatafiles[0].getName());
 			break;
-		    }
-		    RawDataFile dataFile = row.getBestPeak().getDataFile();
-		    Scan msmsScan = dataFile.getScan(msmsScanNum);
-		    MassList msmsMassList = msmsScan.getMassList(dataValue);
-		    // Check if there is a masslist for the scan
-		    if (msmsMassList == null) {
-			statement.setNull(i + 1, Types.BLOB);
+		    default:
+			statement.setString(i + 1, null);
 			break;
-		    }
-		    dataPoints = msmsMassList.getDataPoints();
-		    bytes = ScanUtils.encodeDataPointsToBytes(dataPoints);
-		    is = new ByteArrayInputStream(bytes);
-		    statement.setBlob(i + 1, is);
-		    break;
-		default:
-		    break;
 		}
 	    }
 	    statement.executeUpdate();
+	}
+	
+	else {
+	    for (RawDataFile rawDataFile : row.getRawDataFiles()) {
+		Feature peak = row.getPeak(rawDataFile);
 
-	    // If no data file elements are selected then don't loop through all
-	    // data files in peak list
-	    if (!loopDataFiles) {
-		break;
+		for (int i = 0; i < exportColumns.getRowCount(); i++) {
+		    SQLExportDataType dataType = (SQLExportDataType) exportColumns
+			.getValueAt(i, 1);
+		    String dataValue = (String) exportColumns.getValueAt(i, 2);
+		    switch (dataType) {
+		    case CONSTANT:
+			statement.setString(i + 1, dataValue);
+			break;
+		    case MZ:
+			statement.setDouble(i + 1, row.getAverageMZ());
+			break;
+		    case RT:
+			statement.setDouble(i + 1, row.getAverageRT());
+			break;
+		    case ID:
+			statement.setInt(i + 1, row.getID());
+			break;
+		    case PEAKCHARGE:
+			statement.setDouble(i + 1, peak.getCharge());
+			loopDataFiles = true;
+		    break;
+		    case PEAKDURATION:
+			statement.setDouble(i + 1, RangeUtils.rangeLength(peak
+			    .getRawDataPointsRTRange()));
+			loopDataFiles = true;
+			break;
+		    case PEAKSTATUS:
+			statement.setString(i + 1, peak.getFeatureStatus().name());
+			loopDataFiles = true;
+			break;
+		    case PEAKMZ:
+			statement.setDouble(i + 1, peak.getMZ());
+			loopDataFiles = true;
+			break;
+		    case PEAKRT:
+			statement.setDouble(i + 1, peak.getRT());
+			loopDataFiles = true;
+			break;
+		    case PEAKHEIGHT:
+			statement.setDouble(i + 1, peak.getHeight());
+			loopDataFiles = true;
+			break;
+		    case PEAKAREA:
+			statement.setDouble(i + 1, peak.getArea());
+			loopDataFiles = true;
+			break;
+		    case RAWFILE:
+			statement.setString(i + 1, rawDataFile.getName());
+			loopDataFiles = true;
+			break;
+		    case HEIGHT:
+			statement.setDouble(i + 1, row.getAverageHeight());
+			break;
+		    case AREA:
+			statement.setDouble(i + 1, row.getAverageArea());
+			break;
+		    case COMMENT:
+			statement.setString(i + 1, row.getComment());
+			break;
+		    case IDENTITY:
+			PeakIdentity id = row.getPreferredPeakIdentity();
+			if (id != null) {
+			    statement.setString(i + 1, id.getName());
+			} else {
+			    statement.setNull(i + 1, Types.VARCHAR);
+			}
+			break;
+		    case ISOTOPEPATTERN:
+			IsotopePattern isotopes = row.getBestIsotopePattern();
+			if (isotopes == null) {
+			    statement.setNull(i + 1, Types.BLOB);
+			    break;
+			}
+			DataPoint dataPoints[] = isotopes.getDataPoints();
+			byte bytes[] = ScanUtils
+			    .encodeDataPointsToBytes(dataPoints);
+			ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+			statement.setBlob(i + 1, is);
+			break;
+		    case MSMS:
+			int msmsScanNum = row.getBestPeak()
+			    .getMostIntenseFragmentScanNumber();
+			// Check if there is any MS/MS scan
+			if (msmsScanNum <= 0) {
+			    statement.setNull(i + 1, Types.BLOB);
+			    break;
+			}
+			RawDataFile dataFile = row.getBestPeak().getDataFile();
+			Scan msmsScan = dataFile.getScan(msmsScanNum);
+			MassList msmsMassList = msmsScan.getMassList(dataValue);
+			// Check if there is a masslist for the scan
+			if (msmsMassList == null) {
+			    statement.setNull(i + 1, Types.BLOB);
+			    break;
+			}
+			dataPoints = msmsMassList.getDataPoints();
+			bytes = ScanUtils.encodeDataPointsToBytes(dataPoints);
+			is = new ByteArrayInputStream(bytes);
+			statement.setBlob(i + 1, is);
+			break;
+		    default:
+			break;
+		    }
+		}
+		statement.executeUpdate();
+
+		// If no data file elements are selected then don't loop through all
+		// data files in peak list
+	   	if (!loopDataFiles) {
+	   	    break;
+	   	}
 	    }
 	}
     }
