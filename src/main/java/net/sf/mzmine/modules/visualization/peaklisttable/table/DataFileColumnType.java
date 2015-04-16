@@ -24,14 +24,17 @@ import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 
 public enum DataFileColumnType {
 
-    STATUS("Status", FeatureStatus.class), //
-    PEAKSHAPE("Peak shape", Feature.class), //
-    MZ("m/z", Double.class), //
-    RT("RT", Double.class), //
-    DURATION("Duration", Double.class), //
-    HEIGHT("Height", Double.class), //
-    AREA("Area", Double.class), //
-    CHARGE("Charge", Integer.class);
+    STATUS("Status", FeatureStatus.class),
+    PEAKSHAPE("Peak shape", Feature.class),
+    MZ("m/z", Double.class),
+    RT("RT", Double.class),
+    RT_START("RT Start", Double.class),
+    RT_END("RT End", Double.class),
+    DURATION("Duration", Double.class),
+    HEIGHT("Height", Double.class),
+    AREA("Area", Double.class),
+    CHARGE("Charge", Integer.class),
+    DATAPOINTS("# Data points", Integer.class);
 
     private final String columnName;
     private final Class<?> columnClass;

@@ -220,6 +220,12 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 		case RT:
 		    newColumn.setCellRenderer(rtRenderer);
 		    break;
+		case RT_START:
+		    newColumn.setCellRenderer(rtRenderer);
+		    break;
+		case RT_END:
+		    newColumn.setCellRenderer(rtRenderer);
+		    break;
 		case DURATION:
 		    newColumn.setCellRenderer(rtRenderer);
 		    break;

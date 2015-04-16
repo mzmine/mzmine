@@ -137,6 +137,12 @@ public class PeakListTableModel extends AbstractTableModel {
 		if (peak.getCharge() <= 0)
 		    return null;
 		return new Integer(peak.getCharge());
+	    case RT_START:
+		return peak.getRawDataPointsRTRange().lowerEndpoint();
+	    case RT_END:
+		return peak.getRawDataPointsRTRange().upperEndpoint();
+	    case DATAPOINTS:
+		return peak.getScanNumbers().length;
 	    }
 
 	}
