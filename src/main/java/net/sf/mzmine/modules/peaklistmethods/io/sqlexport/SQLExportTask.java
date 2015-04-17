@@ -221,12 +221,24 @@ class SQLExportTask extends AbstractTask {
 			statement.setDouble(i + 1, peak.getRT());
 			loopDataFiles = true;
 			break;
+		    case PEAKRT_START:
+			statement.setDouble(i + 1, peak.getRawDataPointsRTRange().lowerEndpoint());
+			loopDataFiles = true;
+			break;
+		    case PEAKRT_END:
+			statement.setDouble(i + 1, peak.getRawDataPointsRTRange().upperEndpoint());
+			loopDataFiles = true;
+			break;
 		    case PEAKHEIGHT:
 			statement.setDouble(i + 1, peak.getHeight());
 			loopDataFiles = true;
 			break;
 		    case PEAKAREA:
 			statement.setDouble(i + 1, peak.getArea());
+			loopDataFiles = true;
+			break;
+		    case DATAPOINTS:
+			statement.setDouble(i + 1, peak.getScanNumbers().length);
 			loopDataFiles = true;
 			break;
 		    case RAWFILE:

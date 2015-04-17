@@ -21,11 +21,16 @@ package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 public enum ExportRowDataFileElement {
 
-    PEAK_STATUS("Export peak status", false), PEAK_MZ("Export peak m/z", false), PEAK_RT(
-	    "Export peak retention time", false), PEAK_HEIGHT(
-	    "Export peak height", false), PEAK_AREA("Export peak area", false), PEAK_CHARGE(
-	    "Export peak charge", false), PEAK_DURATION(
-	    "Export peak duration time", false);
+    PEAK_STATUS("Peak status", false),
+    PEAK_MZ("Peak m/z", false),
+    PEAK_RT("Peak RT", false),
+    PEAK_RT_START("Peak RT start", false),
+    PEAK_RT_END("Peak RT end", false),
+    PEAK_HEIGHT("Peak height", false),
+    PEAK_AREA("Peak area", false),
+    PEAK_CHARGE("Peak charge", false),
+    PEAK_DATAPOINTS("Peak # data points", false),
+    PEAK_DURATION("Peak duration time", false);
 
     private final String name;
     private final boolean common;

@@ -228,6 +228,12 @@ class CSVExportTask extends AbstractTask {
 			case PEAK_RT:
 			    line.append(peak.getRT() + fieldSeparator);
 			    break;
+			case PEAK_RT_START:
+			    line.append(peak.getRawDataPointsRTRange().lowerEndpoint() + fieldSeparator);
+			    break;
+			case PEAK_RT_END:
+			    line.append(peak.getRawDataPointsRTRange().upperEndpoint() + fieldSeparator);
+			    break;
 			case PEAK_HEIGHT:
 			    line.append(peak.getHeight() + fieldSeparator);
 			    break;
@@ -236,6 +242,9 @@ class CSVExportTask extends AbstractTask {
 			    break;
 			case PEAK_CHARGE:
 			    line.append(peak.getCharge() + fieldSeparator);
+			    break;
+			case PEAK_DATAPOINTS:
+			    line.append(peak.getScanNumbers().length + fieldSeparator);
 			    break;
 			case PEAK_DURATION:
 			    line.append(RangeUtils.rangeLength(peak

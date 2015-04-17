@@ -40,11 +40,14 @@ public enum SQLExportDataType {
     TITLE3("Data file elements", false, false, ""), //
     PEAKSTATUS("      Status", false, true, "STRING"), //
     PEAKMZ("      m/z", false, true, "DOUBLE"), //
-    PEAKRT("      Retention time", false, true, "DOUBLE"), //
+    PEAKRT("      RT", false, true, "DOUBLE"), //
+    PEAKRT_START("      RT start", false, true, "DOUBLE"), //
+    PEAKRT_END("      RT end", false, true, "DOUBLE"), //
     PEAKDURATION("      Duration", false, true, "DOUBLE"), //
     PEAKHEIGHT("      Height", false, true, "DOUBLE"), //
     PEAKAREA("      Area", false, true, "DOUBLE"), //
     PEAKCHARGE("      Charge", false, true, "INT"), //
+    DATAPOINTS("      # Data points", false, true, "INT"), //
     RAWFILE("      Raw data file name", false, true, "STRING"), //
 
     TITLE4("Other", false, false, ""), //
