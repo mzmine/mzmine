@@ -132,5 +132,10 @@ public interface MZmineProject {
     public PeakList[] getPeakLists(RawDataFile file);
 
     public void notifyObjectChanged(Object object, boolean structureChanged);
+    
+    public void addProjectListener(MZmineProjectListener newListener);
+    
+    public void removeProjectListener(MZmineProjectListener newListener);
+    
 
 }
