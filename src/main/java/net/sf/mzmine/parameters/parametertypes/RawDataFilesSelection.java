@@ -1,0 +1,128 @@
+/*
+ * Copyright 2006-2015 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+package net.sf.mzmine.parameters.parametertypes;
+
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+
+import com.google.common.base.Strings;
+
+public class RawDataFilesSelection implements Cloneable {
+
+    private RawDataFileSelectionType selectionType = RawDataFileSelectionType.GUI_SELECTED_FILES;
+    private RawDataFile specificFiles[];
+    private String namePattern;
+    private RawDataFile batchLastFiles[];
+
+    public RawDataFile[] getMatchingRawDataFiles() {
+
+        switch (selectionType) {
+
+        case GUI_SELECTED_FILES:
+            return MZmineCore.getDesktop().getSelectedDataFiles();
+        case SPECIFIC_FILES:
+            if (specificFiles == null)
+                return new RawDataFile[0];
+            return specificFiles;
+        case NAME_PATTERN:
+            if (Strings.isNullOrEmpty(namePattern))
+                return new RawDataFile[0];
+            ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
+            RawDataFile allDataFiles[] = MZmineCore.getProjectManager()
+                    .getCurrentProject().getDataFiles();
+
+            fileCheck: for (RawDataFile file : allDataFiles) {
+
+                final String fileName = file.getName();
+
+                // Generate a regular expression, replacing * with .*
+                try {
+                    final StringBuilder regex = new StringBuilder("^");
+                    String sections[] = namePattern.split("\\*", -1);
+                    for (int i = 0; i < sections.length; i++) {
+                        if (i > 0)
+                            regex.append(".*");
+                        regex.append(Pattern.quote(sections[i]));
+                    }
+                    regex.append("$");
+
+                    if (fileName.matches(regex.toString())) {
+                        if (matchingDataFiles.contains(file))
+                            continue;
+                        matchingDataFiles.add(file);
+                        continue fileCheck;
+                    }
+                } catch (PatternSyntaxException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+            }
+            return matchingDataFiles.toArray(new RawDataFile[0]);
+        case BATCH_LAST_FILES:
+            if (batchLastFiles == null)
+                return new RawDataFile[0];
+            return batchLastFiles;
+        }
+
+        throw new IllegalStateException("This code should be unreachable");
+
+    }
+
+    public RawDataFileSelectionType getSelectionType() {
+        return selectionType;
+    }
+
+    public void setSelectionType(RawDataFileSelectionType selectionType) {
+        this.selectionType = selectionType;
+    }
+
+    public RawDataFile[] getSpecificFiles() {
+        return specificFiles;
+    }
+
+    public void setSpecificFiles(RawDataFile[] specificFiles) {
+        this.specificFiles = specificFiles;
+    }
+
+    public String getNamePattern() {
+        return namePattern;
+    }
+
+    public void setNamePattern(String namePattern) {
+        this.namePattern = namePattern;
+    }
+
+    public void setBatchLastFiles(RawDataFile[] batchLastFiles) {
+        this.batchLastFiles = batchLastFiles;
+    }
+
+    public RawDataFilesSelection clone() {
+        RawDataFilesSelection newSelection = new RawDataFilesSelection();
+        newSelection.selectionType = selectionType;
+        newSelection.specificFiles = specificFiles;
+        newSelection.namePattern = namePattern;
+        return newSelection;
+    }
+
+}

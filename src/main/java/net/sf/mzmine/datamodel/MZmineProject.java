@@ -135,7 +135,7 @@ public interface MZmineProject {
     
     public void addProjectListener(MZmineProjectListener newListener);
     
-    public void removeProjectListener(MZmineProjectListener newListener);
+    public void removeProjectListener(MZmineProjectListener listener);
     
 
 }

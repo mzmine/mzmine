@@ -45,41 +45,41 @@ public class BaselineCorrectionModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	RawDataFile dataFiles[] = parameters.getParameter(
-		BaselineCorrectionParameters.dataFiles)
-		.getMatchingRawDataFiles();
+        RawDataFile dataFiles[] = parameters
+                .getParameter(BaselineCorrectionParameters.dataFiles)
+                .getValue().getMatchingRawDataFiles();
 
-	for (final RawDataFile dataFile : dataFiles) {
+        for (final RawDataFile dataFile : dataFiles) {
 
-	    Task newTask = new BaselineCorrectionTask(project, dataFile,
-		    parameters);
-	    tasks.add(newTask);
-	}
+            Task newTask = new BaselineCorrectionTask(project, dataFile,
+                    parameters);
+            tasks.add(newTask);
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.RAWDATAFILTERING;
+        return MZmineModuleCategory.RAWDATAFILTERING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return BaselineCorrectionParameters.class;
+        return BaselineCorrectionParameters.class;
     }
 
 }

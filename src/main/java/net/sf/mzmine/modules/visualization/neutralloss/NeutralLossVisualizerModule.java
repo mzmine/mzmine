@@ -41,37 +41,38 @@ public class NeutralLossVisualizerModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	RawDataFile dataFiles[] = parameters.getParameter(
-		NeutralLossParameters.dataFiles).getMatchingRawDataFiles();
+        RawDataFile dataFiles[] = parameters
+                .getParameter(NeutralLossParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
 
-	NeutralLossVisualizerWindow newWindow = new NeutralLossVisualizerWindow(
-		dataFiles[0], parameters);
-	newWindow.setVisible(true);
+        NeutralLossVisualizerWindow newWindow = new NeutralLossVisualizerWindow(
+                dataFiles[0], parameters);
+        newWindow.setVisible(true);
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+        return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return NeutralLossParameters.class;
+        return NeutralLossParameters.class;
     }
 
 }

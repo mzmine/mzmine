@@ -28,26 +28,27 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 public class SQLExportParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakList = new PeakListsParameter(1,
-	    1, 555);
+            1);
 
     public static final StringParameter connectionString = new StringParameter(
-	    "JDBC connection string",
-	    "JDBC connection string to identify the database, e.g.:\njdbc:mysql://localhost/dbname?user=sqluser&password=sqluserpw",
-	    50);
+            "JDBC connection string",
+            "JDBC connection string to identify the database, e.g.:\njdbc:mysql://localhost/dbname?user=sqluser&password=sqluserpw",
+            50);
 
     public static final StringParameter tableName = new StringParameter(
-	    "Database table",
-	    "Name of the table into which the peak list is going to be exported",
-	    50);
+            "Database table",
+            "Name of the table into which the peak list is going to be exported",
+            50);
 
     public static final SQLColumnSettingsParameter exportColumns = new SQLColumnSettingsParameter();
 
     public static final BooleanParameter emptyExport = new BooleanParameter(
-	    "Export empty peak list", "If selected, an empty peak list will be exported with null values for all column other than the rawdatafile and any constant values."); 
+            "Export empty peak list",
+            "If selected, an empty peak list will be exported with null values for all column other than the rawdatafile and any constant values.");
 
     public SQLExportParameters() {
-	super(new Parameter[] { peakList, connectionString, tableName,
-		exportColumns, emptyExport });
+        super(new Parameter[] { peakList, connectionString, tableName,
+                exportColumns, emptyExport });
     }
 
 }

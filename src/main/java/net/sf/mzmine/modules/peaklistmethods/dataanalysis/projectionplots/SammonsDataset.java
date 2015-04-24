@@ -38,7 +38,7 @@ import net.sf.mzmine.util.PeakMeasurementType;
 import org.jfree.data.xy.AbstractXYDataset;
 
 public class SammonsDataset extends AbstractXYDataset implements
-	ProjectionPlotDataset {
+        ProjectionPlotDataset {
 
     /**
      * 
@@ -73,227 +73,228 @@ public class SammonsDataset extends AbstractXYDataset implements
 
     public SammonsDataset(MZmineProject project, ParameterSet parameters) {
 
-	this.peakList = parameters.getParameter(
-		ProjectionPlotParameters.peakLists).getMatchingPeakLists()[0];
-	this.parameters = parameters;
-	this.xAxisDimension = parameters.getParameter(
-		ProjectionPlotParameters.xAxisComponent).getValue();
-	this.yAxisDimension = parameters.getParameter(
-		ProjectionPlotParameters.yAxisComponent).getValue();
+        this.peakList = parameters
+                .getParameter(ProjectionPlotParameters.peakLists).getValue()
+                .getMatchingPeakLists()[0];
+        this.parameters = parameters;
+        this.xAxisDimension = parameters.getParameter(
+                ProjectionPlotParameters.xAxisComponent).getValue();
+        this.yAxisDimension = parameters.getParameter(
+                ProjectionPlotParameters.yAxisComponent).getValue();
 
-	coloringType = parameters.getParameter(
-		ProjectionPlotParameters.coloringType).getValue();
-	selectedRawDataFiles = parameters.getParameter(
-		ProjectionPlotParameters.dataFiles).getValue();
-	selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
-		.getValue();
+        coloringType = parameters.getParameter(
+                ProjectionPlotParameters.coloringType).getValue();
+        selectedRawDataFiles = parameters.getParameter(
+                ProjectionPlotParameters.dataFiles).getValue();
+        selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
+                .getValue();
 
-	datasetTitle = "Sammon's projection";
+        datasetTitle = "Sammon's projection";
 
-	// Determine groups for selected raw data files
-	groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
+        // Determine groups for selected raw data files
+        groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
 
-	if (coloringType.equals(ColoringType.NOCOLORING)) {
-	    // All files to a single group
-	    for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
-		groupsForSelectedRawDataFiles[ind] = 0;
+        if (coloringType.equals(ColoringType.NOCOLORING)) {
+            // All files to a single group
+            for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
+                groupsForSelectedRawDataFiles[ind] = 0;
 
-	    numberOfGroups = 1;
-	}
+            numberOfGroups = 1;
+        }
 
-	if (coloringType.equals(ColoringType.COLORBYFILE)) {
-	    // Each file to own group
-	    for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
-		groupsForSelectedRawDataFiles[ind] = ind;
+        if (coloringType.equals(ColoringType.COLORBYFILE)) {
+            // Each file to own group
+            for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
+                groupsForSelectedRawDataFiles[ind] = ind;
 
-	    numberOfGroups = selectedRawDataFiles.length;
-	}
+            numberOfGroups = selectedRawDataFiles.length;
+        }
 
-	if (coloringType.isByParameter()) {
-	    // Group files with same parameter value to same group
-	    Vector<Object> availableParameterValues = new Vector<Object>();
-	    UserParameter<?, ?> selectedParameter = coloringType.getParameter();
-	    for (RawDataFile rawDataFile : selectedRawDataFiles) {
-		Object paramValue = project.getParameterValue(
-			selectedParameter, rawDataFile);
-		if (!availableParameterValues.contains(paramValue))
-		    availableParameterValues.add(paramValue);
-	    }
+        if (coloringType.isByParameter()) {
+            // Group files with same parameter value to same group
+            Vector<Object> availableParameterValues = new Vector<Object>();
+            UserParameter<?, ?> selectedParameter = coloringType.getParameter();
+            for (RawDataFile rawDataFile : selectedRawDataFiles) {
+                Object paramValue = project.getParameterValue(
+                        selectedParameter, rawDataFile);
+                if (!availableParameterValues.contains(paramValue))
+                    availableParameterValues.add(paramValue);
+            }
 
-	    for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
-		Object paramValue = project.getParameterValue(
-			selectedParameter, selectedRawDataFiles[ind]);
-		groupsForSelectedRawDataFiles[ind] = availableParameterValues
-			.indexOf(paramValue);
-	    }
-	    parameterValuesForGroups = availableParameterValues.toArray();
+            for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
+                Object paramValue = project.getParameterValue(
+                        selectedParameter, selectedRawDataFiles[ind]);
+                groupsForSelectedRawDataFiles[ind] = availableParameterValues
+                        .indexOf(paramValue);
+            }
+            parameterValuesForGroups = availableParameterValues.toArray();
 
-	    numberOfGroups = parameterValuesForGroups.length;
-	}
+            numberOfGroups = parameterValuesForGroups.length;
+        }
 
     }
 
     @Override
     public String toString() {
-	return datasetTitle;
+        return datasetTitle;
     }
 
     public String getXLabel() {
-	if (xAxisDimension == 1)
-	    return "1st projected dimension";
-	if (xAxisDimension == 2)
-	    return "2nd projected dimension";
-	if (xAxisDimension == 3)
-	    return "3rd projected dimension";
-	return "" + xAxisDimension + "th projected dimension";
+        if (xAxisDimension == 1)
+            return "1st projected dimension";
+        if (xAxisDimension == 2)
+            return "2nd projected dimension";
+        if (xAxisDimension == 3)
+            return "3rd projected dimension";
+        return "" + xAxisDimension + "th projected dimension";
     }
 
     public String getYLabel() {
-	if (yAxisDimension == 1)
-	    return "1st projected dimension";
-	if (yAxisDimension == 2)
-	    return "2nd projected dimension";
-	if (yAxisDimension == 3)
-	    return "3rd projected dimension";
-	return "" + yAxisDimension + "th projected dimension";
+        if (yAxisDimension == 1)
+            return "1st projected dimension";
+        if (yAxisDimension == 2)
+            return "2nd projected dimension";
+        if (yAxisDimension == 3)
+            return "3rd projected dimension";
+        return "" + yAxisDimension + "th projected dimension";
     }
 
     @Override
     public int getSeriesCount() {
-	return 1;
+        return 1;
     }
 
     @Override
     public Comparable<Integer> getSeriesKey(int series) {
-	return 1;
+        return 1;
     }
 
     public int getItemCount(int series) {
-	return component1Coords.length;
+        return component1Coords.length;
     }
 
     public Number getX(int series, int item) {
-	return component1Coords[item];
+        return component1Coords[item];
     }
 
     public Number getY(int series, int item) {
-	return component2Coords[item];
+        return component2Coords[item];
     }
 
     public String getRawDataFile(int item) {
-	return selectedRawDataFiles[item].getName();
+        return selectedRawDataFiles[item].getName();
     }
 
     public int getGroupNumber(int item) {
-	return groupsForSelectedRawDataFiles[item];
+        return groupsForSelectedRawDataFiles[item];
     }
 
     public Object getGroupParameterValue(int groupNumber) {
-	if (parameterValuesForGroups == null)
-	    return null;
-	if ((parameterValuesForGroups.length - 1) < groupNumber)
-	    return null;
-	return parameterValuesForGroups[groupNumber];
+        if (parameterValuesForGroups == null)
+            return null;
+        if ((parameterValuesForGroups.length - 1) < groupNumber)
+            return null;
+        return parameterValuesForGroups[groupNumber];
     }
 
     public int getNumberOfGroups() {
-	return numberOfGroups;
+        return numberOfGroups;
     }
 
     @Override
     public void run() {
 
-	setStatus(TaskStatus.PROCESSING);
+        setStatus(TaskStatus.PROCESSING);
 
-	logger.info("Computing projection plot");
+        logger.info("Computing projection plot");
 
-	// Generate matrix of raw data (input to Sammon's projection)
-	boolean useArea = false;
-	if (parameters.getParameter(
-		ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA)
-	    useArea = true;
+        // Generate matrix of raw data (input to Sammon's projection)
+        boolean useArea = false;
+        if (parameters.getParameter(
+                ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA)
+            useArea = true;
 
-	double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
-	for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-	    PeakListRow peakListRow = selectedRows[rowIndex];
-	    for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
-		RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-		Feature p = peakListRow.getPeak(rawDataFile);
-		if (p != null) {
-		    if (useArea)
-			rawData[fileIndex][rowIndex] = p.getArea();
-		    else
-			rawData[fileIndex][rowIndex] = p.getHeight();
-		}
-	    }
-	}
+        double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
+        for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
+            PeakListRow peakListRow = selectedRows[rowIndex];
+            for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
+                RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
+                Feature p = peakListRow.getPeak(rawDataFile);
+                if (p != null) {
+                    if (useArea)
+                        rawData[fileIndex][rowIndex] = p.getArea();
+                    else
+                        rawData[fileIndex][rowIndex] = p.getHeight();
+                }
+            }
+        }
 
-	int numComponents = xAxisDimension;
-	if (yAxisDimension > numComponents)
-	    numComponents = yAxisDimension;
+        int numComponents = xAxisDimension;
+        if (yAxisDimension > numComponents)
+            numComponents = yAxisDimension;
 
-	// Scale data and do Sammon's mapping
-	Preprocess.scaleToUnityVariance(rawData);
-	Sammons sammonsProj = new Sammons(rawData);
+        // Scale data and do Sammon's mapping
+        Preprocess.scaleToUnityVariance(rawData);
+        Sammons sammonsProj = new Sammons(rawData);
 
-	projectionStatus = sammonsProj.getProjectionStatus();
+        projectionStatus = sammonsProj.getProjectionStatus();
 
-	sammonsProj.iterate(100);
+        sammonsProj.iterate(100);
 
-	if (status == TaskStatus.CANCELED)
-	    return;
+        if (status == TaskStatus.CANCELED)
+            return;
 
-	double[][] result = sammonsProj.getState();
+        double[][] result = sammonsProj.getState();
 
-	if (status == TaskStatus.CANCELED)
-	    return;
+        if (status == TaskStatus.CANCELED)
+            return;
 
-	component1Coords = result[xAxisDimension - 1];
-	component2Coords = result[yAxisDimension - 1];
+        component1Coords = result[xAxisDimension - 1];
+        component2Coords = result[yAxisDimension - 1];
 
-	ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
-		this, parameters);
-	newFrame.setVisible(true);
+        ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
+                this, parameters);
+        newFrame.setVisible(true);
 
-	setStatus(TaskStatus.FINISHED);
-	logger.info("Finished computing projection plot.");
+        setStatus(TaskStatus.FINISHED);
+        logger.info("Finished computing projection plot.");
 
     }
 
     @Override
     public void cancel() {
-	if (projectionStatus != null)
-	    projectionStatus.cancel();
-	setStatus(TaskStatus.CANCELED);
+        if (projectionStatus != null)
+            projectionStatus.cancel();
+        setStatus(TaskStatus.CANCELED);
     }
 
     @Override
     public String getErrorMessage() {
-	return errorMessage;
+        return errorMessage;
     }
 
     @Override
     public TaskStatus getStatus() {
-	return status;
+        return status;
     }
 
     @Override
     public String getTaskDescription() {
-	return "Sammon's projection";
+        return "Sammon's projection";
     }
 
     @Override
     public double getFinishedPercentage() {
-	if (projectionStatus == null)
-	    return 0;
-	return projectionStatus.getFinishedPercentage();
+        if (projectionStatus == null)
+            return 0;
+        return projectionStatus.getFinishedPercentage();
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#setStatus()
      */
     public void setStatus(TaskStatus newStatus) {
-	this.status = newStatus;
+        this.status = newStatus;
     }
 
 }

@@ -19,20 +19,15 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JList;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.PeakList;
@@ -40,110 +35,127 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.GUIUtils;
 
 public class PeakListsComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
-    private final DefaultListModel<String> listModel = new DefaultListModel<String>();
-    private final JList<String> nameList;
-    private final JButton addPatternButton, selectPeakListsButton,
-	    removeButton;
 
-    public PeakListsComponent(int rows, int inputsize) {
+    private final JComboBox<PeakListSelectionType> typeCombo;
+    private final JButton detailsButton;
+    private final JLabel numPeakListsLabel;
+    private PeakListsSelection currentValue = new PeakListsSelection();
 
-	super(new BorderLayout());
+    public PeakListsComponent() {
 
-	nameList = new JList<String>(listModel);
-	nameList.setCellRenderer(new PeakListsCellRenderer());
-	nameList.setVisibleRowCount(rows);
+        BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
+        setLayout(layout);
 
-	JScrollPane scroll = new JScrollPane(nameList,
-		ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-		ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-	scroll.setPreferredSize(new Dimension(inputsize, 10));
-	add(scroll, BorderLayout.CENTER);
+        typeCombo = new JComboBox<>(PeakListSelectionType.values());
+        typeCombo.addActionListener(this);
+        add(typeCombo);
 
-	JPanel buttonsPanel = new JPanel();
-	buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-	addPatternButton = GUIUtils.addButton(buttonsPanel, "Add name pattern",
-		null, this);
-	selectPeakListsButton = GUIUtils.addButton(buttonsPanel,
-		"Select peak lists", null, this);
-	removeButton = GUIUtils.addButton(buttonsPanel, "Remove", null, this);
-	add(buttonsPanel, BorderLayout.EAST);
+        detailsButton = new JButton("...");
+        detailsButton.setEnabled(false);
+        detailsButton.addActionListener(this);
+        add(detailsButton);
+
+        numPeakListsLabel = new JLabel();
+        add(numPeakListsLabel);
 
     }
 
-    void setValue(String newValue[]) {
-	listModel.clear();
-	for (String value : newValue)
-	    listModel.addElement(value);
+    void setValue(PeakListsSelection newValue) {
+        currentValue = newValue.clone();
+        PeakListSelectionType type = newValue.getSelectionType();
+        if (type != null)
+            typeCombo.setSelectedItem(type);
+        updateNumPeakLists();
     }
 
-    String[] getValue() {
-	Object values[] = listModel.toArray();
-	String returnValue[] = Arrays.copyOf(values, values.length,
-		String[].class);
-	return returnValue;
+    PeakListsSelection getValue() {
+        return currentValue;
     }
 
     public void actionPerformed(ActionEvent event) {
 
-	Object src = event.getSource();
+        Object src = event.getSource();
 
-	if (src == addPatternButton) {
-	    final StringParameter nameParameter = new StringParameter(
-		    "Name pattern",
-		    "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse");
-	    final SimpleParameterSet paramSet = new SimpleParameterSet(
-		    new Parameter[] { nameParameter });
-	    Window parent = (Window) SwingUtilities.getAncestorOfClass(
-		    Window.class, this);
-	    final ExitCode exitCode = paramSet.showSetupDialog(parent, true);
-	    if (exitCode == ExitCode.OK) {
-		String newName = paramSet.getParameter(nameParameter)
-			.getValue();
-		if (!listModel.contains(newName))
-		    listModel.addElement(newName);
-	    }
-	    return;
-	}
+        if (src == detailsButton) {
+            PeakListSelectionType type = (PeakListSelectionType) typeCombo
+                    .getSelectedItem();
 
-	if (src == selectPeakListsButton) {
-	    final MultiChoiceParameter<PeakList> plParameter = new MultiChoiceParameter<PeakList>(
-		    "Select peak lists", "Select peak lists", MZmineCore
-			    .getProjectManager().getCurrentProject()
-			    .getPeakLists());
-	    final SimpleParameterSet paramSet = new SimpleParameterSet(
-		    new Parameter[] { plParameter });
-	    Window parent = (Window) SwingUtilities.getAncestorOfClass(
-		    Window.class, this);
-	    final ExitCode exitCode = paramSet.showSetupDialog(parent, true);
-	    if (exitCode == ExitCode.OK) {
-		PeakList selectedPeakLists[] = paramSet.getParameter(
-			plParameter).getValue();
-		for (PeakList selectedPeakList : selectedPeakLists) {
-		    final String name = selectedPeakList.getName();
-		    if (!listModel.contains(name))
-			listModel.addElement(name);
-		}
-	    }
-	    return;
-	}
+            if (type == PeakListSelectionType.SPECIFIC_PEAKLISTS) {
+                final MultiChoiceParameter<PeakList> plsParameter = new MultiChoiceParameter<PeakList>(
+                        "Select peak lists", "Select peak lists", MZmineCore
+                                .getProjectManager().getCurrentProject()
+                                .getPeakLists(),
+                        currentValue.getSpecificPeakLists());
+                final SimpleParameterSet paramSet = new SimpleParameterSet(
+                        new Parameter[] { plsParameter });
+                final Window parent = (Window) SwingUtilities
+                        .getAncestorOfClass(Window.class, this);
+                final ExitCode exitCode = paramSet
+                        .showSetupDialog(parent, true);
+                if (exitCode == ExitCode.OK) {
+                    PeakList pls[] = paramSet.getParameter(plsParameter)
+                            .getValue();
+                    currentValue.setSpecificPeakLists(pls);
+                }
 
-	if (src == removeButton) {
-	    int selectedIndices[] = nameList.getSelectedIndices();
-	    for (int i = selectedIndices.length - 1; i >= 0; i--) {
-		listModel.remove(selectedIndices[i]);
-	    }
-	    return;
-	}
+            }
+
+            if (type == PeakListSelectionType.NAME_PATTERN) {
+                final StringParameter nameParameter = new StringParameter(
+                        "Name pattern",
+                        "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
+                        currentValue.getNamePattern());
+                final SimpleParameterSet paramSet = new SimpleParameterSet(
+                        new Parameter[] { nameParameter });
+                final Window parent = (Window) SwingUtilities
+                        .getAncestorOfClass(Window.class, this);
+                final ExitCode exitCode = paramSet
+                        .showSetupDialog(parent, true);
+                if (exitCode == ExitCode.OK) {
+                    String namePattern = paramSet.getParameter(nameParameter)
+                            .getValue();
+                    currentValue.setNamePattern(namePattern);
+                }
+
+            }
+
+        }
+
+        if (src == typeCombo) {
+            PeakListSelectionType type = (PeakListSelectionType) typeCombo
+                    .getSelectedItem();
+            currentValue.setSelectionType(type);
+            detailsButton
+                    .setEnabled((type == PeakListSelectionType.NAME_PATTERN)
+                            || (type == PeakListSelectionType.SPECIFIC_PEAKLISTS));
+        }
+
+        updateNumPeakLists();
 
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-	nameList.setToolTipText(toolTip);
+        typeCombo.setToolTipText(toolTip);
+    }
+
+    private void updateNumPeakLists() {
+        if (currentValue.getSelectionType() == PeakListSelectionType.BATCH_LAST_PEAKLISTS) {
+            numPeakListsLabel.setText("");
+            numPeakListsLabel.setToolTipText("");
+        } else {
+            PeakList pls[] = currentValue.getMatchingPeakLists();
+            numPeakListsLabel.setText("(" + pls.length + " selected)");
+            StringBuilder toolTip = new StringBuilder();
+            for (PeakList pl : pls) {
+                toolTip.append(pl.getName());
+                toolTip.append("\n");
+            }
+            numPeakListsLabel.setToolTipText(toolTip.toString());
+        }
     }
 }

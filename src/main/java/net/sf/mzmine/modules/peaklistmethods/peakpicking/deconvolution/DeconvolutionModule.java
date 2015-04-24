@@ -39,39 +39,40 @@ public class DeconvolutionModule implements MZmineProcessingModule {
     @Override
     public @Nonnull String getName() {
 
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
 
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
 
-	return MZmineModuleCategory.PEAKLISTPICKING;
+        return MZmineModuleCategory.PEAKLISTPICKING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 
-	return DeconvolutionParameters.class;
+        return DeconvolutionParameters.class;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull final ParameterSet parameters,
-	    @Nonnull final Collection<Task> tasks) {
+            @Nonnull final ParameterSet parameters,
+            @Nonnull final Collection<Task> tasks) {
 
-	for (final PeakList peakList : parameters.getParameter(
-		DeconvolutionParameters.PEAK_LISTS).getMatchingPeakLists()) {
+        for (final PeakList peakList : parameters
+                .getParameter(DeconvolutionParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists()) {
 
-	    tasks.add(new DeconvolutionTask(project, peakList, parameters));
-	}
+            tasks.add(new DeconvolutionTask(project, peakList, parameters));
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 }

@@ -46,67 +46,68 @@ public class HistogramWindow extends JFrame {
 
     public HistogramWindow(ParameterSet parameters) {
 
-	super("");
+        super("");
 
-	PeakList peakList = parameters.getParameter(
-		HistogramParameters.peakList).getMatchingPeakLists()[0];
+        PeakList peakList = parameters
+                .getParameter(HistogramParameters.peakList).getValue()
+                .getMatchingPeakLists()[0];
 
-	this.setTitle("Histogram of " + peakList.getName());
+        this.setTitle("Histogram of " + peakList.getName());
 
-	RawDataFile rawDataFiles[] = parameters.getParameter(
-		HistogramParameters.dataFiles).getValue();
+        RawDataFile rawDataFiles[] = parameters.getParameter(
+                HistogramParameters.dataFiles).getValue();
 
-	HistogramDataType dataType = parameters.getParameter(
-		HistogramParameters.dataRange).getType();
-	int numOfBins = parameters.getParameter(HistogramParameters.numOfBins)
-		.getValue();
-	Range<Double> range = parameters.getParameter(
-		HistogramParameters.dataRange).getValue();
+        HistogramDataType dataType = parameters.getParameter(
+                HistogramParameters.dataRange).getType();
+        int numOfBins = parameters.getParameter(HistogramParameters.numOfBins)
+                .getValue();
+        Range<Double> range = parameters.getParameter(
+                HistogramParameters.dataRange).getValue();
 
-	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-	setBackground(Color.white);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setBackground(Color.white);
 
-	// Creates plot and toolbar
-	histogram = new HistogramChart();
+        // Creates plot and toolbar
+        histogram = new HistogramChart();
 
-	Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-	Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+        Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+        Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
 
-	JPanel pnlPlot = new JPanel(new BorderLayout());
-	pnlPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
-	pnlPlot.setBackground(Color.white);
+        JPanel pnlPlot = new JPanel(new BorderLayout());
+        pnlPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
+        pnlPlot.setBackground(Color.white);
 
-	pnlPlot.add(histogram, BorderLayout.CENTER);
+        pnlPlot.add(histogram, BorderLayout.CENTER);
 
-	add(pnlPlot, BorderLayout.CENTER);
+        add(pnlPlot, BorderLayout.CENTER);
 
-	// Add the Windows menu
-	JMenuBar menuBar = new JMenuBar();
-	menuBar.add(new WindowsMenu());
-	setJMenuBar(menuBar);
+        // Add the Windows menu
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(new WindowsMenu());
+        setJMenuBar(menuBar);
 
-	pack();
+        pack();
 
-	// get the window settings parameter
-	ParameterSet paramSet = MZmineCore.getConfiguration()
-		.getModuleParameters(HistogramVisualizerModule.class);
-	WindowSettingsParameter settings = paramSet
-		.getParameter(HistogramParameters.windowSettings);
+        // get the window settings parameter
+        ParameterSet paramSet = MZmineCore.getConfiguration()
+                .getModuleParameters(HistogramVisualizerModule.class);
+        WindowSettingsParameter settings = paramSet
+                .getParameter(HistogramParameters.windowSettings);
 
-	// update the window and listen for changes
-	settings.applySettingsToWindow(this);
-	this.addComponentListener(settings);
+        // update the window and listen for changes
+        settings.applySettingsToWindow(this);
+        this.addComponentListener(settings);
 
-	if (peakList != null) {
-	    HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList,
-		    rawDataFiles, numOfBins, dataType, range);
-	    histogram.addDataset(dataSet, dataType);
-	}
+        if (peakList != null) {
+            HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList,
+                    rawDataFiles, numOfBins, dataType, range);
+            histogram.addDataset(dataSet, dataType);
+        }
 
     }
 
     HistogramChart getChart() {
-	return histogram;
+        return histogram;
     }
 
 }

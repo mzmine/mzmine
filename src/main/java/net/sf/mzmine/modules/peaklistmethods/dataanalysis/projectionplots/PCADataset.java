@@ -38,7 +38,7 @@ import net.sf.mzmine.util.PeakMeasurementType;
 import org.jfree.data.xy.AbstractXYDataset;
 
 public class PCADataset extends AbstractXYDataset implements
-	ProjectionPlotDataset {
+        ProjectionPlotDataset {
 
     /**
      * 
@@ -73,209 +73,210 @@ public class PCADataset extends AbstractXYDataset implements
 
     public PCADataset(MZmineProject project, ParameterSet parameters) {
 
-	this.peakList = parameters.getParameter(
-		ProjectionPlotParameters.peakLists).getMatchingPeakLists()[0];
-	this.parameters = parameters;
+        this.peakList = parameters
+                .getParameter(ProjectionPlotParameters.peakLists).getValue()
+                .getMatchingPeakLists()[0];
+        this.parameters = parameters;
 
-	this.xAxisPC = parameters.getParameter(
-		ProjectionPlotParameters.xAxisComponent).getValue();
-	this.yAxisPC = parameters.getParameter(
-		ProjectionPlotParameters.yAxisComponent).getValue();
+        this.xAxisPC = parameters.getParameter(
+                ProjectionPlotParameters.xAxisComponent).getValue();
+        this.yAxisPC = parameters.getParameter(
+                ProjectionPlotParameters.yAxisComponent).getValue();
 
-	coloringType = parameters.getParameter(
-		ProjectionPlotParameters.coloringType).getValue();
+        coloringType = parameters.getParameter(
+                ProjectionPlotParameters.coloringType).getValue();
 
-	selectedRawDataFiles = parameters.getParameter(
-		ProjectionPlotParameters.dataFiles).getValue();
-	selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
-		.getValue();
+        selectedRawDataFiles = parameters.getParameter(
+                ProjectionPlotParameters.dataFiles).getValue();
+        selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
+                .getValue();
 
-	datasetTitle = "Principal component analysis";
+        datasetTitle = "Principal component analysis";
 
-	// Determine groups for selected raw data files
-	groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
+        // Determine groups for selected raw data files
+        groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
 
-	if (coloringType.equals(ColoringType.NOCOLORING)) {
-	    // All files to a single group
-	    for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
-		groupsForSelectedRawDataFiles[ind] = 0;
+        if (coloringType.equals(ColoringType.NOCOLORING)) {
+            // All files to a single group
+            for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
+                groupsForSelectedRawDataFiles[ind] = 0;
 
-	    numberOfGroups = 1;
-	}
+            numberOfGroups = 1;
+        }
 
-	if (coloringType.equals(ColoringType.COLORBYFILE)) {
-	    // Each file to own group
-	    for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
-		groupsForSelectedRawDataFiles[ind] = ind;
+        if (coloringType.equals(ColoringType.COLORBYFILE)) {
+            // Each file to own group
+            for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
+                groupsForSelectedRawDataFiles[ind] = ind;
 
-	    numberOfGroups = selectedRawDataFiles.length;
-	}
+            numberOfGroups = selectedRawDataFiles.length;
+        }
 
-	if (coloringType.isByParameter()) {
-	    // Group files with same parameter value to same group
-	    Vector<Object> availableParameterValues = new Vector<Object>();
-	    UserParameter<?, ?> selectedParameter = coloringType.getParameter();
-	    for (RawDataFile rawDataFile : selectedRawDataFiles) {
-		Object paramValue = project.getParameterValue(
-			selectedParameter, rawDataFile);
-		if (!availableParameterValues.contains(paramValue))
-		    availableParameterValues.add(paramValue);
-	    }
+        if (coloringType.isByParameter()) {
+            // Group files with same parameter value to same group
+            Vector<Object> availableParameterValues = new Vector<Object>();
+            UserParameter<?, ?> selectedParameter = coloringType.getParameter();
+            for (RawDataFile rawDataFile : selectedRawDataFiles) {
+                Object paramValue = project.getParameterValue(
+                        selectedParameter, rawDataFile);
+                if (!availableParameterValues.contains(paramValue))
+                    availableParameterValues.add(paramValue);
+            }
 
-	    for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
-		Object paramValue = project.getParameterValue(
-			selectedParameter, selectedRawDataFiles[ind]);
-		groupsForSelectedRawDataFiles[ind] = availableParameterValues
-			.indexOf(paramValue);
-	    }
-	    parameterValuesForGroups = availableParameterValues.toArray();
+            for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
+                Object paramValue = project.getParameterValue(
+                        selectedParameter, selectedRawDataFiles[ind]);
+                groupsForSelectedRawDataFiles[ind] = availableParameterValues
+                        .indexOf(paramValue);
+            }
+            parameterValuesForGroups = availableParameterValues.toArray();
 
-	    numberOfGroups = parameterValuesForGroups.length;
-	}
+            numberOfGroups = parameterValuesForGroups.length;
+        }
 
     }
 
     public String toString() {
-	return datasetTitle;
+        return datasetTitle;
     }
 
     public String getXLabel() {
-	if (xAxisPC == 1)
-	    return "1st PC";
-	if (xAxisPC == 2)
-	    return "2nd PC";
-	if (xAxisPC == 3)
-	    return "3rd PC";
-	return "" + xAxisPC + "th PC";
+        if (xAxisPC == 1)
+            return "1st PC";
+        if (xAxisPC == 2)
+            return "2nd PC";
+        if (xAxisPC == 3)
+            return "3rd PC";
+        return "" + xAxisPC + "th PC";
     }
 
     public String getYLabel() {
-	if (yAxisPC == 1)
-	    return "1st PC";
-	if (yAxisPC == 2)
-	    return "2nd PC";
-	if (yAxisPC == 3)
-	    return "3rd PC";
-	return "" + yAxisPC + "th PC";
+        if (yAxisPC == 1)
+            return "1st PC";
+        if (yAxisPC == 2)
+            return "2nd PC";
+        if (yAxisPC == 3)
+            return "3rd PC";
+        return "" + yAxisPC + "th PC";
     }
 
     @Override
     public int getSeriesCount() {
-	return 1;
+        return 1;
     }
 
     @Override
     public Comparable<Integer> getSeriesKey(int series) {
-	return 1;
+        return 1;
     }
 
     public int getItemCount(int series) {
-	return component1Coords.length;
+        return component1Coords.length;
     }
 
     public Number getX(int series, int item) {
-	return component1Coords[item];
+        return component1Coords[item];
     }
 
     public Number getY(int series, int item) {
-	return component2Coords[item];
+        return component2Coords[item];
     }
 
     public String getRawDataFile(int item) {
-	return selectedRawDataFiles[item].getName();
+        return selectedRawDataFiles[item].getName();
     }
 
     public int getGroupNumber(int item) {
-	return groupsForSelectedRawDataFiles[item];
+        return groupsForSelectedRawDataFiles[item];
     }
 
     public Object getGroupParameterValue(int groupNumber) {
-	if (parameterValuesForGroups == null)
-	    return null;
-	if ((parameterValuesForGroups.length - 1) < groupNumber)
-	    return null;
-	return parameterValuesForGroups[groupNumber];
+        if (parameterValuesForGroups == null)
+            return null;
+        if ((parameterValuesForGroups.length - 1) < groupNumber)
+            return null;
+        return parameterValuesForGroups[groupNumber];
     }
 
     public int getNumberOfGroups() {
-	return numberOfGroups;
+        return numberOfGroups;
     }
 
     public void run() {
 
-	status = TaskStatus.PROCESSING;
+        status = TaskStatus.PROCESSING;
 
-	logger.info("Computing projection plot");
+        logger.info("Computing projection plot");
 
-	// Generate matrix of raw data (input to PCA)
-	boolean useArea = false;
-	if (parameters.getParameter(
-		ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA)
-	    useArea = true;
+        // Generate matrix of raw data (input to PCA)
+        boolean useArea = false;
+        if (parameters.getParameter(
+                ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA)
+            useArea = true;
 
-	double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
-	for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-	    PeakListRow peakListRow = selectedRows[rowIndex];
-	    for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
-		RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-		Feature p = peakListRow.getPeak(rawDataFile);
-		if (p != null) {
-		    if (useArea)
-			rawData[fileIndex][rowIndex] = p.getArea();
-		    else
-			rawData[fileIndex][rowIndex] = p.getHeight();
-		}
-	    }
-	}
+        double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
+        for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
+            PeakListRow peakListRow = selectedRows[rowIndex];
+            for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
+                RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
+                Feature p = peakListRow.getPeak(rawDataFile);
+                if (p != null) {
+                    if (useArea)
+                        rawData[fileIndex][rowIndex] = p.getArea();
+                    else
+                        rawData[fileIndex][rowIndex] = p.getHeight();
+                }
+            }
+        }
 
-	int numComponents = xAxisPC;
-	if (yAxisPC > numComponents)
-	    numComponents = yAxisPC;
+        int numComponents = xAxisPC;
+        if (yAxisPC > numComponents)
+            numComponents = yAxisPC;
 
-	// Scale data and do PCA
-	Preprocess.scaleToUnityVariance(rawData);
-	PCA pcaProj = new PCA(rawData, numComponents);
-	projectionStatus = pcaProj.getProjectionStatus();
+        // Scale data and do PCA
+        Preprocess.scaleToUnityVariance(rawData);
+        PCA pcaProj = new PCA(rawData, numComponents);
+        projectionStatus = pcaProj.getProjectionStatus();
 
-	double[][] result = pcaProj.getState();
+        double[][] result = pcaProj.getState();
 
-	if (status == TaskStatus.CANCELED)
-	    return;
+        if (status == TaskStatus.CANCELED)
+            return;
 
-	component1Coords = result[xAxisPC - 1];
-	component2Coords = result[yAxisPC - 1];
+        component1Coords = result[xAxisPC - 1];
+        component2Coords = result[yAxisPC - 1];
 
-	ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
-		this, parameters);
-	newFrame.setVisible(true);
+        ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
+                this, parameters);
+        newFrame.setVisible(true);
 
-	status = TaskStatus.FINISHED;
-	logger.info("Finished computing projection plot.");
+        status = TaskStatus.FINISHED;
+        logger.info("Finished computing projection plot.");
 
     }
 
     public void cancel() {
-	if (projectionStatus != null)
-	    projectionStatus.cancel();
-	status = TaskStatus.CANCELED;
+        if (projectionStatus != null)
+            projectionStatus.cancel();
+        status = TaskStatus.CANCELED;
     }
 
     public String getErrorMessage() {
-	return errorMessage;
+        return errorMessage;
     }
 
     public TaskStatus getStatus() {
-	return status;
+        return status;
     }
 
     public String getTaskDescription() {
-	return "PCA projection";
+        return "PCA projection";
     }
 
     public double getFinishedPercentage() {
-	if (projectionStatus == null)
-	    return 0;
-	return projectionStatus.getFinishedPercentage();
+        if (projectionStatus == null)
+            return 0;
+        return projectionStatus.getFinishedPercentage();
     }
 
 }

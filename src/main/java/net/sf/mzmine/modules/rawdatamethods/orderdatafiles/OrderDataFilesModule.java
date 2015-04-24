@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -45,91 +44,89 @@ import net.sf.mzmine.util.ExitCode;
 
 /**
  * This is a very simple module which reorders data files alphabetically
- * 
  */
 public class OrderDataFilesModule implements MZmineProcessingModule {
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private static final String MODULE_NAME = "Order raw data files";
     private static final String MODULE_DESCRIPTION = "Order selected raw data files alphabetically";
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	List<RawDataFile> dataFiles = Arrays.asList(parameters.getParameter(
-		OrderDataFilesParameters.dataFiles).getMatchingRawDataFiles());
+        List<RawDataFile> dataFiles = Arrays.asList(parameters
+                .getParameter(OrderDataFilesParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles());
 
-	ProjectTree tree = ((MainWindow) MZmineCore.getDesktop())
-		.getMainPanel().getRawDataTree();
-	final RawDataTreeModel model = (RawDataTreeModel) tree.getModel();
-	final DefaultMutableTreeNode rootNode = model.getRoot();
+        ProjectTree tree = ((MainWindow) MZmineCore.getDesktop())
+                .getMainPanel().getRawDataTree();
+        final RawDataTreeModel model = (RawDataTreeModel) tree.getModel();
+        final DefaultMutableTreeNode rootNode = model.getRoot();
 
-	// Get all tree nodes that represent selected data files, and remove
-	// them from
-	final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
-	for (int row = 0; row < tree.getRowCount(); row++) {
-	    TreePath path = tree.getPathForRow(row);
-	    DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
-		    .getLastPathComponent();
-	    Object selectedObject = selectedNode.getUserObject();
-	    if (dataFiles.contains(selectedObject)) {
-		selectedNodes.add(selectedNode);
-	    }
-	}
+        // Get all tree nodes that represent selected data files, and remove
+        // them from
+        final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
+        for (int row = 0; row < tree.getRowCount(); row++) {
+            TreePath path = tree.getPathForRow(row);
+            DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
+                    .getLastPathComponent();
+            Object selectedObject = selectedNode.getUserObject();
+            if (dataFiles.contains(selectedObject)) {
+                selectedNodes.add(selectedNode);
+            }
+        }
 
-	// Get the index of the first selected item
-	final ArrayList<Integer> positions = new ArrayList<Integer>();
-	for (DefaultMutableTreeNode node : selectedNodes) {
-	    int nodeIndex = rootNode.getIndex(node);
-	    if (nodeIndex != -1)
-		positions.add(nodeIndex);
-	}
-	if (positions.isEmpty())
-	    return ExitCode.ERROR;
-	int insertPosition = Collections.min(positions);
+        // Get the index of the first selected item
+        final ArrayList<Integer> positions = new ArrayList<Integer>();
+        for (DefaultMutableTreeNode node : selectedNodes) {
+            int nodeIndex = rootNode.getIndex(node);
+            if (nodeIndex != -1)
+                positions.add(nodeIndex);
+        }
+        if (positions.isEmpty())
+            return ExitCode.ERROR;
+        int insertPosition = Collections.min(positions);
 
-	// Sort the data files by name
-	Collections.sort(selectedNodes,
-		new Comparator<DefaultMutableTreeNode>() {
-		    @Override
-		    public int compare(DefaultMutableTreeNode o1,
-			    DefaultMutableTreeNode o2) {
-			return o1.getUserObject().toString()
-				.compareTo(o2.getUserObject().toString());
-		    }
-		});
+        // Sort the data files by name
+        Collections.sort(selectedNodes,
+                new Comparator<DefaultMutableTreeNode>() {
+                    @Override
+                    public int compare(DefaultMutableTreeNode o1,
+                            DefaultMutableTreeNode o2) {
+                        return o1.getUserObject().toString()
+                                .compareTo(o2.getUserObject().toString());
+                    }
+                });
 
-	// Reorder the nodes in the tree model
-	for (DefaultMutableTreeNode node : selectedNodes) {
-	    model.removeNodeFromParent(node);
-	    model.insertNodeInto(node, rootNode, insertPosition);
-	    insertPosition++;
-	}
+        // Reorder the nodes in the tree model
+        for (DefaultMutableTreeNode node : selectedNodes) {
+            model.removeNodeFromParent(node);
+            model.insertNodeInto(node, rootNode, insertPosition);
+            insertPosition++;
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.RAWDATA;
+        return MZmineModuleCategory.RAWDATA;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return OrderDataFilesParameters.class;
+        return OrderDataFilesParameters.class;
     }
 
 }

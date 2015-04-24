@@ -43,28 +43,28 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	final PeakList[] peakLists = parameters.getParameter(
-		PeakListIdentificationParameters.peakLists)
-		.getMatchingPeakLists();
-	for (final PeakList peakList : peakLists) {
-	    Task newTask = new PeakListIdentificationTask(parameters, peakList);
-	    tasks.add(newTask);
-	}
+        final PeakList[] peakLists = parameters
+                .getParameter(PeakListIdentificationParameters.peakLists)
+                .getValue().getMatchingPeakLists();
+        for (final PeakList peakList : peakLists) {
+            Task newTask = new PeakListIdentificationTask(parameters, peakList);
+            tasks.add(newTask);
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     /**
@@ -75,38 +75,38 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
      */
     public static void showSingleRowIdentificationDialog(final PeakListRow row) {
 
-	final ParameterSet parameters = new SingleRowIdentificationParameters();
+        final ParameterSet parameters = new SingleRowIdentificationParameters();
 
-	// Set m/z.
-	parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS)
-		.setIonMass(row.getAverageMZ());
+        // Set m/z.
+        parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS)
+                .setIonMass(row.getAverageMZ());
 
-	// Set charge.
-	final int charge = row.getBestPeak().getCharge();
-	if (charge > 0) {
+        // Set charge.
+        final int charge = row.getBestPeak().getCharge();
+        if (charge > 0) {
 
-	    parameters.getParameter(
-		    SingleRowIdentificationParameters.NEUTRAL_MASS).setCharge(
-		    charge);
-	}
+            parameters.getParameter(
+                    SingleRowIdentificationParameters.NEUTRAL_MASS).setCharge(
+                    charge);
+        }
 
-	// Run task.
-	if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
-		true) == ExitCode.OK) {
+        // Run task.
+        if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+                true) == ExitCode.OK) {
 
-	    MZmineCore.getTaskController().addTask(
-		    new SingleRowIdentificationTask(parameters
-			    .cloneParameterSet(), row));
-	}
+            MZmineCore.getTaskController().addTask(
+                    new SingleRowIdentificationTask(parameters
+                            .cloneParameterSet(), row));
+        }
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.IDENTIFICATION;
+        return MZmineModuleCategory.IDENTIFICATION;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return PeakListIdentificationParameters.class;
+        return PeakListIdentificationParameters.class;
     }
 }

@@ -34,35 +34,35 @@ import net.sf.mzmine.util.PeakMeasurementType;
 public class LogratioParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakLists = new PeakListsParameter(
-	    1, 1);
+            1, 1);
 
     public static final MultiChoiceParameter<RawDataFile> groupOneFiles = new MultiChoiceParameter<RawDataFile>(
-	    "Group one", "Samples in group one", new RawDataFile[0], null, 1);
+            "Group one", "Samples in group one", new RawDataFile[0], null, 1);
 
     public static final MultiChoiceParameter<RawDataFile> groupTwoFiles = new MultiChoiceParameter<RawDataFile>(
-	    "Group two", "Samples in group two", new RawDataFile[0], null, 1);
+            "Group two", "Samples in group two", new RawDataFile[0], null, 1);
 
     public static final ComboParameter<PeakMeasurementType> measurementType = new ComboParameter<PeakMeasurementType>(
-	    "Peak measurement type",
-	    "Determines whether peak's area or height is used in computations.",
-	    PeakMeasurementType.values());
+            "Peak measurement type",
+            "Determines whether peak's area or height is used in computations.",
+            PeakMeasurementType.values());
 
     public LogratioParameters() {
-	super(new Parameter[] { peakLists, groupOneFiles, groupTwoFiles,
-		measurementType });
+        super(new Parameter[] { peakLists, groupOneFiles, groupTwoFiles,
+                measurementType });
     }
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	PeakList selectedPeakLists[] = getParameter(peakLists)
-		.getMatchingPeakLists();
-	RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
+        PeakList selectedPeakLists[] = getParameter(peakLists).getValue()
+                .getMatchingPeakLists();
+        RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
 
-	getParameter(groupOneFiles).setChoices(plDataFiles);
-	getParameter(groupTwoFiles).setChoices(plDataFiles);
+        getParameter(groupOneFiles).setChoices(plDataFiles);
+        getParameter(groupTwoFiles).setChoices(plDataFiles);
 
-	return super.showSetupDialog(parent, valueCheckRequired);
+        return super.showSetupDialog(parent, valueCheckRequired);
     }
 
 }

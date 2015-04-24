@@ -21,9 +21,6 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -33,164 +30,166 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-/**
- * 
- */
+import com.google.common.base.Strings;
+
 public class RawDataFilesParameter implements
-	UserParameter<String[], RawDataFilesComponent> {
+        UserParameter<RawDataFilesSelection, RawDataFilesComponent> {
 
     private int minCount, maxCount;
-    private String values[];
+
+    private RawDataFilesSelection value;
 
     public RawDataFilesParameter() {
-	this(1, Integer.MAX_VALUE);
+        this(1, Integer.MAX_VALUE);
     }
 
     public RawDataFilesParameter(int minCount) {
-	this(minCount, Integer.MAX_VALUE);
+        this(minCount, Integer.MAX_VALUE);
     }
 
     public RawDataFilesParameter(int minCount, int maxCount) {
-	this.minCount = minCount;
-	this.maxCount = maxCount;
+        this.minCount = minCount;
+        this.maxCount = maxCount;
     }
 
     @Override
-    public String[] getValue() {
-	return values;
-    }
-
-    public RawDataFile[] getMatchingRawDataFiles() {
-
-	if ((values == null) || (values.length == 0))
-	    return new RawDataFile[0];
-
-	ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
-
-	for (String singleValue : values) {
-	    matchingDataFiles.addAll(getMatchingRawDataFiles(singleValue));
-	}
-
-	return matchingDataFiles.toArray(new RawDataFile[0]);
-    }
-
-    static List<RawDataFile> getMatchingRawDataFiles(String pattern) {
-
-	RawDataFile allDataFiles[] = MZmineCore.getProjectManager()
-		.getCurrentProject().getDataFiles();
-	ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
-
-	fileCheck: for (RawDataFile file : allDataFiles) {
-
-	    final String fileName = file.getName();
-
-	    // Generate a regular expression, replacing * with .*
-	    try {
-		final StringBuilder regex = new StringBuilder("^");
-		String sections[] = pattern.split("\\*", -1);
-		for (int i = 0; i < sections.length; i++) {
-		    if (i > 0)
-			regex.append(".*");
-		    regex.append(Pattern.quote(sections[i]));
-		}
-		regex.append("$");
-
-		if (fileName.matches(regex.toString())) {
-		    matchingDataFiles.add(file);
-		    continue fileCheck;
-		}
-	    } catch (PatternSyntaxException e) {
-		e.printStackTrace();
-		continue;
-	    }
-	}
-	return matchingDataFiles;
+    public RawDataFilesSelection getValue() {
+        return value;
     }
 
     @Override
-    public void setValue(String newValue[]) {
-	this.values = newValue;
+    public void setValue(RawDataFilesSelection newValue) {
+        this.value = newValue;
     }
 
-    public void setValue(RawDataFile newValue[]) {
-	this.values = new String[newValue.length];
-	for (int i = 0; i < newValue.length; i++) {
-	    this.values[i] = newValue[i].getName();
-	}
+    public void setValue(RawDataFileSelectionType selectionType,
+            RawDataFile dataFiles[]) {
+        if (value == null)
+            value = new RawDataFilesSelection();
+        value.setSelectionType(selectionType);
+        value.setSpecificFiles(dataFiles);
+    }
+
+    public void setValue(RawDataFile dataFiles[]) {
+        setValue(RawDataFileSelectionType.SPECIFIC_FILES, dataFiles);
     }
 
     @Override
     public RawDataFilesParameter cloneParameter() {
-	RawDataFilesParameter copy = new RawDataFilesParameter(minCount,
-		maxCount);
-	copy.values = values;
-	return copy;
+        RawDataFilesParameter copy = new RawDataFilesParameter(minCount,
+                maxCount);
+        copy.value = value.clone();
+        return copy;
     }
 
     @Override
     public String getName() {
-	return "Raw data files (input)";
+        return "Raw data files (input)";
     }
 
     @Override
     public String getDescription() {
-	return "Raw data files that this module will take as its input.";
+        return "Raw data files that this module will take as its input.";
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-	RawDataFile matchingFiles[] = getMatchingRawDataFiles();
-	if (matchingFiles.length < minCount) {
-	    errorMessages.add("At least " + minCount
-		    + " raw data files must be selected");
-	    return false;
-	}
-	if (matchingFiles.length > maxCount) {
-	    errorMessages.add("Maximum " + maxCount
-		    + " raw data files may be selected");
-	    return false;
-	}
-	return true;
+        RawDataFile matchingFiles[];
+        if (value == null)
+            matchingFiles = new RawDataFile[0];
+        else
+            matchingFiles = value.getMatchingRawDataFiles();
+
+        if (matchingFiles.length < minCount) {
+            errorMessages.add("At least " + minCount
+                    + " raw data files must be selected");
+            return false;
+        }
+        if (matchingFiles.length > maxCount) {
+            errorMessages.add("Maximum " + maxCount
+                    + " raw data files may be selected");
+            return false;
+        }
+        return true;
     }
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
-	ArrayList<String> newValues = new ArrayList<String>();
-	NodeList items = xmlElement.getElementsByTagName("item");
-	for (int i = 0; i < items.getLength(); i++) {
-	    String itemString = items.item(i).getTextContent();
-	    newValues.add(itemString);
-	}
-	this.values = newValues.toArray(new String[0]);
+
+        RawDataFile[] currentDataFiles = MZmineCore.getProjectManager()
+                .getCurrentProject().getDataFiles();
+
+        RawDataFileSelectionType selectionType;
+        final String attrValue = xmlElement.getAttribute("type");
+
+        if (Strings.isNullOrEmpty(attrValue))
+            selectionType = RawDataFileSelectionType.GUI_SELECTED_FILES;
+        else
+            selectionType = RawDataFileSelectionType.valueOf(xmlElement
+                    .getAttribute("type"));
+
+        ArrayList<Object> newValues = new ArrayList<Object>();
+
+        NodeList items = xmlElement.getElementsByTagName("specific_file");
+        for (int i = 0; i < items.getLength(); i++) {
+            String itemString = items.item(i).getTextContent();
+            for (RawDataFile df : currentDataFiles) {
+                if (df.getName().equals(itemString))
+                    newValues.add(df);
+            }
+        }
+        RawDataFile specificFiles[] = newValues.toArray(new RawDataFile[0]);
+
+        String namePattern = null;
+        items = xmlElement.getElementsByTagName("name_pattern");
+        for (int i = 0; i < items.getLength(); i++) {
+            namePattern = items.item(i).getTextContent();
+        }
+
+        this.value = new RawDataFilesSelection();
+        this.value.setSelectionType(selectionType);
+        this.value.setSpecificFiles(specificFiles);
+        this.value.setNamePattern(namePattern);
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
-	if (values == null)
-	    return;
-	Document parentDocument = xmlElement.getOwnerDocument();
-	for (String item : values) {
-	    Element newElement = parentDocument.createElement("item");
-	    newElement.setTextContent(item.toString());
-	    xmlElement.appendChild(newElement);
-	}
+        if (value == null)
+            return;
+        Document parentDocument = xmlElement.getOwnerDocument();
+        xmlElement.setAttribute("type", value.getSelectionType().name());
+
+        if (value.getSpecificFiles() != null) {
+            for (RawDataFile item : value.getSpecificFiles()) {
+                Element newElement = parentDocument
+                        .createElement("specific_file");
+                newElement.setTextContent(item.getName());
+                xmlElement.appendChild(newElement);
+            }
+        }
+
+        if (value.getNamePattern() != null) {
+            Element newElement = parentDocument.createElement("name_pattern");
+            newElement.setTextContent(value.getNamePattern());
+            xmlElement.appendChild(newElement);
+        }
+
     }
 
     @Override
     public RawDataFilesComponent createEditingComponent() {
-	final int rows = Math.min(4, maxCount);
-	return new RawDataFilesComponent(rows);
+        return new RawDataFilesComponent();
     }
 
     @Override
     public void setValueFromComponent(RawDataFilesComponent component) {
-	values = component.getValue();
+        value = component.getValue();
     }
 
     @Override
     public void setValueToComponent(RawDataFilesComponent component,
-	    String[] newValue) {
-	component.setValue(newValue);
+            RawDataFilesSelection newValue) {
+        component.setValue(newValue);
     }
 
 }

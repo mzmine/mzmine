@@ -45,87 +45,87 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-	RawDataFile dataFiles[] = parameters.getParameter(
-		SpectraVisualizerParameters.dataFiles)
-		.getMatchingRawDataFiles();
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        RawDataFile dataFiles[] = parameters
+                .getParameter(SpectraVisualizerParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
 
-	int scanNumber = parameters.getParameter(
-		SpectraVisualizerParameters.scanNumber).getValue();
+        int scanNumber = parameters.getParameter(
+                SpectraVisualizerParameters.scanNumber).getValue();
 
-	showNewSpectrumWindow(dataFiles[0], scanNumber);
+        showNewSpectrumWindow(dataFiles[0], scanNumber);
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     public static SpectraVisualizerWindow showNewSpectrumWindow(
-	    RawDataFile dataFile, int scanNumber) {
-	return showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
+            RawDataFile dataFile, int scanNumber) {
+        return showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
     }
 
     public static SpectraVisualizerWindow showNewSpectrumWindow(
-	    RawDataFile dataFile, int scanNumber, Feature peak) {
-	return showNewSpectrumWindow(dataFile, scanNumber, peak, null, null);
+            RawDataFile dataFile, int scanNumber, Feature peak) {
+        return showNewSpectrumWindow(dataFile, scanNumber, peak, null, null);
     }
 
     public static SpectraVisualizerWindow showNewSpectrumWindow(
-	    RawDataFile dataFile, int scanNumber, IsotopePattern detectedPattern) {
-	return showNewSpectrumWindow(dataFile, scanNumber, null,
-		detectedPattern, null);
+            RawDataFile dataFile, int scanNumber, IsotopePattern detectedPattern) {
+        return showNewSpectrumWindow(dataFile, scanNumber, null,
+                detectedPattern, null);
     }
 
     public static SpectraVisualizerWindow showNewSpectrumWindow(
-	    RawDataFile dataFile, int scanNumber, Feature peak,
-	    IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
+            RawDataFile dataFile, int scanNumber, Feature peak,
+            IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
 
-	Scan scan = dataFile.getScan(scanNumber);
+        Scan scan = dataFile.getScan(scanNumber);
 
-	if (scan == null) {
-	    MZmineCore.getDesktop().displayErrorMessage(
-		    MZmineCore.getDesktop().getMainWindow(),
-		    "Raw data file " + dataFile + " does not contain scan #"
-			    + scanNumber);
-	    return null;
-	}
+        if (scan == null) {
+            MZmineCore.getDesktop().displayErrorMessage(
+                    MZmineCore.getDesktop().getMainWindow(),
+                    "Raw data file " + dataFile + " does not contain scan #"
+                            + scanNumber);
+            return null;
+        }
 
-	SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
-		dataFile);
-	newWindow.loadRawData(scan);
+        SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
+                dataFile);
+        newWindow.loadRawData(scan);
 
-	if (peak != null)
-	    newWindow.loadSinglePeak(peak);
+        if (peak != null)
+            newWindow.loadSinglePeak(peak);
 
-	if (detectedPattern != null)
-	    newWindow.loadIsotopes(detectedPattern);
+        if (detectedPattern != null)
+            newWindow.loadIsotopes(detectedPattern);
 
-	if (predictedPattern != null)
-	    newWindow.loadIsotopes(predictedPattern);
+        if (predictedPattern != null)
+            newWindow.loadIsotopes(predictedPattern);
 
-	newWindow.setVisible(true);
+        newWindow.setVisible(true);
 
-	return newWindow;
+        return newWindow;
 
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+        return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return SpectraVisualizerParameters.class;
+        return SpectraVisualizerParameters.class;
     }
 
 }

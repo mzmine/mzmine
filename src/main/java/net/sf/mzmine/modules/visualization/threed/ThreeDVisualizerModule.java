@@ -46,119 +46,120 @@ import com.google.common.collect.Range;
 public class ThreeDVisualizerModule implements MZmineRunnableModule {
 
     private static final Logger LOG = Logger
-	    .getLogger(ThreeDVisualizerModule.class.getName());
+            .getLogger(ThreeDVisualizerModule.class.getName());
 
     private static final String MODULE_NAME = "3D visualizer";
     private static final String MODULE_DESCRIPTION = "3D visualizer."; // TODO
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	final RawDataFile[] dataFiles = parameters.getParameter(
-		ThreeDVisualizerParameters.dataFiles).getMatchingRawDataFiles();
-	final int msLevel = parameters.getParameter(
-		ThreeDVisualizerParameters.msLevel).getValue();
-	final Range<Double> rtRange = parameters.getParameter(
-		ThreeDVisualizerParameters.retentionTimeRange).getValue();
+        final RawDataFile[] dataFiles = parameters
+                .getParameter(ThreeDVisualizerParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
+        final int msLevel = parameters.getParameter(
+                ThreeDVisualizerParameters.msLevel).getValue();
+        final Range<Double> rtRange = parameters.getParameter(
+                ThreeDVisualizerParameters.retentionTimeRange).getValue();
 
-	final Desktop desktop = MZmineCore.getDesktop();
+        final Desktop desktop = MZmineCore.getDesktop();
 
-	// Check scan numbers.
-	final RawDataFile dataFile = dataFiles[0];
-	if (dataFile.getScanNumbers(msLevel, rtRange).length == 0) {
+        // Check scan numbers.
+        final RawDataFile dataFile = dataFiles[0];
+        if (dataFile.getScanNumbers(msLevel, rtRange).length == 0) {
 
-	    desktop.displayErrorMessage(
-		    MZmineCore.getDesktop().getMainWindow(),
-		    "No scans found at MS level " + msLevel
-			    + " within given retention time range.");
-	    return ExitCode.ERROR;
+            desktop.displayErrorMessage(
+                    MZmineCore.getDesktop().getMainWindow(),
+                    "No scans found at MS level " + msLevel
+                            + " within given retention time range.");
+            return ExitCode.ERROR;
 
-	}
+        }
 
-	ParameterSet myParameters = MZmineCore.getConfiguration()
-		.getModuleParameters(ThreeDVisualizerModule.class);
-	try {
-	    ThreeDVisualizerWindow window = new ThreeDVisualizerWindow(
-		    dataFile,
-		    msLevel,
-		    rtRange,
-		    myParameters.getParameter(
-			    ThreeDVisualizerParameters.rtResolution).getValue(),
-		    myParameters.getParameter(
-			    ThreeDVisualizerParameters.mzRange).getValue(),
-		    myParameters.getParameter(
-			    ThreeDVisualizerParameters.mzResolution).getValue());
-	    window.setVisible(true);
-	} catch (RemoteException e) {
+        ParameterSet myParameters = MZmineCore.getConfiguration()
+                .getModuleParameters(ThreeDVisualizerModule.class);
+        try {
+            ThreeDVisualizerWindow window = new ThreeDVisualizerWindow(
+                    dataFile,
+                    msLevel,
+                    rtRange,
+                    myParameters.getParameter(
+                            ThreeDVisualizerParameters.rtResolution).getValue(),
+                    myParameters.getParameter(
+                            ThreeDVisualizerParameters.mzRange).getValue(),
+                    myParameters.getParameter(
+                            ThreeDVisualizerParameters.mzResolution).getValue());
+            window.setVisible(true);
+        } catch (RemoteException e) {
 
-	    final String msg = "Couldn't create 3D plot";
-	    LOG.log(Level.WARNING, msg, e);
-	    desktop.displayErrorMessage(
-		    MZmineCore.getDesktop().getMainWindow(), msg);
-	} catch (VisADException e) {
-	    final String msg = "Couldn't create 3D plot";
-	    LOG.log(Level.WARNING, msg, e);
-	    desktop.displayErrorMessage(
-		    MZmineCore.getDesktop().getMainWindow(), msg);
-	} catch (Error e) {
-	    e.printStackTrace();
-	    // Missing Java3D may cause UnsatisfiedLinkError or
-	    // NoClassDefFoundError.
-	    final String msg = "It seems that Java3D is not installed. Please install Java3D and try again.";
-	    LOG.log(Level.WARNING, msg, e);
-	    desktop.displayErrorMessage(
-		    MZmineCore.getDesktop().getMainWindow(), msg);
-	}
+            final String msg = "Couldn't create 3D plot";
+            LOG.log(Level.WARNING, msg, e);
+            desktop.displayErrorMessage(
+                    MZmineCore.getDesktop().getMainWindow(), msg);
+        } catch (VisADException e) {
+            final String msg = "Couldn't create 3D plot";
+            LOG.log(Level.WARNING, msg, e);
+            desktop.displayErrorMessage(
+                    MZmineCore.getDesktop().getMainWindow(), msg);
+        } catch (Error e) {
+            e.printStackTrace();
+            // Missing Java3D may cause UnsatisfiedLinkError or
+            // NoClassDefFoundError.
+            final String msg = "It seems that Java3D is not installed. Please install Java3D and try again.";
+            LOG.log(Level.WARNING, msg, e);
+            desktop.displayErrorMessage(
+                    MZmineCore.getDesktop().getMainWindow(), msg);
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
 
     }
 
     public static void setupNew3DVisualizer(final RawDataFile dataFile) {
-	setupNew3DVisualizer(dataFile, null, null);
+        setupNew3DVisualizer(dataFile, null, null);
     }
 
     public static void setupNew3DVisualizer(final RawDataFile dataFile,
-	    final Range<Double> mzRange, final Range<Double> rtRange) {
+            final Range<Double> mzRange, final Range<Double> rtRange) {
 
-	final ParameterSet myParameters = MZmineCore.getConfiguration()
-		.getModuleParameters(ThreeDVisualizerModule.class);
-	final ThreeDVisualizerModule myInstance = MZmineCore
-		.getModuleInstance(ThreeDVisualizerModule.class);
-	myParameters.getParameter(ThreeDVisualizerParameters.dataFiles)
-		.setValue(new RawDataFile[] { dataFile });
-	myParameters
-		.getParameter(ThreeDVisualizerParameters.retentionTimeRange)
-		.setValue(rtRange);
-	myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(
-		mzRange);
-	if (myParameters.showSetupDialog(MZmineCore.getDesktop()
-		.getMainWindow(), true) == ExitCode.OK) {
-	    myInstance.runModule(MZmineCore.getProjectManager()
-		    .getCurrentProject(), myParameters.cloneParameterSet(),
-		    new ArrayList<Task>());
-	}
+        final ParameterSet myParameters = MZmineCore.getConfiguration()
+                .getModuleParameters(ThreeDVisualizerModule.class);
+        final ThreeDVisualizerModule myInstance = MZmineCore
+                .getModuleInstance(ThreeDVisualizerModule.class);
+        myParameters.getParameter(ThreeDVisualizerParameters.dataFiles)
+                .setValue(new RawDataFile[] { dataFile });
+        myParameters
+                .getParameter(ThreeDVisualizerParameters.retentionTimeRange)
+                .setValue(rtRange);
+        myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(
+                mzRange);
+        if (myParameters.showSetupDialog(MZmineCore.getDesktop()
+                .getMainWindow(), true) == ExitCode.OK) {
+            myInstance.runModule(MZmineCore.getProjectManager()
+                    .getCurrentProject(), myParameters.cloneParameterSet(),
+                    new ArrayList<Task>());
+        }
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+        return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return ThreeDVisualizerParameters.class;
+        return ThreeDVisualizerParameters.class;
     }
 }

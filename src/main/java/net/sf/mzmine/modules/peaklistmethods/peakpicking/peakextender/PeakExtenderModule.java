@@ -38,39 +38,40 @@ public class PeakExtenderModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	PeakList[] peakLists = parameters.getParameter(
-		PeakExtenderParameters.peakLists).getMatchingPeakLists();
+        PeakList[] peakLists = parameters
+                .getParameter(PeakExtenderParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-	for (final PeakList peakList : peakLists) {
-	    Task newTask = new PeakExtenderTask(project, peakList, parameters);
-	    tasks.add(newTask);
-	}
+        for (final PeakList peakList : peakLists) {
+            Task newTask = new PeakExtenderTask(project, peakList, parameters);
+            tasks.add(newTask);
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
 
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.PEAKLISTPICKING;
+        return MZmineModuleCategory.PEAKLISTPICKING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return PeakExtenderParameters.class;
+        return PeakExtenderParameters.class;
     }
 
 }

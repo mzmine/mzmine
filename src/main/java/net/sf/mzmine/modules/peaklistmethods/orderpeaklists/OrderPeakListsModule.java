@@ -56,80 +56,81 @@ public class OrderPeakListsModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	List<PeakList> peakLists = Arrays.asList(parameters.getParameter(
-		OrderPeakListsParameters.peakLists).getMatchingPeakLists());
+        List<PeakList> peakLists = Arrays.asList(parameters
+                .getParameter(OrderPeakListsParameters.peakLists).getValue()
+                .getMatchingPeakLists());
 
-	ProjectTree tree = ((MainWindow) MZmineCore.getDesktop())
-		.getMainPanel().getPeakListTree();
-	final PeakListTreeModel model = (PeakListTreeModel) tree.getModel();
-	final DefaultMutableTreeNode rootNode = model.getRoot();
+        ProjectTree tree = ((MainWindow) MZmineCore.getDesktop())
+                .getMainPanel().getPeakListTree();
+        final PeakListTreeModel model = (PeakListTreeModel) tree.getModel();
+        final DefaultMutableTreeNode rootNode = model.getRoot();
 
-	// Get all tree nodes that represent selected peak lists, and remove
-	// them from
-	final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
-	for (int row = 0; row < tree.getRowCount(); row++) {
-	    TreePath path = tree.getPathForRow(row);
-	    DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
-		    .getLastPathComponent();
-	    Object selectedObject = selectedNode.getUserObject();
-	    if (peakLists.contains(selectedObject)) {
-		selectedNodes.add(selectedNode);
-	    }
-	}
+        // Get all tree nodes that represent selected peak lists, and remove
+        // them from
+        final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
+        for (int row = 0; row < tree.getRowCount(); row++) {
+            TreePath path = tree.getPathForRow(row);
+            DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
+                    .getLastPathComponent();
+            Object selectedObject = selectedNode.getUserObject();
+            if (peakLists.contains(selectedObject)) {
+                selectedNodes.add(selectedNode);
+            }
+        }
 
-	// Get the index of the first selected item
-	final ArrayList<Integer> positions = new ArrayList<Integer>();
-	for (DefaultMutableTreeNode node : selectedNodes) {
-	    int nodeIndex = rootNode.getIndex(node);
-	    if (nodeIndex != -1)
-		positions.add(nodeIndex);
-	}
-	if (positions.isEmpty())
-	    return ExitCode.ERROR;
-	int insertPosition = Collections.min(positions);
+        // Get the index of the first selected item
+        final ArrayList<Integer> positions = new ArrayList<Integer>();
+        for (DefaultMutableTreeNode node : selectedNodes) {
+            int nodeIndex = rootNode.getIndex(node);
+            if (nodeIndex != -1)
+                positions.add(nodeIndex);
+        }
+        if (positions.isEmpty())
+            return ExitCode.ERROR;
+        int insertPosition = Collections.min(positions);
 
-	// Sort the peak lists by name
-	Collections.sort(selectedNodes,
-		new Comparator<DefaultMutableTreeNode>() {
-		    @Override
-		    public int compare(DefaultMutableTreeNode o1,
-			    DefaultMutableTreeNode o2) {
-			return o1.getUserObject().toString()
-				.compareTo(o2.getUserObject().toString());
-		    }
-		});
+        // Sort the peak lists by name
+        Collections.sort(selectedNodes,
+                new Comparator<DefaultMutableTreeNode>() {
+                    @Override
+                    public int compare(DefaultMutableTreeNode o1,
+                            DefaultMutableTreeNode o2) {
+                        return o1.getUserObject().toString()
+                                .compareTo(o2.getUserObject().toString());
+                    }
+                });
 
-	// Reorder the nodes in the tree model
-	for (DefaultMutableTreeNode node : selectedNodes) {
-	    model.removeNodeFromParent(node);
-	    model.insertNodeInto(node, rootNode, insertPosition);
-	    insertPosition++;
-	}
+        // Reorder the nodes in the tree model
+        for (DefaultMutableTreeNode node : selectedNodes) {
+            model.removeNodeFromParent(node);
+            model.insertNodeInto(node, rootNode, insertPosition);
+            insertPosition++;
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.PEAKLIST;
+        return MZmineModuleCategory.PEAKLIST;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return OrderPeakListsParameters.class;
+        return OrderPeakListsParameters.class;
     }
 
 }

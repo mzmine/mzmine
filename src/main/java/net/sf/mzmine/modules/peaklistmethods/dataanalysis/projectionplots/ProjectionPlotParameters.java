@@ -37,59 +37,59 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
     public static final PeakListsParameter peakLists = new PeakListsParameter();
 
     public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
-	    "Data files", "Samples", new RawDataFile[0]);
+            "Data files", "Samples", new RawDataFile[0]);
 
     public static final ColoringTypeParameter coloringType = new ColoringTypeParameter();
 
     public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
-	    "Peak measurement type", "Measure peaks using",
-	    PeakMeasurementType.values());
+            "Peak measurement type", "Measure peaks using",
+            PeakMeasurementType.values());
 
     public static final Integer[] componentPossibleValues = { 1, 2, 3, 4, 5 };
 
     public static final ComboParameter<Integer> xAxisComponent = new ComboParameter<Integer>(
-	    "X-axis component", "Component on the X-axis",
-	    componentPossibleValues);
+            "X-axis component", "Component on the X-axis",
+            componentPossibleValues);
 
     public static final ComboParameter<Integer> yAxisComponent = new ComboParameter<Integer>(
-	    "Y-axis component", "Component on the Y-axis",
-	    componentPossibleValues, componentPossibleValues[1]);
+            "Y-axis component", "Component on the Y-axis",
+            componentPossibleValues, componentPossibleValues[1]);
 
     public static final MultiChoiceParameter<PeakListRow> rows = new MultiChoiceParameter<PeakListRow>(
-	    "Peak list rows", "Peak list rows to include in calculation",
-	    new PeakListRow[0]);
+            "Peak list rows", "Peak list rows to include in calculation",
+            new PeakListRow[0]);
 
     public ProjectionPlotParameters() {
-	super(new Parameter[] { peakLists, dataFiles, rows, coloringType,
-		peakMeasurementType, xAxisComponent, yAxisComponent });
+        super(new Parameter[] { peakLists, dataFiles, rows, coloringType,
+                peakMeasurementType, xAxisComponent, yAxisComponent });
     }
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	PeakList selectedPeakList[] = getParameter(peakLists)
-		.getMatchingPeakLists();
+        PeakList selectedPeakList[] = getParameter(peakLists).getValue()
+                .getMatchingPeakLists();
 
-	RawDataFile dataFileChoices[];
+        RawDataFile dataFileChoices[];
 
-	if ((selectedPeakList != null) && (selectedPeakList.length == 1)) {
-	    dataFileChoices = selectedPeakList[0].getRawDataFiles();
-	} else {
-	    dataFileChoices = new RawDataFile[0];
-	}
+        if ((selectedPeakList != null) && (selectedPeakList.length == 1)) {
+            dataFileChoices = selectedPeakList[0].getRawDataFiles();
+        } else {
+            dataFileChoices = new RawDataFile[0];
+        }
 
-	PeakListRow rowChoices[];
-	if ((selectedPeakList != null) && (selectedPeakList.length == 1)) {
-	    rowChoices = selectedPeakList[0].getRows();
-	} else {
-	    rowChoices = new PeakListRow[0];
-	}
+        PeakListRow rowChoices[];
+        if ((selectedPeakList != null) && (selectedPeakList.length == 1)) {
+            rowChoices = selectedPeakList[0].getRows();
+        } else {
+            rowChoices = new PeakListRow[0];
+        }
 
-	getParameter(ProjectionPlotParameters.dataFiles).setChoices(
-		dataFileChoices);
-	getParameter(ProjectionPlotParameters.rows).setChoices(rowChoices);
+        getParameter(ProjectionPlotParameters.dataFiles).setChoices(
+                dataFileChoices);
+        getParameter(ProjectionPlotParameters.rows).setChoices(rowChoices);
 
-	return super.showSetupDialog(parent, valueCheckRequired);
+        return super.showSetupDialog(parent, valueCheckRequired);
     }
 
 }

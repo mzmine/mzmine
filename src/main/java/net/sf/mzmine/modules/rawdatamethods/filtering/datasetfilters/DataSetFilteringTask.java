@@ -49,19 +49,20 @@ class DataSetFilteringTask extends AbstractTask {
      */
     DataSetFilteringTask(MZmineProject project, ParameterSet parameters) {
 
-	this.project = project;
-	this.dataFiles = parameters.getParameter(
-		DataSetFiltersParameters.dataFiles).getMatchingRawDataFiles();
-	this.filteredRawDataFiles = new ArrayList<RawDataFile>();
+        this.project = project;
+        this.dataFiles = parameters
+                .getParameter(DataSetFiltersParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
+        this.filteredRawDataFiles = new ArrayList<RawDataFile>();
 
-	rawDataFilter = parameters
-		.getParameter(DataSetFiltersParameters.filter).getValue();
+        rawDataFilter = parameters
+                .getParameter(DataSetFiltersParameters.filter).getValue();
 
-	this.removeOriginal = parameters.getParameter(
-		DataSetFiltersParameters.autoRemove).getValue();
+        this.removeOriginal = parameters.getParameter(
+                DataSetFiltersParameters.autoRemove).getValue();
 
-	suffix = parameters.getParameter(DataSetFiltersParameters.suffix)
-		.getValue();
+        suffix = parameters.getParameter(DataSetFiltersParameters.suffix)
+                .getValue();
 
     }
 
@@ -69,18 +70,18 @@ class DataSetFilteringTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-	return "Filtering raw data";
+        return "Filtering raw data";
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-	if (rawDataFilter != null) {
-	    return rawDataFilter.getModule().getProgress();
-	} else {
-	    return 0;
-	}
+        if (rawDataFilter != null) {
+            return rawDataFilter.getModule().getProgress();
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -88,33 +89,33 @@ class DataSetFilteringTask extends AbstractTask {
      */
     public void run() {
 
-	setStatus(TaskStatus.PROCESSING);
+        setStatus(TaskStatus.PROCESSING);
 
-	try {
-	    for (RawDataFile dataFile : dataFiles) {
-		RawDataFileWriter rawDataFileWriter = MZmineCore
-			.createNewFile(dataFile.getName() + " " + suffix);
-		RawDataFile filteredRawDataFile = rawDataFilter.getModule()
-			.filterDatafile(dataFile, rawDataFileWriter,
-				rawDataFilter.getParameterSet());
-		if (filteredRawDataFile != null) {
-		    project.addFile(filteredRawDataFile);
-		    filteredRawDataFiles.add(filteredRawDataFile);
+        try {
+            for (RawDataFile dataFile : dataFiles) {
+                RawDataFileWriter rawDataFileWriter = MZmineCore
+                        .createNewFile(dataFile.getName() + " " + suffix);
+                RawDataFile filteredRawDataFile = rawDataFilter.getModule()
+                        .filterDatafile(dataFile, rawDataFileWriter,
+                                rawDataFilter.getParameterSet());
+                if (filteredRawDataFile != null) {
+                    project.addFile(filteredRawDataFile);
+                    filteredRawDataFiles.add(filteredRawDataFile);
 
-		    // Remove the original file if requested
-		    if (removeOriginal) {
-			project.removeFile(dataFile);
-		    }
-		}
-	    }
+                    // Remove the original file if requested
+                    if (removeOriginal) {
+                        project.removeFile(dataFile);
+                    }
+                }
+            }
 
-	    setStatus(TaskStatus.FINISHED);
+            setStatus(TaskStatus.FINISHED);
 
-	} catch (Exception e) {
-	    setStatus(TaskStatus.ERROR);
-	    setErrorMessage(e.toString());
-	    return;
-	}
+        } catch (Exception e) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage(e.toString());
+            return;
+        }
 
     }
 }

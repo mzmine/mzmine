@@ -40,38 +40,39 @@ public class AdductSearchModule implements MZmineProcessingModule {
     @Override
     public @Nonnull String getName() {
 
-	return NAME;
+        return NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
 
-	return DESCRIPTION;
+        return DESCRIPTION;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
 
-	return MZmineModuleCategory.IDENTIFICATION;
+        return MZmineModuleCategory.IDENTIFICATION;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 
-	return AdductSearchParameters.class;
+        return AdductSearchParameters.class;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull final ParameterSet parameters,
-	    @Nonnull final Collection<Task> tasks) {
+            @Nonnull final ParameterSet parameters,
+            @Nonnull final Collection<Task> tasks) {
 
-	for (final PeakList peakList : parameters.getParameter(
-		AdductSearchParameters.PEAK_LISTS).getMatchingPeakLists()) {
-	    tasks.add(new AdductSearchTask(parameters, peakList));
-	}
+        for (final PeakList peakList : parameters
+                .getParameter(AdductSearchParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists()) {
+            tasks.add(new AdductSearchTask(parameters, peakList));
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 }
