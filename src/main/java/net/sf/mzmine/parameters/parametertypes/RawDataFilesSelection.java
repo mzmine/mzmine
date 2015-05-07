@@ -41,6 +41,9 @@ public class RawDataFilesSelection implements Cloneable {
 
         case GUI_SELECTED_FILES:
             return MZmineCore.getDesktop().getSelectedDataFiles();
+        case ALL_FILES:
+            return MZmineCore.getProjectManager().getCurrentProject()
+                    .getDataFiles();
         case SPECIFIC_FILES:
             if (specificFiles == null)
                 return new RawDataFile[0];

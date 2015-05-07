@@ -62,6 +62,10 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
         numFilesLabel = new JLabel();
         add(numFilesLabel);
 
+        // Do not allow resizing below the required size for individual
+        // components
+        setMinimumSize(getPreferredSize());
+
     }
 
     void setValue(RawDataFilesSelection newValue) {

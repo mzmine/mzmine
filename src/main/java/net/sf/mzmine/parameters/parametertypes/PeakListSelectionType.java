@@ -22,6 +22,7 @@ package net.sf.mzmine.parameters.parametertypes;
 public enum PeakListSelectionType {
 
     GUI_SELECTED_PEAKLISTS("Peak lists selected in main window"), //
+    ALL_PEAKLISTS("All peak lists"), //
     SPECIFIC_PEAKLISTS("Specific peak lists"), //
     NAME_PATTERN("Peak list name pattern"), //
     BATCH_LAST_PEAKLISTS("Peak lists created by previous batch step");

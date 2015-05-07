@@ -41,6 +41,9 @@ public class PeakListsSelection implements Cloneable {
 
         case GUI_SELECTED_PEAKLISTS:
             return MZmineCore.getDesktop().getSelectedPeakLists();
+        case ALL_PEAKLISTS:
+            return MZmineCore.getProjectManager().getCurrentProject()
+                    .getPeakLists();
         case SPECIFIC_PEAKLISTS:
             if (specificPeakLists == null)
                 return new PeakList[0];

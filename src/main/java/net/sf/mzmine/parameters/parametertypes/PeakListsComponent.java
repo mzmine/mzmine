@@ -62,6 +62,10 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         numPeakListsLabel = new JLabel();
         add(numPeakListsLabel);
 
+        // Do not allow resizing below the required size for individual
+        // components
+        setMinimumSize(getPreferredSize());
+
     }
 
     void setValue(PeakListsSelection newValue) {
