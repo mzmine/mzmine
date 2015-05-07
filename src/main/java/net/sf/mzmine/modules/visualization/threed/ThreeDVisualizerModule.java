@@ -34,7 +34,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.RawDataFileSelectionType;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 import visad.VisADException;
@@ -140,7 +140,7 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
         final ThreeDVisualizerModule myInstance = MZmineCore
                 .getModuleInstance(ThreeDVisualizerModule.class);
         myParameters.getParameter(ThreeDVisualizerParameters.dataFiles)
-                .setValue(RawDataFileSelectionType.SPECIFIC_FILES,
+                .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
                         new RawDataFile[] { dataFile });
         myParameters
                 .getParameter(ThreeDVisualizerParameters.retentionTimeRange)

@@ -40,7 +40,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
 
-    private final JComboBox<PeakListSelectionType> typeCombo;
+    private final JComboBox<PeakListsSelectionType> typeCombo;
     private final JButton detailsButton;
     private final JLabel numPeakListsLabel;
     private PeakListsSelection currentValue = new PeakListsSelection();
@@ -50,7 +50,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
         setLayout(layout);
 
-        typeCombo = new JComboBox<>(PeakListSelectionType.values());
+        typeCombo = new JComboBox<>(PeakListsSelectionType.values());
         typeCombo.addActionListener(this);
         add(typeCombo);
 
@@ -70,7 +70,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
     void setValue(PeakListsSelection newValue) {
         currentValue = newValue.clone();
-        PeakListSelectionType type = newValue.getSelectionType();
+        PeakListsSelectionType type = newValue.getSelectionType();
         if (type != null)
             typeCombo.setSelectedItem(type);
         updateNumPeakLists();
@@ -85,10 +85,10 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         Object src = event.getSource();
 
         if (src == detailsButton) {
-            PeakListSelectionType type = (PeakListSelectionType) typeCombo
+            PeakListsSelectionType type = (PeakListsSelectionType) typeCombo
                     .getSelectedItem();
 
-            if (type == PeakListSelectionType.SPECIFIC_PEAKLISTS) {
+            if (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS) {
                 final MultiChoiceParameter<PeakList> plsParameter = new MultiChoiceParameter<PeakList>(
                         "Select peak lists", "Select peak lists", MZmineCore
                                 .getProjectManager().getCurrentProject()
@@ -108,7 +108,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
             }
 
-            if (type == PeakListSelectionType.NAME_PATTERN) {
+            if (type == PeakListsSelectionType.NAME_PATTERN) {
                 final StringParameter nameParameter = new StringParameter(
                         "Name pattern",
                         "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
@@ -130,12 +130,12 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         }
 
         if (src == typeCombo) {
-            PeakListSelectionType type = (PeakListSelectionType) typeCombo
+            PeakListsSelectionType type = (PeakListsSelectionType) typeCombo
                     .getSelectedItem();
             currentValue.setSelectionType(type);
             detailsButton
-                    .setEnabled((type == PeakListSelectionType.NAME_PATTERN)
-                            || (type == PeakListSelectionType.SPECIFIC_PEAKLISTS));
+                    .setEnabled((type == PeakListsSelectionType.NAME_PATTERN)
+                            || (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS));
         }
 
         updateNumPeakLists();
@@ -148,7 +148,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
     }
 
     private void updateNumPeakLists() {
-        if (currentValue.getSelectionType() == PeakListSelectionType.BATCH_LAST_PEAKLISTS) {
+        if (currentValue.getSelectionType() == PeakListsSelectionType.BATCH_LAST_PEAKLISTS) {
             numPeakListsLabel.setText("");
             numPeakListsLabel.setToolTipText("");
         } else {

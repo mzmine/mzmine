@@ -62,7 +62,7 @@ public class PeakListsParameter implements
         this.value = newValue;
     }
 
-    public void setValue(PeakListSelectionType selectionType,
+    public void setValue(PeakListsSelectionType selectionType,
             PeakList peakLists[]) {
         if (value == null)
             value = new PeakListsSelection();
@@ -70,7 +70,7 @@ public class PeakListsParameter implements
         value.setSpecificPeakLists(peakLists);
     }
 
-    public void setValue(PeakListSelectionType selectionType) {
+    public void setValue(PeakListsSelectionType selectionType) {
         if (value == null)
             value = new PeakListsSelection();
         value.setSelectionType(selectionType);
@@ -120,13 +120,13 @@ public class PeakListsParameter implements
         PeakList[] currentDataPeakLists = MZmineCore.getProjectManager()
                 .getCurrentProject().getPeakLists();
 
-        PeakListSelectionType selectionType;
+        PeakListsSelectionType selectionType;
         final String attrValue = xmlElement.getAttribute("type");
 
         if (Strings.isNullOrEmpty(attrValue))
-            selectionType = PeakListSelectionType.GUI_SELECTED_PEAKLISTS;
+            selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
         else
-            selectionType = PeakListSelectionType.valueOf(xmlElement
+            selectionType = PeakListsSelectionType.valueOf(xmlElement
                     .getAttribute("type"));
 
         ArrayList<Object> newValues = new ArrayList<Object>();

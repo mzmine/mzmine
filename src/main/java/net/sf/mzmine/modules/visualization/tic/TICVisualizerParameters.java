@@ -34,7 +34,7 @@ import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFileSelectionType;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
@@ -159,7 +159,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
             final Feature[] allPeaks, final Feature[] selectedPeaks) {
 
         getParameter(DATA_FILES).setValue(
-                RawDataFileSelectionType.SPECIFIC_FILES, selectedFiles);
+                RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
         getParameter(PEAKS).setChoices(allPeaks);
         getParameter(PEAKS).setValue(selectedPeaks);
 

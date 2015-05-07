@@ -40,7 +40,7 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
 
-    private final JComboBox<RawDataFileSelectionType> typeCombo;
+    private final JComboBox<RawDataFilesSelectionType> typeCombo;
     private final JButton detailsButton;
     private final JLabel numFilesLabel;
     private RawDataFilesSelection currentValue = new RawDataFilesSelection();
@@ -50,7 +50,7 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
         BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
         setLayout(layout);
 
-        typeCombo = new JComboBox<>(RawDataFileSelectionType.values());
+        typeCombo = new JComboBox<>(RawDataFilesSelectionType.values());
         typeCombo.addActionListener(this);
         add(typeCombo);
 
@@ -70,7 +70,7 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
 
     void setValue(RawDataFilesSelection newValue) {
         currentValue = newValue.clone();
-        RawDataFileSelectionType type = newValue.getSelectionType();
+        RawDataFilesSelectionType type = newValue.getSelectionType();
         if (type != null)
             typeCombo.setSelectedItem(type);
         updateNumFiles();
@@ -85,10 +85,10 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
         Object src = event.getSource();
 
         if (src == detailsButton) {
-            RawDataFileSelectionType type = (RawDataFileSelectionType) typeCombo
+            RawDataFilesSelectionType type = (RawDataFilesSelectionType) typeCombo
                     .getSelectedItem();
 
-            if (type == RawDataFileSelectionType.SPECIFIC_FILES) {
+            if (type == RawDataFilesSelectionType.SPECIFIC_FILES) {
                 final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
                         "Select files", "Select files", MZmineCore
                                 .getProjectManager().getCurrentProject()
@@ -108,7 +108,7 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
 
             }
 
-            if (type == RawDataFileSelectionType.NAME_PATTERN) {
+            if (type == RawDataFilesSelectionType.NAME_PATTERN) {
                 final StringParameter nameParameter = new StringParameter(
                         "Name pattern",
                         "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
@@ -130,12 +130,12 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
         }
 
         if (src == typeCombo) {
-            RawDataFileSelectionType type = (RawDataFileSelectionType) typeCombo
+            RawDataFilesSelectionType type = (RawDataFilesSelectionType) typeCombo
                     .getSelectedItem();
             currentValue.setSelectionType(type);
             detailsButton
-                    .setEnabled((type == RawDataFileSelectionType.NAME_PATTERN)
-                            || (type == RawDataFileSelectionType.SPECIFIC_FILES));
+                    .setEnabled((type == RawDataFilesSelectionType.NAME_PATTERN)
+                            || (type == RawDataFilesSelectionType.SPECIFIC_FILES));
         }
 
         updateNumFiles();
@@ -148,7 +148,7 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
     }
 
     private void updateNumFiles() {
-        if (currentValue.getSelectionType() == RawDataFileSelectionType.BATCH_LAST_FILES) {
+        if (currentValue.getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES) {
             numFilesLabel.setText("");
             numFilesLabel.setToolTipText("");
         } else {

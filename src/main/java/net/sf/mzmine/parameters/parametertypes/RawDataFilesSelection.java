@@ -30,7 +30,7 @@ import com.google.common.base.Strings;
 
 public class RawDataFilesSelection implements Cloneable {
 
-    private RawDataFileSelectionType selectionType = RawDataFileSelectionType.GUI_SELECTED_FILES;
+    private RawDataFilesSelectionType selectionType = RawDataFilesSelectionType.GUI_SELECTED_FILES;
     private RawDataFile specificFiles[];
     private String namePattern;
     private RawDataFile batchLastFiles[];
@@ -92,11 +92,11 @@ public class RawDataFilesSelection implements Cloneable {
 
     }
 
-    public RawDataFileSelectionType getSelectionType() {
+    public RawDataFilesSelectionType getSelectionType() {
         return selectionType;
     }
 
-    public void setSelectionType(RawDataFileSelectionType selectionType) {
+    public void setSelectionType(RawDataFilesSelectionType selectionType) {
         this.selectionType = selectionType;
     }
 
@@ -130,9 +130,11 @@ public class RawDataFilesSelection implements Cloneable {
 
     public String toString() {
         StringBuilder str = new StringBuilder();
-        for (RawDataFile file : getMatchingRawDataFiles()) {
-            str.append(file.getName());
-            str.append("\n");
+        RawDataFile files[] = getMatchingRawDataFiles();
+        for (int i = 0; i < files.length; i++) {
+            if (i > 0)
+                str.append("\n");
+            str.append(files[i].getName());
         }
         return str.toString();
     }

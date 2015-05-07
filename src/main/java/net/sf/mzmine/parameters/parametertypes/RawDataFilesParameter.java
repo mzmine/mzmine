@@ -62,13 +62,13 @@ public class RawDataFilesParameter implements
         this.value = newValue;
     }
 
-    public void setValue(RawDataFileSelectionType selectionType) {
+    public void setValue(RawDataFilesSelectionType selectionType) {
         if (value == null)
             value = new RawDataFilesSelection();
         value.setSelectionType(selectionType);
     }
 
-    public void setValue(RawDataFileSelectionType selectionType,
+    public void setValue(RawDataFilesSelectionType selectionType,
             RawDataFile dataFiles[]) {
         if (value == null)
             value = new RawDataFilesSelection();
@@ -121,13 +121,13 @@ public class RawDataFilesParameter implements
         RawDataFile[] currentDataFiles = MZmineCore.getProjectManager()
                 .getCurrentProject().getDataFiles();
 
-        RawDataFileSelectionType selectionType;
+        RawDataFilesSelectionType selectionType;
         final String attrValue = xmlElement.getAttribute("type");
 
         if (Strings.isNullOrEmpty(attrValue))
-            selectionType = RawDataFileSelectionType.GUI_SELECTED_FILES;
+            selectionType = RawDataFilesSelectionType.GUI_SELECTED_FILES;
         else
-            selectionType = RawDataFileSelectionType.valueOf(xmlElement
+            selectionType = RawDataFilesSelectionType.valueOf(xmlElement
                     .getAttribute("type"));
 
         ArrayList<Object> newValues = new ArrayList<Object>();

@@ -30,7 +30,7 @@ import com.google.common.base.Strings;
 
 public class PeakListsSelection implements Cloneable {
 
-    private PeakListSelectionType selectionType = PeakListSelectionType.GUI_SELECTED_PEAKLISTS;
+    private PeakListsSelectionType selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
     private PeakList specificPeakLists[];
     private String namePattern;
     private PeakList batchLastPeakLists[];
@@ -92,11 +92,11 @@ public class PeakListsSelection implements Cloneable {
 
     }
 
-    public PeakListSelectionType getSelectionType() {
+    public PeakListsSelectionType getSelectionType() {
         return selectionType;
     }
 
-    public void setSelectionType(PeakListSelectionType selectionType) {
+    public void setSelectionType(PeakListsSelectionType selectionType) {
         this.selectionType = selectionType;
     }
 
@@ -130,9 +130,11 @@ public class PeakListsSelection implements Cloneable {
 
     public String toString() {
         StringBuilder str = new StringBuilder();
-        for (PeakList pl : getMatchingPeakLists()) {
-            str.append(pl.getName());
-            str.append("\n");
+        PeakList pls[] = getMatchingPeakLists();
+        for (int i = 0; i < pls.length; i++) {
+            if (i > 0)
+                str.append("\n");
+            str.append(pls[i].getName());
         }
         return str.toString();
     }

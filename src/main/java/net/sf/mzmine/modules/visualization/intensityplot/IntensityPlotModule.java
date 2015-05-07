@@ -31,7 +31,7 @@ import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListSelectionType;
+import net.sf.mzmine.parameters.parametertypes.PeakListsSelectionType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
@@ -69,7 +69,7 @@ public class IntensityPlotModule implements MZmineRunnableModule {
                 .getModuleParameters(IntensityPlotModule.class);
 
         parameters.getParameter(IntensityPlotParameters.peakList).setValue(
-                PeakListSelectionType.SPECIFIC_PEAKLISTS,
+                PeakListsSelectionType.SPECIFIC_PEAKLISTS,
                 new PeakList[] { peakList });
 
         parameters.getParameter(IntensityPlotParameters.dataFiles).setChoices(

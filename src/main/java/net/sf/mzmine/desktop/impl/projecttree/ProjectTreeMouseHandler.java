@@ -53,8 +53,8 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.PeakListSelectionType;
-import net.sf.mzmine.parameters.parametertypes.RawDataFileSelectionType;
+import net.sf.mzmine.parameters.parametertypes.PeakListsSelectionType;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
@@ -148,7 +148,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
             ParameterSet parameters = MZmineCore.getConfiguration()
                     .getModuleParameters(SpectraVisualizerModule.class);
             parameters.getParameter(SpectraVisualizerParameters.dataFiles)
-                    .setValue(RawDataFileSelectionType.SPECIFIC_FILES,
+                    .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
                             selectedFiles);
             ExitCode exitCode = parameters.showSetupDialog(MZmineCore
                     .getDesktop().getMainWindow(), true);
@@ -185,7 +185,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
             ParameterSet params = MZmineCore.getConfiguration()
                     .getModuleParameters(OrderDataFilesModule.class);
             params.getParameter(OrderDataFilesParameters.dataFiles).setValue(
-                    RawDataFileSelectionType.SPECIFIC_FILES, selectedFiles);
+                    RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
             module.runModule(null, params, null);
             // restore selection
             tree.setSelectionPaths(savedSelection);
@@ -308,7 +308,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
             ParameterSet params = MZmineCore.getConfiguration()
                     .getModuleParameters(OrderPeakListsModule.class);
             params.getParameter(OrderPeakListsParameters.peakLists)
-                    .setValue(PeakListSelectionType.SPECIFIC_PEAKLISTS,
+                    .setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS,
                             selectedPeakLists);
             module.runModule(null, params, null);
             // restore selection

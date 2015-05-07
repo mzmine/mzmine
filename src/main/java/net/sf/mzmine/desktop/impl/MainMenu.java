@@ -45,9 +45,9 @@ import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.PeakListSelectionType;
+import net.sf.mzmine.parameters.parametertypes.PeakListsSelectionType;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFileSelectionType;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import net.sf.mzmine.taskcontrol.Task;
@@ -334,7 +334,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
                 for (Parameter<?> p : moduleParameters.getParameters()) {
                     if (p instanceof RawDataFilesParameter) {
                         RawDataFilesParameter rdp = (RawDataFilesParameter) p;
-                        rdp.setValue(RawDataFileSelectionType.GUI_SELECTED_FILES);
+                        rdp.setValue(RawDataFilesSelectionType.GUI_SELECTED_FILES);
                     }
                 }
 
@@ -345,7 +345,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
                 for (Parameter<?> p : moduleParameters.getParameters()) {
                     if (p instanceof PeakListsParameter) {
                         PeakListsParameter plp = (PeakListsParameter) p;
-                        plp.setValue(PeakListSelectionType.GUI_SELECTED_PEAKLISTS);
+                        plp.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
                     }
                 }
             }

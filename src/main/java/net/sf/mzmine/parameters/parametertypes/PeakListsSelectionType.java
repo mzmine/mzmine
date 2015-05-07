@@ -19,17 +19,17 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-public enum RawDataFileSelectionType {
+public enum PeakListsSelectionType {
 
-    GUI_SELECTED_FILES("Raw data files selected in main window"), //
-    ALL_FILES("All raw data files"), //
-    SPECIFIC_FILES("Specific raw data files"), //
-    NAME_PATTERN("File name pattern"), //
-    BATCH_LAST_FILES("Raw data files created by previous batch step");
+    GUI_SELECTED_PEAKLISTS("Peak lists selected in main window"), //
+    ALL_PEAKLISTS("All peak lists"), //
+    SPECIFIC_PEAKLISTS("Specific peak lists"), //
+    NAME_PATTERN("Peak list name pattern"), //
+    BATCH_LAST_PEAKLISTS("Peak lists created by previous batch step");
 
     private final String stringValue;
 
-    RawDataFileSelectionType(String stringValue) {
+    PeakListsSelectionType(String stringValue) {
         this.stringValue = stringValue;
     }
 
