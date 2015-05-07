@@ -81,7 +81,7 @@ public class BatchTask extends AbstractTask {
             }
         };
         project.addProjectListener(listener);
-        
+
         // Process individual batch steps
         for (int i = 0; i < totalSteps; i++) {
 
@@ -94,9 +94,9 @@ public class BatchTask extends AbstractTask {
             }
 
         }
-        
+
         project.removeProjectListener(listener);
-        
+
         logger.info("Finished a batch of " + totalSteps + " steps");
         setStatus(TaskStatus.FINISHED);
 
@@ -115,22 +115,23 @@ public class BatchTask extends AbstractTask {
         // For
         for (Parameter<?> p : batchStepParameters.getParameters()) {
             if (p instanceof RawDataFilesParameter) {
-                
+
             }
         }
-        
+
         // Clear the saved data files and peak lists
         createdDataFiles.clear();
         createdPeakLists.clear();
-        
+
         // Check if the parameter settings are valid
         ArrayList<String> messages = new ArrayList<String>();
         boolean paramsCheck = batchStepParameters
                 .checkParameterValues(messages);
         if (!paramsCheck) {
             setStatus(TaskStatus.ERROR);
-            setErrorMessage("Invalid parameter settings for module " + method
-                    + ": " + Arrays.toString(messages.toArray()));
+            setErrorMessage("Invalid parameter settings for module "
+                    + method.getName() + ": "
+                    + Arrays.toString(messages.toArray()));
         }
 
         ArrayList<Task> currentStepTasks = new ArrayList<Task>();
