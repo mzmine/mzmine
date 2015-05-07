@@ -21,13 +21,20 @@ package net.sf.mzmine.modules.batchmode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.MZmineProjectListener;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -42,139 +49,189 @@ public class BatchTask extends AbstractTask {
 
     private int totalSteps, processedSteps;
 
-    private MZmineProject project;
-    private BatchQueue queue;
+    private final MZmineProject project;
+    private final BatchQueue queue;
+
+    private final List<RawDataFile> createdDataFiles;
+    private final List<PeakList> createdPeakLists;
 
     BatchTask(MZmineProject project, ParameterSet parameters) {
-	this.project = project;
-	this.queue = parameters.getParameter(BatchModeParameters.batchQueue)
-		.getValue();
-	totalSteps = queue.size();
+        this.project = project;
+        this.queue = parameters.getParameter(BatchModeParameters.batchQueue)
+                .getValue();
+        totalSteps = queue.size();
+        createdDataFiles = new ArrayList<>();
+        createdPeakLists = new ArrayList<>();
     }
 
     public void run() {
 
-	setStatus(TaskStatus.PROCESSING);
-	logger.info("Starting a batch of " + totalSteps + " steps");
+        setStatus(TaskStatus.PROCESSING);
+        logger.info("Starting a batch of " + totalSteps + " steps");
 
-	for (int i = 0; i < totalSteps; i++) {
+        // Listen for new items in the project
+        MZmineProjectListener listener = new MZmineProjectListener() {
+            @Override
+            public void peakListAdded(PeakList newPeakList) {
+                createdPeakLists.add(newPeakList);
+            }
 
-	    processQueueStep(i);
-	    processedSteps++;
+            @Override
+            public void dataFileAdded(RawDataFile newFile) {
+                createdDataFiles.add(newFile);
+            }
+        };
+        project.addProjectListener(listener);
 
-	    // If we are canceled or ran into error, stop here
-	    if (isCanceled() || (getStatus() == TaskStatus.ERROR)) {
-		return;
-	    }
+        // Process individual batch steps
+        for (int i = 0; i < totalSteps; i++) {
 
-	}
+            processQueueStep(i);
+            processedSteps++;
 
-	logger.info("Finished a batch of " + totalSteps + " steps");
-	setStatus(TaskStatus.FINISHED);
+            // If we are canceled or ran into error, stop here
+            if (isCanceled() || (getStatus() == TaskStatus.ERROR)) {
+                return;
+            }
+
+        }
+
+        project.removeProjectListener(listener);
+
+        logger.info("Finished a batch of " + totalSteps + " steps");
+        setStatus(TaskStatus.FINISHED);
 
     }
 
     private void processQueueStep(int stepNumber) {
 
-	logger.info("Starting step # " + (stepNumber+1));
+        logger.info("Starting step # " + (stepNumber + 1));
 
-	// Run next step of the batch
-	MZmineProcessingStep<?> currentStep = queue.get(stepNumber);
-	MZmineProcessingModule method = (MZmineProcessingModule) currentStep
-		.getModule();
-	ParameterSet batchStepParameters = currentStep.getParameterSet();
+        // Run next step of the batch
+        MZmineProcessingStep<?> currentStep = queue.get(stepNumber);
+        MZmineProcessingModule method = (MZmineProcessingModule) currentStep
+                .getModule();
+        ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-	// Check if the parameter settings are valid
-	ArrayList<String> messages = new ArrayList<String>();
-	boolean paramsCheck = batchStepParameters
-		.checkParameterValues(messages);
-	if (!paramsCheck) {
-	    setStatus(TaskStatus.ERROR);
-	    setErrorMessage("Invalid parameter settings for module " + method
-		    + ": " + Arrays.toString(messages.toArray()));
-	}
+        // Update the RawDataFilesParameter parameters to reflect the current
+        // state of the batch
+        for (Parameter<?> p : batchStepParameters.getParameters()) {
+            if (p instanceof RawDataFilesParameter) {
+                RawDataFilesParameter rdp = (RawDataFilesParameter) p;
+                RawDataFile createdFiles[] = createdDataFiles
+                        .toArray(new RawDataFile[0]);
+                rdp.getValue().setBatchLastFiles(createdFiles);
+            }
+        }
 
-	ArrayList<Task> currentStepTasks = new ArrayList<Task>();
-	ExitCode exitCode = method.runModule(project, batchStepParameters,
-		currentStepTasks);
+        // Update the PeakListsParameter parameters to reflect the current
+        // state of the batch
+        for (Parameter<?> p : batchStepParameters.getParameters()) {
+            if (p instanceof PeakListsParameter) {
+                PeakListsParameter rdp = (PeakListsParameter) p;
+                PeakList createdPls[] = createdPeakLists
+                        .toArray(new PeakList[0]);
+                rdp.getValue().setBatchLastPeakLists(createdPls);
+            }
+        }
 
-	if (exitCode != ExitCode.OK) {
-	    setStatus(TaskStatus.ERROR);
-	    setErrorMessage("Could not start batch step " + method.getName());
-	    return;
-	}
+        // Clear the saved data files and peak lists
+        createdDataFiles.clear();
+        createdPeakLists.clear();
 
-	// If current step didn't produce any tasks, continue with next step
-	if (currentStepTasks.isEmpty())
-	    return;
+        // Check if the parameter settings are valid
+        ArrayList<String> messages = new ArrayList<String>();
+        boolean paramsCheck = batchStepParameters
+                .checkParameterValues(messages);
+        if (!paramsCheck) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("Invalid parameter settings for module "
+                    + method.getName() + ": "
+                    + Arrays.toString(messages.toArray()));
+        }
 
-	boolean allTasksFinished = false;
+        ArrayList<Task> currentStepTasks = new ArrayList<Task>();
+        ExitCode exitCode = method.runModule(project, batchStepParameters,
+                currentStepTasks);
 
-	// Submit the tasks to the task controller for processing
-	MZmineCore.getTaskController().addTasks(
-		currentStepTasks.toArray(new Task[0]));
+        if (exitCode != ExitCode.OK) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("Could not start batch step " + method.getName());
+            return;
+        }
 
-	while (!allTasksFinished) {
+        // If current step didn't produce any tasks, continue with next step
+        if (currentStepTasks.isEmpty())
+            return;
 
-	    // If we canceled the batch, cancel all running tasks
-	    if (isCanceled()) {
-		for (Task stepTask : currentStepTasks)
-		    stepTask.cancel();
-		return;
-	    }
+        boolean allTasksFinished = false;
 
-	    // First set to true, then check all tasks
-	    allTasksFinished = true;
+        // Submit the tasks to the task controller for processing
+        MZmineCore.getTaskController().addTasks(
+                currentStepTasks.toArray(new Task[0]));
 
-	    for (Task stepTask : currentStepTasks) {
+        while (!allTasksFinished) {
 
-		TaskStatus stepStatus = stepTask.getStatus();
+            // If we canceled the batch, cancel all running tasks
+            if (isCanceled()) {
+                for (Task stepTask : currentStepTasks)
+                    stepTask.cancel();
+                return;
+            }
 
-		// If any of them is not finished, keep checking
-		if (stepStatus != TaskStatus.FINISHED)
-		    allTasksFinished = false;
+            // First set to true, then check all tasks
+            allTasksFinished = true;
 
-		// If there was an error, we have to stop the whole batch
-		if (stepStatus == TaskStatus.ERROR) {
-		    setStatus(TaskStatus.ERROR);
-		    setErrorMessage(stepTask.getErrorMessage());
-		    return;
-		}
+            for (Task stepTask : currentStepTasks) {
 
-		// If user canceled any of the tasks, we have to cancel the
-		// whole batch
-		if (stepStatus == TaskStatus.CANCELED) {
-		    setStatus(TaskStatus.CANCELED);
-		    for (Task t : currentStepTasks)
-			t.cancel();
-		    return;
-		}
+                TaskStatus stepStatus = stepTask.getStatus();
 
-	    }
+                // If any of them is not finished, keep checking
+                if (stepStatus != TaskStatus.FINISHED)
+                    allTasksFinished = false;
 
-	    // Wait 1s before checking the tasks again
-	    if (!allTasksFinished) {
-		synchronized (this) {
-		    try {
-			this.wait(1000);
-		    } catch (InterruptedException e) {
-			// ignore
-		    }
-		}
-	    }
+                // If there was an error, we have to stop the whole batch
+                if (stepStatus == TaskStatus.ERROR) {
+                    setStatus(TaskStatus.ERROR);
+                    setErrorMessage(stepTask.getTaskDescription() + ": "
+                            + stepTask.getErrorMessage());
+                    return;
+                }
 
-	}
+                // If user canceled any of the tasks, we have to cancel the
+                // whole batch
+                if (stepStatus == TaskStatus.CANCELED) {
+                    setStatus(TaskStatus.CANCELED);
+                    for (Task t : currentStepTasks)
+                        t.cancel();
+                    return;
+                }
+
+            }
+
+            // Wait 1s before checking the tasks again
+            if (!allTasksFinished) {
+                synchronized (this) {
+                    try {
+                        this.wait(1000);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                }
+            }
+
+        }
 
     }
 
     public double getFinishedPercentage() {
-	if (totalSteps == 0)
-	    return 0;
-	return (double) processedSteps / totalSteps;
+        if (totalSteps == 0)
+            return 0;
+        return (double) processedSteps / totalSteps;
     }
 
     public String getTaskDescription() {
-	return "Batch of " + totalSteps + " steps";
+        return "Batch of " + totalSteps + " steps";
     }
 
 }

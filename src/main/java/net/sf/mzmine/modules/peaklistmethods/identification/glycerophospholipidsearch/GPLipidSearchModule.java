@@ -38,38 +38,39 @@ public class GPLipidSearchModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	PeakList peakLists[] = parameters.getParameter(
-		GPLipidSearchParameters.peakLists).getMatchingPeakLists();
+        PeakList peakLists[] = parameters
+                .getParameter(GPLipidSearchParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-	for (PeakList peakList : peakLists) {
-	    Task newTask = new GPLipidSearchTask(parameters, peakList);
-	    tasks.add(newTask);
-	}
+        for (PeakList peakList : peakLists) {
+            Task newTask = new GPLipidSearchTask(parameters, peakList);
+            tasks.add(newTask);
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.IDENTIFICATION;
+        return MZmineModuleCategory.IDENTIFICATION;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return GPLipidSearchParameters.class;
+        return GPLipidSearchParameters.class;
     }
 
 }

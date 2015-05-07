@@ -58,223 +58,224 @@ class MzTabExportTask extends AbstractTask {
     private final boolean exportall;
 
     MzTabExportTask(MZmineProject project, ParameterSet parameters) {
-	this.project = project;
-	this.peakList = parameters.getParameter(MzTabExportParameters.peakList)
-		.getMatchingPeakLists()[0];
-	this.fileName = parameters.getParameter(MzTabExportParameters.filename)
-		.getValue();
-	this.exportall = parameters.getParameter(
-		MzTabExportParameters.exportall).getValue();
+        this.project = project;
+        this.peakList = parameters.getParameter(MzTabExportParameters.peakList)
+                .getValue().getMatchingPeakLists()[0];
+        this.fileName = parameters.getParameter(MzTabExportParameters.filename)
+                .getValue();
+        this.exportall = parameters.getParameter(
+                MzTabExportParameters.exportall).getValue();
     }
 
     public double getFinishedPercentage() {
-	if (totalRows == 0) {
-	    return 0;
-	}
-	return (double) processedRows / (double) totalRows;
+        if (totalRows == 0) {
+            return 0;
+        }
+        return (double) processedRows / (double) totalRows;
     }
 
     public String getTaskDescription() {
-	return "Exporting peak list " + peakList + " to " + fileName;
+        return "Exporting peak list " + peakList + " to " + fileName;
     }
 
     public void run() {
 
-	setStatus(TaskStatus.PROCESSING);
+        setStatus(TaskStatus.PROCESSING);
 
-	try {
+        try {
 
-	    // Get number of rows
-	    totalRows = peakList.getNumberOfRows();
+            // Get number of rows
+            totalRows = peakList.getNumberOfRows();
 
-	    // Metadata
-	    Metadata mtd = new Metadata();
-	    mtd.setMZTabMode(MZTabDescription.Mode.Summary);
-	    mtd.setMZTabType(MZTabDescription.Type.Quantification);
-	    mtd.setDescription(peakList.getName());
-	    mtd.addSoftwareParam(1, new CVParam("MS", "MS:1002342", "MZmine",
-		    MZmineCore.getMZmineVersion()));
-	    mtd.setSmallMoleculeQuantificationUnit(new CVParam("PRIDE",
-		    "PRIDE:0000330", "Arbitrary quantification unit", null));
-	    mtd.addSmallMoleculeSearchEngineScoreParam(1, new CVParam("MS",
-		    "MS:1001153", "search engine specific score", null));
+            // Metadata
+            Metadata mtd = new Metadata();
+            mtd.setMZTabMode(MZTabDescription.Mode.Summary);
+            mtd.setMZTabType(MZTabDescription.Type.Quantification);
+            mtd.setDescription(peakList.getName());
+            mtd.addSoftwareParam(1, new CVParam("MS", "MS:1002342", "MZmine",
+                    MZmineCore.getMZmineVersion()));
+            mtd.setSmallMoleculeQuantificationUnit(new CVParam("PRIDE",
+                    "PRIDE:0000330", "Arbitrary quantification unit", null));
+            mtd.addSmallMoleculeSearchEngineScoreParam(1, new CVParam("MS",
+                    "MS:1001153", "search engine specific score", null));
 
-	    // Create stable columns
-	    MZTabColumnFactory factory = MZTabColumnFactory
-		    .getInstance(Section.Small_Molecule);
+            // Create stable columns
+            MZTabColumnFactory factory = MZTabColumnFactory
+                    .getInstance(Section.Small_Molecule);
 
-	    // Variable descriptions
-	    int parameterCounter = 0;
-	    for (UserParameter<?, ?> p : project.getParameters()) {
-		for (Object e : ((ComboParameter<?>) p).getChoices()) {
-		    parameterCounter++;
-		    mtd.addStudyVariableDescription(parameterCounter,
-			    String.valueOf(p) + ": " + String.valueOf(e));
-		    StudyVariable studyVariable = new StudyVariable(
-			    parameterCounter);
-		    factory.addAbundanceOptionalColumn(studyVariable);
-		}
-	    }
+            // Variable descriptions
+            int parameterCounter = 0;
+            for (UserParameter<?, ?> p : project.getParameters()) {
+                for (Object e : ((ComboParameter<?>) p).getChoices()) {
+                    parameterCounter++;
+                    mtd.addStudyVariableDescription(parameterCounter,
+                            String.valueOf(p) + ": " + String.valueOf(e));
+                    StudyVariable studyVariable = new StudyVariable(
+                            parameterCounter);
+                    factory.addAbundanceOptionalColumn(studyVariable);
+                }
+            }
 
-	    final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
-	    int fileCounter = 0;
-	    for (RawDataFile file : rawDataFiles) {
-		fileCounter++;
+            final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
+            int fileCounter = 0;
+            for (RawDataFile file : rawDataFiles) {
+                fileCounter++;
 
-		/**
-		 * TO DO: Add path to original imported raw file to MZmine and
-		 * write it out here instead
-		 * */
-		// MS run location
-		MsRun msRun = new MsRun(fileCounter);
-		msRun.setLocation(new URL("file:///" + file.getName()));
-		mtd.addMsRun(msRun);
-		mtd.addAssayMsRun(fileCounter, msRun);
+                /**
+                 * TO DO: Add path to original imported raw file to MZmine and
+                 * write it out here instead
+                 * */
+                // MS run location
+                MsRun msRun = new MsRun(fileCounter);
+                msRun.setLocation(new URL("file:///" + file.getName()));
+                mtd.addMsRun(msRun);
+                mtd.addAssayMsRun(fileCounter, msRun);
 
-		// Add samples to study variable assay
-		for (UserParameter<?, ?> p : project.getParameters()) {
-		    Assay assay = mtd.getAssayMap().get(fileCounter);
-		    for (StudyVariable studyVariable : mtd
-			    .getStudyVariableMap().values()) {
-			if (studyVariable.getDescription().equals(
-				String.valueOf(p)
-					+ ": "
-					+ String.valueOf(project
-						.getParameterValue(p, file)))) {
-			    mtd.addStudyVariableAssay(studyVariable.getId(),
-				    assay);
-			}
-		    }
-		}
+                // Add samples to study variable assay
+                for (UserParameter<?, ?> p : project.getParameters()) {
+                    Assay assay = mtd.getAssayMap().get(fileCounter);
+                    for (StudyVariable studyVariable : mtd
+                            .getStudyVariableMap().values()) {
+                        if (studyVariable.getDescription().equals(
+                                String.valueOf(p)
+                                        + ": "
+                                        + String.valueOf(project
+                                                .getParameterValue(p, file)))) {
+                            mtd.addStudyVariableAssay(studyVariable.getId(),
+                                    assay);
+                        }
+                    }
+                }
 
-		// Additional columns
-		factory.addBestSearchEngineScoreOptionalColumn(
-			SmallMoleculeColumn.BEST_SEARCH_ENGINE_SCORE, 1);
-		factory.addOptionalColumn(new Assay(fileCounter), "peak_mz",
-			String.class);
-		factory.addOptionalColumn(new Assay(fileCounter), "peak_rt",
-			String.class);
-		factory.addOptionalColumn(new Assay(fileCounter),
-			"peak_height", String.class);
-		factory.addURIOptionalColumn();
-		factory.addAbundanceOptionalColumn(new Assay(fileCounter));
-	    }
+                // Additional columns
+                factory.addBestSearchEngineScoreOptionalColumn(
+                        SmallMoleculeColumn.BEST_SEARCH_ENGINE_SCORE, 1);
+                factory.addOptionalColumn(new Assay(fileCounter), "peak_mz",
+                        String.class);
+                factory.addOptionalColumn(new Assay(fileCounter), "peak_rt",
+                        String.class);
+                factory.addOptionalColumn(new Assay(fileCounter),
+                        "peak_height", String.class);
+                factory.addURIOptionalColumn();
+                factory.addAbundanceOptionalColumn(new Assay(fileCounter));
+            }
 
-	    // Write to file
-	    FileWriter writer = new FileWriter(fileName);
-	    BufferedWriter out = new BufferedWriter(writer);
-	    out.write(mtd.toString());
-	    out.write("\n");
-	    out.write(factory.toString());
-	    out.write("\n");
+            // Write to file
+            FileWriter writer = new FileWriter(fileName);
+            BufferedWriter out = new BufferedWriter(writer);
+            out.write(mtd.toString());
+            out.write("\n");
+            out.write(factory.toString());
+            out.write("\n");
 
-	    // Write data rows
-	    for (PeakListRow peakListRow : peakList.getRows()) {
+            // Write data rows
+            for (PeakListRow peakListRow : peakList.getRows()) {
 
-		// Cancel?
-		if (isCanceled()) {
-		    return;
-		}
+                // Cancel?
+                if (isCanceled()) {
+                    return;
+                }
 
-		PeakIdentity peakIdentity = peakListRow
-			.getPreferredPeakIdentity();
-		if (exportall || peakIdentity != null) {
-		    SmallMolecule sm = new SmallMolecule(factory, mtd);
-		    if (peakIdentity != null) {
-			// Identity information
-			String identifier = escapeString(peakIdentity.getPropertyValue("ID"));
-			String database = peakIdentity
-				.getPropertyValue("Identification method");
-			String formula = peakIdentity
-				.getPropertyValue("Molecular formula");
-			String description = escapeString(peakIdentity
-				.getPropertyValue("Name"));
-			String url = peakIdentity.getPropertyValue("URL");
+                PeakIdentity peakIdentity = peakListRow
+                        .getPreferredPeakIdentity();
+                if (exportall || peakIdentity != null) {
+                    SmallMolecule sm = new SmallMolecule(factory, mtd);
+                    if (peakIdentity != null) {
+                        // Identity information
+                        String identifier = escapeString(peakIdentity
+                                .getPropertyValue("ID"));
+                        String database = peakIdentity
+                                .getPropertyValue("Identification method");
+                        String formula = peakIdentity
+                                .getPropertyValue("Molecular formula");
+                        String description = escapeString(peakIdentity
+                                .getPropertyValue("Name"));
+                        String url = peakIdentity.getPropertyValue("URL");
 
-			if (identifier != null) {
-			    sm.setIdentifier(identifier);
-			}
-			if (database != null) {
-			    sm.setDatabase(database);
-			}
-			if (formula != null) {
-			    sm.setChemicalFormula(formula);
-			}
-			if (description != null) {
-			    sm.setDescription(description);
-			}
-			if (url != null) {
-			    sm.setURI(url);
-			}
-		    }
+                        if (identifier != null) {
+                            sm.setIdentifier(identifier);
+                        }
+                        if (database != null) {
+                            sm.setDatabase(database);
+                        }
+                        if (formula != null) {
+                            sm.setChemicalFormula(formula);
+                        }
+                        if (description != null) {
+                            sm.setDescription(description);
+                        }
+                        if (url != null) {
+                            sm.setURI(url);
+                        }
+                    }
 
-		    Double rowMZ = peakListRow.getAverageMZ();
-		    int rowCharge = peakListRow.getRowCharge();
-		    String rowRT = String.valueOf(peakListRow.getAverageRT());
+                    Double rowMZ = peakListRow.getAverageMZ();
+                    int rowCharge = peakListRow.getRowCharge();
+                    String rowRT = String.valueOf(peakListRow.getAverageRT());
 
-		    if (rowMZ != null) {
-			sm.setExpMassToCharge(rowMZ);
-		    }
-		    if (rowCharge > 0) {
-			sm.setCharge(rowCharge);
-		    }
-		    if (rowRT != null) {
-			sm.setRetentionTime(rowRT);
-		    }
+                    if (rowMZ != null) {
+                        sm.setExpMassToCharge(rowMZ);
+                    }
+                    if (rowCharge > 0) {
+                        sm.setCharge(rowCharge);
+                    }
+                    if (rowRT != null) {
+                        sm.setRetentionTime(rowRT);
+                    }
 
-		    int dataFileCount = 0;
-		    for (RawDataFile dataFile : rawDataFiles) {
-			dataFileCount++;
-			Feature peak = peakListRow.getPeak(dataFile);
-			if (peak != null) {
-			    String peakMZ = String.valueOf(peak.getMZ());
-			    String peakRT = String.valueOf(String.valueOf(peak
-				    .getRT()));
-			    String peakHeight = String
-				    .valueOf(peak.getHeight());
-			    Double peakArea = peak.getArea();
+                    int dataFileCount = 0;
+                    for (RawDataFile dataFile : rawDataFiles) {
+                        dataFileCount++;
+                        Feature peak = peakListRow.getPeak(dataFile);
+                        if (peak != null) {
+                            String peakMZ = String.valueOf(peak.getMZ());
+                            String peakRT = String.valueOf(String.valueOf(peak
+                                    .getRT()));
+                            String peakHeight = String
+                                    .valueOf(peak.getHeight());
+                            Double peakArea = peak.getArea();
 
-			    sm.setOptionColumnValue(new Assay(dataFileCount),
-				    "peak_mz", peakMZ);
-			    sm.setOptionColumnValue(new Assay(dataFileCount),
-				    "peak_rt", peakRT);
-			    sm.setOptionColumnValue(new Assay(dataFileCount),
-				    "peak_height", peakHeight);
-			    sm.setAbundanceColumnValue(
-				    new Assay(dataFileCount), peakArea);
-			}
-		    }
+                            sm.setOptionColumnValue(new Assay(dataFileCount),
+                                    "peak_mz", peakMZ);
+                            sm.setOptionColumnValue(new Assay(dataFileCount),
+                                    "peak_rt", peakRT);
+                            sm.setOptionColumnValue(new Assay(dataFileCount),
+                                    "peak_height", peakHeight);
+                            sm.setAbundanceColumnValue(
+                                    new Assay(dataFileCount), peakArea);
+                        }
+                    }
 
-		    out.write(sm.toString());
-		    out.write("\n");
-		}
+                    out.write(sm.toString());
+                    out.write("\n");
+                }
 
-	    }
+            }
 
-	    out.flush();
-	    out.close();
-	    writer.close();
+            out.flush();
+            out.close();
+            writer.close();
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    setStatus(TaskStatus.ERROR);
-	    setErrorMessage("Could not export peak list to file " + fileName
-		    + ": " + e.getMessage());
-	    return;
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("Could not export peak list to file " + fileName
+                    + ": " + e.getMessage());
+            return;
+        }
 
-	if (getStatus() == TaskStatus.PROCESSING)
-	    setStatus(TaskStatus.FINISHED);
+        if (getStatus() == TaskStatus.PROCESSING)
+            setStatus(TaskStatus.FINISHED);
 
     }
 
     private String escapeString(final String inputString) {
 
-	if (inputString == null)
-	    return "";
+        if (inputString == null)
+            return "";
 
-	// Remove all special characters e.g. \n \t
-	return inputString.replaceAll("[\\p{Cntrl}]", " ");
+        // Remove all special characters e.g. \n \t
+        return inputString.replaceAll("[\\p{Cntrl}]", " ");
     }
 
 }

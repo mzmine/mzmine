@@ -38,36 +38,37 @@ public class ScanFiltersModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	RawDataFile[] dataFiles = parameters.getParameter(
-		ScanFiltersParameters.dataFiles).getMatchingRawDataFiles();
+        RawDataFile[] dataFiles = parameters
+                .getParameter(ScanFiltersParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
 
-	for (RawDataFile dataFile : dataFiles) {
-	    Task newTask = new ScanFilteringTask(project, dataFile, parameters);
-	    tasks.add(newTask);
-	}
-	return ExitCode.OK;
+        for (RawDataFile dataFile : dataFiles) {
+            Task newTask = new ScanFilteringTask(project, dataFile, parameters);
+            tasks.add(newTask);
+        }
+        return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.RAWDATAFILTERING;
+        return MZmineModuleCategory.RAWDATAFILTERING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return ScanFiltersParameters.class;
+        return ScanFiltersParameters.class;
     }
 }

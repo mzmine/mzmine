@@ -38,40 +38,41 @@ public class MsMsPeakPickerModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	RawDataFile[] dataFiles = parameters.getParameter(
-		MsMsPeakPickerParameters.dataFiles).getMatchingRawDataFiles();
+        RawDataFile[] dataFiles = parameters
+                .getParameter(MsMsPeakPickerParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
 
-	for (RawDataFile dataFile : dataFiles) {
-	    Task newTask = new MsMsPeakPickingTask(project, dataFile,
-		    parameters);
-	    tasks.add(newTask);
-	}
+        for (RawDataFile dataFile : dataFiles) {
+            Task newTask = new MsMsPeakPickingTask(project, dataFile,
+                    parameters);
+            tasks.add(newTask);
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
 
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.PEAKPICKING;
+        return MZmineModuleCategory.PEAKPICKING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return MsMsPeakPickerParameters.class;
+        return MsMsPeakPickerParameters.class;
     }
 
 }

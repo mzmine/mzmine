@@ -21,9 +21,6 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
@@ -33,170 +30,167 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-/**
- * 
- */
+import com.google.common.base.Strings;
+
 public class PeakListsParameter implements
-	UserParameter<String[], PeakListsComponent> {
+        UserParameter<PeakListsSelection, PeakListsComponent> {
 
     private int minCount, maxCount;
-    private String values[];
-    private int inputsize = 400;
+
+    private PeakListsSelection value;
 
     public PeakListsParameter() {
-	this(1, Integer.MAX_VALUE);
+        this(1, Integer.MAX_VALUE);
     }
 
     public PeakListsParameter(int minCount) {
-	this(minCount, Integer.MAX_VALUE);
+        this(minCount, Integer.MAX_VALUE);
     }
 
     public PeakListsParameter(int minCount, int maxCount) {
-	this.minCount = minCount;
-	this.maxCount = maxCount;
-    }
-
-    public PeakListsParameter(int minCount, int maxCount, int inputsize) {
-	this.minCount = minCount;
-	this.maxCount = maxCount;
-	this.inputsize = inputsize;
+        this.minCount = minCount;
+        this.maxCount = maxCount;
     }
 
     @Override
-    public String[] getValue() {
-	return values;
-    }
-
-    public PeakList[] getMatchingPeakLists() {
-
-	if ((values == null) || (values.length == 0))
-	    return new PeakList[0];
-
-	ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
-
-	for (String singleValue : values) {
-	    matchingPeakLists.addAll(getMatchingPeakLists(singleValue));
-	}
-
-	return matchingPeakLists.toArray(new PeakList[0]);
-    }
-
-    static List<PeakList> getMatchingPeakLists(String pattern) {
-
-	PeakList allPeakLists[] = MZmineCore.getProjectManager()
-		.getCurrentProject().getPeakLists();
-	ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
-
-	plCheck: for (PeakList pl : allPeakLists) {
-	    final String fileName = pl.getName();
-
-	    // Generate a regular expression, replacing * with .*
-	    try {
-		final StringBuilder regex = new StringBuilder("^");
-		String sections[] = pattern.split("\\*", -1);
-		for (int i = 0; i < sections.length; i++) {
-		    if (i > 0)
-			regex.append(".*");
-		    regex.append(Pattern.quote(sections[i]));
-		}
-		regex.append("$");
-
-		if (fileName.matches(regex.toString())) {
-		    matchingPeakLists.add(pl);
-		    continue plCheck;
-		}
-	    } catch (PatternSyntaxException e) {
-		e.printStackTrace();
-		continue;
-	    }
-
-	}
-	return matchingPeakLists;
+    public PeakListsSelection getValue() {
+        return value;
     }
 
     @Override
-    public void setValue(String newValue[]) {
-	this.values = newValue;
+    public void setValue(PeakListsSelection newValue) {
+        this.value = newValue;
     }
 
-    public void setValue(PeakList newValue[]) {
-	this.values = new String[newValue.length];
-	for (int i = 0; i < newValue.length; i++) {
-	    this.values[i] = newValue[i].getName();
-	}
+    public void setValue(PeakListsSelectionType selectionType,
+            PeakList peakLists[]) {
+        if (value == null)
+            value = new PeakListsSelection();
+        value.setSelectionType(selectionType);
+        value.setSpecificPeakLists(peakLists);
+    }
+
+    public void setValue(PeakListsSelectionType selectionType) {
+        if (value == null)
+            value = new PeakListsSelection();
+        value.setSelectionType(selectionType);
     }
 
     @Override
     public PeakListsParameter cloneParameter() {
-	PeakListsParameter copy = new PeakListsParameter(minCount, maxCount);
-	copy.values = values;
-	return copy;
+        PeakListsParameter copy = new PeakListsParameter(minCount, maxCount);
+        copy.value = value.clone();
+        return copy;
     }
 
     @Override
     public String getName() {
-	return "Peak lists (input)";
+        return "Peak lists (input)";
     }
 
     @Override
     public String getDescription() {
-	return "Peak lists that this module will take as its input.";
+        return "Peak lists that this module will take as its input.";
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-	PeakList matchingPeakLists[] = getMatchingPeakLists();
-	if (matchingPeakLists.length < minCount) {
-	    errorMessages.add("At least " + minCount
-		    + " peak lists must be selected");
-	    return false;
-	}
-	if (matchingPeakLists.length > maxCount) {
-	    errorMessages.add("Maximum " + maxCount
-		    + " peak lists may be selected");
-	    return false;
-	}
-	return true;
+        PeakList matchingPeakLists[];
+        if (value == null)
+            matchingPeakLists = new PeakList[0];
+        else
+            matchingPeakLists = value.getMatchingPeakLists();
+
+        if (matchingPeakLists.length < minCount) {
+            errorMessages.add("At least " + minCount
+                    + " peak lists  must be selected");
+            return false;
+        }
+        if (matchingPeakLists.length > maxCount) {
+            errorMessages.add("Maximum " + maxCount
+                    + " peak lists may be selected");
+            return false;
+        }
+        return true;
     }
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
-	ArrayList<String> newValues = new ArrayList<String>();
-	NodeList items = xmlElement.getElementsByTagName("item");
-	for (int i = 0; i < items.getLength(); i++) {
-	    String itemString = items.item(i).getTextContent();
-	    newValues.add(itemString);
-	}
-	this.values = newValues.toArray(new String[0]);
+
+        PeakList[] currentDataPeakLists = MZmineCore.getProjectManager()
+                .getCurrentProject().getPeakLists();
+
+        PeakListsSelectionType selectionType;
+        final String attrValue = xmlElement.getAttribute("type");
+
+        if (Strings.isNullOrEmpty(attrValue))
+            selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
+        else
+            selectionType = PeakListsSelectionType.valueOf(xmlElement
+                    .getAttribute("type"));
+
+        ArrayList<Object> newValues = new ArrayList<Object>();
+
+        NodeList items = xmlElement.getElementsByTagName("specific_peak_list");
+        for (int i = 0; i < items.getLength(); i++) {
+            String itemString = items.item(i).getTextContent();
+            for (PeakList df : currentDataPeakLists) {
+                if (df.getName().equals(itemString))
+                    newValues.add(df);
+            }
+        }
+        PeakList specificPeakLists[] = newValues.toArray(new PeakList[0]);
+
+        String namePattern = null;
+        items = xmlElement.getElementsByTagName("name_pattern");
+        for (int i = 0; i < items.getLength(); i++) {
+            namePattern = items.item(i).getTextContent();
+        }
+
+        this.value = new PeakListsSelection();
+        this.value.setSelectionType(selectionType);
+        this.value.setSpecificPeakLists(specificPeakLists);
+        this.value.setNamePattern(namePattern);
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
-	if (values == null)
-	    return;
-	Document parentDocument = xmlElement.getOwnerDocument();
-	for (String item : values) {
-	    Element newElement = parentDocument.createElement("item");
-	    newElement.setTextContent(item.toString());
-	    xmlElement.appendChild(newElement);
-	}
+        if (value == null)
+            return;
+        Document parentDocument = xmlElement.getOwnerDocument();
+        xmlElement.setAttribute("type", value.getSelectionType().name());
+
+        if (value.getSpecificPeakLists() != null) {
+            for (PeakList item : value.getSpecificPeakLists()) {
+                Element newElement = parentDocument
+                        .createElement("specific_peak_list");
+                newElement.setTextContent(item.getName());
+                xmlElement.appendChild(newElement);
+            }
+        }
+
+        if (value.getNamePattern() != null) {
+            Element newElement = parentDocument.createElement("name_pattern");
+            newElement.setTextContent(value.getNamePattern());
+            xmlElement.appendChild(newElement);
+        }
+
     }
 
     @Override
     public PeakListsComponent createEditingComponent() {
-	final int rows = Math.min(1, maxCount);
-	return new PeakListsComponent(rows, inputsize);
+        return new PeakListsComponent();
     }
 
     @Override
     public void setValueFromComponent(PeakListsComponent component) {
-	values = component.getValue();
+        value = component.getValue();
     }
 
     @Override
     public void setValueToComponent(PeakListsComponent component,
-	    String[] newValue) {
-	component.setValue(newValue);
+            PeakListsSelection newValue) {
+        component.setValue(newValue);
     }
 
 }

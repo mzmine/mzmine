@@ -38,38 +38,39 @@ public class RansacAlignerModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	PeakList[] peakLists = parameters.getParameter(
-		RansacAlignerParameters.peakLists).getMatchingPeakLists();
+        PeakList[] peakLists = parameters
+                .getParameter(RansacAlignerParameters.peakLists).getValue()
+                .getMatchingPeakLists();
 
-	Task task = new RansacAlignerTask(project, peakLists, parameters);
+        Task task = new RansacAlignerTask(project, peakLists, parameters);
 
-	tasks.add(task);
+        tasks.add(task);
 
-	return ExitCode.OK;
+        return ExitCode.OK;
 
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.ALIGNMENT;
+        return MZmineModuleCategory.ALIGNMENT;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return RansacAlignerParameters.class;
+        return RansacAlignerParameters.class;
     }
 
 }

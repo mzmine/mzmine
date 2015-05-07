@@ -43,45 +43,45 @@ public class IntensityPlotParameters extends SimpleParameterSet {
     public static final String rawDataFilesOption = "Raw data file";
 
     public static final PeakListsParameter peakList = new PeakListsParameter(1,
-	    1);
+            1);
 
     public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
-	    "Raw data files", "Raw data files to display", new RawDataFile[0]);
+            "Raw data files", "Raw data files to display", new RawDataFile[0]);
 
     public static final ComboParameter<Object> xAxisValueSource = new ComboParameter<Object>(
-	    "X axis value", "X axis value", new Object[] { rawDataFilesOption });
+            "X axis value", "X axis value", new Object[] { rawDataFilesOption });
 
     public static final ComboParameter<YAxisValueSource> yAxisValueSource = new ComboParameter<YAxisValueSource>(
-	    "Y axis value", "Y axis value", YAxisValueSource.values());
+            "Y axis value", "Y axis value", YAxisValueSource.values());
 
     public static final MultiChoiceParameter<PeakListRow> selectedRows = new MultiChoiceParameter<PeakListRow>(
-	    "Peak list rows", "Select peaks to display", new PeakListRow[0]);
+            "Peak list rows", "Select peaks to display", new PeakListRow[0]);
     /**
      * Windows size and position
      */
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public IntensityPlotParameters() {
-	super(new Parameter[] { peakList, dataFiles, xAxisValueSource,
-		yAxisValueSource, selectedRows, windowSettings });
+        super(new Parameter[] { peakList, dataFiles, xAxisValueSource,
+                yAxisValueSource, selectedRows, windowSettings });
     }
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	PeakList selectedPeakLists[] = getParameter(peakList)
-		.getMatchingPeakLists();
-	RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
-	PeakListRow plRows[] = selectedPeakLists[0].getRows();
-	Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ,
-		SortingDirection.Ascending));
+        PeakList selectedPeakLists[] = getParameter(peakList).getValue()
+                .getMatchingPeakLists();
+        RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
+        PeakListRow plRows[] = selectedPeakLists[0].getRows();
+        Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ,
+                SortingDirection.Ascending));
 
-	getParameter(dataFiles).setChoices(plDataFiles);
-	getParameter(dataFiles).setValue(plDataFiles);
+        getParameter(dataFiles).setChoices(plDataFiles);
+        getParameter(dataFiles).setValue(plDataFiles);
 
-	getParameter(selectedRows).setChoices(plRows);
+        getParameter(selectedRows).setChoices(plRows);
 
-	return super.showSetupDialog(parent, valueCheckRequired);
+        return super.showSetupDialog(parent, valueCheckRequired);
     }
 
 }

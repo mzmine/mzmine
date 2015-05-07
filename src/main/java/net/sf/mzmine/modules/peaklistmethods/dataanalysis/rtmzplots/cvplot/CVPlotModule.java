@@ -43,53 +43,53 @@ public class CVPlotModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	PeakList peakLists[] = parameters.getParameter(CVParameters.peakLists)
-		.getMatchingPeakLists();
+        PeakList peakLists[] = parameters.getParameter(CVParameters.peakLists)
+                .getValue().getMatchingPeakLists();
 
-	for (PeakList pl : peakLists) {
+        for (PeakList pl : peakLists) {
 
-	    // Create dataset & paint scale
-	    AbstractXYZDataset dataset = new CVDataset(pl, parameters);
-	    InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
+            // Create dataset & paint scale
+            AbstractXYZDataset dataset = new CVDataset(pl, parameters);
+            InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
 
-	    paintScale.add(0.00, new Color(0, 0, 0));
-	    paintScale.add(0.15, new Color(102, 255, 102));
-	    paintScale.add(0.30, new Color(51, 102, 255));
-	    paintScale.add(0.45, new Color(255, 0, 0));
+            paintScale.add(0.00, new Color(0, 0, 0));
+            paintScale.add(0.15, new Color(102, 255, 102));
+            paintScale.add(0.30, new Color(51, 102, 255));
+            paintScale.add(0.45, new Color(255, 0, 0));
 
-	    // Create & show window
-	    RTMZAnalyzerWindow window = new RTMZAnalyzerWindow(dataset, pl,
-		    paintScale);
+            // Create & show window
+            RTMZAnalyzerWindow window = new RTMZAnalyzerWindow(dataset, pl,
+                    paintScale);
 
-	    window.setVisible(true);
+            window.setVisible(true);
 
-	}
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
 
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.DATAANALYSIS;
+        return MZmineModuleCategory.DATAANALYSIS;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return CVParameters.class;
+        return CVParameters.class;
     }
 
 }

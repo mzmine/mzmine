@@ -44,53 +44,53 @@ class PathAlignerTask extends AbstractTask {
 
     PathAlignerTask(MZmineProject project, ParameterSet parameters) {
 
-	this.project = project;
-	this.parameters = parameters;
-	peakLists = parameters.getParameter(PathAlignerParameters.peakLists)
-		.getMatchingPeakLists();
+        this.project = project;
+        this.parameters = parameters;
+        peakLists = parameters.getParameter(PathAlignerParameters.peakLists)
+                .getValue().getMatchingPeakLists();
 
-	peakListName = parameters.getParameter(
-		PathAlignerParameters.peakListName).getValue();
+        peakListName = parameters.getParameter(
+                PathAlignerParameters.peakListName).getValue();
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-	return "Path aligner, " + peakListName + " (" + peakLists.length
-		+ " peak lists)";
+        return "Path aligner, " + peakListName + " (" + peakLists.length
+                + " peak lists)";
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-	if (aligner == null) {
-	    return 0f;
-	} else {
-	    return aligner.getProgress();
-	}
+        if (aligner == null) {
+            return 0f;
+        } else {
+            return aligner.getProgress();
+        }
     }
 
     /**
      * @see Runnable#run()
      */
     public void run() {
-	setStatus(TaskStatus.PROCESSING);
-	logger.info("Running Path aligner");
+        setStatus(TaskStatus.PROCESSING);
+        logger.info("Running Path aligner");
 
-	aligner = (Aligner) new ScoreAligner(this.peakLists, parameters);
-	alignedPeakList = aligner.align();
-	// Add new aligned peak list to the project
-	project.addPeakList(alignedPeakList);
+        aligner = (Aligner) new ScoreAligner(this.peakLists, parameters);
+        alignedPeakList = aligner.align();
+        // Add new aligned peak list to the project
+        project.addPeakList(alignedPeakList);
 
-	// Add task description to peakList
-	alignedPeakList
-		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-			"Path aligner", parameters));
+        // Add task description to peakList
+        alignedPeakList
+                .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                        "Path aligner", parameters));
 
-	logger.info("Finished Path aligner");
-	setStatus(TaskStatus.FINISHED);
+        logger.info("Finished Path aligner");
+        setStatus(TaskStatus.FINISHED);
 
     }
 }

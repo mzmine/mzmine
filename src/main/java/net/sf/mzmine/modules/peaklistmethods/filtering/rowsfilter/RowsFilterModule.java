@@ -42,39 +42,40 @@ public class RowsFilterModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	final PeakList[] peakLists = parameters.getParameter(
-		RowsFilterParameters.PEAK_LISTS).getMatchingPeakLists();
+        final PeakList[] peakLists = parameters
+                .getParameter(RowsFilterParameters.PEAK_LISTS).getValue()
+                .getMatchingPeakLists();
 
-	for (PeakList peakList : peakLists) {
+        for (PeakList peakList : peakLists) {
 
-	    Task newTask = new RowsFilterTask(project, peakList, parameters);
-	    tasks.add(newTask);
+            Task newTask = new RowsFilterTask(project, peakList, parameters);
+            tasks.add(newTask);
 
-	}
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.PEAKLISTFILTERING;
+        return MZmineModuleCategory.PEAKLISTFILTERING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return RowsFilterParameters.class;
+        return RowsFilterParameters.class;
     }
 }

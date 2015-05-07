@@ -17,49 +17,56 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
+package net.sf.mzmine.modules.rawdatamethods.filtering.cropper;
 
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class DataSetFiltersModule implements MZmineProcessingModule {
+public class CropFilterModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Data set filtering";
-    private static final String MODULE_DESCRIPTION = "This module performs filtering algorithms on the whole raw data files.";
+    private static final String MODULE_NAME = "Crop filter";
+    private static final String MODULE_DESCRIPTION = "This module performs cropping of raw data files.";
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-	Task newTask = new DataSetFilteringTask(project, parameters);
-	tasks.add(newTask);
-	return ExitCode.OK;
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+
+        for (RawDataFile dataFile : parameters
+                .getParameter(CropFilterParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles()) {
+            Task newTask = new CropFilterTask(project, dataFile, parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
     }
 
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.RAWDATAFILTERING;
+        return MZmineModuleCategory.RAWDATAFILTERING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return DataSetFiltersParameters.class;
+        return CropFilterParameters.class;
     }
 }

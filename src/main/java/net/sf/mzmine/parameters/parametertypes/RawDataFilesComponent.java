@@ -19,20 +19,15 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JList;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -40,109 +35,126 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.GUIUtils;
 
 public class RawDataFilesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
-    private final DefaultListModel<String> listModel = new DefaultListModel<String>();
-    private final JList<String> nameList;
-    private final JButton addPatternButton, selectFilesButton, removeButton;
 
-    public RawDataFilesComponent(int rows) {
+    private final JComboBox<RawDataFilesSelectionType> typeCombo;
+    private final JButton detailsButton;
+    private final JLabel numFilesLabel;
+    private RawDataFilesSelection currentValue = new RawDataFilesSelection();
 
-	super(new BorderLayout());
+    public RawDataFilesComponent() {
 
-	nameList = new JList<String>(listModel);
-	nameList.setCellRenderer(new RawDataFilesCellRenderer());
-	nameList.setVisibleRowCount(rows);
+        BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
+        setLayout(layout);
 
-	JScrollPane scroll = new JScrollPane(nameList,
-		ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-		ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-	scroll.setPreferredSize(new Dimension(400, 10));
-	add(scroll, BorderLayout.CENTER);
+        typeCombo = new JComboBox<>(RawDataFilesSelectionType.values());
+        typeCombo.addActionListener(this);
+        add(typeCombo);
 
-	JPanel buttonsPanel = new JPanel();
-	buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-	addPatternButton = GUIUtils.addButton(buttonsPanel, "Add name pattern",
-		null, this);
-	selectFilesButton = GUIUtils.addButton(buttonsPanel, "Select files",
-		null, this);
-	removeButton = GUIUtils.addButton(buttonsPanel, "Remove", null, this);
-	add(buttonsPanel, BorderLayout.EAST);
+        detailsButton = new JButton("...");
+        detailsButton.setEnabled(false);
+        detailsButton.addActionListener(this);
+        add(detailsButton);
+
+        numFilesLabel = new JLabel();
+        add(numFilesLabel);
+
+        // Do not allow resizing below the required size for individual
+        // components
+        setMinimumSize(getPreferredSize());
 
     }
 
-    void setValue(String newValue[]) {
-	listModel.clear();
-	for (String value : newValue)
-	    listModel.addElement(value);
+    void setValue(RawDataFilesSelection newValue) {
+        currentValue = newValue.clone();
+        RawDataFilesSelectionType type = newValue.getSelectionType();
+        if (type != null)
+            typeCombo.setSelectedItem(type);
+        updateNumFiles();
     }
 
-    String[] getValue() {
-	Object values[] = listModel.toArray();
-	String returnValue[] = Arrays.copyOf(values, values.length,
-		String[].class);
-	return returnValue;
+    RawDataFilesSelection getValue() {
+        return currentValue;
     }
 
     public void actionPerformed(ActionEvent event) {
 
-	Object src = event.getSource();
+        Object src = event.getSource();
 
-	if (src == addPatternButton) {
-	    final StringParameter nameParameter = new StringParameter(
-		    "Name pattern",
-		    "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse");
-	    final SimpleParameterSet paramSet = new SimpleParameterSet(
-		    new Parameter[] { nameParameter });
-	    Window parent = (Window) SwingUtilities.getAncestorOfClass(
-		    Window.class, this);
-	    final ExitCode exitCode = paramSet.showSetupDialog(parent, true);
-	    if (exitCode == ExitCode.OK) {
-		String newName = paramSet.getParameter(nameParameter)
-			.getValue();
-		if (!listModel.contains(newName))
-		    listModel.addElement(newName);
-	    }
-	    return;
-	}
+        if (src == detailsButton) {
+            RawDataFilesSelectionType type = (RawDataFilesSelectionType) typeCombo
+                    .getSelectedItem();
 
-	if (src == selectFilesButton) {
-	    final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
-		    "Select files", "Select files", MZmineCore
-			    .getProjectManager().getCurrentProject()
-			    .getDataFiles());
-	    final SimpleParameterSet paramSet = new SimpleParameterSet(
-		    new Parameter[] { filesParameter });
-	    Window parent = (Window) SwingUtilities.getAncestorOfClass(
-		    Window.class, this);
-	    final ExitCode exitCode = paramSet.showSetupDialog(parent, true);
-	    if (exitCode == ExitCode.OK) {
-		RawDataFile selectedFiles[] = paramSet.getParameter(
-			filesParameter).getValue();
-		for (RawDataFile selectedFile : selectedFiles) {
-		    final String name = selectedFile.getName();
-		    if (!listModel.contains(name))
-			listModel.addElement(name);
-		}
-	    }
-	    return;
-	}
+            if (type == RawDataFilesSelectionType.SPECIFIC_FILES) {
+                final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
+                        "Select files", "Select files", MZmineCore
+                                .getProjectManager().getCurrentProject()
+                                .getDataFiles(),
+                        currentValue.getSpecificFiles());
+                final SimpleParameterSet paramSet = new SimpleParameterSet(
+                        new Parameter[] { filesParameter });
+                final Window parent = (Window) SwingUtilities
+                        .getAncestorOfClass(Window.class, this);
+                final ExitCode exitCode = paramSet
+                        .showSetupDialog(parent, true);
+                if (exitCode == ExitCode.OK) {
+                    RawDataFile files[] = paramSet.getParameter(filesParameter)
+                            .getValue();
+                    currentValue.setSpecificFiles(files);
+                }
 
-	if (src == removeButton) {
-	    int selectedIndices[] = nameList.getSelectedIndices();
-	    for (int i = selectedIndices.length - 1; i >= 0; i--) {
-		listModel.remove(selectedIndices[i]);
-	    }
-	    return;
-	}
+            }
+
+            if (type == RawDataFilesSelectionType.NAME_PATTERN) {
+                final StringParameter nameParameter = new StringParameter(
+                        "Name pattern",
+                        "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
+                        currentValue.getNamePattern());
+                final SimpleParameterSet paramSet = new SimpleParameterSet(
+                        new Parameter[] { nameParameter });
+                final Window parent = (Window) SwingUtilities
+                        .getAncestorOfClass(Window.class, this);
+                final ExitCode exitCode = paramSet
+                        .showSetupDialog(parent, true);
+                if (exitCode == ExitCode.OK) {
+                    String namePattern = paramSet.getParameter(nameParameter)
+                            .getValue();
+                    currentValue.setNamePattern(namePattern);
+                }
+
+            }
+
+        }
+
+        if (src == typeCombo) {
+            RawDataFilesSelectionType type = (RawDataFilesSelectionType) typeCombo
+                    .getSelectedItem();
+            currentValue.setSelectionType(type);
+            detailsButton
+                    .setEnabled((type == RawDataFilesSelectionType.NAME_PATTERN)
+                            || (type == RawDataFilesSelectionType.SPECIFIC_FILES));
+        }
+
+        updateNumFiles();
 
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-	nameList.setToolTipText(toolTip);
+        typeCombo.setToolTipText(toolTip);
+    }
+
+    private void updateNumFiles() {
+        if (currentValue.getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES) {
+            numFilesLabel.setText("");
+            numFilesLabel.setToolTipText("");
+        } else {
+            RawDataFile files[] = currentValue.getMatchingRawDataFiles();
+            numFilesLabel.setText("(" + files.length + " selected)");
+            numFilesLabel.setToolTipText(currentValue.toString());
+        }
     }
 }

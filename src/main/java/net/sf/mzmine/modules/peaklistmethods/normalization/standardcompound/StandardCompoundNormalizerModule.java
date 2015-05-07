@@ -41,39 +41,39 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	PeakList peakLists[] = parameters.getParameter(
-		StandardCompoundNormalizerParameters.peakList)
-		.getMatchingPeakLists();
-	for (PeakList peakList : peakLists) {
-	    Task newTask = new StandardCompoundNormalizerTask(project,
-		    peakList, parameters);
-	    tasks.add(newTask);
-	}
+        PeakList peakLists[] = parameters
+                .getParameter(StandardCompoundNormalizerParameters.peakList)
+                .getValue().getMatchingPeakLists();
+        for (PeakList peakList : peakLists) {
+            Task newTask = new StandardCompoundNormalizerTask(project,
+                    peakList, parameters);
+            tasks.add(newTask);
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.NORMALIZATION;
+        return MZmineModuleCategory.NORMALIZATION;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return StandardCompoundNormalizerParameters.class;
+        return StandardCompoundNormalizerParameters.class;
     }
 
 }

@@ -38,39 +38,40 @@ public class MassDetectionModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-	RawDataFile[] dataFiles = parameters.getParameter(
-		MassDetectionParameters.dataFiles).getMatchingRawDataFiles();
+        RawDataFile[] dataFiles = parameters
+                .getParameter(MassDetectionParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
 
-	for (RawDataFile dataFile : dataFiles) {
-	    Task newTask = new MassDetectionTask(dataFile, parameters);
-	    tasks.add(newTask);
-	}
+        for (RawDataFile dataFile : dataFiles) {
+            Task newTask = new MassDetectionTask(dataFile, parameters);
+            tasks.add(newTask);
+        }
 
-	return ExitCode.OK;
+        return ExitCode.OK;
 
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.PEAKPICKING;
+        return MZmineModuleCategory.PEAKPICKING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return MassDetectionParameters.class;
+        return MassDetectionParameters.class;
     }
 
 }

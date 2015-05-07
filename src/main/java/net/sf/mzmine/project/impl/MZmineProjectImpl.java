@@ -20,12 +20,16 @@
 package net.sf.mzmine.project.impl;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.MZmineProjectListener;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.impl.MainWindow;
@@ -48,227 +52,250 @@ public class MZmineProjectImpl implements MZmineProject {
 
     private File projectFile;
 
+    private Collection<MZmineProjectListener> listeners = Collections
+            .synchronizedCollection(new LinkedList<MZmineProjectListener>());
+
     public MZmineProjectImpl() {
 
-	this.peakListTreeModel = new PeakListTreeModel(this);
-	this.rawDataTreeModel = new RawDataTreeModel(this);
+        this.peakListTreeModel = new PeakListTreeModel(this);
+        this.rawDataTreeModel = new RawDataTreeModel(this);
 
-	projectParametersAndValues = new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
+        projectParametersAndValues = new Hashtable<UserParameter<?, ?>, Hashtable<RawDataFile, Object>>();
 
     }
 
     public void activateProject() {
 
-	// If running without GUI, just return
-	if (!(MZmineCore.getDesktop() instanceof MainWindow))
-	    return;
+        // If running without GUI, just return
+        if (!(MZmineCore.getDesktop() instanceof MainWindow))
+            return;
 
-	Runnable swingThreadCode = new Runnable() {
-	    public void run() {
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+        Runnable swingThreadCode = new Runnable() {
+            public void run() {
+                MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
 
-		// Update the name of the project in the window title
-		mainWindow.updateTitle();
+                // Update the name of the project in the window title
+                mainWindow.updateTitle();
 
-		ProjectTree peakListTree = mainWindow.getMainPanel()
-			.getPeakListTree();
-		peakListTree.setModel(peakListTreeModel);
-		ProjectTree rawDataTree = mainWindow.getMainPanel()
-			.getRawDataTree();
-		rawDataTree.setModel(rawDataTreeModel);
+                ProjectTree peakListTree = mainWindow.getMainPanel()
+                        .getPeakListTree();
+                peakListTree.setModel(peakListTreeModel);
+                ProjectTree rawDataTree = mainWindow.getMainPanel()
+                        .getRawDataTree();
+                rawDataTree.setModel(rawDataTreeModel);
 
-	    }
-	};
-	try {
-	    if (SwingUtilities.isEventDispatchThread())
-		swingThreadCode.run();
-	    else
-		SwingUtilities.invokeAndWait(swingThreadCode);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+            }
+        };
+        try {
+            if (SwingUtilities.isEventDispatchThread())
+                swingThreadCode.run();
+            else
+                SwingUtilities.invokeAndWait(swingThreadCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void addParameter(UserParameter<?, ?> parameter) {
-	if (projectParametersAndValues.containsKey(parameter))
-	    return;
+        if (projectParametersAndValues.containsKey(parameter))
+            return;
 
-	Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
-	projectParametersAndValues.put(parameter, parameterValues);
+        Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
+        projectParametersAndValues.put(parameter, parameterValues);
 
     }
 
     public void removeParameter(UserParameter<?, ?> parameter) {
-	projectParametersAndValues.remove(parameter);
+        projectParametersAndValues.remove(parameter);
     }
 
     public boolean hasParameter(UserParameter<?, ?> parameter) {
-	return projectParametersAndValues.containsKey(parameter);
+        return projectParametersAndValues.containsKey(parameter);
     }
 
     public UserParameter<?, ?>[] getParameters() {
-	return projectParametersAndValues.keySet()
-		.toArray(new UserParameter[0]);
+        return projectParametersAndValues.keySet()
+                .toArray(new UserParameter[0]);
     }
 
     public void setParameterValue(UserParameter<?, ?> parameter,
-	    RawDataFile rawDataFile, Object value) {
-	if (!(hasParameter(parameter)))
-	    addParameter(parameter);
-	Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues
-		.get(parameter);
-	if (value == null)
-	    parameterValues.remove(rawDataFile);
-	else
-	    parameterValues.put(rawDataFile, value);
+            RawDataFile rawDataFile, Object value) {
+        if (!(hasParameter(parameter)))
+            addParameter(parameter);
+        Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues
+                .get(parameter);
+        if (value == null)
+            parameterValues.remove(rawDataFile);
+        else
+            parameterValues.put(rawDataFile, value);
     }
 
     public Object getParameterValue(UserParameter<?, ?> parameter,
-	    RawDataFile rawDataFile) {
-	if (!(hasParameter(parameter)))
-	    return null;
-	Object value = projectParametersAndValues.get(parameter).get(
-		rawDataFile);
+            RawDataFile rawDataFile) {
+        if (!(hasParameter(parameter)))
+            return null;
+        Object value = projectParametersAndValues.get(parameter).get(
+                rawDataFile);
 
-	return value;
+        return value;
     }
 
     public void addFile(final RawDataFile newFile) {
 
-	assert newFile != null;
+        assert newFile != null;
 
-	Runnable swingCode = new Runnable() {
-	    public void run() {
-		rawDataTreeModel.addObject(newFile);
-	    }
-	};
-	try {
-	    if (SwingUtilities.isEventDispatchThread())
-		swingCode.run();
-	    else
-		SwingUtilities.invokeAndWait(swingCode);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+        Runnable swingCode = new Runnable() {
+            public void run() {
+                rawDataTreeModel.addObject(newFile);
+            }
+        };
+        try {
+            if (SwingUtilities.isEventDispatchThread())
+                swingCode.run();
+            else
+                SwingUtilities.invokeAndWait(swingCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Notify listeners
+        for (MZmineProjectListener listener : listeners) {
+            listener.dataFileAdded(newFile);
+        }
 
     }
 
     public void removeFile(final RawDataFile file) {
 
-	assert file != null;
+        assert file != null;
 
-	Runnable swingCode = new Runnable() {
-	    public void run() {
-		rawDataTreeModel.removeObject(file);
-	    }
-	};
-	try {
-	    if (SwingUtilities.isEventDispatchThread())
-		swingCode.run();
-	    else
-		SwingUtilities.invokeAndWait(swingCode);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+        Runnable swingCode = new Runnable() {
+            public void run() {
+                rawDataTreeModel.removeObject(file);
+            }
+        };
+        try {
+            if (SwingUtilities.isEventDispatchThread())
+                swingCode.run();
+            else
+                SwingUtilities.invokeAndWait(swingCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-	// Close the data file, which also removed the temporary data
-	file.close();
+        // Close the data file, which also removed the temporary data
+        file.close();
 
     }
 
     public RawDataFile[] getDataFiles() {
-	return rawDataTreeModel.getDataFiles();
+        return rawDataTreeModel.getDataFiles();
     }
 
     public PeakList[] getPeakLists() {
-	return peakListTreeModel.getPeakLists();
+        return peakListTreeModel.getPeakLists();
     }
 
     public void addPeakList(final PeakList peakList) {
 
-	assert peakList != null;
+        assert peakList != null;
 
-	Runnable swingCode = new Runnable() {
-	    public void run() {
-		peakListTreeModel.addObject(peakList);
-	    }
-	};
-	try {
-	    if (SwingUtilities.isEventDispatchThread())
-		swingCode.run();
-	    else
-		SwingUtilities.invokeAndWait(swingCode);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+        Runnable swingCode = new Runnable() {
+            public void run() {
+                peakListTreeModel.addObject(peakList);
+            }
+        };
+        try {
+            if (SwingUtilities.isEventDispatchThread())
+                swingCode.run();
+            else
+                SwingUtilities.invokeAndWait(swingCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Notify listeners
+        for (MZmineProjectListener listener : listeners) {
+            listener.peakListAdded(peakList);
+        }
     }
 
     public void removePeakList(final PeakList peakList) {
 
-	assert peakList != null;
+        assert peakList != null;
 
-	Runnable swingCode = new Runnable() {
-	    public void run() {
-		peakListTreeModel.removeObject(peakList);
-	    }
-	};
-	try {
-	    if (SwingUtilities.isEventDispatchThread())
-		swingCode.run();
-	    else
-		SwingUtilities.invokeAndWait(swingCode);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+        Runnable swingCode = new Runnable() {
+            public void run() {
+                peakListTreeModel.removeObject(peakList);
+            }
+        };
+        try {
+            if (SwingUtilities.isEventDispatchThread())
+                swingCode.run();
+            else
+                SwingUtilities.invokeAndWait(swingCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public PeakList[] getPeakLists(RawDataFile file) {
-	PeakList[] currentPeakLists = getPeakLists();
-	Vector<PeakList> result = new Vector<PeakList>();
-	for (PeakList peakList : currentPeakLists) {
-	    if (peakList.hasRawDataFile(file))
-		result.add(peakList);
-	}
-	return result.toArray(new PeakList[0]);
+        PeakList[] currentPeakLists = getPeakLists();
+        Vector<PeakList> result = new Vector<PeakList>();
+        for (PeakList peakList : currentPeakLists) {
+            if (peakList.hasRawDataFile(file))
+                result.add(peakList);
+        }
+        return result.toArray(new PeakList[0]);
 
     }
 
     public File getProjectFile() {
-	return projectFile;
+        return projectFile;
     }
 
     public void setProjectFile(File file) {
-	projectFile = file;
-	// Notify the tree model to update the name of the project
-	// treeModel.notifyObjectChanged(this, false);
+        projectFile = file;
+        // Notify the tree model to update the name of the project
+        // treeModel.notifyObjectChanged(this, false);
     }
 
     public void removeProjectFile() {
-	projectFile.delete();
+        projectFile.delete();
     }
 
     public String toString() {
-	if (projectFile == null)
-	    return "New project";
-	String projectName = projectFile.getName();
-	if (projectName.endsWith(".mzmine")) {
-	    projectName = projectName.substring(0, projectName.length() - 7);
-	}
-	return projectName;
+        if (projectFile == null)
+            return "New project";
+        String projectName = projectFile.getName();
+        if (projectName.endsWith(".mzmine")) {
+            projectName = projectName.substring(0, projectName.length() - 7);
+        }
+        return projectName;
     }
 
     @Override
     public void notifyObjectChanged(Object object, boolean structureChanged) {
-	peakListTreeModel.notifyObjectChanged(object, structureChanged);
-	rawDataTreeModel.notifyObjectChanged(object, structureChanged);
+        peakListTreeModel.notifyObjectChanged(object, structureChanged);
+        rawDataTreeModel.notifyObjectChanged(object, structureChanged);
     }
 
     public PeakListTreeModel getPeakListTreeModel() {
-	return peakListTreeModel;
+        return peakListTreeModel;
     }
 
     public RawDataTreeModel getRawDataTreeModel() {
-	return rawDataTreeModel;
+        return rawDataTreeModel;
+    }
+
+    @Override
+    public void addProjectListener(MZmineProjectListener newListener) {
+        listeners.add(newListener);
+    }
+
+    @Override
+    public void removeProjectListener(MZmineProjectListener newListener) {
+        listeners.remove(newListener);
     }
 
 }
