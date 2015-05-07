@@ -459,7 +459,10 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    chooser.setFileFilter(filter);
 	    int returnVal = chooser.showSaveDialog(null);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
-	       String file = chooser.getSelectedFile().getPath() + ".emf";
+	       String file = chooser.getSelectedFile().getPath();
+	       if (!file.substring(file.length() - 3).toLowerCase().equals("emf")) {
+		   file = file + ".emf";
+	       }
 	       
 	       int width = (int) this.getSize().getWidth();
 	       int height = (int) this.getSize().getHeight(); 
@@ -487,7 +490,10 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    chooser.setFileFilter(filter);
 	    int returnVal = chooser.showSaveDialog(null);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
-	       String file = chooser.getSelectedFile().getPath() + ".eps";
+	       String file = chooser.getSelectedFile().getPath();
+	       if (!file.substring(file.length() - 3).toLowerCase().equals("eps")) {
+		   file = file + ".eps";
+	       }
 	       
 	       int width = (int) this.getSize().getWidth();
 	       int height = (int) this.getSize().getHeight(); 
