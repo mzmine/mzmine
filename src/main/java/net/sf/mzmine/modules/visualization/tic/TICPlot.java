@@ -22,8 +22,10 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Paint;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.Window;
@@ -33,14 +35,19 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Ellipse2D;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
@@ -64,6 +71,8 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
+import org.apache.xmlgraphics.java2d.ps.EPSDocumentGraphics2D;
+import org.freehep.graphicsio.emf.EMFGraphics2D;
 
 /**
  * TIC plot.
@@ -294,6 +303,11 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	final JPopupMenu popupMenu = getPopupMenu();
 	popupMenu.addSeparator();
 
+	// Add EMF and EPS options to the save as menu
+	JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);	
+	GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+	GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+
 	if (listener instanceof TICVisualizerWindow) {
 
 	    popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
@@ -435,6 +449,65 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    getChart().getPlot().setBackgroundPaint(bgColor);
 	    getChart().getXYPlot().setDomainGridlinePaint(liColor);
 	    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+	}
+
+	if ("SAVE_EMF".equals(command)) {
+
+	    JFileChooser chooser = new JFileChooser();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+	        "EMF Image", "EMF");
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showSaveDialog(null);
+	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+	       String file = chooser.getSelectedFile().getPath() + ".emf";
+	       
+	       int width = (int) this.getSize().getWidth();
+	       int height = (int) this.getSize().getHeight(); 
+	       final JFreeChart chart = getChart();
+
+	       try {
+		   OutputStream out2 = new java.io.FileOutputStream(file);
+		   EMFGraphics2D g2d2 = new EMFGraphics2D(out2,new Dimension(width,height));
+		   g2d2.startExport();
+		   chart.draw(g2d2,new Rectangle(width,height));
+		   g2d2.endExport();
+		   g2d2.closeStream();
+	       } catch (IOException e) {
+		   e.printStackTrace();
+	       }
+	       
+	    }
+	}
+
+	if ("SAVE_EPS".equals(command)) {
+	    
+	    JFileChooser chooser = new JFileChooser();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+	        "EPS Image", "EPS");
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showSaveDialog(null);
+	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+	       String file = chooser.getSelectedFile().getPath() + ".eps";
+	       
+	       int width = (int) this.getSize().getWidth();
+	       int height = (int) this.getSize().getHeight(); 
+	       final JFreeChart chart = getChart();
+
+	       try {
+		   OutputStream out = new java.io.FileOutputStream(file);
+		   EPSDocumentGraphics2D g2d = new EPSDocumentGraphics2D(false);
+		   g2d.setGraphicContext(new org.apache.xmlgraphics.java2d.GraphicContext());
+		   g2d.setupDocument(out,width, height);
+		   chart.draw(g2d,new Rectangle(width,height));
+		   g2d.finish();
+		   out.flush();
+		   out.close();
+	       } catch (IOException e) {
+		   e.printStackTrace();
+	       }
+	       
+	    }
+	    
 	}
     }
 
