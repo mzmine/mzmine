@@ -17,32 +17,34 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper;
-
-import java.awt.Window;
+package net.sf.mzmine.modules.rawdatamethods.filtering.cropper;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFilterSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
-import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class CropFilterParameters extends SimpleParameterSet {
 
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+
     public static final RangeParameter retentionTimeRange = new RangeParameter(
-	    "Retention time", "retention time boundary of the cropped region",
-	    MZmineCore.getConfiguration().getRTFormat());
+            "Retention time", "retention time boundary of the cropped region",
+            MZmineCore.getConfiguration().getRTFormat());
+
+    public static final StringParameter suffix = new StringParameter("Suffix",
+            "This string is added to filename as suffix", "filtered");
+
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+            "Remove source file after filtering",
+            "If checked, original file will be removed and only filtered version remains");
 
     public CropFilterParameters() {
-	super(new Parameter[] { retentionTimeRange });
-    }
-
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-	DataSetFilterSetupDialog dialog = new DataSetFilterSetupDialog(parent,
-		valueCheckRequired, this, CropFilter.class);
-	dialog.setVisible(true);
-	return dialog.getExitCode();
+        super(new Parameter[] { dataFiles, retentionTimeRange, suffix,
+                autoRemove });
     }
 
 }

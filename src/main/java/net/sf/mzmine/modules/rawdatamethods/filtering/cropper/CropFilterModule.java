@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
+package net.sf.mzmine.modules.rawdatamethods.filtering.cropper;
 
 import java.util.Collection;
 
@@ -31,10 +31,10 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class DataSetFiltersModule implements MZmineProcessingModule {
+public class CropFilterModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Data set filtering";
-    private static final String MODULE_DESCRIPTION = "This module performs filtering algorithms on the whole raw data files.";
+    private static final String MODULE_NAME = "Crop filter";
+    private static final String MODULE_DESCRIPTION = "This module performs cropping of raw data files.";
 
     @Override
     public @Nonnull String getName() {
@@ -52,10 +52,9 @@ public class DataSetFiltersModule implements MZmineProcessingModule {
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
         for (RawDataFile dataFile : parameters
-                .getParameter(DataSetFiltersParameters.dataFiles).getValue()
+                .getParameter(CropFilterParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles()) {
-            Task newTask = new DataSetFilteringTask(project, dataFile,
-                    parameters);
+            Task newTask = new CropFilterTask(project, dataFile, parameters);
             tasks.add(newTask);
         }
 
@@ -68,6 +67,6 @@ public class DataSetFiltersModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return DataSetFiltersParameters.class;
+        return CropFilterParameters.class;
     }
 }
