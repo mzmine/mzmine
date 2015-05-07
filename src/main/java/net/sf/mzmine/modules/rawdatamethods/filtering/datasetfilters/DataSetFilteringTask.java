@@ -33,7 +33,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 class DataSetFilteringTask extends AbstractTask {
 
     private MZmineProject project;
-    private RawDataFile[] dataFiles;
+    private RawDataFile dataFile;
 
     // User parameters
     private String suffix;
@@ -47,12 +47,11 @@ class DataSetFilteringTask extends AbstractTask {
      * @param dataFiles
      * @param parameters
      */
-    DataSetFilteringTask(MZmineProject project, ParameterSet parameters) {
+    DataSetFilteringTask(MZmineProject project, RawDataFile dataFile,
+            ParameterSet parameters) {
 
         this.project = project;
-        this.dataFiles = parameters
-                .getParameter(DataSetFiltersParameters.dataFiles).getValue()
-                .getMatchingRawDataFiles();
+        this.dataFile = dataFile;
         this.filteredRawDataFiles = new ArrayList<RawDataFile>();
 
         rawDataFilter = parameters
@@ -92,20 +91,19 @@ class DataSetFilteringTask extends AbstractTask {
         setStatus(TaskStatus.PROCESSING);
 
         try {
-            for (RawDataFile dataFile : dataFiles) {
-                RawDataFileWriter rawDataFileWriter = MZmineCore
-                        .createNewFile(dataFile.getName() + " " + suffix);
-                RawDataFile filteredRawDataFile = rawDataFilter.getModule()
-                        .filterDatafile(dataFile, rawDataFileWriter,
-                                rawDataFilter.getParameterSet());
-                if (filteredRawDataFile != null) {
-                    project.addFile(filteredRawDataFile);
-                    filteredRawDataFiles.add(filteredRawDataFile);
 
-                    // Remove the original file if requested
-                    if (removeOriginal) {
-                        project.removeFile(dataFile);
-                    }
+            RawDataFileWriter rawDataFileWriter = MZmineCore
+                    .createNewFile(dataFile.getName() + " " + suffix);
+            RawDataFile filteredRawDataFile = rawDataFilter.getModule()
+                    .filterDatafile(dataFile, rawDataFileWriter,
+                            rawDataFilter.getParameterSet());
+            if (filteredRawDataFile != null) {
+                project.addFile(filteredRawDataFile);
+                filteredRawDataFiles.add(filteredRawDataFile);
+
+                // Remove the original file if requested
+                if (removeOriginal) {
+                    project.removeFile(dataFile);
                 }
             }
 

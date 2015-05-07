@@ -24,6 +24,7 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -37,29 +38,36 @@ public class DataSetFiltersModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-	Task newTask = new DataSetFilteringTask(project, parameters);
-	tasks.add(newTask);
-	return ExitCode.OK;
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+
+        for (RawDataFile dataFile : parameters
+                .getParameter(DataSetFiltersParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles()) {
+            Task newTask = new DataSetFilteringTask(project, dataFile,
+                    parameters);
+            tasks.add(newTask);
+        }
+
+        return ExitCode.OK;
     }
 
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.RAWDATAFILTERING;
+        return MZmineModuleCategory.RAWDATAFILTERING;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return DataSetFiltersParameters.class;
+        return DataSetFiltersParameters.class;
     }
 }
