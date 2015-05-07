@@ -63,15 +63,17 @@ public class PeakListsParameter implements
     }
 
     public void setValue(PeakListSelectionType selectionType,
-            PeakList dataPeakLists[]) {
+            PeakList peakLists[]) {
         if (value == null)
             value = new PeakListsSelection();
         value.setSelectionType(selectionType);
-        value.setSpecificPeakLists(dataPeakLists);
+        value.setSpecificPeakLists(peakLists);
     }
 
-    public void setValue(PeakList dataPeakLists[]) {
-        setValue(PeakListSelectionType.SPECIFIC_PEAKLISTS, dataPeakLists);
+    public void setValue(PeakListSelectionType selectionType) {
+        if (value == null)
+            value = new PeakListsSelection();
+        value.setSelectionType(selectionType);
     }
 
     @Override

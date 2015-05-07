@@ -23,11 +23,8 @@ import java.awt.Window;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -37,10 +34,13 @@ import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFileSelectionType;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.RawDataFileUtils;
+
+import com.google.common.collect.Range;
 
 public class TICVisualizerParameters extends SimpleParameterSet {
 
@@ -58,9 +58,9 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * Type of plot.
      */
     public static final ComboParameter<PlotType> PLOT_TYPE = new ComboParameter<PlotType>(
-	    "Plot type",
-	    "Type of Y value calculation (TIC = sum, base peak = max)",
-	    PlotType.values());
+            "Plot type",
+            "Type of Y value calculation (TIC = sum, base peak = max)",
+            PlotType.values());
 
     /**
      * RT range.
@@ -77,8 +77,8 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * Peaks to display.
      */
     public static final MultiChoiceParameter<Feature> PEAKS = new MultiChoiceParameter<Feature>(
-	    "Peaks", "Please choose peaks to visualize", new Feature[0], null,
-	    0);
+            "Peaks", "Please choose peaks to visualize", new Feature[0], null,
+            0);
 
     // Maps peaks to their labels - not a user configurable parameter.
     private Map<Feature, String> peakLabelMap;
@@ -92,10 +92,10 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * Create the parameter set.
      */
     public TICVisualizerParameters() {
-	super(new Parameter[] { DATA_FILES, MS_LEVEL, PLOT_TYPE, RT_RANGE,
-		MZ_RANGE, PEAKS, WINDOWSETTINGSPARAMETER });
-	peakLabelMap = null;
-	MZ_RANGE_HIDDEN = null;
+        super(new Parameter[] { DATA_FILES, MS_LEVEL, PLOT_TYPE, RT_RANGE,
+                MZ_RANGE, PEAKS, WINDOWSETTINGSPARAMETER });
+        peakLabelMap = null;
+        MZ_RANGE_HIDDEN = null;
     }
 
     /**
@@ -105,8 +105,8 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      */
     public Map<Feature, String> getPeakLabelMap() {
 
-	return peakLabelMap == null ? null : new HashMap<Feature, String>(
-		peakLabelMap);
+        return peakLabelMap == null ? null : new HashMap<Feature, String>(
+                peakLabelMap);
     }
 
     /**
@@ -117,41 +117,28 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      */
     public void setPeakLabelMap(final Map<Feature, String> map) {
 
-	peakLabelMap = map == null ? null : new HashMap<Feature, String>(map);
+        peakLabelMap = map == null ? null : new HashMap<Feature, String>(map);
     }
 
     /**
      * Gets the hidden m/z range
-     * @return 
+     * 
+     * @return
      * 
      * @return Range<Double>.
      */
     public Range<Double> getHiddenMzRange() {
-	return MZ_RANGE_HIDDEN;
+        return MZ_RANGE_HIDDEN;
     }
 
     /**
      * Sets the hidden m/z range.
      * 
-     * @param Range<Double> 
-     *            m/z range.
+     * @param Range
+     *            <Double> m/z range.
      */
     public void setHiddenMzRange(final Range<Double> mzRange) {
-	MZ_RANGE_HIDDEN = mzRange;
-    }
-
-    /**
-     * Show the setup dialog.
-     * 
-     * @return an ExitCode indicating the user's action.
-     */
-    @Override
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-	return showSetupDialog(parent, valueCheckRequired, MZmineCore
-		.getProjectManager().getCurrentProject().getDataFiles(),
-		MZmineCore.getDesktop().getSelectedDataFiles(), new Feature[0],
-		new Feature[0]);
+        MZ_RANGE_HIDDEN = mzRange;
     }
 
     /**
@@ -168,24 +155,25 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * @return an ExitCode indicating the user's action.
      */
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired,
-	    final RawDataFile[] allFiles, final RawDataFile[] selectedFiles,
-	    final Feature[] allPeaks, final Feature[] selectedPeaks) {
+            final RawDataFile[] allFiles, final RawDataFile[] selectedFiles,
+            final Feature[] allPeaks, final Feature[] selectedPeaks) {
 
-	getParameter(DATA_FILES).setValue(selectedFiles);
-	getParameter(PEAKS).setChoices(allPeaks);
-	getParameter(PEAKS).setValue(selectedPeaks);
+        getParameter(DATA_FILES).setValue(
+                RawDataFileSelectionType.SPECIFIC_FILES, selectedFiles);
+        getParameter(PEAKS).setChoices(allPeaks);
+        getParameter(PEAKS).setValue(selectedPeaks);
 
-	Map<UserParameter<?, ?>, Object> autoValues = null;
-	if (selectedFiles != null && selectedFiles.length > 0) {
+        Map<UserParameter<?, ?>, Object> autoValues = null;
+        if (selectedFiles != null && selectedFiles.length > 0) {
 
-	    autoValues = new HashMap<UserParameter<?, ?>, Object>(3);
-	    autoValues.put(MS_LEVEL, 1);
-	    autoValues.put(RT_RANGE,
-		    RawDataFileUtils.findTotalRTRange(selectedFiles, 1));
-	    autoValues.put(MZ_RANGE,
-		    RawDataFileUtils.findTotalMZRange(selectedFiles, 1));
-	}
+            autoValues = new HashMap<UserParameter<?, ?>, Object>(3);
+            autoValues.put(MS_LEVEL, 1);
+            autoValues.put(RT_RANGE,
+                    RawDataFileUtils.findTotalRTRange(selectedFiles, 1));
+            autoValues.put(MZ_RANGE,
+                    RawDataFileUtils.findTotalMZRange(selectedFiles, 1));
+        }
 
-	return super.showSetupDialog(parent, valueCheckRequired);
+        return super.showSetupDialog(parent, valueCheckRequired);
     }
 }

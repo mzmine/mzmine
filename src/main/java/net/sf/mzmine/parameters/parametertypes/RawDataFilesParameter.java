@@ -62,16 +62,18 @@ public class RawDataFilesParameter implements
         this.value = newValue;
     }
 
+    public void setValue(RawDataFileSelectionType selectionType) {
+        if (value == null)
+            value = new RawDataFilesSelection();
+        value.setSelectionType(selectionType);
+    }
+
     public void setValue(RawDataFileSelectionType selectionType,
             RawDataFile dataFiles[]) {
         if (value == null)
             value = new RawDataFilesSelection();
         value.setSelectionType(selectionType);
         value.setSpecificFiles(dataFiles);
-    }
-
-    public void setValue(RawDataFile dataFiles[]) {
-        setValue(RawDataFileSelectionType.SPECIFIC_FILES, dataFiles);
     }
 
     @Override

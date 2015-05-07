@@ -29,6 +29,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.RawDataFileSelectionType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
@@ -84,6 +85,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
                 .getModuleParameters(TwoDVisualizerModule.class);
 
         parameters.getParameter(TwoDParameters.dataFiles).setValue(
+                RawDataFileSelectionType.SPECIFIC_FILES,
                 new RawDataFile[] { dataFile });
 
         if (rtRange != null)

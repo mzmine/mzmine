@@ -31,6 +31,7 @@ import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListSelectionType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
@@ -44,73 +45,74 @@ public class IntensityPlotModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-	IntensityPlotWindow newFrame = new IntensityPlotWindow(parameters);
-	newFrame.setVisible(true);
-	return ExitCode.OK;
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        IntensityPlotWindow newFrame = new IntensityPlotWindow(parameters);
+        newFrame.setVisible(true);
+        return ExitCode.OK;
     }
 
     public static void showIntensityPlot(@Nonnull MZmineProject project,
-	    PeakList peakList, PeakListRow rows[]) {
+            PeakList peakList, PeakListRow rows[]) {
 
-	ParameterSet parameters = MZmineCore.getConfiguration()
-		.getModuleParameters(IntensityPlotModule.class);
+        ParameterSet parameters = MZmineCore.getConfiguration()
+                .getModuleParameters(IntensityPlotModule.class);
 
-	parameters.getParameter(IntensityPlotParameters.peakList).setValue(
-		new PeakList[] { peakList });
+        parameters.getParameter(IntensityPlotParameters.peakList).setValue(
+                PeakListSelectionType.SPECIFIC_PEAKLISTS,
+                new PeakList[] { peakList });
 
-	parameters.getParameter(IntensityPlotParameters.dataFiles).setChoices(
-		peakList.getRawDataFiles());
+        parameters.getParameter(IntensityPlotParameters.dataFiles).setChoices(
+                peakList.getRawDataFiles());
 
-	parameters.getParameter(IntensityPlotParameters.dataFiles).setValue(
-		peakList.getRawDataFiles());
+        parameters.getParameter(IntensityPlotParameters.dataFiles).setValue(
+                peakList.getRawDataFiles());
 
-	parameters.getParameter(IntensityPlotParameters.selectedRows)
-		.setChoices(rows);
-	parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(
-		rows);
+        parameters.getParameter(IntensityPlotParameters.selectedRows)
+                .setChoices(rows);
+        parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(
+                rows);
 
-	UserParameter<?, ?> projectParams[] = project.getParameters();
-	Object xAxisSources[] = new Object[projectParams.length + 1];
-	xAxisSources[0] = IntensityPlotParameters.rawDataFilesOption;
+        UserParameter<?, ?> projectParams[] = project.getParameters();
+        Object xAxisSources[] = new Object[projectParams.length + 1];
+        xAxisSources[0] = IntensityPlotParameters.rawDataFilesOption;
 
-	for (int i = 0; i < projectParams.length; i++) {
-	    xAxisSources[i + 1] = new ParameterWrapper(projectParams[i]);
-	}
+        for (int i = 0; i < projectParams.length; i++) {
+            xAxisSources[i + 1] = new ParameterWrapper(projectParams[i]);
+        }
 
-	parameters.getParameter(IntensityPlotParameters.xAxisValueSource)
-		.setChoices(xAxisSources);
+        parameters.getParameter(IntensityPlotParameters.xAxisValueSource)
+                .setChoices(xAxisSources);
 
-	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
-		.getMainWindow(), true);
+        ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
+                .getMainWindow(), true);
 
-	if (exitCode == ExitCode.OK) {
-	    IntensityPlotWindow newFrame = new IntensityPlotWindow(
-		    parameters.cloneParameterSet());
-	    newFrame.setVisible(true);
-	}
+        if (exitCode == ExitCode.OK) {
+            IntensityPlotWindow newFrame = new IntensityPlotWindow(
+                    parameters.cloneParameterSet());
+            newFrame.setVisible(true);
+        }
 
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+        return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return IntensityPlotParameters.class;
+        return IntensityPlotParameters.class;
     }
 
 }
