@@ -193,7 +193,8 @@ public class BatchTask extends AbstractTask {
                 // If there was an error, we have to stop the whole batch
                 if (stepStatus == TaskStatus.ERROR) {
                     setStatus(TaskStatus.ERROR);
-                    setErrorMessage(stepTask.getErrorMessage());
+                    setErrorMessage(stepTask.getTaskDescription() + ": "
+                            + stepTask.getErrorMessage());
                     return;
                 }
 
