@@ -33,6 +33,7 @@ import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
@@ -112,10 +113,25 @@ public class BatchTask extends AbstractTask {
                 .getModule();
         ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-        // For
+        // Update the RawDataFilesParameter parameters to reflect the current
+        // state of the batch
         for (Parameter<?> p : batchStepParameters.getParameters()) {
             if (p instanceof RawDataFilesParameter) {
+                RawDataFilesParameter rdp = (RawDataFilesParameter) p;
+                RawDataFile createdFiles[] = createdDataFiles
+                        .toArray(new RawDataFile[0]);
+                rdp.getValue().setBatchLastFiles(createdFiles);
+            }
+        }
 
+        // Update the PeakListsParameter parameters to reflect the current
+        // state of the batch
+        for (Parameter<?> p : batchStepParameters.getParameters()) {
+            if (p instanceof PeakListsParameter) {
+                PeakListsParameter rdp = (PeakListsParameter) p;
+                PeakList createdPls[] = createdPeakLists
+                        .toArray(new PeakList[0]);
+                rdp.getValue().setBatchLastPeakLists(createdPls);
             }
         }
 
