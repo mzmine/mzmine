@@ -154,12 +154,7 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
         } else {
             RawDataFile files[] = currentValue.getMatchingRawDataFiles();
             numFilesLabel.setText("(" + files.length + " selected)");
-            StringBuilder toolTip = new StringBuilder();
-            for (RawDataFile file : files) {
-                toolTip.append(file.getName());
-                toolTip.append("\n");
-            }
-            numFilesLabel.setToolTipText(toolTip.toString());
+            numFilesLabel.setToolTipText(currentValue.toString());
         }
     }
 }

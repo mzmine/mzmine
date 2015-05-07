@@ -128,4 +128,12 @@ public class PeakListsSelection implements Cloneable {
         return newSelection;
     }
 
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        for (PeakList pl : getMatchingPeakLists()) {
+            str.append(pl.getName());
+            str.append("\n");
+        }
+        return str.toString();
+    }
 }

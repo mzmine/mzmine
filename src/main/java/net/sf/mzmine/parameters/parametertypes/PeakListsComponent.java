@@ -154,12 +154,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         } else {
             PeakList pls[] = currentValue.getMatchingPeakLists();
             numPeakListsLabel.setText("(" + pls.length + " selected)");
-            StringBuilder toolTip = new StringBuilder();
-            for (PeakList pl : pls) {
-                toolTip.append(pl.getName());
-                toolTip.append("\n");
-            }
-            numPeakListsLabel.setToolTipText(toolTip.toString());
+            numPeakListsLabel.setToolTipText(currentValue.toString());
         }
     }
 }

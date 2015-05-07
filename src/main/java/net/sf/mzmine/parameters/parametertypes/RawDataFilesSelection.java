@@ -128,4 +128,13 @@ public class RawDataFilesSelection implements Cloneable {
         return newSelection;
     }
 
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        for (RawDataFile file : getMatchingRawDataFiles()) {
+            str.append(file.getName());
+            str.append("\n");
+        }
+        return str.toString();
+    }
+
 }
