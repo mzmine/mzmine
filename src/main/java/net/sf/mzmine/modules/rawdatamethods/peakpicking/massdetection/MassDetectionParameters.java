@@ -80,7 +80,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
                 .getMatchingRawDataFiles();
 
         // If no file selected (e.g. in batch mode setup), just return
-        if (selectedFiles == null)
+        if ((selectedFiles == null) || (selectedFiles.length == 0))
             return exitCode;
 
         for (RawDataFile file : selectedFiles) {
