@@ -22,10 +22,8 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Paint;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.Window;
@@ -35,23 +33,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Ellipse2D;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.NewVersionCheck;
-import net.sf.mzmine.main.NewVersionCheck.CheckType;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.modules.visualization.tic.SaveImage;
@@ -75,8 +68,6 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
-import org.apache.xmlgraphics.java2d.ps.EPSDocumentGraphics2D;
-import org.freehep.graphicsio.emf.EMFGraphics2D;
 
 /**
  * TIC plot.
