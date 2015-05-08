@@ -110,6 +110,11 @@
 			<name>MZmine local libraries</name>
 			<url>file://${project.basedir}/src/main/lib</url>
 		</repository>
+  		<repository>
+    		<id>freehep-maven</id>
+    		<name>Maven FreeHEP</name>
+    		<url>http://java.freehep.org/maven2</url>
+  		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
@@ -391,6 +396,16 @@
 			<artifactId>jmztab-modular-util</artifactId>
 			<version>${jmztab.version}</version>
 			<!-- based on mzTab specification version 1.0 RC5 -->
+		</dependency>
+		<dependency>
+        	<groupId>org.apache.xmlgraphics</groupId>
+        	<artifactId>fop</artifactId>
+        	<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.freehep</groupId>
+			<artifactId>freehep-graphicsio-emf</artifactId>
+			<version>2.4</version>
 		</dependency>
 
 	</dependencies>

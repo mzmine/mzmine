@@ -37,14 +37,18 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
+import net.sf.mzmine.modules.visualization.tic.SaveImage;
+import net.sf.mzmine.modules.visualization.tic.SaveImage.FileType;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -294,6 +298,11 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	final JPopupMenu popupMenu = getPopupMenu();
 	popupMenu.addSeparator();
 
+	// Add EMF and EPS options to the save as menu
+	JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);	
+	GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+	GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+
 	if (listener instanceof TICVisualizerWindow) {
 
 	    popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
@@ -435,6 +444,49 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    getChart().getPlot().setBackgroundPaint(bgColor);
 	    getChart().getXYPlot().setDomainGridlinePaint(liColor);
 	    getChart().getXYPlot().setRangeGridlinePaint(liColor);
+	}
+
+	if ("SAVE_EMF".equals(command)) {
+
+	    JFileChooser chooser = new JFileChooser();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+	        "EMF Image", "EMF");
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showSaveDialog(null);
+	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+	       String file = chooser.getSelectedFile().getPath();
+	       if (!file.toLowerCase().endsWith(".emf")) file += ".emf";
+	       
+	       int width = (int) this.getSize().getWidth();
+	       int height = (int) this.getSize().getHeight(); 
+
+	       // Save image
+	       SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
+	       new Thread(SI).start();
+	       
+	    }
+	}
+
+	if ("SAVE_EPS".equals(command)) {
+	    
+	    JFileChooser chooser = new JFileChooser();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+	        "EPS Image", "EPS");
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showSaveDialog(null);
+	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+	       String file = chooser.getSelectedFile().getPath();
+	       if (!file.toLowerCase().endsWith(".eps")) file += ".eps";
+	       
+	       int width = (int) this.getSize().getWidth();
+	       int height = (int) this.getSize().getHeight(); 
+	       
+	       // Save image
+	       SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
+	       new Thread(SI).start();
+	       
+	    }
+	    
 	}
     }
 
