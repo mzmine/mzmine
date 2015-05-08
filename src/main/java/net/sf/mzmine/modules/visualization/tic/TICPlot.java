@@ -50,8 +50,12 @@ import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.NewVersionCheck;
+import net.sf.mzmine.main.NewVersionCheck.CheckType;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
+import net.sf.mzmine.modules.visualization.tic.SaveImage;
+import net.sf.mzmine.modules.visualization.tic.SaveImage.FileType;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -460,24 +464,14 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    int returnVal = chooser.showSaveDialog(null);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
 	       String file = chooser.getSelectedFile().getPath();
-	       if (!file.substring(file.length() - 3).toLowerCase().equals("emf")) {
-		   file = file + ".emf";
-	       }
+	       if (!file.toLowerCase().endsWith(".emf")) file += ".emf";
 	       
 	       int width = (int) this.getSize().getWidth();
 	       int height = (int) this.getSize().getHeight(); 
-	       final JFreeChart chart = getChart();
 
-	       try {
-		   OutputStream out2 = new java.io.FileOutputStream(file);
-		   EMFGraphics2D g2d2 = new EMFGraphics2D(out2,new Dimension(width,height));
-		   g2d2.startExport();
-		   chart.draw(g2d2,new Rectangle(width,height));
-		   g2d2.endExport();
-		   g2d2.closeStream();
-	       } catch (IOException e) {
-		   e.printStackTrace();
-	       }
+	       // Save image
+	       SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
+	       new Thread(SI).start();
 	       
 	    }
 	}
@@ -491,26 +485,14 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    int returnVal = chooser.showSaveDialog(null);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
 	       String file = chooser.getSelectedFile().getPath();
-	       if (!file.substring(file.length() - 3).toLowerCase().equals("eps")) {
-		   file = file + ".eps";
-	       }
+	       if (!file.toLowerCase().endsWith(".eps")) file += ".eps";
 	       
 	       int width = (int) this.getSize().getWidth();
 	       int height = (int) this.getSize().getHeight(); 
-	       final JFreeChart chart = getChart();
-
-	       try {
-		   OutputStream out = new java.io.FileOutputStream(file);
-		   EPSDocumentGraphics2D g2d = new EPSDocumentGraphics2D(false);
-		   g2d.setGraphicContext(new org.apache.xmlgraphics.java2d.GraphicContext());
-		   g2d.setupDocument(out,width, height);
-		   chart.draw(g2d,new Rectangle(width,height));
-		   g2d.finish();
-		   out.flush();
-		   out.close();
-	       } catch (IOException e) {
-		   e.printStackTrace();
-	       }
+	       
+	       // Save image
+	       SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
+	       new Thread(SI).start();
 	       
 	    }
 	    
