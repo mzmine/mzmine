@@ -23,16 +23,22 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 
+import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.SaveImage;
+import net.sf.mzmine.util.SaveImage.FileType;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -153,6 +159,62 @@ class TwoDPlot extends ChartPanel {
 	popupMenu.addSeparator();
 	popupMenu.add(plotTypeMenuItem);
 
+	// Add EMF and EPS options to the save as menu
+	JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);	
+	GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
+	GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
+
+    }
+
+    @Override
+    public void actionPerformed(final ActionEvent event) {
+
+	super.actionPerformed(event);
+
+	final String command = event.getActionCommand();
+
+	if ("SAVE_EMF".equals(command)) {
+
+	    JFileChooser chooser = new JFileChooser();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+	        "EMF Image", "EMF");
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showSaveDialog(null);
+	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+	       String file = chooser.getSelectedFile().getPath();
+	       if (!file.toLowerCase().endsWith(".emf")) file += ".emf";
+	       
+	       int width = (int) this.getSize().getWidth();
+	       int height = (int) this.getSize().getHeight(); 
+
+	       // Save image
+	       SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
+	       new Thread(SI).start();
+	       
+	    }
+	}
+
+	if ("SAVE_EPS".equals(command)) {
+	    
+	    JFileChooser chooser = new JFileChooser();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+	        "EPS Image", "EPS");
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showSaveDialog(null);
+	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+	       String file = chooser.getSelectedFile().getPath();
+	       if (!file.toLowerCase().endsWith(".eps")) file += ".eps";
+	       
+	       int width = (int) this.getSize().getWidth();
+	       int height = (int) this.getSize().getHeight(); 
+	       
+	       // Save image
+	       SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
+	       new Thread(SI).start();
+	       
+	    }
+	    
+	}
     }
 
     TwoDXYPlot getXYPlot() {
