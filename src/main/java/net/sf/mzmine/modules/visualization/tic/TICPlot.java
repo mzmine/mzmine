@@ -47,8 +47,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
-import net.sf.mzmine.modules.visualization.tic.SaveImage;
-import net.sf.mzmine.modules.visualization.tic.SaveImage.FileType;
+import net.sf.mzmine.util.SaveImage;
+import net.sf.mzmine.util.SaveImage.FileType;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;

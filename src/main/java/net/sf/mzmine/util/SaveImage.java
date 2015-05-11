@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.visualization.tic;
+package net.sf.mzmine.util;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
