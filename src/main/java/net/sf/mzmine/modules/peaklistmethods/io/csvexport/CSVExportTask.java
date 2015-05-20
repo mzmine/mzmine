@@ -138,8 +138,8 @@ class CSVExportTask extends AbstractTask {
         length = dataFileElements.length;
         for (int df = 0; df < peakList.getNumberOfRawDataFiles(); df++) {
             for (int i = 0; i < length; i++) {
-                name = dataFileElements[i].toString();
-                name = name.replace("Export", rawDataFiles[df].getName());
+        	name = rawDataFiles[df].getName();
+                name = name + " " + dataFileElements[i].toString();
                 name = escapeStringForCSV(name);
                 line.append(name + fieldSeparator);
             }
