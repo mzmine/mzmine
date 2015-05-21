@@ -15,7 +15,6 @@ else
 	HEAP_SIZE=`expr $TOTAL_MEMORY / 2`
 fi
 echo Java heap size set to $HEAP_SIZE MB
-echo Java heap size set to $HEAP_SIZE MB
 
 # The TMP_FILE_DIRECTORY parameter defines the location where temporary 
 # files (parsed raw data) will be placed. Default is /tmp.
