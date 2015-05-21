@@ -17,13 +17,18 @@ if exist C:\Windows\System32\wbem\wmic.exe (
 
 rem The HEAP_SIZE variable defines the Java heap size in MB.
 rem That is the total amount of memory available to MZmine 2.
-rem By default we set this to 1024 MB on 32-bit systems, or 
-rem half of the physical memory on 64-bit systems.
+rem By default we set this to 1024 MB on 32-bit systems. On 
+rem 64-bit systems we either set it to half of the total
+rem memory or 2048 MB less than the total memory.
 rem Feel free to adjust the HEAP_SIZE according to your needs.
 if %ADDRESS_WIDTH%==32 (
   set HEAP_SIZE=1024
 ) else (
-  set /a HEAP_SIZE=%TOTAL_MEMORY% / 2
+  if %TOTAL_MEMORY% gtr 4096 (
+	set /a HEAP_SIZE=%TOTAL_MEMORY%-2048
+  ) else (
+	set /a HEAP_SIZE=%TOTAL_MEMORY% / 2
+  )
 )
 echo Java heap size set to %HEAP_SIZE% MB
 

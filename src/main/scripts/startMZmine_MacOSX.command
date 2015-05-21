@@ -9,7 +9,12 @@ echo "Checking physical memory size..."
 TOTAL_MEMORY=`sysctl hw.memsize | awk '{ print int($2 / 1024^2) }'`
 echo "Found $TOTAL_MEMORY MB memory"
 
-HEAP_SIZE=`expr $TOTAL_MEMORY / 2`
+if [ "$TOTAL_MEMORY" -gt 4096 ]; then
+	HEAP_SIZE=`expr $TOTAL_MEMORY - 2048`
+else
+	HEAP_SIZE=`expr $TOTAL_MEMORY / 2`
+fi
+echo Java heap size set to $HEAP_SIZE MB
 echo Java heap size set to $HEAP_SIZE MB
 
 # The TMP_FILE_DIRECTORY parameter defines the location where temporary 
