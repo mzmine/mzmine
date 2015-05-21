@@ -1,9 +1,10 @@
 #!/bin/sh
 
-# The HEAP_SIZE variable defines the Java heap size in MB. 
+# The HEAP_SIZE variable defines the Java heap size in MB.
 # That is the total amount of memory available to MZmine 2.
-# By default we set this to the half of the physical memory 
-# size, but feel free to adjust according to your needs. 
+# By default we set this to half of the total memory or 
+# 2048 MB less than the total memory.
+# Feel free to adjust the HEAP_SIZE according to your needs.
 
 echo "Checking physical memory size..."
 TOTAL_MEMORY=`sysctl hw.memsize | awk '{ print int($2 / 1024^2) }'`
