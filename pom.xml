@@ -321,6 +321,7 @@
 			<artifactId>chemspider-api</artifactId>
 			<version>1.0</version>
 		</dependency>
+<!-- rJava: JRI -->
 		<dependency>
 			<groupId>rJava</groupId>
 			<artifactId>JRI</artifactId>
@@ -336,6 +337,14 @@
 			<artifactId>REngine</artifactId>
 			<version>0.9.3</version>
 		</dependency>
+<!-- rJava: END -->
+<!-- rosuda: REngine/Rserve -->
+		<dependency>
+    		<groupId>org.rosuda.REngine</groupId>
+    		<artifactId>Rserve</artifactId>
+    		<version>1.8.1</version>
+		</dependency>
+<!-- rosuda: END -->
 		<dependency>
 			<groupId>mzmine</groupId>
 			<artifactId>macspecificsetup</artifactId>
