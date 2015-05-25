@@ -23,7 +23,7 @@ export MZMINE_UNID="MZmine"$$
 
 # The TMP_FILE_DIRECTORY parameter defines the location where temporary 
 # files (parsed raw data) will be placed. Default is /tmp.
-TMP_FILE_DIRECTORY=$TMPDIR
+TMP_FILE_DIRECTORY=/tmp
 # Do not modify:
 # Make the working temp dir unique per MZmine instance.
 export TMP_FILE_DIRECTORY=$TMP_FILE_DIRECTORY/$MZMINE_UNID
