@@ -411,7 +411,7 @@ public class RSessionWrapper {
 
 	/**
 	 * Utility class to consume and eventually redirect system call outputs.
-	 * @author golgauth
+	 * 
 	 */
 	static class StreamGobbler extends Thread {
 

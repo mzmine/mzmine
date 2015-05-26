@@ -31,8 +31,7 @@ import net.sf.mzmine.util.ExitCode;
 
 /**
  * @description Rubber Band baseline corrector parameters.
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
+ * 
  */
 public class RubberBandCorrectorParameters extends SimpleParameterSet {
 

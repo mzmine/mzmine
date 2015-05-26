@@ -29,8 +29,6 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
 /**
  * @description Base interface for providing a new way for computing baselines.
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
 public interface BaselineProvider {
 

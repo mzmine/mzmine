@@ -30,8 +30,6 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
  * @description Asymmetric baseline corrector. Estimates a trend based on asymmetric least squares.
  * Uses "asysm" feature from "ptw" R-package (http://cran.r-project.org/web/packages/ptw/ptw.pdf).
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
 public class AsymmetryCorrector extends BaselineCorrector {
 

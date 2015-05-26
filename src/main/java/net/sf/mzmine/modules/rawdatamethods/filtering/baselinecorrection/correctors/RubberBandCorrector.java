@@ -32,8 +32,6 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
  * Estimates a trend based on Rubber Band algorithm (which determines a convex envelope for the spectra - underneath side).
  * Uses "spc.rubberband" feature from "hyperSpec" R-package (http://cran.r-project.org/web/packages/hyperSpec/vignettes/baseline.pdf).
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
 public class RubberBandCorrector extends BaselineCorrector {
 

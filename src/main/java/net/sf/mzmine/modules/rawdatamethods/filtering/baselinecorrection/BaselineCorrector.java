@@ -43,8 +43,6 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
  * @description Abstract corrector class for baseline correction. Has to be
  *              specialized via the implementation of a "BaselineProvider".
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
 public abstract class BaselineCorrector implements BaselineProvider,
 	MZmineModule {

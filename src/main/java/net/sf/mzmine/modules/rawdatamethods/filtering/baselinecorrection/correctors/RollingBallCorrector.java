@@ -32,8 +32,6 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
  * Uses "rollingBall" feature from "baseline" R-package (http://cran.r-project.org/web/packages/baseline/baseline.pdf).
  * (Ideas from Rolling Ball algorithm for X-ray spectra by M.A.Kneen and H.J. Annegarn. Variable window width has been left out).
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
 public class RollingBallCorrector extends BaselineCorrector {
 

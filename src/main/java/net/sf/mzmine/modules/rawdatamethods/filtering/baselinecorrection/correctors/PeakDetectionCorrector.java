@@ -34,8 +34,6 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
  * Uses "peakDetection" feature from "baseline" R-package (http://cran.r-project.org/web/packages/baseline/baseline.pdf).
  * (A translation from Kevin R. Coombes et al.'s MATLAB code for detecting peaks and removing baselines).
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
 public class PeakDetectionCorrector extends BaselineCorrector {
 
