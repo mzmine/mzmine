@@ -23,9 +23,8 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrector;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 /**
  * @description Rubber Band baseline corrector. Estimates a trend based on
@@ -46,7 +45,7 @@ public class RubberBandCorrector extends BaselineCorrector {
     }
 
     @Override
-    public double[] computeBaseline(final RSession rSession,
+    public double[] computeBaseline(final RSessionWrapper rSession,
 	    final RawDataFile origDataFile, double[] chromatogram,
 	    ParameterSet parameters) {
 
@@ -63,27 +62,27 @@ public class RubberBandCorrector extends BaselineCorrector {
 		RubberBandCorrectorParameters.BEND_FACTOR).getValue();
 
 	final double[] baseline;
-	synchronized (RUtilities.R_SEMAPHORE) {
+	synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
 
 	    try {
 		// Set chromatogram.
-		rSession.assignDoubleArray("chromatogram", chromatogram);
+		rSession.jri_assignDoubleArray("chromatogram", chromatogram);
 		// Transform chromatogram.
-		rSession.eval("mat = matrix(chromatogram, nrow=1)");
-		rSession.eval("spc <- new (\"hyperSpec\", spc = mat, wavelength = as.numeric(seq("
+		rSession.jri_eval("mat = matrix(chromatogram, nrow=1)");
+		rSession.jri_eval("spc <- new (\"hyperSpec\", spc = mat, wavelength = as.numeric(seq("
 			+ 1 + ", " + chromatogram.length + ")))");
 		// Auto noise ?
-		rSession.eval("noise <- "
+		rSession.jri_eval("noise <- "
 			+ ((autoNoise) ? "min(mat)" : "" + noise));
 		// Bend
-		rSession.eval("bend <- "
+		rSession.jri_eval("bend <- "
 			+ bend
 			+ " * wl.eval(spc, function(x) x^2, normalize.wl=normalize01)");
 		// Calculate baseline.
-		rSession.eval("baseline <- spc.rubberband(spc + bend, noise = noise, df = "
+		rSession.jri_eval("baseline <- spc.rubberband(spc + bend, noise = noise, df = "
 			+ df + ", spline=" + (spline ? "T" : "F") + ") - bend");
-		rSession.eval("baseline <- orderwl(baseline)[[1]]");
-		baseline = rSession.collectDoubleArray("baseline");
+		rSession.jri_eval("baseline <- orderwl(baseline)[[1]]");
+		baseline = rSession.jri_collectDoubleArray("baseline");
 	    } catch (Throwable t) {
 		// t.printStackTrace();
 		throw new IllegalStateException(

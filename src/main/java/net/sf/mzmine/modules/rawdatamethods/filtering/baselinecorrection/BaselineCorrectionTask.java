@@ -29,10 +29,10 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 /**
  * Task that performs baseline correction.
@@ -64,8 +64,7 @@ public class BaselineCorrectionTask extends AbstractTask {
     // Common parameters.
     private final ParameterSet commonParameters;
 
-    private final RengineType rEngineType;
-    private RSession rSession;
+    private RSessionWrapper rSession;
     private boolean userCanceled;
 
     /**
@@ -82,7 +81,6 @@ public class BaselineCorrectionTask extends AbstractTask {
 	// Initialize.
 	// this.rEngineType =
 	// parameters.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
-	this.rEngineType = RengineType.JRIengine;
 
 	this.project = project;
 	this.origDataFile = dataFile;
@@ -119,15 +117,15 @@ public class BaselineCorrectionTask extends AbstractTask {
 	    try {
 		String[] reqPackages = this.baselineCorrectorProcStep
 			.getModule().getRequiredRPackages();
-		this.rSession = new RSession(this.rEngineType, reqPackages);
-		this.rSession.open();
+		this.rSession = new RSessionWrapper(reqPackages);
+		this.rSession.jri_open();
 	    } catch (Throwable t) {
 		throw new IllegalStateException(t.getMessage());
 	    }
 
 	    // Check & load required R packages
 	    String missingPackage = null;
-	    missingPackage = this.rSession.loadRequiredPackages();
+	    missingPackage = this.rSession.jri_loadRequiredPackages();
 	    if (missingPackage != null) {
 		String msg = "The \""
 			+ this.baselineCorrectorProcStep.getModule().getName()
@@ -163,7 +161,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 		LOG.info("Baseline corrected " + origDataFile.getName());
 	    }
 	    // Turn off R instance
-	    this.rSession.close();
+	    this.rSession.jri_close();
 
 	} catch (Throwable t) {
 
@@ -175,9 +173,9 @@ public class BaselineCorrectionTask extends AbstractTask {
 		setErrorMessage(t.getMessage());
 		setStatus(TaskStatus.ERROR);
 		// Turn off R instance
-		this.rSession.close();
+		this.rSession.jri_close();
 	    } else {
-		this.rSession.close();
+		this.rSession.jri_close();
 	    }
 	}
 
@@ -190,7 +188,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 	this.userCanceled = true;
 
 	// Turn off R instance
-	this.rSession.close();
+	this.rSession.jri_close();
 
 	// Ask running module to stop
 	baselineCorrectorProcStep.getModule().setAbortProcessing(origDataFile,

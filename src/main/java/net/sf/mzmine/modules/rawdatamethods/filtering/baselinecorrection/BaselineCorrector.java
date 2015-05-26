@@ -31,9 +31,9 @@ import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RangeUtils;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
 
@@ -62,7 +62,6 @@ public abstract class BaselineCorrector implements BaselineProvider,
     private String suffix;
 
     // General parameters (common to all baseline correction methods).
-    private RengineType rEngineType;
     private ChromatogramType chromatogramType;
     private double binWidth;
     private boolean useBins;
@@ -100,7 +99,6 @@ public abstract class BaselineCorrector implements BaselineProvider,
 	// Get common parameters.
 	suffix = generalParameters.getParameter(
 		BaselineCorrectionParameters.SUFFIX).getValue();
-	rEngineType = RengineType.JRIengine;
 	chromatogramType = generalParameters.getParameter(
 		BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
 	binWidth = generalParameters.getParameter(
@@ -111,7 +109,7 @@ public abstract class BaselineCorrector implements BaselineProvider,
 		BaselineCorrectionParameters.MS_LEVEL).getValue();
     }
 
-    public final RawDataFile correctDatafile(final RSession rSession,
+    public final RawDataFile correctDatafile(final RSessionWrapper rSession,
 	    final RawDataFile dataFile, final ParameterSet parameters,
 	    final ParameterSet commonParameters) throws IOException {
 	// Get very last information from root module setup
@@ -267,7 +265,7 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @throws BaselineCorrectionException
      * @throws InterruptedException
      */
-    private void correctBasePeakBaselines(final RSession rSession,
+    private void correctBasePeakBaselines(final RSessionWrapper rSession,
 	    final RawDataFile origDataFile, final RawDataFileWriter writer,
 	    final int level, final int numBins, final ParameterSet parameters)
 	    throws IOException {
@@ -328,7 +326,7 @@ public abstract class BaselineCorrector implements BaselineProvider,
      *             if there are i/o problems.
      * @throws BaselineCorrectionException
      */
-    private void correctTICBaselines(final RSession rSession,
+    private void correctTICBaselines(final RSessionWrapper rSession,
 	    final RawDataFile origDataFile, final RawDataFileWriter writer,
 	    final int level, final int numBins, final ParameterSet parameters)
 	    throws IOException {
@@ -618,14 +616,6 @@ public abstract class BaselineCorrector implements BaselineProvider,
      */
     public void clearProgress(final RawDataFile origDataFile) {
 	progressMap.remove(origDataFile);
-    }
-
-    // R engine type
-    public RengineType getRengineType() {
-	// return
-	// MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
-	// .getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
-	return this.rEngineType;
     }
 
     // Chromatogram type

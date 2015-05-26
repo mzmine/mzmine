@@ -23,6 +23,7 @@ import net.sf.mzmine.util.LoggerStream;
 import net.sf.mzmine.util.TextUtils;
 import net.sf.mzmine.util.R.Rsession.RserverConf;
 import net.sf.mzmine.util.R.Rsession.Rsession;
+//import net.sf.mzmine.util.RUtilities.LoggerConsole;
 //import org.rosuda.JRI.Rengine;
 //import org.rosuda.REngine.REXPNull;
 //import org.rosuda.REngine.REngine;
@@ -50,6 +51,11 @@ import java.util.logging.Logger;
 import java.io.ByteArrayOutputStream;
 
 
+/** JRI imports **/
+import org.rosuda.JRI.RMainLoopCallbacks;
+import org.rosuda.JRI.Rengine;
+
+
 /**
  * @description TODO
  * @author Gauthier Boaglio
@@ -59,6 +65,232 @@ public class RSessionWrapper {
 
 	// Logger.
 	private static final Logger LOG = Logger.getLogger(RSessionWrapper.class.getName());
+
+
+	/************************************************************/
+	/**              Temporary JRI Engine features             **/
+	/************************************************************/
+
+	// Ancient RUtilities.java
+	
+	/**
+	 * R semaphore - all usage of R engine must be synchronized using this
+	 * semaphore.
+	 */
+	public static final Object jri_R_SEMAPHORE = new Object();
+
+	// An R Engine singleton.
+	private static org.rosuda.JRI.Rengine jriEngine = null;
+
+	/**
+	 * Gets the R Engine.
+	 * 
+	 * @return the R Engine - creating it if necessary.
+	 */
+	public static org.rosuda.JRI.Rengine jri_getREngine() {
+
+		synchronized (jri_R_SEMAPHORE) {
+
+			if (jriEngine == null) {
+
+				// Check if R is installed
+				File f = new File(System.getenv().get("R_HOME"));
+				String ErrorMsg;
+				if (f.exists() && f.isDirectory()) {
+					ErrorMsg = "\nPlease check if the path to the R libraries is set properly in the startMZmine script."
+							+ "\nCurrent values:"
+							+ "\n R_HOME="
+							+ System.getenv().get("R_HOME")
+							+ "\n R_SHARE_DIR="
+							+ System.getenv().get("R_SHARE_DIR")
+							+ "\n R_INCLUDE_DIR="
+							+ System.getenv().get("R_INCLUDE_DIR")
+							+ "\n R_DOC_DIR="
+							+ System.getenv().get("R_DOC_DIR")
+							+ "\n R_LIBS_USER="
+							+ System.getenv().get("R_LIBS_USER")
+							+ "\n JRI_LIB_PATH="
+							+ System.getenv().get("JRI_LIB_PATH") + "\n";
+				} else {
+					ErrorMsg = "Could not start R. Please check if R is installed and path to the "
+							+ "libraries is set properly in the startMZmine script. (R_HOME="
+							+ System.getenv().get("R_HOME") + ")";
+				}
+
+				try {
+
+					LOG.finest("Checking R Engine.");
+
+					/*
+					 * For some reason if we run Rengine.versionCheck() and R is
+					 * not installed, it will crash the JVM. This was observed
+					 * at least on Windows and Mac OS X. However, if we call
+					 * System.loadLibrary("jri") before calling Rengine class,
+					 * the crash is avoided and we can catch the
+					 * UnsatisfiedLinkError properly.
+					 */
+					System.loadLibrary("jri");
+
+					if (!org.rosuda.JRI.Rengine.versionCheck()) {
+						throw new IllegalStateException("JRI version mismatch");
+					}
+
+				} catch (UnsatisfiedLinkError error) {
+					throw new IllegalStateException(ErrorMsg);
+				}
+
+				LOG.finest("Creating R Engine.");
+				jriEngine = new org.rosuda.JRI.Rengine(new String[] { "--vanilla" }, false,
+						new LoggerConsole());
+
+				LOG.finest("Rengine created, waiting for R.");
+				if (!jriEngine.waitForR()) {
+					throw new IllegalStateException("Could not start R");
+				}
+
+			}
+			return jriEngine;
+		}
+	}
+
+	/**
+	 * Logs all output.
+	 */
+	private static class LoggerConsole implements org.rosuda.JRI.RMainLoopCallbacks {
+		@Override
+		public void rWriteConsole(final org.rosuda.JRI.Rengine re, final String text,
+				final int oType) {
+			LOG.finest(text);
+		}
+
+		@Override
+		public void rBusy(final org.rosuda.JRI.Rengine re, final int which) {
+			LOG.finest("rBusy(" + which + ')');
+		}
+
+		@Override
+		public String rReadConsole(final org.rosuda.JRI.Rengine re, final String prompt,
+				final int addToHistory) {
+			return null;
+		}
+
+		@Override
+		public void rShowMessage(final org.rosuda.JRI.Rengine re, final String message) {
+			LOG.finest("rShowMessage \"" + message + '\"');
+		}
+
+		@Override
+		public String rChooseFile(final org.rosuda.JRI.Rengine re, final int newFile) {
+			return null;
+		}
+
+		@Override
+		public void rFlushConsole(final org.rosuda.JRI.Rengine re) {
+		}
+
+		@Override
+		public void rLoadHistory(final org.rosuda.JRI.Rengine re, final String filename) {
+		}
+
+		@Override
+		public void rSaveHistory(final org.rosuda.JRI.Rengine re, final String filename) {
+		}
+	}
+
+	// Ancient RSession.java
+	
+	private Object jri_rEngine = null;
+	private String[] jri_reqPackages;
+
+	public RSessionWrapper(String[] reqPackages) {
+		this.jri_reqPackages = reqPackages;
+	}
+
+	private void jri_getRengineInstance() {
+
+		LOG.info("jri_getRengineInstance()");
+
+		try {
+			// Get JRI engine unique instance.
+			this.jri_rEngine = RSessionWrapper.jri_getREngine();
+			// Quick test
+			LOG.info(((org.rosuda.JRI.Rengine) this.jri_rEngine).eval("R.version.string")
+					.asString());
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw new IllegalStateException(
+					"This feature requires R but it couldn't be loaded ("
+							+ t.getMessage() + ')');
+		}
+	}
+	
+	public void jri_loadPackage(String packageName) {
+
+		String loadCode = "library(" + packageName + ", logical.return = TRUE)";
+		String errorMsg = "The \"" + packageName
+				+ "\" R package couldn't be loaded - is it installed in R?";
+
+		synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
+			if (((org.rosuda.JRI.Rengine) this.jri_rEngine).eval(loadCode).asBool().isFALSE()) {
+				throw new IllegalStateException(errorMsg);
+			}
+		}
+	}
+
+	public String jri_loadRequiredPackages() {
+
+		String reqPackage = null;
+		try {
+			for (int i = 0; i < this.jri_reqPackages.length; ++i) {
+				reqPackage = this.jri_reqPackages[i];
+				this.jri_loadPackage(this.jri_reqPackages[i]);
+				LOG.info("Loaded package: " + reqPackage + "'.");
+			}
+			return null;
+		} catch (Exception e) {
+			return reqPackage;
+		}
+	}
+
+	// TODO: templatize: assignDoubleArray<T>(String objName, T obj)
+	public void jri_assignDoubleArray(String objName, double[] dArray) {
+		// LOG.info("Assign '" + dArray + "' array to object '" + objName +
+		// "'.");
+		// synchronized (RUtilities.R_SEMAPHORE) {
+		((org.rosuda.JRI.Rengine) this.jri_rEngine).assign(objName, dArray);
+		// }
+		// LOG.info("Assign '" + dArray + "' array to object '" + objName +
+		// "' DONE!");
+	}
+
+	public void jri_eval(String rCode) {
+		// LOG.info("Eval: " + rCode);
+		// synchronized (RUtilities.R_SEMAPHORE) {
+		((org.rosuda.JRI.Rengine) this.jri_rEngine).eval(rCode);
+		// }
+	}
+
+	// TODO: templatize: T collectDoubleArray(String objName)
+	public double[] jri_collectDoubleArray(String objName) {
+		// synchronized (RUtilities.R_SEMAPHORE) {
+		return ((org.rosuda.JRI.Rengine) this.jri_rEngine).eval(objName).asDoubleArray();
+		// }
+	}
+
+	public void jri_open() {
+		// Load engine
+		jri_getRengineInstance();
+		// // Check & load packages
+		// this.loadRequiredPackages();
+	}
+
+	public void jri_close() {
+	}
+
+
+	/************************************************************/
+	/**                 Rserve Wrapping features               **/
+	/************************************************************/
 
 	private static boolean DEBUG = false;
 
@@ -80,25 +312,44 @@ public class RSessionWrapper {
 	private static final String RS_LOGIN = "MZmineUser";
 	private static final String RS_DYN_PWD = String.valueOf(java.util.UUID.randomUUID());
 	private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
-	
-	
 
-//	public enum RengineType {
-//
-//		JRIengine("JRIengine - mono-instance engine"), 
-//		Rserve("Rserve - multi-instance of Rserve (fast)");
-//
-//		private String type;
-//
-//		RengineType(String type) {
-//			this.type = type;
-//		}
-//
-//		public String toString() {
-//			return type;
-//		}
-//
-//	}
+	//----
+
+	// TODO: This variable has become quite useless since using Rsession.eval()
+	//			=> Remove it...
+	private Object rEngine = null;
+
+	private String callerFeatureName;
+	private String[] reqPackages;
+	private String[] reqPackagesVersions;
+
+	private Rsession session;
+	// Debug? (shows R eval errors feedback)
+	final static private boolean TRY_MODE = false;
+
+
+	private int rServePid = -1;
+	//private final int rServePort;
+
+	private boolean userCanceled = false;
+
+
+	//	public enum RengineType {
+	//
+	//		JRIengine("JRIengine - mono-instance engine"), 
+	//		Rserve("Rserve - multi-instance of Rserve (fast)");
+	//
+	//		private String type;
+	//
+	//		RengineType(String type) {
+	//			this.type = type;
+	//		}
+	//
+	//		public String toString() {
+	//			return type;
+	//		}
+	//
+	//	}
 
 
 	// MISC UTILITIES
@@ -135,7 +386,7 @@ public class RSessionWrapper {
 
 		}
 	}
-	
+
 	//** R path utilities
 	/** 
 	 * Helper class that consumes output of a process. In addition, it filters output of the REG 
@@ -183,7 +434,7 @@ public class RSessionWrapper {
 	 * @author golgauth
 	 */
 	static class StreamGobbler extends Thread {
-		
+
 		InputStream is;
 		String type;
 		OutputStream os;
@@ -273,30 +524,12 @@ public class RSessionWrapper {
 
 
 	// LET'S GET STARTED
-	
-//	private RengineType rEngineType;
-	// TODO: This variable has become quite useless since using Rsession.eval()
-	//			=> Remove it...
-	private Object rEngine = null;
-	private String callerFeatureName;
-	private String[] reqPackages;
-	private String[] reqPackagesVersions;
-
-	private Rsession session;
-	// Debug? (shows R eval errors feedback)
-	final static private boolean TRY_MODE = false;
-
-
-	private int rServePid = -1;
-	//private final int rServePort;
-
-	private boolean userCanceled = false;
 
 	/**
 	 * Constructor.
 	 */
 	public RSessionWrapper(String callerFeatureName, /*RengineType type,*/ String[] reqPackages, String[] reqPackagesVersions) {
-//		this.rEngineType = type;
+		//		this.rEngineType = type;
 		this.callerFeatureName = callerFeatureName;
 		this.reqPackages = reqPackages;
 		this.reqPackagesVersions = reqPackagesVersions;
@@ -306,12 +539,12 @@ public class RSessionWrapper {
 	private void getRengineInstance() throws RSessionWrapperException {
 
 		try {
-//			if (this.rEngineType == RengineType.JRIengine) {
-//				// Get JRI engine unique instance.
-//				this.rEngine = RUtilities.getREngine();
-//				// Quick test
-//				LOG.log(logLvl, ((Rengine)this.rEngine).eval("R.version.string").asString());
-//			} else 
+			//			if (this.rEngineType == RengineType.JRIengine) {
+			//				// Get JRI engine unique instance.
+			//				this.rEngine = RUtilities.getREngine();
+			//				// Quick test
+			//				LOG.log(logLvl, ((Rengine)this.rEngine).eval("R.version.string").asString());
+			//			} else 
 			{
 
 				String globalFailureMsg = 
@@ -324,11 +557,11 @@ public class RSessionWrapper {
 				if (this.rEngine == null) {
 
 					boolean isWindows = RSessionWrapper.isWindows();
-					
+
 					try {
 
 						synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
-							
+
 							if (R_HOME == null) { R_HOME = System.getenv(R_HOME_KEY); }
 
 							// If retrieving 'R_HOME' from environment failed, try to find out automatically.
@@ -347,13 +580,13 @@ public class RSessionWrapper {
 										"Correct path to the R installation directory could not be obtained "
 												+ "neither automatically, nor via the '" + R_HOME_KEY + "' environment variable. "
 												+ "Please try to set it manually in the startMZmine script.");
-	
-	
+
+
 							//						// Security...
 							//						Properties props = new Properties();
 							//						props.setProperty("remote", "enable");
 							//						props.setProperty("auth", "required");
-	
+
 							// Under *NUX, create the very first Rserve instance (kind of proxy), designed 
 							// only to spawn other (computing) instances (Released at app. exit - see note below).
 							if (!isWindows && RSessionWrapper.MASTER_SESSION == null) {
@@ -408,11 +641,11 @@ public class RSessionWrapper {
 								//**this.session = Rsession.newLocalInstance(logStream, null);
 								this.session = Rsession.newRemoteInstance(logStream, conf, TMP_DIR);
 							}
-							
+
 							if (this.session == null)
 								throw new IllegalArgumentException(globalFailureMsg);
-							
-							
+
+
 							this.register();
 
 						}
@@ -424,14 +657,14 @@ public class RSessionWrapper {
 						throw new RSessionWrapperException(globalFailureMsg);
 					}
 
-					
+
 					// As "Rsession.newInstanceTry()" runs an Rdaemon Thread. It is scheduled already,
 					// meaning the session will be opened even for "WAITING" tasks, in any case, and even
 					// if it's been meanwhile canceled.
 					// Consequently, we need to kill it after the instance has been created, since trying to abort
 					// the instance (close the session) before it exists would result in no termination at all.
 					if (this.session != null) {
-						
+
 						if (this.session.connection != null) {
 							// Keep an opened instance and store the related PID.
 							this.rServePid = this.session.connection.eval("Sys.getpid()").asInteger();
@@ -448,7 +681,7 @@ public class RSessionWrapper {
 							this.close(true);
 							return;
 						}
-						
+
 					}								
 
 				}
@@ -461,53 +694,53 @@ public class RSessionWrapper {
 		}
 	}
 
-//	public RengineType getRengineType() {
-//		return this.rEngineType;
-//	}
-	
-	
+	//	public RengineType getRengineType() {
+	//		return this.rEngineType;
+	//	}
+
+
 	public void loadPackage(String packageName) throws RSessionWrapperException {
 
-//		String loadCode = "library(" + packageName + ", logical.return = TRUE)";
+		//		String loadCode = "library(" + packageName + ", logical.return = TRUE)";
 		String errorMsg = "The \"" + this.callerFeatureName + "\" requires " +
-		"the \"" + packageName + "\" R package, which couldn't be loaded - is it installed in R?";
+				"the \"" + packageName + "\" R package, which couldn't be loaded - is it installed in R?";
 
 
-//		if (this.rEngineType == RengineType.JRIengine) {
-//			synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
-//				if (((Rengine) this.rEngine).eval(loadCode).asBool().isFALSE()) {
-//					throw new RSessionWrapperException(errorMsg);
-//				}
-//				LOG.log(logLvl, "Loaded package: '" + packageName + "'.");
-//			}
-//		} else 
+		//		if (this.rEngineType == RengineType.JRIengine) {
+		//			synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
+		//				if (((Rengine) this.rEngine).eval(loadCode).asBool().isFALSE()) {
+		//					throw new RSessionWrapperException(errorMsg);
+		//				}
+		//				LOG.log(logLvl, "Loaded package: '" + packageName + "'.");
+		//			}
+		//		} else 
 		{
 			if (this.session != null && !this.userCanceled) {
 				LOG.log(logLvl, "Loading package '" + packageName + "'...");
-//				int loaded = 0;
+				//				int loaded = 0;
 				String loadStatus = null;
-//				try {
-//					////loaded = ((RConnection) this.rEngine).eval(loadCode).asInteger();
-//					REXP r = ((RConnection) this.rEngine).eval("try(" + loadCode + ", silent=TRUE)");
-//					if (r.inherits("try-error")) {
-//						LOG.severe("R Error [0]: " + r.asString());
-//						LOG.severe("R eval attempt [0]: " + loadCode);
-//					}
-//					loaded = r.asInteger();
-//					LOG.log(logLvl, "Load return: '" + loaded + "'.");
-//					
-//				} catch (RserveException | REXPMismatchException e) {
-//					LOG.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
-//					// Remain silent if eval KO ("server down").
-//					loaded = Integer.MIN_VALUE;
-//				}
-					
+				//				try {
+				//					////loaded = ((RConnection) this.rEngine).eval(loadCode).asInteger();
+				//					REXP r = ((RConnection) this.rEngine).eval("try(" + loadCode + ", silent=TRUE)");
+				//					if (r.inherits("try-error")) {
+				//						LOG.severe("R Error [0]: " + r.asString());
+				//						LOG.severe("R eval attempt [0]: " + loadCode);
+				//					}
+				//					loaded = r.asInteger();
+				//					LOG.log(logLvl, "Load return: '" + loaded + "'.");
+				//					
+				//				} catch (RserveException | REXPMismatchException e) {
+				//					LOG.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
+				//					// Remain silent if eval KO ("server down").
+				//					loaded = Integer.MIN_VALUE;
+				//				}
+
 				loadStatus = this.session.loadPackage(packageName);
-				
+
 				// Throw loading failure only if eval OK, but return FALSE
 				// (package not loaded).
 				// ("server down" case will be handled soon enough).
-//				if (loaded == 0)
+				//				if (loaded == 0)
 				if (!loadStatus.equals(Rsession.PACKAGELOADED))
 					if (!this.userCanceled) throw new RSessionWrapperException(errorMsg);
 
@@ -518,27 +751,27 @@ public class RSessionWrapper {
 
 	public void checkPackageVersion(String packageName, String version) throws RSessionWrapperException {
 
-//		String checkVersionCode = "packageVersion('" + packageName + "') >= '" + version + "\'";
+		//		String checkVersionCode = "packageVersion('" + packageName + "') >= '" + version + "\'";
 		String errorMsg = "The \"" + this.callerFeatureName + "\" requires " +
 				"the \"" + packageName + "\" R package, which was found, but is too old? - please update '" + packageName + "' to version "
 				+ version + " or later.";
 
 		if (this.session != null && !this.userCanceled) {
 			LOG.log(logLvl, "Checking package version: '" + packageName + "' for version '" + version + "'...");
-//			int version_ok = 0;
+			//			int version_ok = 0;
 			String versionStatus = null;
-//			try {
-//				version_ok = ((RConnection) this.rEngine).eval(checkVersionCode).asInteger();
-//			} catch (RserveException | REXPMismatchException e) {
-//				// Remain silent if eval KO ("server down").
-//				version_ok = Integer.MIN_VALUE;
-//			}
-			
+			//			try {
+			//				version_ok = ((RConnection) this.rEngine).eval(checkVersionCode).asInteger();
+			//			} catch (RserveException | REXPMismatchException e) {
+			//				// Remain silent if eval KO ("server down").
+			//				version_ok = Integer.MIN_VALUE;
+			//			}
+
 			versionStatus = this.session.checkPackageVersion(packageName, version);
-			
+
 			// Throw version failure only if eval OK (package too old).
 			// ("server down" case will be handled soon enough).
-//			if (version_ok == 0)
+			//			if (version_ok == 0)
 			if (!versionStatus.equals(Rsession.PACKAGEVERSIONOK))
 				if (!this.userCanceled) throw new RSessionWrapperException(errorMsg);
 
@@ -546,53 +779,53 @@ public class RSessionWrapper {
 		}
 	}
 
-//	public String loadRequiredPackages() {
-//
-//		if (this.reqPackages == null) return null;
-//		
-//		String reqPackage = null;
-//		try {
-//			for (int i=0; i < this.reqPackages.length; ++i) {
-//				reqPackage = this.reqPackages[i];
-//				this.loadPackage(this.reqPackages[i]);
-//			}
-//			return null;
-//		} catch (Exception e) {
-//			LOG.severe("Failed loading package: '" + reqPackage + "'.");
-//			return reqPackage;
-//		}			
-//	}
+	//	public String loadRequiredPackages() {
+	//
+	//		if (this.reqPackages == null) return null;
+	//		
+	//		String reqPackage = null;
+	//		try {
+	//			for (int i=0; i < this.reqPackages.length; ++i) {
+	//				reqPackage = this.reqPackages[i];
+	//				this.loadPackage(this.reqPackages[i]);
+	//			}
+	//			return null;
+	//		} catch (Exception e) {
+	//			LOG.severe("Failed loading package: '" + reqPackage + "'.");
+	//			return reqPackage;
+	//		}			
+	//	}
 	public void loadAndCheckRequiredPackages() throws RSessionWrapperException {
 
 		// Prerequisites...
-		
+
 		if (this.reqPackages == null) return;
-		
+
 		if (this.reqPackagesVersions != null && this.reqPackages.length > 0 && 
 				this.reqPackages.length != this.reqPackagesVersions.length) {
 			if (!this.userCanceled) throw new IllegalStateException(
 					"'reqPackages' and 'reqPackagesVersions' arrays must be the same length!");
 		}
 
-		
+
 		// 
 		//**String reqPackage = null;
 		//**try {
-			for (int i=0; i < this.reqPackages.length; ++i) {
+		for (int i=0; i < this.reqPackages.length; ++i) {
 
-				//**reqPackage = this.reqPackages[i];
+			//**reqPackage = this.reqPackages[i];
 
-				// Load.
-				this.loadPackage(this.reqPackages[i]);
+			// Load.
+			this.loadPackage(this.reqPackages[i]);
 
-				// Check version.
-				// - Pass null as a version array to skip all version checks.
-				// - Pass null as a version to skip version check for given 'i' package.
-				if (this.reqPackagesVersions == null || this.reqPackagesVersions.length == 0
-						|| this.reqPackagesVersions[i] == null) { continue; }
-				this.checkPackageVersion(this.reqPackages[i], this.reqPackagesVersions[i]);
-				
-			}
+			// Check version.
+			// - Pass null as a version array to skip all version checks.
+			// - Pass null as a version to skip version check for given 'i' package.
+			if (this.reqPackagesVersions == null || this.reqPackagesVersions.length == 0
+					|| this.reqPackagesVersions[i] == null) { continue; }
+			this.checkPackageVersion(this.reqPackages[i], this.reqPackagesVersions[i]);
+
+		}
 		//**	return;
 		//**} catch (Exception e) {
 		//**	LOG.severe("Failed loading package: '" + reqPackage + "'.");
@@ -600,33 +833,33 @@ public class RSessionWrapper {
 		//**}			
 	}
 
-//	public String checkPackagesVersions() throws RSessionWrapperException {
-//
-//		if (this.reqPackages == null || this.reqPackagesVersions == null) return null;
-//		
-//		if (this.reqPackages.length != this.reqPackagesVersions.length) {
-//			if (!this.userCanceled) throw new IllegalStateException(
-//					"'reqPackages' an 'reqPackagesVersions' arrays must be the same length!");
-//		}
-//
-//		String reqPackage = null;
-//		try {
-//			for (int i=0; i < this.reqPackages.length; ++i) {
-//				
-//				// Pass null as a version to skip version check for given package.
-//				if (this.reqPackagesVersions[i] == null) { continue; }
-//				
-//				reqPackage = this.reqPackages[i];
-//				this.checkPackageVersion(this.reqPackages[i], this.reqPackagesVersions[i]);
-//			}
-//			return null;
-//		} catch (RSessionWrapperException e) {
-//			LOG.severe("Package version check failed: '" + reqPackage + "'. " + e.getMessage());
-//			//return reqPackage;
-//			if (!this.userCanceled) throw new RSessionWrapperException(e.getMessage());
-//		}
-//		return reqPackage;			
-//	}
+	//	public String checkPackagesVersions() throws RSessionWrapperException {
+	//
+	//		if (this.reqPackages == null || this.reqPackagesVersions == null) return null;
+	//		
+	//		if (this.reqPackages.length != this.reqPackagesVersions.length) {
+	//			if (!this.userCanceled) throw new IllegalStateException(
+	//					"'reqPackages' an 'reqPackagesVersions' arrays must be the same length!");
+	//		}
+	//
+	//		String reqPackage = null;
+	//		try {
+	//			for (int i=0; i < this.reqPackages.length; ++i) {
+	//				
+	//				// Pass null as a version to skip version check for given package.
+	//				if (this.reqPackagesVersions[i] == null) { continue; }
+	//				
+	//				reqPackage = this.reqPackages[i];
+	//				this.checkPackageVersion(this.reqPackages[i], this.reqPackagesVersions[i]);
+	//			}
+	//			return null;
+	//		} catch (RSessionWrapperException e) {
+	//			LOG.severe("Package version check failed: '" + reqPackage + "'. " + e.getMessage());
+	//			//return reqPackage;
+	//			if (!this.userCanceled) throw new RSessionWrapperException(e.getMessage());
+	//		}
+	//		return reqPackage;			
+	//	}
 
 
 	public static class InputREXPFactory {
@@ -657,9 +890,9 @@ public class RSessionWrapper {
 				x = new REXPString((String[])object);
 			}
 			// Shall we handle NULL exp case?
-//			else if (object == null) {
-//				x = new REXPNull();
-//			}
+			//			else if (object == null) {
+			//				x = new REXPNull();
+			//			}
 
 			return x;
 		}
@@ -696,49 +929,49 @@ public class RSessionWrapper {
 				else o = obj;
 			}
 			// Shall we handle NULL exp case?
-//			else if (rexp instanceof REXPNull) {
-//				o = null;
-//			}
+			//			else if (rexp instanceof REXPNull) {
+			//				o = null;
+			//			}
 
 			return o;
 		}
 	}
 
-//	// TODO: Templatize: assignDoubleArray<T>(String objName, T obj)
-//	public void assignDoubleArray(String objName, double[] dArray) throws RSessionWrapperException {
-//
-////		if (this.rEngineType == RengineType.JRIengine) {
-////			synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
-////				((Rengine) this.rEngine).assign(objName, dArray);
-////			}
-////		} else 
-//		{
-//			if (this.session != null && !this.userCanceled) {
-//				String msg = "Rserve error: couldn't assign R object '" + objName + "' (instance '" + this.getPID() + "').";
-//				try {
-//					((RConnection) this.rEngine).assign(objName, dArray);
-//				} 
-//				catch (REngineException e) {
-//					throw new RSessionWrapperException(msg);
-//				} catch (Exception e) {
-//					throw new RSessionWrapperException(e.getMessage());
-//				}
-//			}
-//		}
-//	}
-	
+	//	// TODO: Templatize: assignDoubleArray<T>(String objName, T obj)
+	//	public void assignDoubleArray(String objName, double[] dArray) throws RSessionWrapperException {
+	//
+	////		if (this.rEngineType == RengineType.JRIengine) {
+	////			synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
+	////				((Rengine) this.rEngine).assign(objName, dArray);
+	////			}
+	////		} else 
+	//		{
+	//			if (this.session != null && !this.userCanceled) {
+	//				String msg = "Rserve error: couldn't assign R object '" + objName + "' (instance '" + this.getPID() + "').";
+	//				try {
+	//					((RConnection) this.rEngine).assign(objName, dArray);
+	//				} 
+	//				catch (REngineException e) {
+	//					throw new RSessionWrapperException(msg);
+	//				} catch (Exception e) {
+	//					throw new RSessionWrapperException(e.getMessage());
+	//				}
+	//			}
+	//		}
+	//	}
+
 	public <T> void assign(String objName, T object) throws RSessionWrapperException {
 
 		if (this.session != null && !this.userCanceled) {
 			String msg = "Rserve error: couldn't assign R object '" + objName + "' (instance '" + this.getPID() + "').";
-//			try {
-//				((RConnection) this.rEngine).assign(objName, InputREXPFactory.getREXP(object));
-//			} 
-//			catch (REngineException e) {
-//				throw new RSessionWrapperException(msg);
-//			} catch (Exception e) {
-//				throw new RSessionWrapperException(e.getMessage());
-//			}
+			//			try {
+			//				((RConnection) this.rEngine).assign(objName, InputREXPFactory.getREXP(object));
+			//			} 
+			//			catch (REngineException e) {
+			//				throw new RSessionWrapperException(msg);
+			//			} catch (Exception e) {
+			//				throw new RSessionWrapperException(e.getMessage());
+			//			}
 			try {
 				this.session.connection.assign(objName, InputREXPFactory.getREXP(object));
 			} catch (RserveException e) {
@@ -751,43 +984,43 @@ public class RSessionWrapper {
 
 	public void eval(String rCode) throws RSessionWrapperException {
 
-		
+
 		//rCode = "try(" + rCode + ",silent=TRUE)";
-		
-//		if (this.rEngineType == RengineType.JRIengine) {
-//			synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
-//				((Rengine) this.rEngine).eval(rCode);
-//			}
-//		} else 
+
+		//		if (this.rEngineType == RengineType.JRIengine) {
+		//			synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
+		//				((Rengine) this.rEngine).eval(rCode);
+		//			}
+		//		} else 
 		{
 			if (this.session != null && !this.userCanceled) {
 				String msg = "Rserve error: couldn't eval R code '" + rCode + "' (instance '" + this.getPID() + "').";
-//				try {
-//					////((RConnection) this.rEngine).eval(rCode);
-//					REXP r = ((RConnection) this.rEngine).eval(rCode);
-//					if (r2.inherits("try-error")) {
-//						LOG.severe("R Error [1]: " + r.asString());
-//						LOG.severe("R eval attempt [1]: " + rCode);
-//						LOG.severe("Debug string" + r.toDebugString());
-//						LOG.severe("String" + r.toString());
-//					}
-//					//else { /* success ... */ }		
-//					LOG.severe("R error [3]: " + ((RConnection) this.rEngine).getLastError());
-//				}
-//				catch (RserveException e) {
-//					LOG.severe("R error [2]: " + getErrMessage());
-//					throw new RSessionWrapperException(msg);
-//				} catch (Exception e) {
-//					throw new RSessionWrapperException(e.getMessage());
-//				}
-			
+				//				try {
+				//					////((RConnection) this.rEngine).eval(rCode);
+				//					REXP r = ((RConnection) this.rEngine).eval(rCode);
+				//					if (r2.inherits("try-error")) {
+				//						LOG.severe("R Error [1]: " + r.asString());
+				//						LOG.severe("R eval attempt [1]: " + rCode);
+				//						LOG.severe("Debug string" + r.toDebugString());
+				//						LOG.severe("String" + r.toString());
+				//					}
+				//					//else { /* success ... */ }		
+				//					LOG.severe("R error [3]: " + ((RConnection) this.rEngine).getLastError());
+				//				}
+				//				catch (RserveException e) {
+				//					LOG.severe("R error [2]: " + getErrMessage());
+				//					throw new RSessionWrapperException(msg);
+				//				} catch (Exception e) {
+				//					throw new RSessionWrapperException(e.getMessage());
+				//				}
+
 				boolean ok = this.session.voidEval(rCode, true);
 				if (!ok)
 					throw new RSessionWrapperException(msg);
 			}
 		}
 	}
-	
+
 	public String getErrMessage() throws RSessionWrapperException {
 		try {
 			//return ((RConnection) this.rEngine).eval("geterrmessage()").asString();
@@ -800,30 +1033,30 @@ public class RSessionWrapper {
 		}
 	}
 
-//	// TODO: Templatize: T collectDoubleArray(String objName)
-//	public double[] collectDoubleArray(String objName) throws RSessionWrapperException {
-//		
-////		if (this.rEngineType == RengineType.JRIengine) {
-////			synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
-////				return ((Rengine) this.rEngine).eval(objName).asDoubleArray();
-////			}
-////		} else 
-//		{
-//			if (this.session != null && !this.userCanceled) {
-//				String msg = "Rserve error: couldn't collect R object '" + objName + "' (instance '" + this.getPID() + "').";
-//				try {
-//					return ((RConnection) this.rEngine).eval(objName).asDoubles();
-//				} 
-//				catch (RserveException | REXPMismatchException e) {
-//					throw new RSessionWrapperException(msg);
-//				} catch (Exception e) {
-//					throw new RSessionWrapperException(e.getMessage());
-//				}
-//			}
-//		}
-//		return null;
-//	}
-	
+	//	// TODO: Templatize: T collectDoubleArray(String objName)
+	//	public double[] collectDoubleArray(String objName) throws RSessionWrapperException {
+	//		
+	////		if (this.rEngineType == RengineType.JRIengine) {
+	////			synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
+	////				return ((Rengine) this.rEngine).eval(objName).asDoubleArray();
+	////			}
+	////		} else 
+	//		{
+	//			if (this.session != null && !this.userCanceled) {
+	//				String msg = "Rserve error: couldn't collect R object '" + objName + "' (instance '" + this.getPID() + "').";
+	//				try {
+	//					return ((RConnection) this.rEngine).eval(objName).asDoubles();
+	//				} 
+	//				catch (RserveException | REXPMismatchException e) {
+	//					throw new RSessionWrapperException(msg);
+	//				} catch (Exception e) {
+	//					throw new RSessionWrapperException(e.getMessage());
+	//				}
+	//			}
+	//		}
+	//		return null;
+	//	}
+
 	/**
 	 * Casting the result to the correct type is left to the user.
 	 * @param obj String expression or object name.
@@ -833,7 +1066,7 @@ public class RSessionWrapper {
 	public Object collect(String obj) throws RSessionWrapperException {
 
 		Object object = null;
-		
+
 		//obj = "try(" + obj + ",silent=TRUE)";
 
 		if (this.session != null && !this.userCanceled) {
@@ -841,12 +1074,12 @@ public class RSessionWrapper {
 			String msg = "Rserve error: couldn't collect result for R expression '" + obj + "' (instance '" + this.getPID() + "').";
 			try {
 				////object = OutputObjectFactory.getObject(((RConnection) this.rEngine).eval(obj));
-//				REXP r = ((RConnection) this.rEngine).eval(obj);
-//				if (r.inherits("try-error")) {
-//					LOG.severe("R Error [1]: " + r.asString());
-//					LOG.severe("R eval attempt [1]: " + obj);
-//				}
-//				//else { /* success ... */ }			
+				//				REXP r = ((RConnection) this.rEngine).eval(obj);
+				//				if (r.inherits("try-error")) {
+				//					LOG.severe("R Error [1]: " + r.asString());
+				//					LOG.severe("R eval attempt [1]: " + obj);
+				//				}
+				//				//else { /* success ... */ }			
 				REXP r = this.session.eval(obj, RSessionWrapper.TRY_MODE);
 				object = OutputObjectFactory.getObject(r);
 				// Shall we handle NULL exp case?
@@ -872,12 +1105,12 @@ public class RSessionWrapper {
 			String msg = "Rserve error: couldn't collect result for R expression '" + obj + "' (instance '" + this.getPID() + "').";
 			try {
 				////object = ((RConnection) this.rEngine).eval(obj).asDoubleMatrix();
-//				REXP r = ((RConnection) this.rEngine).eval(obj);
-//				if (r.inherits("try-error")) {
-//					LOG.severe("R Error [1]: " + r.asString());
-//					LOG.severe("R eval attempt [1]: " + obj);
-//				}
-//				//else { /* success ... */ }
+				//				REXP r = ((RConnection) this.rEngine).eval(obj);
+				//				if (r.inherits("try-error")) {
+				//					LOG.severe("R Error [1]: " + r.asString());
+				//					LOG.severe("R eval attempt [1]: " + obj);
+				//				}
+				//				//else { /* success ... */ }
 				REXP r = this.session.eval(obj, RSessionWrapper.TRY_MODE);
 				object = r.asDoubleMatrix();
 				// Shall we handle NULL exp case?
@@ -896,26 +1129,26 @@ public class RSessionWrapper {
 
 
 	public void open() throws RSessionWrapperException {
-		
+
 		// Redirect 'Rsession' gossiping on standard outputs to logger.
 		System.setOut(logStream);
 		System.setErr(logStream);
-		
+
 		// Do nothing if session was canceled.
 		if (!this.userCanceled) { 
-		
+
 			// Load R engine.
 			getRengineInstance();
-		
+
 			// Load & check required R packages.
-//			String koPackage = null;
-//			koPackage = this.loadRequiredPackages();
-//			if (koPackage != null) {
-//				String msg = "The \"" + this.callerFeatureName + "\" requires " +
-//						"the \"" + koPackage + "\" R package, which couldn't be loaded - is it installed in R?";
-//				throw new RSessionWrapperException(msg);
-//			}
-//			this.checkPackagesVersions();
+			//			String koPackage = null;
+			//			koPackage = this.loadRequiredPackages();
+			//			if (koPackage != null) {
+			//				String msg = "The \"" + this.callerFeatureName + "\" requires " +
+			//						"the \"" + koPackage + "\" R package, which couldn't be loaded - is it installed in R?";
+			//				throw new RSessionWrapperException(msg);
+			//			}
+			//			this.checkPackagesVersions();
 			loadAndCheckRequiredPackages();
 		}
 	}
@@ -936,31 +1169,31 @@ public class RSessionWrapper {
 
 			try {
 
-//				// Win: Session closure synchronized to handle reuse of ports properly. 
-//				Object rSemaphore = (RUtilities.isWindows()) ? RSessionWrapper.R_SESSION_SEMAPHORE : this.R_DUMMY_SEMAPHORE;
-//				synchronized (rSemaphore) {
-						
-					LOG.log(logLvl, "Rserve: try terminate " + ((this.rServePid == -1) ? "pending" : "") + " session" + 
-							((this.rServePid == -1) ? "..." : " (pid: '" 
-									+ this.rServePid + "' | port: '" + this.session.rServeConf.port + "')..."));
-	
-					// Avoid 'Rsession' to 'printStackTrace' while catching 'SocketException'
-					// (since we are about to brute force kill the Rserve instance, such that
-					// the session won't end properly).
-					RSessionWrapper.muteStdOutErr();
-					{
-						RSessionWrapper.killRserveInstance(this);			
-						this.session.end();
-					}
-					RSessionWrapper.unMuteStdOutErr();
-	
-					LOG.log(logLvl, "Rserve: terminated " + ((this.rServePid == -1) ? "pending" : "") + " session" + 
-							((this.rServePid == -1) ? "..." : " (pid: '" 
-									+ this.rServePid + "' | port: '" + this.session.rServeConf.port + "')..."));
-	
-					// Release session (prevents from calling close again on a closed instance).
-					this.session = null;
-//				}
+				//				// Win: Session closure synchronized to handle reuse of ports properly. 
+				//				Object rSemaphore = (RUtilities.isWindows()) ? RSessionWrapper.R_SESSION_SEMAPHORE : this.R_DUMMY_SEMAPHORE;
+				//				synchronized (rSemaphore) {
+
+				LOG.log(logLvl, "Rserve: try terminate " + ((this.rServePid == -1) ? "pending" : "") + " session" + 
+						((this.rServePid == -1) ? "..." : " (pid: '" 
+								+ this.rServePid + "' | port: '" + this.session.rServeConf.port + "')..."));
+
+				// Avoid 'Rsession' to 'printStackTrace' while catching 'SocketException'
+				// (since we are about to brute force kill the Rserve instance, such that
+				// the session won't end properly).
+				RSessionWrapper.muteStdOutErr();
+				{
+					RSessionWrapper.killRserveInstance(this);			
+					this.session.end();
+				}
+				RSessionWrapper.unMuteStdOutErr();
+
+				LOG.log(logLvl, "Rserve: terminated " + ((this.rServePid == -1) ? "pending" : "") + " session" + 
+						((this.rServePid == -1) ? "..." : " (pid: '" 
+								+ this.rServePid + "' | port: '" + this.session.rServeConf.port + "')..."));
+
+				// Release session (prevents from calling close again on a closed instance).
+				this.session = null;
+				//				}
 
 			} catch (Throwable t) {
 				// Adapt/refactor message accordingly to the way the termination was provoked:

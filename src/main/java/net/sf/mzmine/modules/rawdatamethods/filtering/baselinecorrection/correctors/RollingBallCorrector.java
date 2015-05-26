@@ -23,9 +23,8 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrector;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 /**
  * @description Rolling Ball baseline corrector. Estimates a trend based on
@@ -47,7 +46,7 @@ public class RollingBallCorrector extends BaselineCorrector {
     }
 
     @Override
-    public double[] computeBaseline(final RSession rSession,
+    public double[] computeBaseline(final RSessionWrapper rSession,
 	    final RawDataFile origDataFile, double[] chromatogram,
 	    ParameterSet parameters) {
 
@@ -58,16 +57,16 @@ public class RollingBallCorrector extends BaselineCorrector {
 		RollingBallCorrectorParameters.SMOOTHING).getValue();
 
 	final double[] baseline;
-	synchronized (RUtilities.R_SEMAPHORE) {
+	synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
 
 	    try {
 		// Set chromatogram.
-		rSession.assignDoubleArray("chromatogram", chromatogram);
+		rSession.jri_assignDoubleArray("chromatogram", chromatogram);
 		// Transform chromatogram.
-		rSession.eval("mat = matrix(chromatogram, nrow=1)");
+		rSession.jri_eval("mat = matrix(chromatogram, nrow=1)");
 
 		// Calculate baseline.
-		rSession.eval("bl = NULL");
+		rSession.jri_eval("bl = NULL");
 		// This method can fail for some bins when "useBins" is enabled,
 		// or more generally speaking for
 		// abusive parameter set
@@ -79,13 +78,13 @@ public class RollingBallCorrector extends BaselineCorrector {
 			+ "message(\"<R error>: \", err);" + "}, finally = {" +
 			// "" +
 			"})";
-		rSession.eval(cmd);
+		rSession.jri_eval(cmd);
 		// Return a flat baseline (passing by the lowest intensity scan
 		// - "min(chromatogram)") in case of failure
 		// Anyway, this usually happens when "chromatogram" is fully
 		// flat and zeroed.
-		rSession.eval("if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }");
-		baseline = rSession.collectDoubleArray("baseline");
+		rSession.jri_eval("if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }");
+		baseline = rSession.jri_collectDoubleArray("baseline");
 	    } catch (Throwable t) {
 		// t.printStackTrace();
 		throw new IllegalStateException(

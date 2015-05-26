@@ -23,9 +23,8 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrector;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 /**
  * @description Local Minima + LOESS (smoothed low-percentile intensity)
@@ -45,7 +44,7 @@ public class LocMinLoessCorrector extends BaselineCorrector {
     }
 
     @Override
-    public double[] computeBaseline(final RSession rSession,
+    public double[] computeBaseline(final RSessionWrapper rSession,
 	    final RawDataFile origDataFile, double[] chromatogram,
 	    ParameterSet parameters) {
 
@@ -62,29 +61,29 @@ public class LocMinLoessCorrector extends BaselineCorrector {
 		LocMinLoessCorrectorParameters.QNTL).getValue();
 
 	final double[] baseline;
-	synchronized (RUtilities.R_SEMAPHORE) {
+	synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
 
 	    try {
 		// Set chromatogram.
-		rSession.assignDoubleArray("chromatogram", chromatogram);
+		rSession.jri_assignDoubleArray("chromatogram", chromatogram);
 		// Transform chromatogram.
 		int mini = 1;
 		int maxi = chromatogram.length;
-		rSession.eval("mat = cbind(matrix(seq(" + ((double) mini)
+		rSession.jri_eval("mat = cbind(matrix(seq(" + ((double) mini)
 			+ ", " + ((double) maxi) + ", by = 1.0), ncol=1), "
 			+ "matrix(chromatogram[" + mini + ":" + maxi
 			+ "], ncol=1))");
 		// Breaks
-		rSession.eval("breaks <- "
+		rSession.jri_eval("breaks <- "
 			+ ((breaks_width > 0) ? (int) Math
 				.round((double) (maxi - mini)
 					/ (double) breaks_width) : breaks));
 		// Calculate baseline.
-		rSession.eval("bseoff <- bslnoff(mat, method=\"" + method
+		rSession.jri_eval("bseoff <- bslnoff(mat, method=\"" + method
 			+ "\", bw=" + bw + ", breaks=breaks, qntl=" + qntl
 			+ ")");
-		rSession.eval("baseline <- mat[,2] - bseoff[,2]");
-		baseline = rSession.collectDoubleArray("baseline");
+		rSession.jri_eval("baseline <- mat[,2] - bseoff[,2]");
+		baseline = rSession.jri_collectDoubleArray("baseline");
 	    } catch (Throwable t) {
 		// t.printStackTrace();
 		throw new IllegalStateException(

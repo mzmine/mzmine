@@ -26,7 +26,6 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 import java.awt.Window;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
 //import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.AsymmetryCorrector;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.LocMinLoessCorrector;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.PeakDetectionCorrector;
@@ -72,13 +71,6 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
     public static final StringParameter SUFFIX = new StringParameter(
 	    "Filename suffix", "Suffix to be appended to raw data file names.",
 	    "baseline-corrected");
-
-    /**
-     * R engine type.
-     */
-    public static final ComboParameter<RengineType> RENGINE_TYPE = new ComboParameter<RengineType>(
-	    "R engine type", "The type of R engine to be used for computing.",
-	    RengineType.values(), RengineType.JRIengine);
 
     /**
      * Chromatogram type.

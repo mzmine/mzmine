@@ -39,7 +39,6 @@ import javax.swing.border.Border;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
 import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -47,6 +46,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithChromatogramPreview;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -176,7 +176,7 @@ public class BaselineCorrectorSetupDialog extends
 	private BaselineCorrectorSetupDialog dialog;
 	private ProgressThread progressThread;
 
-	private RSession rSession;
+	private RSessionWrapper rSession;
 	private boolean userCanceled;
 
 	public PreviewTask(BaselineCorrectorSetupDialog dialog,
@@ -197,10 +197,6 @@ public class BaselineCorrectorSetupDialog extends
 	    return this.dataFile;
 	}
 
-	public RengineType getRengineType() {
-	    return this.rSession.getRengineType();
-	}
-
 	@Override
 	public void run() {
 
@@ -213,9 +209,8 @@ public class BaselineCorrectorSetupDialog extends
 	    // Check R availability, by trying to open the connection
 	    try {
 		String[] reqPackages = baselineCorrector.getRequiredRPackages();
-		this.rSession = new RSession(
-			baselineCorrector.getRengineType(), reqPackages);
-		this.rSession.open();
+		this.rSession = new RSessionWrapper(reqPackages);
+		this.rSession.jri_open();
 	    } catch (Throwable t) {
 		String msg = t.getMessage();
 		LOG.log(Level.SEVERE, "Baseline correction error", t);
@@ -226,7 +221,7 @@ public class BaselineCorrectorSetupDialog extends
 
 	    // Check & load required R packages
 	    String missingPackage = null;
-	    missingPackage = this.rSession.loadRequiredPackages();
+	    missingPackage = this.rSession.jri_loadRequiredPackages();
 	    if (missingPackage != null) {
 		String msg = "The \""
 			+ baselineCorrector.getName()
@@ -286,7 +281,7 @@ public class BaselineCorrectorSetupDialog extends
 		    e.printStackTrace();
 	    }
 	    // Turn off R instance
-	    this.rSession.close();
+	    this.rSession.jri_close();
 
 	    // Task is over: Restore "parametersChanged" listeners
 	    unset_VK_ESCAPE_KeyListener();
@@ -303,7 +298,7 @@ public class BaselineCorrectorSetupDialog extends
 
 		this.userCanceled = true;
 		// Turn off R instance
-		this.rSession.close();
+		this.rSession.jri_close();
 
 		// Cancel task
 		this.cancel();

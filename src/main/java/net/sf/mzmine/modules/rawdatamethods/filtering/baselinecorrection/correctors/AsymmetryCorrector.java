@@ -22,9 +22,8 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correc
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrector;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 /**
  * @description Asymmetric baseline corrector. Estimates a trend based on
@@ -42,7 +41,7 @@ public class AsymmetryCorrector extends BaselineCorrector {
     }
 
     @Override
-    public double[] computeBaseline(final RSession rSession,
+    public double[] computeBaseline(final RSessionWrapper rSession,
 	    final RawDataFile origDataFile, double[] chromatogram,
 	    ParameterSet parameters) {
 
@@ -54,15 +53,15 @@ public class AsymmetryCorrector extends BaselineCorrector {
 
 	// Compute baseline.
 	final double[] baseline;
-	synchronized (RUtilities.R_SEMAPHORE) {
+	synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
 
 	    try {
 		// Set chromatogram.
-		rSession.assignDoubleArray("chromatogram", chromatogram);
+		rSession.jri_assignDoubleArray("chromatogram", chromatogram);
 		// Calculate baseline.
-		rSession.eval("baseline <- asysm(chromatogram," + smoothing
+		rSession.jri_eval("baseline <- asysm(chromatogram," + smoothing
 			+ ',' + asymmetry + ')');
-		baseline = rSession.collectDoubleArray("baseline");
+		baseline = rSession.jri_collectDoubleArray("baseline");
 	    } catch (Throwable t) {
 		// t.printStackTrace();
 		throw new IllegalStateException(
