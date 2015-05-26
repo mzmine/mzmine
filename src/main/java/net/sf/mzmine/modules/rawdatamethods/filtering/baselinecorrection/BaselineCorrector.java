@@ -33,9 +33,11 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RangeUtils;
-import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
+import net.sf.mzmine.util.R.RSessionWrapper;
+import net.sf.mzmine.util.R.RSessionWrapperException;
+//import net.sf.mzmine.util.R.RSessionWrapper.RengineType;
 
 /**
  * @description Abstract corrector class for baseline correction. Has to be
@@ -62,6 +64,7 @@ public abstract class BaselineCorrector implements BaselineProvider,
     private String suffix;
 
     // General parameters (common to all baseline correction methods).
+//	private RengineType rEngineType;
     private ChromatogramType chromatogramType;
     private double binWidth;
     private boolean useBins;
@@ -97,27 +100,55 @@ public abstract class BaselineCorrector implements BaselineProvider,
 		    .getBaselineCorrectionParameters();
 	}
 	// Get common parameters.
-	suffix = generalParameters.getParameter(
-		BaselineCorrectionParameters.SUFFIX).getValue();
-	chromatogramType = generalParameters.getParameter(
-		BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
-	binWidth = generalParameters.getParameter(
-		BaselineCorrectionParameters.MZ_BIN_WIDTH).getValue();
-	useBins = generalParameters.getParameter(
-		BaselineCorrectionParameters.USE_MZ_BINS).getValue();
-	msLevel = generalParameters.getParameter(
-		BaselineCorrectionParameters.MS_LEVEL).getValue();
+	suffix = generalParameters.getParameter(BaselineCorrectionParameters.SUFFIX).getValue();
+//	rEngineType = generalParameters.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
+	chromatogramType = generalParameters.getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
+	binWidth = generalParameters.getParameter(BaselineCorrectionParameters.MZ_BIN_WIDTH).getValue();
+	useBins = generalParameters.getParameter(BaselineCorrectionParameters.USE_MZ_BINS).getValue();
+	msLevel = generalParameters.getParameter(BaselineCorrectionParameters.MS_LEVEL).getValue();
     }
 
-    public final RawDataFile correctDatafile(final RSessionWrapper rSession,
-	    final RawDataFile dataFile, final ParameterSet parameters,
-	    final ParameterSet commonParameters) throws IOException {
+	//	/**
+	//	 * Try loading packages required by this instance of baseline corrector.
+	//	 * Gives a name if anything went wrong.
+	//	 * @param packages List of required packages.
+	//	 * @return The name of the first failing one, or null if everything went right.
+	//	 */
+	//	public String checkRPackages(String[] packages) {			
+	//
+	//		RSession rs = new RSession(RengineType.JRIengine, packages);
+	//		String missingPackage = null;
+	//		missingPackage = rs.loadRequiredPackages();
+	//		if (missingPackage != null) {
+	//			String msg = "The \"" + this.getName() + "\" requires " +
+	//					"the \"" + missingPackage + "\" R package, which couldn't be loaded - is it installed in R?";
+	//			throw new IllegalStateException(msg);
+	//		}
+	//
+	//		String reqPackage = null;
+	//			try {
+	//				for (int i=0; i < packages.length; i++) {
+	//					reqPackage = packages[i];
+	//					RUtilities.checkPackage(packages[i]);
+	//				}
+	//				return null;
+	//			} catch (Exception e) {
+	//				return reqPackage;
+	//			}
+	//
+	//	}
+
+
+	public final RawDataFile correctDatafile(final RSessionWrapper rSession, final RawDataFile dataFile, final ParameterSet parameters, 
+			final ParameterSet commonParameters) 
+					throws IOException, RSessionWrapperException {
+
+		if (isAborted(dataFile) || !rSession.isSessionRunning()) return null;
 	// Get very last information from root module setup
 	// this.setGeneralParameters(MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class));
 	this.collectCommonParameters(commonParameters);
-	RawDataFile correctedDataFile = null;
 
-	try {
+		RawDataFile correctedDataFile = null;
 
 	    RawDataFile origDataFile = dataFile;
 
@@ -192,12 +223,8 @@ public abstract class BaselineCorrector implements BaselineProvider,
 		correctedDataFile = rawDataFileWriter.finishWriting();
 	    }
 
-	} catch (Throwable t) {
-	    throw new IllegalStateException(
-		    "Error during baseline correction: ", t);
-	}
 
-	return correctedDataFile;
+		return correctedDataFile;
     }
 
     /**
@@ -249,26 +276,19 @@ public abstract class BaselineCorrector implements BaselineProvider,
     /**
      * Correct the baselines (using base peak chromatograms).
      *
-     * @param origDataFile
-     *            dataFile of concern.
-     * @param writer
-     *            data file writer.
-     * @param level
-     *            the MS level.
-     * @param numBins
-     *            number of m/z bins.
-     * @param parameters
-     *            parameters specific to the actual method for baseline
-     *            computing.
-     * @throws IOException
-     *             if there are i/o problems.
+	 * @param origDataFile dataFile of concern.
+	 * @param writer       data file writer.
+	 * @param level        the MS level.
+	 * @param numBins      number of m/z bins.
+	 * @param parameters   parameters specific to the actual method for baseline computing.
+	 * @throws IOException if there are i/o problems.
+	 * @throws RSessionWrapperException 
      * @throws BaselineCorrectionException
      * @throws InterruptedException
      */
-    private void correctBasePeakBaselines(final RSessionWrapper rSession,
-	    final RawDataFile origDataFile, final RawDataFileWriter writer,
-	    final int level, final int numBins, final ParameterSet parameters)
-	    throws IOException {
+	private void correctBasePeakBaselines(final RSessionWrapper rSession, final RawDataFile origDataFile, 
+			final RawDataFileWriter writer, final int level, final int numBins, final ParameterSet parameters)
+					throws IOException, RSessionWrapperException {
 
 	// Get scan numbers from original file.
 	final int[] scanNumbers = origDataFile.getScanNumbers(level);
@@ -311,25 +331,18 @@ public abstract class BaselineCorrector implements BaselineProvider,
     /**
      * Correct the baselines (using TIC chromatograms).
      *
-     * @param origDataFile
-     *            dataFile of concern.
-     * @param writer
-     *            data file writer.
-     * @param level
-     *            the MS level.
-     * @param numBins
-     *            number of m/z bins.
-     * @param parameters
-     *            parameters specific to the actual method for baseline
-     *            computing.
-     * @throws IOException
-     *             if there are i/o problems.
+	 * @param origDataFile dataFile of concern.
+	 * @param writer       data file writer.
+	 * @param level        the MS level.
+	 * @param numBins      number of m/z bins.
+	 * @param parameters   parameters specific to the actual method for baseline computing.
+	 * @throws IOException if there are i/o problems.
+	 * @throws RSessionWrapperException 
      * @throws BaselineCorrectionException
      */
-    private void correctTICBaselines(final RSessionWrapper rSession,
-	    final RawDataFile origDataFile, final RawDataFileWriter writer,
-	    final int level, final int numBins, final ParameterSet parameters)
-	    throws IOException {
+	private void correctTICBaselines(final RSessionWrapper rSession, final RawDataFile origDataFile, 
+			final RawDataFileWriter writer, final int level, final int numBins, final ParameterSet parameters)
+					throws IOException, RSessionWrapperException {
 
 	// Get scan numbers from original file.
 	final int[] scanNumbers = origDataFile.getScanNumbers(level);
@@ -337,11 +350,9 @@ public abstract class BaselineCorrector implements BaselineProvider,
 
 	// Build chromatograms.
 	LOG.finest("Building TIC chromatograms.");
-	final double[][] baseChrom = buildTICChromatograms(origDataFile, level,
-		numBins);
+	final double[][] baseChrom = buildTICChromatograms(origDataFile, level, numBins);
 
-	// Calculate baselines: done in-place, i.e. overwrite chromatograms to
-	// save memory.
+	// Calculate baselines: done in-place, i.e. overwrite chromatograms to save memory.
 	LOG.finest("Calculating baselines.");
 	for (int binIndex = 0; !isAborted(origDataFile) && binIndex < numBins; binIndex++) {
 
@@ -618,10 +629,16 @@ public abstract class BaselineCorrector implements BaselineProvider,
 	progressMap.remove(origDataFile);
     }
 
+//	// R engine type
+//	public RengineType getRengineType() {
+//		//		return MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
+//		//				.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
+//		return this.rEngineType;
+//	}
+
     // Chromatogram type
     public ChromatogramType getChromatogramType() {
-	// return
-	// MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
+		//		return MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
 	// .getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
 	return this.chromatogramType;
     }

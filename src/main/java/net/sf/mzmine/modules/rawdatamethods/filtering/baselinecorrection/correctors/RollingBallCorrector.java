@@ -25,15 +25,12 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrector;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.R.RSessionWrapper;
+import net.sf.mzmine.util.R.RSessionWrapperException;
 
 /**
- * @description Rolling Ball baseline corrector. Estimates a trend based on
- *              Rolling Ball algorithm. Uses "rollingBall" feature from
- *              "baseline" R-package
- *              (http://cran.r-project.org/web/packages/baseline/baseline.pdf).
- *              (Ideas from Rolling Ball algorithm for X-ray spectra by
- *              M.A.Kneen and H.J. Annegarn. Variable window width has been left
- *              out).
+ * @description Rolling Ball baseline corrector. Estimates a trend based on Rolling Ball algorithm.
+ * Uses "rollingBall" feature from "baseline" R-package (http://cran.r-project.org/web/packages/baseline/baseline.pdf).
+ * (Ideas from Rolling Ball algorithm for X-ray spectra by M.A.Kneen and H.J. Annegarn. Variable window width has been left out).
  * 
  * @author Gauthier Boaglio
  * @date Nov 6, 2014
@@ -42,56 +39,45 @@ public class RollingBallCorrector extends BaselineCorrector {
 
     @Override
     public String[] getRequiredRPackages() {
-	return new String[] { "rJava", "baseline" };
+		return new String[] { /*"rJava", "Rserve",*/ "baseline" };
     }
 
     @Override
-    public double[] computeBaseline(final RSessionWrapper rSession,
-	    final RawDataFile origDataFile, double[] chromatogram,
-	    ParameterSet parameters) {
+	public double[] computeBaseline(final RSessionWrapper rSession, final RawDataFile origDataFile, double[] chromatogram, ParameterSet parameters) 
+			throws RSessionWrapperException {
 
 	// Rolling Ball parameters.
-	double wm = parameters.getParameter(
-		RollingBallCorrectorParameters.MIN_MAX_WIDTH).getValue();
-	double ws = parameters.getParameter(
-		RollingBallCorrectorParameters.SMOOTHING).getValue();
+	double wm = parameters.getParameter(RollingBallCorrectorParameters.MIN_MAX_WIDTH).getValue();
+	double ws = parameters.getParameter(RollingBallCorrectorParameters.SMOOTHING).getValue();
 
 	final double[] baseline;
-	synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
 
-	    try {
-		// Set chromatogram.
-		rSession.jri_assignDoubleArray("chromatogram", chromatogram);
-		// Transform chromatogram.
-		rSession.jri_eval("mat = matrix(chromatogram, nrow=1)");
+	// Set chromatogram.
+	rSession.assign("chromatogram", chromatogram);
+	// Transform chromatogram.
+	rSession.eval("mat <- matrix(chromatogram, nrow=1)");
 
-		// Calculate baseline.
-		rSession.jri_eval("bl = NULL");
-		// This method can fail for some bins when "useBins" is enabled,
-		// or more generally speaking for
-		// abusive parameter set
-		String cmd = "tryCatch({" + "bl = baseline(mat, wm=" + wm
-			+ ", ws=" + ws + ", method='rollingBall')"
-			+ "}, warning = function(war) {"
-			+ "message(\"<R warning>: \", war);"
-			+ "}, error = function(err) {"
-			+ "message(\"<R error>: \", err);" + "}, finally = {" +
-			// "" +
-			"})";
-		rSession.jri_eval(cmd);
-		// Return a flat baseline (passing by the lowest intensity scan
-		// - "min(chromatogram)") in case of failure
-		// Anyway, this usually happens when "chromatogram" is fully
-		// flat and zeroed.
-		rSession.jri_eval("if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }");
-		baseline = rSession.jri_collectDoubleArray("baseline");
-	    } catch (Throwable t) {
-		// t.printStackTrace();
-		throw new IllegalStateException(
-			"R error during baseline correction (" + this.getName()
-				+ ").", t);
-	    }
-	}
+	// Calculate baseline.
+	rSession.eval("bl <- NULL");
+	// This method can fail for some bins when "useBins" is enabled, or more generally speaking for
+	// abusive parameter set
+	String cmd = "tryCatch({" +
+		"bl <- baseline(mat, wm=" + wm + ", ws=" + ws + ", method='rollingBall')" +
+		"}, warning = function(war) {" +
+		"message(\"<R warning>: \", war);" +
+		"}, error = function(err) {" +
+		"message(\"<R error>: \", err);" +
+		"}, finally = {" +
+		// "" +
+		"})";
+	rSession.eval(cmd);
+	// Return a flat baseline (passing by the lowest intensity scan - "min(chromatogram)") in case of failure
+	// Anyway, this usually happens when "chromatogram" is fully flat and zeroed.
+	rSession.eval(
+			"if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }"
+			);
+	baseline = (double[]) rSession.collect("baseline");
+
 	return baseline;
     }
 
