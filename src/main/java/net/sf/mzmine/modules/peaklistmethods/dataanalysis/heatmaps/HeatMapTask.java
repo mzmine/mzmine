@@ -35,7 +35,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
@@ -129,7 +129,7 @@ public class HeatMapTask extends AbstractTask {
 
 	Rengine rEngine = null;
 	try {
-	    rEngine = RUtilities.getREngine();
+	    rEngine = RSessionWrapper.jri_getREngine();
 	} catch (Throwable t) {
 	    setStatus(TaskStatus.ERROR);
 	    setErrorMessage("Heat map requires R but it could not be loaded ("
@@ -139,7 +139,7 @@ public class HeatMapTask extends AbstractTask {
 
 	finishedPercentage = 0.3f;
 
-	synchronized (RUtilities.R_SEMAPHORE) {
+	synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
 
 	    // Load gplots library
 	    if (rEngine.eval("require(gplots)").asBool().isFALSE()) {

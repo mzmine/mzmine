@@ -23,16 +23,13 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrector;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.R.RSessionWrapper;
+import net.sf.mzmine.util.R.RSessionWrapperException;
 
 /**
- * @description Local Minima + LOESS (smoothed low-percentile intensity)
- *              baseline corrector. Uses "bslnoff" feature from "PROcess"
- *              R/Bioconductor package
- *              (http://bioconductor.org/packages/release/
- *              bioc/manuals/PROcess/man/PROcess.pdf).
+ * @description Local Minima + LOESS (smoothed low-percentile intensity) baseline corrector.  
+ * Uses "bslnoff" feature from "PROcess" R/Bioconductor package (http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf).
  * 
  * @author Gauthier Boaglio
  * @date Nov 6, 2014
@@ -41,57 +38,36 @@ public class LocMinLoessCorrector extends BaselineCorrector {
 
     @Override
     public String[] getRequiredRPackages() {
-	return new String[] { "rJava", "PROcess" };
+		return new String[] { /*"rJava", "Rserve",*/ "PROcess" };
     }
 
     @Override
-    public double[] computeBaseline(final RSession rSession,
-	    final RawDataFile origDataFile, double[] chromatogram,
-	    ParameterSet parameters) {
+	public double[] computeBaseline(final RSessionWrapper rSession, final RawDataFile origDataFile, double[] chromatogram, ParameterSet parameters) 
+			throws RSessionWrapperException {
 
 	// Local Minima parameters.
-	String method = parameters.getParameter(
-		LocMinLoessCorrectorParameters.METHOD).getValue();
-	double bw = parameters.getParameter(LocMinLoessCorrectorParameters.BW)
-		.getValue();
-	int breaks = parameters.getParameter(
-		LocMinLoessCorrectorParameters.BREAKS).getValue();
-	int breaks_width = parameters.getParameter(
-		LocMinLoessCorrectorParameters.BREAK_WIDTH).getValue();
-	double qntl = parameters.getParameter(
-		LocMinLoessCorrectorParameters.QNTL).getValue();
+	String method = parameters.getParameter(LocMinLoessCorrectorParameters.METHOD).getValue();
+	double bw = parameters.getParameter(LocMinLoessCorrectorParameters.BW).getValue();
+	int breaks = parameters.getParameter(LocMinLoessCorrectorParameters.BREAKS).getValue();
+	int breaks_width = parameters.getParameter(LocMinLoessCorrectorParameters.BREAK_WIDTH).getValue();
+	double qntl = parameters.getParameter(LocMinLoessCorrectorParameters.QNTL).getValue();
 
 	final double[] baseline;
-	synchronized (RUtilities.R_SEMAPHORE) {
 
-	    try {
-		// Set chromatogram.
-		rSession.assignDoubleArray("chromatogram", chromatogram);
-		// Transform chromatogram.
-		int mini = 1;
-		int maxi = chromatogram.length;
-		rSession.eval("mat = cbind(matrix(seq(" + ((double) mini)
-			+ ", " + ((double) maxi) + ", by = 1.0), ncol=1), "
-			+ "matrix(chromatogram[" + mini + ":" + maxi
-			+ "], ncol=1))");
-		// Breaks
-		rSession.eval("breaks <- "
-			+ ((breaks_width > 0) ? (int) Math
-				.round((double) (maxi - mini)
-					/ (double) breaks_width) : breaks));
-		// Calculate baseline.
-		rSession.eval("bseoff <- bslnoff(mat, method=\"" + method
-			+ "\", bw=" + bw + ", breaks=breaks, qntl=" + qntl
-			+ ")");
-		rSession.eval("baseline <- mat[,2] - bseoff[,2]");
-		baseline = rSession.collectDoubleArray("baseline");
-	    } catch (Throwable t) {
-		// t.printStackTrace();
-		throw new IllegalStateException(
-			"R error during baseline correction (" + this.getName()
-				+ ").", t);
-	    }
-	}
+	// Set chromatogram.
+	rSession.assign("chromatogram", chromatogram);
+	// Transform chromatogram.
+	int mini = 1;
+	int maxi = chromatogram.length;
+	rSession.eval("mat <- cbind(matrix(seq(" + ((double)mini) + ", " + ((double)maxi) + ", by = 1.0), ncol=1), " +
+			"matrix(chromatogram[" + mini + ":" + maxi + "], ncol=1))");
+	// Breaks
+	rSession.eval("breaks <- " + ((breaks_width > 0) ? (int)Math.round((double)(maxi-mini)/(double)breaks_width) : breaks));
+	// Calculate baseline.
+	rSession.eval("bseoff <- bslnoff(mat, method=\"" + method + "\", bw=" + bw + ", breaks=breaks, qntl=" + qntl + ")");
+	rSession.eval("baseline <- mat[,2] - bseoff[,2]");
+	baseline = (double[]) rSession.collect("baseline");
+
 	return baseline;
     }
 
