@@ -332,11 +332,12 @@
 			<artifactId>JRIEngine</artifactId>
 			<version>0.9.3</version>
 		</dependency>
+<!-- REMOVED: collides with the following bellow dep.
 		<dependency>
 			<groupId>rJava</groupId>
 			<artifactId>REngine</artifactId>
 			<version>0.9.3</version>
-		</dependency>
+		</dependency>-->
 <!-- rJava: END -->
 <!-- rosuda: REngine/Rserve -->
 		<dependency>
