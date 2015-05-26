@@ -75,6 +75,9 @@ set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 rem This command starts the Java Virtual Machine
 %JAVA_COMMAND% %JAVA_PARAMETERS% %MAIN_CLASS% %*
 
+rem If there was an error, give the user chance to see it
+IF ERRORLEVEL 1 pause
+
 
 rem Do not modify:
 rem Kill/cleanup remaining Rserve instances
@@ -93,6 +96,3 @@ for /l %%N in (1 1 %file.count%) do (
   del !file.%%N!
   taskkill /PID !pid! /F 2>nul
 )
-
-rem If there was an error, give the user chance to see it
-IF ERRORLEVEL 1 pause
