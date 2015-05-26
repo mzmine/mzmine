@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
+import net.sf.mzmine.util.R.Rsession.Logger;
 import net.sf.mzmine.util.R.Rsession.Logger.Level;
 import org.rosuda.REngine.Rserve.RConnection;
 
@@ -17,7 +18,7 @@ public class Rdaemon {
 
 	RserverConf conf;
 	Process process;
-	private final Logger log;
+	Logger log;
 	static File APP_DIR = new File(System.getProperty("user.home") + File.separator + ".Rserve");
 	public static String R_HOME = null;
 
@@ -37,10 +38,13 @@ public class Rdaemon {
 
 	public Rdaemon(RserverConf conf, Logger log, String R_HOME) {
 		this.conf = conf;
-		this.log = log != null ? log : new Slf4jLogger();
+		this.log = log;
 		findR_HOME(R_HOME);
-		log.println("Environment variables:\n  " + R_HOME_KEY + "=" + Rdaemon.R_HOME /*+ "\n  " + Rserve_HOME_KEY + "=" + Rdaemon.Rserve_HOME*/, Level.INFO);        
+		//findRserve_HOME(Rserve_HOME);
+		println("Environment variables:\n  " + R_HOME_KEY + "=" + Rdaemon.R_HOME /*+ "\n  " + Rserve_HOME_KEY + "=" + Rdaemon.Rserve_HOME*/, Level.INFO);
+
 		Runtime.getRuntime().addShutdownHook(new Thread() {
+
 			@Override
 			public void run() {
 				_stop();
@@ -61,21 +65,18 @@ public class Rdaemon {
 		Map<String, String> env = System.getenv();
 		Properties prop = System.getProperties();
 
-		if (r_HOME!=null) R_HOME = r_HOME;
-		if (R_HOME == null || !(new File(R_HOME).isDirectory())) {
+		R_HOME = r_HOME;
+		if (R_HOME == null || !(new File(R_HOME).exists())) {
 			if (env.containsKey(R_HOME_KEY)) {
 				R_HOME = env.get(R_HOME_KEY);
 			}
 
-			if (R_HOME == null || prop.containsKey(R_HOME_KEY) || !(new File(R_HOME).isDirectory())) {
+			if (R_HOME == null || prop.containsKey(R_HOME_KEY) || !(new File(R_HOME).exists())) {
 				R_HOME = prop.getProperty(R_HOME_KEY);
-			} 
 
-			if (R_HOME == null || !(new File(R_HOME).isDirectory())) {
-				R_HOME = "R";
 			}
 
-			if (R_HOME == null || !(new File(R_HOME).isDirectory())) {
+			if (R_HOME == null || !(new File(R_HOME).exists())) {
 				R_HOME = null;
 				if (System.getProperty("os.name").contains("Win")) {
 					for (int major = 20; major >= 0; major--) {
@@ -102,8 +103,8 @@ public class Rdaemon {
 		if (R_HOME == null) {
 			return false;
 		}
+		return new File(R_HOME).exists();
 
-		return new File(R_HOME).isDirectory();
 	}
 
 	/*public static boolean findRserve_HOME(String path) {
@@ -169,8 +170,15 @@ public class Rdaemon {
 
 	}
 
+	public void println(String m, Level l) {
+		//System.out.println(m);
+		if(log!=null)
+			log.println(m, l);
+		else System.out.println(l+" "+m);
+	}
+
 	public void stop() {
-		log.println("stopping R daemon... " + conf, Level.INFO);
+		println("stopping R daemon... " + conf, Level.INFO);
 		if (!conf.isLocal()) {
 			throw new UnsupportedOperationException("Not authorized to stop a remote R daemon: " + conf.toString());
 		}
@@ -178,16 +186,34 @@ public class Rdaemon {
 		try {
 			RConnection s = conf.connect();
 			if (s == null || !s.isConnected()) {
-				log.println("R daemon already stoped.", Level.INFO);
+				println("R daemon already stoped.", Level.INFO);
 				return;
 			}
 			s.shutdown();
 
 		} catch (Exception ex) {
-			log.println(ex.getMessage(), Level.ERROR);
+			//ex.printStackTrace();
+			println(ex.getMessage(), Level.ERROR);
 		}
 
-		log.println("R daemon stoped.", Level.INFO);
+		/*if (br != null) {
+        try {
+        br.close();
+        } catch (IOException ex) {
+        ex.printStackTrace();
+        println(ex.getMessage());
+        }
+        }*/
+
+		//if (pw != null) {
+		//    pw.close();
+		//}
+
+		//process.destroy();
+
+		println("R daemon stoped.", Level.INFO);
+
+		log = null;
 	}
 
 	public void start(String http_proxy, String tmpDirectory) {
@@ -205,64 +231,64 @@ public class Rdaemon {
 
 		// Do things with Rserve install only if it hasn't been checked successfully already.
 		if (!Rdaemon.RSERVE_INSTALLED) {
-			log.println("checking Rserve is available... ", Level.INFO);
+			println("checking Rserve is available... ", Level.INFO);
 			Rdaemon.RSERVE_INSTALLED = StartRserve.isRserveInstalled(R_HOME + File.separator + "bin" + File.separator + "R" + (System.getProperty("os.name").contains("Win") ? ".exe" : ""));
 
 			boolean RserveInstalled = Rdaemon.RSERVE_INSTALLED;
 			if (!RserveInstalled) {
-				log.println("  no", Level.INFO);
+				println("  no", Level.INFO);
 				RserveInstalled = StartRserve.installRserve(R_HOME + File.separator + "bin" + File.separator + "R" + (System.getProperty("os.name").contains("Win") ? ".exe" : ""), http_proxy, null);
 				if (RserveInstalled) {
-					log.println("  ok", Level.INFO);
+					println("  ok", Level.INFO);
 				} else {
-					log.println("  failed.", Level.ERROR);
+					println("  failed.", Level.ERROR);
 					String notice = "Please install Rserve manually in your R environment using \"install.packages('Rserve')\" command.";
-					log.println(notice, Level.ERROR);
+					println(notice, Level.ERROR);
 					System.err.println(notice);
 					return;
 				}
 			} else {
-				log.println("  ok", Level.INFO);
+				println("  ok", Level.INFO);
 			}
+		}
 
-			log.println("starting R daemon... " + conf, Level.INFO);
+		println("starting R daemon... " + conf, Level.INFO);
 
-			StringBuffer RserveArgs = new StringBuffer("--no-save --slave");
+		StringBuffer RserveArgs = new StringBuffer("--no-save --slave ");
 
-			// GLG TODO: Temp files usage should be enhanced to allow multiple instances of MZmine
-			// (currently, the first to be terminated will interfere with the others... Kill their
-			// Rserve instances).
-			// Very much a problem while using MZmine in 'Headless' mode.
-			File tmpFile, tmpDir = null;
-			try {
-				if (System.getProperty("os.name").contains("Win")) {
-					//RserveArgs.append(" --RS-pidfile \"" + System.getenv("TEMP") + "/rs_pid_" + conf.port + ".pid\"");
-					tmpDir = new File((tmpDirectory != null) ? tmpDirectory : System.getenv("TEMP"));
-					tmpFile = File.createTempFile("rs_pid_" + conf.port, ".pid", tmpDir);
-					RserveArgs.append(" --RS-pidfile \"" + tmpFile.getPath().replaceAll("\\\\", "/") + "\"");
-				} else {
-					//RserveArgs.append(" --RS-pidfile \\'" + System.getProperty("user.dir") + "/rs_pid.txt\\'");
-					tmpDir = new File((tmpDirectory != null) ? tmpDirectory : "/tmp");
-					tmpFile = File.createTempFile("rs_pid", ".pid", tmpDir);
-					RserveArgs.append(" --RS-pidfile \\'" /*+ System.getProperty("user.dir")*/ + tmpFile.getPath() + "\\'");
-				}
-				tmpFile.deleteOnExit();
-			} catch (IOException e) {
-				throw new UnsupportedOperationException("Unable to create temp 'rs_pid' file in directory '" + 
-						((tmpDir != null) ? tmpDir.getPath() : null) + "'");
-			}
-
-			if (conf.port > 0) {
-				RserveArgs.append(" --RS-port " + conf.port);
-			}
-
-			boolean started = StartRserve.launchRserve(R_HOME + File.separator + "bin" + File.separator + "R" + (System.getProperty("os.name").contains("Win") ? ".exe" : ""), /*Rserve_HOME + "\\\\..", */ "--no-save --slave", RserveArgs.toString(), false);
-
-			if (started) {
-				log.println("  ok", Level.INFO);
+		// GLG TODO: Temp files usage should be enhanced to allow multiple instances of MZmine
+		// (currently, the first to be terminated will interfere with the others... Kill their
+		// Rserve instances).
+		// Very much a problem while using MZmine in 'Headless' mode.
+		File tmpFile, tmpDir = null;
+		try {
+			if (System.getProperty("os.name").contains("Win")) {
+				//RserveArgs.append(" --RS-pidfile \"" + System.getenv("TEMP") + "/rs_pid_" + conf.port + ".pid\"");
+				tmpDir = new File((tmpDirectory != null) ? tmpDirectory : System.getenv("TEMP"));
+				tmpFile = File.createTempFile("rs_pid_" + conf.port, ".pid", tmpDir);
+				RserveArgs.append(" --RS-pidfile \"" + tmpFile.getPath().replaceAll("\\\\", "/") + "\"");
 			} else {
-				log.println("  failed", Level.ERROR);
+				//RserveArgs.append(" --RS-pidfile \\'" + System.getProperty("user.dir") + "/rs_pid.txt\\'");
+				tmpDir = new File((tmpDirectory != null) ? tmpDirectory : "/tmp");
+				tmpFile = File.createTempFile("rs_pid", ".pid", tmpDir);
+				RserveArgs.append(" --RS-pidfile \\'" /*+ System.getProperty("user.dir")*/ + tmpFile.getPath() + "\\'");
 			}
+			tmpFile.deleteOnExit();
+		} catch (IOException e) {
+			throw new UnsupportedOperationException("Unable to create temp 'rs_pid' file in directory '" + 
+					((tmpDir != null) ? tmpDir.getPath() : null) + "'");
+		}
+
+		if (conf.port > 0) {
+			RserveArgs.append(" --RS-port " + conf.port);
+		}
+
+		boolean started = StartRserve.launchRserve(R_HOME + File.separator + "bin" + File.separator + "R" + (System.getProperty("os.name").contains("Win") ? ".exe" : ""), /*Rserve_HOME + "\\\\..", */ "--no-save --slave", RserveArgs.toString(), false);
+
+		if (started) {
+			println("  ok", Level.INFO);
+		} else {
+			println("  failed", Level.ERROR);
 		}
 	}
 
@@ -276,7 +302,63 @@ public class Rdaemon {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		Rdaemon d = new Rdaemon(new RserverConf(null, -1, null, null, null), new Slf4jLogger());
+		/*final ProcessBuilder builder = new ProcessBuilder("/usr/lib/R/bin/Rserve", "--vanilla");
+        builder.environment().put("R_HOME", "/usr/lib/R");
+        builder.redirectErrorStream(true);
+        final Process process = builder.start();
+        BufferedReader br = null;
+        try {
+        final InputStream is = process.getInputStream();
+        final InputStreamReader isr = new InputStreamReader(is);
+        br = new BufferedReader(isr);
+        String line;
+        while ((line = br.readLine()) != null) {
+        //if (LOG.isDebugEnabled()) {
+        //    LOG.debug(host + ":" + port + "> " + line);
+        //}
+        System.out.println(line);
+        }
+
+        process.waitFor();
+        //                    if (LOG.isInfoEnabled()) {
+        //                        LOG.info("Rserve on " + host + ":" + port + " terminated");
+        //                    }
+        } catch (InterruptedException e) {
+        System.out.println("Interrupted!");
+        //                    LOG.error("Interrupted!", e);
+        process.destroy();
+        Thread.currentThread().interrupt();
+        } finally {
+        br.close();
+        //IOUtils.closeQuietly(br);
+        }
+
+        Thread.sleep(1000);
+        process.destroy();
+
+
+        final int exitValue = process.exitValue();
+        System.out.println("exitValue=" + exitValue);
+        //                if (LOG.isInfoEnabled()) {
+        //                    LOG.info("Rserve on " + host + ":" + port + " returned " + exitValue);
+        //                }
+        //                return exitValue;
+		 */
+		//System.setProperty("Rserve.home","/usr/lib/R/bin/");
+		Rdaemon d = new Rdaemon(new RserverConf(null, -1, null, null, null), new Logger() {
+
+			public void println(String message, Level l) {
+				if (l == Level.INFO) {
+					System.out.println(message);
+				} else {
+					System.err.println(message);
+				}
+			}
+
+			public void close() {
+			}
+
+		});
 		d.start(null, null);
 		Thread.sleep(2000);
 		d.stop();

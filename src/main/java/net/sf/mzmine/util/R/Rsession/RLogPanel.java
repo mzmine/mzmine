@@ -13,6 +13,10 @@ import javax.swing.JPanel;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 
+import net.sf.mzmine.util.R.Rsession.Logger;
+import net.sf.mzmine.util.R.Rsession.Logger.Level;
+
+
 /**
  *
  * @author richet
@@ -36,7 +40,6 @@ public class RLogPanel extends JPanel implements Logger {
     }
 
     public synchronized void println(final String message, Level l) {
-        //System.err.println("'"+message+"'");
         if (filter == null || message.matches(filter)) {
             try {
                 if (l == Level.OUTPUT) {
@@ -118,7 +121,7 @@ public class RLogPanel extends JPanel implements Logger {
                 public void write(int b) throws IOException {
                     if (level != 'i') {
                         level = 'i';
-                        //write('\n');
+                        write('\n');
                         write('i');
                         write(' ');
                         write(b);
@@ -179,7 +182,7 @@ public class RLogPanel extends JPanel implements Logger {
                 public void write(int b) throws IOException {
                     if (level != 'w') {
                         level = 'w';
-                        //write('\n');
+                        write('\n');
                         write('w');
                         write(' ');
                         write(b);
@@ -209,7 +212,7 @@ public class RLogPanel extends JPanel implements Logger {
                 public void write(int b) throws IOException {
                     if (level != 'e') {
                         level = 'e';
-                        //write('\n');
+                        write('\n');
                         write('e');
                         write(' ');
                         write(b);

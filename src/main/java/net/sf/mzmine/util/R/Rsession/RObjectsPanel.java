@@ -101,6 +101,7 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
         @Override
         public int getRowCount() {
             //int ls = R.silentlyEval("length(ls())").asInt();
+            //System.out.println(ls+" lines");
             return ls.length;
         }
 
@@ -316,6 +317,7 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION && fc.getSelectedFiles() != null) {
             File[] files = fc.getSelectedFiles();
             for (File file : files) {
+                //System.out.println("+ " + file.getName());
                 if (file.getName().endsWith(".R")) {
                     if (R != null) {
                         R.source(file);

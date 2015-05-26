@@ -32,6 +32,7 @@ import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
+import org.rosuda.REngine.REngineException;
 //import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
@@ -701,7 +702,10 @@ public class RSessionWrapper {
 
 	public void loadPackage(String packageName) throws RSessionWrapperException {
 
-		//		String loadCode = "library(" + packageName + ", logical.return = TRUE)";
+		String loadCode = "library(" + packageName + ", logical.return = TRUE)";
+		
+		if (TRY_MODE) loadCode = "try(" + loadCode + ", silent=TRUE)";
+		
 		String errorMsg = "The \"" + this.callerFeatureName + "\" requires " +
 				"the \"" + packageName + "\" R package, which couldn't be loaded - is it installed in R?";
 
@@ -717,31 +721,26 @@ public class RSessionWrapper {
 		{
 			if (this.session != null && !this.userCanceled) {
 				LOG.log(logLvl, "Loading package '" + packageName + "'...");
-				//				int loaded = 0;
-				String loadStatus = null;
-				//				try {
-				//					////loaded = ((RConnection) this.rEngine).eval(loadCode).asInteger();
-				//					REXP r = ((RConnection) this.rEngine).eval("try(" + loadCode + ", silent=TRUE)");
-				//					if (r.inherits("try-error")) {
-				//						LOG.severe("R Error [0]: " + r.asString());
-				//						LOG.severe("R eval attempt [0]: " + loadCode);
-				//					}
-				//					loaded = r.asInteger();
-				//					LOG.log(logLvl, "Load return: '" + loaded + "'.");
-				//					
-				//				} catch (RserveException | REXPMismatchException e) {
-				//					LOG.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
-				//					// Remain silent if eval KO ("server down").
-				//					loaded = Integer.MIN_VALUE;
-				//				}
-
-				loadStatus = this.session.loadPackage(packageName);
+				int loaded = 0;
+				try {
+					////loaded = ((RConnection) this.rEngine).eval(loadCode).asInteger();
+					REXP r = ((RConnection) this.rEngine).eval(loadCode);
+					if (r.inherits("try-error")) {
+						LOG.severe("R Error [0]: " + r.asString());
+						LOG.severe("R eval attempt [0]: " + loadCode);
+					}
+					loaded = r.asInteger();
+					LOG.log(logLvl, "Load return: '" + loaded + "'.");
+				} catch (RserveException | REXPMismatchException e) {
+					LOG.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
+					// Remain silent if eval KO ("server down").
+					loaded = Integer.MIN_VALUE;
+				}
 
 				// Throw loading failure only if eval OK, but return FALSE
 				// (package not loaded).
 				// ("server down" case will be handled soon enough).
-				//				if (loaded == 0)
-				if (!loadStatus.equals(Rsession.PACKAGELOADED))
+				if (loaded == 0)
 					if (!this.userCanceled) throw new RSessionWrapperException(errorMsg);
 
 				LOG.log(logLvl, "Loaded package: '" + packageName + "'.");
@@ -751,28 +750,29 @@ public class RSessionWrapper {
 
 	public void checkPackageVersion(String packageName, String version) throws RSessionWrapperException {
 
-		//		String checkVersionCode = "packageVersion('" + packageName + "') >= '" + version + "\'";
+		String checkVersionCode = "packageVersion('" + packageName + "') >= '" + version + "\'";
+		
+		if (TRY_MODE) checkVersionCode = "try(" + checkVersionCode + ", silent=TRUE)";
+
+		//		String errorMsg = "An old version of the '" + packageName + "' package is installed in R - please update '" + packageName + "' to version "
+		//				+ version + " or later.";
 		String errorMsg = "The \"" + this.callerFeatureName + "\" requires " +
 				"the \"" + packageName + "\" R package, which was found, but is too old? - please update '" + packageName + "' to version "
 				+ version + " or later.";
 
 		if (this.session != null && !this.userCanceled) {
 			LOG.log(logLvl, "Checking package version: '" + packageName + "' for version '" + version + "'...");
-			//			int version_ok = 0;
-			String versionStatus = null;
-			//			try {
-			//				version_ok = ((RConnection) this.rEngine).eval(checkVersionCode).asInteger();
-			//			} catch (RserveException | REXPMismatchException e) {
-			//				// Remain silent if eval KO ("server down").
-			//				version_ok = Integer.MIN_VALUE;
-			//			}
-
-			versionStatus = this.session.checkPackageVersion(packageName, version);
+			int version_ok = 0;
+			try {
+				version_ok = ((RConnection) this.rEngine).eval(checkVersionCode).asInteger();
+			} catch (RserveException | REXPMismatchException e) {
+				// Remain silent if eval KO ("server down").
+				version_ok = Integer.MIN_VALUE;
+			}
 
 			// Throw version failure only if eval OK (package too old).
 			// ("server down" case will be handled soon enough).
-			//			if (version_ok == 0)
-			if (!versionStatus.equals(Rsession.PACKAGEVERSIONOK))
+			if (version_ok == 0)
 				if (!this.userCanceled) throw new RSessionWrapperException(errorMsg);
 
 			LOG.log(logLvl, "Checked package version: '" + packageName + "' for version '" + version + "'.");
@@ -964,17 +964,10 @@ public class RSessionWrapper {
 
 		if (this.session != null && !this.userCanceled) {
 			String msg = "Rserve error: couldn't assign R object '" + objName + "' (instance '" + this.getPID() + "').";
-			//			try {
-			//				((RConnection) this.rEngine).assign(objName, InputREXPFactory.getREXP(object));
-			//			} 
-			//			catch (REngineException e) {
-			//				throw new RSessionWrapperException(msg);
-			//			} catch (Exception e) {
-			//				throw new RSessionWrapperException(e.getMessage());
-			//			}
 			try {
-				this.session.connection.assign(objName, InputREXPFactory.getREXP(object));
-			} catch (RserveException e) {
+				((RConnection) this.rEngine).assign(objName, InputREXPFactory.getREXP(object));
+			} 
+			catch (REngineException e) {
 				throw new RSessionWrapperException(msg);
 			} catch (Exception e) {
 				throw new RSessionWrapperException(e.getMessage());
@@ -1014,7 +1007,7 @@ public class RSessionWrapper {
 				//					throw new RSessionWrapperException(e.getMessage());
 				//				}
 
-				boolean ok = this.session.voidEval(rCode, true);
+				boolean ok = this.session.voidEval(rCode, TRY_MODE);
 				if (!ok)
 					throw new RSessionWrapperException(msg);
 			}
@@ -1023,10 +1016,9 @@ public class RSessionWrapper {
 
 	public String getErrMessage() throws RSessionWrapperException {
 		try {
-			//return ((RConnection) this.rEngine).eval("geterrmessage()").asString();
-			return this.session.eval("geterrmessage()").asString();
+			return ((RConnection) this.rEngine).eval("geterrmessage()").asString();
 		}
-		catch (/*RserveException |*/ REXPMismatchException e) {
+		catch (RserveException e) {
 			throw new RSessionWrapperException("Rserve error: couldn't get R error messages.");
 		} catch (Exception e) {
 			throw new RSessionWrapperException(e.getMessage());
@@ -1067,26 +1059,25 @@ public class RSessionWrapper {
 
 		Object object = null;
 
-		//obj = "try(" + obj + ",silent=TRUE)";
+		obj = "try(" + obj + ",silent=TRUE)";
 
 		if (this.session != null && !this.userCanceled) {
 			//**String msg = "Rserve error: couldn't collect R object '" + obj + "' (instance '" + this.getPID() + "').";
 			String msg = "Rserve error: couldn't collect result for R expression '" + obj + "' (instance '" + this.getPID() + "').";
 			try {
 				////object = OutputObjectFactory.getObject(((RConnection) this.rEngine).eval(obj));
-				//				REXP r = ((RConnection) this.rEngine).eval(obj);
-				//				if (r.inherits("try-error")) {
-				//					LOG.severe("R Error [1]: " + r.asString());
-				//					LOG.severe("R eval attempt [1]: " + obj);
-				//				}
-				//				//else { /* success ... */ }			
-				REXP r = this.session.eval(obj, RSessionWrapper.TRY_MODE);
+				REXP r = ((RConnection) this.rEngine).eval(obj);
+				if (r.inherits("try-error")) {
+					LOG.severe("R Error [1]: " + r.asString());
+					LOG.severe("R eval attempt [1]: " + obj);
+				}
+				//else { /* success ... */ }				
 				object = OutputObjectFactory.getObject(r);
 				// Shall we handle NULL exp case?
 				if (object == null)
 					throw new RSessionWrapperException(msg);
 			} 
-			catch (/*RserveException |*/ REXPMismatchException e) {
+			catch (RserveException | REXPMismatchException e) {
 				throw new RSessionWrapperException(msg);
 			} catch (Exception e) {
 				throw new RSessionWrapperException(e.getMessage());
@@ -1098,26 +1089,26 @@ public class RSessionWrapper {
 
 		double[][] object = null;
 
-		//obj = "try(" + obj + ",silent=TRUE)";
+		obj = "try(" + obj + ",silent=TRUE)";
 
 		if (this.session != null && !this.userCanceled) {
 			//**String msg = "Rserve error: couldn't collect R object '" + obj + "' (instance '" + this.getPID() + "').";
 			String msg = "Rserve error: couldn't collect result for R expression '" + obj + "' (instance '" + this.getPID() + "').";
 			try {
 				////object = ((RConnection) this.rEngine).eval(obj).asDoubleMatrix();
-				//				REXP r = ((RConnection) this.rEngine).eval(obj);
-				//				if (r.inherits("try-error")) {
-				//					LOG.severe("R Error [1]: " + r.asString());
-				//					LOG.severe("R eval attempt [1]: " + obj);
-				//				}
-				//				//else { /* success ... */ }
-				REXP r = this.session.eval(obj, RSessionWrapper.TRY_MODE);
+				REXP r = ((RConnection) this.rEngine).eval(obj);
+				if (r.inherits("try-error")) {
+					LOG.severe("R Error [1]: " + r.asString());
+					LOG.severe("R eval attempt [1]: " + obj);
+				}
+				//else { /* success ... */ }				
 				object = r.asDoubleMatrix();
 				// Shall we handle NULL exp case?
 				if (object == null)
 					throw new RSessionWrapperException(msg);
 			} 
-			catch (/*RserveException |*/ REXPMismatchException e) {
+			catch (RserveException | REXPMismatchException e) {
+				e.printStackTrace();
 				throw new RSessionWrapperException(msg);
 			} catch (Exception e) {
 				throw new RSessionWrapperException(e.getMessage());
