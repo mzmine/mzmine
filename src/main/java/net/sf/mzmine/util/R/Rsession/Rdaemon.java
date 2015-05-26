@@ -1,3 +1,26 @@
+/*
+ * Copyright 2006-2015 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+/*
+ * Original author: Yann Richet - https://github.com/yannrichet/rsession
+ */
+
 package net.sf.mzmine.util.R.Rsession;
 
 import java.io.File;
@@ -10,10 +33,7 @@ import net.sf.mzmine.util.R.Rsession.Logger;
 import net.sf.mzmine.util.R.Rsession.Logger.Level;
 import org.rosuda.REngine.Rserve.RConnection;
 
-/**
- *
- * @author richet
- */
+
 public class Rdaemon {
 
 	RserverConf conf;
@@ -107,57 +127,6 @@ public class Rdaemon {
 
 	}
 
-	/*public static boolean findRserve_HOME(String path) {
-    Map<String, String> env = System.getenv();
-    Properties prop = System.getProperties();
-
-    Rserve_HOME = path;
-    if (Rserve_HOME == null || !(new File(Rserve_HOME).exists()) || !new File(Rserve_HOME).getName().equals("Rserve")) {
-    if (env.containsKey(Rserve_HOME_KEY)) {
-    Rserve_HOME = env.get(Rserve_HOME_KEY);
-    }
-
-    if (Rserve_HOME == null || prop.containsKey(Rserve_HOME_KEY) || !(new File(Rserve_HOME).exists()) || !new File(Rserve_HOME).getName().equals("Rserve")) {
-    Rserve_HOME = prop.getProperty(Rserve_HOME_KEY);
-    }
-
-    if (Rserve_HOME == null || !(new File(Rserve_HOME).exists()) || !new File(Rserve_HOME).getName().equals("Rserve")) {
-    Rserve_HOME = null;
-    String OS_NAME = prop.getProperty("os.name");
-    String OS_ARCH = prop.getProperty("os.arch");
-    if (OS_ARCH.equals("amd64")) {
-    OS_ARCH = "x86_64";
-    }
-    if (OS_ARCH.endsWith("86")) {
-    OS_ARCH = "x86";
-    }
-
-    if (OS_NAME.contains("Windows")) {
-    Rserve_HOME = "lib\\Windows\\" + OS_ARCH + "\\Rserve\\";
-    } else if (OS_NAME.equals("Mac OS X")) {
-    Rserve_HOME = "lib/MacOSX/" + OS_ARCH + "/Rserve";
-    } else if (OS_NAME.equals("Linux")) {
-    Rserve_HOME = "lib/Linux/" + OS_ARCH + "/Rserve";
-    } else {
-    System.err.println("OS " + OS_NAME + "/" + OS_ARCH + " not supported for automated RServe finding.");
-    }
-
-    if (!new File(Rserve_HOME).exists()) {
-    System.err.println("Unable to find Rserve in " + Rserve_HOME);
-    Rserve_HOME = null;
-    } else {
-    Rserve_HOME = new File(Rserve_HOME).getPath().replace("\\", "\\\\");
-    }
-    }
-    }
-
-    if (Rserve_HOME != null && new File(Rserve_HOME).exists()) {
-    setRecursiveExecutable(new File(Rserve_HOME));
-    return true;
-    } else {
-    return false;
-    }
-    }*/
 	static void setRecursiveExecutable(File path) {
 		for (File f : path.listFiles()) {
 			if (f.isDirectory()) {
