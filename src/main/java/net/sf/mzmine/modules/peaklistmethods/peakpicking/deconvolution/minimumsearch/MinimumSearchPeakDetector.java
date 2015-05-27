@@ -36,6 +36,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
 
@@ -54,7 +55,8 @@ public class MinimumSearchPeakDetector implements PeakResolver {
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
 	    final int[] scanNumbers, final double[] retentionTimes,
-	    final double[] intensities, ParameterSet parameters) {
+	    final double[] intensities, ParameterSet parameters, 
+		RSessionWrapper rSession) {
 
 	final int scanCount = scanNumbers.length;
 	final int lastScan = scanCount - 1;
@@ -205,6 +207,21 @@ public class MinimumSearchPeakDetector implements PeakResolver {
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return MinimumSearchPeakDetectorParameters.class;
+    }
+
+	@Override
+	public boolean getRequiresR() {
+		return false;
+	}
+
+	@Override
+	public String[] getRequiredRPackages() {
+		return null;
+	}
+
+	@Override
+	public String[] getRequiredRPackagesVersions() {
+		return null;
     }
 
 }

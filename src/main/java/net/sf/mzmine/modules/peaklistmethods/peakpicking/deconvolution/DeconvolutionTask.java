@@ -40,6 +40,8 @@ import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.R.RSessionWrapper;
+import net.sf.mzmine.util.R.RSessionWrapperException;
 
 public class DeconvolutionTask extends AbstractTask {
 
@@ -59,6 +61,11 @@ public class DeconvolutionTask extends AbstractTask {
     // User parameters
     private final ParameterSet parameters;
 
+	private RSessionWrapper rSession;
+	private String errorMsg;
+	private boolean userCanceled;
+
+
     /**
      * Create the task.
      *
@@ -77,6 +84,8 @@ public class DeconvolutionTask extends AbstractTask {
 	newPeakList = null;
 	processedRows = 0;
 	totalRows = 0;
+
+	this.userCanceled = false;
     }
 
     @Override
@@ -95,6 +104,8 @@ public class DeconvolutionTask extends AbstractTask {
     @Override
     public void run() {
 
+	errorMsg = null;
+
 	if (!isCanceled()) {
 
 	    setStatus(TaskStatus.PROCESSING);
@@ -110,8 +121,23 @@ public class DeconvolutionTask extends AbstractTask {
 
 		try {
 
+			// Peak resolver.
+			final MZmineProcessingStep<PeakResolver> resolver = parameters
+					.getParameter(PEAK_RESOLVER).getValue();
+
+			if (resolver.getModule().getRequiresR()) {
+				// Check R availability, by trying to open the connection.
+				String[] reqPackages = resolver.getModule().getRequiredRPackages();
+				String[] reqPackagesVersions = resolver.getModule().getRequiredRPackagesVersions();
+				String callerFeatureName = resolver.getModule().getName();
+				this.rSession = new RSessionWrapper(callerFeatureName, /*this.rEngineType,*/ reqPackages, reqPackagesVersions);
+				this.rSession.open();
+			} else {
+				this.rSession = null;
+			}
+
 		    // Deconvolve peaks.
-		    newPeakList = resolvePeaks(originalPeakList);
+			newPeakList = resolvePeaks(originalPeakList, this.rSession);
 
 		    if (!isCanceled()) {
 
@@ -128,11 +154,44 @@ public class DeconvolutionTask extends AbstractTask {
 			LOG.info("Finished peak recognition on "
 				+ originalPeakList);
 		    }
+			// Turn off R instance.
+			if (this.rSession != null) this.rSession.close(false);
+
+		} catch (RSessionWrapperException e) {
+			//if (!this.userCanceled) {
+			errorMsg = "'R computing error' during CentWave detection. \n" + e.getMessage();
+			//}
+		} catch (Exception e) {
+			//if (!this.userCanceled) {
+			errorMsg = "'Unknown error' during CentWave detection. \n" + e.getMessage();
+			//}
 		} catch (Throwable t) {
 
 		    setStatus(TaskStatus.ERROR);
 		    setErrorMessage(t.getMessage());
 		    LOG.log(Level.SEVERE, "Peak deconvolution error", t);
+		}
+
+		// Turn off R instance, once task ended UNgracefully.
+		try {
+			if (this.rSession != null && !this.userCanceled) rSession.close(this.userCanceled);
+		}
+		catch (RSessionWrapperException e) {
+			if (!this.userCanceled) {
+				// Do not override potential previous error message.
+				if (errorMsg == null) {
+					errorMsg = e.getMessage();
+				}
+			} else {
+				// User canceled: Silent.
+			}
+		}
+
+
+		// Report error.
+		if (errorMsg != null) {
+			setErrorMessage(errorMsg);
+			setStatus(TaskStatus.ERROR);				
 		}
 	    }
 	}
@@ -144,8 +203,9 @@ public class DeconvolutionTask extends AbstractTask {
      * @param peakList
      *            holds the chromatogram to deconvolve.
      * @return a new peak list holding the resolved peaks.
+     * @throws RSessionWrapperException 
      */
-    private PeakList resolvePeaks(final PeakList peakList) {
+	private PeakList resolvePeaks(final PeakList peakList, RSessionWrapper rSession) throws RSessionWrapperException {
 
 	// Get data file information.
 	final RawDataFile dataFile = peakList.getRawDataFile(0);
@@ -203,7 +263,8 @@ public class DeconvolutionTask extends AbstractTask {
 	    final PeakResolver resolverModule = resolver.getModule();
 	    final ParameterSet resolverParams = resolver.getParameterSet();
 	    final Feature[] peaks = resolverModule.resolvePeaks(chromatogram,
-		    scanNumbers, retentionTimes, intensities, resolverParams);
+					scanNumbers, retentionTimes, intensities, resolverParams,
+					rSession);
 
 	    // Add peaks to the new peak list.
 	    for (final Feature peak : peaks) {
@@ -217,5 +278,20 @@ public class DeconvolutionTask extends AbstractTask {
 	}
 
 	return resolvedPeaks;
+	}
+
+	@Override
+	public void cancel() {
+
+		this.userCanceled = true;
+
+		super.cancel();
+		// Turn off R instance, if already existing.
+		try {
+			if (this.rSession != null) this.rSession.close(true);
+		}
+		catch (RSessionWrapperException e) {
+			// Silent, always...
+		}
     }
 }

@@ -35,6 +35,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedP
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.RangeUtils;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
 
@@ -58,7 +59,8 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
 	    final int[] scanNumbers, final double[] retentionTimes,
-	    final double[] intensities, ParameterSet parameters) {
+	    final double[] intensities, ParameterSet parameters, 
+		RSessionWrapper rSession) {
 
 	// Calculate intensity statistics.
 	double maxIntensity = 0.0;
@@ -314,5 +316,20 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return SavitzkyGolayPeakDetectorParameters.class;
+    }
+
+	@Override
+	public boolean getRequiresR() {
+		return false;
+	}
+
+	@Override
+	public String[] getRequiredRPackages() {
+		return null;
+	}
+
+	@Override
+	public String[] getRequiredRPackagesVersions() {
+		return null;
     }
 }
