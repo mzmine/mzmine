@@ -36,6 +36,19 @@ rem The TMP_FILE_DIRECTORY parameter defines the location where temporary
 rem files (parsed raw data) will be placed. Default is %TEMP%, which 
 rem represents the system temporary directory.
 set TMP_FILE_DIRECTORY=%TEMP%
+rem Do not modify:
+rem DOS make sure to use 'short name' representation for temp directory
+for %%f in ("%TMP_FILE_DIRECTORY%") do (set TMP_FILE_DIRECTORY=%%~sf)
+rem rem and forward slashed (required by features not supporting spaces or '\').
+rem set TMP_FILE_DIRECTORY=%TMP_FILE_DIRECTORY:\=/%
+rem Make the temp working dir unique per MZmine instance.
+rem for /f "skip=1" %%x in ('wmic os get localdatetime') do (set MZMINE_UNID="MZmine"%%x)
+for /F "usebackq tokens=1,2 delims==" %%i in (`wmic os get LocalDateTime /VALUE 2^>NUL`) do if '.%%i.'=='.LocalDateTime.' set ldt=%%j
+set ldt=%ldt:~0,4%-%ldt:~4,2%-%ldt:~6,2%_%ldt:~8,2%-%ldt:~10,2%-%ldt:~12,6%
+set MZMINE_UNID=MZmine%ldt%
+
+set TMP_FILE_DIRECTORY=%TMP_FILE_DIRECTORY%\\%MZMINE_UNID%
+mkdir %TMP_FILE_DIRECTORY%
 
 rem Set R environment variables.
 set R_HOME=C:\Program Files\R\R-2.12.0
@@ -64,3 +77,22 @@ rem This command starts the Java Virtual Machine
 
 rem If there was an error, give the user chance to see it
 IF ERRORLEVEL 1 pause
+
+
+rem Do not modify:
+rem Kill/cleanup remaining Rserve instances
+setlocal disableDelayedExpansion
+:: Load the file path "array"
+for /f "tokens=1* delims=:" %%A in ('dir /b %TMP_FILE_DIRECTORY%\rs_pid_*.pid^|findstr /n "^"') do (
+  set "file.%%A=%TMP_FILE_DIRECTORY%\%%B"
+  set "file.count=%%A"
+)
+:: Access the values
+setlocal enableDelayedExpansion
+for /l %%N in (1 1 %file.count%) do (
+  echo !file.%%N!
+  set /P pid=<!file.%%N!
+  echo !pid!
+  del !file.%%N!
+  taskkill /PID !pid! /F 2>nul
+)
