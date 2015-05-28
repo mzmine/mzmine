@@ -31,11 +31,16 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class HeatMapParameters extends SimpleParameterSet {
 
     public static final String[] fileTypes = { "pdf", "svg", "png", "fig" };
+
+    public static final PeakListsParameter peakLists = new PeakListsParameter(
+            1, 1);
+
     public static final FileNameParameter fileName = new FileNameParameter(
 	    "Output name", "Select the path and name of the output file.");
     public static final ComboParameter<String> fileTypeSelection = new ComboParameter<String>(
@@ -83,10 +88,10 @@ public class HeatMapParameters extends SimpleParameterSet {
 	    "Row margin", "Row margin of the heat map", 10);
 
     public HeatMapParameters() {
-	super(new Parameter[] { fileName, fileTypeSelection, selectionData,
-		referenceGroup, useIdenfiedRows, usePeakArea, scale, log,
-		showControlSamples, plegend, star, height, width, columnMargin,
-		rowMargin });
+        super(new Parameter[] { peakLists, fileName, fileTypeSelection,
+                selectionData, referenceGroup, useIdenfiedRows, usePeakArea,
+                scale, log, showControlSamples, plegend, star, height, width,
+                columnMargin, rowMargin });
     }
 
     @Override
