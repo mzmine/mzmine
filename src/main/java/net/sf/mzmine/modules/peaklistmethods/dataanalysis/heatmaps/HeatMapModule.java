@@ -25,7 +25,6 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -39,34 +38,39 @@ public class HeatMapModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-	PeakList[] selectedDatasets = MZmineCore.getDesktop()
-		.getSelectedPeakLists();
-	HeatMapTask heatMapTask = new HeatMapTask(project, selectedDatasets[0],
-		parameters);
-	tasks.add(heatMapTask);
-	return ExitCode.OK;
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+
+        PeakList selectedDataset = parameters
+                .getParameter(HeatMapParameters.peakLists).getValue()
+                .getMatchingPeakLists()[0];
+
+        HeatMapTask heatMapTask = new HeatMapTask(project, selectedDataset,
+                parameters);
+
+        tasks.add(heatMapTask);
+
+        return ExitCode.OK;
 
     }
 
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.DATAANALYSIS;
+        return MZmineModuleCategory.DATAANALYSIS;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return HeatMapParameters.class;
+        return HeatMapParameters.class;
     }
 
 }
