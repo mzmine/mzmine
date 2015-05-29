@@ -28,7 +28,7 @@ import net.sf.mzmine.util.InetUtils;
 
 public class NewVersionCheck implements Runnable {
 
-    private static final String newestVersionAddress = "http://mzmine.sourceforge.net/version.txt";
+    private static final String newestVersionAddress = "http://mzmine.github.io/version.txt";
 
     public enum CheckType {
 	DESKTOP, MENU
