@@ -69,10 +69,8 @@ public class BaselineCorrectionTask extends AbstractTask {
 	// Common parameters.
 	private final ParameterSet commonParameters;
 
-	//	private final RengineType rEngineType;
 	private RSessionWrapper rSession;
 	private String errorMsg;
-	private boolean userCanceled;
 
 	/**
 	 * Creates the task.
@@ -93,8 +91,6 @@ public class BaselineCorrectionTask extends AbstractTask {
 		this.baselineCorrectorProcStep = parameters.getParameter(BaselineCorrectionParameters.BASELINE_CORRECTORS).getValue();
 
 		this.commonParameters = parameters;
-
-		this.userCanceled = false;
 	}
 
 	@Override
@@ -158,16 +154,16 @@ public class BaselineCorrectionTask extends AbstractTask {
 				LOG.info("Baseline corrected " + origDataFile.getName());
 			}
 			// Turn off R instance, once task ended gracefully.
-			if (!this.userCanceled) this.rSession.close(false);
+			if (!isCanceled()) this.rSession.close(false);
 
 		} 
 		catch (IOException | RSessionWrapperException e) {
-			if (!this.userCanceled) {
+			if (!isCanceled()) {
 				errorMsg = "'R computing error' during baseline correction. \n" + e.getMessage();
 			}
 		}
 		catch (Exception e) {
-			if (!this.userCanceled) {
+			if (!isCanceled()) {
 				errorMsg = "'Unknown error' during baseline correction. \n" + e.getMessage();
 			}
 		}
@@ -176,10 +172,10 @@ public class BaselineCorrectionTask extends AbstractTask {
 
 		// Turn off R instance, once task ended UNgracefully.
 		try {
-			if (!this.userCanceled) this.rSession.close(this.userCanceled);
+			if (!isCanceled()) this.rSession.close(isCanceled());
 		}
 		catch (RSessionWrapperException e) {
-			if (!this.userCanceled) {
+			if (!isCanceled()) {
 				// Do not override potential previous error message.
 				if (errorMsg == null) {
 					errorMsg = e.getMessage();
@@ -201,8 +197,6 @@ public class BaselineCorrectionTask extends AbstractTask {
 
 	@Override
 	public void cancel() {
-
-		this.userCanceled = true;
 
 		// Ask running module to stop.
 		baselineCorrectorProcStep.getModule().setAbortProcessing(origDataFile, true);

@@ -63,7 +63,6 @@ public class DeconvolutionTask extends AbstractTask {
 
 	private RSessionWrapper rSession;
 	private String errorMsg;
-	private boolean userCanceled;
 
 
     /**
@@ -84,9 +83,7 @@ public class DeconvolutionTask extends AbstractTask {
 	newPeakList = null;
 	processedRows = 0;
 	totalRows = 0;
-
-	this.userCanceled = false;
-    }
+   }
 
     @Override
     public String getTaskDescription() {
@@ -158,13 +155,9 @@ public class DeconvolutionTask extends AbstractTask {
 			if (this.rSession != null) this.rSession.close(false);
 
 		} catch (RSessionWrapperException e) {
-			//if (!this.userCanceled) {
 			errorMsg = "'R computing error' during CentWave detection. \n" + e.getMessage();
-			//}
 		} catch (Exception e) {
-			//if (!this.userCanceled) {
 			errorMsg = "'Unknown error' during CentWave detection. \n" + e.getMessage();
-			//}
 		} catch (Throwable t) {
 
 		    setStatus(TaskStatus.ERROR);
@@ -174,10 +167,10 @@ public class DeconvolutionTask extends AbstractTask {
 
 		// Turn off R instance, once task ended UNgracefully.
 		try {
-			if (this.rSession != null && !this.userCanceled) rSession.close(this.userCanceled);
+			if (this.rSession != null && !isCanceled()) rSession.close(isCanceled());
 		}
 		catch (RSessionWrapperException e) {
-			if (!this.userCanceled) {
+			if (!isCanceled()) {
 				// Do not override potential previous error message.
 				if (errorMsg == null) {
 					errorMsg = e.getMessage();
@@ -282,8 +275,6 @@ public class DeconvolutionTask extends AbstractTask {
 
 	@Override
 	public void cancel() {
-
-		this.userCanceled = true;
 
 		super.cancel();
 		// Turn off R instance, if already existing.
