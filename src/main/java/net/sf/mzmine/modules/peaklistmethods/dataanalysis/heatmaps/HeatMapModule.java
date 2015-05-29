@@ -38,39 +38,51 @@ public class HeatMapModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
+<<<<<<< HEAD
 	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+=======
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+>>>>>>> 4fef063f5b68634b569b6dbfac9195658291bc41
 
         PeakList selectedDataset = parameters
                 .getParameter(HeatMapParameters.peakLists).getValue()
                 .getMatchingPeakLists()[0];
 
         HeatMapTask heatMapTask = new HeatMapTask(project, selectedDataset,
+<<<<<<< HEAD
 		parameters);
 
 	tasks.add(heatMapTask);
 
 	return ExitCode.OK;
+=======
+                parameters);
+
+        tasks.add(heatMapTask);
+
+        return ExitCode.OK;
+>>>>>>> 4fef063f5b68634b569b6dbfac9195658291bc41
 
     }
 
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.DATAANALYSIS;
+        return MZmineModuleCategory.DATAANALYSIS;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return HeatMapParameters.class;
+        return HeatMapParameters.class;
     }
 
 }
