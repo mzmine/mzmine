@@ -18,20 +18,16 @@
  */
 
 /*
- * Original author: Yann Richet
+ * Original author: Yann Richet - https://github.com/yannrichet/rsession
  */
 
 package net.sf.mzmine.util.R.Rsession;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,10 +40,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import net.sf.mzmine.util.R.RSessionWrapperException;
-
-import org.apache.commons.io.IOUtils;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
@@ -56,12 +48,21 @@ import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPString;
+import org.rosuda.REngine.REXPWrapper;
 import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
+import org.rosuda.REngine.Rserve.RFileInputStream;
+import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import net.sf.mzmine.util.R.Rsession.Logger;
+import net.sf.mzmine.util.R.Rsession.Logger.Level;
 
+
+/**
+ * @author richet
+ */
 public class Rsession implements Logger {
 
     public static final String HEAD_TRY = "";//-try- ";
@@ -75,7 +76,6 @@ public class Rsession implements Logger {
     boolean tryLocalRServe;
     public static final String PACKAGEINSTALLED = "Package installed.";
     public static final String PACKAGELOADED = "Package loaded.";
-    public static final String PACKAGEVERSIONOK = "Package version ok.";
     public boolean connected = false;
     static String separator = ",";
     public final static int MinRserveVersion = 103;
@@ -86,12 +86,13 @@ public class Rsession implements Logger {
     // <editor-fold defaultstate="collapsed" desc="Add/remove interfaces">
     List<Logger> loggers;
     public boolean debug;
-
-
+    
+    
     // GLG HACK:
     private static String tmpDir = null;
     public static final Object R_SESSION_SEMAPHORE = new Object();
     public static ArrayList<Integer> PORTS_REG = new ArrayList<Integer>();
+    
 
     void cleanupListeners() {
         if (loggers != null) {
@@ -124,6 +125,7 @@ public class Rsession implements Logger {
 
     public void addLogger(Logger l) {
         if (!loggers.contains(l)) {
+            //System.out.println("+ logger " + l.getClass().getSimpleName());
             loggers.add(l);
         }
     }
@@ -149,7 +151,9 @@ public class Rsession implements Logger {
                 message = message + "\n ! " + e.getMessage();
             }
         }
+//System.out.println("println " + message+ " in "+loggers.size()+" loggers.");
         for (Logger l : loggers) {
+            //System.out.println("  log in " + l.getClass().getSimpleName());
             l.println(message, level);
         }
     }
@@ -450,6 +454,7 @@ public class Rsession implements Logger {
     public Rsession(final Logger console, RserverConf serverconf, boolean tryLocalRServe, String tmpDirectory) {
     	
     	tmpDir = tmpDirectory;
+    	
         this.console = console;
         rServeConf = serverconf;
         this.tryLocalRServe = tryLocalRServe;
@@ -468,9 +473,9 @@ public class Rsession implements Logger {
 
             public void println(String string, Level level) {
                 if (level == Level.WARNING) {
-                    p.print("(!) ");
+                    p.print("! ");
                 } else if (level == Level.ERROR) {
-                    p.print("(!!) ");
+                    p.print("!! ");
                 }
                 p.println(string);
             }
@@ -485,7 +490,19 @@ public class Rsession implements Logger {
      * create rsession using System as a logger
      */
     public Rsession(RserverConf serverconf, boolean tryLocalRServe, String tmpDirectory) {
-        this(new Slf4jLogger(), serverconf, tryLocalRServe, tmpDirectory);
+        this(new Logger() {
+
+            public void println(String string, Level level) {
+                if (level == Level.INFO) {
+                    System.out.println(string);
+                } else {
+                    System.err.println(string);
+                }
+            }
+
+            public void close() {
+            }
+        }, serverconf, tryLocalRServe, tmpDirectory);
     }
 
     void startup() {
@@ -511,14 +528,14 @@ public class Rsession implements Logger {
     }
 
     void begin(boolean tryLocal) {
-
+    	
     	// GLG HACK:
     	synchronized (Rsession.R_SESSION_SEMAPHORE) {
     		if (!Rsession.PORTS_REG.contains(Integer.valueOf(rServeConf.port)))
     			PORTS_REG.add(Integer.valueOf(rServeConf.port));
     	}
-
-
+    	
+    	
         status = STATUS_NOT_CONNECTED;
 
         /*if (RserveConf == null) {
@@ -599,7 +616,7 @@ public class Rsession implements Logger {
      * correctly (depending on execution platform) shutdown Rsession.
      */
     public void end() {
-        if (connection == null) {
+       if (connection == null) {
             log("Void session terminated.", Level.INFO);
             cleanupListeners();
             return;
@@ -617,7 +634,7 @@ public class Rsession implements Logger {
 
         connection = null;
         cleanupListeners();
-
+        
     	// GLG HACK:
     	synchronized (Rsession.R_SESSION_SEMAPHORE) {
     		if (Rsession.PORTS_REG.contains(Integer.valueOf(rServeConf.port)))
@@ -977,26 +994,17 @@ public class Rsession implements Logger {
             log(_PACKAGE_ + pack + " loading failed.", Level.ERROR);
             return "Impossible to load package " + pack + ": " + ex.getLocalizedMessage();
         }
-    }
-    
-    // GLG ADD : Check package version.
-	public String checkPackageVersion(String pack, String version) throws RSessionWrapperException {
-        log("  request package " + pack + " loading...", Level.INFO);
-        try {
-            boolean ok = eval("packageVersion('" + pack + "') >= '" + version + "\'", TRY_MODE).asBytes()[0] == 1;
-            if (ok) {
-                log(_PACKAGE_ + pack + " version check sucessfull.", Level.INFO);
-                return PACKAGEVERSIONOK;
-            } else {
-                log(_PACKAGE_ + pack + " version check failed.", Level.ERROR);
-                return "Package " + pack + ": " + getLastLogEntry() + "," + getLastError() + " - Check failed or version too old.";
-            }
-        } catch (Exception ex) {
-            log(_PACKAGE_ + pack + " check failed.", Level.ERROR);
-            return "Impossible to check version for package " + pack + ": " + ex.getLocalizedMessage();
-        }
-	}
 
+        /*eval("library(" + pack + ",logical.return=T)", TRY_MODE);
+         log("  request package " + pack + " loading...", Level.INFO);
+         if (isPackageLoaded(pack)) {
+         log(_PACKAGE_ + pack + " loading sucessfull.", Level.INFO);
+         return PACKAGELOADED;
+         } else {
+         log(_PACKAGE_ + pack + " loading failed.", Level.ERROR);
+         return "Impossible to load package " + pack + ": " + getLastError();
+         }*/
+    }
     // </editor-fold>
     final static String HEAD_EVAL = "[eval] ";
     final static String HEAD_EXCEPTION = "[exception] ";
@@ -1209,9 +1217,8 @@ public class Rsession implements Logger {
             b.update();
         }
 
-        if (tryEval && e != null) {
+        if (e != null) {
             log(__ + e.toDebugString(), Level.INFO);
-            System.err.println(e.toDebugString());
         }
 
         return e;
@@ -1489,8 +1496,10 @@ public class Rsession implements Logger {
         REXP[] vals = new REXP[names.length];
 
         for (int i = 0; i < names.length; i++) {
+            //System.out.println("i=" + i);
             double[] coli = new double[data.length];
             for (int j = 0; j < coli.length; j++) {
+                //System.out.println("  j=" + j);
                 if (data[j].length > i) {
                     coli[j] = data[j][i];
                 } else {
@@ -1620,19 +1629,6 @@ public class Rsession implements Logger {
             return silentlyVoidEval(varname + "<-" + (Integer) var);
         } else if (var instanceof Double) {
             return silentlyVoidEval(varname + "<-" + (Double) var);
-        } else if (var instanceof Double[]) {
-            Double[] varD = (Double[]) var;
-            double[] vard = new double[varD.length];
-            System.arraycopy(varD, 0, vard, 0, varD.length);
-            try {
-                synchronized (connection) {
-                    connection.assign(varname, vard);
-                }
-            } catch (REngineException ex) {
-                log(HEAD_ERROR + ex.getMessage() + "\n  set(String varname=" + varname + ",Object (Double[]) var)", Level.ERROR);
-                return false;
-            }
-            return silentlyVoidEval(varname/*, cat((double[]) var)*/);
         } else if (var instanceof double[]) {
             try {
                 synchronized (connection) {
@@ -1643,21 +1639,6 @@ public class Rsession implements Logger {
                 return false;
             }
             return silentlyVoidEval(varname/*, cat((double[]) var)*/);
-        } else if (var instanceof Double[][]) {
-            Double[][] array = (Double[][]) var;
-            int rows = array.length;
-            int col = array[0].length;
-            try {
-                synchronized (connection) {
-                    connection.assign("row_" + varname, reshapeAsRow(array));
-                }
-            } catch (REngineException ex) {
-                log(HEAD_ERROR + ex.getMessage() + "\n  set(String varname=" + varname + ",Object (double[][]) var)", Level.ERROR);
-                return false;
-            }
-            //eval("print(row_" + varname + ")");
-            boolean done = silentlyVoidEval(varname + "<-array(row_" + varname + ",c(" + rows + "," + col + "))");
-            return done && silentlyVoidEval("rm(row_" + varname + ")");
         } else if (var instanceof double[][]) {
             double[][] array = (double[][]) var;
             int rows = array.length;
@@ -1754,18 +1735,6 @@ public class Rsession implements Logger {
         return reshaped;
     }
 
-    private static double[] reshapeAsRow(Double[][] a) {
-        double[] reshaped = new double[a.length * a[0].length];
-        int ir = 0;
-        for (int j = 0; j < a[0].length; j++) {
-            for (int i = 0; i < a.length; i++) {
-                reshaped[ir] = a[i][j];
-                ir++;
-            }
-        }
-        return reshaped;
-    }
-
     /**
      * cast R object in java object
      *
@@ -1777,6 +1746,37 @@ public class Rsession implements Logger {
         if (eval == null) {
             return null;
         }
+
+        /*int[] dim = eval.dim();
+         String dims = "[";
+         if (dim == null) {
+         dims = "NULL";
+         } else {
+         for (int i : dim) {
+         dims += (i + " ");
+         }
+         dims += "]";
+         }
+        
+         System.out.println(eval.toString() +
+         "\n  isComplex=     " + (eval.isComplex() ? "TRUE" : "    false") +
+         "\n  isEnvironment= " + (eval.isEnvironment() ? "TRUE" : "    false") +
+         "\n  isExpression=  " + (eval.isExpression() ? "TRUE" : "    false") +
+         "\n  isFactor=      " + (eval.isFactor() ? "TRUE" : "    false") +
+         "\n  isFactor=      " + (eval.isFactor() ? "TRUE" : "    false") +
+         "\n  isInteger=     " + (eval.isInteger() ? "TRUE" : "    false") +
+         "\n  isLanguage=    " + (eval.isLanguage() ? "TRUE" : "    false") +
+         "\n  isList=        " + (eval.isList() ? "TRUE" : "    false") +
+         "\n  isLogical=     " + (eval.isLogical() ? "TRUE" : "    false") +
+         "\n  isNull=        " + (eval.isNull() ? "TRUE" : "    false") +
+         "\n  isNumeric=     " + (eval.isNumeric() ? "TRUE" : "    false") +
+         "\n  isRaw=         " + (eval.isRaw() ? "TRUE" : "    false") +
+         "\n  isRecursive=   " + (eval.isRecursive() ? "TRUE" : "    false") +
+         "\n  isString=      " + (eval.isString() ? "TRUE" : "    false") +
+         "\n  isSymbol=      " + (eval.isSymbol() ? "TRUE" : "    false") +
+         "\n  isVector=      " + (eval.isVector() ? "TRUE" : "    false") +
+         "\n  length=  " + (eval.length()) +
+         "\n  dim=  " + dims);*/
         if (eval.isNumeric()) {
             if (eval.dim() == null || eval.dim().length == 1) {
                 double[] array = eval.asDoubles();
@@ -1788,6 +1788,7 @@ public class Rsession implements Logger {
                 }
                 return array;
             } else {
+                //System.err.println("eval.dim()="+eval.dim()+"="+cat(eval.dim()));
                 double[][] mat = eval.asDoubleMatrix();
                 if (mat.length == 0) {
                     return null;
@@ -2027,6 +2028,11 @@ public class Rsession implements Logger {
      */
     public void receiveFile(File localfile, String remoteFile) {
         try {
+            /*int i = 10;
+             while (i > 0 && silentlyEval("file.exists('" + remoteFile + "')", TRY_MODE).asInteger() != 1) {
+             Thread.sleep(1000);
+             i--;
+             }*/
             if (silentlyEval("file.exists('" + remoteFile + "')", TRY_MODE).asInteger() != 1) {
                 log(HEAD_ERROR + IO_HEAD + "file " + remoteFile + " not found.", Level.ERROR);
             }
@@ -2043,23 +2049,56 @@ public class Rsession implements Logger {
                 return;
             }
         }
-        InputStream is = null;
-        OutputStream os = null;
+        int send_buffer_size = -1;
+        try {
+            send_buffer_size = (int) Math.pow(2.0, Math.ceil(Math.log(silentlyEval("file.info('" + remoteFile + "')$size", TRY_MODE).asInteger()) / Math.log(2))) / 2;
+            //send_buffer_size = (int) Math.max(Math.pow(2.0, 15), send_buffer_size);//min=32kB
+            // UGLY turn around to avoid "broken pipe".
+            send_buffer_size = (int) Math.max(Math.pow(2.0, 24), 4 * send_buffer_size);//min=16MB
+            //System.err.println(IO_HEAD + "using buffer of size " + send_buffer_size);
+            log(IO_HEAD + "using buffer of size " + send_buffer_size, Level.WARNING);
+        } catch (REXPMismatchException ex) {
+            ex.printStackTrace();
+            log(HEAD_ERROR + IO_HEAD + "file " + remoteFile + " size not found.", Level.ERROR);
+        }
+
+        RFileInputStream is = null;
+        FileOutputStream os = null;
+        int n = 0;
         synchronized (connection) {
             try {
                 is = connection.openFile(remoteFile);
-                os = new BufferedOutputStream(new FileOutputStream(localfile));
-                IOUtils.copy(is, os);
-                log(IO_HEAD + "File " + remoteFile + " received.", Level.INFO);
-                is.close();
-                os.close();
+                os = new FileOutputStream(localfile);
+                byte[] buf = new byte[send_buffer_size];
+                //FIXME bug when received file exceeds 65kb
+                connection.setSendBufferSize(buf.length);
+                while ((n = is.read(buf)) > 0) {
+                    os.write(buf, 0, n);
+                }
+            } catch (RserveException ex) {
+                ex.printStackTrace();
+                log(HEAD_EXCEPTION + ex.getMessage() + ":" + ex.getRequestErrorDescription() + "\n  getFile(File localfile=" + localfile.getAbsolutePath() + ", String remoteFile=" + remoteFile + ")", Level.ERROR);
             } catch (IOException e) {
-                log(HEAD_ERROR + IO_HEAD + connection.getLastError() + ": file " + remoteFile + " not transmitted.\n" + e.getMessage(), Level.ERROR);
+                e.printStackTrace();
+                log(HEAD_ERROR + IO_HEAD + connection.getLastError() + ": file " + remoteFile + " not transmitted at " + n + ".\n" + e.getMessage(), Level.ERROR);
             } finally {
-            	IOUtils.closeQuietly(is);
-            	IOUtils.closeQuietly(os);
+                try {
+                    if (is != null) {
+                        is.close();
+                    }
+                } catch (IOException ee) {
+                    ee.printStackTrace();
+                }
+                try {
+                    if (os != null) {
+                        os.close();
+                    }
+                } catch (IOException ee) {
+                    ee.printStackTrace();
+                }
             }
         }
+        log(IO_HEAD + "File " + remoteFile + " received.", Level.INFO);
     }
 
     /**
@@ -2101,30 +2140,51 @@ public class Rsession implements Logger {
         try {
             if (silentlyEval("file.exists('" + remoteFile + "')", TRY_MODE).asInteger() == 1) {
                 silentlyVoidEval("file.remove('" + remoteFile + "')", TRY_MODE);
+                //connection.removeFile(remoteFile);
                 log(IO_HEAD + "Remote file " + remoteFile + " deleted.", Level.INFO);
             }
+            /*} catch (RserveException ex) {
+             log(HEAD_EXCEPTION + ex.getMessage() + "\n  putFile(File localfile=" + localfile.getAbsolutePath() + ", String remoteFile=" + remoteFile + ")");
+             */
         } catch (REXPMismatchException ex) {
             log(HEAD_ERROR + ex.getMessage() + "\n  putFile(File localfile=" + localfile.getAbsolutePath() + ", String remoteFile=" + remoteFile + ")", Level.ERROR);
             return;
         }
-        InputStream is = null;
-        OutputStream os = null;
+        int send_buffer_size = (int) localfile.length();
+        FileInputStream is = null;
+        RFileOutputStream os = null;
         synchronized (connection) {
             try {
                 os = connection.createFile(remoteFile);
-                is = new BufferedInputStream(new FileInputStream(localfile));
-                IOUtils.copy(is, os);
-                log(IO_HEAD + "File " + remoteFile + " sent.", Level.INFO);
-                is.close();
-                os.close();
+                is = new FileInputStream(localfile);
+                byte[] buf = new byte[send_buffer_size];
+                try {
+                    connection.setSendBufferSize(buf.length);
+                } catch (RserveException ex) {
+                    ex.printStackTrace();
+                    log(HEAD_EXCEPTION + ex.getMessage() + "\n  putFile(File localfile=" + localfile.getAbsolutePath() + ", String remoteFile=" + remoteFile + ")", Level.ERROR);
+                }
+                int n = 0;
+                while ((n = is.read(buf)) > 0) {
+                    os.write(buf, 0, n);
+                }
             } catch (IOException e) {
                 log(HEAD_ERROR + IO_HEAD + connection.getLastError() + ": file " + remoteFile + " not writable.\n" + e.getMessage(), Level.ERROR);
+                return;
             } finally {
-            	IOUtils.closeQuietly(is);
-            	IOUtils.closeQuietly(os);
+                try {
+                    if (os != null) {
+                        os.close();
+                    }
+                    if (is != null) {
+                        is.close();
+                    }
+                } catch (IOException ee) {
+                    ee.printStackTrace();
+                }
             }
         }
-        
+        log(IO_HEAD + "File " + remoteFile + " sent.", Level.INFO);
     }
     final static String testExpression = "1+pi";
     final static double testResult = 1 + Math.PI;
@@ -2143,6 +2203,7 @@ public class Rsession implements Logger {
      * @warning UNSTABLE and high CPU cost.
      */
     public synchronized Object proxyEval(String expression, Map<String, Object> vars) throws Exception {
+        //System.out.println("eval(" + expression + "," + vars + ")");
         if (expression.length() == 0) {
             return null;
         }
@@ -2153,6 +2214,7 @@ public class Rsession implements Logger {
         } catch (NumberFormatException ne) {
 
             if (!uses(expression, vars) && noVarsEvals.containsKey(expression)) {
+                //System.out.println("noVarsEvals < " + expression + " -> " + noVarsEvals.get(expression));
                 log(HEAD_CACHE + "Cached evaluation of " + expression + " in " + noVarsEvals, Level.INFO);
                 return noVarsEvals.get(expression);
             }
@@ -2188,17 +2250,22 @@ public class Rsession implements Logger {
             }
 
             if (!uses(clean_expression, clean_vars) && noVarsEvals.containsKey(clean_expression)) {
+                //System.out.println("noVarsEvals < " + expression + " -> " + noVarsEvals.get(expression));
                 log(HEAD_CACHE + "Cached evaluation of " + expression + " in " + noVarsEvals, Level.INFO);
                 return noVarsEvals.get(clean_expression);
             }
 
+            //System.out.println("clean_expression=" + clean_expression);
+            //System.out.println("clean_vars=" + clean_vars);
             Object out = null;
             try {
                 if (uses(clean_expression, clean_vars)) {
                     set(clean_vars);
                 }
                 log(HEAD_CACHE + "True evaluation of " + clean_expression + " with " + clean_vars, Level.INFO);
+                //System.out.println("clean_expression=" + clean_expression);
                 REXP exp = eval(clean_expression);
+                //System.out.println("eval=" + eval.toDebugString());
                 out = cast(exp);
 
                 if (clean_vars.isEmpty() && out != null) {
@@ -2209,9 +2276,11 @@ public class Rsession implements Logger {
                 if (!uses(expression, vars) && out != null) {
                     log(HEAD_CACHE + "Saving result of " + expression, Level.INFO);
                     noVarsEvals.put(expression, out);
+                    //System.out.println("noVarsEvals > " + expression + " -> " + out);
                 }
 
             } catch (Exception e) {
+                //out = CAST_ERROR + expression + ": " + e.getMessage();
                 log(HEAD_CACHE + "Failed cast of " + expression, Level.INFO);
                 throw new Exception(CAST_ERROR + expression + ": " + e.getMessage());
             } finally {
@@ -2276,20 +2345,6 @@ public class Rsession implements Logger {
         return vars != null && !vars.isEmpty() && areUsed(expression, vars.keySet());
     }
 
-    
-//   static void testD(Rsession R){
-//        Double[][] d = new Double[10][2];
-//        for (int i = 0; i < d.length; i++) {
-//            for (int j = 0; j < d[i].length; j++) {
-//                d[i][j]=Math.random();
-//                
-//            }
-//            
-//        }
-//        R.set("d", d);
-//        System.err.println(castToString(R.eval("d")));
-//    }
-    
     public static void main(String[] args) throws Exception {
         //args = new String[]{"install.packages('lhs',repos='\"http://cran.irsn.fr/\"',lib='.')", "1+1"};
         if (args == null || args.length == 0) {
@@ -2300,7 +2355,26 @@ public class Rsession implements Logger {
         }
         Rsession R = null;
         int i = 0;
-        Logger l = new Slf4jLogger();
+        Logger l = new Logger() {
+
+            public void println(String message, Level l) {
+                if (l == Level.INFO) {
+                    System.out.println(message);
+                } else {
+                    System.err.println(message);
+                }
+            }
+
+            public void close() {
+            }
+        };
+        //RLogPanel l = new RLogPanel();
+        //JFrame f = new JFrame();
+        // f.setContentPane(l);
+        //f.pack();
+        // f.setSize(600, 600);
+        //f.setVisible(true);
+
         if (args[0].startsWith(RserverConf.RURL_START)) {
             i++;
             R = Rsession.newInstanceTry(l, RserverConf.parse(args[0]), null);
@@ -2308,7 +2382,6 @@ public class Rsession implements Logger {
             R = Rsession.newInstanceTry(l, null, null);
         }
 
-        //testD(R);
         //RObjectsPanel  o = new RObjectsPanel(R);
         //o.setAutoUpdate(true);
         //System.err.println(R.loadPackage("DiceView"));

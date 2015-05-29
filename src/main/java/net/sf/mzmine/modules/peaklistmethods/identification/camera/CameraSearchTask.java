@@ -46,7 +46,7 @@ import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.DataPointSorter;
-import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
@@ -183,7 +183,7 @@ public class CameraSearchTask extends AbstractTask {
 	final Rengine rEngine;
 	try {
 
-	    rEngine = RUtilities.getREngine();
+	    rEngine = RSessionWrapper.jri_getREngine();
 	} catch (Throwable t) {
 
 	    throw new IllegalStateException(
@@ -191,7 +191,7 @@ public class CameraSearchTask extends AbstractTask {
 			    + t.getMessage() + ')');
 	}
 
-	synchronized (RUtilities.R_SEMAPHORE) {
+	synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
 
 	    // Is R installed - load CAMERA library.
 	    if (rEngine.eval("require(CAMERA)").asBool().isFALSE()) {

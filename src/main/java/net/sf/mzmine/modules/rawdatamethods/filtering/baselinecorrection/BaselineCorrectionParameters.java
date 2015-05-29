@@ -26,8 +26,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 import java.awt.Window;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
-//import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.AsymmetryCorrector;
+import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.AsymmetryCorrector;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.LocMinLoessCorrector;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.PeakDetectionCorrector;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.RollingBallCorrector;
@@ -44,16 +43,16 @@ import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.ExitCode;
 
+
 /**
- * Holds baseline correction module COMMON parameters. See
- * "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors"
- * sub-package for method specific parameters.
+ * Holds baseline correction module COMMON parameters.
+ * See "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors" sub-package
+ * for method specific parameters.
  * 
  * @author $Author$
  * @version $Revision$
  * 
- *          Reduced strictly to the parameters common to all the
- *          BaselineCorrectors.
+ * Reduced strictly to the parameters common to all the BaselineCorrectors.
  */
 public class BaselineCorrectionParameters extends SimpleParameterSet {
 
@@ -73,12 +72,13 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
 	    "Filename suffix", "Suffix to be appended to raw data file names.",
 	    "baseline-corrected");
 
-    /**
-     * R engine type.
-     */
-    public static final ComboParameter<RengineType> RENGINE_TYPE = new ComboParameter<RengineType>(
-	    "R engine type", "The type of R engine to be used for computing.",
-	    RengineType.values(), RengineType.JRIengine);
+	//	/**
+	//	 * R engine type.
+	//	 */
+	//	public static final ComboParameter<RengineType> RENGINE_TYPE = new ComboParameter<RengineType>(
+	//			"R engine type",
+	//			"The type of R engine to be used for computing.",
+	//			RengineType.values(), RengineType.Rserve);
 
     /**
      * Chromatogram type.
@@ -92,23 +92,15 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
      * List of available baseline correctors
      */
     public static final BaselineCorrector baselineCorrectors[] = {
-    /*
-     * new AsymmetryCorrector(), // (Package R "ptw" -
-     * http://cran.r-project.org/web/packages/ptw/ptw.pdf)
-     */
-    new RollingBallCorrector(), // (Package R "baseline" -
-				// http://cran.r-project.org/web/packages/baseline/baseline.pdf)
-	    new PeakDetectionCorrector(), // (Package R "baseline" -
-					  // http://cran.r-project.org/web/packages/baseline/baseline.pdf)
-	    new RubberBandCorrector(), // (Package R "hyperSpec" -
-				       // http://cran.r-project.org/web/packages/hyperSpec/vignettes/baseline.pdf)
-	    new LocMinLoessCorrector() // (Package R/Bioc. "PROcess" -
-				       // http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf)
+		new AsymmetryCorrector(),		// (Package R "ptw"				- http://cran.r-project.org/web/packages/ptw/ptw.pdf)
+		new RollingBallCorrector(),		// (Package R "baseline"		- http://cran.r-project.org/web/packages/baseline/baseline.pdf)
+		new PeakDetectionCorrector(), 	// (Package R "baseline" 		- http://cran.r-project.org/web/packages/baseline/baseline.pdf)
+		new RubberBandCorrector(),  	// (Package R "hyperSpec" 		- http://cran.r-project.org/web/packages/hyperSpec/vignettes/baseline.pdf)
+		new LocMinLoessCorrector()		// (Package R/Bioc. "PROcess" 	- http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf)
     };
 
     public static final ModuleComboParameter<BaselineCorrector> BASELINE_CORRECTORS = new ModuleComboParameter<BaselineCorrector>(
-	    "Correction method", "Alternative baseline correction methods",
-	    baselineCorrectors);
+			"Correction method", "Alternative baseline correction methods", baselineCorrectors);
 
     /**
      * Apply in bins.

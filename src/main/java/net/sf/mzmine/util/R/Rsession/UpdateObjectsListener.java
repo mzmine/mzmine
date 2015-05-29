@@ -18,7 +18,7 @@
  */
 
 /*
- * Original author: Yann Richet
+ * Original author: Yann Richet - https://github.com/yannrichet/rsession
  */
 
 package net.sf.mzmine.util.R.Rsession;

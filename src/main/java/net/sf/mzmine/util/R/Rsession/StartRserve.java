@@ -18,7 +18,7 @@
  */
 
 /*
- * Original author: Yann Richet
+ * Original author: Yann Richet - https://github.com/yannrichet/rsession
  */
 
 package net.sf.mzmine.util.R.Rsession;
@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
 import org.rosuda.REngine.Rserve.RConnection;
 
 /** helper class that consumes output of a process. In addition, it filter output of the REG command on Windows to look for InstallPath registry entry which specifies the location of R. */
@@ -64,7 +63,10 @@ class RegistryHog extends Thread {
                             s = s.substring(j + 6).trim();
                         }
                         installPath = s;
+                        //System.out.println("R InstallPath = " + s);
                     }
+                } else {
+                    //System.out.println("Rserve>" + line);
                 }
             }
         } catch (IOException e) {
@@ -203,9 +205,11 @@ public class StartRserve {
             if (osname != null && osname.length() >= 7 && osname.substring(0, 7).equals("Windows")) {
                 isWindows = true; /* Windows startup */
                 command = "\"" + Rcmd + "\" -e \"" + todo + "\" " + rargs;
+                //System.out.println("e=" + e);
                 p = Runtime.getRuntime().exec(command);
             } else /* unix startup */ {
                 command = "echo \"" + todo + "\"|" + Rcmd + " " + rargs;
+                //System.out.println("e=" + e);
                 p = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
             }
             System.err.println("  executing " + command);

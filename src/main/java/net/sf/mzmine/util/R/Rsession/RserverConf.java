@@ -18,8 +18,9 @@
  */
 
 /*
- * Original author: Yann Richet
+ * Original author: Yann Richet - https://github.com/yannrichet/rsession
  */
+
 
 package net.sf.mzmine.util.R.Rsession;
 
@@ -27,12 +28,13 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.util.Properties;
+
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 public class RserverConf {
 
-    public static String DEFAULT_RSERVE_HOST = "localhost";
+    public static final String DEFAULT_RSERVE_HOST = "localhost";
     RConnection connection;
     public String host;
     public int port;
@@ -50,7 +52,8 @@ public class RserverConf {
         properties = props;
     }
     public static long CONNECT_TIMEOUT = 1000;
-
+    
+    
     public abstract class TimeOut {
 
         /**
@@ -267,7 +270,7 @@ public class RserverConf {
         	//RserverPort = RserverDefaultPort;
             // GLG TODO: use ArrayList<Integer>() to reuse freed ports (Rsession.end())
         	//			Otherwise, we'll run out of possible port number in case of intensive use !!!
-            while (!isPortAvailable(RserverPort)) {
+        	while (!isPortAvailable(RserverPort)) {
                 RserverPort++;
                 //System.out.println("RserverPort++ = " + RserverPort);
             }
@@ -290,7 +293,7 @@ public class RserverConf {
 			return port;
     	}
     }
-
+    
     public boolean isLocal() {
         return host == null || host.equals(DEFAULT_RSERVE_HOST) || host.equals("127.0.0.1");
     }

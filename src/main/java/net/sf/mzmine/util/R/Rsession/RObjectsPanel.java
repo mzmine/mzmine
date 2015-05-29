@@ -18,7 +18,7 @@
  */
 
 /*
- * Original author: Yann Richet
+ * Original author: Yann Richet - https://github.com/yannrichet/rsession
  */
 
 package net.sf.mzmine.util.R.Rsession;
@@ -44,6 +44,8 @@ import javax.swing.table.DefaultTableModel;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 
+
+@SuppressWarnings("serial")
 public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
 
     private RObjectsModel _model;
@@ -120,6 +122,7 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
         @Override
         public int getRowCount() {
             //int ls = R.silentlyEval("length(ls())").asInt();
+            //System.out.println(ls+" lines");
             return ls.length;
         }
 
@@ -335,6 +338,7 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION && fc.getSelectedFiles() != null) {
             File[] files = fc.getSelectedFiles();
             for (File file : files) {
+                //System.out.println("+ " + file.getName());
                 if (file.getName().endsWith(".R")) {
                     if (R != null) {
                         R.source(file);

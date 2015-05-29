@@ -40,7 +40,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
@@ -175,7 +175,7 @@ public class CentWaveDetector implements PeakResolver {
 	// Get R engine.
 	final Rengine rEngine;
 	try {
-	    rEngine = RUtilities.getREngine();
+	    rEngine = RSessionWrapper.jri_getREngine();
 	} catch (Throwable t) {
 	    throw new IllegalStateException(
 		    "XCMS requires R but it couldn't be loaded ("
@@ -183,7 +183,7 @@ public class CentWaveDetector implements PeakResolver {
 	}
 
 	final double[][] peaks;
-	synchronized (RUtilities.R_SEMAPHORE) {
+	synchronized (RSessionWrapper.jri_R_SEMAPHORE) {
 
 	    // Load XCMS library.
 	    if (rEngine.eval("require(xcms)").asBool().isFALSE()) {
