@@ -51,6 +51,8 @@ import net.sf.mzmine.modules.visualization.tic.TICToolBar;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.R.RSessionWrapper;
+import net.sf.mzmine.util.R.RSessionWrapperException;
 
 import org.jfree.data.xy.XYDataset;
 
@@ -233,10 +235,31 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
 		    // Resolve peaks.
 		    Feature[] resolvedPeaks = {};
+			RSessionWrapper rSession;
 		    try {
+
+			if (peakResolver.getRequiresR()) {
+				// Check R availability, by trying to open the connection.
+				String[] reqPackages = peakResolver.getRequiredRPackages();
+				String[] reqPackagesVersions = peakResolver.getRequiredRPackagesVersions();
+				String callerFeatureName = peakResolver.getName();
+				rSession = new RSessionWrapper(callerFeatureName, /*this.rEngineType,*/ reqPackages, reqPackagesVersions);
+				rSession.open();
+			} else {
+				rSession = null;
+			}
+
 			resolvedPeaks = peakResolver.resolvePeaks(previewPeak,
 				scanNumbers, retentionTimes, intensities,
-				parameters);
+								parameters, rSession);					
+						
+						// Turn off R instance.
+						if (rSession != null) rSession.close(false);
+
+						
+					} catch (RSessionWrapperException e) {
+						
+						throw new IllegalStateException(e.getMessage());
 		    } catch (Throwable t) {
 
 			LOG.log(Level.SEVERE, "Peak deconvolution error", t);

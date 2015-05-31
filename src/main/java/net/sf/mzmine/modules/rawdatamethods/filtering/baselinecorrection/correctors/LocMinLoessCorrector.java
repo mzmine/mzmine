@@ -31,8 +31,6 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
  * @description Local Minima + LOESS (smoothed low-percentile intensity) baseline corrector.  
  * Uses "bslnoff" feature from "PROcess" R/Bioconductor package (http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf).
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
 public class LocMinLoessCorrector extends BaselineCorrector {
 

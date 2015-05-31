@@ -34,6 +34,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RangeUtils;
+import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
 
@@ -52,7 +53,8 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
 	    final int[] scanNumbers, final double[] retentionTimes,
-	    final double[] intensities, ParameterSet parameters) {
+	    final double[] intensities, ParameterSet parameters, 
+		RSessionWrapper rSession) {
 
 	final double amplitudeOfNoise = parameters
 		.getParameter(NOISE_AMPLITUDE).getValue();
@@ -191,5 +193,20 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return NoiseAmplitudePeakDetectorParameters.class;
+    }
+
+	@Override
+	public boolean getRequiresR() {
+		return false;
+	}
+
+	@Override
+	public String[] getRequiredRPackages() {
+		return null;
+	}
+
+	@Override
+	public String[] getRequiredRPackagesVersions() {
+		return null;
     }
 }

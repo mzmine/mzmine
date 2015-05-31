@@ -29,15 +29,9 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
  *              those parameters can be obtained at any time, even before having
  *              started running the module.
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
+@SuppressWarnings("serial")
 public class InstantUpdateSetupDialog extends ParameterSetupDialog {
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
 
     public InstantUpdateSetupDialog(Window parent, boolean valueCheckRequired,
 	    ParameterSet parameters) {

@@ -29,8 +29,7 @@ import net.sf.mzmine.util.ExitCode;
 
 /**
  * @description Rolling Ball baseline corrector parameters.
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
+ * 
  */
 public class RollingBallCorrectorParameters extends SimpleParameterSet {
 

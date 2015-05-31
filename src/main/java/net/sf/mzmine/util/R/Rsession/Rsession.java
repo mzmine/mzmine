@@ -60,9 +60,6 @@ import net.sf.mzmine.util.R.Rsession.Logger;
 import net.sf.mzmine.util.R.Rsession.Logger.Level;
 
 
-/**
- * @author richet
- */
 public class Rsession implements Logger {
 
     public static final String HEAD_TRY = "";//-try- ";

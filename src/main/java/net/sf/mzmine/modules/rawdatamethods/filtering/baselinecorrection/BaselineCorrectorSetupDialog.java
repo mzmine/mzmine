@@ -63,8 +63,6 @@ import com.google.common.collect.Range;
  *              correction method and its parameters works over the raw data
  *              file.
  * 
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
  */
 public class BaselineCorrectorSetupDialog extends
 ParameterSetupDialogWithChromatogramPreview {

@@ -22,8 +22,23 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.R.RSessionWrapper;
+import net.sf.mzmine.util.R.RSessionWrapperException;
 
 public interface PeakResolver extends MZmineModule {
+
+    /**
+     * Gets if resolver requires R, if applicable
+     */
+    public boolean getRequiresR();
+    /**
+     * Gets R required packages for the resolver's method, if applicable
+     */
+    public String[] getRequiredRPackages();
+    /**
+     * Gets R required packages versions for the resolver's method, if applicable
+     */
+    public String[] getRequiredRPackagesVersions();
 
     /**
      * Resolve a peaks found within given chromatogram. For easy use, three
@@ -31,9 +46,10 @@ public interface PeakResolver extends MZmineModule {
      * although the contents of these arrays can also be obtained from the
      * chromatogram itself. The size of these arrays must be same, and must be
      * equal to the number of scans covered by given chromatogram.
+     * @throws RSessionWrapperException
      */
     public Feature[] resolvePeaks(Feature chromatogram, int scanNumbers[],
 	    double retentionTimes[], double intensities[],
-	    ParameterSet parameters);
+	    ParameterSet parameters, RSessionWrapper rSession) throws RSessionWrapperException;
 
 }

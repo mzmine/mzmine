@@ -31,9 +31,9 @@ import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPMismatchException;
+import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REngineException;
-//import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
@@ -411,7 +411,7 @@ public class RSessionWrapper {
 
 	/**
 	 * Utility class to consume and eventually redirect system call outputs.
-	 * @author golgauth
+	 * 
 	 */
 	static class StreamGobbler extends Thread {
 
@@ -828,16 +828,19 @@ public class RSessionWrapper {
 			else if (object instanceof double[]) {
 				x = new REXPDouble((double[])object);
 			} 
+			// TODO: try to deal with matrices...
+//			else if (object instanceof String[][]) {
+//				x = new REXPGenericVector((double[][])object);
+//			}
 			else if (object instanceof String) {
 				x = new REXPString((String)object);
 			}
 			else if (object instanceof String[]) {
 				x = new REXPString((String[])object);
 			}
-			// Shall we handle NULL exp case?
-			//			else if (object == null) {
-			//				x = new REXPNull();
-			//			}
+			else if (object == null) {
+				x = new REXPNull();
+			}
 
 			return x;
 		}
@@ -864,6 +867,12 @@ public class RSessionWrapper {
 				else if (obj.length == 1) o = obj[0];
 				else o = obj;
 			} 
+			// TODO: try to deal with matrices...
+//			else if (rexp instanceof REXPVector && rexp.hasAttribute("dimnames")) {
+//				double[][] obj = rexp.asDoubleMatrix();
+//				if (obj == null) return null;
+//				else o = obj;
+//			} 
 			else if (rexp instanceof REXPString) {
 				//o = rexp.asString();
 				String[] obj = rexp.asStrings();
@@ -873,10 +882,9 @@ public class RSessionWrapper {
 				else if (obj.length == 1) o = obj[0];
 				else o = obj;
 			}
-			// Shall we handle NULL exp case?
-			//			else if (rexp instanceof REXPNull) {
-			//				o = null;
-			//			}
+			else if (rexp instanceof REXPNull) {
+				o = null;
+			}
 
 			return o;
 		}
@@ -897,13 +905,45 @@ public class RSessionWrapper {
 			}
 		}
 	}
+	
+	
+	// Check connectivity in case outside event broke it.
+	// Required since we're using "Rsession"'s eval() which is damn silent.
+	// TODO: Better modify the way Rsession works:
+	// 		(@See Rsession.silentlyEval() and @See Rsession.silentlyVoidEval())
+	// 		This actual checkConnectivity() function does an additional call to
+	// 		Rserve which could probably be avoided.
+	private void checkConnectivity() throws RSessionWrapperException {
+	    
+	    if (!this.userCanceled) {
+	        
+		String msg = "Rserve connectivity failure.";
+		try {
+			((RConnection) this.rEngine).assign("dummy", new REXPNull());//voidEval("0");
+		} catch (RserveException e) {
+			throw new RSessionWrapperException(msg);
+		} catch (Exception e) {
+			throw new RSessionWrapperException(msg);
+		}
+	    }
+	}
 
-	// Some weird behavior was observed while using basic "Rconnection.eval",
-	// so, switch to use "Rsession"'s one...
-	public void eval(String rCode) throws RSessionWrapperException {
 
-		//rCode = "try(" + rCode + ",silent=TRUE)";
+	/**
+	 * 
+	 * @param rCode
+	 * @throws RSessionWrapperException
+	 */
+	public boolean  eval(String rCode) throws RSessionWrapperException {
+		return eval(rCode, true);
+	}
+	// Some weird behavior ("SIGPIPE signal error") was observed while using 
+	// basic "Rconnection.eval()", so, switch to use "Rsession"'s one...
+	public boolean eval(String rCode, boolean stopOnError) throws RSessionWrapperException {
+		
+		//if (TRY_MODE) rCode = "try(" + rCode + ",silent=TRUE)";
 
+		boolean ok = false;
 		if (this.session != null && !this.userCanceled) {
 			String msg = "Rserve error: couldn't eval R code '" + rCode + "' (instance '" + this.getPID() + "').";
 			//				try {
@@ -924,10 +964,15 @@ public class RSessionWrapper {
 			//					throw new RSessionWrapperException(e.getMessage());
 			//				}
 
-			boolean ok = this.session.voidEval(rCode, TRY_MODE);
-			if (!ok)
-				throw new RSessionWrapperException(msg);
+			ok = this.session.voidEval(rCode, true); //TRY_MODE);
+			if (!ok) {
+				if (stopOnError)
+					throw new RSessionWrapperException(msg);
+				else
+					checkConnectivity();
+			}
 		}
+		return ok;
 	}
 
 	public String getErrMessage() throws RSessionWrapperException {
@@ -942,73 +987,133 @@ public class RSessionWrapper {
 	}
 
 
+	public Object collect(String obj) throws RSessionWrapperException {
+		return collect(obj, true);
+	}
 	/**
 	 * Casting the result to the correct type is left to the user.
 	 * @param obj String expression or object name.
 	 * @return
 	 * @throws RSessionWrapperException
 	 */
-	public Object collect(String obj) throws RSessionWrapperException {
+	public Object collect(String obj, boolean stopOnError) throws RSessionWrapperException {
 
 		Object object = null;
 
-		obj = "try(" + obj + ",silent=TRUE)";
-
+//		if (TRY_MODE) obj = "try(" + obj + ",silent=TRUE)";
+//
+//		if (this.session != null && !this.userCanceled) {
+//
+//			String msg = "Rserve error: couldn't collect result for R expression '" + obj + "' (instance '" + this.getPID() + "').";
+//			try {
+//				////object = OutputObjectFactory.getObject(((RConnection) this.rEngine).eval(obj));
+//				REXP r = ((RConnection) this.rEngine).eval(obj);
+//				if (r.inherits("try-error")) {
+//					LOG.severe("R Error [1]: " + r.asString());
+//					LOG.severe("R eval attempt [1]: " + obj);
+//				}
+//				//else { /* success ... */ }				
+//				object = OutputObjectFactory.getObject(r);
+//				// Shall we handle NULL exp case?
+//				if (object == null)
+//					throw new RSessionWrapperException(msg);
+//			} 
+//			catch (RserveException | REXPMismatchException e) {
+//				throw new RSessionWrapperException(msg);
+//			} catch (Exception e) {
+//				throw new RSessionWrapperException(e.getMessage());
+//			}
+//		}
+		
 		if (this.session != null && !this.userCanceled) {
 
 			String msg = "Rserve error: couldn't collect result for R expression '" + obj + "' (instance '" + this.getPID() + "').";
 			try {
 				////object = OutputObjectFactory.getObject(((RConnection) this.rEngine).eval(obj));
-				REXP r = ((RConnection) this.rEngine).eval(obj);
-				if (r.inherits("try-error")) {
-					LOG.severe("R Error [1]: " + r.asString());
-					LOG.severe("R eval attempt [1]: " + obj);
+				REXP r = this.session.eval(obj, true);
+				if (r == null) {
+					if (stopOnError)
+						throw new RSessionWrapperException(msg);
+					else
+						checkConnectivity();
 				}
-				//else { /* success ... */ }				
+
 				object = OutputObjectFactory.getObject(r);
-				// Shall we handle NULL exp case?
-				if (object == null)
-					throw new RSessionWrapperException(msg);
 			} 
-			catch (RserveException | REXPMismatchException e) {
+			catch (/*RserveException |*/ REXPMismatchException e) {
 				throw new RSessionWrapperException(msg);
 			} catch (Exception e) {
 				throw new RSessionWrapperException(e.getMessage());
 			}
 		}
+		
+		
+		
 		return object;
 	}
 	
 	// TODO: This function could probably be part of the above "collect()"...
 	public double[][] collectDoubleMatrix(String obj) throws RSessionWrapperException {
+		return collectDoubleMatrix(obj, true);
+	}
+	public double[][] collectDoubleMatrix(String obj, boolean stopOnError) throws RSessionWrapperException {
+
+//		// Check connectivity in case outside event broke it.
+//		checkConnectivity();
 
 		double[][] object = null;
 
-		obj = "try(" + obj + ",silent=TRUE)";
+//		if (TRY_MODE) obj = "try(" + obj + ",silent=TRUE)";
+//
+//		if (this.session != null && !this.userCanceled) {
+//
+//			String msg = "Rserve error: couldn't collect result for R expression '" + obj + "' (instance '" + this.getPID() + "').";
+//			try {
+//				////object = ((RConnection) this.rEngine).eval(obj).asDoubleMatrix();
+//				REXP r = ((RConnection) this.rEngine).eval(obj);
+//				if (r.inherits("try-error")) {
+//					LOG.severe("R Error [1]: " + r.asString());
+//					LOG.severe("R eval attempt [1]: " + obj);
+//				}
+//				//else { /* success ... */ }				
+//				object = r.asDoubleMatrix();
+//				// Shall we handle NULL exp case?
+//				if (object == null)
+//					throw new RSessionWrapperException(msg);
+//			} 
+//			catch (RserveException | REXPMismatchException e) {
+//				e.printStackTrace();
+//				throw new RSessionWrapperException(msg);
+//			} catch (Exception e) {
+//				throw new RSessionWrapperException(e.getMessage());
+//			}
+//		}
+
 
 		if (this.session != null && !this.userCanceled) {
 
 			String msg = "Rserve error: couldn't collect result for R expression '" + obj + "' (instance '" + this.getPID() + "').";
 			try {
-				////object = ((RConnection) this.rEngine).eval(obj).asDoubleMatrix();
-				REXP r = ((RConnection) this.rEngine).eval(obj);
-				if (r.inherits("try-error")) {
-					LOG.severe("R Error [1]: " + r.asString());
-					LOG.severe("R eval attempt [1]: " + obj);
+				REXP r = this.session.eval(obj, true);
+				if (r == null) {
+					if (stopOnError)
+						throw new RSessionWrapperException(msg);
+					else
+						checkConnectivity();
 				}
-				//else { /* success ... */ }				
-				object = r.asDoubleMatrix();
-				// Shall we handle NULL exp case?
-				if (object == null)
-					throw new RSessionWrapperException(msg);
+
+				object = (r == null) ? null : r.asDoubleMatrix();
 			} 
-			catch (RserveException | REXPMismatchException e) {
+			catch (/*RserveException |*/ REXPMismatchException e) {
 				e.printStackTrace();
 				throw new RSessionWrapperException(msg);
 			} catch (Exception e) {
+				e.printStackTrace();
 				throw new RSessionWrapperException(e.getMessage());
 			}
 		}
+
+		
 		return object;
 	}
 

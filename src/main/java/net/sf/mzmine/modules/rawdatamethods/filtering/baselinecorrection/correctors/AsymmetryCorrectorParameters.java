@@ -30,8 +30,7 @@ import net.sf.mzmine.util.ExitCode;
 
 /**
  * @description Asymmetric baseline corrector parameters.
- * @author Gauthier Boaglio
- * @date Nov 6, 2014
+ * 
  */
 public class AsymmetryCorrectorParameters extends SimpleParameterSet {
 
