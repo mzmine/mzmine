@@ -56,7 +56,6 @@ public class RSessionWrapper {
     private static final Logger LOG = Logger.getLogger(RSessionWrapper.class
             .getName());
 
-
     private static boolean DEBUG = false;
 
     // Rsession semaphore - non-parallelizable operations must be synchronized

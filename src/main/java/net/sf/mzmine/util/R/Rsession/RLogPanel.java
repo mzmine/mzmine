@@ -30,14 +30,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
-
-import net.sf.mzmine.util.R.Rsession.Logger;
-import net.sf.mzmine.util.R.Rsession.Logger.Level;
 
 @SuppressWarnings("serial")
 public class RLogPanel extends JPanel implements Logger {

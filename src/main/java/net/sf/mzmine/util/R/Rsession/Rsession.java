@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
@@ -48,16 +49,12 @@ import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPNull;
 import org.rosuda.REngine.REXPString;
-import org.rosuda.REngine.REXPWrapper;
 import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RFileInputStream;
 import org.rosuda.REngine.Rserve.RFileOutputStream;
 import org.rosuda.REngine.Rserve.RserveException;
-
-import net.sf.mzmine.util.R.Rsession.Logger;
-import net.sf.mzmine.util.R.Rsession.Logger.Level;
 
 public class Rsession implements Logger {
 
