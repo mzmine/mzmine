@@ -236,7 +236,7 @@ public class RSessionWrapper {
             if (f.exists())
                 return f.getPath();
         }
-        
+
         // Otherwise: automated attempt...
 
         // Win: Get R path from registry.
@@ -312,7 +312,7 @@ public class RSessionWrapper {
      */
     public RSessionWrapper(String callerFeatureName, String[] reqPackages,
             String[] reqPackagesVersions) {
-        // this.rEngineType = type;
+
         this.callerFeatureName = callerFeatureName;
         this.reqPackages = reqPackages;
         this.reqPackagesVersions = reqPackagesVersions;
@@ -345,17 +345,17 @@ public class RSessionWrapper {
                         // to find out automatically.
                         // (Since 'Rsession.newInstanceTry()', checks the
                         // environment first).
-                        // @See RUtilities.getRhomePath().
+                        // @See getRhomePath().
                         if (R_HOME == null || !(new File(R_HOME).exists())) {
                             // Set "R_HOME" system property.
                             R_HOME = RSessionWrapper.getRhomePath();
-                           if (R_HOME != null && new File(R_HOME).exists()) {
+                            if (R_HOME != null && new File(R_HOME).exists()) {
                                 System.setProperty(R_HOME_KEY, R_HOME);
                                 LOG.log(logLvl, "'" + R_HOME_KEY + "' set to '"
                                         + System.getProperty(R_HOME_KEY) + "'");
                             }
                         }
-                        
+
                         if (R_HOME == null)
                             throw new RSessionWrapperException(
                                     "Correct path to the R installation directory could not be obtained "
@@ -415,7 +415,7 @@ public class RSessionWrapper {
                     // *NUX: Synch with nothing that matters.
                     Object rSemaphore = (isWindows) ? RSessionWrapper.R_SESSION_SEMAPHORE
                             : this.R_DUMMY_SEMAPHORE;
-                    synchronized (rSemaphore) { // RUtilities.R_SEMAPHORE) {
+                    synchronized (rSemaphore) {
 
                         RserverConf conf;
                         if (isWindows) {
@@ -461,7 +461,6 @@ public class RSessionWrapper {
                     e.printStackTrace();
                     // Redirect undeclared exceptions thrown by "Rsession"
                     // library to regular one.
-                    // **throw new RSessionWrapperException(e.getMessage());
                     throw new RSessionWrapperException(globalFailureMsg);
                 }
 
@@ -526,15 +525,15 @@ public class RSessionWrapper {
             LOG.log(logLvl, "Loading package '" + packageName + "'...");
             int loaded = 0;
             try {
-                // //loaded = ((RConnection)
-                // this.rEngine).eval(loadCode).asInteger();
+
                 REXP r = ((RConnection) this.rEngine).eval(loadCode);
                 if (r.inherits("try-error")) {
                     LOG.severe("R Error [0]: " + r.asString());
                     LOG.severe("R eval attempt [0]: " + loadCode);
                 }
                 loaded = r.asInteger();
-                LOG.log(logLvl, "Load return: '" + loaded + "'.");
+                LOG.log(logLvl, "Load status: '" + (loaded != 0) + "'.");
+
             } catch (RserveException | REXPMismatchException e) {
                 LOG.log(logLvl, "Loaded package KO: '" + e.getMessage() + "'.");
                 // Remain silent if eval KO ("server down").
@@ -627,55 +626,6 @@ public class RSessionWrapper {
         }
     }
 
-    // public String loadRequiredPackages() {
-    //
-    // if (this.reqPackages == null) return null;
-    //
-    // String reqPackage = null;
-    // try {
-    // for (int i=0; i < this.reqPackages.length; ++i) {
-    // reqPackage = this.reqPackages[i];
-    // this.loadPackage(this.reqPackages[i]);
-    // }
-    // return null;
-    // } catch (Exception e) {
-    // LOG.severe("Failed loading package: '" + reqPackage + "'.");
-    // return reqPackage;
-    // }
-    // }
-
-    // public String checkPackagesVersions() throws RSessionWrapperException {
-    //
-    // if (this.reqPackages == null || this.reqPackagesVersions == null) return
-    // null;
-    //
-    // if (this.reqPackages.length != this.reqPackagesVersions.length) {
-    // if (!this.userCanceled) throw new IllegalStateException(
-    // "'reqPackages' an 'reqPackagesVersions' arrays must be the same length!");
-    // }
-    //
-    // String reqPackage = null;
-    // try {
-    // for (int i=0; i < this.reqPackages.length; ++i) {
-    //
-    // // Pass null as a version to skip version check for given package.
-    // if (this.reqPackagesVersions[i] == null) { continue; }
-    //
-    // reqPackage = this.reqPackages[i];
-    // this.checkPackageVersion(this.reqPackages[i],
-    // this.reqPackagesVersions[i]);
-    // }
-    // return null;
-    // } catch (RSessionWrapperException e) {
-    // LOG.severe("Package version check failed: '" + reqPackage + "'. " +
-    // e.getMessage());
-    // //return reqPackage;
-    // if (!this.userCanceled) throw new
-    // RSessionWrapperException(e.getMessage());
-    // }
-    // return reqPackage;
-    // }
-
     public static class InputREXPFactory {
 
         public static <T> REXP getREXP(T object) {
@@ -692,14 +642,13 @@ public class RSessionWrapper {
                 x = new REXPInteger((int[]) object);
             } else if (object instanceof Double) {
                 x = new REXPDouble((Double) object);
+                // Double matrix case.
+            } else if (object instanceof double[][]) {
+                x = REXP.createDoubleMatrix((double[][]) object);
+                // Double vector cases.
             } else if (object instanceof double[]) {
                 x = new REXPDouble((double[]) object);
-            }
-            // TODO: try to deal with matrices...
-            // else if (object instanceof String[][]) {
-            // x = new REXPGenericVector((double[][])object);
-            // }
-            else if (object instanceof String) {
+            } else if (object instanceof String) {
                 x = new REXPString((String) object);
             } else if (object instanceof String[]) {
                 x = new REXPString((String[]) object);
@@ -730,6 +679,29 @@ public class RSessionWrapper {
                 else
                     o = obj;
             } else if (rexp instanceof REXPDouble) {
+                // Double matrix case.
+                if (rexp.hasAttribute("dim")) {
+                    REXP dim_attr = rexp.getAttribute("dim");
+                    // If more than row = matrix ?
+                    if (dim_attr instanceof REXPInteger
+                            && dim_attr.asIntegers()[0] > 1) {
+                        o = rexp.asDoubleMatrix();
+                    }
+                }
+                // Double vector case.
+                else {
+                    double[] obj = rexp.asDoubles();
+                    if (obj == null)
+                        return null;
+
+                    if (obj.length == 0)
+                        o = null;
+                    else if (obj.length == 1)
+                        o = obj[0];
+                    else
+                        o = obj;
+                }
+            } else if (rexp instanceof REXPDouble) {
                 double[] obj = rexp.asDoubles();
                 if (obj == null)
                     return null;
@@ -740,15 +712,7 @@ public class RSessionWrapper {
                     o = obj[0];
                 else
                     o = obj;
-            }
-            // TODO: try to deal with matrices...
-            // else if (rexp instanceof REXPVector &&
-            // rexp.hasAttribute("dimnames")) {
-            // double[][] obj = rexp.asDoubleMatrix();
-            // if (obj == null) return null;
-            // else o = obj;
-            // }
-            else if (rexp instanceof REXPString) {
+            } else if (rexp instanceof REXPString) {
                 // o = rexp.asString();
                 String[] obj = rexp.asStrings();
                 if (obj == null)
@@ -901,41 +865,12 @@ public class RSessionWrapper {
 
         Object object = null;
 
-        // if (TRY_MODE) obj = "try(" + obj + ",silent=TRUE)";
-        //
-        // if (this.session != null && !this.userCanceled) {
-        //
-        // String msg =
-        // "Rserve error: couldn't collect result for R expression '" + obj +
-        // "' (instance '" + this.getPID() + "').";
-        // try {
-        // ////object = OutputObjectFactory.getObject(((RConnection)
-        // this.rEngine).eval(obj));
-        // REXP r = ((RConnection) this.rEngine).eval(obj);
-        // if (r.inherits("try-error")) {
-        // LOG.severe("R Error [1]: " + r.asString());
-        // LOG.severe("R eval attempt [1]: " + obj);
-        // }
-        // //else { /* success ... */ }
-        // object = OutputObjectFactory.getObject(r);
-        // // Shall we handle NULL exp case?
-        // if (object == null)
-        // throw new RSessionWrapperException(msg);
-        // }
-        // catch (RserveException | REXPMismatchException e) {
-        // throw new RSessionWrapperException(msg);
-        // } catch (Exception e) {
-        // throw new RSessionWrapperException(e.getMessage());
-        // }
-        // }
-
         if (this.session != null && !this.userCanceled) {
 
             String msg = "Rserve error: couldn't collect result for R expression '"
                     + obj + "' (instance '" + this.getPID() + "').";
             try {
-                // //object = OutputObjectFactory.getObject(((RConnection)
-                // this.rEngine).eval(obj));
+
                 REXP r = this.session.eval(obj, true);
                 if (r == null) {
                     if (stopOnError)
@@ -948,74 +883,6 @@ public class RSessionWrapper {
             } catch (/* RserveException | */REXPMismatchException e) {
                 throw new RSessionWrapperException(msg);
             } catch (Exception e) {
-                throw new RSessionWrapperException(e.getMessage());
-            }
-        }
-
-        return object;
-    }
-
-    // TODO: This function could probably be part of the above "collect()"...
-    public double[][] collectDoubleMatrix(String obj)
-            throws RSessionWrapperException {
-        return collectDoubleMatrix(obj, true);
-    }
-
-    public double[][] collectDoubleMatrix(String obj, boolean stopOnError)
-            throws RSessionWrapperException {
-
-        // // Check connectivity in case outside event broke it.
-        // checkConnectivity();
-
-        double[][] object = null;
-
-        // if (TRY_MODE) obj = "try(" + obj + ",silent=TRUE)";
-        //
-        // if (this.session != null && !this.userCanceled) {
-        //
-        // String msg =
-        // "Rserve error: couldn't collect result for R expression '" + obj +
-        // "' (instance '" + this.getPID() + "').";
-        // try {
-        // ////object = ((RConnection) this.rEngine).eval(obj).asDoubleMatrix();
-        // REXP r = ((RConnection) this.rEngine).eval(obj);
-        // if (r.inherits("try-error")) {
-        // LOG.severe("R Error [1]: " + r.asString());
-        // LOG.severe("R eval attempt [1]: " + obj);
-        // }
-        // //else { /* success ... */ }
-        // object = r.asDoubleMatrix();
-        // // Shall we handle NULL exp case?
-        // if (object == null)
-        // throw new RSessionWrapperException(msg);
-        // }
-        // catch (RserveException | REXPMismatchException e) {
-        // e.printStackTrace();
-        // throw new RSessionWrapperException(msg);
-        // } catch (Exception e) {
-        // throw new RSessionWrapperException(e.getMessage());
-        // }
-        // }
-
-        if (this.session != null && !this.userCanceled) {
-
-            String msg = "Rserve error: couldn't collect result for R expression '"
-                    + obj + "' (instance '" + this.getPID() + "').";
-            try {
-                REXP r = this.session.eval(obj, true);
-                if (r == null) {
-                    if (stopOnError)
-                        throw new RSessionWrapperException(msg);
-                    else
-                        checkConnectivity();
-                }
-
-                object = (r == null) ? null : r.asDoubleMatrix();
-            } catch (/* RserveException | */REXPMismatchException e) {
-                e.printStackTrace();
-                throw new RSessionWrapperException(msg);
-            } catch (Exception e) {
-                e.printStackTrace();
                 throw new RSessionWrapperException(e.getMessage());
             }
         }
@@ -1036,15 +903,6 @@ public class RSessionWrapper {
             getRengineInstance();
 
             // Load & check required R packages.
-            // String koPackage = null;
-            // koPackage = this.loadRequiredPackages();
-            // if (koPackage != null) {
-            // String msg = "The \"" + this.callerFeatureName + "\" requires " +
-            // "the \"" + koPackage +
-            // "\" R package, which couldn't be loaded - is it installed in R?";
-            // throw new RSessionWrapperException(msg);
-            // }
-            // this.checkPackagesVersions();
             loadAndCheckRequiredPackages();
         }
     }
@@ -1063,7 +921,7 @@ public class RSessionWrapper {
 
         this.userCanceled = userCanceled;
 
-        if (this.session != null /* && this.rEngineType == RengineType.Rserve */) {
+        if (this.session != null) {
 
             try {
 
