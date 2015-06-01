@@ -914,6 +914,9 @@ public class RSessionWrapper {
 	// 		This actual checkConnectivity() function does an additional call to
 	// 		Rserve which could probably be avoided.
 	private void checkConnectivity() throws RSessionWrapperException {
+	    
+	    if (!this.userCanceled) {
+	        
 		String msg = "Rserve connectivity failure.";
 		try {
 			((RConnection) this.rEngine).assign("dummy", new REXPNull());//voidEval("0");
@@ -922,6 +925,7 @@ public class RSessionWrapper {
 		} catch (Exception e) {
 			throw new RSessionWrapperException(msg);
 		}
+	    }
 	}
 
 
