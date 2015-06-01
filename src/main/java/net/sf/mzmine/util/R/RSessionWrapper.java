@@ -676,14 +676,10 @@ public class RSessionWrapper {
                 else
                     o = obj;
             } else if (rexp instanceof REXPDouble) {
-                // Double matrix case.
+                // Double matrix case (vectors do not have this attribute).
+                // dim = [nrow, ncol]
                 if (rexp.hasAttribute("dim")) {
-                    REXP dim_attr = rexp.getAttribute("dim");
-                    // If more than row = matrix ?
-                    if (dim_attr instanceof REXPInteger
-                            && dim_attr.asIntegers()[0] > 1) {
-                        o = rexp.asDoubleMatrix();
-                    }
+                    o = rexp.asDoubleMatrix();
                 }
                 // Double vector case.
                 else {
