@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.LoggerStream;
 import net.sf.mzmine.util.TextUtils;
 import net.sf.mzmine.util.R.Rsession.RserverConf;
@@ -228,10 +229,20 @@ public class RSessionWrapper {
 
     public static String getRexecutablePath() {
 
-        // Win: Get R path from registry
+        // Get it manually if set in "Project > Preferences".
+        String rPath = MZmineCore.getConfiguration().getRexecPath();
+        if (rPath != null && rPath != "") {
+            File f = new File(rPath);
+            if (f.exists())
+                return f.getPath();
+        }
+        
+        // Otherwise: automated attempt...
+
+        // Win: Get R path from registry.
         if (isWindows()) {
             LOG.log(Level.FINEST,
-                    "Windows: query registry to find where R is installed ...");
+                    "Windows: Query registry to find where R is installed ...");
             String installPath = null;
             try {
                 Process rp = Runtime.getRuntime().exec(
@@ -242,25 +253,26 @@ public class RSessionWrapper {
                 installPath = regHog.getInstallPath();
             } catch (Exception rge) {
                 LOG.log(Level.SEVERE,
-                        "ERROR: unable to run REG to find the location of R: "
+                        "ERROR: Unable to run REG to find the location of R: "
                                 + rge);
                 return null;
             }
             if (installPath == null) {
                 LOG.log(Level.SEVERE,
-                        "ERROR: canot find path to R. Make sure reg is available and R was installed with registry settings.");
+                        "ERROR: Cannot find path to R. Make sure reg is available"
+                                + " and R was installed with registry settings.");
                 return null;
             }
             File f = new File(installPath);
             return ((f.exists()) ? installPath + "\\bin\\R.exe" : null);
         }
 
-        // Mac OSX
+        // Mac OSX.
         File f = new File("/Library/Frameworks/R.framework/Resources/bin/R");
         if (f.exists())
             return f.getPath();
 
-        // *NUX
+        // *NUX.
         f = new File("/usr/local/lib/R/bin/R");
         if (f.exists())
             return f.getPath();
@@ -313,10 +325,9 @@ public class RSessionWrapper {
             String globalFailureMsg = "Could not start Rserve ( R> install.packages(c('Rserve')) ). "
                     + "Please check if R and Rserve are installed and, in "
                     + "case the path to the R installation directory could not be "
-                    + "detected automatically, if the '"
-                    + R_HOME_KEY
-                    + "' environment variable is "
-                    + "correctly set in the startMZmine script.";
+                    + "detected automatically, if the 'R executable path' is properly "
+                    + "set in the project's preferences. (Note: alternatively, the '"
+                    + R_HOME_KEY + "' environment variable can also be used).";
 
             if (this.rEngine == null) {
 
@@ -338,12 +349,13 @@ public class RSessionWrapper {
                         if (R_HOME == null || !(new File(R_HOME).exists())) {
                             // Set "R_HOME" system property.
                             R_HOME = RSessionWrapper.getRhomePath();
-                            if (R_HOME != null) {
+                           if (R_HOME != null && new File(R_HOME).exists()) {
                                 System.setProperty(R_HOME_KEY, R_HOME);
                                 LOG.log(logLvl, "'" + R_HOME_KEY + "' set to '"
                                         + System.getProperty(R_HOME_KEY) + "'");
                             }
                         }
+                        
                         if (R_HOME == null)
                             throw new RSessionWrapperException(
                                     "Correct path to the R installation directory could not be obtained "

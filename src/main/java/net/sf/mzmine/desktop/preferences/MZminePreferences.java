@@ -26,6 +26,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
@@ -49,14 +50,17 @@ public class MZminePreferences extends SimpleParameterSet {
     public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
     public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
-	    "Use proxy", "Use proxy for internet connection?",
-	    new ProxySettings());
+            "Use proxy", "Use proxy for internet connection?",
+            new ProxySettings());
+
+    public static final FileNameParameter rExecPath = new FileNameParameter(
+            "R executable path", "Full R executable file path (If left blank, MZmine will try to find out automatically).");
 
     public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
     public MZminePreferences() {
 	super(new Parameter[] { mzFormat, rtFormat, intensityFormat,
-		numOfThreads, proxySettings, windowSetttings });
+		numOfThreads, proxySettings, rExecPath, windowSetttings });
     }
 
     @Override
