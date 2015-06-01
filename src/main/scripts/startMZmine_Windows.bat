@@ -50,8 +50,8 @@ set MZMINE_UNID=MZmine%ldt%
 set TMP_FILE_DIRECTORY=%TMP_FILE_DIRECTORY%\\%MZMINE_UNID%
 mkdir %TMP_FILE_DIRECTORY%
 
-rem Set R environment variables.
-set R_HOME=C:\Program Files\R\R-2.12.0
+rem Set R environment variable (can be done from GUI project's prefs as well).
+rem set R_HOME=C:\Program Files\R\R-2.12.0
 
 rem It is usually not necessary to modify the JAVA_COMMAND parameter, but 
 rem if you like to run a specific Java Virtual Machine, you may set the 

@@ -29,8 +29,8 @@ TMP_FILE_DIRECTORY=/tmp
 export TMP_FILE_DIRECTORY=$TMP_FILE_DIRECTORY/$MZMINE_UNID
 mkdir $TMP_FILE_DIRECTORY
 
-# Set R environment variables.
-export R_HOME=/Library/Frameworks/R.framework/Versions/Current/Resources/
+# Set R environment variable (can be done from GUI project's prefs as well).
+#export R_HOME=/Library/Frameworks/R.framework/Versions/Current/Resources/
 
 # It is usually not necessary to modify the JAVA_COMMAND parameter, but 
 # if you like to run a specific Java Virtual Machine, you may set the 
