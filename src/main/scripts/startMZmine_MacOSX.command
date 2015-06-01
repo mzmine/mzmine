@@ -32,16 +32,13 @@ mkdir $TMP_FILE_DIRECTORY
 # Set R environment variables.
 export R_HOME=/Library/Frameworks/R.framework/Versions/Current/Resources/
 
-# The directory holding the JRI shared library (libjri.jnilib).
-JRI_LIB_PATH=${R_HOME}/library/rJava/jri
-
 # It is usually not necessary to modify the JAVA_COMMAND parameter, but 
 # if you like to run a specific Java Virtual Machine, you may set the 
 # path to the java command of that JVM.
 JAVA_COMMAND=`/usr/libexec/java_home -v 1.6+`/bin/java
 
 # It is not necessary to modify the following section
-JAVA_PARAMETERS="-showversion -classpath lib/\* -Djava.ext.dirs= -XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
+JAVA_PARAMETERS="-showversion -classpath lib/\* -Djava.ext.dirs= -XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 
 # Make sure we are in the correct directory

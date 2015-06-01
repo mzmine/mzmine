@@ -52,16 +52,6 @@ mkdir %TMP_FILE_DIRECTORY%
 
 rem Set R environment variables.
 set R_HOME=C:\Program Files\R\R-2.12.0
-set R_SHARE_DIR=%R_HOME%\share 
-set R_INCLUDE_DIR=%R_HOME%\include
-set R_DOC_DIR=%R_HOME%\doc
-set R_LIBS_USER=%USERPROFILE%\Documents\R\win-library\2.12
-
-rem Include R DLLs in PATH.
-set PATH=%PATH%;%R_HOME%\bin\i386
-
-rem The directory holding the JRI shared library (libjri.so).
-set JRI_LIB_PATH=%R_LIBS_USER%\rJava\jri\i386
 
 rem It is usually not necessary to modify the JAVA_COMMAND parameter, but 
 rem if you like to run a specific Java Virtual Machine, you may set the 
@@ -69,7 +59,7 @@ rem path to the java command of that JVM
 set JAVA_COMMAND=java
 
 rem It is not necessary to modify the following section
-set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m -Djava.library.path="%JRI_LIB_PATH%"
+set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 rem This command starts the Java Virtual Machine

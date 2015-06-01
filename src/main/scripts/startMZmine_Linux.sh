@@ -32,24 +32,13 @@ mkdir $TMP_FILE_DIRECTORY
 # Set R environment variables.
 export R_HOME=/usr/lib64/R
 
-export R_SHARE_DIR=/usr/share/R/share 
-export R_INCLUDE_DIR=/usr/share/R/include
-export R_DOC_DIR=/usr/share/R/doc
-export R_LIBS_USER=${HOME}/R/x86_64-pc-linux-gnu-library/2.10
-
-# Include R shared libraries in LD_LIBRARY_PATH.
-export LD_LIBRARY_PATH=${R_HOME}/lib:${R_HOME}/bin
-
-# The directory holding the JRI shared library (libjri.so).
-JRI_LIB_PATH=${R_LIBS_USER}/rJava/jri
-
 # It is usually not necessary to modify the JAVA_COMMAND parameter, but 
 # if you like to run a specific Java Virtual Machine, you may set the 
 # path to the java command of that JVM.
 JAVA_COMMAND=java
 
 # It is not necessary to modify the following section
-JAVA_PARAMETERS="-showversion -classpath lib/\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
+JAVA_PARAMETERS="-showversion -classpath lib/\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 # Make sure we are in the correct directory
