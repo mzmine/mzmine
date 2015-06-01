@@ -163,7 +163,7 @@ public class RSessionWrapper {
                 String line = null;
                 while ((line = br.readLine()) != null) {
                     if (capture) { // we are supposed to capture the output from
-                                   // REG command
+                        // REG command
                         int i = line.indexOf("InstallPath");
                         if (i >= 0) {
                             String s = line.substring(i + 11).trim();
@@ -329,6 +329,13 @@ public class RSessionWrapper {
                     + "set in the project's preferences. (Note: alternatively, the '"
                     + R_HOME_KEY + "' environment variable can also be used).";
 
+            String r_homeFailureMsg = "Correct path to the R installation directory could not be "
+                    + "detected automatically. Please try setting manually "
+                    + "the 'R executable path' in the project's preferences. "
+                    + "(Note: alternatively, the '"
+                    + R_HOME_KEY
+                    + "' environment variable can also be used).";
+
             if (this.rEngine == null) {
 
                 boolean isWindows = RSessionWrapper.isWindows();
@@ -357,12 +364,7 @@ public class RSessionWrapper {
                         }
 
                         if (R_HOME == null)
-                            throw new RSessionWrapperException(
-                                    "Correct path to the R installation directory could not be obtained "
-                                            + "neither automatically, nor via the '"
-                                            + R_HOME_KEY
-                                            + "' environment variable. "
-                                            + "Please try to set it manually in the startMZmine script.");
+                            throw new RSessionWrapperException(r_homeFailureMsg);
 
                         // // Security...
                         // Properties props = new Properties();
@@ -1043,10 +1045,10 @@ public class RSessionWrapper {
                             + rSession.getPID(), "/F").start();
                     StreamGobbler errorGobbler = new StreamGobbler(
                             proc.getErrorStream(), "Error", os_err); // ,
-                                                                     // fos_err);
+                    // fos_err);
                     StreamGobbler outputGobbler = new StreamGobbler(
                             proc.getInputStream(), "Output", System.out); // ,
-                                                                          // fos_out);
+                    // fos_out);
 
                     // Consume outputs.
                     errorGobbler.start();
