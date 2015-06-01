@@ -362,7 +362,7 @@ public class RSessionWrapper {
                         // only to spawn other (computing) instances (Released
                         // at app. exit - see note below).
                         if (!isWindows
-                                && RSessionWrapper.MASTER_SESSION == null) {
+                                && (RSessionWrapper.MASTER_SESSION == null || !checkMasterConnectivity())) {
 
                             // We absolutely need real new instance on a new
                             // port here
@@ -775,17 +775,33 @@ public class RSessionWrapper {
 
     // Check connectivity in case outside event broke it.
     // Required since we're using "Rsession"'s eval() which is damn silent.
-    // TODO: Better modify the way Rsession works:
+    // TODO: [May be ??] better modify the way Rsession works:
     // (@See Rsession.silentlyEval() and @See Rsession.silentlyVoidEval())
     // This actual checkConnectivity() function does an additional call to
     // Rserve which could probably be avoided.
     private void checkConnectivity() throws RSessionWrapperException {
 
+        checkConnectivity(((RConnection) this.rEngine));
+    }
+
+    private boolean checkMasterConnectivity() throws RSessionWrapperException {
+
+        try {
+            checkConnectivity(RSessionWrapper.MASTER_SESSION.connection);
+            return true;
+        } catch (RSessionWrapperException e) {
+            return false;
+        }
+    }
+
+    private void checkConnectivity(RConnection con)
+            throws RSessionWrapperException {
+
         if (!this.userCanceled) {
 
             String msg = "Rserve connectivity failure.";
             try {
-                ((RConnection) this.rEngine).assign("dummy", new REXPNull());// voidEval("0");
+                con.assign("dummy", new REXPNull());// voidEval("0");
             } catch (RserveException e) {
                 throw new RSessionWrapperException(msg);
             } catch (Exception e) {
