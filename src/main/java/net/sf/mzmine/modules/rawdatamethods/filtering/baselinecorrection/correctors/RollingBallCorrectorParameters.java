@@ -37,26 +37,26 @@ public class RollingBallCorrectorParameters extends SimpleParameterSet {
      * Local minima search window.
      */
     public static final IntegerParameter MIN_MAX_WIDTH = new IntegerParameter(
-	    "wm (number of scans)",
-	    "Width of local window for minimization/maximization (in number of scans).",
-	    null, 0, null);
+            "wm (number of scans)",
+            "Width of local window for minimization/maximization (in number of scans).",
+            null, 0, null);
 
     /**
      * Smoothing.
      */
     public static final IntegerParameter SMOOTHING = new IntegerParameter(
-	    "ws (number of scans)",
-	    "Width of local window for smoothing (in number of scans).", null,
-	    0, null);
+            "ws (number of scans)",
+            "Width of local window for smoothing (in number of scans).", null,
+            0, null);
 
     public RollingBallCorrectorParameters() {
-	super(new UserParameter[] { MIN_MAX_WIDTH, SMOOTHING });
+        super(new UserParameter[] { MIN_MAX_WIDTH, SMOOTHING });
     }
 
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-	BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(
-		parent, valueCheckRequired, this, RollingBallCorrector.class);
-	dialog.setVisible(true);
-	return dialog.getExitCode();
+        BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(
+                parent, valueCheckRequired, this, RollingBallCorrector.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
     }
 }

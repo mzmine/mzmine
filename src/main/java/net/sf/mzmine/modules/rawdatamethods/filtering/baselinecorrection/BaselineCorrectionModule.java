@@ -44,12 +44,14 @@ public class BaselineCorrectionModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This module performs a baseline correction on raw data files.";
 
     @Override
-    public @Nonnull String getName() {
+    public @Nonnull
+    String getName() {
         return MODULE_NAME;
     }
 
     @Override
-    public @Nonnull String getDescription() {
+    public @Nonnull
+    String getDescription() {
         return MODULE_DESCRIPTION;
     }
 
@@ -73,12 +75,14 @@ public class BaselineCorrectionModule implements MZmineProcessingModule {
     }
 
     @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
+    public @Nonnull
+    MZmineModuleCategory getModuleCategory() {
         return MZmineModuleCategory.RAWDATAFILTERING;
     }
 
     @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
         return BaselineCorrectionParameters.class;
     }
 

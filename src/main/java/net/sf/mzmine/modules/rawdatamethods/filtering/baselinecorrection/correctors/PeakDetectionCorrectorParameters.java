@@ -39,62 +39,62 @@ public class PeakDetectionCorrectorParameters extends SimpleParameterSet {
      * Smallest peak width.
      */
     public static final IntegerParameter LEFT = new IntegerParameter(
-	    "left (number of scans)",
-	    "Smallest window size for peak widths (in number of scans).", 1, 0,
-	    null);
+            "left (number of scans)",
+            "Smallest window size for peak widths (in number of scans).", 1, 0,
+            null);
     /**
      * Largest peak width.
      */
     public static final IntegerParameter RIGHT = new IntegerParameter(
-	    "right (number of scans)",
-	    "Largest window size for peak widths (in number of scans).", 1, 0,
-	    null);
+            "right (number of scans)",
+            "Largest window size for peak widths (in number of scans).", 1, 0,
+            null);
 
     /**
      * Smallest minimums and medians spectra removal.
      */
     public static final IntegerParameter LWIN = new IntegerParameter(
-	    "lwin (number of scans)",
-	    "Smallest window size for minimums and medians in peak removed spectra (in number of scans).",
-	    1, 0, null);
+            "lwin (number of scans)",
+            "Smallest window size for minimums and medians in peak removed spectra (in number of scans).",
+            1, 0, null);
     /**
      * Largest minimums and medians spectra removal.
      */
     public static final IntegerParameter RWIN = new IntegerParameter(
-	    "rwin (number of scans)",
-	    "Largest window size for minimums and medians in peak removed spectra (in number of scans).",
-	    1, 0, null);
+            "rwin (number of scans)",
+            "Largest window size for minimums and medians in peak removed spectra (in number of scans).",
+            1, 0, null);
 
     /**
      * Minimum signal to noise ratio.
      */
     public static final DoubleParameter SNMINIMUM = new DoubleParameter(
-	    "snminimum", "Minimum signal to noise ratio for accepting peaks.",
-	    DecimalFormat.getNumberInstance(), 0.0, 0.0, 1.0);
+            "snminimum", "Minimum signal to noise ratio for accepting peaks.",
+            DecimalFormat.getNumberInstance(), 0.0, 0.0, 1.0);
 
     /**
      * Monotonically decreasing baseline.
      */
     public static final DoubleParameter MONO = new DoubleParameter("mono",
-	    "Monotonically decreasing baseline if ‘mono’>0.",
-	    DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
+            "Monotonically decreasing baseline if ‘mono’>0.",
+            DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
 
     /**
      * Window size multiplier.
      */
     public static final DoubleParameter MULTIPLIER = new DoubleParameter(
-	    "multiplier", "Internal window size multiplier.",
-	    DecimalFormat.getNumberInstance(), 1.0, 1.0, null);
+            "multiplier", "Internal window size multiplier.",
+            DecimalFormat.getNumberInstance(), 1.0, 1.0, null);
 
     public PeakDetectionCorrectorParameters() {
-	super(new UserParameter[] { LEFT, RIGHT, LWIN, RWIN, SNMINIMUM, MONO,
-		MULTIPLIER });
+        super(new UserParameter[] { LEFT, RIGHT, LWIN, RWIN, SNMINIMUM, MONO,
+                MULTIPLIER });
     }
 
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-	BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(
-		parent, valueCheckRequired, this, PeakDetectionCorrector.class);
-	dialog.setVisible(true);
-	return dialog.getExitCode();
+        BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(
+                parent, valueCheckRequired, this, PeakDetectionCorrector.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
     }
 }

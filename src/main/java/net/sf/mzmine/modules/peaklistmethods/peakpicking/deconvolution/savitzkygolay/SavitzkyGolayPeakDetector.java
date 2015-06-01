@@ -52,67 +52,68 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
     // Savitzky-Golay filter width.
     private static final int SG_FILTER_LEVEL = 12;
 
-    public @Nonnull String getName() {
-	return "Savitzky-Golay";
+    public @Nonnull
+    String getName() {
+        return "Savitzky-Golay";
     }
 
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
-	    final int[] scanNumbers, final double[] retentionTimes,
-	    final double[] intensities, ParameterSet parameters, 
-		RSessionWrapper rSession) {
+            final int[] scanNumbers, final double[] retentionTimes,
+            final double[] intensities, ParameterSet parameters,
+            RSessionWrapper rSession) {
 
-	// Calculate intensity statistics.
-	double maxIntensity = 0.0;
-	double avgIntensity = 0.0;
-	for (final double intensity : intensities) {
+        // Calculate intensity statistics.
+        double maxIntensity = 0.0;
+        double avgIntensity = 0.0;
+        for (final double intensity : intensities) {
 
-	    maxIntensity = Math.max(intensity, maxIntensity);
-	    avgIntensity += intensity;
-	}
+            maxIntensity = Math.max(intensity, maxIntensity);
+            avgIntensity += intensity;
+        }
 
-	avgIntensity /= (double) scanNumbers.length;
+        avgIntensity /= (double) scanNumbers.length;
 
-	final List<Feature> resolvedPeaks = new ArrayList<Feature>(2);
+        final List<Feature> resolvedPeaks = new ArrayList<Feature>(2);
 
-	// If the current chromatogram has characteristics of background or just
-	// noise return an empty array.
-	if (avgIntensity <= maxIntensity / 2.0) {
+        // If the current chromatogram has characteristics of background or just
+        // noise return an empty array.
+        if (avgIntensity <= maxIntensity / 2.0) {
 
-	    // Calculate second derivatives of intensity values.
-	    final double[] secondDerivative = SGDerivative.calculateDerivative(
-		    intensities, false, SG_FILTER_LEVEL);
+            // Calculate second derivatives of intensity values.
+            final double[] secondDerivative = SGDerivative.calculateDerivative(
+                    intensities, false, SG_FILTER_LEVEL);
 
-	    // Calculate noise threshold.
-	    final double noiseThreshold = calcDerivativeThreshold(
-		    secondDerivative,
-		    parameters.getParameter(DERIVATIVE_THRESHOLD_LEVEL)
-			    .getValue());
+            // Calculate noise threshold.
+            final double noiseThreshold = calcDerivativeThreshold(
+                    secondDerivative,
+                    parameters.getParameter(DERIVATIVE_THRESHOLD_LEVEL)
+                            .getValue());
 
-	    // Search for peaks.
-	    Arrays.sort(scanNumbers);
-	    final Feature[] resolvedOriginalPeaks = peaksSearch(chromatogram,
-		    scanNumbers, secondDerivative, noiseThreshold);
+            // Search for peaks.
+            Arrays.sort(scanNumbers);
+            final Feature[] resolvedOriginalPeaks = peaksSearch(chromatogram,
+                    scanNumbers, secondDerivative, noiseThreshold);
 
-	    final Range<Double> peakDuration = parameters.getParameter(
-		    PEAK_DURATION).getValue();
-	    final double minimumPeakHeight = parameters.getParameter(
-		    MIN_PEAK_HEIGHT).getValue();
+            final Range<Double> peakDuration = parameters.getParameter(
+                    PEAK_DURATION).getValue();
+            final double minimumPeakHeight = parameters.getParameter(
+                    MIN_PEAK_HEIGHT).getValue();
 
-	    // Apply final filter of detected peaks, according with setup
-	    // parameters.
-	    for (final Feature p : resolvedOriginalPeaks) {
+            // Apply final filter of detected peaks, according with setup
+            // parameters.
+            for (final Feature p : resolvedOriginalPeaks) {
 
-		if (peakDuration.contains(RangeUtils.rangeLength(p
-			.getRawDataPointsRTRange()))
-			&& p.getHeight() >= minimumPeakHeight) {
+                if (peakDuration.contains(RangeUtils.rangeLength(p
+                        .getRawDataPointsRTRange()))
+                        && p.getHeight() >= minimumPeakHeight) {
 
-		    resolvedPeaks.add(p);
-		}
-	    }
-	}
+                    resolvedPeaks.add(p);
+                }
+            }
+        }
 
-	return resolvedPeaks.toArray(new Feature[resolvedPeaks.size()]);
+        return resolvedPeaks.toArray(new Feature[resolvedPeaks.size()]);
     }
 
     /**
@@ -129,165 +130,165 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
      * @return array of peaks found.
      */
     private static Feature[] peaksSearch(final Feature chromatogram,
-	    final int[] scanNumbers, final double[] derivativeOfIntensities,
-	    final double noiseThreshold) {
+            final int[] scanNumbers, final double[] derivativeOfIntensities,
+            final double noiseThreshold) {
 
-	// Flag to identify the current and next overlapped peak.
-	boolean activeFirstPeak = false;
-	boolean activeSecondPeak = false;
+        // Flag to identify the current and next overlapped peak.
+        boolean activeFirstPeak = false;
+        boolean activeSecondPeak = false;
 
-	// Flag to indicate the value of 2nd derivative pass noise threshold
-	// level.
-	boolean passThreshold = false;
+        // Flag to indicate the value of 2nd derivative pass noise threshold
+        // level.
+        boolean passThreshold = false;
 
-	// Number of times that 2nd derivative cross zero value for the current
-	// peak detection.
-	int crossZero = 0;
+        // Number of times that 2nd derivative cross zero value for the current
+        // peak detection.
+        int crossZero = 0;
 
-	final int totalNumberPoints = derivativeOfIntensities.length;
+        final int totalNumberPoints = derivativeOfIntensities.length;
 
-	// Indexes of start and ending of the current peak and beginning of the
-	// next.
-	int currentPeakStart = totalNumberPoints;
-	int nextPeakStart = totalNumberPoints;
-	int currentPeakEnd = 0;
+        // Indexes of start and ending of the current peak and beginning of the
+        // next.
+        int currentPeakStart = totalNumberPoints;
+        int nextPeakStart = totalNumberPoints;
+        int currentPeakEnd = 0;
 
-	final List<Feature> resolvedPeaks = new ArrayList<Feature>(2);
+        final List<Feature> resolvedPeaks = new ArrayList<Feature>(2);
 
-	// Shape analysis of derivative of chromatogram "*" represents the
-	// original chromatogram shape. "-" represents
-	// the shape of chromatogram's derivative.
-	//
-	// " *** " * * + " + * * + + " + x x + "--+-*-+-----+-*---+---- " + + "
-	// + + " +
-	//
-	for (int i = 1; i < totalNumberPoints; i++) {
+        // Shape analysis of derivative of chromatogram "*" represents the
+        // original chromatogram shape. "-" represents
+        // the shape of chromatogram's derivative.
+        //
+        // " *** " * * + " + * * + + " + x x + "--+-*-+-----+-*---+---- " + + "
+        // + + " +
+        //
+        for (int i = 1; i < totalNumberPoints; i++) {
 
-	    // Changing sign and crossing zero
-	    if (derivativeOfIntensities[i - 1] < 0.0
-		    && derivativeOfIntensities[i] > 0.0
-		    || derivativeOfIntensities[i - 1] > 0.0
-		    && derivativeOfIntensities[i] < 0.0) {
+            // Changing sign and crossing zero
+            if (derivativeOfIntensities[i - 1] < 0.0
+                    && derivativeOfIntensities[i] > 0.0
+                    || derivativeOfIntensities[i - 1] > 0.0
+                    && derivativeOfIntensities[i] < 0.0) {
 
-		if (derivativeOfIntensities[i - 1] < 0.0
-			&& derivativeOfIntensities[i] > 0.0) {
+                if (derivativeOfIntensities[i - 1] < 0.0
+                        && derivativeOfIntensities[i] > 0.0) {
 
-		    if (crossZero == 2) {
+                    if (crossZero == 2) {
 
-			// After second crossing zero starts the next overlapped
-			// peak, but depending of
-			// passThreshold flag is activated.
-			if (passThreshold) {
+                        // After second crossing zero starts the next overlapped
+                        // peak, but depending of
+                        // passThreshold flag is activated.
+                        if (passThreshold) {
 
-			    activeSecondPeak = true;
-			    nextPeakStart = i;
+                            activeSecondPeak = true;
+                            nextPeakStart = i;
 
-			} else {
+                        } else {
 
-			    currentPeakStart = i;
-			    crossZero = 0;
-			    activeFirstPeak = true;
-			}
-		    }
-		}
+                            currentPeakStart = i;
+                            crossZero = 0;
+                            activeFirstPeak = true;
+                        }
+                    }
+                }
 
-		// Finalize the first overlapped peak.
-		if (crossZero == 3) {
+                // Finalize the first overlapped peak.
+                if (crossZero == 3) {
 
-		    activeFirstPeak = false;
-		    currentPeakEnd = i;
-		}
+                    activeFirstPeak = false;
+                    currentPeakEnd = i;
+                }
 
-		// Increments when detect a crossing zero event
-		passThreshold = false;
-		if (activeFirstPeak || activeSecondPeak) {
+                // Increments when detect a crossing zero event
+                passThreshold = false;
+                if (activeFirstPeak || activeSecondPeak) {
 
-		    crossZero++;
-		}
-	    }
+                    crossZero++;
+                }
+            }
 
-	    // Filter for noise threshold level.
-	    if (Math.abs(derivativeOfIntensities[i]) > noiseThreshold) {
+            // Filter for noise threshold level.
+            if (Math.abs(derivativeOfIntensities[i]) > noiseThreshold) {
 
-		passThreshold = true;
-	    }
+                passThreshold = true;
+            }
 
-	    // Start peak region.
-	    if (crossZero == 0 && derivativeOfIntensities[i] > 0.0
-		    && !activeFirstPeak) {
+            // Start peak region.
+            if (crossZero == 0 && derivativeOfIntensities[i] > 0.0
+                    && !activeFirstPeak) {
 
-		activeFirstPeak = true;
-		currentPeakStart = i;
-		crossZero++;
-	    }
+                activeFirstPeak = true;
+                currentPeakStart = i;
+                crossZero++;
+            }
 
-	    // Finalize the peak region in case of zero values.
-	    if (derivativeOfIntensities[i - 1] == 0.0
-		    && derivativeOfIntensities[i] == 0.0 && activeFirstPeak) {
+            // Finalize the peak region in case of zero values.
+            if (derivativeOfIntensities[i - 1] == 0.0
+                    && derivativeOfIntensities[i] == 0.0 && activeFirstPeak) {
 
-		currentPeakEnd = crossZero < 3 ? 0 : i;
-		activeFirstPeak = false;
-		activeSecondPeak = false;
-		crossZero = 0;
-	    }
+                currentPeakEnd = crossZero < 3 ? 0 : i;
+                activeFirstPeak = false;
+                activeSecondPeak = false;
+                crossZero = 0;
+            }
 
-	    // If the peak starts in a region with no data points, move the
-	    // start to the first available data point.
-	    while (currentPeakStart < scanNumbers.length - 1) {
+            // If the peak starts in a region with no data points, move the
+            // start to the first available data point.
+            while (currentPeakStart < scanNumbers.length - 1) {
 
-		if (chromatogram.getDataPoint(scanNumbers[currentPeakStart]) == null) {
+                if (chromatogram.getDataPoint(scanNumbers[currentPeakStart]) == null) {
 
-		    currentPeakStart++;
+                    currentPeakStart++;
 
-		} else {
+                } else {
 
-		    break;
-		}
-	    }
+                    break;
+                }
+            }
 
-	    // Scan the peak from the beginning and if we find a missing data
-	    // point inside, we have to finish the
-	    // peak there.
-	    for (int newEnd = currentPeakStart; newEnd <= currentPeakEnd; newEnd++) {
+            // Scan the peak from the beginning and if we find a missing data
+            // point inside, we have to finish the
+            // peak there.
+            for (int newEnd = currentPeakStart; newEnd <= currentPeakEnd; newEnd++) {
 
-		if (chromatogram.getDataPoint(scanNumbers[newEnd]) == null) {
+                if (chromatogram.getDataPoint(scanNumbers[newEnd]) == null) {
 
-		    currentPeakEnd = newEnd - 1;
-		    break;
-		}
-	    }
+                    currentPeakEnd = newEnd - 1;
+                    break;
+                }
+            }
 
-	    // If exists a detected area (difference between indexes) create a
-	    // new resolved peak for this region of
-	    // the chromatogram.
-	    if (currentPeakEnd - currentPeakStart > 0 && !activeFirstPeak) {
+            // If exists a detected area (difference between indexes) create a
+            // new resolved peak for this region of
+            // the chromatogram.
+            if (currentPeakEnd - currentPeakStart > 0 && !activeFirstPeak) {
 
-		resolvedPeaks.add(new ResolvedPeak(chromatogram,
-			currentPeakStart, currentPeakEnd));
+                resolvedPeaks.add(new ResolvedPeak(chromatogram,
+                        currentPeakStart, currentPeakEnd));
 
-		// If exists next overlapped peak, swap the indexes between next
-		// and current, and clean ending index
-		// for this new current peak.
-		if (activeSecondPeak) {
+                // If exists next overlapped peak, swap the indexes between next
+                // and current, and clean ending index
+                // for this new current peak.
+                if (activeSecondPeak) {
 
-		    activeSecondPeak = false;
-		    activeFirstPeak = true;
-		    crossZero = derivativeOfIntensities[i] > 0.0 ? 1 : 2;
-		    currentPeakStart = nextPeakStart;
+                    activeSecondPeak = false;
+                    activeFirstPeak = true;
+                    crossZero = derivativeOfIntensities[i] > 0.0 ? 1 : 2;
+                    currentPeakStart = nextPeakStart;
 
-		} else {
+                } else {
 
-		    crossZero = 0;
-		    currentPeakStart = totalNumberPoints;
-		}
+                    crossZero = 0;
+                    currentPeakStart = totalNumberPoints;
+                }
 
-		passThreshold = false;
-		nextPeakStart = totalNumberPoints;
-		currentPeakEnd = 0;
-	    }
-	}
+                passThreshold = false;
+                nextPeakStart = totalNumberPoints;
+                currentPeakEnd = 0;
+            }
+        }
 
-	return resolvedPeaks.toArray(new Feature[resolvedPeaks.size()]);
+        return resolvedPeaks.toArray(new Feature[resolvedPeaks.size()]);
     }
 
     /**
@@ -300,36 +301,37 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
      * @return double derivative threshold level.
      */
     private static double calcDerivativeThreshold(
-	    final double[] derivativeIntensities,
-	    final double comparativeThresholdLevel) {
+            final double[] derivativeIntensities,
+            final double comparativeThresholdLevel) {
 
-	final int length = derivativeIntensities.length;
-	final double[] intensities = new double[length];
-	for (int i = 0; i < length; i++) {
+        final int length = derivativeIntensities.length;
+        final double[] intensities = new double[length];
+        for (int i = 0; i < length; i++) {
 
-	    intensities[i] = Math.abs(derivativeIntensities[i]);
-	}
+            intensities[i] = Math.abs(derivativeIntensities[i]);
+        }
 
-	return MathUtils.calcQuantile(intensities, comparativeThresholdLevel);
+        return MathUtils.calcQuantile(intensities, comparativeThresholdLevel);
     }
 
     @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return SavitzkyGolayPeakDetectorParameters.class;
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
+        return SavitzkyGolayPeakDetectorParameters.class;
     }
 
-	@Override
-	public boolean getRequiresR() {
-		return false;
-	}
+    @Override
+    public boolean getRequiresR() {
+        return false;
+    }
 
-	@Override
-	public String[] getRequiredRPackages() {
-		return null;
-	}
+    @Override
+    public String[] getRequiredRPackages() {
+        return null;
+    }
 
-	@Override
-	public String[] getRequiredRPackagesVersions() {
-		return null;
+    @Override
+    public String[] getRequiredRPackagesVersions() {
+        return null;
     }
 }

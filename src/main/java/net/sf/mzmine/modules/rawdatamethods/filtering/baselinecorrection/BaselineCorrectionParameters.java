@@ -36,23 +36,23 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.ExitCode;
 
-
 /**
- * Holds baseline correction module COMMON parameters.
- * See "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors" sub-package
- * for method specific parameters.
+ * Holds baseline correction module COMMON parameters. See
+ * "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors"
+ * sub-package for method specific parameters.
  * 
  * @author $Author$
  * @version $Revision$
  * 
- * Reduced strictly to the parameters common to all the BaselineCorrectors.
+ *          Reduced strictly to the parameters common to all the
+ *          BaselineCorrectors.
  */
 public class BaselineCorrectionParameters extends SimpleParameterSet {
 
@@ -60,7 +60,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
     private static BaselineCorrectionParameters thisParameters = null;
 
     protected static BaselineCorrectionParameters getBaselineCorrectionParameters() {
-	return thisParameters;
+        return thisParameters;
     }
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
@@ -69,54 +69,52 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
      * Raw data file suffix.
      */
     public static final StringParameter SUFFIX = new StringParameter(
-	    "Filename suffix", "Suffix to be appended to raw data file names.",
-	    "baseline-corrected");
-
-	//	/**
-	//	 * R engine type.
-	//	 */
-	//	public static final ComboParameter<RengineType> RENGINE_TYPE = new ComboParameter<RengineType>(
-	//			"R engine type",
-	//			"The type of R engine to be used for computing.",
-	//			RengineType.values(), RengineType.Rserve);
+            "Filename suffix", "Suffix to be appended to raw data file names.",
+            "baseline-corrected");
 
     /**
      * Chromatogram type.
      */
     public static final ComboParameter<ChromatogramType> CHROMOTAGRAM_TYPE = new ComboParameter<ChromatogramType>(
-	    "Chromatogram type",
-	    "The type of chromatogram from which infer a baseline to be corrected.",
-	    ChromatogramType.values(), ChromatogramType.TIC);
+            "Chromatogram type",
+            "The type of chromatogram from which infer a baseline to be corrected.",
+            ChromatogramType.values(), ChromatogramType.TIC);
 
     /**
      * List of available baseline correctors
      */
     public static final BaselineCorrector baselineCorrectors[] = {
-		new AsymmetryCorrector(),		// (Package R "ptw"				- http://cran.r-project.org/web/packages/ptw/ptw.pdf)
-		new RollingBallCorrector(),		// (Package R "baseline"		- http://cran.r-project.org/web/packages/baseline/baseline.pdf)
-		new PeakDetectionCorrector(), 	// (Package R "baseline" 		- http://cran.r-project.org/web/packages/baseline/baseline.pdf)
-		new RubberBandCorrector(),  	// (Package R "hyperSpec" 		- http://cran.r-project.org/web/packages/hyperSpec/vignettes/baseline.pdf)
-		new LocMinLoessCorrector()		// (Package R/Bioc. "PROcess" 	- http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf)
+            new AsymmetryCorrector(), // (Package R "ptw" -
+                                      // http://cran.r-project.org/web/packages/ptw/ptw.pdf)
+            new RollingBallCorrector(), // (Package R "baseline" -
+                                        // http://cran.r-project.org/web/packages/baseline/baseline.pdf)
+            new PeakDetectionCorrector(), // (Package R "baseline" -
+                                          // http://cran.r-project.org/web/packages/baseline/baseline.pdf)
+            new RubberBandCorrector(), // (Package R "hyperSpec" -
+                                       // http://cran.r-project.org/web/packages/hyperSpec/vignettes/baseline.pdf)
+            new LocMinLoessCorrector() // (Package R/Bioc. "PROcess" -
+                                       // http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf)
     };
 
     public static final ModuleComboParameter<BaselineCorrector> BASELINE_CORRECTORS = new ModuleComboParameter<BaselineCorrector>(
-			"Correction method", "Alternative baseline correction methods", baselineCorrectors);
+            "Correction method", "Alternative baseline correction methods",
+            baselineCorrectors);
 
     /**
      * Apply in bins.
      */
     public static final BooleanParameter USE_MZ_BINS = new BooleanParameter(
-	    "Use m/z bins",
-	    "If checked, then full m/z range will be divided into bins a baseline correction applied to each bin (see m/z bin width).",
-	    true);
+            "Use m/z bins",
+            "If checked, then full m/z range will be divided into bins a baseline correction applied to each bin (see m/z bin width).",
+            true);
 
     /**
      * M/Z bin width.
      */
     public static final DoubleParameter MZ_BIN_WIDTH = new DoubleParameter(
-	    "m/z bin width", "The m/z bin size (>= 0.001) to use when the \""
-		    + USE_MZ_BINS.getName() + "\" option is enabled.",
-	    MZmineCore.getConfiguration().getMZFormat(), 1.0, 0.001, null);
+            "m/z bin width", "The m/z bin size (>= 0.001) to use when the \""
+                    + USE_MZ_BINS.getName() + "\" option is enabled.",
+            MZmineCore.getConfiguration().getMZFormat(), 1.0, 0.001, null);
 
     /**
      * MS-level.
@@ -127,19 +125,19 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
      * Remove original data file.
      */
     public static final BooleanParameter REMOVE_ORIGINAL = new BooleanParameter(
-	    "Remove source file after baseline correction",
-	    "If checked, original file will be replaced by the corrected version",
-	    true);
+            "Remove source file after baseline correction",
+            "If checked, original file will be replaced by the corrected version",
+            true);
 
     /**
      * Create the parameter set.
      */
     public BaselineCorrectionParameters() {
-	super(new Parameter[] { dataFiles, SUFFIX,
-		// RENGINE_TYPE,
-		CHROMOTAGRAM_TYPE, MS_LEVEL, USE_MZ_BINS, MZ_BIN_WIDTH,
-		BASELINE_CORRECTORS, REMOVE_ORIGINAL });
-	thisParameters = null;
+        super(new Parameter[] { dataFiles, SUFFIX,
+                // RENGINE_TYPE,
+                CHROMOTAGRAM_TYPE, MS_LEVEL, USE_MZ_BINS, MZ_BIN_WIDTH,
+                BASELINE_CORRECTORS, REMOVE_ORIGINAL });
+        thisParameters = null;
     }
 
     /**
@@ -147,15 +145,15 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
      */
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-	Parameter<?>[] parameters = this.getParameters();
-	if ((parameters == null) || (parameters.length == 0))
-	    return ExitCode.OK;
+        Parameter<?>[] parameters = this.getParameters();
+        if ((parameters == null) || (parameters.length == 0))
+            return ExitCode.OK;
 
-	thisParameters = this;
-	ParameterSetupDialog dialog = new InstantUpdateSetupDialog(parent,
-		valueCheckRequired, this);
-	dialog.setVisible(true);
-	return dialog.getExitCode();
+        thisParameters = this;
+        ParameterSetupDialog dialog = new InstantUpdateSetupDialog(parent,
+                valueCheckRequired, this);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
     }
 
 }

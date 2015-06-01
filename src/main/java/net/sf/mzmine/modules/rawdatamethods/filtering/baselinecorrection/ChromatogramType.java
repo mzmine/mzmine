@@ -25,7 +25,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
 /**
  * Chromatogram types.
- *
+ * 
  * @author $Author$
  * @version $Revision$
  */
@@ -37,11 +37,11 @@ public enum ChromatogramType {
 
     ChromatogramType(String name) {
 
-	this.name = name;
+        this.name = name;
     }
 
     public String toString() {
 
-	return this.name;
+        return this.name;
     }
 }

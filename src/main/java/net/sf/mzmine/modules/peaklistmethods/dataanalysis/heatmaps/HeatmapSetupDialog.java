@@ -41,59 +41,59 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
 
     @SuppressWarnings("unchecked")
     public HeatmapSetupDialog(Window parent, boolean valueCheckRequired,
-	    HeatMapParameters parameters) {
-	super(parent, valueCheckRequired, parameters);
+            HeatMapParameters parameters) {
+        super(parent, valueCheckRequired, parameters);
 
-	// Get a reference to the combo boxes
-	selDataCombo = (JComboBox<Object>) this
-		.getComponentForParameter(HeatMapParameters.selectionData);
-	refGroupCombo = (JComboBox<Object>) this
-		.getComponentForParameter(HeatMapParameters.referenceGroup);
+        // Get a reference to the combo boxes
+        selDataCombo = (JComboBox<Object>) this
+                .getComponentForParameter(HeatMapParameters.selectionData);
+        refGroupCombo = (JComboBox<Object>) this
+                .getComponentForParameter(HeatMapParameters.referenceGroup);
 
-	// Save a reference to current "Sample parameter" value
-	previousParameterSelection = (UserParameter<?, ?>) selDataCombo
-		.getSelectedItem();
+        // Save a reference to current "Sample parameter" value
+        previousParameterSelection = (UserParameter<?, ?>) selDataCombo
+                .getSelectedItem();
 
-	// Call parametersChanged() to rebuild the reference group combo
-	parametersChanged();
+        // Call parametersChanged() to rebuild the reference group combo
+        parametersChanged();
 
     }
 
     @Override
     public void parametersChanged() {
 
-	// Get the current value of the "Sample parameter" combo
-	UserParameter<?, ?> currentParameterSelection = (UserParameter<?, ?>) selDataCombo
-		.getSelectedItem();
-	if (currentParameterSelection == null)
-	    return;
+        // Get the current value of the "Sample parameter" combo
+        UserParameter<?, ?> currentParameterSelection = (UserParameter<?, ?>) selDataCombo
+                .getSelectedItem();
+        if (currentParameterSelection == null)
+            return;
 
-	// If the value has changed, update the "Reference group" combo
-	if (currentParameterSelection != previousParameterSelection) {
-	    ArrayList<Object> values = new ArrayList<Object>();
+        // If the value has changed, update the "Reference group" combo
+        if (currentParameterSelection != previousParameterSelection) {
+            ArrayList<Object> values = new ArrayList<Object>();
 
-	    // Obtain all possible values
-	    for (RawDataFile dataFile : MZmineCore.getProjectManager()
-		    .getCurrentProject().getDataFiles()) {
-		Object paramValue = MZmineCore.getProjectManager()
-			.getCurrentProject()
-			.getParameterValue(currentParameterSelection, dataFile);
-		if (paramValue == null)
-		    continue;
-		if (!values.contains(paramValue))
-		    values.add(paramValue);
-	    }
+            // Obtain all possible values
+            for (RawDataFile dataFile : MZmineCore.getProjectManager()
+                    .getCurrentProject().getDataFiles()) {
+                Object paramValue = MZmineCore.getProjectManager()
+                        .getCurrentProject()
+                        .getParameterValue(currentParameterSelection, dataFile);
+                if (paramValue == null)
+                    continue;
+                if (!values.contains(paramValue))
+                    values.add(paramValue);
+            }
 
-	    // Update the parameter and combo model
-	    Object newValues[] = values.toArray();
-	    super.parameterSet.getParameter(HeatMapParameters.referenceGroup)
-		    .setChoices(newValues);
-	    refGroupCombo.setModel(new DefaultComboBoxModel<Object>(newValues));
+            // Update the parameter and combo model
+            Object newValues[] = values.toArray();
+            super.parameterSet.getParameter(HeatMapParameters.referenceGroup)
+                    .setChoices(newValues);
+            refGroupCombo.setModel(new DefaultComboBoxModel<Object>(newValues));
 
-	    previousParameterSelection = currentParameterSelection;
-	}
+            previousParameterSelection = currentParameterSelection;
+        }
 
-	this.updateParameterSetFromComponents();
+        this.updateParameterSetFromComponents();
 
     }
 

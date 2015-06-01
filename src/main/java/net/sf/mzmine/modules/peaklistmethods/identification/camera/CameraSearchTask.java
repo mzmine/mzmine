@@ -46,19 +46,10 @@ import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.DataPointSorter;
-
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
-
-//import net.sf.mzmine.util.R.RUtilities;
-//**//import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
-
-//import org.rosuda.JRI.REXP;
-//import org.rosuda.JRI.Rengine;
-//import org.rosuda.REngine.REXP;
-//import org.rosuda.REngine.REngine;
 
 import com.google.common.collect.Range;
 
@@ -197,7 +188,7 @@ public class CameraSearchTask extends AbstractTask {
 
 			String[] reqPackages = { "CAMERA" };
 			String[] reqPackagesVersions = { CAMERA_VERSION };
-			this.rSession = new RSessionWrapper("Camera search feature", /*this.rEngineType,*/ reqPackages, reqPackagesVersions);
+			this.rSession = new RSessionWrapper("Camera search feature", reqPackages, reqPackagesVersions);
 			this.rSession.open();	
 
 

@@ -19,10 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
-
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.parameters.ParameterSet;
-
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -39,9 +37,11 @@ public interface BaselineProvider {
 
     /**
      * Returns a baseline for correcting the given chromatogram using R
-	 * @throws RSessionWrapperException 
+     * 
+     * @throws RSessionWrapperException
      */
-	public double[] computeBaseline(final RSessionWrapper rSession, final RawDataFile origDataFile, 
-			final double[] chromatogram, ParameterSet parameters) throws RSessionWrapperException;
+    public double[] computeBaseline(final RSessionWrapper rSession,
+            final RawDataFile origDataFile, final double[] chromatogram,
+            ParameterSet parameters) throws RSessionWrapperException;
 
 }

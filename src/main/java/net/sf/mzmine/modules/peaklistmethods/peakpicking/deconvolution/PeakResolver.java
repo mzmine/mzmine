@@ -31,12 +31,15 @@ public interface PeakResolver extends MZmineModule {
      * Gets if resolver requires R, if applicable
      */
     public boolean getRequiresR();
+
     /**
      * Gets R required packages for the resolver's method, if applicable
      */
     public String[] getRequiredRPackages();
+
     /**
-     * Gets R required packages versions for the resolver's method, if applicable
+     * Gets R required packages versions for the resolver's method, if
+     * applicable
      */
     public String[] getRequiredRPackagesVersions();
 
@@ -46,10 +49,12 @@ public interface PeakResolver extends MZmineModule {
      * although the contents of these arrays can also be obtained from the
      * chromatogram itself. The size of these arrays must be same, and must be
      * equal to the number of scans covered by given chromatogram.
+     * 
      * @throws RSessionWrapperException
      */
     public Feature[] resolvePeaks(Feature chromatogram, int scanNumbers[],
-	    double retentionTimes[], double intensities[],
-	    ParameterSet parameters, RSessionWrapper rSession) throws RSessionWrapperException;
+            double retentionTimes[], double intensities[],
+            ParameterSet parameters, RSessionWrapper rSession)
+            throws RSessionWrapperException;
 
 }
