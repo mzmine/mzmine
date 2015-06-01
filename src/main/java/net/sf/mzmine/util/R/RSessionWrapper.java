@@ -342,9 +342,9 @@ public class RSessionWrapper {
                         }
 
                         // If retrieving 'R_HOME' from environment failed, try
-                        // to find out automatically.
-                        // (Since 'Rsession.newInstanceTry()', checks the
-                        // environment first).
+                        // to find out automatically. (Since
+                        // 'Rsession.newInstanceTry()', checks the environment
+                        // first).
                         // @See getRhomePath().
                         if (R_HOME == null || !(new File(R_HOME).exists())) {
                             // Set "R_HOME" system property.
@@ -370,19 +370,17 @@ public class RSessionWrapper {
                         // props.setProperty("auth", "required");
 
                         // Under *NUX, create the very first Rserve instance
-                        // (kind of proxy), designed
-                        // only to spawn other (computing) instances (Released
-                        // at app. exit - see note below).
+                        // (kind of proxy), designed only to spawn other
+                        // (computing) instances (Released at app. exit - see
+                        // note below).
                         if (!isWindows
                                 && (RSessionWrapper.MASTER_SESSION == null || !checkMasterConnectivity())) {
 
                             // We absolutely need real new instance on a new
-                            // port here
-                            // (in case other Rserve, not spawned by MZmine, are
-                            // running already).
+                            // port here (in case other Rserve, not spawned by
+                            // MZmine, are running already).
                             // Note: this also fixes potential issues when
-                            // running several instances of MZmine
-                            // concurrently.
+                            // running several instances of MZmine concurrently.
                             int port = RserverConf.getNewAvailablePort();
                             RserverConf conf = new RserverConf("localhost",
                                     port, RS_LOGIN, RS_DYN_PWD, null); // props);
@@ -399,17 +397,16 @@ public class RSessionWrapper {
                                             + "').");
 
                             // Note: no need to 'register()' that particular
-                            // instance. It is attached to the
-                            // Rdaemon which will die/stop with the app. anyway.
+                            // instance. It is attached to the Rdaemon which
+                            // will die/stop with the app. anyway.
                         }
                     }
 
                     // Need a new session to be completely instantiated before
-                    // asking for another one
-                    // otherwise, under Windows, the "multi-instance emulation"
-                    // system will try several
-                    // session startup on same port (aka: each new session port
-                    // has to be in use/unavailable
+                    // asking for another one.
+                    // Otherwise, under Windows, the "multi-instance emulation"
+                    // system will try several session startup on same port
+                    // (aka: each new session port has to be in use/unavailable
                     // before trying to get another one).
                     // Win: Synch with any previous session, if applicable.
                     // *NUX: Synch with nothing that matters.
@@ -438,13 +435,12 @@ public class RSessionWrapper {
                             // *NUX: Just spawn a new connection on MASTER
                             // instance.
                             // Need to target the same port, in case another
-                            // Rserve (not started by this
-                            // MZmine instance) is running.
+                            // Rserve (not started by this MZmine instance) is
+                            // running.
                             // We need to keep constantly a hand on what is
-                            // spawned by the app. to remain
-                            // able to shutdown everything related to it and it
-                            // only when exiting (gracefully or not).
-                            // **this.session =
+                            // spawned by the app. to remain able to shutdown
+                            // everything related to it and it only when exiting
+                            // (gracefully or not).
                             // Rsession.newLocalInstance(logStream, null);
                             this.session = Rsession.newRemoteInstance(
                                     logStream, conf, TMP_DIR);
@@ -465,14 +461,13 @@ public class RSessionWrapper {
                 }
 
                 // As "Rsession.newInstanceTry()" runs an Rdaemon Thread. It is
-                // scheduled already,
-                // meaning the session will be opened even for "WAITING" tasks,
-                // in any case, and even
-                // if it's been meanwhile canceled.
+                // scheduled already, meaning the session will be opened even
+                // for "WAITING" tasks, in any case, and even if it's been
+                // meanwhile canceled.
                 // Consequently, we need to kill it after the instance has been
-                // created, since trying to abort
-                // the instance (close the session) before it exists would
-                // result in no termination at all.
+                // created, since trying to abort the instance (close the
+                // session) before it exists would result in no termination at
+                // all.
                 if (this.session != null) {
 
                     if (this.session.connection != null) {
