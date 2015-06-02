@@ -17,6 +17,11 @@ else
 fi
 echo Java heap size set to $HEAP_SIZE MB
 
+# If you do not want MZmine to sends anonymous statistics of the module
+# usage in the software then please set the MZ_STATISTICS parameter to 0.
+# 1 = activated, 0 = deactivated.
+export MZMINE_STATISTICS=1
+
 # Do not modify:
 # Store this MZmine instance, a UNID.
 export MZMINE_UNID="MZMINE"$$

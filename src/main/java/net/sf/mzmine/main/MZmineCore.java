@@ -218,7 +218,15 @@ public final class MZmineCore {
 
 	    // Check for updated version
 	    NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
-	    new Thread(NVC).start();
+	    Thread nvcThread = new Thread(NVC);
+	    nvcThread.setPriority(Thread.MIN_PRIORITY);
+	    nvcThread.start();
+
+	    // Tracker
+	    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("GUI Loaded", "/JAVA/Main/GUI");
+	    Thread gatThread = new Thread(GAT);
+	    gatThread.setPriority(Thread.MIN_PRIORITY);
+	    gatThread.start();
 
 	    // register shutdown hook only if we have GUI - we don't want to
 	    // save configuration on exit if we only run a batch
@@ -229,6 +237,13 @@ public final class MZmineCore {
 	// if arguments were specified (= running without GUI), run the batch
 	// mode
 	if (args.length > 0) {
+
+	    // Tracker
+	    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("GUI Loaded", "/JAVA/Main/GUI");
+	    Thread gatThread = new Thread(GAT);
+	    gatThread.setPriority(Thread.MIN_PRIORITY);
+	    gatThread.start();
+
 	    File batchFile = new File(args[0]);
 	    if ((!batchFile.exists()) || (!batchFile.canRead())) {
 		logger.severe("Cannot read batch file " + batchFile);
