@@ -104,7 +104,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
 	List<String> taskClass = new ArrayList<String>();
 	String taskClassName;
 	for (Task task : tasks) {
-	    taskClassName = tasks[0].getClass().getName();
+	    taskClassName = task.getClass().getName();
 	    taskClassName = taskClassName.substring(taskClassName.lastIndexOf(".") + 1);
 	    taskClass.add(taskClassName);
 	    WrappedTask newQueueEntry = new WrappedTask(task, priority);
