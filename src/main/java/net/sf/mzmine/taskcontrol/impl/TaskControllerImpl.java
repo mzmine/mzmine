@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.desktop.preferences.NumOfThreadsParameter;
+import net.sf.mzmine.main.GoogleAnalyticsTracker;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskControlListener;
@@ -92,6 +93,14 @@ public class TaskControllerImpl implements TaskController, Runnable {
     }
 
     public void addTasks(Task tasks[], TaskPriority priority) {
+	// Track module usage
+	String taskClass = tasks[0].getClass().getName();
+	taskClass = taskClass.substring(taskClass.lastIndexOf(".") + 1);
+	GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(taskClass,
+		"/JAVA/" + taskClass);
+	Thread gatThread = new Thread(GAT);
+	gatThread.setPriority(Thread.MIN_PRIORITY);
+	gatThread.start();
 
 	// It can sometimes happen during a batch that no tasks are actually
 	// executed --> tasks[] array may be empty
