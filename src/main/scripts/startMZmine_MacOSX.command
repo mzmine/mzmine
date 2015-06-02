@@ -35,7 +35,7 @@ mkdir $TMP_FILE_DIRECTORY
 # It is usually not necessary to modify the JAVA_COMMAND parameter, but 
 # if you like to run a specific Java Virtual Machine, you may set the 
 # path to the java command of that JVM.
-JAVA_COMMAND=`/usr/libexec/java_home -v 1.6+`/bin/java
+JAVA_COMMAND=`/usr/libexec/java_home -v 1.7+`/bin/java
 
 # It is not necessary to modify the following section
 JAVA_PARAMETERS="-showversion -classpath lib/\* -Djava.ext.dirs= -XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m"
