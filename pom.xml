@@ -321,31 +321,15 @@
 			<artifactId>chemspider-api</artifactId>
 			<version>1.0</version>
 		</dependency>
-<!-- rJava: JRI -->
-		<dependency>
-			<groupId>rJava</groupId>
-			<artifactId>JRI</artifactId>
-			<version>0.9.3</version>
-		</dependency>
-		<dependency>
-			<groupId>rJava</groupId>
-			<artifactId>JRIEngine</artifactId>
-			<version>0.9.3</version>
-		</dependency>
-<!-- REMOVED: collides with the following bellow dep.
-		<dependency>
-			<groupId>rJava</groupId>
-			<artifactId>REngine</artifactId>
-			<version>0.9.3</version>
-		</dependency>-->
-<!-- rJava: END -->
-<!-- rosuda: REngine/Rserve -->
+
+        <!-- rosuda: REngine/Rserve -->
 		<dependency>
     		<groupId>org.rosuda.REngine</groupId>
     		<artifactId>Rserve</artifactId>
     		<version>1.8.1</version>
 		</dependency>
-<!-- rosuda: END -->
+        <!-- rosuda: END -->
+        
 		<dependency>
 			<groupId>mzmine</groupId>
 			<artifactId>macspecificsetup</artifactId>
