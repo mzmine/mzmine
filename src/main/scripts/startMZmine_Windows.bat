@@ -32,6 +32,11 @@ if %ADDRESS_WIDTH%==32 (
 )
 echo Java heap size set to %HEAP_SIZE% MB
 
+rem If you do not want MZmine to sends anonymous statistics of the module
+rem usage in the software then please set the MZ_STATISTICS parameter to 0.
+rem 1 = activated, 0 = deactivated.
+set MZMINE_STATISTICS=1
+
 rem The TMP_FILE_DIRECTORY parameter defines the location where temporary 
 rem files (parsed raw data) will be placed. Default is %TEMP%, which 
 rem represents the system temporary directory.
