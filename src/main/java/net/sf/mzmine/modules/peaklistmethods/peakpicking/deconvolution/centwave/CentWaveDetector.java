@@ -190,29 +190,26 @@ public class CentWaveDetector implements PeakResolver {
 
         LOG.finest("Detecting peaks.");
 
-        double[][] peaks = null;
+        final double[][] peaks;
 
         // Set vectors.
         rSession.assign("scantime", scanTime);
         rSession.assign("intensity", intensity);
 
         // Initialize.
-        rSession.eval("mz <- " + mz/* , false */);
-        rSession.eval("numPoints <- length(intensity)"/* , false */);
+        rSession.eval("mz <- " + mz);
+        rSession.eval("numPoints <- length(intensity)");
 
         // Construct xcmsRaw object
-        rSession.eval("xRaw <- new(\"xcmsRaw\")"/* , false */);
-        rSession.eval("xRaw@tic <- intensity"/* , false */);
-        rSession.eval("xRaw@scantime <- scantime * " + SECONDS_PER_MINUTE/*
-                                                                          * ,
-                                                                          * false
-                                                                          */);
-        rSession.eval("xRaw@scanindex <- 1:numPoints"/* , false */);
-        rSession.eval("xRaw@env$mz <- rep(mz, numPoints)"/* , false */);
-        rSession.eval("xRaw@env$intensity <- intensity"/* , false */);
+        rSession.eval("xRaw <- new(\"xcmsRaw\")");
+        rSession.eval("xRaw@tic <- intensity");
+        rSession.eval("xRaw@scantime <- scantime * " + SECONDS_PER_MINUTE);
+        rSession.eval("xRaw@scanindex <- 1:numPoints");
+        rSession.eval("xRaw@env$mz <- rep(mz, numPoints)");
+        rSession.eval("xRaw@env$intensity <- intensity");
 
         // Construct ROIs.
-        rSession.eval("ROIs <- list()"/* , false */);
+        rSession.eval("ROIs <- list()");
         int roi = 1;
         for (int start = 0; start < intensity.length; start++) {
 
@@ -229,7 +226,7 @@ public class CentWaveDetector implements PeakResolver {
                 // Add ROI to list.
                 rSession.eval("ROIs[[" + roi + "]] <- list('scmin'="
                         + (start + 1) + ", 'scmax'=" + end
-                        + ", 'mzmin'=mz, 'mzmax'=mz)"/* , false */);
+                        + ", 'mzmin'=mz, 'mzmax'=mz)");
 
                 // Next ROI.
                 start = end;
