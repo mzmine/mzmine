@@ -30,24 +30,25 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 
-import net.sf.mzmine.util.R.Rsession.Logger;
-import net.sf.mzmine.util.R.Rsession.Logger.Level;
-
-
 @SuppressWarnings("serial")
 public class RLogPanel extends JPanel implements Logger {
 
     private static int _fontSize = 12;
-    private static Font _smallFont = new Font("Arial", Font.PLAIN, _fontSize - 2);
-    public int maxsize = Integer.parseInt(System.getProperty("RLogPanel.maxsize", "100000"));
-    public int minsize = Integer.parseInt(System.getProperty("RLogPanel.minsize", "10000"));
-    public String filter = null;//System.getProperty("RLogPanel.filter", "(.*)");
+    private static Font _smallFont = new Font("Arial", Font.PLAIN,
+            _fontSize - 2);
+    public int maxsize = Integer.parseInt(System.getProperty(
+            "RLogPanel.maxsize", "100000"));
+    public int minsize = Integer.parseInt(System.getProperty(
+            "RLogPanel.minsize", "10000"));
+    public String filter = null;// System.getProperty("RLogPanel.filter",
+                                // "(.*)");
 
     public static void main(String[] args) {
         RLogPanel log = new RLogPanel();
@@ -80,14 +81,19 @@ public class RLogPanel extends JPanel implements Logger {
     public RLogPanel() {
         initComponents();
 
-        StyleConstants.setForeground(jTextPane1.addStyle("OUTPUT", null), Color.gray);
-        StyleConstants.setForeground(jTextPane1.addStyle("INFO", null), Color.black);
-        StyleConstants.setForeground(jTextPane1.addStyle("WARN", null), Color.blue);
-        StyleConstants.setForeground(jTextPane1.addStyle("ERROR", null), Color.red);
+        StyleConstants.setForeground(jTextPane1.addStyle("OUTPUT", null),
+                Color.gray);
+        StyleConstants.setForeground(jTextPane1.addStyle("INFO", null),
+                Color.black);
+        StyleConstants.setForeground(jTextPane1.addStyle("WARN", null),
+                Color.blue);
+        StyleConstants.setForeground(jTextPane1.addStyle("ERROR", null),
+                Color.red);
 
         jTextPane1.setEditable(false);
         jTextPane1.setFont(_smallFont);
     }
+
     private OutputStream output_stream;
     private OutputStream info_stream;
     private OutputStream error_stream;
@@ -129,6 +135,7 @@ public class RLogPanel extends JPanel implements Logger {
         close();
         super.finalize();
     }
+
     char level = 'i';
     char[] buffer = new char[maxsize];
     volatile int pos = 0;
@@ -169,10 +176,10 @@ public class RLogPanel extends JPanel implements Logger {
 
                 @Override
                 public void write(int b) throws IOException {
-                    //if (b=='\n') return;
+                    // if (b=='\n') return;
                     if (level != 'o') {
                         level = 'o';
-                        //write('\n');
+                        // write('\n');
                         write('o');
                         write(' ');
                         write(b);
@@ -253,6 +260,7 @@ public class RLogPanel extends JPanel implements Logger {
         }
         return error_stream;
     }
+
     private PrintStream output_pstream;
     private PrintStream info_pstream;
     private PrintStream warn_pstream;
@@ -260,7 +268,7 @@ public class RLogPanel extends JPanel implements Logger {
 
     public PrintStream getInfoPrintStream() {
         if (info_pstream == null) {
-            //FIXME: need to use the EventQueue for non-blocking printing
+            // FIXME: need to use the EventQueue for non-blocking printing
             info_pstream = new PrintStream(getInfoStream());
         }
         return info_pstream;
@@ -268,7 +276,7 @@ public class RLogPanel extends JPanel implements Logger {
 
     public PrintStream getOutputPrintStream() {
         if (output_stream == null) {
-            //FIXME: need to use the EventQueue for non-blocking printing
+            // FIXME: need to use the EventQueue for non-blocking printing
             output_pstream = new PrintStream(getOutputStream());
         }
         return output_pstream;
@@ -276,7 +284,7 @@ public class RLogPanel extends JPanel implements Logger {
 
     public PrintStream getWarnPrintStream() {
         if (warn_pstream == null) {
-            //FIXME: need to use the EventQueue for non-blocking printing
+            // FIXME: need to use the EventQueue for non-blocking printing
             warn_pstream = new PrintStream(getWarnStream());
         }
         return warn_pstream;
@@ -284,7 +292,7 @@ public class RLogPanel extends JPanel implements Logger {
 
     public PrintStream getErrorPrintStream() {
         if (error_pstream == null) {
-            //FIXME: need to use the EventQueue for non-blocking printing
+            // FIXME: need to use the EventQueue for non-blocking printing
             error_pstream = new PrintStream(getErrorStream());
         }
         return error_pstream;
@@ -296,7 +304,8 @@ public class RLogPanel extends JPanel implements Logger {
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed"
+    // desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -306,7 +315,8 @@ public class RLogPanel extends JPanel implements Logger {
         _del = new javax.swing.JButton();
         _save = new javax.swing.JButton();
 
-        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1
+                .setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setViewportView(jTextPane1);
 
         _bar.setFloatable(false);
@@ -351,27 +361,36 @@ public class RLogPanel extends JPanel implements Logger {
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(_bar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 407, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)
-            .addComponent(_bar, javax.swing.GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)
-        );
+        layout.setHorizontalGroup(layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                        layout.createSequentialGroup()
+                                .addComponent(_bar,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(
+                                        javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane1,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        407, Short.MAX_VALUE)));
+        layout.setVerticalGroup(layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(jScrollPane1,
+                        javax.swing.GroupLayout.DEFAULT_SIZE, 197,
+                        Short.MAX_VALUE)
+                .addComponent(_bar, javax.swing.GroupLayout.DEFAULT_SIZE, 197,
+                        Short.MAX_VALUE));
     }// </editor-fold>//GEN-END:initComponents
 
-    private void _delActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__delActionPerformed
+    private void _delActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event__delActionPerformed
         jTextPane1.setText("");
-}//GEN-LAST:event__delActionPerformed
+    }// GEN-LAST:event__delActionPerformed
 
-    private void _saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__saveActionPerformed
+    private void _saveActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event__saveActionPerformed
         JFileChooser fc = new JFileChooser(new File("R.log"));
-        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION && fc.getSelectedFile() != null) {
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION
+                && fc.getSelectedFile() != null) {
             FileOutputStream os = null;
             try {
                 os = new FileOutputStream(fc.getSelectedFile());
@@ -387,9 +406,9 @@ public class RLogPanel extends JPanel implements Logger {
                 }
             }
         }
-}//GEN-LAST:event__saveActionPerformed
+    }// GEN-LAST:event__saveActionPerformed
 
-    private void _updateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__updateActionPerformed
+    private void _updateActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event__updateActionPerformed
         jTextPane1.setText("");
         String text = new String(buffer, 0, pos);
         String[] lines = text.split("\n");
@@ -411,14 +430,18 @@ public class RLogPanel extends JPanel implements Logger {
             }
 
             try {
-                jTextPane1.getDocument().insertString(jTextPane1.getDocument().getLength(), line + "\n", style);
-                jTextPane1.setCaretPosition(jTextPane1.getDocument().getLength());
+                jTextPane1.getDocument().insertString(
+                        jTextPane1.getDocument().getLength(), line + "\n",
+                        style);
+                jTextPane1.setCaretPosition(jTextPane1.getDocument()
+                        .getLength());
             } catch (Exception e) {
                 e.printStackTrace(System.err);
             }
         }
-    }//GEN-LAST:event__updateActionPerformed
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    }// GEN-LAST:event__updateActionPerformed
+     // Variables declaration - do not modify//GEN-BEGIN:variables
+
     private javax.swing.JToolBar _bar;
     public javax.swing.JButton _del;
     public javax.swing.JButton _save;

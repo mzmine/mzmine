@@ -28,55 +28,70 @@ import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
 /**
- * @description Local Minima + LOESS (smoothed low-percentile intensity) baseline corrector.  
- * Uses "bslnoff" feature from "PROcess" R/Bioconductor package (http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf).
+ * @description Local Minima + LOESS (smoothed low-percentile intensity)
+ *              baseline corrector. Uses "bslnoff" feature from "PROcess"
+ *              R/Bioconductor package
+ *              (http://bioconductor.org/packages/release/
+ *              bioc/manuals/PROcess/man/PROcess.pdf).
  * 
  */
 public class LocMinLoessCorrector extends BaselineCorrector {
 
     @Override
     public String[] getRequiredRPackages() {
-		return new String[] { /*"rJava", "Rserve",*/ "PROcess" };
+        return new String[] { /* "rJava", "Rserve", */"PROcess" };
     }
 
     @Override
-	public double[] computeBaseline(final RSessionWrapper rSession, final RawDataFile origDataFile, double[] chromatogram, ParameterSet parameters) 
-			throws RSessionWrapperException {
+    public double[] computeBaseline(final RSessionWrapper rSession,
+            final RawDataFile origDataFile, double[] chromatogram,
+            ParameterSet parameters) throws RSessionWrapperException {
 
-	// Local Minima parameters.
-	String method = parameters.getParameter(LocMinLoessCorrectorParameters.METHOD).getValue();
-	double bw = parameters.getParameter(LocMinLoessCorrectorParameters.BW).getValue();
-	int breaks = parameters.getParameter(LocMinLoessCorrectorParameters.BREAKS).getValue();
-	int breaks_width = parameters.getParameter(LocMinLoessCorrectorParameters.BREAK_WIDTH).getValue();
-	double qntl = parameters.getParameter(LocMinLoessCorrectorParameters.QNTL).getValue();
+        // Local Minima parameters.
+        String method = parameters.getParameter(
+                LocMinLoessCorrectorParameters.METHOD).getValue();
+        double bw = parameters.getParameter(LocMinLoessCorrectorParameters.BW)
+                .getValue();
+        int breaks = parameters.getParameter(
+                LocMinLoessCorrectorParameters.BREAKS).getValue();
+        int breaks_width = parameters.getParameter(
+                LocMinLoessCorrectorParameters.BREAK_WIDTH).getValue();
+        double qntl = parameters.getParameter(
+                LocMinLoessCorrectorParameters.QNTL).getValue();
 
-	final double[] baseline;
+        final double[] baseline;
 
-	// Set chromatogram.
-	rSession.assign("chromatogram", chromatogram);
-	// Transform chromatogram.
-	int mini = 1;
-	int maxi = chromatogram.length;
-	rSession.eval("mat <- cbind(matrix(seq(" + ((double)mini) + ", " + ((double)maxi) + ", by = 1.0), ncol=1), " +
-			"matrix(chromatogram[" + mini + ":" + maxi + "], ncol=1))");
-	// Breaks
-	rSession.eval("breaks <- " + ((breaks_width > 0) ? (int)Math.round((double)(maxi-mini)/(double)breaks_width) : breaks));
-	// Calculate baseline.
-	rSession.eval("bseoff <- bslnoff(mat, method=\"" + method + "\", bw=" + bw + ", breaks=breaks, qntl=" + qntl + ")");
-	rSession.eval("baseline <- mat[,2] - bseoff[,2]");
-	baseline = (double[]) rSession.collect("baseline");
+        // Set chromatogram.
+        rSession.assign("chromatogram", chromatogram);
+        // Transform chromatogram.
+        int mini = 1;
+        int maxi = chromatogram.length;
+        rSession.eval("mat <- cbind(matrix(seq(" + ((double) mini) + ", "
+                + ((double) maxi) + ", by = 1.0), ncol=1), "
+                + "matrix(chromatogram[" + mini + ":" + maxi + "], ncol=1))");
+        // Breaks
+        rSession.eval("breaks <- "
+                + ((breaks_width > 0) ? (int) Math.round((double) (maxi - mini)
+                        / (double) breaks_width) : breaks));
+        // Calculate baseline.
+        rSession.eval("bseoff <- bslnoff(mat, method=\"" + method + "\", bw="
+                + bw + ", breaks=breaks, qntl=" + qntl + ")");
+        rSession.eval("baseline <- mat[,2] - bseoff[,2]");
+        baseline = (double[]) rSession.collect("baseline");
 
-	return baseline;
+        return baseline;
     }
 
     @Override
-    public @Nonnull String getName() {
-	return "Local minima + LOESS baseline corrector";
+    public @Nonnull
+    String getName() {
+        return "Local minima + LOESS baseline corrector";
     }
 
     @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return LocMinLoessCorrectorParameters.class;
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
+        return LocMinLoessCorrectorParameters.class;
     }
 
 }

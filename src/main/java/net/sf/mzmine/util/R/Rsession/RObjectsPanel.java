@@ -44,22 +44,21 @@ import javax.swing.table.DefaultTableModel;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPMismatchException;
 
-
 @SuppressWarnings("serial")
 public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
 
     private RObjectsModel _model;
     private List<File> Rfiles = new LinkedList<File>();
     private static int _fontSize = 12;
-    private static Font _smallFont = new Font("Arial", Font.PLAIN, _fontSize - 2);
+    private static Font _smallFont = new Font("Arial", Font.PLAIN,
+            _fontSize - 2);
     TypeCellRenderer typerenderer = new TypeCellRenderer();
     ObjectCellRenderer objectrenderer = new ObjectCellRenderer();
 
     enum ObjectColumns {
 
-        NAME(0, 100, "Object"),
-        TYPE(1, 100, "Type");
-        //SOURCE(1, 100, "Source", new CellRenderer());
+        NAME(0, 100, "Object"), TYPE(1, 100, "Type");
+        // SOURCE(1, 100, "Source", new CellRenderer());
         String name;
         int value, width;
 
@@ -78,25 +77,33 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
     class TypeCellRenderer extends DefaultTableCellRenderer {
 
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object name, boolean isSelected, boolean hasFocus, int row, int col) {
-            super.getTableCellRendererComponent(table, name, isSelected, hasFocus, row, col);
+        public Component getTableCellRendererComponent(JTable table,
+                Object name, boolean isSelected, boolean hasFocus, int row,
+                int col) {
+            super.getTableCellRendererComponent(table, name, isSelected,
+                    hasFocus, row, col);
             setText((String) name);
             setFont(_smallFont);
             setHorizontalAlignment(CENTER);
             return this;
         }
     }
+
     Map<String, String> prints = new HashMap<String, String>();
 
     class ObjectCellRenderer extends TypeCellRenderer {
 
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object name, boolean isSelected, boolean hasFocus, int row, int col) {
-            super.getTableCellRendererComponent(table, name, isSelected, hasFocus, row, col);
+        public Component getTableCellRendererComponent(JTable table,
+                Object name, boolean isSelected, boolean hasFocus, int row,
+                int col) {
+            super.getTableCellRendererComponent(table, name, isSelected,
+                    hasFocus, row, col);
             setToolTipText(prints.get(name.toString()));
             return this;
         }
     }
+
     String[] ls = new String[0];
     Map<String, String> typeOf = new HashMap<String, String>() {
 
@@ -121,20 +128,20 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
 
         @Override
         public int getRowCount() {
-            //int ls = R.silentlyEval("length(ls())").asInt();
-            //System.out.println(ls+" lines");
+            // int ls = R.silentlyEval("length(ls())").asInt();
+            // System.out.println(ls+" lines");
             return ls.length;
         }
 
         @Override
         public Object getValueAt(int row, int col) {
-            //String oname = R.silentlyEval("ls()").asStringArray()[row];
+            // String oname = R.silentlyEval("ls()").asStringArray()[row];
             if (col == ObjectColumns.NAME.value) {
-                //return oname;
+                // return oname;
                 return ls[row];
             }
             if (col == ObjectColumns.TYPE.value) {
-                //return R.typeOf(oname);
+                // return R.typeOf(oname);
                 return typeOf.get(ls[row]);
             }
             return null;
@@ -150,6 +157,7 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
             return String.class;
         }
     }
+
     Rsession R;
 
     public void setTarget(Rsession r) {
@@ -178,10 +186,13 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
         _oList.getTableHeader().setFont(_smallFont);
         _oList.getTableHeader().setReorderingAllowed(false);
         for (ObjectColumns col : ObjectColumns.values()) {
-            _oList.getColumnModel().getColumn(col.value).setPreferredWidth(col.width);
+            _oList.getColumnModel().getColumn(col.value)
+                    .setPreferredWidth(col.width);
         }
-        _oList.getColumnModel().getColumn(ObjectColumns.NAME.value).setCellRenderer(objectrenderer);
-        _oList.getColumnModel().getColumn(ObjectColumns.TYPE.value).setCellRenderer(typerenderer);
+        _oList.getColumnModel().getColumn(ObjectColumns.NAME.value)
+                .setCellRenderer(objectrenderer);
+        _oList.getColumnModel().getColumn(ObjectColumns.TYPE.value)
+                .setCellRenderer(typerenderer);
 
         _oList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
@@ -190,7 +201,8 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    //R.eval("help(htmlhelp=TRUE," + _oList.getValueAt(_oList.getSelectedRow(), 0) + ")");
+                    // R.eval("help(htmlhelp=TRUE," +
+                    // _oList.getValueAt(_oList.getSelectedRow(), 0) + ")");
                 }
             }
         });
@@ -211,10 +223,13 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
             if (ls != null && ls.length > 0) {
                 for (String l : ls) {
                     try {
-                        //System.err.println("print(" + l + ")"+" -> ");
-                        String print = R.asHTML(l);// toHTML(R.silentlyEval("paste(capture.output(print(" + l + ")),collapse='\\n')").asString());
-                        //String print = Rsession.cat(R.silentlyEval("print(" + l + ")").asStrings());
-                        //System.err.println("  "+print);
+                        // System.err.println("print(" + l + ")"+" -> ");
+                        String print = R.asHTML(l);// toHTML(R.silentlyEval("paste(capture.output(print("
+                                                   // + l +
+                                                   // ")),collapse='\\n')").asString());
+                        // String print = Rsession.cat(R.silentlyEval("print(" +
+                        // l + ")").asStrings());
+                        // System.err.println("  "+print);
                         prints.put(l, print);
                     } catch (Exception re) {
                         prints.put(l, "?:" + re.getMessage());
@@ -232,13 +247,14 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
         }
     }
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed"
+    // desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -249,7 +265,8 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
         _del = new javax.swing.JButton();
         _save = new javax.swing.JButton();
 
-        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1
+                .setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         _oList.setAutoCreateRowSorter(true);
         _oList.setModel(new RObjectsModel());
@@ -305,21 +322,29 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(_bar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)
-            .addComponent(_bar, javax.swing.GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)
-        );
+        layout.setHorizontalGroup(layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                        layout.createSequentialGroup()
+                                .addComponent(_bar,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(
+                                        javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane1,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        406, Short.MAX_VALUE)));
+        layout.setVerticalGroup(layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(jScrollPane1,
+                        javax.swing.GroupLayout.DEFAULT_SIZE, 197,
+                        Short.MAX_VALUE)
+                .addComponent(_bar, javax.swing.GroupLayout.DEFAULT_SIZE, 197,
+                        Short.MAX_VALUE));
     }// </editor-fold>//GEN-END:initComponents
 
-    private void _addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__addActionPerformed
+    private void _addActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event__addActionPerformed
         JFileChooser fc = new JFileChooser();
         fc.setMultiSelectionEnabled(true);
         fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -327,7 +352,8 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
 
             @Override
             public boolean accept(File f) {
-                return f.isDirectory() || f.getName().endsWith(".R") || f.getName().endsWith(".Rdata");
+                return f.isDirectory() || f.getName().endsWith(".R")
+                        || f.getName().endsWith(".Rdata");
             }
 
             @Override
@@ -335,10 +361,11 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
                 return "R object file";
             }
         });
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION && fc.getSelectedFiles() != null) {
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION
+                && fc.getSelectedFiles() != null) {
             File[] files = fc.getSelectedFiles();
             for (File file : files) {
-                //System.out.println("+ " + file.getName());
+                // System.out.println("+ " + file.getName());
                 if (file.getName().endsWith(".R")) {
                     if (R != null) {
                         R.source(file);
@@ -348,14 +375,15 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
                         R.load(file);
                     }
                 } else {
-                    System.err.println("Not loading/sourcing " + file.getName());
+                    System.err
+                            .println("Not loading/sourcing " + file.getName());
                 }
             }
         }
         update();
-}//GEN-LAST:event__addActionPerformed
+    }// GEN-LAST:event__addActionPerformed
 
-    private void _delActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__delActionPerformed
+    private void _delActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event__delActionPerformed
         int[] i = _oList.getSelectedRows();
         String[] o = new String[i.length];
         for (int j = 0; j < i.length; j++) {
@@ -365,9 +393,9 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
             R.rm(o);
         }
         update();
-}//GEN-LAST:event__delActionPerformed
+    }// GEN-LAST:event__delActionPerformed
 
-    private void _saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event__saveActionPerformed
+    private void _saveActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event__saveActionPerformed
         int[] i = _oList.getSelectedRows();
         String[] o = new String[i.length];
         for (int j = 0; j < i.length; j++) {
@@ -377,16 +405,18 @@ public class RObjectsPanel extends JPanel implements UpdateObjectsListener {
         fc.setFileFilter(new FileNameExtensionFilter("R data file", "Rdata"));
         if (R != null) {
             fc.setSelectedFile(new File(R.cat("_", o) + ".Rdata"));
-            if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION && fc.getSelectedFile() != null) {
+            if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION
+                    && fc.getSelectedFile() != null) {
                 R.save(fc.getSelectedFile(), o);
             }
         }
-}//GEN-LAST:event__saveActionPerformed
+    }// GEN-LAST:event__saveActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_jButton1ActionPerformed
         update();
-    }//GEN-LAST:event_jButton1ActionPerformed
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    }// GEN-LAST:event_jButton1ActionPerformed
+     // Variables declaration - do not modify//GEN-BEGIN:variables
+
     public javax.swing.JButton _add;
     private javax.swing.JToolBar _bar;
     public javax.swing.JButton _del;

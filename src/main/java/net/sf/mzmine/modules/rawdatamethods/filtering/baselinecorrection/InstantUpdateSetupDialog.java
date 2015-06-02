@@ -34,13 +34,13 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 public class InstantUpdateSetupDialog extends ParameterSetupDialog {
 
     public InstantUpdateSetupDialog(Window parent, boolean valueCheckRequired,
-	    ParameterSet parameters) {
-	super(parent, valueCheckRequired, parameters);
+            ParameterSet parameters) {
+        super(parent, valueCheckRequired, parameters);
     }
 
     @Override
     protected void parametersChanged() {
-	this.updateParameterSetFromComponents();
+        this.updateParameterSetFromComponents();
     }
 
 }

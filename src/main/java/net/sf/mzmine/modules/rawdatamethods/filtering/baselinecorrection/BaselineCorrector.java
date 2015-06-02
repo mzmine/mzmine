@@ -33,11 +33,10 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RangeUtils;
-
-import com.google.common.collect.Range;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
-//import net.sf.mzmine.util.R.RSessionWrapper.RengineType;
+
+import com.google.common.collect.Range;
 
 /**
  * @description Abstract corrector class for baseline correction. Has to be
@@ -45,11 +44,11 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
  * 
  */
 public abstract class BaselineCorrector implements BaselineProvider,
-	MZmineModule {
+        MZmineModule {
 
     // Logger.
     protected static final Logger LOG = Logger
-	    .getLogger(BaselineCorrector.class.getName());
+            .getLogger(BaselineCorrector.class.getName());
 
     // Processing info storage
     /**
@@ -62,7 +61,6 @@ public abstract class BaselineCorrector implements BaselineProvider,
     private String suffix;
 
     // General parameters (common to all baseline correction methods).
-//	private RengineType rEngineType;
     private ChromatogramType chromatogramType;
     private double binWidth;
     private boolean useBins;
@@ -73,8 +71,8 @@ public abstract class BaselineCorrector implements BaselineProvider,
      */
     public BaselineCorrector() {
 
-	// Processing info storage
-	progressMap = new HashMap<RawDataFile, int[]>();
+        // Processing info storage
+        progressMap = new HashMap<RawDataFile, int[]>();
     }
 
     /**
@@ -86,148 +84,118 @@ public abstract class BaselineCorrector implements BaselineProvider,
      */
     public void collectCommonParameters(final ParameterSet parameters) {
 
-	ParameterSet generalParameters;
-	if (parameters != null) {
-	    generalParameters = parameters;
-	} else if (BaselineCorrectionParameters
-		.getBaselineCorrectionParameters() == null) {
-	    generalParameters = MZmineCore.getConfiguration()
-		    .getModuleParameters(BaselineCorrectionModule.class);
-	} else {
-	    generalParameters = BaselineCorrectionParameters
-		    .getBaselineCorrectionParameters();
-	}
-	// Get common parameters.
-	suffix = generalParameters.getParameter(BaselineCorrectionParameters.SUFFIX).getValue();
-//	rEngineType = generalParameters.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
-	chromatogramType = generalParameters.getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
-	binWidth = generalParameters.getParameter(BaselineCorrectionParameters.MZ_BIN_WIDTH).getValue();
-	useBins = generalParameters.getParameter(BaselineCorrectionParameters.USE_MZ_BINS).getValue();
-	msLevel = generalParameters.getParameter(BaselineCorrectionParameters.MS_LEVEL).getValue();
+        ParameterSet generalParameters;
+        if (parameters != null) {
+            generalParameters = parameters;
+        } else if (BaselineCorrectionParameters
+                .getBaselineCorrectionParameters() == null) {
+            generalParameters = MZmineCore.getConfiguration()
+                    .getModuleParameters(BaselineCorrectionModule.class);
+        } else {
+            generalParameters = BaselineCorrectionParameters
+                    .getBaselineCorrectionParameters();
+        }
+        // Get common parameters.
+        suffix = generalParameters.getParameter(
+                BaselineCorrectionParameters.SUFFIX).getValue();
+        chromatogramType = generalParameters.getParameter(
+                BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
+        binWidth = generalParameters.getParameter(
+                BaselineCorrectionParameters.MZ_BIN_WIDTH).getValue();
+        useBins = generalParameters.getParameter(
+                BaselineCorrectionParameters.USE_MZ_BINS).getValue();
+        msLevel = generalParameters.getParameter(
+                BaselineCorrectionParameters.MS_LEVEL).getValue();
     }
 
-	//	/**
-	//	 * Try loading packages required by this instance of baseline corrector.
-	//	 * Gives a name if anything went wrong.
-	//	 * @param packages List of required packages.
-	//	 * @return The name of the first failing one, or null if everything went right.
-	//	 */
-	//	public String checkRPackages(String[] packages) {			
-	//
-	//		RSession rs = new RSession(RengineType.JRIengine, packages);
-	//		String missingPackage = null;
-	//		missingPackage = rs.loadRequiredPackages();
-	//		if (missingPackage != null) {
-	//			String msg = "The \"" + this.getName() + "\" requires " +
-	//					"the \"" + missingPackage + "\" R package, which couldn't be loaded - is it installed in R?";
-	//			throw new IllegalStateException(msg);
-	//		}
-	//
-	//		String reqPackage = null;
-	//			try {
-	//				for (int i=0; i < packages.length; i++) {
-	//					reqPackage = packages[i];
-	//					RUtilities.checkPackage(packages[i]);
-	//				}
-	//				return null;
-	//			} catch (Exception e) {
-	//				return reqPackage;
-	//			}
-	//
-	//	}
+    public final RawDataFile correctDatafile(final RSessionWrapper rSession,
+            final RawDataFile dataFile, final ParameterSet parameters,
+            final ParameterSet commonParameters) throws IOException,
+            RSessionWrapperException {
 
+        if (isAborted(dataFile) || !rSession.isSessionRunning())
+            return null;
+        // Get very last information from root module setup
+        // this.setGeneralParameters(MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class));
+        this.collectCommonParameters(commonParameters);
 
-	public final RawDataFile correctDatafile(final RSessionWrapper rSession, final RawDataFile dataFile, final ParameterSet parameters, 
-			final ParameterSet commonParameters) 
-					throws IOException, RSessionWrapperException {
+        RawDataFile correctedDataFile = null;
 
-		if (isAborted(dataFile) || !rSession.isSessionRunning()) return null;
-	// Get very last information from root module setup
-	// this.setGeneralParameters(MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class));
-	this.collectCommonParameters(commonParameters);
+        RawDataFile origDataFile = dataFile;
 
-		RawDataFile correctedDataFile = null;
+        // Initialize progress info if not done already.
+        if (!progressMap.containsKey(origDataFile))
+            progressMap.put(origDataFile, new int[] { 0, 0, 0 });
 
-	    RawDataFile origDataFile = dataFile;
+        // Create a new temporary file to write in.
+        RawDataFileWriter rawDataFileWriter = MZmineCore
+                .createNewFile(origDataFile.getName() + ' ' + suffix);
 
-	    // Initialize progress info if not done already.
-	    if (!progressMap.containsKey(origDataFile))
-		progressMap.put(origDataFile, new int[] { 0, 0, 0 });
+        // Determine number of bins.
+        final double mzLen = origDataFile.getDataMZRange().upperEndpoint()
+                - origDataFile.getDataMZRange().lowerEndpoint();
+        final int numBins = useBins ? (int) Math.ceil(mzLen / binWidth) : 1;
 
-	    // Create a new temporary file to write in.
-	    RawDataFileWriter rawDataFileWriter = MZmineCore
-		    .createNewFile(origDataFile.getName() + ' ' + suffix);
+        // Get MS levels.
+        final int[] levels = origDataFile.getMSLevels();
 
-	    // Determine number of bins.
-	    final double mzLen = origDataFile.getDataMZRange().upperEndpoint()
-		    - origDataFile.getDataMZRange().lowerEndpoint();
-	    final int numBins = useBins ? (int) Math.ceil(mzLen / binWidth) : 1;
+        // Measure progress and find MS-level.
+        boolean foundLevel = msLevel == 0;
+        // progressMax = 0;
+        for (final int level : levels) {
+            final boolean isMSLevel = msLevel == level;
+            final int numScans = origDataFile.getScanNumbers(level).length;
+            foundLevel |= isMSLevel;
+            // progressMax += isMSLevel || msLevel == 0 ? 2 * numScans +
+            // numBins : numScans;
+            progressMap.get(origDataFile)[1] += (isMSLevel || msLevel == 0 ? 2
+                    * numScans + numBins : numScans);
+        }
 
-	    // Get MS levels.
-	    final int[] levels = origDataFile.getMSLevels();
+        // Is the specified MS-level present?
+        if (!foundLevel) {
+            throw new IllegalArgumentException(
+                    "The data file doesn't contain data for MS-level "
+                            + msLevel + '.');
+        }
 
-	    // Measure progress and find MS-level.
-	    boolean foundLevel = msLevel == 0;
-	    // progressMax = 0;
-	    for (final int level : levels) {
-		final boolean isMSLevel = msLevel == level;
-		final int numScans = origDataFile.getScanNumbers(level).length;
-		foundLevel |= isMSLevel;
-		// progressMax += isMSLevel || msLevel == 0 ? 2 * numScans +
-		// numBins : numScans;
-		progressMap.get(origDataFile)[1] += (isMSLevel || msLevel == 0 ? 2
-			* numScans + numBins
-			: numScans);
-	    }
+        // Which chromatogram type.
+        final boolean useTIC = (chromatogramType == ChromatogramType.TIC);
 
-	    // Is the specified MS-level present?
-	    if (!foundLevel) {
-		throw new IllegalArgumentException(
-			"The data file doesn't contain data for MS-level "
-				+ msLevel + '.');
-	    }
+        // Process each MS level.
+        for (final int level : levels) {
 
-	    // Which chromatogram type.
-	    final boolean useTIC = (chromatogramType == ChromatogramType.TIC);
+            if (!isAborted(origDataFile)) {
+                if (level == msLevel || msLevel == 0) {
 
-	    // Process each MS level.
-	    for (final int level : levels) {
+                    // Correct baseline for this MS-level.
+                    if (useTIC) {
+                        correctTICBaselines(rSession, origDataFile,
+                                rawDataFileWriter, level, numBins, parameters);
+                    } else {
+                        correctBasePeakBaselines(rSession, origDataFile,
+                                rawDataFileWriter, level, numBins, parameters);
+                    }
+                } else {
 
-		if (!isAborted(origDataFile)) {
-		    if (level == msLevel || msLevel == 0) {
+                    // Copy scans for this MS-level.
+                    copyScansToWriter(origDataFile, rawDataFileWriter, level);
+                }
+            }
+        }
 
-			// Correct baseline for this MS-level.
-			if (useTIC) {
-			    correctTICBaselines(rSession, origDataFile,
-				    rawDataFileWriter, level, numBins,
-				    parameters);
-			} else {
-			    correctBasePeakBaselines(rSession, origDataFile,
-				    rawDataFileWriter, level, numBins,
-				    parameters);
-			}
-		    } else {
+        // If the referring task was canceled, stop processing.
+        if (!isAborted(origDataFile)) {
+            // Finalize writing.
+            correctedDataFile = rawDataFileWriter.finishWriting();
+        }
 
-			// Copy scans for this MS-level.
-			copyScansToWriter(origDataFile, rawDataFileWriter,
-				level);
-		    }
-		}
-	    }
-
-	    // If the referring task was canceled, stop processing.
-	    if (!isAborted(origDataFile)) {
-		// Finalize writing.
-		correctedDataFile = rawDataFileWriter.finishWriting();
-	    }
-
-
-		return correctedDataFile;
+        return correctedDataFile;
     }
 
     /**
      * Copy scans to RawDataFileWriter.
-     *
+     * 
      * @param origDataFile
      *            dataFile of concern.
      * @param writer
@@ -238,162 +206,180 @@ public abstract class BaselineCorrector implements BaselineProvider,
      *             if there are i/o problems.
      */
     private void copyScansToWriter(final RawDataFile origDataFile,
-	    final RawDataFileWriter writer, final int level) throws IOException {
+            final RawDataFileWriter writer, final int level) throws IOException {
 
-	LOG.finest("Copy scans");
+        LOG.finest("Copy scans");
 
-	// Get scan numbers for MS-level.
-	final int[] scanNumbers = origDataFile.getScanNumbers(level);
-	final int numScans = scanNumbers.length;
+        // Get scan numbers for MS-level.
+        final int[] scanNumbers = origDataFile.getScanNumbers(level);
+        final int numScans = scanNumbers.length;
 
-	// Create copy of scans.
-	for (int scanIndex = 0; !isAborted(origDataFile)
-		&& scanIndex < numScans; scanIndex++) {
+        // Create copy of scans.
+        for (int scanIndex = 0; !isAborted(origDataFile)
+                && scanIndex < numScans; scanIndex++) {
 
-	    // Get original scan.
-	    final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+            // Get original scan.
+            final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-	    // Get data points (m/z and intensity pairs) of the original scan
-	    final DataPoint[] origDataPoints = origScan.getDataPoints();
-	    final DataPoint[] newDataPoints = new DataPoint[origDataPoints.length];
+            // Get data points (m/z and intensity pairs) of the original scan
+            final DataPoint[] origDataPoints = origScan.getDataPoints();
+            final DataPoint[] newDataPoints = new DataPoint[origDataPoints.length];
 
-	    // Copy original data points.
-	    int i = 0;
-	    for (final DataPoint dp : origDataPoints) {
-		newDataPoints[i++] = new SimpleDataPoint(dp);
-	    }
+            // Copy original data points.
+            int i = 0;
+            for (final DataPoint dp : origDataPoints) {
+                newDataPoints[i++] = new SimpleDataPoint(dp);
+            }
 
-	    // Create new copied scan.
-	    final SimpleScan newScan = new SimpleScan(origScan);
-	    newScan.setDataPoints(newDataPoints);
-	    writer.addScan(newScan);
-	    progressMap.get(origDataFile)[0]++;
-	}
+            // Create new copied scan.
+            final SimpleScan newScan = new SimpleScan(origScan);
+            newScan.setDataPoints(newDataPoints);
+            writer.addScan(newScan);
+            progressMap.get(origDataFile)[0]++;
+        }
     }
 
     /**
      * Correct the baselines (using base peak chromatograms).
-     *
-	 * @param origDataFile dataFile of concern.
-	 * @param writer       data file writer.
-	 * @param level        the MS level.
-	 * @param numBins      number of m/z bins.
-	 * @param parameters   parameters specific to the actual method for baseline computing.
-	 * @throws IOException if there are i/o problems.
-	 * @throws RSessionWrapperException 
+     * 
+     * @param origDataFile
+     *            dataFile of concern.
+     * @param writer
+     *            data file writer.
+     * @param level
+     *            the MS level.
+     * @param numBins
+     *            number of m/z bins.
+     * @param parameters
+     *            parameters specific to the actual method for baseline
+     *            computing.
+     * @throws IOException
+     *             if there are i/o problems.
+     * @throws RSessionWrapperException
      * @throws BaselineCorrectionException
      * @throws InterruptedException
      */
-	private void correctBasePeakBaselines(final RSessionWrapper rSession, final RawDataFile origDataFile, 
-			final RawDataFileWriter writer, final int level, final int numBins, final ParameterSet parameters)
-					throws IOException, RSessionWrapperException {
+    private void correctBasePeakBaselines(final RSessionWrapper rSession,
+            final RawDataFile origDataFile, final RawDataFileWriter writer,
+            final int level, final int numBins, final ParameterSet parameters)
+            throws IOException, RSessionWrapperException {
 
-	// Get scan numbers from original file.
-	final int[] scanNumbers = origDataFile.getScanNumbers(level);
-	final int numScans = scanNumbers.length;
+        // Get scan numbers from original file.
+        final int[] scanNumbers = origDataFile.getScanNumbers(level);
+        final int numScans = scanNumbers.length;
 
-	// Build chromatograms.
-	LOG.finest("Building base peak chromatograms.");
-	final double[][] baseChrom = buildBasePeakChromatograms(origDataFile,
-		level, numBins);
+        // Build chromatograms.
+        LOG.finest("Building base peak chromatograms.");
+        final double[][] baseChrom = buildBasePeakChromatograms(origDataFile,
+                level, numBins);
 
-	// Calculate baselines: done in-place, i.e. overwrite chromatograms to
-	// save memory.
-	LOG.finest("Calculating baselines.");
-	for (int binIndex = 0; !isAborted(origDataFile) && binIndex < numBins; binIndex++) {
-	    baseChrom[binIndex] = computeBaseline(rSession, origDataFile,
-		    baseChrom[binIndex], parameters);
-	    progressMap.get(origDataFile)[0]++;
-	}
+        // Calculate baselines: done in-place, i.e. overwrite chromatograms to
+        // save memory.
+        LOG.finest("Calculating baselines.");
+        for (int binIndex = 0; !isAborted(origDataFile) && binIndex < numBins; binIndex++) {
+            baseChrom[binIndex] = computeBaseline(rSession, origDataFile,
+                    baseChrom[binIndex], parameters);
+            progressMap.get(origDataFile)[0]++;
+        }
 
-	// Subtract baselines.
-	LOG.finest("Subtracting baselines.");
-	for (int scanIndex = 0; !isAborted(origDataFile)
-		&& scanIndex < numScans; scanIndex++) {
+        // Subtract baselines.
+        LOG.finest("Subtracting baselines.");
+        for (int scanIndex = 0; !isAborted(origDataFile)
+                && scanIndex < numScans; scanIndex++) {
 
-	    // Get original scan.
-	    final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+            // Get original scan.
+            final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-	    // Get data points (m/z and intensity pairs) of the original scan
-	    final DataPoint[] origDataPoints = origScan.getDataPoints();
+            // Get data points (m/z and intensity pairs) of the original scan
+            final DataPoint[] origDataPoints = origScan.getDataPoints();
 
-	    // Create and write new corrected scan.
-	    final SimpleScan newScan = new SimpleScan(origScan);
-	    newScan.setDataPoints(subtractBasePeakBaselines(origDataFile,
-		    origDataPoints, baseChrom, numBins, scanIndex));
-	    writer.addScan(newScan);
-	    progressMap.get(origDataFile)[0]++;
-	}
+            // Create and write new corrected scan.
+            final SimpleScan newScan = new SimpleScan(origScan);
+            newScan.setDataPoints(subtractBasePeakBaselines(origDataFile,
+                    origDataPoints, baseChrom, numBins, scanIndex));
+            writer.addScan(newScan);
+            progressMap.get(origDataFile)[0]++;
+        }
     }
 
     /**
      * Correct the baselines (using TIC chromatograms).
-     *
-	 * @param origDataFile dataFile of concern.
-	 * @param writer       data file writer.
-	 * @param level        the MS level.
-	 * @param numBins      number of m/z bins.
-	 * @param parameters   parameters specific to the actual method for baseline computing.
-	 * @throws IOException if there are i/o problems.
-	 * @throws RSessionWrapperException 
+     * 
+     * @param origDataFile
+     *            dataFile of concern.
+     * @param writer
+     *            data file writer.
+     * @param level
+     *            the MS level.
+     * @param numBins
+     *            number of m/z bins.
+     * @param parameters
+     *            parameters specific to the actual method for baseline
+     *            computing.
+     * @throws IOException
+     *             if there are i/o problems.
+     * @throws RSessionWrapperException
      * @throws BaselineCorrectionException
      */
-	private void correctTICBaselines(final RSessionWrapper rSession, final RawDataFile origDataFile, 
-			final RawDataFileWriter writer, final int level, final int numBins, final ParameterSet parameters)
-					throws IOException, RSessionWrapperException {
+    private void correctTICBaselines(final RSessionWrapper rSession,
+            final RawDataFile origDataFile, final RawDataFileWriter writer,
+            final int level, final int numBins, final ParameterSet parameters)
+            throws IOException, RSessionWrapperException {
 
-	// Get scan numbers from original file.
-	final int[] scanNumbers = origDataFile.getScanNumbers(level);
-	final int numScans = scanNumbers.length;
+        // Get scan numbers from original file.
+        final int[] scanNumbers = origDataFile.getScanNumbers(level);
+        final int numScans = scanNumbers.length;
 
-	// Build chromatograms.
-	LOG.finest("Building TIC chromatograms.");
-	final double[][] baseChrom = buildTICChromatograms(origDataFile, level, numBins);
+        // Build chromatograms.
+        LOG.finest("Building TIC chromatograms.");
+        final double[][] baseChrom = buildTICChromatograms(origDataFile, level,
+                numBins);
 
-	// Calculate baselines: done in-place, i.e. overwrite chromatograms to save memory.
-	LOG.finest("Calculating baselines.");
-	for (int binIndex = 0; !isAborted(origDataFile) && binIndex < numBins; binIndex++) {
+        // Calculate baselines: done in-place, i.e. overwrite chromatograms to
+        // save memory.
+        LOG.finest("Calculating baselines.");
+        for (int binIndex = 0; !isAborted(origDataFile) && binIndex < numBins; binIndex++) {
 
-	    // Calculate baseline.
-	    // final double[] baseline = asymBaseline(baseChrom[binIndex]);
-	    final double[] baseline = computeBaseline(rSession, origDataFile,
-		    baseChrom[binIndex], parameters);
+            // Calculate baseline.
+            // final double[] baseline = asymBaseline(baseChrom[binIndex]);
+            final double[] baseline = computeBaseline(rSession, origDataFile,
+                    baseChrom[binIndex], parameters);
 
-	    // Normalize the baseline w.r.t. chromatogram (TIC).
-	    for (int scanIndex = 0; !isAborted(origDataFile)
-		    && scanIndex < numScans; scanIndex++) {
-		final double bc = baseChrom[binIndex][scanIndex];
-		if (bc != 0.0) {
-		    baseChrom[binIndex][scanIndex] = baseline[scanIndex] / bc;
-		}
-	    }
-	    progressMap.get(origDataFile)[0]++;
-	}
+            // Normalize the baseline w.r.t. chromatogram (TIC).
+            for (int scanIndex = 0; !isAborted(origDataFile)
+                    && scanIndex < numScans; scanIndex++) {
+                final double bc = baseChrom[binIndex][scanIndex];
+                if (bc != 0.0) {
+                    baseChrom[binIndex][scanIndex] = baseline[scanIndex] / bc;
+                }
+            }
+            progressMap.get(origDataFile)[0]++;
+        }
 
-	// Subtract baselines.
-	LOG.finest("Subtracting baselines.");
-	for (int scanIndex = 0; !isAborted(origDataFile)
-		&& scanIndex < numScans; scanIndex++) {
+        // Subtract baselines.
+        LOG.finest("Subtracting baselines.");
+        for (int scanIndex = 0; !isAborted(origDataFile)
+                && scanIndex < numScans; scanIndex++) {
 
-	    // Get original scan.
-	    final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+            // Get original scan.
+            final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-	    // Get data points (m/z and intensity pairs) of the original scan
-	    final DataPoint[] origDataPoints = origScan.getDataPoints();
+            // Get data points (m/z and intensity pairs) of the original scan
+            final DataPoint[] origDataPoints = origScan.getDataPoints();
 
-	    // Create and write new corrected scan.
-	    final SimpleScan newScan = new SimpleScan(origScan);
-	    newScan.setDataPoints(subtractTICBaselines(origDataFile,
-		    origDataPoints, baseChrom, numBins, scanIndex));
-	    writer.addScan(newScan);
-	    progressMap.get(origDataFile)[0]++;
-	}
+            // Create and write new corrected scan.
+            final SimpleScan newScan = new SimpleScan(origScan);
+            newScan.setDataPoints(subtractTICBaselines(origDataFile,
+                    origDataPoints, baseChrom, numBins, scanIndex));
+            writer.addScan(newScan);
+            progressMap.get(origDataFile)[0]++;
+        }
 
     }
 
     /**
      * Constructs base peak (max) chromatograms - one for each m/z bin.
-     *
+     * 
      * @param origDataFile
      *            dataFile of concern.
      * @param level
@@ -403,43 +389,43 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @return the chromatograms as double[number of bins][number of scans].
      */
     private double[][] buildBasePeakChromatograms(
-	    final RawDataFile origDataFile, final int level, final int numBins) {
+            final RawDataFile origDataFile, final int level, final int numBins) {
 
-	// Get scan numbers from original file.
-	final int[] scanNumbers = origDataFile.getScanNumbers(level);
-	final int numScans = scanNumbers.length;
+        // Get scan numbers from original file.
+        final int[] scanNumbers = origDataFile.getScanNumbers(level);
+        final int numScans = scanNumbers.length;
 
-	// Determine MZ range.
-	final Range<Double> mzRange = origDataFile.getDataMZRange();
+        // Determine MZ range.
+        final Range<Double> mzRange = origDataFile.getDataMZRange();
 
-	// Create chromatograms.
-	final double[][] chromatograms = new double[numBins][numScans];
+        // Create chromatograms.
+        final double[][] chromatograms = new double[numBins][numScans];
 
-	for (int scanIndex = 0; !isAborted(origDataFile)
-		&& scanIndex < numScans; scanIndex++) {
+        for (int scanIndex = 0; !isAborted(origDataFile)
+                && scanIndex < numScans; scanIndex++) {
 
-	    // Get original scan.
-	    final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
+            // Get original scan.
+            final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-	    // Process data points.
-	    for (final DataPoint dataPoint : scan.getDataPoints()) {
+            // Process data points.
+            for (final DataPoint dataPoint : scan.getDataPoints()) {
 
-		final int bin = RangeUtils.binNumber(mzRange, numBins,
-			dataPoint.getMZ());
+                final int bin = RangeUtils.binNumber(mzRange, numBins,
+                        dataPoint.getMZ());
 
-		final double value = chromatograms[bin][scanIndex];
-		chromatograms[bin][scanIndex] = Math.max(value,
-			dataPoint.getIntensity());
-	    }
-	    progressMap.get(origDataFile)[0]++;
-	}
+                final double value = chromatograms[bin][scanIndex];
+                chromatograms[bin][scanIndex] = Math.max(value,
+                        dataPoint.getIntensity());
+            }
+            progressMap.get(origDataFile)[0]++;
+        }
 
-	return chromatograms;
+        return chromatograms;
     }
 
     /**
      * Constructs TIC (sum) chromatograms - one for each m/z bin.
-     *
+     * 
      * @param origDataFile
      *            dataFile of concern.
      * @param level
@@ -449,40 +435,40 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @return the chromatograms as double[number of bins][number of scans].
      */
     private double[][] buildTICChromatograms(final RawDataFile origDataFile,
-	    final int level, final int numBins) {
+            final int level, final int numBins) {
 
-	// Get scan numbers from original file.
-	final int[] scanNumbers = origDataFile.getScanNumbers(level);
-	final int numScans = scanNumbers.length;
+        // Get scan numbers from original file.
+        final int[] scanNumbers = origDataFile.getScanNumbers(level);
+        final int numScans = scanNumbers.length;
 
-	// Determine MZ range.
-	final Range<Double> mzRange = origDataFile.getDataMZRange();
+        // Determine MZ range.
+        final Range<Double> mzRange = origDataFile.getDataMZRange();
 
-	// Create chromatograms.
-	final double[][] chromatograms = new double[numBins][numScans];
+        // Create chromatograms.
+        final double[][] chromatograms = new double[numBins][numScans];
 
-	for (int scanIndex = 0; !isAborted(origDataFile)
-		&& scanIndex < numScans; scanIndex++) {
+        for (int scanIndex = 0; !isAborted(origDataFile)
+                && scanIndex < numScans; scanIndex++) {
 
-	    // Get original scan.
-	    final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
+            // Get original scan.
+            final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
 
-	    // Process data points.
-	    for (final DataPoint dataPoint : scan.getDataPoints()) {
+            // Process data points.
+            for (final DataPoint dataPoint : scan.getDataPoints()) {
 
-		chromatograms[RangeUtils.binNumber(mzRange, numBins,
-			dataPoint.getMZ())][scanIndex] += dataPoint
-			.getIntensity();
-	    }
-	    progressMap.get(origDataFile)[0]++;
-	}
+                chromatograms[RangeUtils.binNumber(mzRange, numBins,
+                        dataPoint.getMZ())][scanIndex] += dataPoint
+                        .getIntensity();
+            }
+            progressMap.get(origDataFile)[0]++;
+        }
 
-	return chromatograms;
+        return chromatograms;
     }
 
     /**
      * Perform baseline correction in bins (base peak).
-     *
+     * 
      * @param origDataFile
      *            dataFile of concern.
      * @param dataPoints
@@ -496,35 +482,35 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @return the corrected data points.
      */
     private DataPoint[] subtractBasePeakBaselines(
-	    final RawDataFile origDataFile, final DataPoint[] dataPoints,
-	    final double[][] baselines, final int numBins, final int scanIndex) {
+            final RawDataFile origDataFile, final DataPoint[] dataPoints,
+            final double[][] baselines, final int numBins, final int scanIndex) {
 
-	// Create an ArrayList for new data points.
-	final DataPoint[] newDataPoints = new DataPoint[dataPoints.length];
+        // Create an ArrayList for new data points.
+        final DataPoint[] newDataPoints = new DataPoint[dataPoints.length];
 
-	// Determine MZ range.
-	final Range<Double> mzRange = origDataFile.getDataMZRange();
+        // Determine MZ range.
+        final Range<Double> mzRange = origDataFile.getDataMZRange();
 
-	// Loop through all original data points.
-	int i = 0;
-	for (final DataPoint dp : dataPoints) {
+        // Loop through all original data points.
+        int i = 0;
+        for (final DataPoint dp : dataPoints) {
 
-	    // Subtract baseline.
-	    final double mz = dp.getMZ();
-	    final int bin = RangeUtils.binNumber(mzRange, numBins, mz);
-	    final double baselineIntenstity = baselines[bin][scanIndex];
-	    newDataPoints[i++] = baselineIntenstity <= 0.0 ? new SimpleDataPoint(
-		    dp) : new SimpleDataPoint(mz, Math.max(0.0,
-		    dp.getIntensity() - baselineIntenstity));
-	}
+            // Subtract baseline.
+            final double mz = dp.getMZ();
+            final int bin = RangeUtils.binNumber(mzRange, numBins, mz);
+            final double baselineIntenstity = baselines[bin][scanIndex];
+            newDataPoints[i++] = baselineIntenstity <= 0.0 ? new SimpleDataPoint(
+                    dp) : new SimpleDataPoint(mz, Math.max(0.0,
+                    dp.getIntensity() - baselineIntenstity));
+        }
 
-	// Return the new data points.
-	return newDataPoints;
+        // Return the new data points.
+        return newDataPoints;
     }
 
     /**
      * Perform baseline correction in bins (TIC).
-     *
+     * 
      * @param origDataFile
      *            dataFile of concern.
      * @param dataPoints
@@ -538,30 +524,30 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @return the corrected data points.
      */
     private DataPoint[] subtractTICBaselines(final RawDataFile origDataFile,
-	    final DataPoint[] dataPoints, final double[][] baselines,
-	    final int numBins, final int scanIndex) {
+            final DataPoint[] dataPoints, final double[][] baselines,
+            final int numBins, final int scanIndex) {
 
-	// Create an ArrayList for new data points.
-	final DataPoint[] newDataPoints = new DataPoint[dataPoints.length];
+        // Create an ArrayList for new data points.
+        final DataPoint[] newDataPoints = new DataPoint[dataPoints.length];
 
-	// Determine MZ range.
-	final Range<Double> mzRange = origDataFile.getDataMZRange();
+        // Determine MZ range.
+        final Range<Double> mzRange = origDataFile.getDataMZRange();
 
-	// Loop through all original data points.
-	int i = 0;
-	for (final DataPoint dp : dataPoints) {
+        // Loop through all original data points.
+        int i = 0;
+        for (final DataPoint dp : dataPoints) {
 
-	    // Subtract baseline.
-	    final double mz = dp.getMZ();
-	    final int bin = RangeUtils.binNumber(mzRange, numBins, mz);
-	    final double baselineIntenstity = baselines[bin][scanIndex];
-	    newDataPoints[i++] = baselineIntenstity <= 0.0 ? new SimpleDataPoint(
-		    dp) : new SimpleDataPoint(mz, Math.max(0.0,
-		    dp.getIntensity() * (1.0 - baselineIntenstity)));
-	}
+            // Subtract baseline.
+            final double mz = dp.getMZ();
+            final int bin = RangeUtils.binNumber(mzRange, numBins, mz);
+            final double baselineIntenstity = baselines[bin][scanIndex];
+            newDataPoints[i++] = baselineIntenstity <= 0.0 ? new SimpleDataPoint(
+                    dp) : new SimpleDataPoint(mz, Math.max(0.0,
+                    dp.getIntensity() * (1.0 - baselineIntenstity)));
+        }
 
-	// Return the new data points.
-	return newDataPoints;
+        // Return the new data points.
+        return newDataPoints;
     }
 
     // Correction progress stuffs (to be called from mother Task)
@@ -572,7 +558,7 @@ public abstract class BaselineCorrector implements BaselineProvider,
      *            dataFile of concern.
      */
     public void initProgress(final RawDataFile origDataFile) {
-	progressMap.put(origDataFile, new int[] { 0, 0, 0 });
+        progressMap.put(origDataFile, new int[] { 0, 0, 0 });
     }
 
     /**
@@ -583,10 +569,10 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @return progress.
      */
     private int getProgress(final RawDataFile origDataFile) {
-	if (progressMap.containsKey(origDataFile))
-	    return progressMap.get(origDataFile)[0]; // progress;
-	else
-	    return 0;
+        if (progressMap.containsKey(origDataFile))
+            return progressMap.get(origDataFile)[0]; // progress;
+        else
+            return 0;
     }
 
     /**
@@ -597,10 +583,10 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @return progressMax.
      */
     private int getProgressMax(final RawDataFile origDataFile) {
-	if (progressMap.containsKey(origDataFile))
-	    return progressMap.get(origDataFile)[1]; // progressMax;
-	else
-	    return 0;
+        if (progressMap.containsKey(origDataFile))
+            return progressMap.get(origDataFile)[1]; // progressMax;
+        else
+            return 0;
     }
 
     /**
@@ -611,10 +597,10 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @return The finished percentage.
      */
     public double getFinishedPercentage(final RawDataFile origDataFile) {
-	int progressMax = this.getProgressMax(origDataFile);
-	int progress = this.getProgress(origDataFile);
-	return (progressMax == 0 ? 0.0 : (double) progress
-		/ (double) progressMax);
+        int progressMax = this.getProgressMax(origDataFile);
+        int progress = this.getProgress(origDataFile);
+        return (progressMax == 0 ? 0.0 : (double) progress
+                / (double) progressMax);
     }
 
     /**
@@ -624,21 +610,15 @@ public abstract class BaselineCorrector implements BaselineProvider,
      *            dataFile of concern.
      */
     public void clearProgress(final RawDataFile origDataFile) {
-	progressMap.remove(origDataFile);
+        progressMap.remove(origDataFile);
     }
-
-//	// R engine type
-//	public RengineType getRengineType() {
-//		//		return MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
-//		//				.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
-//		return this.rEngineType;
-//	}
 
     // Chromatogram type
     public ChromatogramType getChromatogramType() {
-		//		return MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
-	// .getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
-	return this.chromatogramType;
+        // return
+        // MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
+        // .getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
+        return this.chromatogramType;
     }
 
     // Cancel processing features
@@ -651,8 +631,8 @@ public abstract class BaselineCorrector implements BaselineProvider,
      *            If we shall abort
      */
     public void setAbortProcessing(final RawDataFile origDataFile, boolean abort) {
-	if (progressMap.containsKey(origDataFile))
-	    progressMap.get(origDataFile)[2] = 1;
+        if (progressMap.containsKey(origDataFile))
+            progressMap.get(origDataFile)[2] = 1;
     }
 
     /**
@@ -663,10 +643,10 @@ public abstract class BaselineCorrector implements BaselineProvider,
      * @return True if it has.
      */
     protected boolean isAborted(final RawDataFile origDataFile) {
-	if (progressMap.containsKey(origDataFile))
-	    return (progressMap.get(origDataFile)[2] == 1);
-	else
-	    return false;
+        if (progressMap.containsKey(origDataFile))
+            return (progressMap.get(origDataFile)[2] == 1);
+        else
+            return false;
     }
 
 }

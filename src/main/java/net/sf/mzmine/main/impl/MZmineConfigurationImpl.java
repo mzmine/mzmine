@@ -112,6 +112,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     }
 
     @Override
+    public String getRexecPath() {
+        File f = preferences.getParameter(MZminePreferences.rExecPath).getValue();
+        return (f != null && f.exists()) ? f.getAbsolutePath() : null;
+    }
+
+    @Override
     public void loadConfiguration(File file) throws IOException {
 
         try {

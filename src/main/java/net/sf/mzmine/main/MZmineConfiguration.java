@@ -50,5 +50,7 @@ public interface MZmineConfiguration {
     public void loadConfiguration(File file) throws IOException;
 
     public void saveConfiguration(File file) throws IOException;
+    
+    public String getRexecPath();
 
 }

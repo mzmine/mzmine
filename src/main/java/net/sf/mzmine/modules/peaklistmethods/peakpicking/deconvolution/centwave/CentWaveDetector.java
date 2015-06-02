@@ -35,17 +35,13 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import loci.formats.ReaderWrapper;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.R.RSessionWrapper;
-
 import net.sf.mzmine.util.R.RSessionWrapperException;
-//**//import net.sf.mzmine.util.Range;
 
 import com.google.common.collect.Range;
 
@@ -54,268 +50,208 @@ import com.google.common.collect.Range;
  */
 public class CentWaveDetector implements PeakResolver {
 
-	// Logger.
-	private static final Logger LOG = Logger.getLogger(CentWaveDetector.class
-			.getName());
+    // Logger.
+    private static final Logger LOG = Logger.getLogger(CentWaveDetector.class
+            .getName());
 
-	// Name.
-	private static final String NAME = "Wavelets (XCMS)";
+    // Name.
+    private static final String NAME = "Wavelets (XCMS)";
 
-	// Minutes <-> seconds.
-	private static final double SECONDS_PER_MINUTE = 60.0;
+    // Minutes <-> seconds.
+    private static final double SECONDS_PER_MINUTE = 60.0;
 
-	// Required minimum version of XCMS.
-	private static final String XCMS_VERSION = "1.33.2";
+    // Required minimum version of XCMS.
+    private static final String XCMS_VERSION = "1.33.2";
 
-	private static RSessionWrapper rSession;
+    @Nonnull
+    @Override
+    public String getName() {
 
-	@Nonnull
-	@Override
-	public String getName() {
+        return NAME;
+    }
 
-		return NAME;
-	}
+    @Nonnull
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
 
-	@Nonnull
-	@Override
-	public Class<? extends ParameterSet> getParameterSetClass() {
+        return CentWaveDetectorParameters.class;
+    }
 
-		return CentWaveDetectorParameters.class;
-	}
+    @Override
+    public boolean getRequiresR() {
+        return true;
+    }
 
+    @Override
+    public String[] getRequiredRPackages() {
+        return new String[] { "xcms" };
+    }
 
+    @Override
+    public String[] getRequiredRPackagesVersions() {
+        return new String[] { XCMS_VERSION };
+    }
 
-	@Override
-	public boolean getRequiresR() {
-		return true;
-	}
-	@Override
-	public String[] getRequiredRPackages() {
-		return new String[]{ "xcms" };
-	}
-	@Override
-	public String[] getRequiredRPackagesVersions() {
-		return new String[]{ XCMS_VERSION };
-	}
+    @Override
+    public Feature[] resolvePeaks(final Feature chromatogram,
+            final int[] scanNumbers, final double[] retentionTimes,
+            final double[] intensities, final ParameterSet parameters,
+            RSessionWrapper rSession) throws RSessionWrapperException {
+        // Call findPeaks.centWave.
+        double[][] peakMatrix = null;
 
-	@Override
-	public Feature[] resolvePeaks(final Feature chromatogram,
-			final int[] scanNumbers, final double[] retentionTimes,
-			final double[] intensities, final ParameterSet parameters, 
-			RSessionWrapper rSession) throws RSessionWrapperException {
-		// Call findPeaks.centWave.
-		double[][] peakMatrix = null;
+        peakMatrix = centWave(rSession, retentionTimes, intensities,
+                chromatogram.getMZ(), parameters.getParameter(SN_THRESHOLD)
+                        .getValue(), parameters.getParameter(PEAK_SCALES)
+                        .getValue(), parameters
+                        .getParameter(INTEGRATION_METHOD).getValue());
 
-		peakMatrix = centWave(rSession, retentionTimes, intensities,
-				chromatogram.getMZ(), parameters.getParameter(SN_THRESHOLD)
-				.getValue(), parameters.getParameter(PEAK_SCALES)
-				.getValue(), parameters
-				.getParameter(INTEGRATION_METHOD).getValue());
+        final List<ResolvedPeak> resolvedPeaks;
+        if (peakMatrix == null) {
 
-		final List<ResolvedPeak> resolvedPeaks;
-		if (peakMatrix == null) {
+            resolvedPeaks = new ArrayList<ResolvedPeak>(0);
 
-			resolvedPeaks = new ArrayList<ResolvedPeak>(0);
+        } else {
 
-		} else {
+            LOG.finest("Processing peak matrix...");
 
-			LOG.finest("Processing peak matrix...");
+            final Range<Double> peakDuration = parameters.getParameter(
+                    PEAK_DURATION).getValue();
 
-			final Range<Double> peakDuration = parameters.getParameter(
-					PEAK_DURATION).getValue();
+            // Process peak matrix.
+            resolvedPeaks = new ArrayList<ResolvedPeak>(peakMatrix.length);
 
-			// Process peak matrix.
-			resolvedPeaks = new ArrayList<ResolvedPeak>(peakMatrix.length);
+            for (final double[] peakRow : peakMatrix) {
 
-			for (final double[] peakRow : peakMatrix) {
+                // Get peak start and end.
+                final int peakLeft = findRTIndex(retentionTimes, peakRow[4]);
+                final int peakRight = findRTIndex(retentionTimes, peakRow[5]);
 
-				// Get peak start and end.
-				final int peakLeft = findRTIndex(retentionTimes, peakRow[4]);
-				final int peakRight = findRTIndex(retentionTimes, peakRow[5]);
+                // Partition into sections bounded by null data points, creating
+                // a peak for each.
+                for (int start = peakLeft; start < peakRight; start++) {
 
-				// Partition into sections bounded by null data points, creating
-				// a peak for each.
-				for (int start = peakLeft; start < peakRight; start++) {
+                    if (chromatogram.getDataPoint(scanNumbers[start]) != null) {
 
-					if (chromatogram.getDataPoint(scanNumbers[start]) != null) {
+                        int end = start;
+                        while (end < peakRight
+                                && chromatogram
+                                        .getDataPoint(scanNumbers[end + 1]) != null) {
 
-						int end = start;
-						while (end < peakRight
-								&& chromatogram
-								.getDataPoint(scanNumbers[end + 1]) != null) {
+                            end++;
+                        }
 
-							end++;
-						}
+                        if (peakDuration.contains(retentionTimes[end]
+                                - retentionTimes[start])) {
 
-						if (peakDuration.contains(retentionTimes[end]
-								- retentionTimes[start])) {
+                            resolvedPeaks.add(new ResolvedPeak(chromatogram,
+                                    start, end));
+                        }
 
-							resolvedPeaks.add(new ResolvedPeak(chromatogram,
-									start, end));
-						}
+                        start = end;
+                    }
+                }
+            }
+        }
 
-						start = end;
-					}
-				}
-			}
-		}
+        return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
+    }
 
-		return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
-	}
+    private static int findRTIndex(final double[] rtMinutes, final double rtSec) {
 
-	private static int findRTIndex(final double[] rtMinutes, final double rtSec) {
+        final int i = Arrays
+                .binarySearch(rtMinutes, rtSec / SECONDS_PER_MINUTE);
+        return i >= 0 ? i : -i - 2;
+    }
 
-		final int i = Arrays
-				.binarySearch(rtMinutes, rtSec / SECONDS_PER_MINUTE);
-		return i >= 0 ? i : -i - 2;
-	}
+    /**
+     * Do peak picking using xcms::findPeaks.centWave.
+     * 
+     * @param scanTime
+     *            retention times (for each scan).
+     * @param intensity
+     *            intensity values (for each scan).
+     * @param mz
+     *            fixed m/z value for EIC.
+     * @param snrThreshold
+     *            signal:noise ratio threshold.
+     * @param peakWidth
+     *            peak width range.
+     * @param integrationMethod
+     *            integration method.
+     * @return a matrix with a row for each detected peak.
+     * @throws RSessionWrapperException
+     */
+    private static double[][] centWave(RSessionWrapper rSession,
+            final double[] scanTime, final double[] intensity, final double mz,
+            final double snrThreshold, final Range<Double> peakWidth,
+            final PeakIntegrationMethod integrationMethod)
+            throws RSessionWrapperException {
 
-	/**
-	 * Do peak picking using xcms::findPeaks.centWave.
-	 *
-	 * @param scanTime
-	 *            retention times (for each scan).
-	 * @param intensity
-	 *            intensity values (for each scan).
-	 * @param mz
-	 *            fixed m/z value for EIC.
-	 * @param snrThreshold
-	 *            signal:noise ratio threshold.
-	 * @param peakWidth
-	 *            peak width range.
-	 * @param integrationMethod
-	 *            integration method.
-	 * @return a matrix with a row for each detected peak.
-	 * @throws RSessionWrapperException 
-	 */
-	private static double[][] centWave(RSessionWrapper rSession, final double[] scanTime,
-			final double[] intensity, final double mz,
-			final double snrThreshold, final Range<Double> peakWidth,
-			final PeakIntegrationMethod integrationMethod) throws RSessionWrapperException {
+        LOG.finest("Detecting peaks.");
 
-		LOG.finest("Detecting peaks.");
+        double[][] peaks = null;
 
-		/*final*/ double[][] peaks = null;
+        // Set vectors.
+        rSession.assign("scantime", scanTime);
+        rSession.assign("intensity", intensity);
 
+        // Initialize.
+        rSession.eval("mz <- " + mz/* , false */);
+        rSession.eval("numPoints <- length(intensity)"/* , false */);
 
-		//	// Get R engine.
-		//	final REngine rEngine;
-		//	try {
-		//	    rEngine = RUtilities.getREngine();
-		//	} catch (Throwable t) {
-		//	    throw new IllegalStateException(
-		//		    "XCMS requires R but it couldn't be loaded ("
-		//			    + t.getMessage() + ')');
-		//	}
+        // Construct xcmsRaw object
+        rSession.eval("xRaw <- new(\"xcmsRaw\")"/* , false */);
+        rSession.eval("xRaw@tic <- intensity"/* , false */);
+        rSession.eval("xRaw@scantime <- scantime * " + SECONDS_PER_MINUTE/*
+                                                                          * ,
+                                                                          * false
+                                                                          */);
+        rSession.eval("xRaw@scanindex <- 1:numPoints"/* , false */);
+        rSession.eval("xRaw@env$mz <- rep(mz, numPoints)"/* , false */);
+        rSession.eval("xRaw@env$intensity <- intensity"/* , false */);
 
-		//			final double[][] peaks;
+        // Construct ROIs.
+        rSession.eval("ROIs <- list()"/* , false */);
+        int roi = 1;
+        for (int start = 0; start < intensity.length; start++) {
 
-		//	synchronized (RUtilities.R_SEMAPHORE) {
-		//
-		//	    // Load XCMS library.
-		//	    if (rEngine.eval("require(xcms)").asBool().isFALSE()) {
-		//
-		//		throw new IllegalStateException(
-		//			"The \"xcms\" R package couldn't be loaded - is it installed in R?");
-		//	    }
-		//
-		//	    // Check version of XCMS.
-		//	    if (rEngine
-		//		    .eval("packageVersion('xcms') >= '" + XCMS_VERSION + '\'')
-		//		    .asBool().isFALSE()) {
-		//
-		//		throw new IllegalStateException(
-		//			"An old version of the XCMS package is installed in R - please update XCMS to version "
-		//				+ XCMS_VERSION + " or later");
-		//	    }
+            // Found non-zero section.
+            if (intensity[start] > 0.0) {
 
+                // Look for end.
+                int end = start + 1;
+                while (end < intensity.length && intensity[end] > 0.0) {
 
-		// Set vectors.
-		rSession.assign("scantime", scanTime);
-		rSession.assign("intensity", intensity);
+                    end++;
+                }
 
-		// Initialize.
-		rSession.eval("mz <- " + mz/*, false*/);
-		rSession.eval("numPoints <- length(intensity)"/*, false*/);
+                // Add ROI to list.
+                rSession.eval("ROIs[[" + roi + "]] <- list('scmin'="
+                        + (start + 1) + ", 'scmax'=" + end
+                        + ", 'mzmin'=mz, 'mzmax'=mz)"/* , false */);
 
-		// Construct xcmsRaw object
-		rSession.eval("xRaw <- new(\"xcmsRaw\")"/*, false*/);
-		rSession.eval("xRaw@tic <- intensity"/*, false*/);
-		rSession.eval("xRaw@scantime <- scantime * " + SECONDS_PER_MINUTE/*, false*/);
-		rSession.eval("xRaw@scanindex <- 1:numPoints"/*, false*/);
-		rSession.eval("xRaw@env$mz <- rep(mz, numPoints)"/*, false*/);
-		rSession.eval("xRaw@env$intensity <- intensity"/*, false*/);
+                // Next ROI.
+                start = end;
+                roi++;
 
-		// Construct ROIs.
-		rSession.eval("ROIs <- list()"/*, false*/);
-		int roi = 1;
-		for (int start = 0; start < intensity.length; start++) {
+            }
+        }
 
-			// Found non-zero section.
-			if (intensity[start] > 0.0) {
+        // Do peak picking.
+        final Object centWave = roi <= 1 ? null : (double[][]) rSession
+                .collect(
+                        "findPeaks.centWave(xRaw, ppm=0, mzdiff=0, verbose=TRUE"
+                                + ", peakwidth=c(" + peakWidth.lowerEndpoint()
+                                * SECONDS_PER_MINUTE + ", "
+                                + peakWidth.upperEndpoint()
+                                * SECONDS_PER_MINUTE + ')' + ", snthresh="
+                                + snrThreshold + ", integrate="
+                                + integrationMethod.getIndex()
+                                + ", ROI.list=ROIs)", false);
 
-				// Look for end.
-				int end = start + 1;
-				while (end < intensity.length && intensity[end] > 0.0) {
+        peaks = (centWave == null) ? null : (double[][]) centWave;
 
-					end++;
-				}
-
-				// Add ROI to list.
-				rSession.eval("ROIs[[" + roi + "]] <- list('scmin'="
-						+ (start + 1) + ", 'scmax'=" + end
-						+ ", 'mzmin'=mz, 'mzmax'=mz)"/*, false*/);
-
-				// Next ROI.
-				start = end;
-				roi++;
-
-			}
-		}
-
-		// Do peak picking.
-		//final REXP centWave = roi <= 1 ? null
-		final Object centWave = roi <= 1 ? null
-				: rSession
-				.collectDoubleMatrix("findPeaks.centWave(xRaw, ppm=0, mzdiff=0, verbose=TRUE"
-						+ ", peakwidth=c("
-						+ peakWidth.lowerEndpoint()
-						* SECONDS_PER_MINUTE
-						+ ", "
-						+ peakWidth.upperEndpoint()
-						* SECONDS_PER_MINUTE
-						+ ')'
-						+ ", snthresh="
-						+ snrThreshold
-						+ ", integrate="
-						+ integrationMethod.getIndex()
-						+ ", ROI.list=ROIs)", 
-						false);
-		
-		//peaks = centWave == null ? null : centWave.asMatrix();
-		peaks = (centWave == null) ? null : (double[][])centWave;
-		//	}
-
-		//			// Do peak picking.
-		//			//final REXP centWave = roi <= 1 ? null
-		//			rSession.eval("fp.cw <- NULL");
-		//			rSession.eval("fp.cw <- findPeaks.centWave(xRaw, ppm=0, mzdiff=0, verbose=TRUE"
-		//							+ ", peakwidth=c("
-		//							+ peakWidth.lowerEndpoint()
-		//							* SECONDS_PER_MINUTE
-		//							+ ", "
-		//							+ peakWidth.upperEndpoint()
-		//							* SECONDS_PER_MINUTE
-		//							+ ')'
-		//							+ ", snthresh="
-		//							+ snrThreshold
-		//							+ ", integrate="
-		//							+ integrationMethod.getIndex()
-		//							+ ", ROI.list=ROIs)");
-		//			final Object centWave = roi <= 1 ? null : rSession.collectDoubleMatrix("fp.cw");
-		//			//peaks = centWave == null ? null : centWave.asMatrix();
-		//			peaks = centWave == null ? null : (double[][])centWave;
-		//			//	}
-		return peaks;
-	}
+        return peaks;
+    }
 }
