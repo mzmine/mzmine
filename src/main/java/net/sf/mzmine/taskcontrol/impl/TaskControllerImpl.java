@@ -20,12 +20,16 @@
 package net.sf.mzmine.taskcontrol.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.desktop.preferences.NumOfThreadsParameter;
+import net.sf.mzmine.main.GoogleAnalyticsTracker;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskControlListener;
@@ -92,15 +96,29 @@ public class TaskControllerImpl implements TaskController, Runnable {
     }
 
     public void addTasks(Task tasks[], TaskPriority priority) {
-
 	// It can sometimes happen during a batch that no tasks are actually
 	// executed --> tasks[] array may be empty
 	if ((tasks == null) || (tasks.length == 0))
 	    return;
 
+	List<String> taskClass = new ArrayList<String>();
+	String taskClassName;
 	for (Task task : tasks) {
+	    taskClassName = task.getClass().getName();
+	    taskClassName = taskClassName.substring(taskClassName.lastIndexOf(".") + 1);
+	    taskClass.add(taskClassName);
 	    WrappedTask newQueueEntry = new WrappedTask(task, priority);
 	    taskQueue.addWrappedTask(newQueueEntry);
+	}
+
+	// Track module usage
+	Set<String> uniqueClasses = new HashSet<String>(taskClass);
+	for (String value : uniqueClasses) {
+	    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(value,
+		    "/JAVA/" + value);
+	    Thread gatThread = new Thread(GAT);
+	    gatThread.setPriority(Thread.MIN_PRIORITY);
+	    gatThread.start();
 	}
 
 	// Wake up the task controller thread
