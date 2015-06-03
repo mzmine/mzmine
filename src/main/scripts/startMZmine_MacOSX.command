@@ -31,6 +31,9 @@ JAVA_COMMAND=`/usr/libexec/java_home -v 1.7+`/bin/java
 # ***********************************
 # Auto detection of accessible memory
 # ***********************************
+
+# By default we set the HEAP_SIZE to 1024 MB on 32-bit systems. On 64-bit systems we 
+# either set it to half of the total memory or 2048 MB less than the total memory.
 echo "Checking physical memory size..."
 TOTAL_MEMORY=`sysctl hw.memsize | awk '{ print int($2 / 1024^2) }'`
 echo "Found $TOTAL_MEMORY MB memory"
@@ -45,9 +48,11 @@ fi
 echo Java heap size set to $HEAP_SIZE MB
 
 
+
 # *************************************************
 # Make a unique temp folder for the MZmine instance
 # *************************************************
+
 # Store this MZmine instance, a UNID.
 export MZMINE_UNID="MZmine"$$
 export TMP_FILE_DIRECTORY=$TMP_FILE_DIRECTORY/$MZMINE_UNID
@@ -95,3 +100,6 @@ then
 		rm "$pidfile"
 	fi
 fi
+
+# Delete temporary folder
+rm -rf $TMP_FILE_DIRECTORY
