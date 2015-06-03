@@ -5,7 +5,7 @@
 :: *****************************************
 
 :: Total amount of memory in MB available to MZmine 2.
-:: 0 = automatically determined
+:: AUTO = automatically determined
 :: Default: AUTO
 set HEAP_SIZE=AUTO
 
