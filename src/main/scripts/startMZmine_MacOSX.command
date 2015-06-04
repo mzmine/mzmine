@@ -38,7 +38,7 @@ echo "Checking physical memory size..."
 TOTAL_MEMORY=`sysctl hw.memsize | awk '{ print int($2 / 1024^2) }'`
 echo "Found $TOTAL_MEMORY MB memory"
 
-if [ "$HEAP_SIZE" -eq AUTO ]; then
+if [ "$HEAP_SIZE" == "AUTO" ]; then
   if [ "$TOTAL_MEMORY" -gt 4096 ]; then
 	HEAP_SIZE=`expr $TOTAL_MEMORY - 2048`
   else

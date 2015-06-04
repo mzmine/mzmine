@@ -19,8 +19,8 @@ set TMP_FILE_DIRECTORY=%TEMP%
 set MZMINE_STATISTICS=1
 
 :: It is usually not necessary to modify the JAVA_COMMAND parameter, but if you like to run
-:: a specific Java Virtual Machine, you may set the path to the java command of that JVM
-set JAVA_COMMAND=java
+:: a specific Java Virtual Machine, you may set the path to the java.exe command of that JVM
+set JAVA_COMMAND=java.exe
 
 :: ********************************************
 :: You don't need to modify anything below here
