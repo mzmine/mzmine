@@ -864,8 +864,10 @@ public class RSessionWrapper {
 
                 object = OutputObjectFactory.getObject(r);
             } catch (/* RserveException | */REXPMismatchException e) {
+                LOG.severe(this.getErrMessage());
                 throw new RSessionWrapperException(msg);
             } catch (Exception e) {
+                LOG.severe(this.getErrMessage());
                 throw new RSessionWrapperException(e.getMessage());
             }
         }
@@ -1106,4 +1108,3 @@ public class RSessionWrapper {
     }
 
 }
-
