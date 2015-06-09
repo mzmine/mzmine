@@ -867,7 +867,6 @@ public class RSessionWrapper {
                 LOG.severe(this.getErrMessage());
                 throw new RSessionWrapperException(msg);
             } catch (Exception e) {
-                LOG.severe(this.getErrMessage());
                 throw new RSessionWrapperException(e.getMessage());
             }
         }
