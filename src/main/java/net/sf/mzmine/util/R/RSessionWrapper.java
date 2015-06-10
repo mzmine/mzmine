@@ -676,10 +676,10 @@ public class RSessionWrapper {
                 else
                     o = obj;
             } else if (rexp instanceof REXPDouble) {
-                // Double matrix case (nrow > 1).
-                // dim = [nrow, ncol]
-                //if (rexp.hasAttribute("dim")) {
-                if (rexp.dim() != null && rexp.dim()[0] > 1) {
+                // Double matrix/array/dataframe case.
+                // dim = [nrow, ncol] - dim = null for simple vectors.
+                // equivalent to "if (rexp.hasAttribute("dim"))"
+                if (rexp.dim() != null) {
                     o = rexp.asDoubleMatrix();
                 }
                 // Double vector case.
@@ -696,7 +696,6 @@ public class RSessionWrapper {
                         o = obj;
                 }
             } else if (rexp instanceof REXPString) {
-                // o = rexp.asString();
                 String[] obj = rexp.asStrings();
                 if (obj == null)
                     return null;
