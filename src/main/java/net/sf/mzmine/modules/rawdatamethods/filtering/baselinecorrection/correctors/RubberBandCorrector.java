@@ -77,7 +77,7 @@ public class RubberBandCorrector extends BaselineCorrector {
         rSession.eval("baseline <- spc.rubberband(spc + bend, noise = noise, df = "
                 + df + ", spline=" + (spline ? "T" : "F") + ") - bend");
         rSession.eval("baseline <- orderwl(baseline)[[1]]");
-        baseline = (double[]) rSession.collect("baseline");
+        baseline = ((double[][]) rSession.collect("baseline"))[0];
 
         return baseline;
     }

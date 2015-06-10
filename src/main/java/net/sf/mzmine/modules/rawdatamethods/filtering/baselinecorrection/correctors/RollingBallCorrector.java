@@ -81,7 +81,7 @@ public class RollingBallCorrector extends BaselineCorrector {
         // Anyway, this usually happens when "chromatogram" is fully flat and
         // zeroed.
         rSession.eval("if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }");
-        baseline = (double[]) rSession.collect("baseline");
+        baseline = ((double[][]) rSession.collect("baseline"))[0];
 
         return baseline;
     }
