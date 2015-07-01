@@ -35,7 +35,7 @@ public class GoogleAnalyticsTracker implements Runnable {
 
     // Parameters
     String trackingUrl = "http://www.google-analytics.com/__utm.gif";
-    String trackingCode = "UA-63013892-1"; // Google Analytics Tracking Code
+    String trackingCode = "UA-63013892-3"; // Google Analytics Tracking Code
     String hostName = "localhost"; // Host name
     String userAgent = null; // User Agent name
     String os = "Unknown"; // Operating System
@@ -78,14 +78,21 @@ public class GoogleAnalyticsTracker implements Runnable {
 	    }
 
 	    if (userAgent == null) {
-		userAgent = "Java/" + System.getProperty("java.version");
+		//userAgent = "Java/" + System.getProperty("java.version");
 		os = System.getProperty("os.arch");
 		if (os == null || os.length() < 1) {
-		    os = "";
+		    userAgent = "UNKNOWN";
 		} else {
-		    os += "; ";
-		    os += System.getProperty("os.name") + " "
-		       + System.getProperty("os.version");
+
+		    if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+			userAgent = "Mozilla/5.0 (Windows NT " + System.getProperty("os.version") + ")";
+		    }
+		    else if (System.getProperty("os.name").toLowerCase().contains("macintosh")) {
+			userAgent = "Mozilla/5.0 (Mozilla/5.0 (Macintosh)";
+		    }
+		    else if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+			userAgent = "Mozilla/5.0 (Mozilla/5.0 (Linux)";
+		    }
 		}
 	    }
 
@@ -99,7 +106,7 @@ public class GoogleAnalyticsTracker implements Runnable {
 	    url.append("?utmwv=1"); // Analytics version
 	    url.append("&utmn=" + random.nextInt()); // Random int
 	    url.append("&utmcs=UTF-8"); // Encoding
-	    url.append("&utmsr=" + screenSize); // Screen size
+	    url.append("&utmsr=" + (int) screenSize.getWidth() + "x" + (int) screenSize.getHeight()); // Screen size
 	    url.append("&utmul=" + systemLocale); // User language
 	    url.append("&utmje=1"); // Java Enabled
 	    url.append("&utmcr=1"); // Carriage return
@@ -134,7 +141,7 @@ public class GoogleAnalyticsTracker implements Runnable {
 			.openConnection();
 		UC.setInstanceFollowRedirects(true);
 		UC.setRequestMethod("GET");
-		UC.setRequestProperty("User-agent", userAgent + " (" + os + ")");
+		UC.setRequestProperty("User-agent", userAgent);
 		UC.connect();
 
 		int responseCode = UC.getResponseCode();
