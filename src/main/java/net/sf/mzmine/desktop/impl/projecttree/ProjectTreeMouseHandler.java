@@ -335,7 +335,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 
     }
 
-    public void mousePressed(MouseEvent e) {
+    public void mouseClicked(MouseEvent e) {
 
         if (e.isPopupTrigger())
             handlePopupTriggerEvent(e);
