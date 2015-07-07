@@ -27,7 +27,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.util.ExitCode;
 
 import com.google.common.collect.Range;
@@ -39,7 +39,7 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 	    "Minimum acceptable peak height (absolute intensity)", MZmineCore
 		    .getConfiguration().getIntensityFormat());
 
-    public static final RangeParameter PEAK_DURATION = new RangeParameter(
+    public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
 	    "Peak duration range (min)", "Range of acceptable peak lengths",
 	    MZmineCore.getConfiguration().getRTFormat(),
 	    Range.closed(0.0, 10.0));

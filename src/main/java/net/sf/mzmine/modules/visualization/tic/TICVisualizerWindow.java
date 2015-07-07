@@ -41,11 +41,13 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -81,9 +83,9 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
     // Data sets
     private Hashtable<RawDataFile, TICDataSet> ticDataSets;
 
-    private PlotType plotType;
-    private int msLevel;
-    private Range<Double> rtRange, mzRange, hiddenMzRange;
+    private TICPlotType plotType;
+    private ScanSelection scanSelection;
+    private Range<Double> mzRange, hiddenMzRange;
 
     private Desktop desktop;
 
@@ -93,21 +95,19 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
     /**
      * Constructor for total ion chromatogram visualizer
      */
-    public TICVisualizerWindow(RawDataFile dataFiles[], PlotType plotType,
-	    int msLevel, Range<Double> rtRange, Range<Double> mzRange,
+    public TICVisualizerWindow(RawDataFile dataFiles[], TICPlotType plotType,
+            ScanSelection scanSelection, Range<Double> mzRange,
 	    Feature[] peaks, Map<Feature, String> peakLabels,
 	    Range<Double> hiddenMzRange) {
 
 	super("Chromatogram loading...");
 
 	assert mzRange != null;
-	assert rtRange != null;
 
 	this.desktop = MZmineCore.getDesktop();
 	this.plotType = plotType;
-	this.msLevel = msLevel;
 	this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
-	this.rtRange = rtRange;
+	this.scanSelection = scanSelection;
 	this.mzRange = mzRange;
 	this.hiddenMzRange = hiddenMzRange;
 
@@ -237,13 +237,13 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	Range<Double> mzRange2 = Range.range(mzRange.lowerEndpoint()-1, 
 		BoundType.CLOSED, mzRange.upperEndpoint()+1, BoundType.CLOSED);
 	for (RawDataFile df : fileSet) {
-	    if (!mzRange2.encloses(df.getDataMZRange(msLevel))) {
+	    if (!mzRange2.encloses(df.getDataMZRange())) {
 		ticOrXIC = "XIC";
 		break;
 	    }
 	}
 
-	if (plotType == PlotType.BASEPEAK) {
+	if (plotType == TICPlotType.BASEPEAK) {
 	    if (ticOrXIC.equals("TIC")) {mainTitle.append("Base peak chromatogram");}
 	    else { mainTitle.append("XIC (base peak)"); }
 	} else {
@@ -251,7 +251,6 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	    else { mainTitle.append("XIC"); }
 	}
 
-	mainTitle.append(", MS" + msLevel);
 	mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint())
 		+ " - " + mzFormat.format(mzRange.upperEndpoint()));
 
@@ -264,7 +263,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 		subTitle.append(" (" + pos.getDataFile() + ")");
 	    }
 	    subTitle.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
-	    if (plotType == PlotType.BASEPEAK) {
+	    if (plotType == TICPlotType.BASEPEAK) {
 		subTitle.append(", base peak: "
 			+ mzFormat.format(pos.getMzValue()) + " m/z");
 	    }
@@ -288,7 +287,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
     /**
      * @return Returns the plotType.
      */
-    PlotType getPlotType() {
+    TICPlotType getPlotType() {
 	return plotType;
     }
 
@@ -330,10 +329,9 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
     public void addRawDataFile(RawDataFile newFile) {
 
-	int scanNumbers[] = newFile.getScanNumbers(msLevel, rtRange);
-	if (scanNumbers.length == 0) {
-	    desktop.displayErrorMessage(this, "No scans found at MS level "
-		    + msLevel + " within given retention time range.");
+	final Scan scans[] = scanSelection.getMatchingScans(newFile);
+	if (scans.length == 0) {
+	    desktop.displayErrorMessage(this, "No scans found.");
 	    return;
 	}
 
@@ -347,14 +345,14 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
             }
         }
 
-	TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange,
+	TICDataSet ticDataset = new TICDataSet(newFile, scans, mzRange,
 		this);
 	ticDataSets.put(newFile, ticDataset);
 	ticPlot.addTICDataset(ticDataset);
 
 	if (ticDataSets.size() == 1) {
 	    // when adding first file, set the retention time range
-	    setRTRange(rtRange);
+	    // setRTRange(rtRange);
 	}
 
     }
@@ -413,7 +411,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	    int index = dataSet.getIndex(selectedRT, selectedIT);
 	    if (index >= 0) {
 		double mz = 0;
-		if (plotType == PlotType.BASEPEAK) {
+		if (plotType == TICPlotType.BASEPEAK) {
 		    mz = (double) dataSet.getZValue(0, index);
 		}
 		CursorPosition pos = new CursorPosition(selectedRT, mz,
@@ -490,8 +488,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
     public void dispose() {
 
 	// If the window is closed, we want to cancel all running tasks of the
-	// data
-	// sets
+	// data sets
 	Task tasks[] = this.ticDataSets.values().toArray(new Task[0]);
 
 	for (Task task : tasks) {

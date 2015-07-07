@@ -27,7 +27,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.util.ExitCode;
 
 import com.google.common.collect.Range;
@@ -58,7 +58,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 	    "Minimum ratio between peak's top intensity and side (lowest) data points."
 	    	+"\nThis parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.");
 
-    public static final RangeParameter PEAK_DURATION = new RangeParameter(
+    public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
 	    "Peak duration range (min)", "Range of acceptable peak lengths",
 	    MZmineCore.getConfiguration().getRTFormat(),
 	    Range.closed(0.0, 10.0));

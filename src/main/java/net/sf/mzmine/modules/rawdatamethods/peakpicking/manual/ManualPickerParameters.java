@@ -22,15 +22,15 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 
 public class ManualPickerParameters extends SimpleParameterSet {
 
-    public static final RangeParameter retentionTimeRange = new RangeParameter(
+    public static final DoubleRangeParameter retentionTimeRange = new DoubleRangeParameter(
 	    "Retention time", "Retention time range", MZmineCore
 		    .getConfiguration().getRTFormat());
 
-    public static final RangeParameter mzRange = new RangeParameter(
+    public static final DoubleRangeParameter mzRange = new DoubleRangeParameter(
 	    "m/z range", "m/z range", MZmineCore.getConfiguration()
 		    .getMZFormat());
 

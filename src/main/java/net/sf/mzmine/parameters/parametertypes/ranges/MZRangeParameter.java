@@ -17,29 +17,30 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.ranges;
 
-public class MZRangeParameter extends RangeParameter {
+
+public class MZRangeParameter extends DoubleRangeParameter {
 
     public MZRangeParameter() {
-	super("m/z", "m/z range", null, null);
+        super("m/z", "m/z range", null, true, null);
     }
 
     public MZRangeParameter(String name, String description) {
-	super(name, description, null, null);
+        super(name, description, null, true, null);
     }
 
     @Override
     public MZRangeComponent createEditingComponent() {
-	return new MZRangeComponent();
+        return new MZRangeComponent();
     }
 
     @Override
     public MZRangeParameter cloneParameter() {
-	MZRangeParameter copy = new MZRangeParameter(getName(),
-		getDescription());
-	copy.setValue(this.getValue());
-	return copy;
+        MZRangeParameter copy = new MZRangeParameter(getName(),
+                getDescription());
+        copy.setValue(this.getValue());
+        return copy;
     }
 
 }

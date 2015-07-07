@@ -23,8 +23,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class IsotopePatternScoreParameters extends SimpleParameterSet {
 

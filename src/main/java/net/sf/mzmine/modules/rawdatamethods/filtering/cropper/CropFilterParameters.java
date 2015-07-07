@@ -23,15 +23,15 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 
 public class CropFilterParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-    public static final RangeParameter retentionTimeRange = new RangeParameter(
+    public static final DoubleRangeParameter retentionTimeRange = new DoubleRangeParameter(
             "Retention time", "retention time boundary of the cropped region",
             MZmineCore.getConfiguration().getRTFormat());
 

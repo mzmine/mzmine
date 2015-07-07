@@ -17,16 +17,22 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.ranges;
 
-public class RTRangeParameter extends RangeParameter {
+import com.google.common.collect.Range;
+
+public class RTRangeParameter extends DoubleRangeParameter {
 
     public RTRangeParameter() {
-	super("Retention time", "Retention time range in minutes", null, null);
+	super("Retention time", "Retention time range in minutes", null, true, null);
     }
 
-    public RTRangeParameter(String name, String description) {
-	super(name, description, null, null);
+    public RTRangeParameter(boolean valueRequired) {
+        super("Retention time", "Retention time range in minutes", null, valueRequired, null);
+    }
+
+    public RTRangeParameter(String name, String description, boolean valueRequired, Range<Double> defaultValue) {
+	super(name, description, null, valueRequired, defaultValue);
     }
 
     @Override
@@ -37,8 +43,7 @@ public class RTRangeParameter extends RangeParameter {
     @Override
     public RTRangeParameter cloneParameter() {
 	RTRangeParameter copy = new RTRangeParameter(getName(),
-		getDescription());
-	copy.setValue(this.getValue());
+		getDescription(), isValueRequired(), getValue());
 	return copy;
     }
 

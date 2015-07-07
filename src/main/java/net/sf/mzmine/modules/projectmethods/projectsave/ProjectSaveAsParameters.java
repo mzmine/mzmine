@@ -30,7 +30,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class ProjectSaveAsParameters extends SimpleParameterSet {

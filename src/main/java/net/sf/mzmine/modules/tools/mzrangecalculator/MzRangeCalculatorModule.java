@@ -26,7 +26,7 @@ import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.FormulaUtils;
 

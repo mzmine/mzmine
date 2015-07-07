@@ -22,10 +22,10 @@ package net.sf.mzmine.modules.visualization.twod;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
-import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
-import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 
 /**
  * 2D visualizer parameter set

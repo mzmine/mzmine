@@ -20,7 +20,7 @@
 /* Code created was by or on behalf of Syngenta and is released under the open source license in use for the
  * pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
  */
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.filenames;
 
 import java.awt.BorderLayout;
 import java.awt.Font;

@@ -25,12 +25,12 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class CropFilterParameters extends SimpleParameterSet {
 
-    public static final RangeParameter mzRange = new RangeParameter(
+    public static final DoubleRangeParameter mzRange = new DoubleRangeParameter(
 	    "m/z range", "m/z boundary of the cropped region", MZmineCore
 		    .getConfiguration().getMZFormat());
 

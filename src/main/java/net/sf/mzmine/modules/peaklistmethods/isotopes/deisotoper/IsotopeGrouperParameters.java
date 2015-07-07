@@ -24,10 +24,10 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class IsotopeGrouperParameters extends SimpleParameterSet {
 

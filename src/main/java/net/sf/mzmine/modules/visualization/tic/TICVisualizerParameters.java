@@ -26,19 +26,17 @@ import java.util.Map;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
-import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
+import net.sf.mzmine.parameters.parametertypes.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.ScanSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.RawDataFileUtils;
 
 import com.google.common.collect.Range;
 
@@ -50,27 +48,23 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     public static final RawDataFilesParameter DATA_FILES = new RawDataFilesParameter();
 
     /**
-     * MS level.
+     * Scans (used to be RT range).
      */
-    public static final MSLevelParameter MS_LEVEL = new MSLevelParameter();
+    public static final ScanSelectionParameter scanSelectionParameter = new ScanSelectionParameter(
+            new ScanSelection(null, null, null, 1));
 
     /**
      * Type of plot.
      */
-    public static final ComboParameter<PlotType> PLOT_TYPE = new ComboParameter<PlotType>(
+    public static final ComboParameter<TICPlotType> PLOT_TYPE = new ComboParameter<TICPlotType>(
             "Plot type",
             "Type of Y value calculation (TIC = sum, base peak = max)",
-            PlotType.values());
-
-    /**
-     * RT range.
-     */
-    public static final RTRangeParameter RT_RANGE = new RTRangeParameter();
+            TICPlotType.values());
 
     /**
      * m/z range.
      */
-    public static final RangeParameter MZ_RANGE = new MZRangeParameter();
+    public static final DoubleRangeParameter MZ_RANGE = new MZRangeParameter();
     private Range<Double> MZ_RANGE_HIDDEN;
 
     /**
@@ -92,7 +86,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * Create the parameter set.
      */
     public TICVisualizerParameters() {
-        super(new Parameter[] { DATA_FILES, MS_LEVEL, PLOT_TYPE, RT_RANGE,
+        super(new Parameter[] { DATA_FILES, scanSelectionParameter, PLOT_TYPE,
                 MZ_RANGE, PEAKS, WINDOWSETTINGSPARAMETER });
         peakLabelMap = null;
         MZ_RANGE_HIDDEN = null;
@@ -162,18 +156,6 @@ public class TICVisualizerParameters extends SimpleParameterSet {
                 RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
         getParameter(PEAKS).setChoices(allPeaks);
         getParameter(PEAKS).setValue(selectedPeaks);
-
-        Map<UserParameter<?, ?>, Object> autoValues = null;
-        if (selectedFiles != null && selectedFiles.length > 0) {
-
-            autoValues = new HashMap<UserParameter<?, ?>, Object>(3);
-            autoValues.put(MS_LEVEL, 1);
-            autoValues.put(RT_RANGE,
-                    RawDataFileUtils.findTotalRTRange(selectedFiles, 1));
-            autoValues.put(MZ_RANGE,
-                    RawDataFileUtils.findTotalMZRange(selectedFiles, 1));
-        }
-
         return super.showSetupDialog(parent, valueCheckRequired);
     }
 }

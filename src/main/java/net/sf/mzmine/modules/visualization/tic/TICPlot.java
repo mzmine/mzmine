@@ -135,7 +135,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
     private static final double TITLE_TOP_MARGIN = 5.0;
 
     // Plot type.
-    private PlotType plotType;
+    private TICPlotType plotType;
     // The plot.
     private final XYPlot plot;
 
@@ -188,10 +188,10 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    this.plotType = ((TICVisualizerWindow) visualizer).getPlotType();
 	} else {
 
-	    this.plotType = PlotType.BASEPEAK;
+	    this.plotType = TICPlotType.BASEPEAK;
 	}
 	// Y-axis label.
-	final String yAxisLabel = (this.plotType == PlotType.BASEPEAK) ? "Base peak intensity"
+	final String yAxisLabel = (this.plotType == TICPlotType.BASEPEAK) ? "Base peak intensity"
 		: "Total ion intensity";
 
 	// Initialize the chart by default time series chart from factory.
@@ -703,7 +703,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	chartSubTitle.setText(subTitleText);
     }
 
-    public void setPlotType(final PlotType plotType) {
+    public void setPlotType(final TICPlotType plotType) {
 
 	if (this.plotType != plotType) {
 	    // Plot type
@@ -714,7 +714,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 		this.plotType = plotType;
 	    }
 	    // Y-axis label.
-	    String yAxisLabel = (this.plotType == PlotType.BASEPEAK) ? "Base peak intensity"
+	    String yAxisLabel = (this.plotType == TICPlotType.BASEPEAK) ? "Base peak intensity"
 		    : "Total ion intensity";
 	    getXYPlot().getRangeAxis().setLabel(yAxisLabel);
 	}

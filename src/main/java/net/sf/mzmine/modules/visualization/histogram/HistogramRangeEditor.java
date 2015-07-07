@@ -28,7 +28,7 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.parametertypes.RangeComponent;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
 
 import com.google.common.collect.Range;
 
@@ -36,7 +36,7 @@ public class HistogramRangeEditor extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
     private JComboBox<HistogramDataType> dataTypeCombo;
-    private RangeComponent dataRangeComponent;
+    private DoubleRangeComponent dataRangeComponent;
 
     public HistogramRangeEditor() {
 
@@ -46,7 +46,7 @@ public class HistogramRangeEditor extends JPanel implements ActionListener {
 		HistogramDataType.values());
 	add(dataTypeCombo, BorderLayout.WEST);
 
-	dataRangeComponent = new RangeComponent(
+	dataRangeComponent = new DoubleRangeComponent(
 		NumberFormat.getNumberInstance());
 	add(dataRangeComponent, BorderLayout.CENTER);
 
