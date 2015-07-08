@@ -21,11 +21,11 @@ package net.sf.mzmine.modules.visualization.twod;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.ScanSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 
 /**
  * 2D visualizer parameter set
@@ -33,11 +33,10 @@ import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 public class TwoDParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
-	    1, 1);
+            1, 1);
 
-    public static final MSLevelParameter msLevel = new MSLevelParameter();
-
-    public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
+    public static final ScanSelectionParameter scanSelectionParameter = new ScanSelectionParameter(
+            new ScanSelection(null, null, null, 1));
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
 
@@ -49,8 +48,8 @@ public class TwoDParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public TwoDParameters() {
-	super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
-		mzRange, peakThresholdSettings, windowSettings });
+        super(new Parameter[] { dataFiles, scanSelectionParameter, mzRange,
+                peakThresholdSettings, windowSettings });
     }
 
 }

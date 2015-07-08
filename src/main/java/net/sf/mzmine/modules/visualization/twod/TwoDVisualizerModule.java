@@ -25,13 +25,16 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
+import net.sf.mzmine.parameters.parametertypes.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.ScanUtils;
 
 import com.google.common.collect.Range;
 
@@ -60,14 +63,15 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
         RawDataFile dataFiles[] = parameters
                 .getParameter(TwoDParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
-        int msLevel = parameters.getParameter(TwoDParameters.msLevel)
-                .getValue();
-        Range<Double> rtRange = parameters.getParameter(
-                TwoDParameters.retentionTimeRange).getValue();
+        ScanSelection scanSel = parameters.getParameter(
+                TwoDParameters.scanSelectionParameter).getValue();
+        Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
+        Range<Double> rtRange = ScanUtils.findRtRange(scans);
+
         Range<Double> mzRange = parameters.getParameter(TwoDParameters.mzRange)
                 .getValue();
         TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
-                msLevel, rtRange, mzRange, parameters);
+                scans, rtRange, mzRange, parameters);
 
         newWindow.setVisible(true);
 
@@ -89,8 +93,8 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
                 new RawDataFile[] { dataFile });
 
         if (rtRange != null)
-            parameters.getParameter(TwoDParameters.retentionTimeRange)
-                    .setValue(rtRange);
+            parameters.getParameter(TwoDParameters.scanSelectionParameter)
+                    .setValue(new ScanSelection(null, rtRange, null, 1));
         if (mzRange != null)
             parameters.getParameter(TwoDParameters.mzRange).setValue(mzRange);
 
@@ -100,14 +104,15 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
         if (exitCode != ExitCode.OK)
             return;
 
-        int msLevel = parameters.getParameter(TwoDParameters.msLevel)
-                .getValue();
-        rtRange = parameters.getParameter(TwoDParameters.retentionTimeRange)
-                .getValue();
+        ScanSelection scanSel = parameters.getParameter(
+                TwoDParameters.scanSelectionParameter).getValue();
+        Scan scans[] = scanSel.getMatchingScans(dataFile);
+        rtRange = ScanUtils.findRtRange(scans);
+
         mzRange = parameters.getParameter(TwoDParameters.mzRange).getValue();
 
         TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFile,
-                msLevel, rtRange, mzRange, parameters);
+                scans, rtRange, mzRange, parameters);
 
         newWindow.setVisible(true);
 

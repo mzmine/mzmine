@@ -97,190 +97,199 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], TICPlotType plotType,
             ScanSelection scanSelection, Range<Double> mzRange,
-	    Feature[] peaks, Map<Feature, String> peakLabels,
-	    Range<Double> hiddenMzRange) {
+            Feature[] peaks, Map<Feature, String> peakLabels,
+            Range<Double> hiddenMzRange) {
 
-	super("Chromatogram loading...");
+        super("Chromatogram loading...");
 
-	assert mzRange != null;
+        assert mzRange != null;
 
-	this.desktop = MZmineCore.getDesktop();
-	this.plotType = plotType;
-	this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
-	this.scanSelection = scanSelection;
-	this.mzRange = mzRange;
-	this.hiddenMzRange = hiddenMzRange;
+        this.desktop = MZmineCore.getDesktop();
+        this.plotType = plotType;
+        this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
+        this.scanSelection = scanSelection;
+        this.mzRange = mzRange;
+        this.hiddenMzRange = hiddenMzRange;
 
-	// setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-	setBackground(Color.white);
+        // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setBackground(Color.white);
 
-	ticPlot = new TICPlot(this);
-	add(ticPlot, BorderLayout.CENTER);
+        ticPlot = new TICPlot(this);
+        add(ticPlot, BorderLayout.CENTER);
 
-	// toolBar = new TICToolBar(this);
-	toolBar = new TICToolBar(ticPlot);
-	add(toolBar, BorderLayout.EAST);
+        // toolBar = new TICToolBar(this);
+        toolBar = new TICToolBar(ticPlot);
+        add(toolBar, BorderLayout.EAST);
 
-	// add all peaks
-	if (peaks != null) {
+        // add all peaks
+        if (peaks != null) {
 
-	    for (Feature peak : peaks) {
+            for (Feature peak : peaks) {
 
-		if (peakLabels != null && peakLabels.containsKey(peak)) {
+                if (peakLabels != null && peakLabels.containsKey(peak)) {
 
-		    final String label = peakLabels.get(peak);
-		    ticPlot.addLabelledPeakDataset(
-			    new PeakDataSet(peak, label), label);
+                    final String label = peakLabels.get(peak);
+                    ticPlot.addLabelledPeakDataset(
+                            new PeakDataSet(peak, label), label);
 
-		} else {
+                } else {
 
-		    ticPlot.addPeakDataset(new PeakDataSet(peak));
-		}
-	    }
-	}
+                    ticPlot.addPeakDataset(new PeakDataSet(peak));
+                }
+            }
+        }
 
-	// add all data files
-	for (RawDataFile dataFile : dataFiles) {
-	    addRawDataFile(dataFile);
-	}
+        // add all data files
+        for (RawDataFile dataFile : dataFiles) {
+            addRawDataFile(dataFile);
+        }
 
-	// Add the Windows menu
-	JMenuBar menuBar = new JMenuBar();
-	menuBar.add(new WindowsMenu());
-	setJMenuBar(menuBar);
+        // Add the Windows menu
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(new WindowsMenu());
+        setJMenuBar(menuBar);
 
-	pack();
+        pack();
 
-	// get the window settings parameter
-	ParameterSet paramSet = MZmineCore.getConfiguration()
-		.getModuleParameters(TICVisualizerModule.class);
-	WindowSettingsParameter settings = paramSet
-		.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
+        // get the window settings parameter
+        ParameterSet paramSet = MZmineCore.getConfiguration()
+                .getModuleParameters(TICVisualizerModule.class);
+        WindowSettingsParameter settings = paramSet
+                .getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
-	// update the window and listen for changes
-	settings.applySettingsToWindow(this);
-	this.addComponentListener(settings);
+        // update the window and listen for changes
+        settings.applySettingsToWindow(this);
+        this.addComponentListener(settings);
 
-	// Listen for clicks on legend items
-	ticPlot.addChartMouseListener(new ChartMouseListener() {
-	    @Override
-	    public void chartMouseClicked(ChartMouseEvent event) {
-	        ChartEntity entity = event.getEntity();
-	        XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
-		
-	        if ((entity != null) && entity instanceof LegendItemEntity && 
-	        	plot.getRenderer().getClass().getName().indexOf
-	        	(".TICPlotRenderer")>-1) {
-	            LegendItemEntity itemEntity = (LegendItemEntity) entity;
-	            XYLineAndShapeRenderer rendererAll = (XYLineAndShapeRenderer)
-	        	    plot.getRenderer();
-	            
-	            // Find index value
-	            int index = -1;
-	            for (int i = 0; i < plot.getDatasetCount(); i++) {
-	                if (rendererAll.getLegendItem(i, 1) != null && rendererAll.
-	                	getLegendItem(i, 1).getDescription().equals(
-	                		itemEntity.getSeriesKey())) {
-	                    index = i;
-	                    break;
-	                }
-	            }
-	            XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) 
-	        	    plot.getRenderer(index);
-	            
-	            // Select or deselect dataset
-	            Font font = new Font("Helvetica", Font.BOLD, 11);
-	            BasicStroke stroke = new BasicStroke(4);
-	            if (renderer.getBaseLegendTextFont() != null && renderer.
-	        	    getBaseLegendTextFont().isBold()) {
-	        	font = new Font("Helvetica",Font.PLAIN, 11);
-	        	stroke = new BasicStroke(1);
-	            }
-	            renderer.setBaseLegendTextFont(font);
-    	            renderer.setSeriesStroke(0,stroke);
-	        }
-	    }
+        // Listen for clicks on legend items
+        ticPlot.addChartMouseListener(new ChartMouseListener() {
+            @Override
+            public void chartMouseClicked(ChartMouseEvent event) {
+                ChartEntity entity = event.getEntity();
+                XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
 
-	    @Override
-	    public void chartMouseMoved(ChartMouseEvent event) {
-		ChartEntity entity = event.getEntity();
-	        XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
-		if ((entity != null) && entity instanceof LegendItemEntity &&
-			plot.getRenderer().getClass().getName().indexOf
-			(".TICPlotRenderer")>-1) {
-		    ticPlot.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		}
-		else {
-		    ticPlot.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
-		}
-	    }
-	});
+                if ((entity != null)
+                        && entity instanceof LegendItemEntity
+                        && plot.getRenderer().getClass().getName()
+                                .indexOf(".TICPlotRenderer") > -1) {
+                    LegendItemEntity itemEntity = (LegendItemEntity) entity;
+                    XYLineAndShapeRenderer rendererAll = (XYLineAndShapeRenderer) plot
+                            .getRenderer();
+
+                    // Find index value
+                    int index = -1;
+                    for (int i = 0; i < plot.getDatasetCount(); i++) {
+                        if (rendererAll.getLegendItem(i, 1) != null
+                                && rendererAll.getLegendItem(i, 1)
+                                        .getDescription()
+                                        .equals(itemEntity.getSeriesKey())) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
+                            .getRenderer(index);
+
+                    // Select or deselect dataset
+                    Font font = new Font("Helvetica", Font.BOLD, 11);
+                    BasicStroke stroke = new BasicStroke(4);
+                    if (renderer.getBaseLegendTextFont() != null
+                            && renderer.getBaseLegendTextFont().isBold()) {
+                        font = new Font("Helvetica", Font.PLAIN, 11);
+                        stroke = new BasicStroke(1);
+                    }
+                    renderer.setBaseLegendTextFont(font);
+                    renderer.setSeriesStroke(0, stroke);
+                }
+            }
+
+            @Override
+            public void chartMouseMoved(ChartMouseEvent event) {
+                ChartEntity entity = event.getEntity();
+                XYPlot plot = (XYPlot) ticPlot.getChart().getPlot();
+                if ((entity != null)
+                        && entity instanceof LegendItemEntity
+                        && plot.getRenderer().getClass().getName()
+                                .indexOf(".TICPlotRenderer") > -1) {
+                    ticPlot.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                } else {
+                    ticPlot.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+                }
+            }
+        });
 
     }
 
     void updateTitle() {
 
-	NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-	NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-	NumberFormat intensityFormat = MZmineCore.getConfiguration()
-		.getIntensityFormat();
+        NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+        NumberFormat intensityFormat = MZmineCore.getConfiguration()
+                .getIntensityFormat();
 
-	StringBuffer mainTitle = new StringBuffer();
-	StringBuffer subTitle = new StringBuffer();
+        StringBuffer mainTitle = new StringBuffer();
+        StringBuffer subTitle = new StringBuffer();
 
-	// If all data files have m/z range less than or equal to range of
-	// the plot (mzMin, mzMax), then call this TIC, otherwise XIC
-	Set<RawDataFile> fileSet = ticDataSets.keySet();
-	String ticOrXIC = "TIC";
+        // If all data files have m/z range less than or equal to range of
+        // the plot (mzMin, mzMax), then call this TIC, otherwise XIC
+        Set<RawDataFile> fileSet = ticDataSets.keySet();
+        String ticOrXIC = "TIC";
 
-	// Enlarge range a bit to avoid rounding errors
-	Range<Double> mzRange2 = Range.range(mzRange.lowerEndpoint()-1, 
-		BoundType.CLOSED, mzRange.upperEndpoint()+1, BoundType.CLOSED);
-	for (RawDataFile df : fileSet) {
-	    if (!mzRange2.encloses(df.getDataMZRange())) {
-		ticOrXIC = "XIC";
-		break;
-	    }
-	}
+        // Enlarge range a bit to avoid rounding errors
+        Range<Double> mzRange2 = Range
+                .range(mzRange.lowerEndpoint() - 1, BoundType.CLOSED,
+                        mzRange.upperEndpoint() + 1, BoundType.CLOSED);
+        for (RawDataFile df : fileSet) {
+            if (!mzRange2.encloses(df.getDataMZRange())) {
+                ticOrXIC = "XIC";
+                break;
+            }
+        }
 
-	if (plotType == TICPlotType.BASEPEAK) {
-	    if (ticOrXIC.equals("TIC")) {mainTitle.append("Base peak chromatogram");}
-	    else { mainTitle.append("XIC (base peak)"); }
-	} else {
-	    if (ticOrXIC.equals("TIC")) {mainTitle.append("TIC");}
-	    else { mainTitle.append("XIC"); }
-	}
+        if (plotType == TICPlotType.BASEPEAK) {
+            if (ticOrXIC.equals("TIC")) {
+                mainTitle.append("Base peak chromatogram");
+            } else {
+                mainTitle.append("XIC (base peak)");
+            }
+        } else {
+            if (ticOrXIC.equals("TIC")) {
+                mainTitle.append("TIC");
+            } else {
+                mainTitle.append("XIC");
+            }
+        }
 
-	mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint())
-		+ " - " + mzFormat.format(mzRange.upperEndpoint()));
+        mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint())
+                + " - " + mzFormat.format(mzRange.upperEndpoint()));
 
-	CursorPosition pos = getCursorPosition();
+        CursorPosition pos = getCursorPosition();
 
-	if (pos != null) {
-	    subTitle.append("Selected scan #");
-	    subTitle.append(pos.getScanNumber());
-	    if (ticDataSets.size() > 1) {
-		subTitle.append(" (" + pos.getDataFile() + ")");
-	    }
-	    subTitle.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
-	    if (plotType == TICPlotType.BASEPEAK) {
-		subTitle.append(", base peak: "
-			+ mzFormat.format(pos.getMzValue()) + " m/z");
-	    }
-	    subTitle.append(", IC: "
-		    + intensityFormat.format(pos.getIntensityValue()));
-	}
+        if (pos != null) {
+            subTitle.append("Selected scan #");
+            subTitle.append(pos.getScanNumber());
+            if (ticDataSets.size() > 1) {
+                subTitle.append(" (" + pos.getDataFile() + ")");
+            }
+            subTitle.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
+            if (plotType == TICPlotType.BASEPEAK) {
+                subTitle.append(", base peak: "
+                        + mzFormat.format(pos.getMzValue()) + " m/z");
+            }
+            subTitle.append(", IC: "
+                    + intensityFormat.format(pos.getIntensityValue()));
+        }
 
-	// update window title
-	RawDataFile files[] = ticDataSets.keySet().toArray(new RawDataFile[0]);
-	Arrays.sort(files, new SimpleSorter());
-	String dataFileNames = Joiner.on(",").join(files);
-	setTitle("Chromatogram: [" + dataFileNames + "; "
-		+ mzFormat.format(mzRange.lowerEndpoint()) + " - "
-		+ mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
+        // update window title
+        RawDataFile files[] = ticDataSets.keySet().toArray(new RawDataFile[0]);
+        Arrays.sort(files, new SimpleSorter());
+        String dataFileNames = Joiner.on(",").join(files);
+        setTitle("Chromatogram: [" + dataFileNames + "; "
+                + mzFormat.format(mzRange.lowerEndpoint()) + " - "
+                + mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 
-	// update plot title
-	ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
+        // update plot title
+        ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
 
     }
 
@@ -288,28 +297,28 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
      * @return Returns the plotType.
      */
     TICPlotType getPlotType() {
-	return plotType;
+        return plotType;
     }
 
     TICDataSet[] getAllDataSets() {
-	return ticDataSets.values().toArray(new TICDataSet[0]);
+        return ticDataSets.values().toArray(new TICDataSet[0]);
     }
 
     /**
      */
     public void setRTRange(Range<Double> rtRange) {
-	ticPlot.getXYPlot().getDomainAxis()
-		.setRange(rtRange.lowerEndpoint(), rtRange.upperEndpoint());
+        ticPlot.getXYPlot().getDomainAxis()
+                .setRange(rtRange.lowerEndpoint(), rtRange.upperEndpoint());
     }
 
     public void setAxesRange(double xMin, double xMax, double xTickSize,
-	    double yMin, double yMax, double yTickSize) {
-	NumberAxis xAxis = (NumberAxis) ticPlot.getXYPlot().getDomainAxis();
-	NumberAxis yAxis = (NumberAxis) ticPlot.getXYPlot().getRangeAxis();
-	xAxis.setRange(xMin, xMax);
-	xAxis.setTickUnit(new NumberTickUnit(xTickSize));
-	yAxis.setRange(yMin, yMax);
-	yAxis.setTickUnit(new NumberTickUnit(yTickSize));
+            double yMin, double yMax, double yTickSize) {
+        NumberAxis xAxis = (NumberAxis) ticPlot.getXYPlot().getDomainAxis();
+        NumberAxis yAxis = (NumberAxis) ticPlot.getXYPlot().getRangeAxis();
+        xAxis.setRange(xMin, xMax);
+        xAxis.setTickUnit(new NumberTickUnit(xTickSize));
+        yAxis.setRange(yMin, yMax);
+        yAxis.setTickUnit(new NumberTickUnit(yTickSize));
     }
 
     /**
@@ -317,51 +326,51 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
-	ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
+        ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
     }
 
     /**
      * @see net.sf.mzmine.modules.RawDataVisualizer#getRawDataFiles()
      */
     public RawDataFile[] getRawDataFiles() {
-	return ticDataSets.keySet().toArray(new RawDataFile[0]);
+        return ticDataSets.keySet().toArray(new RawDataFile[0]);
     }
 
     public void addRawDataFile(RawDataFile newFile) {
 
-	final Scan scans[] = scanSelection.getMatchingScans(newFile);
-	if (scans.length == 0) {
-	    desktop.displayErrorMessage(this, "No scans found.");
-	    return;
-	}
+        final Scan scans[] = scanSelection.getMatchingScans(newFile);
+        if (scans.length == 0) {
+            desktop.displayErrorMessage(this, "No scans found.");
+            return;
+        }
 
         // Use exact m/z value if user has not defined new m/z range
         if (hiddenMzRange != null) {
             Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-            if(mzFormat.format(mzRange.lowerEndpoint()).equals(mzFormat.format(
-        	hiddenMzRange.lowerEndpoint())) & mzFormat.format(mzRange.
-        	upperEndpoint()).equals(mzFormat.format(hiddenMzRange.upperEndpoint())) ) {
-        	mzRange = hiddenMzRange;
+            if (mzFormat.format(mzRange.lowerEndpoint()).equals(
+                    mzFormat.format(hiddenMzRange.lowerEndpoint()))
+                    & mzFormat.format(mzRange.upperEndpoint()).equals(
+                            mzFormat.format(hiddenMzRange.upperEndpoint()))) {
+                mzRange = hiddenMzRange;
             }
         }
 
-	TICDataSet ticDataset = new TICDataSet(newFile, scans, mzRange,
-		this);
-	ticDataSets.put(newFile, ticDataset);
-	ticPlot.addTICDataset(ticDataset);
+        TICDataSet ticDataset = new TICDataSet(newFile, scans, mzRange, this);
+        ticDataSets.put(newFile, ticDataset);
+        ticPlot.addTICDataset(ticDataset);
 
-	if (ticDataSets.size() == 1) {
-	    // when adding first file, set the retention time range
-	    // setRTRange(rtRange);
-	}
+        if (ticDataSets.size() == 1) {
+            // when adding first file, set the retention time range
+            // setRTRange(rtRange);
+        }
 
     }
 
     public void removeRawDataFile(RawDataFile file) {
-	TICDataSet dataset = ticDataSets.get(file);
-	ticPlot.getXYPlot().setDataset(ticPlot.getXYPlot().indexOf(dataset),
-		null);
-	ticDataSets.remove(file);
+        TICDataSet dataset = ticDataSets.get(file);
+        ticPlot.getXYPlot().setDataset(ticPlot.getXYPlot().indexOf(dataset),
+                null);
+        ticDataSets.remove(file);
     }
 
     /**
@@ -372,65 +381,65 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
      */
     public void exportChromatogram(RawDataFile file) {
 
-	// Get the data set.
-	final TICDataSet dataSet = ticDataSets.get(file);
-	if (dataSet != null) {
+        // Get the data set.
+        final TICDataSet dataSet = ticDataSets.get(file);
+        if (dataSet != null) {
 
-	    // Create the chooser if necessary.
-	    if (exportChooser == null) {
+            // Create the chooser if necessary.
+            if (exportChooser == null) {
 
-		exportChooser = new LoadSaveFileChooser(
-			"Select Chromatogram File");
-		exportChooser
-			.addChoosableFileFilter(new FileNameExtensionFilter(
-				"Comma-separated values files", CSV_EXTENSION));
-	    }
+                exportChooser = new LoadSaveFileChooser(
+                        "Select Chromatogram File");
+                exportChooser
+                        .addChoosableFileFilter(new FileNameExtensionFilter(
+                                "Comma-separated values files", CSV_EXTENSION));
+            }
 
-	    // Choose an export file.
-	    final File exportFile = exportChooser.getSaveFile(this,
-		    file.getName(), CSV_EXTENSION);
-	    if (exportFile != null) {
+            // Choose an export file.
+            final File exportFile = exportChooser.getSaveFile(this,
+                    file.getName(), CSV_EXTENSION);
+            if (exportFile != null) {
 
-		MZmineCore.getTaskController().addTask(
-			new ExportChromatogramTask(dataSet, exportFile));
-	    }
-	}
+                MZmineCore.getTaskController().addTask(
+                        new ExportChromatogramTask(dataSet, exportFile));
+            }
+        }
     }
 
     /**
      * @return current cursor position
      */
     public CursorPosition getCursorPosition() {
-	double selectedRT = (double) ticPlot.getXYPlot()
-		.getDomainCrosshairValue();
-	double selectedIT = (double) ticPlot.getXYPlot()
-		.getRangeCrosshairValue();
-	Enumeration<TICDataSet> e = ticDataSets.elements();
-	while (e.hasMoreElements()) {
-	    TICDataSet dataSet = e.nextElement();
-	    int index = dataSet.getIndex(selectedRT, selectedIT);
-	    if (index >= 0) {
-		double mz = 0;
-		if (plotType == TICPlotType.BASEPEAK) {
-		    mz = (double) dataSet.getZValue(0, index);
-		}
-		CursorPosition pos = new CursorPosition(selectedRT, mz,
-			selectedIT, dataSet.getDataFile(),
-			dataSet.getScanNumber(index));
-		return pos;
-	    }
-	}
-	return null;
+        double selectedRT = (double) ticPlot.getXYPlot()
+                .getDomainCrosshairValue();
+        double selectedIT = (double) ticPlot.getXYPlot()
+                .getRangeCrosshairValue();
+        Enumeration<TICDataSet> e = ticDataSets.elements();
+        while (e.hasMoreElements()) {
+            TICDataSet dataSet = e.nextElement();
+            int index = dataSet.getIndex(selectedRT, selectedIT);
+            if (index >= 0) {
+                double mz = 0;
+                if (plotType == TICPlotType.BASEPEAK) {
+                    mz = (double) dataSet.getZValue(0, index);
+                }
+                CursorPosition pos = new CursorPosition(selectedRT, mz,
+                        selectedIT, dataSet.getDataFile(),
+                        dataSet.getScanNumber(index));
+                return pos;
+            }
+        }
+        return null;
     }
 
     /**
      * @return current cursor position
      */
     public void setCursorPosition(CursorPosition newPosition) {
-	ticPlot.getXYPlot().setDomainCrosshairValue(
-		newPosition.getRetentionTime(), false);
-	ticPlot.getXYPlot().setRangeCrosshairValue(
-		newPosition.getIntensityValue());
+        ticPlot.getXYPlot().setDomainCrosshairValue(
+                newPosition.getRetentionTime(), false);
+        ticPlot.getXYPlot().setRangeCrosshairValue(
+                newPosition.getIntensityValue());
     }
 
     /**
@@ -438,68 +447,68 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
      */
     public void actionPerformed(ActionEvent event) {
 
-	String command = event.getActionCommand();
+        String command = event.getActionCommand();
 
-	if (command.equals("SHOW_SPECTRUM")) {
-	    CursorPosition pos = getCursorPosition();
-	    if (pos != null) {
-		SpectraVisualizerModule.showNewSpectrumWindow(
-			pos.getDataFile(), pos.getScanNumber());
-	    }
-	}
+        if (command.equals("SHOW_SPECTRUM")) {
+            CursorPosition pos = getCursorPosition();
+            if (pos != null) {
+                SpectraVisualizerModule.showNewSpectrumWindow(
+                        pos.getDataFile(), pos.getScanNumber());
+            }
+        }
 
-	if (command.equals("MOVE_CURSOR_LEFT")) {
-	    CursorPosition pos = getCursorPosition();
-	    if (pos != null) {
-		TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
-		int index = dataSet.getIndex(pos.getRetentionTime(),
-			pos.getIntensityValue());
-		if (index > 0) {
-		    index--;
-		    pos.setRetentionTime((double) dataSet.getXValue(0, index));
-		    pos.setIntensityValue((double) dataSet.getYValue(0, index));
-		    setCursorPosition(pos);
+        if (command.equals("MOVE_CURSOR_LEFT")) {
+            CursorPosition pos = getCursorPosition();
+            if (pos != null) {
+                TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
+                int index = dataSet.getIndex(pos.getRetentionTime(),
+                        pos.getIntensityValue());
+                if (index > 0) {
+                    index--;
+                    pos.setRetentionTime((double) dataSet.getXValue(0, index));
+                    pos.setIntensityValue((double) dataSet.getYValue(0, index));
+                    setCursorPosition(pos);
 
-		}
-	    }
-	}
+                }
+            }
+        }
 
-	if (command.equals("MOVE_CURSOR_RIGHT")) {
-	    CursorPosition pos = getCursorPosition();
-	    if (pos != null) {
-		TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
-		int index = dataSet.getIndex(pos.getRetentionTime(),
-			pos.getIntensityValue());
-		if (index >= 0) {
-		    index++;
-		    if (index < dataSet.getItemCount(0)) {
-			pos.setRetentionTime((double) dataSet.getXValue(0,
-				index));
-			pos.setIntensityValue((double) dataSet.getYValue(0,
-				index));
-			setCursorPosition(pos);
-		    }
-		}
-	    }
-	}
+        if (command.equals("MOVE_CURSOR_RIGHT")) {
+            CursorPosition pos = getCursorPosition();
+            if (pos != null) {
+                TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
+                int index = dataSet.getIndex(pos.getRetentionTime(),
+                        pos.getIntensityValue());
+                if (index >= 0) {
+                    index++;
+                    if (index < dataSet.getItemCount(0)) {
+                        pos.setRetentionTime((double) dataSet.getXValue(0,
+                                index));
+                        pos.setIntensityValue((double) dataSet.getYValue(0,
+                                index));
+                        setCursorPosition(pos);
+                    }
+                }
+            }
+        }
 
     }
 
     public void dispose() {
 
-	// If the window is closed, we want to cancel all running tasks of the
-	// data sets
-	Task tasks[] = this.ticDataSets.values().toArray(new Task[0]);
+        // If the window is closed, we want to cancel all running tasks of the
+        // data sets
+        Task tasks[] = this.ticDataSets.values().toArray(new Task[0]);
 
-	for (Task task : tasks) {
-	    TaskStatus status = task.getStatus();
-	    if ((status == TaskStatus.WAITING)
-		    || (status == TaskStatus.PROCESSING)) {
-		task.cancel();
-	    }
+        for (Task task : tasks) {
+            TaskStatus status = task.getStatus();
+            if ((status == TaskStatus.WAITING)
+                    || (status == TaskStatus.PROCESSING)) {
+                task.cancel();
+            }
 
-	}
-	super.dispose();
+        }
+        super.dispose();
 
     }
 
