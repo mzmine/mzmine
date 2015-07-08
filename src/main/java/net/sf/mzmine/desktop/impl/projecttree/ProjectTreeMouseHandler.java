@@ -345,13 +345,17 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 
     }
 
+    public void mousePressed(MouseEvent e) {
+        if (e.isPopupTrigger())
+            handlePopupTriggerEvent(e);
+    }
+
     public void mouseReleased(MouseEvent e) {
         if (e.isPopupTrigger())
             handlePopupTriggerEvent(e);
     }
 
     private void handlePopupTriggerEvent(MouseEvent e) {
-
         TreePath clickedPath = tree.getPathForLocation(e.getX(), e.getY());
         if (clickedPath == null)
             return;
