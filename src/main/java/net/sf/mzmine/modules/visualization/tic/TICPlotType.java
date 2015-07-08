@@ -19,13 +19,13 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-public enum PlotType {
+public enum TICPlotType {
 
-    BASEPEAK("Base peak intensity"), TIC("Total ion current");
+    BASEPEAK("Base peak intensity"), TIC("Total ion current (TIC/XIC)");
 
     private String type;
 
-    PlotType(String type) {
+    TICPlotType(String type) {
 	this.type = type;
     }
 
