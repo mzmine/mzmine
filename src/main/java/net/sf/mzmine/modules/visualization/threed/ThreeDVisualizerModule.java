@@ -74,7 +74,7 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
                 .getParameter(ThreeDVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
         final ScanSelection scanSel = parameters.getParameter(
-                ThreeDVisualizerParameters.scanSelectionParameter).getValue();
+                ThreeDVisualizerParameters.scanSelection).getValue();
         Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
         Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
@@ -142,7 +142,7 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
                 .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
                         new RawDataFile[] { dataFile });
         myParameters.getParameter(
-                ThreeDVisualizerParameters.scanSelectionParameter).setValue(
+                ThreeDVisualizerParameters.scanSelection).setValue(
                 new ScanSelection(null, rtRange, null, 1));
         myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(
                 mzRange);

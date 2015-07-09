@@ -50,7 +50,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     /**
      * Scans (used to be RT range).
      */
-    public static final ScanSelectionParameter scanSelectionParameter = new ScanSelectionParameter(
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
             new ScanSelection(null, null, null, 1));
 
     /**
@@ -86,7 +86,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * Create the parameter set.
      */
     public TICVisualizerParameters() {
-        super(new Parameter[] { DATA_FILES, scanSelectionParameter, PLOT_TYPE,
+        super(new Parameter[] { DATA_FILES, scanSelection, PLOT_TYPE,
                 MZ_RANGE, PEAKS, WINDOWSETTINGSPARAMETER });
         peakLabelMap = null;
         MZ_RANGE_HIDDEN = null;

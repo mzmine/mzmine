@@ -23,25 +23,27 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.ScanSelectionParameter;
 
 public class MsMsPeakPickerParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
     public static final DoubleParameter mzWindow = new DoubleParameter(
-	    "m/z window", "m/z window for peak search", MZmineCore
-		    .getConfiguration().getMZFormat());
+            "m/z window", "m/z window for peak search", MZmineCore
+                    .getConfiguration().getMZFormat());
 
     public static final DoubleParameter rtWindow = new DoubleParameter(
-	    "Time window", "Time window", MZmineCore.getConfiguration()
-		    .getRTFormat());
+            "Time window", "Time window", MZmineCore.getConfiguration()
+                    .getRTFormat());
 
-    public static final MSLevelParameter msLevel = new MSLevelParameter();
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+            new ScanSelection(null, null, null, 2));
 
     public MsMsPeakPickerParameters() {
-	super(new Parameter[] { dataFiles, mzWindow, rtWindow, msLevel });
+        super(new Parameter[] { dataFiles, mzWindow, rtWindow, scanSelection });
     }
 
 }
