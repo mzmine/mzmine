@@ -64,7 +64,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
                 .getParameter(TwoDVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
         ScanSelection scanSel = parameters.getParameter(
-                TwoDVisualizerParameters.scanSelectionParameter).getValue();
+                TwoDVisualizerParameters.scanSelection).getValue();
         Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
         Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
@@ -93,7 +93,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
                 new RawDataFile[] { dataFile });
 
         if (rtRange != null)
-            parameters.getParameter(TwoDVisualizerParameters.scanSelectionParameter)
+            parameters.getParameter(TwoDVisualizerParameters.scanSelection)
                     .setValue(new ScanSelection(null, rtRange, null, 1));
         if (mzRange != null)
             parameters.getParameter(TwoDVisualizerParameters.mzRange).setValue(mzRange);
@@ -105,7 +105,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
             return;
 
         ScanSelection scanSel = parameters.getParameter(
-                TwoDVisualizerParameters.scanSelectionParameter).getValue();
+                TwoDVisualizerParameters.scanSelection).getValue();
         Scan scans[] = scanSel.getMatchingScans(dataFile);
         rtRange = ScanUtils.findRtRange(scans);
 

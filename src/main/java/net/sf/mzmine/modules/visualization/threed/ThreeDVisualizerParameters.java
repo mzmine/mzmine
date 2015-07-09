@@ -36,7 +36,7 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
             1, 1);
 
-    public static final ScanSelectionParameter scanSelectionParameter = new ScanSelectionParameter(
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
             new ScanSelection(null, null, null, 1));
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
@@ -54,7 +54,7 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public ThreeDVisualizerParameters() {
-        super(new Parameter[] { dataFiles, scanSelectionParameter, mzRange,
+        super(new Parameter[] { dataFiles, scanSelection, mzRange,
                 rtResolution, mzResolution, windowSettings });
     }
 

@@ -67,7 +67,7 @@ public class TICVisualizerModule implements MZmineRunnableModule {
         final Range<Double> mzRange = parameters.getParameter(
                 TICVisualizerParameters.MZ_RANGE).getValue();
         final ScanSelection scanSelection = parameters.getParameter(
-                TICVisualizerParameters.scanSelectionParameter).getValue();
+                TICVisualizerParameters.scanSelection).getValue();
         final TICPlotType plotType = parameters.getParameter(
                 TICVisualizerParameters.PLOT_TYPE).getValue();
         final Feature[] selectionPeaks = parameters.getParameter(
@@ -127,7 +127,7 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 
         if (scanSelection != null) {
             myParameters.getParameter(
-                    TICVisualizerParameters.scanSelectionParameter).setValue(
+                    TICVisualizerParameters.scanSelection).setValue(
                     scanSelection);
         }
 

@@ -35,7 +35,7 @@ public class TwoDVisualizerParameters extends SimpleParameterSet {
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
             1, 1);
 
-    public static final ScanSelectionParameter scanSelectionParameter = new ScanSelectionParameter(
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
             new ScanSelection(null, null, null, 1));
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
@@ -48,7 +48,7 @@ public class TwoDVisualizerParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public TwoDVisualizerParameters() {
-        super(new Parameter[] { dataFiles, scanSelectionParameter, mzRange,
+        super(new Parameter[] { dataFiles, scanSelection, mzRange,
                 peakThresholdSettings, windowSettings });
     }
 
