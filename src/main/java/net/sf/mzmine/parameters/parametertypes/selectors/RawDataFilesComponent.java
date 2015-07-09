@@ -52,6 +52,9 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
         BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
         setLayout(layout);
 
+        numFilesLabel = new JLabel();
+        add(numFilesLabel);
+
         typeCombo = new JComboBox<>(RawDataFilesSelectionType.values());
         typeCombo.addActionListener(this);
         add(typeCombo);
@@ -60,9 +63,6 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
         detailsButton.setEnabled(false);
         detailsButton.addActionListener(this);
         add(detailsButton);
-
-        numFilesLabel = new JLabel();
-        add(numFilesLabel);
 
         // Do not allow resizing below the required size for individual
         // components
@@ -155,7 +155,14 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
             numFilesLabel.setToolTipText("");
         } else {
             RawDataFile files[] = currentValue.getMatchingRawDataFiles();
-            numFilesLabel.setText("(" + files.length + " selected)");
+            if (files.length == 1) {
+                String fileName = files[0].getName();
+                if (fileName.length() > 22)
+                    fileName = fileName.substring(0, 20) + "...";
+                numFilesLabel.setText(fileName);
+            } else {
+                numFilesLabel.setText(files.length + " selected");
+            }
             numFilesLabel.setToolTipText(currentValue.toString());
         }
     }

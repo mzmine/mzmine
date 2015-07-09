@@ -85,7 +85,7 @@ public class PeakListsParameter implements
 
     @Override
     public String getName() {
-        return "Peak lists (input)";
+        return "Peak lists";
     }
 
     @Override

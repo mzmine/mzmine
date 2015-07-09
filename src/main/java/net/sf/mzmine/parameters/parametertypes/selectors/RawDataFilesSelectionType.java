@@ -21,11 +21,11 @@ package net.sf.mzmine.parameters.parametertypes.selectors;
 
 public enum RawDataFilesSelectionType {
 
-    GUI_SELECTED_FILES("Raw data files selected in main window"), //
+    GUI_SELECTED_FILES("As selected in main window"), //
     ALL_FILES("All raw data files"), //
     SPECIFIC_FILES("Specific raw data files"), //
     NAME_PATTERN("File name pattern"), //
-    BATCH_LAST_FILES("Raw data files created by previous batch step");
+    BATCH_LAST_FILES("Those created by previous batch step");
 
     private final String stringValue;
 

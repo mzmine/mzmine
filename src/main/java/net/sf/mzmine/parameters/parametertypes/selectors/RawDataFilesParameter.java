@@ -86,7 +86,7 @@ public class RawDataFilesParameter implements
 
     @Override
     public String getName() {
-        return "Raw data files (input)";
+        return "Raw data files";
     }
 
     @Override
