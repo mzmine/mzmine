@@ -41,6 +41,7 @@ import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParameters;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
+import net.sf.mzmine.modules.visualization.ida.IDAVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
@@ -83,6 +84,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show mass spectrum", this,
                 "SHOW_SPECTRUM");
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Show IDA visualizer", this,
+                "SHOW_IDA");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show 2D visualizer", this,
                 "SHOW_2D");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show 3D visualizer", this,
@@ -158,13 +161,21 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
                 module.runModule(project, parameters, new ArrayList<Task>());
         }
 
+        if (command.equals("SHOW_IDA")) {
+            RawDataFile[] selectedFiles = tree
+                    .getSelectedObjects(RawDataFile.class);
+            if (selectedFiles.length == 0)
+                return;
+            IDAVisualizerModule.showIDAVisualizerSetupDialog(selectedFiles[0]);
+
+        }
+
         if (command.equals("SHOW_2D")) {
             RawDataFile[] selectedFiles = tree
                     .getSelectedObjects(RawDataFile.class);
             if (selectedFiles.length == 0)
                 return;
             TwoDVisualizerModule.show2DVisualizerSetupDialog(selectedFiles[0]);
-
         }
 
         if (command.equals("SHOW_3D")) {
