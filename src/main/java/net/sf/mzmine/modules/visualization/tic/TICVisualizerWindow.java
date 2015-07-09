@@ -27,7 +27,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.text.Format;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -85,7 +84,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
     private TICPlotType plotType;
     private ScanSelection scanSelection;
-    private Range<Double> mzRange, hiddenMzRange;
+    private Range<Double> mzRange;
 
     private Desktop desktop;
 
@@ -97,8 +96,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], TICPlotType plotType,
             ScanSelection scanSelection, Range<Double> mzRange,
-            Feature[] peaks, Map<Feature, String> peakLabels,
-            Range<Double> hiddenMzRange) {
+            Feature[] peaks, Map<Feature, String> peakLabels) {
 
         super("Chromatogram loading...");
 
@@ -109,15 +107,13 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
         this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
         this.scanSelection = scanSelection;
         this.mzRange = mzRange;
-        this.hiddenMzRange = hiddenMzRange;
 
-        // setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
         ticPlot = new TICPlot(this);
         add(ticPlot, BorderLayout.CENTER);
 
-        // toolBar = new TICToolBar(this);
         toolBar = new TICToolBar(ticPlot);
         add(toolBar, BorderLayout.EAST);
 
@@ -344,25 +340,9 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
             return;
         }
 
-        // Use exact m/z value if user has not defined new m/z range
-        if (hiddenMzRange != null) {
-            Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-            if (mzFormat.format(mzRange.lowerEndpoint()).equals(
-                    mzFormat.format(hiddenMzRange.lowerEndpoint()))
-                    & mzFormat.format(mzRange.upperEndpoint()).equals(
-                            mzFormat.format(hiddenMzRange.upperEndpoint()))) {
-                mzRange = hiddenMzRange;
-            }
-        }
-
         TICDataSet ticDataset = new TICDataSet(newFile, scans, mzRange, this);
         ticDataSets.put(newFile, ticDataset);
         ticPlot.addTICDataset(ticDataset);
-
-        if (ticDataSets.size() == 1) {
-            // when adding first file, set the retention time range
-            // setRTRange(rtRange);
-        }
 
     }
 
