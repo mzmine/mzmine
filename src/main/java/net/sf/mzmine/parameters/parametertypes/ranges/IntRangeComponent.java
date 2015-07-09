@@ -17,10 +17,9 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.ranges;
 
 import java.awt.GridBagConstraints;
-import java.text.NumberFormat;
 
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -29,15 +28,13 @@ import net.sf.mzmine.util.components.GridBagPanel;
 
 import com.google.common.collect.Range;
 
-public class RangeComponent extends GridBagPanel {
+public class IntRangeComponent extends GridBagPanel {
 
     private static final long serialVersionUID = 1L;
+
     private JTextField minTxtField, maxTxtField;
-    private NumberFormat format;
 
-    public RangeComponent(NumberFormat format) {
-
-        this.format = format;
+    public IntRangeComponent() {
 
         minTxtField = new JTextField();
         minTxtField.setColumns(8);
@@ -50,30 +47,22 @@ public class RangeComponent extends GridBagPanel {
         add(maxTxtField, 2, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
     }
 
-    public Range<Double> getValue() {
+    public Range<Integer> getValue() {
         String minString = minTxtField.getText();
         String maxString = maxTxtField.getText();
 
         try {
-            Number minValue = format.parse(minString);
-            Number maxValue = format.parse(maxString);
-
-            if ((minValue == null) || (maxValue == null))
-                return null;
-            return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
+            return Range.closed(Integer.parseInt(minString),
+                    Integer.parseInt(maxString));
 
         } catch (Exception e) {
             return null;
         }
     }
 
-    public void setNumberFormat(NumberFormat format) {
-        this.format = format;
-    }
-
-    public void setValue(Range<Double> value) {
-        minTxtField.setText(format.format(value.lowerEndpoint()));
-        maxTxtField.setText(format.format(value.upperEndpoint()));
+    public void setValue(Range<Integer> value) {
+        minTxtField.setText(String.valueOf(value.lowerEndpoint()));
+        maxTxtField.setText(String.valueOf(value.upperEndpoint()));
     }
 
     @Override

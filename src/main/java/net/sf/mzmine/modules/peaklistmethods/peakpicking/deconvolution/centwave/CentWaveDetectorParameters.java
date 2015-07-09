@@ -32,7 +32,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.util.ExitCode;
 
 import com.google.common.collect.Range;
@@ -78,12 +78,12 @@ public class CentWaveDetectorParameters extends SimpleParameterSet {
 	}
     }
 
-    public static final RangeParameter PEAK_DURATION = new RangeParameter(
+    public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
 	    "Peak duration range", "Range of acceptable peak lengths",
 	    MZmineCore.getConfiguration().getRTFormat(),
 	    Range.closed(0.0, 10.0));
 
-    public static final RangeParameter PEAK_SCALES = new RangeParameter(
+    public static final DoubleRangeParameter PEAK_SCALES = new DoubleRangeParameter(
 	    "Wavelet scales",
 	    "Range wavelet widths (smallest, largest) in minutes", MZmineCore
 		    .getConfiguration().getRTFormat(), Range.closed(0.25, 5.0));

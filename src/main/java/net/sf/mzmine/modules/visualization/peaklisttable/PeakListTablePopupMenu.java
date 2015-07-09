@@ -56,9 +56,10 @@ import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableColu
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
-import net.sf.mzmine.modules.visualization.tic.PlotType;
+import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import net.sf.mzmine.parameters.parametertypes.ScanSelection;
 import net.sf.mzmine.util.GUIUtils;
 
 import com.google.common.collect.Range;
@@ -67,7 +68,7 @@ import com.google.common.collect.Range;
  * Peak-list table pop-up menu.
  */
 public class PeakListTablePopupMenu extends JPopupMenu implements
-	ActionListener {
+        ActionListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -111,475 +112,479 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private static PeakIdentity copiedId = null;
 
     public PeakListTablePopupMenu(final PeakListTableWindow window,
-	    PeakListTable listTable, final PeakListTableColumnModel model,
-	    final PeakList list) {
+            PeakListTable listTable, final PeakListTableColumnModel model,
+            final PeakList list) {
 
-	this.window = window;
-	table = listTable;
-	peakList = list;
-	columnModel = model;
+        this.window = window;
+        table = listTable;
+        peakList = list;
+        columnModel = model;
 
-	clickedDataFile = null;
-	clickedPeakListRow = null;
-	allClickedPeakListRows = null;
+        clickedDataFile = null;
+        clickedPeakListRow = null;
+        allClickedPeakListRows = null;
 
-	showMenu = new JMenu("Show");
-	add(showMenu);
+        showMenu = new JMenu("Show");
+        add(showMenu);
 
-	showXICItem = GUIUtils.addMenuItem(showMenu, "XIC (base peak) (quick)",
-		this);
-	showXICSetupItem = GUIUtils.addMenuItem(showMenu,
-		"XIC (dialog)", this);
-	showSpectrumItem = GUIUtils
-		.addMenuItem(showMenu, "Mass spectrum", this);
-	show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
-	show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
-	showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
-	showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
-		"Isotope pattern", this);
-	showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu,
-		"Peak row summary", this);
+        showXICItem = GUIUtils.addMenuItem(showMenu, "XIC (base peak) (quick)",
+                this);
+        showXICSetupItem = GUIUtils.addMenuItem(showMenu, "XIC (dialog)", this);
+        showSpectrumItem = GUIUtils
+                .addMenuItem(showMenu, "Mass spectrum", this);
+        show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
+        show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
+        showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
+        showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
+                "Isotope pattern", this);
+        showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu,
+                "Peak row summary", this);
 
-	searchMenu = new JMenu("Search");
-	add(searchMenu);
-	dbSearchItem = GUIUtils.addMenuItem(searchMenu,
-		"Search online database", this);
-	nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search",
-		this);
-	formulaItem = GUIUtils.addMenuItem(searchMenu,
-		"Predict molecular formula", this);
+        searchMenu = new JMenu("Search");
+        add(searchMenu);
+        dbSearchItem = GUIUtils.addMenuItem(searchMenu,
+                "Search online database", this);
+        nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search",
+                this);
+        formulaItem = GUIUtils.addMenuItem(searchMenu,
+                "Predict molecular formula", this);
 
-	exportMenu = new JMenu("Export");
-	add(exportMenu);
-	exportIsotopesItem = GUIUtils.addMenuItem(exportMenu,
-		"Isotope pattern", this);
-	exportMSMSItem = GUIUtils
-		.addMenuItem(exportMenu, "MS/MS pattern", this);
+        exportMenu = new JMenu("Export");
+        add(exportMenu);
+        exportIsotopesItem = GUIUtils.addMenuItem(exportMenu,
+                "Isotope pattern", this);
+        exportMSMSItem = GUIUtils
+                .addMenuItem(exportMenu, "MS/MS pattern", this);
 
-	// Identities menu.
-	idsMenu = new JMenu("Identities");
-	add(idsMenu);
-	clearIdsItem = GUIUtils.addMenuItem(idsMenu, "Clear", this);
-	copyIdsItem = GUIUtils.addMenuItem(idsMenu, "Copy", this);
-	pasteIdsItem = GUIUtils.addMenuItem(idsMenu, "Paste", this);
+        // Identities menu.
+        idsMenu = new JMenu("Identities");
+        add(idsMenu);
+        clearIdsItem = GUIUtils.addMenuItem(idsMenu, "Clear", this);
+        copyIdsItem = GUIUtils.addMenuItem(idsMenu, "Copy", this);
+        pasteIdsItem = GUIUtils.addMenuItem(idsMenu, "Paste", this);
 
-	plotRowsItem = GUIUtils.addMenuItem(this,
-		"Plot using Intensity Plot module", this);
-	manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
-		this);
-	deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected row(s)",
-		this);
-	addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
+        plotRowsItem = GUIUtils.addMenuItem(this,
+                "Plot using Intensity Plot module", this);
+        manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
+                this);
+        deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected row(s)",
+                this);
+        addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
     }
 
     @Override
     public void show(final Component invoker, final int x, final int y) {
 
-	// Select the row where clicked?
-	final Point clickedPoint = new Point(x, y);
-	final int clickedRow = table.rowAtPoint(clickedPoint);
-	if (table.getSelectedRowCount() < 2) {
-	    ListSelectionModel selectionModel = table.getSelectionModel();
-	    selectionModel.setSelectionInterval(clickedRow, clickedRow);
-	}
+        // Select the row where clicked?
+        final Point clickedPoint = new Point(x, y);
+        final int clickedRow = table.rowAtPoint(clickedPoint);
+        if (table.getSelectedRowCount() < 2) {
+            ListSelectionModel selectionModel = table.getSelectionModel();
+            selectionModel.setSelectionInterval(clickedRow, clickedRow);
+        }
 
-	// First, disable all the Show... items
-	show2DItem.setEnabled(false);
-	show3DItem.setEnabled(false);
-	manuallyDefineItem.setEnabled(false);
-	showMSMSItem.setEnabled(false);
-	showIsotopePatternItem.setEnabled(false);
-	showPeakRowSummaryItem.setEnabled(false);
-	exportIsotopesItem.setEnabled(false);
-	exportMSMSItem.setEnabled(false);
-	exportMenu.setEnabled(false);
+        // First, disable all the Show... items
+        show2DItem.setEnabled(false);
+        show3DItem.setEnabled(false);
+        manuallyDefineItem.setEnabled(false);
+        showMSMSItem.setEnabled(false);
+        showIsotopePatternItem.setEnabled(false);
+        showPeakRowSummaryItem.setEnabled(false);
+        exportIsotopesItem.setEnabled(false);
+        exportMSMSItem.setEnabled(false);
+        exportMenu.setEnabled(false);
 
-	// Enable row items if applicable
-	final int[] selectedRows = table.getSelectedRows();
-	final boolean rowsSelected = selectedRows.length > 0;
-	deleteRowsItem.setEnabled(rowsSelected);
-	clearIdsItem.setEnabled(rowsSelected);
-	pasteIdsItem.setEnabled(rowsSelected && copiedId != null);
-	plotRowsItem.setEnabled(rowsSelected);
-	showMenu.setEnabled(rowsSelected);
-	idsMenu.setEnabled(rowsSelected);
-	exportIsotopesItem.setEnabled(rowsSelected);
-	exportMenu.setEnabled(rowsSelected);
+        // Enable row items if applicable
+        final int[] selectedRows = table.getSelectedRows();
+        final boolean rowsSelected = selectedRows.length > 0;
+        deleteRowsItem.setEnabled(rowsSelected);
+        clearIdsItem.setEnabled(rowsSelected);
+        pasteIdsItem.setEnabled(rowsSelected && copiedId != null);
+        plotRowsItem.setEnabled(rowsSelected);
+        showMenu.setEnabled(rowsSelected);
+        idsMenu.setEnabled(rowsSelected);
+        exportIsotopesItem.setEnabled(rowsSelected);
+        exportMenu.setEnabled(rowsSelected);
 
-	final boolean oneRowSelected = selectedRows.length == 1;
-	searchMenu.setEnabled(oneRowSelected);
+        final boolean oneRowSelected = selectedRows.length == 1;
+        searchMenu.setEnabled(oneRowSelected);
 
-	// Find the row and column where the user clicked
-	clickedDataFile = null;
-	final int clickedColumn = columnModel.getColumn(
-		table.columnAtPoint(clickedPoint)).getModelIndex();
-	if (clickedRow >= 0 && clickedColumn >= 0) {
+        // Find the row and column where the user clicked
+        clickedDataFile = null;
+        final int clickedColumn = columnModel.getColumn(
+                table.columnAtPoint(clickedPoint)).getModelIndex();
+        if (clickedRow >= 0 && clickedColumn >= 0) {
 
-	    final int rowIndex = table.convertRowIndexToModel(clickedRow);
-	    clickedPeakListRow = peakList.getRow(rowIndex);
-	    allClickedPeakListRows = new PeakListRow[selectedRows.length];
-	    for (int i = 0; i < selectedRows.length; i++) {
+            final int rowIndex = table.convertRowIndexToModel(clickedRow);
+            clickedPeakListRow = peakList.getRow(rowIndex);
+            allClickedPeakListRows = new PeakListRow[selectedRows.length];
+            for (int i = 0; i < selectedRows.length; i++) {
 
-		allClickedPeakListRows[i] = peakList.getRow(table
-			.convertRowIndexToModel(selectedRows[i]));
-	    }
+                allClickedPeakListRows[i] = peakList.getRow(table
+                        .convertRowIndexToModel(selectedRows[i]));
+            }
 
-	    // Enable items.
-	    show2DItem.setEnabled(oneRowSelected);
-	    show3DItem.setEnabled(oneRowSelected);
-	    showPeakRowSummaryItem.setEnabled(oneRowSelected);
+            // Enable items.
+            show2DItem.setEnabled(oneRowSelected);
+            show3DItem.setEnabled(oneRowSelected);
+            showPeakRowSummaryItem.setEnabled(oneRowSelected);
 
-	    if (clickedPeakListRow.getBestPeak() != null) {
-	    exportMSMSItem.setEnabled(oneRowSelected
-		    && clickedPeakListRow.getBestPeak()
-			    .getMostIntenseFragmentScanNumber() > 0);
-	    }
+            if (clickedPeakListRow.getBestPeak() != null) {
+                exportMSMSItem.setEnabled(oneRowSelected
+                        && clickedPeakListRow.getBestPeak()
+                                .getMostIntenseFragmentScanNumber() > 0);
+            }
 
-	    // If we clicked on data file columns, check the peak
-	    if (clickedColumn >= CommonColumnType.values().length) {
+            // If we clicked on data file columns, check the peak
+            if (clickedColumn >= CommonColumnType.values().length) {
 
-		// Enable manual peak picking
-		manuallyDefineItem.setEnabled(oneRowSelected);
+                // Enable manual peak picking
+                manuallyDefineItem.setEnabled(oneRowSelected);
 
-		// Find the actual peak, if we have it.
-		clickedDataFile = peakList
-			.getRawDataFile((clickedColumn - CommonColumnType
-				.values().length)
-				/ DataFileColumnType.values().length);
+                // Find the actual peak, if we have it.
+                clickedDataFile = peakList
+                        .getRawDataFile((clickedColumn - CommonColumnType
+                                .values().length)
+                                / DataFileColumnType.values().length);
 
-		final Feature clickedPeak = peakList.getRow(
-			table.convertRowIndexToModel(clickedRow)).getPeak(
-			clickedDataFile);
+                final Feature clickedPeak = peakList.getRow(
+                        table.convertRowIndexToModel(clickedRow)).getPeak(
+                        clickedDataFile);
 
-		// If we have the peak, enable Show... items
-		if (clickedPeak != null && oneRowSelected) {
-		    showIsotopePatternItem.setEnabled(clickedPeak
-			    .getIsotopePattern() != null);
-		    showMSMSItem.setEnabled(clickedPeak
-			    .getMostIntenseFragmentScanNumber() > 0);
-		}
+                // If we have the peak, enable Show... items
+                if (clickedPeak != null && oneRowSelected) {
+                    showIsotopePatternItem.setEnabled(clickedPeak
+                            .getIsotopePattern() != null);
+                    showMSMSItem.setEnabled(clickedPeak
+                            .getMostIntenseFragmentScanNumber() > 0);
+                }
 
-	    } else {
+            } else {
 
-		showIsotopePatternItem.setEnabled(clickedPeakListRow
-			.getBestIsotopePattern() != null && oneRowSelected);
-		if (clickedPeakListRow.getBestPeak() != null) {
-		    showMSMSItem.setEnabled(clickedPeakListRow.getBestPeak()
-			.getMostIntenseFragmentScanNumber() > 0
-			&& oneRowSelected);
-		}
-	    }
-	}
+                showIsotopePatternItem.setEnabled(clickedPeakListRow
+                        .getBestIsotopePattern() != null && oneRowSelected);
+                if (clickedPeakListRow.getBestPeak() != null) {
+                    showMSMSItem.setEnabled(clickedPeakListRow.getBestPeak()
+                            .getMostIntenseFragmentScanNumber() > 0
+                            && oneRowSelected);
+                }
+            }
+        }
 
-	copyIdsItem
-		.setEnabled(oneRowSelected
-			&& allClickedPeakListRows[0].getPreferredPeakIdentity() != null);
+        copyIdsItem
+                .setEnabled(oneRowSelected
+                        && allClickedPeakListRows[0].getPreferredPeakIdentity() != null);
 
-	super.show(invoker, x, y);
+        super.show(invoker, x, y);
     }
 
     @Override
     public void actionPerformed(final ActionEvent e) {
 
-	final Object src = e.getSource();
+        final Object src = e.getSource();
 
-	if (deleteRowsItem.equals(src)) {
+        if (deleteRowsItem.equals(src)) {
 
-	    final int[] rowsToDelete = table.getSelectedRows();
+            final int[] rowsToDelete = table.getSelectedRows();
 
-	    final int[] unsortedIndexes = new int[rowsToDelete.length];
-	    for (int i = rowsToDelete.length - 1; i >= 0; i--) {
+            final int[] unsortedIndexes = new int[rowsToDelete.length];
+            for (int i = rowsToDelete.length - 1; i >= 0; i--) {
 
-		unsortedIndexes[i] = table
-			.convertRowIndexToModel(rowsToDelete[i]);
-	    }
+                unsortedIndexes[i] = table
+                        .convertRowIndexToModel(rowsToDelete[i]);
+            }
 
-	    // sort row indexes and start removing from the last
-	    Arrays.sort(unsortedIndexes);
+            // sort row indexes and start removing from the last
+            Arrays.sort(unsortedIndexes);
 
-	    // delete the rows starting from last
-	    for (int i = unsortedIndexes.length - 1; i >= 0; i--) {
-		peakList.removeRow(unsortedIndexes[i]);
-	    }
+            // delete the rows starting from last
+            for (int i = unsortedIndexes.length - 1; i >= 0; i--) {
+                peakList.removeRow(unsortedIndexes[i]);
+            }
 
-	    // Notify the GUI that peaklist contents have changed
-	    updateTableGUI();
-	}
+            // Notify the GUI that peaklist contents have changed
+            updateTableGUI();
+        }
 
-	if (plotRowsItem.equals(src)) {
-
-	    final int[] selectedTableRows = table.getSelectedRows();
-
-	    final PeakListRow[] selectedRows = new PeakListRow[selectedTableRows.length];
-	    for (int i = 0; i < selectedTableRows.length; i++) {
-
-		selectedRows[i] = peakList.getRow(table
-			.convertRowIndexToModel(selectedTableRows[i]));
-	    }
-
-	    IntensityPlotModule.showIntensityPlot(MZmineCore
-		    .getProjectManager().getCurrentProject(), peakList,
-		    selectedRows);
-	}
-
-	if (showXICItem.equals(src) && allClickedPeakListRows.length != 0) {
-
-	    // Map peaks to their identity labels.
-	    final Map<Feature, String> labelsMap = new HashMap<Feature, String>(
-		    allClickedPeakListRows.length);
-
-	    final RawDataFile selectedDataFile = clickedDataFile == null ? allClickedPeakListRows[0]
-		    .getBestPeak().getDataFile() : clickedDataFile;
-
-	    Range<Double> mzRange = null;
-	    final List<Feature> selectedPeaks = new ArrayList<Feature>(
-		    allClickedPeakListRows.length);
-	    for (final PeakListRow row : allClickedPeakListRows) {
-
-		for (final Feature peak : row.getPeaks()) {
-		    if (mzRange == null) {
-			mzRange = peak.getRawDataPointsMZRange();
-		    } else {
-			mzRange = mzRange.span(peak.getRawDataPointsMZRange());
-		    }
-		}
+        if (plotRowsItem.equals(src)) {
 
-		final Feature filePeak = row.getPeak(selectedDataFile);
-		if (filePeak != null) {
+            final int[] selectedTableRows = table.getSelectedRows();
 
-		    selectedPeaks.add(filePeak);
+            final PeakListRow[] selectedRows = new PeakListRow[selectedTableRows.length];
+            for (int i = 0; i < selectedTableRows.length; i++) {
 
-		    // Label the peak with the row's preferred identity.
-		    final PeakIdentity identity = row
-			    .getPreferredPeakIdentity();
-		    if (identity != null) {
-			labelsMap.put(filePeak, identity.getName());
-		    }
-		}
-	    }
+                selectedRows[i] = peakList.getRow(table
+                        .convertRowIndexToModel(selectedTableRows[i]));
+            }
+
+            IntensityPlotModule.showIntensityPlot(MZmineCore
+                    .getProjectManager().getCurrentProject(), peakList,
+                    selectedRows);
+        }
 
-	    TICVisualizerModule.showNewTICVisualizerWindow(
-		    new RawDataFile[] { selectedDataFile },
-		    selectedPeaks.toArray(new Feature[selectedPeaks.size()]),
-		    labelsMap, 1, PlotType.BASEPEAK,
-		    selectedDataFile.getDataRTRange(1), mzRange);
-	}
-
-	if (showXICSetupItem.equals(src) && allClickedPeakListRows.length != 0) {
-
-	    // Map peaks to their identity labels.
-	    final Map<Feature, String> labelsMap = new HashMap<Feature, String>(
-		    allClickedPeakListRows.length);
-
-	    final RawDataFile[] selectedDataFiles = clickedDataFile == null ? peakList
-		    .getRawDataFiles() : new RawDataFile[] { clickedDataFile };
-
-	    Range<Double> mzRange = null;
-	    final ArrayList<Feature> allClickedPeaks = new ArrayList<Feature>(
-		    allClickedPeakListRows.length);
-	    final ArrayList<Feature> selectedClickedPeaks = new ArrayList<Feature>(
-		    allClickedPeakListRows.length);
-	    for (final PeakListRow row : allClickedPeakListRows) {
-
-		// Label the peak with the row's preferred identity.
-		final PeakIdentity identity = row.getPreferredPeakIdentity();
-
-		for (final Feature peak : row.getPeaks()) {
-
-		    allClickedPeaks.add(peak);
-		    if (peak.getDataFile() == clickedDataFile) {
-			selectedClickedPeaks.add(peak);
-		    }
-
-		    if (mzRange == null) {
-			mzRange = peak.getRawDataPointsMZRange();
-		    } else {
-			mzRange = mzRange.span(peak.getRawDataPointsMZRange());
-		    }
-
-		    if (identity != null) {
-			labelsMap.put(peak, identity.getName());
-		    }
-		}
-	    }
-
-	    TICVisualizerModule.setupNewTICVisualizer(MZmineCore
-		    .getProjectManager().getCurrentProject().getDataFiles(),
-		    selectedDataFiles, allClickedPeaks
-			    .toArray(new Feature[allClickedPeaks.size()]),
-		    selectedClickedPeaks
-			    .toArray(new Feature[selectedClickedPeaks.size()]),
-		    labelsMap, selectedDataFiles[0].getDataRTRange(1), mzRange);
-	}
-
-	if (show2DItem.equals(src)) {
-
-	    final Feature showPeak = getSelectedPeak();
-	    if (showPeak != null) {
-
-		TwoDVisualizerModule.show2DVisualizerSetupDialog(
-			showPeak.getDataFile(), getPeakMZRange(showPeak),
-			getPeakRTRange(showPeak));
-	    }
-	}
-
-	if (show3DItem.equals(src)) {
-
-	    final Feature showPeak = getSelectedPeak();
-	    if (showPeak != null) {
-
-		ThreeDVisualizerModule.setupNew3DVisualizer(
-			showPeak.getDataFile(), getPeakMZRange(showPeak),
-			getPeakRTRange(showPeak));
-	    }
-	}
-
-	if (manuallyDefineItem.equals(src)) {
-
-	    ManualPeakPickerModule.runManualDetection(clickedDataFile,
-		    clickedPeakListRow, peakList, table);
-	}
-
-	if (showSpectrumItem.equals(src)) {
+        if (showXICItem.equals(src) && allClickedPeakListRows.length != 0) {
 
-	    final Feature showPeak = getSelectedPeak();
-	    if (showPeak != null) {
-
-		SpectraVisualizerModule.showNewSpectrumWindow(
-			showPeak.getDataFile(),
-			showPeak.getRepresentativeScanNumber(), showPeak);
-	    }
-	}
-
-	if (showMSMSItem.equals(src)) {
+            // Map peaks to their identity labels.
+            final Map<Feature, String> labelsMap = new HashMap<Feature, String>(
+                    allClickedPeakListRows.length);
+
+            final RawDataFile selectedDataFile = clickedDataFile == null ? allClickedPeakListRows[0]
+                    .getBestPeak().getDataFile() : clickedDataFile;
 
-	    final Feature showPeak = getSelectedPeak();
-	    if (showPeak != null) {
-
-		final int scanNumber = showPeak
-			.getMostIntenseFragmentScanNumber();
-		if (scanNumber > 0) {
-		    SpectraVisualizerModule.showNewSpectrumWindow(
-			    showPeak.getDataFile(), scanNumber);
-		} else {
-		    MZmineCore.getDesktop().displayMessage(
-			    window,
-			    "There is no fragment for "
-				    + MZmineCore.getConfiguration()
-					    .getMZFormat()
-					    .format(showPeak.getMZ())
-				    + " m/z in the current raw data.");
-		}
-	    }
-	}
+            Range<Double> mzRange = null;
+            final List<Feature> selectedPeaks = new ArrayList<Feature>(
+                    allClickedPeakListRows.length);
+            for (final PeakListRow row : allClickedPeakListRows) {
 
-	if (showIsotopePatternItem.equals(src)) {
+                for (final Feature peak : row.getPeaks()) {
+                    if (mzRange == null) {
+                        mzRange = peak.getRawDataPointsMZRange();
+                    } else {
+                        mzRange = mzRange.span(peak.getRawDataPointsMZRange());
+                    }
+                }
 
-	    final Feature showPeak = getSelectedPeak();
-	    if (showPeak != null && showPeak.getIsotopePattern() != null) {
+                final Feature filePeak = row.getPeak(selectedDataFile);
+                if (filePeak != null) {
 
-		SpectraVisualizerModule.showNewSpectrumWindow(
-			showPeak.getDataFile(),
-			showPeak.getRepresentativeScanNumber(),
-			showPeak.getIsotopePattern());
-	    }
-	}
+                    selectedPeaks.add(filePeak);
 
-	if (formulaItem != null && formulaItem.equals(src)) {
+                    // Label the peak with the row's preferred identity.
+                    final PeakIdentity identity = row
+                            .getPreferredPeakIdentity();
+                    if (identity != null) {
+                        labelsMap.put(filePeak, identity.getName());
+                    }
+                }
+            }
 
-	    FormulaPredictionModule
-		    .showSingleRowIdentificationDialog(clickedPeakListRow);
-	}
+            ScanSelection scanSelection = new ScanSelection(null,
+                    selectedDataFile.getDataRTRange(1), null, 1);
 
-	if (dbSearchItem != null && dbSearchItem.equals(src)) {
+            TICVisualizerModule.showNewTICVisualizerWindow(
+                    new RawDataFile[] { selectedDataFile },
+                    selectedPeaks.toArray(new Feature[selectedPeaks.size()]),
+                    labelsMap, scanSelection, TICPlotType.BASEPEAK, mzRange);
+        }
 
-	    OnlineDBSearchModule
-		    .showSingleRowIdentificationDialog(clickedPeakListRow);
-	}
+        if (showXICSetupItem.equals(src) && allClickedPeakListRows.length != 0) {
 
-	if (nistSearchItem != null && nistSearchItem.equals(src)) {
+            // Map peaks to their identity labels.
+            final Map<Feature, String> labelsMap = new HashMap<Feature, String>(
+                    allClickedPeakListRows.length);
+
+            final RawDataFile[] selectedDataFiles = clickedDataFile == null ? peakList
+                    .getRawDataFiles() : new RawDataFile[] { clickedDataFile };
+
+            Range<Double> mzRange = null;
+            final ArrayList<Feature> allClickedPeaks = new ArrayList<Feature>(
+                    allClickedPeakListRows.length);
+            final ArrayList<Feature> selectedClickedPeaks = new ArrayList<Feature>(
+                    allClickedPeakListRows.length);
+            for (final PeakListRow row : allClickedPeakListRows) {
+
+                // Label the peak with the row's preferred identity.
+                final PeakIdentity identity = row.getPreferredPeakIdentity();
+
+                for (final Feature peak : row.getPeaks()) {
+
+                    allClickedPeaks.add(peak);
+                    if (peak.getDataFile() == clickedDataFile) {
+                        selectedClickedPeaks.add(peak);
+                    }
+
+                    if (mzRange == null) {
+                        mzRange = peak.getRawDataPointsMZRange();
+                    } else {
+                        mzRange = mzRange.span(peak.getRawDataPointsMZRange());
+                    }
+
+                    if (identity != null) {
+                        labelsMap.put(peak, identity.getName());
+                    }
+                }
+            }
+
+            ScanSelection scanSelection = new ScanSelection(null,
+                    selectedDataFiles[0].getDataRTRange(1), null, 1);
+
+            TICVisualizerModule.setupNewTICVisualizer(MZmineCore
+                    .getProjectManager().getCurrentProject().getDataFiles(),
+                    selectedDataFiles, allClickedPeaks
+                            .toArray(new Feature[allClickedPeaks.size()]),
+                    selectedClickedPeaks
+                            .toArray(new Feature[selectedClickedPeaks.size()]),
+                    labelsMap, scanSelection, mzRange);
+        }
+
+        if (show2DItem.equals(src)) {
+
+            final Feature showPeak = getSelectedPeak();
+            if (showPeak != null) {
+
+                TwoDVisualizerModule.show2DVisualizerSetupDialog(
+                        showPeak.getDataFile(), getPeakMZRange(showPeak),
+                        getPeakRTRange(showPeak));
+            }
+        }
+
+        if (show3DItem.equals(src)) {
+
+            final Feature showPeak = getSelectedPeak();
+            if (showPeak != null) {
+
+                ThreeDVisualizerModule.setupNew3DVisualizer(
+                        showPeak.getDataFile(), getPeakMZRange(showPeak),
+                        getPeakRTRange(showPeak));
+            }
+        }
+
+        if (manuallyDefineItem.equals(src)) {
 
-	    NistMsSearchModule.singleRowSearch(peakList, clickedPeakListRow);
-	}
+            ManualPeakPickerModule.runManualDetection(clickedDataFile,
+                    clickedPeakListRow, peakList, table);
+        }
 
-	if (addNewRowItem.equals(src)) {
+        if (showSpectrumItem.equals(src)) {
 
-	    // find maximum ID and add 1
-	    int newID = 1;
-	    for (final PeakListRow row : peakList.getRows()) {
-		if (row.getID() >= newID) {
-		    newID = row.getID() + 1;
-		}
-	    }
+            final Feature showPeak = getSelectedPeak();
+            if (showPeak != null) {
 
-	    // create a new row
-	    final PeakListRow newRow = new SimplePeakListRow(newID);
-	    ManualPeakPickerModule.runManualDetection(
-		    peakList.getRawDataFiles(), newRow, peakList, table);
+                SpectraVisualizerModule.showNewSpectrumWindow(
+                        showPeak.getDataFile(),
+                        showPeak.getRepresentativeScanNumber(), showPeak);
+            }
+        }
 
-	}
+        if (showMSMSItem.equals(src)) {
 
-	if (showPeakRowSummaryItem.equals(src)) {
+            final Feature showPeak = getSelectedPeak();
+            if (showPeak != null) {
 
-	    PeakSummaryVisualizerModule
-		    .showNewPeakSummaryWindow(clickedPeakListRow);
-	}
+                final int scanNumber = showPeak
+                        .getMostIntenseFragmentScanNumber();
+                if (scanNumber > 0) {
+                    SpectraVisualizerModule.showNewSpectrumWindow(
+                            showPeak.getDataFile(), scanNumber);
+                } else {
+                    MZmineCore.getDesktop().displayMessage(
+                            window,
+                            "There is no fragment for "
+                                    + MZmineCore.getConfiguration()
+                                            .getMZFormat()
+                                            .format(showPeak.getMZ())
+                                    + " m/z in the current raw data.");
+                }
+            }
+        }
 
-	if (exportIsotopesItem.equals(src)) {
-	    IsotopePatternExportModule.exportIsotopePattern(clickedPeakListRow);
-	}
+        if (showIsotopePatternItem.equals(src)) {
 
-	if (exportMSMSItem.equals(src)) {
-	    MSMSExportModule.exportMSMS(clickedPeakListRow);
-	}
+            final Feature showPeak = getSelectedPeak();
+            if (showPeak != null && showPeak.getIsotopePattern() != null) {
 
-	if (clearIdsItem.equals(src)) {
+                SpectraVisualizerModule.showNewSpectrumWindow(
+                        showPeak.getDataFile(),
+                        showPeak.getRepresentativeScanNumber(),
+                        showPeak.getIsotopePattern());
+            }
+        }
 
-	    // Delete identities of selected rows.
-	    for (final PeakListRow row : allClickedPeakListRows) {
+        if (formulaItem != null && formulaItem.equals(src)) {
 
-		// Selected row index.
-		for (final PeakIdentity id : row.getPeakIdentities()) {
+            FormulaPredictionModule
+                    .showSingleRowIdentificationDialog(clickedPeakListRow);
+        }
 
-		    // Remove id.
-		    row.removePeakIdentity(id);
-		}
-	    }
+        if (dbSearchItem != null && dbSearchItem.equals(src)) {
 
-	    // Update table GUI.
-	    updateTableGUI();
-	}
+            OnlineDBSearchModule
+                    .showSingleRowIdentificationDialog(clickedPeakListRow);
+        }
 
-	if (copyIdsItem.equals(src) && allClickedPeakListRows.length > 0) {
+        if (nistSearchItem != null && nistSearchItem.equals(src)) {
 
-	    final PeakIdentity id = allClickedPeakListRows[0]
-		    .getPreferredPeakIdentity();
-	    if (id != null) {
+            NistMsSearchModule.singleRowSearch(peakList, clickedPeakListRow);
+        }
 
-		copiedId = (PeakIdentity) id.clone();
-	    }
-	}
+        if (addNewRowItem.equals(src)) {
 
-	if (pasteIdsItem.equals(src) && copiedId != null) {
+            // find maximum ID and add 1
+            int newID = 1;
+            for (final PeakListRow row : peakList.getRows()) {
+                if (row.getID() >= newID) {
+                    newID = row.getID() + 1;
+                }
+            }
 
-	    // Paste identity into selected rows.
-	    for (final PeakListRow row : allClickedPeakListRows) {
+            // create a new row
+            final PeakListRow newRow = new SimplePeakListRow(newID);
+            ManualPeakPickerModule.runManualDetection(
+                    peakList.getRawDataFiles(), newRow, peakList, table);
 
-		row.setPreferredPeakIdentity((PeakIdentity) copiedId.clone());
-	    }
+        }
 
-	    // Update table GUI.
-	    updateTableGUI();
-	}
+        if (showPeakRowSummaryItem.equals(src)) {
+
+            PeakSummaryVisualizerModule
+                    .showNewPeakSummaryWindow(clickedPeakListRow);
+        }
+
+        if (exportIsotopesItem.equals(src)) {
+            IsotopePatternExportModule.exportIsotopePattern(clickedPeakListRow);
+        }
+
+        if (exportMSMSItem.equals(src)) {
+            MSMSExportModule.exportMSMS(clickedPeakListRow);
+        }
+
+        if (clearIdsItem.equals(src)) {
+
+            // Delete identities of selected rows.
+            for (final PeakListRow row : allClickedPeakListRows) {
+
+                // Selected row index.
+                for (final PeakIdentity id : row.getPeakIdentities()) {
+
+                    // Remove id.
+                    row.removePeakIdentity(id);
+                }
+            }
+
+            // Update table GUI.
+            updateTableGUI();
+        }
+
+        if (copyIdsItem.equals(src) && allClickedPeakListRows.length > 0) {
+
+            final PeakIdentity id = allClickedPeakListRows[0]
+                    .getPreferredPeakIdentity();
+            if (id != null) {
+
+                copiedId = (PeakIdentity) id.clone();
+            }
+        }
+
+        if (pasteIdsItem.equals(src) && copiedId != null) {
+
+            // Paste identity into selected rows.
+            for (final PeakListRow row : allClickedPeakListRows) {
+
+                row.setPreferredPeakIdentity((PeakIdentity) copiedId.clone());
+            }
+
+            // Update table GUI.
+            updateTableGUI();
+        }
     }
 
     /**
      * Update the table.
      */
     private void updateTableGUI() {
-	((AbstractTableModel) table.getModel()).fireTableDataChanged();
-	MZmineCore.getProjectManager().getCurrentProject()
-		.notifyObjectChanged(peakList, true);
+        ((AbstractTableModel) table.getModel()).fireTableDataChanged();
+        MZmineCore.getProjectManager().getCurrentProject()
+                .notifyObjectChanged(peakList, true);
     }
 
     /**
@@ -591,23 +596,23 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
      */
     private static Range<Double> getPeakMZRange(final Feature peak) {
 
-	final Range<Double> peakMZRange = peak.getRawDataPointsMZRange();
+        final Range<Double> peakMZRange = peak.getRawDataPointsMZRange();
 
-	// By default, open the visualizer with the m/z range of
-	// "peak_width x 2", but no smaller than 0.1 m/z, because with smaller
-	// ranges VisAD tends to show nasty anti-aliasing artifacts.
-	// For example of such artifacts, set mzMin = 440.27, mzMax = 440.28 and
-	// mzResolution = 500
-	final double minRangeCenter = (peakMZRange.upperEndpoint() + peakMZRange
-		.lowerEndpoint()) / 2.0;
-	final double minRangeWidth = Math
-		.max(0.1, (peakMZRange.upperEndpoint() - peakMZRange
-			.lowerEndpoint()) * 2);
-	double mzMin = minRangeCenter - (minRangeWidth / 2);
-	if (mzMin < 0)
-	    mzMin = 0;
-	double mzMax = minRangeCenter + (minRangeWidth / 2);
-	return Range.closed(mzMin, mzMax);
+        // By default, open the visualizer with the m/z range of
+        // "peak_width x 2", but no smaller than 0.1 m/z, because with smaller
+        // ranges VisAD tends to show nasty anti-aliasing artifacts.
+        // For example of such artifacts, set mzMin = 440.27, mzMax = 440.28 and
+        // mzResolution = 500
+        final double minRangeCenter = (peakMZRange.upperEndpoint() + peakMZRange
+                .lowerEndpoint()) / 2.0;
+        final double minRangeWidth = Math
+                .max(0.1, (peakMZRange.upperEndpoint() - peakMZRange
+                        .lowerEndpoint()) * 2);
+        double mzMin = minRangeCenter - (minRangeWidth / 2);
+        if (mzMin < 0)
+            mzMin = 0;
+        double mzMax = minRangeCenter + (minRangeWidth / 2);
+        return Range.closed(mzMin, mzMax);
     }
 
     /**
@@ -619,10 +624,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
      */
     private static Range<Double> getPeakRTRange(final Feature peak) {
 
-	final Range<Double> range = peak.getRawDataPointsRTRange();
-	final double rtLen = range.upperEndpoint() - range.lowerEndpoint();
-	return Range.closed(Math.max(0.0, range.lowerEndpoint() - rtLen),
-		range.upperEndpoint() + rtLen);
+        final Range<Double> range = peak.getRawDataPointsRTRange();
+        final double rtLen = range.upperEndpoint() - range.lowerEndpoint();
+        return Range.closed(Math.max(0.0, range.lowerEndpoint() - rtLen),
+                range.upperEndpoint() + rtLen);
     }
 
     /**
@@ -632,7 +637,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
      */
     private Feature getSelectedPeak() {
 
-	return clickedDataFile != null ? clickedPeakListRow
-		.getPeak(clickedDataFile) : clickedPeakListRow.getBestPeak();
+        return clickedDataFile != null ? clickedPeakListRow
+                .getPeak(clickedDataFile) : clickedPeakListRow.getBestPeak();
     }
 }

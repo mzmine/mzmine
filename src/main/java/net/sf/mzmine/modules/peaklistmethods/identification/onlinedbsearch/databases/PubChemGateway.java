@@ -33,7 +33,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCom
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

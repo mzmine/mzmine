@@ -22,8 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.io.mztabexport;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 public class MzTabExportParameters extends SimpleParameterSet {
 

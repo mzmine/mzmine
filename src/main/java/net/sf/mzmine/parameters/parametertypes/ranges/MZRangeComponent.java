@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.ranges;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -27,17 +27,18 @@ import javax.swing.JButton;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeCalculatorModule;
 
 import com.google.common.collect.Range;
 
-public class RTRangeComponent extends RangeComponent implements ActionListener {
+public class MZRangeComponent extends DoubleRangeComponent implements ActionListener {
 
     private static final long serialVersionUID = 1L;
-    private final JButton setAutoButton;
+    private final JButton setAutoButton, fromFormulaButton;
 
-    public RTRangeComponent() {
+    public MZRangeComponent() {
 
-        super(MZmineCore.getConfiguration().getRTFormat());
+        super(MZmineCore.getConfiguration().getMZFormat());
 
         setAutoButton = new JButton("Auto range");
         setAutoButton.addActionListener(this);
@@ -45,6 +46,11 @@ public class RTRangeComponent extends RangeComponent implements ActionListener {
                 .getCurrentProject().getDataFiles();
         setAutoButton.setEnabled(currentFiles.length > 0);
         add(setAutoButton, 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+
+        fromFormulaButton = new JButton("From formula");
+        fromFormulaButton.addActionListener(this);
+        add(fromFormulaButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+
     }
 
     @Override
@@ -53,17 +59,27 @@ public class RTRangeComponent extends RangeComponent implements ActionListener {
         Object src = event.getSource();
 
         if (src == setAutoButton) {
-            Range<Double> rtRange = null;
+            Range<Double> mzRange = null;
             RawDataFile currentFiles[] = MZmineCore.getProjectManager()
                     .getCurrentProject().getDataFiles();
             for (RawDataFile file : currentFiles) {
-                Range<Double> fileRange = file.getDataRTRange();
-                if (rtRange == null)
-                    rtRange = fileRange;
+                Range<Double> fileRange = file.getDataMZRange(1);
+                if (fileRange == null)
+                    continue;
+                if (mzRange == null)
+                    mzRange = fileRange;
                 else
-                    rtRange = rtRange.span(fileRange);
+                    mzRange = mzRange.span(fileRange);
             }
-            setValue(rtRange);
+            if (mzRange != null)
+                setValue(mzRange);
+        }
+
+        if (src == fromFormulaButton) {
+            Range<Double> mzRange = MzRangeCalculatorModule
+                    .showRangeCalculationDialog();
+            if (mzRange != null)
+                setValue(mzRange);
         }
 
     }
@@ -72,5 +88,7 @@ public class RTRangeComponent extends RangeComponent implements ActionListener {
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         setAutoButton.setEnabled(enabled);
+        fromFormulaButton.setEnabled(enabled);
     }
+
 }

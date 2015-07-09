@@ -39,10 +39,10 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.tic.PlotType;
+import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.RangeComponent;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
 
 import com.google.common.collect.Range;
 
@@ -66,11 +66,11 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
     // Dialog components
     private JPanel pnlPreviewFields;
     private JComboBox<RawDataFile> comboDataFileName;
-    private RangeComponent rtRangeBox, mzRangeBox;
+    private DoubleRangeComponent rtRangeBox, mzRangeBox;
     private JCheckBox previewCheckBox;
 
     // Show as TIC
-    private JComboBox<PlotType> ticViewComboBox;
+    private JComboBox<TICPlotType> ticViewComboBox;
 
     // XYPlot
     private TICPlot ticPlot;
@@ -162,11 +162,11 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	previewCheckBox.setSelected(false);
     }
 
-    public PlotType getPlotType() {
-	return (PlotType) (ticViewComboBox.getSelectedItem());
+    public TICPlotType getPlotType() {
+	return (TICPlotType) (ticViewComboBox.getSelectedItem());
     }
 
-    public void setPlotType(PlotType plotType) {
+    public void setPlotType(TICPlotType plotType) {
 	ticViewComboBox.setSelectedItem(plotType);
     }
 
@@ -244,15 +244,15 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	comboDataFileName.setSelectedItem(previewDataFile);
 	comboDataFileName.addActionListener(this);
 
-	ticViewComboBox = new JComboBox<PlotType>(PlotType.values());
-	ticViewComboBox.setSelectedItem(PlotType.TIC);
+	ticViewComboBox = new JComboBox<TICPlotType>(TICPlotType.values());
+	ticViewComboBox.setSelectedItem(TICPlotType.TIC);
 	ticViewComboBox.addActionListener(this);
 
-	rtRangeBox = new RangeComponent(MZmineCore.getConfiguration()
+	rtRangeBox = new DoubleRangeComponent(MZmineCore.getConfiguration()
 		.getRTFormat());
 	rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
 
-	mzRangeBox = new RangeComponent(MZmineCore.getConfiguration()
+	mzRangeBox = new DoubleRangeComponent(MZmineCore.getConfiguration()
 		.getMZFormat());
 	mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 

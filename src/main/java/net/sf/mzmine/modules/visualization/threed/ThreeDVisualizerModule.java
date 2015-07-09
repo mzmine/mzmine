@@ -29,14 +29,17 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
+import net.sf.mzmine.parameters.parametertypes.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.ScanUtils;
 import visad.VisADException;
 
 import com.google.common.collect.Range;
@@ -70,21 +73,17 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
         final RawDataFile[] dataFiles = parameters
                 .getParameter(ThreeDVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
-        final int msLevel = parameters.getParameter(
-                ThreeDVisualizerParameters.msLevel).getValue();
-        final Range<Double> rtRange = parameters.getParameter(
-                ThreeDVisualizerParameters.retentionTimeRange).getValue();
+        final ScanSelection scanSel = parameters.getParameter(
+                ThreeDVisualizerParameters.scanSelectionParameter).getValue();
+        Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
+        Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
         final Desktop desktop = MZmineCore.getDesktop();
 
         // Check scan numbers.
-        final RawDataFile dataFile = dataFiles[0];
-        if (dataFile.getScanNumbers(msLevel, rtRange).length == 0) {
-
+        if (scans.length == 0) {
             desktop.displayErrorMessage(
-                    MZmineCore.getDesktop().getMainWindow(),
-                    "No scans found at MS level " + msLevel
-                            + " within given retention time range.");
+                    MZmineCore.getDesktop().getMainWindow(), "No scans found");
             return ExitCode.ERROR;
 
         }
@@ -93,8 +92,8 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
                 .getModuleParameters(ThreeDVisualizerModule.class);
         try {
             ThreeDVisualizerWindow window = new ThreeDVisualizerWindow(
-                    dataFile,
-                    msLevel,
+                    dataFiles[0],
+                    scans,
                     rtRange,
                     myParameters.getParameter(
                             ThreeDVisualizerParameters.rtResolution).getValue(),
@@ -142,9 +141,9 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
         myParameters.getParameter(ThreeDVisualizerParameters.dataFiles)
                 .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
                         new RawDataFile[] { dataFile });
-        myParameters
-                .getParameter(ThreeDVisualizerParameters.retentionTimeRange)
-                .setValue(rtRange);
+        myParameters.getParameter(
+                ThreeDVisualizerParameters.scanSelectionParameter).setValue(
+                new ScanSelection(null, rtRange, null, 1));
         myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(
                 mzRange);
         if (myParameters.showSetupDialog(MZmineCore.getDesktop()

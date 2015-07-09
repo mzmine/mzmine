@@ -58,14 +58,14 @@ public class LocMinLoessCorrectorParameters extends SimpleParameterSet {
     public static final IntegerParameter BREAKS = new IntegerParameter(
             "breaks",
             "Number of breaks set to M/Z values for finding the local minima or points below a centain quantile of intensities; breaks -1 equally spaced intervals on the log M/Z scale.",
-            null, 1, null);
+            null, true, 1, null);
     /**
      * Break widthy.
      */
     public static final IntegerParameter BREAK_WIDTH = new IntegerParameter(
             "break width (number of scans)",
             "Overrides \"breaks\" value. Width of a single break. Usually the maximum width (in number of scans) of the largest peak.",
-            -1, -1, null);
+            -1, true, -1, null);
     // TODO: Turn it into Retention Time value rather than number of scans
 
     /**

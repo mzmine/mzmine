@@ -40,11 +40,12 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.tic.PlotType;
+import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithChromatogramPreview;
+import net.sf.mzmine.parameters.parametertypes.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.R.RSessionWrapper;
@@ -163,8 +164,8 @@ public class BaselineCorrectorSetupDialog extends
 
         // Default plot type. Initialized according to the chosen chromatogram
         // type.
-        this.setPlotType((this.baselineCorrector.getChromatogramType() == ChromatogramType.TIC) ? PlotType.TIC
-                : PlotType.BASEPEAK);
+        this.setPlotType((this.baselineCorrector.getChromatogramType() == ChromatogramType.TIC) ? TICPlotType.TIC
+                : TICPlotType.BASEPEAK);
 
     }
 
@@ -231,8 +232,10 @@ public class BaselineCorrectorSetupDialog extends
             ticPlot.setPlotType(getPlotType());
 
             // Add the original raw data file
-            int scanNumbers[] = dataFile.getScanNumbers(1, rtRange);
-            TICDataSet ticDataset = new TICDataSet(dataFile, scanNumbers,
+            final ScanSelection sel = new ScanSelection(null, rtRange, null, 1);
+            Scan scans[] = sel.getMatchingScans(dataFile);
+
+            TICDataSet ticDataset = new TICDataSet(dataFile, scans,
                     mzRange, null, getPlotType());
             ticPlot.addTICDataset(ticDataset);
 
@@ -249,10 +252,9 @@ public class BaselineCorrectorSetupDialog extends
 
                 // If successful, add the new data file
                 if (newDataFile != null) {
-                    int newScanNumbers[] = newDataFile.getScanNumbers(1,
-                            rtRange);
-                    TICDataSet newDataset = new TICDataSet(newDataFile,
-                            newScanNumbers, mzRange, null, getPlotType());
+                    scans = sel.getMatchingScans(newDataFile);
+                    final TICDataSet newDataset = new TICDataSet(newDataFile,
+                            scans, mzRange, null, getPlotType());
                     ticPlot.addTICDataset(newDataset);
 
                     // Show the trend line as well
@@ -465,7 +467,7 @@ public class BaselineCorrectorSetupDialog extends
      * @return the baseline additional dataset
      */
     private XYDataset createBaselineDataset(RawDataFile dataFile,
-            RawDataFile newDataFile, PlotType plotType) {
+            RawDataFile newDataFile, TICPlotType plotType) {
 
         XYSeriesCollection dataset = new XYSeriesCollection();
         XYSeries bl_series = new XYSeries("Baseline");
@@ -482,7 +484,7 @@ public class BaselineCorrectorSetupDialog extends
             sc = dataFile.getScan(scanNumbers[scanIndex]);
             new_sc = newDataFile.getScan(scanNumbers[scanIndex]);
 
-            if (plotType == PlotType.BASEPEAK) {
+            if (plotType == TICPlotType.BASEPEAK) {
                 dp = sc.getHighestDataPoint();
                 new_dp = new_sc.getHighestDataPoint();
                 if (dp == null) {

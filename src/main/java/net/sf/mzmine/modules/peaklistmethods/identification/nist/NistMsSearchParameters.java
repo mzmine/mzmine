@@ -31,10 +31,10 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.DirectoryParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 /**
  * Holds NIST MS Search parameters.
