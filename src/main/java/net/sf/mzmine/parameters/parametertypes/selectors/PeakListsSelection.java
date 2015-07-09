@@ -17,47 +17,47 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 
 import com.google.common.base.Strings;
 
-public class RawDataFilesSelection implements Cloneable {
+public class PeakListsSelection implements Cloneable {
 
-    private RawDataFilesSelectionType selectionType = RawDataFilesSelectionType.GUI_SELECTED_FILES;
-    private RawDataFile specificFiles[];
+    private PeakListsSelectionType selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
+    private PeakList specificPeakLists[];
     private String namePattern;
-    private RawDataFile batchLastFiles[];
+    private PeakList batchLastPeakLists[];
 
-    public RawDataFile[] getMatchingRawDataFiles() {
+    public PeakList[] getMatchingPeakLists() {
 
         switch (selectionType) {
 
-        case GUI_SELECTED_FILES:
-            return MZmineCore.getDesktop().getSelectedDataFiles();
-        case ALL_FILES:
+        case GUI_SELECTED_PEAKLISTS:
+            return MZmineCore.getDesktop().getSelectedPeakLists();
+        case ALL_PEAKLISTS:
             return MZmineCore.getProjectManager().getCurrentProject()
-                    .getDataFiles();
-        case SPECIFIC_FILES:
-            if (specificFiles == null)
-                return new RawDataFile[0];
-            return specificFiles;
+                    .getPeakLists();
+        case SPECIFIC_PEAKLISTS:
+            if (specificPeakLists == null)
+                return new PeakList[0];
+            return specificPeakLists;
         case NAME_PATTERN:
             if (Strings.isNullOrEmpty(namePattern))
-                return new RawDataFile[0];
-            ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
-            RawDataFile allDataFiles[] = MZmineCore.getProjectManager()
-                    .getCurrentProject().getDataFiles();
+                return new PeakList[0];
+            ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
+            PeakList allPeakLists[] = MZmineCore.getProjectManager()
+                    .getCurrentProject().getPeakLists();
 
-            fileCheck: for (RawDataFile file : allDataFiles) {
+            plCheck: for (PeakList pl : allPeakLists) {
 
-                final String fileName = file.getName();
+                final String plName = pl.getName();
 
                 // Generate a regular expression, replacing * with .*
                 try {
@@ -70,42 +70,42 @@ public class RawDataFilesSelection implements Cloneable {
                     }
                     regex.append("$");
 
-                    if (fileName.matches(regex.toString())) {
-                        if (matchingDataFiles.contains(file))
+                    if (plName.matches(regex.toString())) {
+                        if (matchingPeakLists.contains(pl))
                             continue;
-                        matchingDataFiles.add(file);
-                        continue fileCheck;
+                        matchingPeakLists.add(pl);
+                        continue plCheck;
                     }
                 } catch (PatternSyntaxException e) {
                     e.printStackTrace();
                     continue;
                 }
             }
-            return matchingDataFiles.toArray(new RawDataFile[0]);
-        case BATCH_LAST_FILES:
-            if (batchLastFiles == null)
-                return new RawDataFile[0];
-            return batchLastFiles;
+            return matchingPeakLists.toArray(new PeakList[0]);
+        case BATCH_LAST_PEAKLISTS:
+            if (batchLastPeakLists == null)
+                return new PeakList[0];
+            return batchLastPeakLists;
         }
 
         throw new IllegalStateException("This code should be unreachable");
 
     }
 
-    public RawDataFilesSelectionType getSelectionType() {
+    public PeakListsSelectionType getSelectionType() {
         return selectionType;
     }
 
-    public void setSelectionType(RawDataFilesSelectionType selectionType) {
+    public void setSelectionType(PeakListsSelectionType selectionType) {
         this.selectionType = selectionType;
     }
 
-    public RawDataFile[] getSpecificFiles() {
-        return specificFiles;
+    public PeakList[] getSpecificPeakLists() {
+        return specificPeakLists;
     }
 
-    public void setSpecificFiles(RawDataFile[] specificFiles) {
-        this.specificFiles = specificFiles;
+    public void setSpecificPeakLists(PeakList[] specificPeakLists) {
+        this.specificPeakLists = specificPeakLists;
     }
 
     public String getNamePattern() {
@@ -116,27 +116,26 @@ public class RawDataFilesSelection implements Cloneable {
         this.namePattern = namePattern;
     }
 
-    public void setBatchLastFiles(RawDataFile[] batchLastFiles) {
-        this.batchLastFiles = batchLastFiles;
+    public void setBatchLastPeakLists(PeakList[] batchLastPeakLists) {
+        this.batchLastPeakLists = batchLastPeakLists;
     }
 
-    public RawDataFilesSelection clone() {
-        RawDataFilesSelection newSelection = new RawDataFilesSelection();
+    public PeakListsSelection clone() {
+        PeakListsSelection newSelection = new PeakListsSelection();
         newSelection.selectionType = selectionType;
-        newSelection.specificFiles = specificFiles;
+        newSelection.specificPeakLists = specificPeakLists;
         newSelection.namePattern = namePattern;
         return newSelection;
     }
 
     public String toString() {
         StringBuilder str = new StringBuilder();
-        RawDataFile files[] = getMatchingRawDataFiles();
-        for (int i = 0; i < files.length; i++) {
+        PeakList pls[] = getMatchingPeakLists();
+        for (int i = 0; i < pls.length; i++) {
             if (i > 0)
                 str.append("\n");
-            str.append(files[i].getName());
+            str.append(pls[i].getName());
         }
         return str.toString();
     }
-
 }

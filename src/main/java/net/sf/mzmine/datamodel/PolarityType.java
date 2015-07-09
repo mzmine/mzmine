@@ -30,11 +30,11 @@ public enum PolarityType {
     UNKNOWN(0, "?");
 
     private final int sign;
-    private final String stringValue;
+    private final String charValue;
 
-    PolarityType(int sign, String stringValue) {
-	this.sign = sign;
-	this.stringValue = stringValue;
+    PolarityType(int sign, String charValue) {
+        this.sign = sign;
+        this.charValue = charValue;
     }
 
     /**
@@ -42,19 +42,19 @@ public enum PolarityType {
      *         neutral or unknown polarity.
      */
     public int getSign() {
-	return sign;
+        return sign;
     }
 
-    @Override
-    public String toString() {
-	return stringValue;
+    public String asSingleChar() {
+        return charValue;
     }
 
-    public static PolarityType fromString(String s) {
-	for (PolarityType p : values()) {
-	    if (p.toString().equals(s))
-		return p;
-	}
-	return UNKNOWN;
+    public static PolarityType fromSingleChar(String s) {
+        for (PolarityType p : values()) {
+            if (p.charValue.equals(s))
+                return p;
+        }
+        return UNKNOWN;
     }
+
 }

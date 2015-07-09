@@ -24,9 +24,9 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 import com.google.common.collect.Range;
 

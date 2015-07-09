@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -30,27 +30,29 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.ExitCode;
 
-public class PeakListsComponent extends JPanel implements ActionListener {
+public class RawDataFilesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
 
-    private final JComboBox<PeakListsSelectionType> typeCombo;
+    private final JComboBox<RawDataFilesSelectionType> typeCombo;
     private final JButton detailsButton;
-    private final JLabel numPeakListsLabel;
-    private PeakListsSelection currentValue = new PeakListsSelection();
+    private final JLabel numFilesLabel;
+    private RawDataFilesSelection currentValue = new RawDataFilesSelection();
 
-    public PeakListsComponent() {
+    public RawDataFilesComponent() {
 
         BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
         setLayout(layout);
 
-        typeCombo = new JComboBox<>(PeakListsSelectionType.values());
+        typeCombo = new JComboBox<>(RawDataFilesSelectionType.values());
         typeCombo.addActionListener(this);
         add(typeCombo);
 
@@ -59,8 +61,8 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         detailsButton.addActionListener(this);
         add(detailsButton);
 
-        numPeakListsLabel = new JLabel();
-        add(numPeakListsLabel);
+        numFilesLabel = new JLabel();
+        add(numFilesLabel);
 
         // Do not allow resizing below the required size for individual
         // components
@@ -68,15 +70,15 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
     }
 
-    void setValue(PeakListsSelection newValue) {
+    void setValue(RawDataFilesSelection newValue) {
         currentValue = newValue.clone();
-        PeakListsSelectionType type = newValue.getSelectionType();
+        RawDataFilesSelectionType type = newValue.getSelectionType();
         if (type != null)
             typeCombo.setSelectedItem(type);
-        updateNumPeakLists();
+        updateNumFiles();
     }
 
-    PeakListsSelection getValue() {
+    RawDataFilesSelection getValue() {
         return currentValue;
     }
 
@@ -85,30 +87,30 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         Object src = event.getSource();
 
         if (src == detailsButton) {
-            PeakListsSelectionType type = (PeakListsSelectionType) typeCombo
+            RawDataFilesSelectionType type = (RawDataFilesSelectionType) typeCombo
                     .getSelectedItem();
 
-            if (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS) {
-                final MultiChoiceParameter<PeakList> plsParameter = new MultiChoiceParameter<PeakList>(
-                        "Select peak lists", "Select peak lists", MZmineCore
+            if (type == RawDataFilesSelectionType.SPECIFIC_FILES) {
+                final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
+                        "Select files", "Select files", MZmineCore
                                 .getProjectManager().getCurrentProject()
-                                .getPeakLists(),
-                        currentValue.getSpecificPeakLists());
+                                .getDataFiles(),
+                        currentValue.getSpecificFiles());
                 final SimpleParameterSet paramSet = new SimpleParameterSet(
-                        new Parameter[] { plsParameter });
+                        new Parameter[] { filesParameter });
                 final Window parent = (Window) SwingUtilities
                         .getAncestorOfClass(Window.class, this);
                 final ExitCode exitCode = paramSet
                         .showSetupDialog(parent, true);
                 if (exitCode == ExitCode.OK) {
-                    PeakList pls[] = paramSet.getParameter(plsParameter)
+                    RawDataFile files[] = paramSet.getParameter(filesParameter)
                             .getValue();
-                    currentValue.setSpecificPeakLists(pls);
+                    currentValue.setSpecificFiles(files);
                 }
 
             }
 
-            if (type == PeakListsSelectionType.NAME_PATTERN) {
+            if (type == RawDataFilesSelectionType.NAME_PATTERN) {
                 final StringParameter nameParameter = new StringParameter(
                         "Name pattern",
                         "Set name pattern that may include wildcards (*), e.g. *mouse* matches any name that contains mouse",
@@ -130,15 +132,15 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         }
 
         if (src == typeCombo) {
-            PeakListsSelectionType type = (PeakListsSelectionType) typeCombo
+            RawDataFilesSelectionType type = (RawDataFilesSelectionType) typeCombo
                     .getSelectedItem();
             currentValue.setSelectionType(type);
             detailsButton
-                    .setEnabled((type == PeakListsSelectionType.NAME_PATTERN)
-                            || (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS));
+                    .setEnabled((type == RawDataFilesSelectionType.NAME_PATTERN)
+                            || (type == RawDataFilesSelectionType.SPECIFIC_FILES));
         }
 
-        updateNumPeakLists();
+        updateNumFiles();
 
     }
 
@@ -147,14 +149,14 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         typeCombo.setToolTipText(toolTip);
     }
 
-    private void updateNumPeakLists() {
-        if (currentValue.getSelectionType() == PeakListsSelectionType.BATCH_LAST_PEAKLISTS) {
-            numPeakListsLabel.setText("");
-            numPeakListsLabel.setToolTipText("");
+    private void updateNumFiles() {
+        if (currentValue.getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES) {
+            numFilesLabel.setText("");
+            numFilesLabel.setToolTipText("");
         } else {
-            PeakList pls[] = currentValue.getMatchingPeakLists();
-            numPeakListsLabel.setText("(" + pls.length + " selected)");
-            numPeakListsLabel.setToolTipText(currentValue.toString());
+            RawDataFile files[] = currentValue.getMatchingRawDataFiles();
+            numFilesLabel.setText("(" + files.length + " selected)");
+            numFilesLabel.setToolTipText(currentValue.toString());
         }
     }
 }

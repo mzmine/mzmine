@@ -22,11 +22,11 @@ package net.sf.mzmine.modules.visualization.threed;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
-import net.sf.mzmine.parameters.parametertypes.ScanSelection;
-import net.sf.mzmine.parameters.parametertypes.ScanSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 /**
  * 3D visualizer parameter set
@@ -37,7 +37,7 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
             1, 1);
 
     public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
-            new ScanSelection(null, null, null, 1));
+            new ScanSelection(1));
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
 

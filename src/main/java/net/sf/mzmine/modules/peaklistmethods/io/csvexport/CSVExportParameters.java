@@ -22,9 +22,9 @@ package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class CSVExportParameters extends SimpleParameterSet {
 

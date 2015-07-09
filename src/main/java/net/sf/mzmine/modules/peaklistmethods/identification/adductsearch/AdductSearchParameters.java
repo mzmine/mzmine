@@ -22,8 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.AdductsParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 

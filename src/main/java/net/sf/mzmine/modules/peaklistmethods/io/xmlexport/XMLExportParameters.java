@@ -22,8 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.io.xmlexport;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class XMLExportParameters extends SimpleParameterSet {
 

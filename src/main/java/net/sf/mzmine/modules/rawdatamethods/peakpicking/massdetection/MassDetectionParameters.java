@@ -33,10 +33,10 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet.Wa
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
-import net.sf.mzmine.parameters.parametertypes.ScanSelection;
-import net.sf.mzmine.parameters.parametertypes.ScanSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class MassDetectionParameters extends SimpleParameterSet {
@@ -49,7 +49,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
     public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
-            new ScanSelection(null, null, null, 1));
+            new ScanSelection(1));
 
     public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
             "Mass detector",

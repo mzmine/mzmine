@@ -40,10 +40,8 @@ import net.sf.mzmine.util.RawDataFileUtils;
 
 class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
+
     private static final Icon projectIcon = new ImageIcon(
 	    "icons/projecticon.png");
     private static final Icon dataFileIcon = new ImageIcon("icons/xicicon.png");
