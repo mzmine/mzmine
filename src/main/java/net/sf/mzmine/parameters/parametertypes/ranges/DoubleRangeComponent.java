@@ -20,6 +20,7 @@
 package net.sf.mzmine.parameters.parametertypes.ranges;
 
 import java.awt.GridBagConstraints;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 
 import javax.swing.JLabel;
@@ -73,8 +74,12 @@ public class DoubleRangeComponent extends GridBagPanel {
     }
 
     public void setValue(Range<Double> value) {
-        minTxtField.setText(format.format(value.lowerEndpoint()));
-        maxTxtField.setText(format.format(value.upperEndpoint()));
+        NumberFormat floorFormat = (NumberFormat) format.clone();
+        floorFormat.setRoundingMode(RoundingMode.FLOOR);
+        NumberFormat ceilFormat = (NumberFormat) format.clone();
+        ceilFormat.setRoundingMode(RoundingMode.CEILING);
+        minTxtField.setText(floorFormat.format(value.lowerEndpoint()));
+        maxTxtField.setText(ceilFormat.format(value.upperEndpoint()));
     }
 
     @Override

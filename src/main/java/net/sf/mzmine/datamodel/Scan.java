@@ -64,7 +64,7 @@ public interface Scan extends MassSpectrum {
      * 
      * @return The actual scanning range of the instrument
      */
-    public @Nonnull Range<Double> getScaningMZRange();
+    public @Nonnull Range<Double> getScanningMZRange();
 
     /**
      * 

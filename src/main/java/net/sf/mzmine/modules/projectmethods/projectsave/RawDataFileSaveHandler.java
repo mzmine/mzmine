@@ -348,7 +348,7 @@ class RawDataFileSaveHandler {
 	// <SCAN_MZ_RANGE>
 	hd.startElement("", "",
 		RawDataElementName.SCAN_MZ_RANGE.getElementName(), atts);
-	Range<Double> mzRange = scan.getScaningMZRange();
+	Range<Double> mzRange = scan.getScanningMZRange();
 	String mzRangeStr = mzRange.lowerEndpoint() + "-" + mzRange.upperEndpoint();
 	hd.characters(mzRangeStr.toCharArray(), 0, mzRangeStr.length());
 	hd.endElement("", "",

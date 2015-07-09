@@ -78,7 +78,7 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
         updateNumFiles();
     }
 
-    RawDataFilesSelection getValue() {
+    public RawDataFilesSelection getValue() {
         return currentValue;
     }
 

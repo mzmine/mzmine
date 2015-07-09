@@ -24,14 +24,23 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeCalculatorModule;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 import com.google.common.collect.Range;
 
-public class MZRangeComponent extends DoubleRangeComponent implements ActionListener {
+public class MZRangeComponent extends DoubleRangeComponent implements
+        ActionListener {
 
     private static final long serialVersionUID = 1L;
     private final JButton setAutoButton, fromFormulaButton;
@@ -59,17 +68,37 @@ public class MZRangeComponent extends DoubleRangeComponent implements ActionList
         Object src = event.getSource();
 
         if (src == setAutoButton) {
-            Range<Double> mzRange = null;
             RawDataFile currentFiles[] = MZmineCore.getProjectManager()
                     .getCurrentProject().getDataFiles();
+            ScanSelection scanSelection = new ScanSelection();
+
+            try {
+                ParameterSetupDialog setupDialog = (ParameterSetupDialog) SwingUtilities
+                        .getWindowAncestor(this);
+                RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
+                        .getComponentForParameter(new RawDataFilesParameter());
+                if (rdc != null)
+                    currentFiles = rdc.getValue().getMatchingRawDataFiles();
+                ScanSelectionComponent ssc = (ScanSelectionComponent) setupDialog
+                        .getComponentForParameter(new ScanSelectionParameter());
+                if (ssc != null)
+                    scanSelection = ssc.getValue();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Range<Double> mzRange = null;
             for (RawDataFile file : currentFiles) {
-                Range<Double> fileRange = file.getDataMZRange(1);
-                if (fileRange == null)
-                    continue;
-                if (mzRange == null)
-                    mzRange = fileRange;
-                else
-                    mzRange = mzRange.span(fileRange);
+                Scan scans[] = scanSelection.getMatchingScans(file);
+                for (Scan s : scans) {
+                    Range<Double> scanRange = s.getDataPointMZRange();
+                    if (scanRange == null)
+                        continue;
+                    if (mzRange == null)
+                        mzRange = scanRange;
+                    else
+                        mzRange = mzRange.span(scanRange);
+                }
             }
             if (mzRange != null)
                 setValue(mzRange);

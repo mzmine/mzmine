@@ -25,13 +25,18 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 import com.google.common.collect.Range;
 
-public class RTRangeComponent extends DoubleRangeComponent implements ActionListener {
+public class RTRangeComponent extends DoubleRangeComponent implements
+        ActionListener {
 
     private static final long serialVersionUID = 1L;
     private final JButton setAutoButton;
@@ -41,7 +46,7 @@ public class RTRangeComponent extends DoubleRangeComponent implements ActionList
         super(MZmineCore.getConfiguration().getRTFormat());
 
         add(new JLabel("min."), 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
-        
+
         setAutoButton = new JButton("Auto range");
         setAutoButton.addActionListener(this);
         RawDataFile currentFiles[] = MZmineCore.getProjectManager()
@@ -56,9 +61,30 @@ public class RTRangeComponent extends DoubleRangeComponent implements ActionList
         Object src = event.getSource();
 
         if (src == setAutoButton) {
-            Range<Double> rtRange = null;
             RawDataFile currentFiles[] = MZmineCore.getProjectManager()
                     .getCurrentProject().getDataFiles();
+
+            try {
+                ParameterSetupDialog setupDialog = (ParameterSetupDialog) SwingUtilities
+                        .getWindowAncestor(this);
+                RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
+                        .getComponentForParameter(new RawDataFilesParameter());
+
+                // If the current setup dialog has no raw data file selector, it
+                // is probably in the parent dialog, so let's check it
+                if (rdc == null) {
+                    setupDialog = (ParameterSetupDialog) setupDialog
+                            .getParent();
+                    rdc = (RawDataFilesComponent) setupDialog
+                            .getComponentForParameter(new RawDataFilesParameter());
+                }
+                if (rdc != null)
+                    currentFiles = rdc.getValue().getMatchingRawDataFiles();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Range<Double> rtRange = null;
             for (RawDataFile file : currentFiles) {
                 Range<Double> fileRange = file.getDataRTRange();
                 if (rtRange == null)

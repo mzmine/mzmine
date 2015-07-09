@@ -63,9 +63,6 @@ import net.sf.mzmine.util.components.HelpButton;
 public class ParameterSetupDialog extends JDialog implements ActionListener,
 	DocumentListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private ExitCode exitCode = ExitCode.UNKNOWN;
@@ -255,7 +252,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	return exitCode;
     }
 
-    protected JComponent getComponentForParameter(Parameter<?> p) {
+    public JComponent getComponentForParameter(Parameter<?> p) {
 	return parametersAndComponents.get(p.getName());
     }
 

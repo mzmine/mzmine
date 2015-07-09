@@ -65,7 +65,7 @@ public class SimpleScan implements Scan {
 		.getPrecursorMZ(), sc.getPrecursorCharge(), sc
 		.getFragmentScanNumbers(), sc.getDataPoints(), sc
 		.getSpectrumType(), sc.getPolarity(), sc.getScanDefinition(),
-		sc.getScaningMZRange());
+		sc.getScanningMZRange());
     }
 
     /**
@@ -360,7 +360,7 @@ public class SimpleScan implements Scan {
     }
 
     @Override
-    public Range<Double> getScaningMZRange() {
+    public Range<Double> getScanningMZRange() {
 	if (scanMZRange == null)
 	    scanMZRange = getDataPointMZRange();
 	return scanMZRange;

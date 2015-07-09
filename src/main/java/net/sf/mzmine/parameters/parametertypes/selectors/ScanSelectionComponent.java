@@ -86,7 +86,7 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
         updateRestrictionList();
     }
 
-    ScanSelection getValue() {
+    public ScanSelection getValue() {
         return new ScanSelection(scanNumberRange, scanRTRange, polarity,
                 spectrumType, msLevel);
     }
