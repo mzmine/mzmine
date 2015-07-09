@@ -94,7 +94,7 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
         ParameterSet paramSet = MZmineCore.getConfiguration()
                 .getModuleParameters(TwoDVisualizerModule.class);
         WindowSettingsParameter settings = paramSet
-                .getParameter(TwoDParameters.windowSettings);
+                .getParameter(TwoDVisualizerParameters.windowSettings);
 
         // update the window and listen for changes
         settings.applySettingsToWindow(this);

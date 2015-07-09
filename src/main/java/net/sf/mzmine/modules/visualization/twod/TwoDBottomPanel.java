@@ -118,7 +118,7 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 	add(peakListSelector);
 
 	thresholdSettings = parameters
-		.getParameter(TwoDParameters.peakThresholdSettings);
+		.getParameter(TwoDVisualizerParameters.peakThresholdSettings);
 
 	thresholdCombo.setSelectedItem(thresholdSettings.getMode());
 

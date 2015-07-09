@@ -61,14 +61,14 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
     public ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
         RawDataFile dataFiles[] = parameters
-                .getParameter(TwoDParameters.dataFiles).getValue()
+                .getParameter(TwoDVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
         ScanSelection scanSel = parameters.getParameter(
-                TwoDParameters.scanSelectionParameter).getValue();
+                TwoDVisualizerParameters.scanSelectionParameter).getValue();
         Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
         Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
-        Range<Double> mzRange = parameters.getParameter(TwoDParameters.mzRange)
+        Range<Double> mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange)
                 .getValue();
         TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
                 scans, rtRange, mzRange, parameters);
@@ -88,15 +88,15 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
         ParameterSet parameters = MZmineCore.getConfiguration()
                 .getModuleParameters(TwoDVisualizerModule.class);
 
-        parameters.getParameter(TwoDParameters.dataFiles).setValue(
+        parameters.getParameter(TwoDVisualizerParameters.dataFiles).setValue(
                 RawDataFilesSelectionType.SPECIFIC_FILES,
                 new RawDataFile[] { dataFile });
 
         if (rtRange != null)
-            parameters.getParameter(TwoDParameters.scanSelectionParameter)
+            parameters.getParameter(TwoDVisualizerParameters.scanSelectionParameter)
                     .setValue(new ScanSelection(null, rtRange, null, 1));
         if (mzRange != null)
-            parameters.getParameter(TwoDParameters.mzRange).setValue(mzRange);
+            parameters.getParameter(TwoDVisualizerParameters.mzRange).setValue(mzRange);
 
         ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
                 .getMainWindow(), true);
@@ -105,11 +105,11 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
             return;
 
         ScanSelection scanSel = parameters.getParameter(
-                TwoDParameters.scanSelectionParameter).getValue();
+                TwoDVisualizerParameters.scanSelectionParameter).getValue();
         Scan scans[] = scanSel.getMatchingScans(dataFile);
         rtRange = ScanUtils.findRtRange(scans);
 
-        mzRange = parameters.getParameter(TwoDParameters.mzRange).getValue();
+        mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
 
         TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFile,
                 scans, rtRange, mzRange, parameters);
@@ -125,7 +125,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return TwoDParameters.class;
+        return TwoDVisualizerParameters.class;
     }
 
 }

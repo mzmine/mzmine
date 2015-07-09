@@ -30,7 +30,7 @@ import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 /**
  * 2D visualizer parameter set
  */
-public class TwoDParameters extends SimpleParameterSet {
+public class TwoDVisualizerParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
             1, 1);
@@ -47,7 +47,7 @@ public class TwoDParameters extends SimpleParameterSet {
      */
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-    public TwoDParameters() {
+    public TwoDVisualizerParameters() {
         super(new Parameter[] { dataFiles, scanSelectionParameter, mzRange,
                 peakThresholdSettings, windowSettings });
     }

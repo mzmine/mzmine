@@ -66,8 +66,8 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
         
         add(Box.createHorizontalStrut(10));
         
-        setButton = GUIUtils.addButton(this, "Restrict", null, this);
-        clearButton = GUIUtils.addButton(this, "Clear", null, this);
+        setButton = GUIUtils.addButton(this, "Set filters", null, this);
+        clearButton = GUIUtils.addButton(this, "Clear filters", null, this);
 
     }
 
