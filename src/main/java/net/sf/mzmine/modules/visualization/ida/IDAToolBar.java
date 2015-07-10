@@ -24,6 +24,7 @@ import java.awt.Insets;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 import net.sf.mzmine.util.GUIUtils;
@@ -35,6 +36,11 @@ class IDAToolBar extends JToolBar {
 
     private static final long serialVersionUID = 1L;
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+    static final Icon tooltipsIcon = new ImageIcon("icons/tooltips2dploticon.png");
+    static final Icon notooltipsIcon = new ImageIcon("icons/notooltips2dploticon.png");
+
+    private JButton toggleContinuousModeButton, toggleTooltipButton;
 
     IDAToolBar(IDAVisualizerWindow masterFrame) {
 
@@ -48,6 +54,30 @@ class IDAToolBar extends JToolBar {
 	GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
 		"Setup ranges for axes");
 
+	addSeparator();
+
+	toggleContinuousModeButton = GUIUtils.addButton(this, null,
+		dataPointsIcon, masterFrame, "SHOW_DATA_POINTS",
+		"Toggle displaying of data points in continuous mode");
+
+	addSeparator();
+
+	toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon,
+		masterFrame, "SWITCH_TOOLTIPS",
+		"Toggle displaying of tool tips on the peaks");
+
+    }
+
+    void toggleContinuousModeButtonSetEnable(boolean enable) {
+	toggleContinuousModeButton.setEnabled(enable);
+    }
+
+    void setTooltipButton(boolean tooltip) {
+	if (tooltip) {
+	    toggleTooltipButton.setIcon(tooltipsIcon);
+	} else {
+	    toggleTooltipButton.setIcon(notooltipsIcon);
+	}
     }
 
 }

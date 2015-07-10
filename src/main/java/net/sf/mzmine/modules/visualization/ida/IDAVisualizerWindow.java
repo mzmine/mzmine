@@ -47,6 +47,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
     private IDABottomPanel bottomPanel;
     private IDADataSet dataset;
     private RawDataFile dataFile;
+    private boolean tooltipMode;
 
     public IDAVisualizerWindow(RawDataFile dataFile, 
 	    Range<Double> rtRange, Range<Double> mzRange,
@@ -58,6 +59,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	setBackground(Color.white);
 
 	this.dataFile = dataFile;
+	this.tooltipMode = true;
 
 	dataset = new IDADataSet(dataFile, rtRange, mzRange, this);
 
@@ -103,7 +105,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
     void updateTitle() {
 	StringBuffer title = new StringBuffer();
-	title.append("Time vs. m/z for IDA dependents\n");
+	title.append("Time vs. m/z for IDA dependent precursor ions\n");
 	title.append(dataFile.getName());
 	IDAPlot.setTitle(title.toString());
     }
@@ -121,6 +123,21 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	    dialog.setVisible(true);
 	}
 
+	if (command.equals("SHOW_DATA_POINTS")) {
+	    IDAPlot.switchDataPointsVisible();
+	}
+
+	if (command.equals("SWITCH_TOOLTIPS")) {
+	    if (tooltipMode) {
+		IDAPlot.showPeaksTooltips(false);
+		toolBar.setTooltipButton(false);
+		tooltipMode = false;
+	    } else {
+		IDAPlot.showPeaksTooltips(true);
+		toolBar.setTooltipButton(true);
+		tooltipMode = true;
+	    }
+	}
     }
 
     IDAPlot getPlot() {

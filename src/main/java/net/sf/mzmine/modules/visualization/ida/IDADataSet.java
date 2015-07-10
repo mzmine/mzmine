@@ -83,7 +83,7 @@ class IDADataSet extends AbstractXYZDataset implements Task {
 	    Scan scan = rawDataFile.getScan(allScanNumbers[index]);
 	    
 	    if (scan.getMSLevel() == 1) {
-		// Store info about MS spectra for MS/MS to allow extraction of intensity of parent ion in ms scan. 
+		// Store info about MS spectra for MS/MS to allow extraction of intensity of parent ion in MS scan. 
 		//int msIndex = index;
 	    }
 	    else {
@@ -98,7 +98,7 @@ class IDADataSet extends AbstractXYZDataset implements Task {
 		}
 
 		if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ)) {
-		    // Add to arrays
+		    // Add values to arrays
 		    rtValues[processedScans] = scanRT;
 		    mzValues[processedScans] = precursorMZ;
 		    intensityValues[processedScans] = totalScanIntensity;

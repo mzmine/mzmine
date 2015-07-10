@@ -205,4 +205,17 @@ class IDAPlot extends ChartPanel {
 	plot.setRenderer(1, peakDataRenderer);
     }
 
+    void switchDataPointsVisible() {
+	boolean dataPointsVisible = peakDataRenderer.getBaseShapesVisible();
+	peakDataRenderer.setBaseShapesVisible(!dataPointsVisible);
+    }
+
+    public void showPeaksTooltips(boolean mode) {
+	if (mode) {
+	    PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
+	    this.peakDataRenderer.setBaseToolTipGenerator(toolTipGenerator);
+	} else {
+	    this.peakDataRenderer.setBaseToolTipGenerator(null);
+	}
+    }
 }
