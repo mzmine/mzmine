@@ -96,7 +96,6 @@ class IDADataSet extends AbstractXYDataset implements Task {
 		totalScanIntensity = 0;
 		if (intensityType == IntensityType.MS){
 		    // Get intensity of precursor ion from MS scan
-		    System.out.println(lastMSIndex);
 		    Scan msscan = rawDataFile.getScan(allScanNumbers[lastMSIndex]);
 		    Double mzTolerance = precursorMZ*10/1000000;
 		    Range<Double> precursorMZRange = Range.closed(precursorMZ-mzTolerance,precursorMZ+mzTolerance);
@@ -104,7 +103,6 @@ class IDADataSet extends AbstractXYDataset implements Task {
 		    for (int x = 0; x < scanDataPoints.length; x++) {
 			totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
 		    }
-		    System.out.println("Total Int: "+totalScanIntensity);
 		}
 		else if (intensityType == IntensityType.MSMS){
 		    // Get total intensity of all peaks in MS/MS scan
