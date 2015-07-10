@@ -107,16 +107,8 @@ class IDAPlot extends ChartPanel {
 
 	// set the plot properties
 	plot = new IDAXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
-	plot.setBackgroundPaint(Color.white);
 	plot.setDomainGridlinesVisible(false);
 	plot.setRangeGridlinesVisible(false);
-
-	// set renderer
-	XYDotRenderer xydotrenderer = new XYDotRenderer();
-	Shape shape  = new Ellipse2D.Double(0,0,5,5);
-	xydotrenderer.setSeriesShape(0, shape);
-	xydotrenderer.setSeriesPaint(0, Color.black);
-	plot.setRenderer(xydotrenderer);
 
 	// chart properties
 	chart = new JFreeChart("", titleFont, plot, false);
@@ -125,6 +117,14 @@ class IDAPlot extends ChartPanel {
 
 	setChart(chart);
 
+	// set renderer
+	XYDotRenderer xydotrenderer = new XYDotRenderer();
+	Shape shape  = new Ellipse2D.Double(0,0,5,5);
+	xydotrenderer.setSeriesShape(0, shape);
+	xydotrenderer.setSeriesPaint(0, Color.black);
+	plot.setRenderer(xydotrenderer);
+	plot.setBackgroundPaint(Color.white);
+	
 	// title
 	chartTitle = chart.getTitle();
 	chartTitle.setMargin(5, 0, 0, 0);
