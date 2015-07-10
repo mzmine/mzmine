@@ -22,7 +22,9 @@ package net.sf.mzmine.modules.visualization.ida;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
+import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 
 import javax.swing.JFileChooser;
@@ -43,6 +45,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
+import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.util.ShapeUtilities;
@@ -108,11 +111,12 @@ class IDAPlot extends ChartPanel {
 	plot.setDomainGridlinesVisible(false);
 	plot.setRangeGridlinesVisible(false);
 
-	// set XY plot renderer
-	XYItemRenderer renderer = new StandardXYItemRenderer();
-	renderer.setSeriesShape(0, ShapeUtilities.createDiamond(5));
-	renderer.setSeriesPaint(0, Color.black);
-	plot.setRenderer(renderer);
+	// set renderer
+	XYDotRenderer xydotrenderer = new XYDotRenderer();
+	Shape shape  = new Ellipse2D.Double(0,0,5,5);
+	xydotrenderer.setSeriesShape(0, shape);
+	xydotrenderer.setSeriesPaint(0, Color.black);
+	plot.setRenderer(xydotrenderer);
 
 	// chart properties
 	chart = new JFreeChart("", titleFont, plot, false);
