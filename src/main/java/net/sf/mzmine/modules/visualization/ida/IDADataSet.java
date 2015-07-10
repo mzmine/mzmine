@@ -42,7 +42,7 @@ class IDADataSet extends AbstractXYZDataset implements Task {
 
     private Range<Double> totalRTRange, totalMZRange;
     private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans;
-    private double[ ][ ] idaXYZSeries;
+    private final double[] rtValues, mzValues, intensityValues;
 
     private TaskStatus status = TaskStatus.WAITING;
 
@@ -59,6 +59,10 @@ class IDADataSet extends AbstractXYZDataset implements Task {
 
 	totalScans = allScanNumbers.length;
 	totalmsmsScans = msmsScanNumbers.length;
+	
+	rtValues = new double[totalmsmsScans];
+	mzValues = new double[totalmsmsScans];
+	intensityValues = new double[totalmsmsScans];
 
 	MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
 
@@ -69,7 +73,6 @@ class IDADataSet extends AbstractXYZDataset implements Task {
 
 	status = TaskStatus.PROCESSING;
 	double totalScanIntensity;
-	idaXYZSeries = new double[totalmsmsScans][3];
 
 	for (int index = 0; index < totalScans; index++) {
 
@@ -95,10 +98,10 @@ class IDADataSet extends AbstractXYZDataset implements Task {
 		}
 
 		if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ)) {
-		    // Add to idaXYZSeries
-		    idaXYZSeries[processedScans][0] = scanRT;
-		    idaXYZSeries[processedScans][1] = precursorMZ;
-		    idaXYZSeries[processedScans][2] = totalScanIntensity;
+		    // Add to arrays
+		    rtValues[processedScans] = scanRT;
+		    mzValues[processedScans] = precursorMZ;
+		    intensityValues[processedScans] = totalScanIntensity;
 		    processedScans++;
 		}
 
@@ -112,7 +115,7 @@ class IDADataSet extends AbstractXYZDataset implements Task {
     }
 
     public int getSeriesCount() {
-	return 3;
+	return 1;
     }
 
     public Comparable<?> getSeriesKey(int series) {
@@ -124,31 +127,22 @@ class IDADataSet extends AbstractXYZDataset implements Task {
     }
 
     public Number getX(int series, int item) {
-	try {
-	return idaXYZSeries[item][0];
-	} 
-	catch (Exception e) {return 0.0;}
+	return rtValues[item];
     }
 
     public Number getY(int series, int item) {
-	try {
-	return idaXYZSeries[item][1];
-	} 
-	catch (Exception e) {return 0.0;}
+	return mzValues[item];
     }
 
     public Number getZ(int series, int item) {
-	try {
-	return idaXYZSeries[item][2];
-	} 
-	catch (Exception e) {return 0.0;}
+	return intensityValues[item];
     }
 
     public Number getMaxZ() {
-	double max = idaXYZSeries[0][0];
-        for (int row = 0; row < idaXYZSeries.length; row++) {
-            if (max < idaXYZSeries[row][2]) {
-                max = idaXYZSeries[row][2];
+	double max = intensityValues[0];
+        for (int row = 0; row < totalmsmsScans; row++) {
+            if (max < intensityValues[row]) {
+                max = intensityValues[row];
             }
         }
         return max;
