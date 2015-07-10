@@ -30,15 +30,13 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import com.google.common.collect.Range;
 
 public class TICVisualizerParameters extends SimpleParameterSet {
 
@@ -65,7 +63,6 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * m/z range.
      */
     public static final DoubleRangeParameter MZ_RANGE = new MZRangeParameter();
-    private Range<Double> MZ_RANGE_HIDDEN;
 
     /**
      * Peaks to display.
@@ -89,7 +86,6 @@ public class TICVisualizerParameters extends SimpleParameterSet {
         super(new Parameter[] { DATA_FILES, scanSelection, PLOT_TYPE, MZ_RANGE,
                 PEAKS, WINDOWSETTINGSPARAMETER });
         peakLabelMap = null;
-        MZ_RANGE_HIDDEN = null;
     }
 
     /**
@@ -112,27 +108,6 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     public void setPeakLabelMap(final Map<Feature, String> map) {
 
         peakLabelMap = map == null ? null : new HashMap<Feature, String>(map);
-    }
-
-    /**
-     * Gets the hidden m/z range
-     * 
-     * @return
-     * 
-     * @return Range<Double>.
-     */
-    public Range<Double> getHiddenMzRange() {
-        return MZ_RANGE_HIDDEN;
-    }
-
-    /**
-     * Sets the hidden m/z range.
-     * 
-     * @param Range
-     *            <Double> m/z range.
-     */
-    public void setHiddenMzRange(final Range<Double> mzRange) {
-        MZ_RANGE_HIDDEN = mzRange;
     }
 
     /**
