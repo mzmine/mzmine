@@ -28,6 +28,8 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
+import net.sf.mzmine.modules.visualization.tic.PlotType;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
 import net.sf.mzmine.taskcontrol.Task;
@@ -64,8 +66,10 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
                 IDAParameters.retentionTimeRange).getValue();
         Range<Double> mzRange = parameters.getParameter(IDAParameters.mzRange)
                 .getValue();
+        final IntensityType intensityType = parameters.getParameter(
+        	IDAParameters.intensityType).getValue();
         IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFiles[0],
-                rtRange, mzRange, parameters);
+                rtRange, mzRange, intensityType, parameters);
 
         newWindow.setVisible(true);
 
@@ -73,11 +77,11 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile) {
-	showIDAVisualizerSetupDialog(dataFile, null, null);
+	showIDAVisualizerSetupDialog(dataFile, null, null, null);
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile,
-            Range<Double> mzRange, Range<Double> rtRange) {
+            Range<Double> mzRange, Range<Double> rtRange, IntensityType intensityType) {
         ParameterSet parameters = MZmineCore.getConfiguration()
                 .getModuleParameters(IDAVisualizerModule.class);
 
@@ -102,7 +106,7 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
         mzRange = parameters.getParameter(IDAParameters.mzRange).getValue();
 
         IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFile,
-                rtRange, mzRange, parameters);
+                rtRange, mzRange, intensityType, parameters);
 
         newWindow.setVisible(true);
 

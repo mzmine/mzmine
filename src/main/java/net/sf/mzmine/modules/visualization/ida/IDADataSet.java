@@ -27,32 +27,34 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-import org.jfree.data.xy.AbstractXYZDataset;
+import org.jfree.data.xy.AbstractXYDataset;
 
 import com.google.common.collect.Range;
 
 /**
  * 
  */
-class IDADataSet extends AbstractXYZDataset implements Task {
+class IDADataSet extends AbstractXYDataset implements Task {
 
     private static final long serialVersionUID = 1L;
 
     private RawDataFile rawDataFile;
 
     private Range<Double> totalRTRange, totalMZRange;
-    private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans;
+    private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans, lastMSIndex;
     private final double[] rtValues, mzValues, intensityValues;
+    private IntensityType intensityType;
 
     private TaskStatus status = TaskStatus.WAITING;
 
     IDADataSet(RawDataFile rawDataFile, Range<Double> rtRange,
-	    Range<Double> mzRange, IDAVisualizerWindow visualizer) {
+	    Range<Double> mzRange, IntensityType intensityType, IDAVisualizerWindow visualizer) {
 
 	this.rawDataFile = rawDataFile;
 
 	totalRTRange = rtRange;
 	totalMZRange = mzRange;
+	this.intensityType = intensityType;
 
 	allScanNumbers = rawDataFile.getScanNumbers();
 	msmsScanNumbers = rawDataFile.getScanNumbers(2, rtRange);
@@ -83,18 +85,33 @@ class IDADataSet extends AbstractXYZDataset implements Task {
 	    Scan scan = rawDataFile.getScan(allScanNumbers[index]);
 	    
 	    if (scan.getMSLevel() == 1) {
-		// Store info about MS spectra for MS/MS to allow extraction of intensity of parent ion in MS scan. 
-		//int msIndex = index;
+		// Store info about MS spectra for MS/MS to allow extraction of intensity of precursor ion in MS scan. 
+		lastMSIndex = index;
 	    }
 	    else {
 		Double precursorMZ = scan.getPrecursorMZ();	// Precursor m/z value
 		Double scanRT = scan.getRetentionTime();	// Scan RT
 
-		// Get total intensity of all peaks in MS/MS scan
-		DataPoint scanDataPoints[] = scan.getDataPoints();
+		//Calculate total intensity
 		totalScanIntensity = 0;
-		for (int x = 0; x < scanDataPoints.length; x++) {
-		    totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
+		if (intensityType == IntensityType.MS){
+		    // Get intensity of precursor ion from MS scan
+		    System.out.println(lastMSIndex);
+		    Scan msscan = rawDataFile.getScan(allScanNumbers[lastMSIndex]);
+		    Double mzTolerance = precursorMZ*10/1000000;
+		    Range<Double> precursorMZRange = Range.closed(precursorMZ-mzTolerance,precursorMZ+mzTolerance);
+		    DataPoint scanDataPoints[] = msscan.getDataPointsByMass(precursorMZRange);
+		    for (int x = 0; x < scanDataPoints.length; x++) {
+			totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
+		    }
+		    System.out.println("Total Int: "+totalScanIntensity);
+		}
+		else if (intensityType == IntensityType.MSMS){
+		    // Get total intensity of all peaks in MS/MS scan
+		    DataPoint scanDataPoints[] = scan.getDataPoints();
+		    for (int x = 0; x < scanDataPoints.length; x++) {
+			totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
+		    }
 		}
 
 		if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ)) {

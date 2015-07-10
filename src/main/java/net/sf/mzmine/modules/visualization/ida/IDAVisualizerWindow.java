@@ -51,7 +51,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
     public IDAVisualizerWindow(RawDataFile dataFile, 
 	    Range<Double> rtRange, Range<Double> mzRange,
-	    ParameterSet parameters) {
+	    IntensityType intensityType, ParameterSet parameters) {
 
 	super("IDA visualizer: [" + dataFile.getName() + "]");
 
@@ -61,7 +61,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	this.dataFile = dataFile;
 	this.tooltipMode = true;
 
-	dataset = new IDADataSet(dataFile, rtRange, mzRange, this);
+	dataset = new IDADataSet(dataFile, rtRange, mzRange, intensityType, this);
 
 	toolBar = new IDAToolBar(this);
 	add(toolBar, BorderLayout.EAST);
@@ -118,8 +118,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	String command = event.getActionCommand();
 
 	if (command.equals("SETUP_AXES")) {
-	    AxesSetupDialog dialog = new AxesSetupDialog(this,
-		    IDAPlot.getXYPlot());
+	    AxesSetupDialog dialog = new AxesSetupDialog(this,IDAPlot.getXYPlot());
 	    dialog.setVisible(true);
 	}
 

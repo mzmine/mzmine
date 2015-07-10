@@ -33,15 +33,21 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.tic.TICPlotRenderer;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.SaveImage;
 import net.sf.mzmine.util.SaveImage.FileType;
 
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.util.ShapeUtilities;
 
 import com.google.common.collect.Range;
 
@@ -60,6 +66,7 @@ class IDAPlot extends ChartPanel {
     private IDAXYPlot plot;
 
     private PeakDataRenderer peakDataRenderer;
+    private final XYLineAndShapeRenderer defaultRenderer;
 
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
@@ -104,8 +111,24 @@ class IDAPlot extends ChartPanel {
 	plot.setDomainGridlinesVisible(false);
 	plot.setRangeGridlinesVisible(false);
 
+	// Set default renderer properties
+	defaultRenderer = new XYLineAndShapeRenderer();
+	defaultRenderer.setBaseShapesFilled(true);
+	defaultRenderer.setDrawOutlines(false);
+	defaultRenderer.setUseFillPaint(true);
+	defaultRenderer.setBaseItemLabelPaint(Color.black);
+	//plot.setRenderer(defaultRenderer);
+	
+	// set XY plot renderer
+//	XYItemRenderer renderer = new StandardXYItemRenderer();
+//	XYItemRenderer renderer = (XYItemRenderer) chart.getXYPlot().getRenderer();
+//	renderer.setSeriesShape(0, ShapeUtilities.createDiamond(5));
+//	renderer.setSeriesPaint(0, Color.black);
+//	plot.setRenderer(renderer);
+
 	// chart properties
 	chart = new JFreeChart("", titleFont, plot, false);
+	ChartUtilities.applyCurrentTheme(chart);
 	chart.setBackgroundPaint(Color.white);
 
 	setChart(chart);

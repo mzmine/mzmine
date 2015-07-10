@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.ida;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
@@ -37,6 +38,11 @@ public class IDAParameters extends SimpleParameterSet {
     public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
+    
+    public static final ComboParameter<IntensityType> intensityType = new ComboParameter<IntensityType>(
+            "Intensity normalization",
+            "The intensity of the data points can calculated based on either\n- total intensity of the MS/MS scan\n- intensity of the precursor ion in the MS scan",
+            IntensityType.values());
 
     public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
 
@@ -47,7 +53,7 @@ public class IDAParameters extends SimpleParameterSet {
 
     public IDAParameters() {
 	super(new Parameter[] { dataFiles, retentionTimeRange,
-		mzRange, peakThresholdSettings, windowSettings });
+		mzRange, intensityType, peakThresholdSettings, windowSettings });
     }
 
 }
