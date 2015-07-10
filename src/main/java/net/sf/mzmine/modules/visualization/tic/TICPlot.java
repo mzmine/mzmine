@@ -681,7 +681,6 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 		}
 	    });
 
-	    numOfPeaks++;
 	    havePeakLabels = true;
 	}
     }
