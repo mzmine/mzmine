@@ -17,13 +17,14 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -34,23 +35,30 @@ import com.google.common.collect.Range;
 public class ScanSelection {
 
     private final Range<Integer> scanNumberRange;
-    private final Range<Double> scanRetentionTimeRange;
+    private final Range<Double> scanRTRange;
     private final PolarityType polarity;
+    private final MassSpectrumType spectrumType;
     private final Integer msLevel;
 
     public ScanSelection() {
-        this.scanNumberRange = null;
-        this.scanRetentionTimeRange = null;
-        this.polarity = null;
-        this.msLevel = 1;
+        this(null, null, null, null, 1);
+    }
+
+    public ScanSelection(int msLevel) {
+        this(null, null, null, null, msLevel);
+    }
+
+    public ScanSelection(Range<Double> scanRTRange, int msLevel) {
+        this(null, scanRTRange, null, null, msLevel);
     }
 
     public ScanSelection(Range<Integer> scanNumberRange,
-            Range<Double> scanRetentionTimeRange, PolarityType polarity,
-            Integer msLevel) {
+            Range<Double> scanRTRange, PolarityType polarity,
+            MassSpectrumType spectrumType, Integer msLevel) {
         this.scanNumberRange = scanNumberRange;
-        this.scanRetentionTimeRange = scanRetentionTimeRange;
+        this.scanRTRange = scanRTRange;
         this.polarity = polarity;
+        this.spectrumType = spectrumType;
         this.msLevel = msLevel;
     }
 
@@ -58,12 +66,16 @@ public class ScanSelection {
         return scanNumberRange;
     }
 
-    public Range<Double> getScanRetentionTimeRange() {
-        return scanRetentionTimeRange;
+    public Range<Double> getScanRTRange() {
+        return scanRTRange;
     }
 
     public PolarityType getPolarity() {
         return polarity;
+    }
+
+    public MassSpectrumType getSpectrumType() {
+        return spectrumType;
     }
 
     public Integer getMsLevel() {
@@ -81,12 +93,14 @@ public class ScanSelection {
                 continue;
             if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
                 continue;
+            if ((spectrumType != null)
+                    && (!spectrumType.equals(scan.getSpectrumType())))
+                continue;
             if ((scanNumberRange != null)
                     && (!scanNumberRange.contains(scanNumber)))
                 continue;
-            if ((scanRetentionTimeRange != null)
-                    && (!scanRetentionTimeRange.contains(scan
-                            .getRetentionTime())))
+            if ((scanRTRange != null)
+                    && (!scanRTRange.contains(scan.getRetentionTime())))
                 continue;
             matchingScans.add(scan);
         }

@@ -23,9 +23,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
-import net.sf.mzmine.parameters.parametertypes.ScanSelection;
-import net.sf.mzmine.parameters.parametertypes.ScanSelectionParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 public class MsMsPeakPickerParameters extends SimpleParameterSet {
 
@@ -40,7 +40,7 @@ public class MsMsPeakPickerParameters extends SimpleParameterSet {
                     .getRTFormat());
 
     public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
-            new ScanSelection(null, null, null, 2));
+            new ScanSelection(2));
 
     public MsMsPeakPickerParameters() {
         super(new Parameter[] { dataFiles, mzWindow, rtWindow, scanSelection });

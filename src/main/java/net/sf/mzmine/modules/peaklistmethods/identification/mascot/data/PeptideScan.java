@@ -429,7 +429,7 @@ public class PeptideScan implements Scan {
     }
 
     @Override
-    public Range<Double> getScaningMZRange() {
+    public Range<Double> getScanningMZRange() {
 	// TODO Auto-generated method stub
 	return null;
     }

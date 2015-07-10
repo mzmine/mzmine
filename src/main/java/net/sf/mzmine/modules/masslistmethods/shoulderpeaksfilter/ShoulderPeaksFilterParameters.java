@@ -27,8 +27,8 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class ShoulderPeaksFilterParameters extends SimpleParameterSet {

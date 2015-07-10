@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -34,6 +34,8 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class PeakListsComponent extends JPanel implements ActionListener {
@@ -50,6 +52,9 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
         setLayout(layout);
 
+        numPeakListsLabel = new JLabel();
+        add(numPeakListsLabel);
+
         typeCombo = new JComboBox<>(PeakListsSelectionType.values());
         typeCombo.addActionListener(this);
         add(typeCombo);
@@ -58,9 +63,6 @@ public class PeakListsComponent extends JPanel implements ActionListener {
         detailsButton.setEnabled(false);
         detailsButton.addActionListener(this);
         add(detailsButton);
-
-        numPeakListsLabel = new JLabel();
-        add(numPeakListsLabel);
 
         // Do not allow resizing below the required size for individual
         // components
@@ -153,7 +155,14 @@ public class PeakListsComponent extends JPanel implements ActionListener {
             numPeakListsLabel.setToolTipText("");
         } else {
             PeakList pls[] = currentValue.getMatchingPeakLists();
-            numPeakListsLabel.setText("(" + pls.length + " selected)");
+            if (pls.length == 1) {
+                String plName = pls[0].getName();
+                if (plName.length() > 22)
+                    plName = plName.substring(0, 20) + "...";
+                numPeakListsLabel.setText(plName);
+            } else {
+                numPeakListsLabel.setText(pls.length + " selected");
+            }
             numPeakListsLabel.setToolTipText(currentValue.toString());
         }
     }

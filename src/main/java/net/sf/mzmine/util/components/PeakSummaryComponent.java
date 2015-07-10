@@ -61,7 +61,7 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
-import net.sf.mzmine.parameters.parametertypes.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 import com.google.common.collect.Range;
 
@@ -392,9 +392,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
                     labelMap.put(bestPeak, peakIdentity.getName());
                 }
 
-                ScanSelection scanSelection = new ScanSelection(null, rtRange,
-                        null, 1);
-                
+                ScanSelection scanSelection = new ScanSelection(rtRange, 1);
+
                 TICVisualizerModule.showNewTICVisualizerWindow(dataFiles,
                         selectedPeaks, labelMap, scanSelection,
                         TICPlotType.BASEPEAK, mzRange);

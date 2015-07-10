@@ -28,7 +28,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 

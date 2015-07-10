@@ -40,12 +40,12 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
+import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithChromatogramPreview;
-import net.sf.mzmine.parameters.parametertypes.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.R.RSessionWrapper;
@@ -232,11 +232,11 @@ public class BaselineCorrectorSetupDialog extends
             ticPlot.setPlotType(getPlotType());
 
             // Add the original raw data file
-            final ScanSelection sel = new ScanSelection(null, rtRange, null, 1);
+            final ScanSelection sel = new ScanSelection(rtRange, 1);
             Scan scans[] = sel.getMatchingScans(dataFile);
 
-            TICDataSet ticDataset = new TICDataSet(dataFile, scans,
-                    mzRange, null, getPlotType());
+            TICDataSet ticDataset = new TICDataSet(dataFile, scans, mzRange,
+                    null, getPlotType());
             ticPlot.addTICDataset(ticDataset);
 
             try {

@@ -24,8 +24,8 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class ChromatogramBuilderParameters extends SimpleParameterSet {

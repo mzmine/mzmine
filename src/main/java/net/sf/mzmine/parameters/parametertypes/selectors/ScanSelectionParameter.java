@@ -17,10 +17,11 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.util.Collection;
 
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.parameters.UserParameter;
 
@@ -87,8 +88,9 @@ public class ScanSelectionParameter implements
     public void loadValueFromXML(Element xmlElement) {
 
         Range<Integer> scanNumberRange = null;
-        Range<Double> scanRetentionTimeRange = null;
+        Range<Double> scanRTRange = null;
         PolarityType polarity = null;
+        MassSpectrumType spectrumType = null;
         Integer msLevel = null;
 
         NodeList items = xmlElement.getElementsByTagName("scan_numbers");
@@ -111,7 +113,7 @@ public class ScanSelectionParameter implements
                     .getTextContent();
             String maxText = items.item(i).getChildNodes().item(1)
                     .getTextContent();
-            scanRetentionTimeRange = Range.closed(Double.valueOf(minText),
+            scanRTRange = Range.closed(Double.valueOf(minText),
                     Double.valueOf(maxText));
         }
 
@@ -122,11 +124,22 @@ public class ScanSelectionParameter implements
 
         items = xmlElement.getElementsByTagName("polarity");
         for (int i = 0; i < items.getLength(); i++) {
-            polarity = PolarityType.fromString(items.item(i).getTextContent());
+            try {
+                polarity = PolarityType.valueOf(items.item(i).getTextContent());
+            } catch (Exception e) {
+                polarity = PolarityType.fromSingleChar(items.item(i)
+                        .getTextContent());
+            }
         }
 
-        this.value = new ScanSelection(scanNumberRange, scanRetentionTimeRange,
-                polarity, msLevel);
+        items = xmlElement.getElementsByTagName("spectrum_type");
+        for (int i = 0; i < items.getLength(); i++) {
+            spectrumType = MassSpectrumType.valueOf(items.item(i)
+                    .getTextContent());
+        }
+
+        this.value = new ScanSelection(scanNumberRange, scanRTRange, polarity,
+                spectrumType, msLevel);
     }
 
     @Override
@@ -136,9 +149,9 @@ public class ScanSelectionParameter implements
         Document parentDocument = xmlElement.getOwnerDocument();
 
         final Range<Integer> scanNumberRange = value.getScanNumberRange();
-        final Range<Double> scanRetentionTimeRange = value
-                .getScanRetentionTimeRange();
+        final Range<Double> scanRetentionTimeRange = value.getScanRTRange();
         final PolarityType polarity = value.getPolarity();
+        final MassSpectrumType spectrumType = value.getSpectrumType();
         final Integer msLevel = value.getMsLevel();
 
         if (scanNumberRange != null) {
@@ -172,6 +185,12 @@ public class ScanSelectionParameter implements
         if (polarity != null) {
             Element newElement = parentDocument.createElement("polarity");
             newElement.setTextContent(polarity.toString());
+            xmlElement.appendChild(newElement);
+        }
+
+        if (spectrumType != null) {
+            Element newElement = parentDocument.createElement("spectrum_type");
+            newElement.setTextContent(spectrumType.toString());
             xmlElement.appendChild(newElement);
         }
 

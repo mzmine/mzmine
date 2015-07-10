@@ -30,8 +30,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
-import net.sf.mzmine.parameters.parametertypes.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.ScanUtils;
@@ -68,8 +68,8 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
         Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
         Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
-        Range<Double> mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange)
-                .getValue();
+        Range<Double> mzRange = parameters.getParameter(
+                TwoDVisualizerParameters.mzRange).getValue();
         TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
                 scans, rtRange, mzRange, parameters);
 
@@ -94,9 +94,10 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
 
         if (rtRange != null)
             parameters.getParameter(TwoDVisualizerParameters.scanSelection)
-                    .setValue(new ScanSelection(null, rtRange, null, 1));
+                    .setValue(new ScanSelection(rtRange, 1));
         if (mzRange != null)
-            parameters.getParameter(TwoDVisualizerParameters.mzRange).setValue(mzRange);
+            parameters.getParameter(TwoDVisualizerParameters.mzRange).setValue(
+                    mzRange);
 
         ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
                 .getMainWindow(), true);
@@ -109,7 +110,8 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
         Scan scans[] = scanSel.getMatchingScans(dataFile);
         rtRange = ScanUtils.findRtRange(scans);
 
-        mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange).getValue();
+        mzRange = parameters.getParameter(TwoDVisualizerParameters.mzRange)
+                .getValue();
 
         TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFile,
                 scans, rtRange, mzRange, parameters);

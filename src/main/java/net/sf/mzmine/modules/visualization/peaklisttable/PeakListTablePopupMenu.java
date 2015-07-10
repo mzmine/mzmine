@@ -59,7 +59,7 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
-import net.sf.mzmine.parameters.parametertypes.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.util.GUIUtils;
 
 import com.google.common.collect.Range;
@@ -358,8 +358,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 }
             }
 
-            ScanSelection scanSelection = new ScanSelection(null,
-                    selectedDataFile.getDataRTRange(1), null, 1);
+            ScanSelection scanSelection = new ScanSelection(
+                    selectedDataFile.getDataRTRange(1), 1);
 
             TICVisualizerModule.showNewTICVisualizerWindow(
                     new RawDataFile[] { selectedDataFile },
@@ -405,8 +405,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 }
             }
 
-            ScanSelection scanSelection = new ScanSelection(null,
-                    selectedDataFiles[0].getDataRTRange(1), null, 1);
+            ScanSelection scanSelection = new ScanSelection(
+                    selectedDataFiles[0].getDataRTRange(1), 1);
 
             TICVisualizerModule.setupNewTICVisualizer(MZmineCore
                     .getProjectManager().getCurrentProject().getDataFiles(),

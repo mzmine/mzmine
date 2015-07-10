@@ -24,8 +24,8 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class ShapeModelerParameters extends SimpleParameterSet {
 

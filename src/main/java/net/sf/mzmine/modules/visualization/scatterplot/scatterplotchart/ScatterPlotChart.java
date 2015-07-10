@@ -42,7 +42,7 @@ import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
-import net.sf.mzmine.parameters.parametertypes.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SaveImage;
@@ -272,8 +272,7 @@ public class ScatterPlotChart extends ChartPanel implements
                 labelMap.put(bestPeak, peakIdentity.getName());
             }
 
-            ScanSelection scanSelection = new ScanSelection(null, rtRange,
-                    null, 1);
+            ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
             TICVisualizerModule.showNewTICVisualizerWindow(
                     peakList.getRawDataFiles(), peaks, labelMap, scanSelection,

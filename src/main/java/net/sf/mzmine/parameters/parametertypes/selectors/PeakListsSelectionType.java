@@ -17,15 +17,15 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.selectors;
 
 public enum PeakListsSelectionType {
 
-    GUI_SELECTED_PEAKLISTS("Peak lists selected in main window"), //
+    GUI_SELECTED_PEAKLISTS("As selected in main window"), //
     ALL_PEAKLISTS("All peak lists"), //
     SPECIFIC_PEAKLISTS("Specific peak lists"), //
     NAME_PATTERN("Peak list name pattern"), //
-    BATCH_LAST_PEAKLISTS("Peak lists created by previous batch step");
+    BATCH_LAST_PEAKLISTS("Those created by previous batch step");
 
     private final String stringValue;
 

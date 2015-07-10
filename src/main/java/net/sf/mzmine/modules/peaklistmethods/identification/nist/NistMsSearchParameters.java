@@ -32,8 +32,8 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 /**

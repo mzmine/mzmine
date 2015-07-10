@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.orderdatafiles;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 public class OrderDataFilesParameters extends SimpleParameterSet {
 

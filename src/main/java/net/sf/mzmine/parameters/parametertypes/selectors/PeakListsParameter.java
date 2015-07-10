@@ -17,12 +17,12 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 
@@ -32,84 +32,83 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.base.Strings;
 
-public class RawDataFilesParameter implements
-        UserParameter<RawDataFilesSelection, RawDataFilesComponent> {
+public class PeakListsParameter implements
+        UserParameter<PeakListsSelection, PeakListsComponent> {
 
     private int minCount, maxCount;
 
-    private RawDataFilesSelection value;
+    private PeakListsSelection value;
 
-    public RawDataFilesParameter() {
+    public PeakListsParameter() {
         this(1, Integer.MAX_VALUE);
     }
 
-    public RawDataFilesParameter(int minCount) {
+    public PeakListsParameter(int minCount) {
         this(minCount, Integer.MAX_VALUE);
     }
 
-    public RawDataFilesParameter(int minCount, int maxCount) {
+    public PeakListsParameter(int minCount, int maxCount) {
         this.minCount = minCount;
         this.maxCount = maxCount;
     }
 
     @Override
-    public RawDataFilesSelection getValue() {
+    public PeakListsSelection getValue() {
         return value;
     }
 
     @Override
-    public void setValue(RawDataFilesSelection newValue) {
+    public void setValue(PeakListsSelection newValue) {
         this.value = newValue;
     }
 
-    public void setValue(RawDataFilesSelectionType selectionType) {
+    public void setValue(PeakListsSelectionType selectionType,
+            PeakList peakLists[]) {
         if (value == null)
-            value = new RawDataFilesSelection();
+            value = new PeakListsSelection();
         value.setSelectionType(selectionType);
+        value.setSpecificPeakLists(peakLists);
     }
 
-    public void setValue(RawDataFilesSelectionType selectionType,
-            RawDataFile dataFiles[]) {
+    public void setValue(PeakListsSelectionType selectionType) {
         if (value == null)
-            value = new RawDataFilesSelection();
+            value = new PeakListsSelection();
         value.setSelectionType(selectionType);
-        value.setSpecificFiles(dataFiles);
     }
 
     @Override
-    public RawDataFilesParameter cloneParameter() {
-        RawDataFilesParameter copy = new RawDataFilesParameter(minCount,
-                maxCount);
+    public PeakListsParameter cloneParameter() {
+        PeakListsParameter copy = new PeakListsParameter(minCount, maxCount);
         copy.value = value.clone();
         return copy;
     }
 
     @Override
     public String getName() {
-        return "Raw data files (input)";
+        return "Peak lists";
     }
 
     @Override
     public String getDescription() {
-        return "Raw data files that this module will take as its input.";
+        return "Peak lists that this module will take as its input.";
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-        RawDataFile matchingFiles[];
+        PeakList matchingPeakLists[];
         if (value == null)
-            matchingFiles = new RawDataFile[0];
+            matchingPeakLists = new PeakList[0];
         else
-            matchingFiles = value.getMatchingRawDataFiles();
+            matchingPeakLists = value.getMatchingPeakLists();
 
-        if (matchingFiles.length < minCount) {
+        if (matchingPeakLists.length < minCount) {
             errorMessages.add("At least " + minCount
-                    + " raw data files must be selected");
+                    + " peak lists  must be selected");
             return false;
         }
-        if (matchingFiles.length > maxCount) {
+        if (matchingPeakLists.length > maxCount) {
             errorMessages.add("Maximum " + maxCount
-                    + " raw data files may be selected");
+                    + " peak lists may be selected");
             return false;
         }
         return true;
@@ -118,29 +117,29 @@ public class RawDataFilesParameter implements
     @Override
     public void loadValueFromXML(Element xmlElement) {
 
-        RawDataFile[] currentDataFiles = MZmineCore.getProjectManager()
-                .getCurrentProject().getDataFiles();
+        PeakList[] currentDataPeakLists = MZmineCore.getProjectManager()
+                .getCurrentProject().getPeakLists();
 
-        RawDataFilesSelectionType selectionType;
+        PeakListsSelectionType selectionType;
         final String attrValue = xmlElement.getAttribute("type");
 
         if (Strings.isNullOrEmpty(attrValue))
-            selectionType = RawDataFilesSelectionType.GUI_SELECTED_FILES;
+            selectionType = PeakListsSelectionType.GUI_SELECTED_PEAKLISTS;
         else
-            selectionType = RawDataFilesSelectionType.valueOf(xmlElement
+            selectionType = PeakListsSelectionType.valueOf(xmlElement
                     .getAttribute("type"));
 
         ArrayList<Object> newValues = new ArrayList<Object>();
 
-        NodeList items = xmlElement.getElementsByTagName("specific_file");
+        NodeList items = xmlElement.getElementsByTagName("specific_peak_list");
         for (int i = 0; i < items.getLength(); i++) {
             String itemString = items.item(i).getTextContent();
-            for (RawDataFile df : currentDataFiles) {
+            for (PeakList df : currentDataPeakLists) {
                 if (df.getName().equals(itemString))
                     newValues.add(df);
             }
         }
-        RawDataFile specificFiles[] = newValues.toArray(new RawDataFile[0]);
+        PeakList specificPeakLists[] = newValues.toArray(new PeakList[0]);
 
         String namePattern = null;
         items = xmlElement.getElementsByTagName("name_pattern");
@@ -148,9 +147,9 @@ public class RawDataFilesParameter implements
             namePattern = items.item(i).getTextContent();
         }
 
-        this.value = new RawDataFilesSelection();
+        this.value = new PeakListsSelection();
         this.value.setSelectionType(selectionType);
-        this.value.setSpecificFiles(specificFiles);
+        this.value.setSpecificPeakLists(specificPeakLists);
         this.value.setNamePattern(namePattern);
     }
 
@@ -161,10 +160,10 @@ public class RawDataFilesParameter implements
         Document parentDocument = xmlElement.getOwnerDocument();
         xmlElement.setAttribute("type", value.getSelectionType().name());
 
-        if (value.getSpecificFiles() != null) {
-            for (RawDataFile item : value.getSpecificFiles()) {
+        if (value.getSpecificPeakLists() != null) {
+            for (PeakList item : value.getSpecificPeakLists()) {
                 Element newElement = parentDocument
-                        .createElement("specific_file");
+                        .createElement("specific_peak_list");
                 newElement.setTextContent(item.getName());
                 xmlElement.appendChild(newElement);
             }
@@ -179,18 +178,18 @@ public class RawDataFilesParameter implements
     }
 
     @Override
-    public RawDataFilesComponent createEditingComponent() {
-        return new RawDataFilesComponent();
+    public PeakListsComponent createEditingComponent() {
+        return new PeakListsComponent();
     }
 
     @Override
-    public void setValueFromComponent(RawDataFilesComponent component) {
+    public void setValueFromComponent(PeakListsComponent component) {
         value = component.getValue();
     }
 
     @Override
-    public void setValueToComponent(RawDataFilesComponent component,
-            RawDataFilesSelection newValue) {
+    public void setValueToComponent(PeakListsComponent component,
+            PeakListsSelection newValue) {
         component.setValue(newValue);
     }
 

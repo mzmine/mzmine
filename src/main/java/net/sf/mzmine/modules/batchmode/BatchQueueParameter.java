@@ -25,8 +25,8 @@ import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 import org.w3c.dom.Element;
 

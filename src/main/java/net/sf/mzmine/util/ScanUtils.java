@@ -79,7 +79,7 @@ public class ScanUtils {
 	}
 
 	buf.append(" ");
-	buf.append(scan.getPolarity());
+	buf.append(scan.getPolarity().asSingleChar());
 
 	/*if ((scan.getScanDefinition() != null)
 		&& (scan.getScanDefinition().length() > 0)) {

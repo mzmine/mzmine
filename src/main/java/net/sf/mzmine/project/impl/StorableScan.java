@@ -88,7 +88,7 @@ public class StorableScan implements Scan {
 	this.totalIonCurrent = originalScan.getTIC();
 	this.polarity = originalScan.getPolarity();
 	this.scanDefinition = originalScan.getScanDefinition();
-	this.scanMZRange = originalScan.getScaningMZRange();
+	this.scanMZRange = originalScan.getScanningMZRange();
 
     }
 
@@ -430,7 +430,7 @@ public class StorableScan implements Scan {
     }
 
     @Override
-    public Range<Double> getScaningMZRange() {
+    public Range<Double> getScanningMZRange() {
 	if (scanMZRange == null)
 	    scanMZRange = getDataPointMZRange();
 	return scanMZRange;
