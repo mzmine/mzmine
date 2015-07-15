@@ -199,8 +199,9 @@ class IDABottomPanel extends JPanel implements TreeModelListener,
 	PeakThresholdMode selectedPeakOption = (PeakThresholdMode) thresholdCombo
 		.getSelectedItem();
 	if (selectedPeakOption == PeakThresholdMode.TOP_PEAKS_AREA) {
-	    mzRange = masterFrame.getPlot().getXYPlot().getAxisRange();
-	    rtRange = masterFrame.getPlot().getXYPlot().getDomainRange();
+	    IDAXYPlot IDAXYPlot = (IDAXYPlot) masterFrame.getPlot().getXYPlot();
+	    mzRange = IDAXYPlot.getAxisRange();
+	    rtRange = IDAXYPlot.getDomainRange();
 	}
 
 	for (PeakListRow peakRow : selectedPeakList.getRows()) {

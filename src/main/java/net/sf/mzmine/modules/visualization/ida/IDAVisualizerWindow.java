@@ -30,6 +30,8 @@ import javax.swing.JMenuBar;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.tic.CursorPosition;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
@@ -66,7 +68,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	toolBar = new IDAToolBar(this);
 	add(toolBar, BorderLayout.EAST);
 
-	IDAPlot = new IDAPlot(dataFile, this, dataset, rtRange, mzRange);
+	IDAPlot = new IDAPlot(this, dataFile, this, dataset, rtRange, mzRange);
 	add(IDAPlot, BorderLayout.CENTER);
 
 	bottomPanel = new IDABottomPanel(this, dataFile, parameters);
@@ -111,11 +113,37 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
     }
 
     /**
+     * @return current cursor position
+     */
+    public CursorPosition getCursorPosition() {
+	double selectedRT = (double) IDAPlot.getXYPlot().getDomainCrosshairValue();
+	double selectedMZ = (double) IDAPlot.getXYPlot().getRangeCrosshairValue();
+
+	int index = dataset.getIndex(selectedRT, selectedMZ);
+
+	if (index >= 0) {
+	    double intensity = (double) dataset.getZ(0, index);
+	    CursorPosition pos = new CursorPosition(selectedRT, selectedMZ, intensity, dataset.getDataFile(), dataset.getScanNumber(index));
+	    return pos;
+	}
+
+	return null;
+    }
+
+    /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent event) {
 
 	String command = event.getActionCommand();
+
+	if (command.equals("SHOW_SPECTRUM")) {
+	    CursorPosition pos = getCursorPosition();
+	    if (pos != null) {
+		SpectraVisualizerModule.showNewSpectrumWindow(
+			pos.getDataFile(), pos.getScanNumber());
+	    }
+	}
 
 	if (command.equals("SETUP_AXES")) {
 	    AxesSetupDialog dialog = new AxesSetupDialog(this,IDAPlot.getXYPlot());

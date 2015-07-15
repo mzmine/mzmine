@@ -19,12 +19,14 @@
 
 package net.sf.mzmine.modules.visualization.ida;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.Shape;
 import java.awt.event.ActionEvent;
-import java.awt.geom.Ellipse2D;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.text.NumberFormat;
 
 import javax.swing.JFileChooser;
@@ -39,23 +41,25 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.SaveImage;
 import net.sf.mzmine.util.SaveImage.FileType;
 
+import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
-import org.jfree.chart.renderer.xy.XYDotRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.SeriesRenderingOrder;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.util.ShapeUtilities;
+import org.jfree.data.general.DatasetUtilities;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.ui.RectangleInsets;
 
 import com.google.common.collect.Range;
 
 /**
  * 
  */
-class IDAPlot extends ChartPanel {
+class IDAPlot extends ChartPanel implements MouseWheelListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -64,10 +68,27 @@ class IDAPlot extends ChartPanel {
 
     private JFreeChart chart;
 
-    private IDAXYPlot plot;
+    private XYPlot plot;
+
+    // VisualizerWindow visualizer.
+    private final ActionListener visualizer;
 
     private PeakDataRenderer peakDataRenderer;
 
+    // grid color
+    private static final Color gridColor = Color.lightGray;
+
+    // Renderers
+    private IDAPlotRenderer mainRenderer;
+
+    // crosshair (selection) color
+    private static final Color crossHairColor = Color.gray;
+
+    // crosshair stroke
+    private static final BasicStroke crossHairStroke = new BasicStroke(1,
+	    BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
+		    5, 3 }, 0);
+    
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
     private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
@@ -79,65 +100,83 @@ class IDAPlot extends ChartPanel {
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-    IDAPlot(RawDataFile rawDataFile, IDAVisualizerWindow visualizer,
+    IDAPlot(final ActionListener listener, RawDataFile rawDataFile, IDAVisualizerWindow visualizer,
 	    IDADataSet dataset, Range<Double> rtRange, Range<Double> mzRange) {
 
 	super(null, true);
 
+	this.visualizer = visualizer;
 	this.rawDataFile = rawDataFile;
 	this.rtRange = rtRange;
 	this.mzRange = mzRange;
 
-	setBackground(Color.white);
-	setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+	// initialize the chart by default time series chart from factory
+	chart = ChartFactory.createXYLineChart("", // title
+		"", // x-axis label
+		"", // y-axis label
+		null, // data set
+		PlotOrientation.VERTICAL, // orientation
+		false, // create legend
+		false, // generate tooltips
+		false // generate URLs
+		);
 
-	// set the X axis (retention time) properties
+	chart.setBackgroundPaint(Color.white);
+	setChart(chart);
+
+	// disable maximum size (we don't want scaling)
+	setMaximumDrawWidth(Integer.MAX_VALUE);
+	setMaximumDrawHeight(Integer.MAX_VALUE);
+
+	// set the plot properties
+	plot = chart.getXYPlot();
+	plot.setBackgroundPaint(Color.white);
+	plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+	plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+	plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
+	plot.setDomainGridlinePaint(gridColor);
+	plot.setRangeGridlinePaint(gridColor);
+
+	// Set the domain log axis
 	xAxis = new NumberAxis("Retention time (min)");
 	xAxis.setAutoRangeIncludesZero(false);
 	xAxis.setNumberFormatOverride(rtFormat);
 	xAxis.setUpperMargin(0);
 	xAxis.setLowerMargin(0);
+	plot.setDomainAxis(xAxis);
 
-	// set the Y axis (intensity) properties
+	// Set the range log axis
 	yAxis = new NumberAxis("m/z");
 	yAxis.setAutoRangeIncludesZero(false);
 	yAxis.setNumberFormatOverride(mzFormat);
 	yAxis.setUpperMargin(0);
 	yAxis.setLowerMargin(0);
+	plot.setRangeAxis(yAxis);
 
-	// set the plot properties
-	plot = new IDAXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
-	plot.setDomainGridlinesVisible(false);
-	plot.setRangeGridlinesVisible(false);
+	// Set crosshair properties
+	plot.setDomainCrosshairVisible(true);
+	plot.setRangeCrosshairVisible(true);
+	plot.setDomainCrosshairPaint(crossHairColor);
+	plot.setRangeCrosshairPaint(crossHairColor);
+	plot.setDomainCrosshairStroke(crossHairStroke);
+	plot.setRangeCrosshairStroke(crossHairStroke);
 
-	// chart properties
-	chart = new JFreeChart("", titleFont, plot, false);
-	ChartUtilities.applyCurrentTheme(chart);
-	chart.setBackgroundPaint(Color.white);
+	// Create renderers
+	mainRenderer = new IDAPlotRenderer();
+	plot.setRenderer(0, mainRenderer);
 
-	setChart(chart);
-
-	// set renderer
-	XYDotRenderer xydotrenderer = new XYDotRenderer();
-	Shape shape  = new Ellipse2D.Double(0,0,5,5);
-	xydotrenderer.setSeriesShape(0, shape);
-	xydotrenderer.setSeriesPaint(0, Color.black);
-	plot.setRenderer(xydotrenderer);
-	plot.setBackgroundPaint(Color.white);
-	
 	// title
 	chartTitle = chart.getTitle();
 	chartTitle.setMargin(5, 0, 0, 0);
 	chartTitle.setFont(titleFont);
-
 	chartSubTitle = new TextTitle();
 	chartSubTitle.setFont(subTitleFont);
 	chartSubTitle.setMargin(5, 0, 0, 0);
 	chart.addSubtitle(chartSubTitle);
 
-	// disable maximum size (we don't want scaling)
-	setMaximumDrawWidth(Integer.MAX_VALUE);
-	setMaximumDrawHeight(Integer.MAX_VALUE);
+	// Add data sets;
+	plot.setDataset(0, dataset);
+
 
 	// set rendering order
 	plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
@@ -203,7 +242,7 @@ class IDAPlot extends ChartPanel {
 	}
     }
 
-    IDAXYPlot getXYPlot() {
+    XYPlot getXYPlot() {
 	return plot;
     }
 
@@ -231,6 +270,41 @@ class IDAPlot extends ChartPanel {
 	    this.peakDataRenderer.setBaseToolTipGenerator(toolTipGenerator);
 	} else {
 	    this.peakDataRenderer.setBaseToolTipGenerator(null);
+	}
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent event) {
+	// TODO Auto-generated method stub
+	System.out.println("Mousewheel moved: " +event);
+    }
+
+    @Override
+    public void mouseClicked(final MouseEvent event) {
+
+	// Let the parent handle the event (selection etc.)
+	super.mouseClicked(event);
+
+	if (event.getX() < 70) { // User clicked on Y-axis
+	    if (event.getClickCount() == 2) { // Reset zoom on Y-axis
+		XYDataset data = ((XYPlot) getChart().getPlot()).getDataset();
+		Number maximum = DatasetUtilities.findMaximumRangeValue(data);
+		getXYPlot().getRangeAxis().setRange(0,
+			1.05 * maximum.floatValue());
+	    } else if (event.getClickCount() == 1) {
+		// Auto range on Y-axis
+		getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
+		getXYPlot().getRangeAxis().setAutoRange(true);
+	    }
+	} else if (event.getY() > this.getChartRenderingInfo().getPlotInfo()
+		.getPlotArea().getMaxY() - 41
+		&& event.getClickCount() == 2) {
+	    // Reset zoom on X-axis
+	    getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+	    restoreAutoDomainBounds();
+	} else if (event.getClickCount() == 2) {
+	    visualizer.actionPerformed(new ActionEvent(event.getSource(),
+		    ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
 	}
     }
 }

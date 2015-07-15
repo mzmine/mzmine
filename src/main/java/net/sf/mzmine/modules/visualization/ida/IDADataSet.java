@@ -38,12 +38,15 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
     private static final long serialVersionUID = 1L;
 
-    private RawDataFile rawDataFile;
+    // For comparing small differences.
+    private static final double EPSILON = 0.0000001;
 
+    private RawDataFile rawDataFile;
     private Range<Double> totalRTRange, totalMZRange;
     private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans, lastMSIndex;
     private final double[] rtValues, mzValues, intensityValues;
     private IntensityType intensityType;
+    private final int[] scanNumbers;
 
     private TaskStatus status = TaskStatus.WAITING;
 
@@ -62,6 +65,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
 	totalScans = allScanNumbers.length;
 	totalmsmsScans = msmsScanNumbers.length;
 	
+	scanNumbers = new int[totalScans];
 	rtValues = new double[totalmsmsScans];
 	mzValues = new double[totalmsmsScans];
 	intensityValues = new double[totalmsmsScans];
@@ -117,6 +121,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
 		    rtValues[processedScans] = scanRT;
 		    mzValues[processedScans] = precursorMZ;
 		    intensityValues[processedScans] = totalScanIntensity;
+		    scanNumbers[processedScans] = index+1; //+1 because loop runs from 0 not 1
 		    processedScans++;
 		}
 
@@ -161,6 +166,38 @@ class IDADataSet extends AbstractXYDataset implements Task {
             }
         }
         return max;
+    }
+
+    public RawDataFile getDataFile() {
+	return rawDataFile;
+    }
+
+    public int getScanNumber(final int item) {
+	return scanNumbers[item];
+    }
+
+    /**
+     * Returns index of data point which exactly matches given X and Y values
+     *
+     * @param retentionTime
+     *            retention time.
+     * @param mz
+     *            m/z.
+     * @return the nearest data point index.
+     */
+    public int getIndex(final double retentionTime, final double mz) {
+
+	int index = -1;
+	for (int i = 0; index < 0 && i < processedScans; i++) {
+
+	    if (Math.abs(retentionTime - rtValues[i]) < EPSILON
+		    && Math.abs(mz - mzValues[i]) < EPSILON) {
+
+		index = i;
+	    }
+	}
+
+	return index;
     }
 
     @Override
