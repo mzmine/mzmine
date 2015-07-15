@@ -42,8 +42,13 @@ public class IDAParameters extends SimpleParameterSet {
 
     public static final ComboParameter<IntensityType> intensityType = new ComboParameter<IntensityType>(
 	    "Intensity normalization",
-	    "The intensity of the data points can calculated based on either\n- total intensity of the MS/MS scan\n- intensity of the precursor ion in the MS scan",
+	    "The intensity of the data points can calculated based on either\n- Total intensity of the MS/MS scan\n- Intensity of the precursor ion in the MS scan",
 	    IntensityType.values());
+
+    public static final ComboParameter<NormalizationType> normalizationType = new ComboParameter<NormalizationType>(
+	    "Normalize by",
+	    "The color of the datapoints can normalized based on either\n- All data points\n- Data points with a m/z within 10ppm.",
+	    NormalizationType.values());
 
     public static final IntegerParameter minPeakInt = new IntegerParameter(
 	    "Min MS/MS peak intensity",
@@ -58,7 +63,7 @@ public class IDAParameters extends SimpleParameterSet {
 
     public IDAParameters() {
 	super(new Parameter[] { dataFiles, retentionTimeRange, mzRange,
-		intensityType, minPeakInt, peakThresholdSettings,
+		intensityType, normalizationType, minPeakInt, peakThresholdSettings,
 		windowSettings });
     }
 

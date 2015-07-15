@@ -66,10 +66,12 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
                 .getValue();
         final IntensityType intensityType = parameters.getParameter(
         	IDAParameters.intensityType).getValue();
+        final NormalizationType normalizationType = parameters.getParameter(
+        	IDAParameters.normalizationType).getValue();
         Integer minPeakInt = parameters.getParameter(
                 IDAParameters.minPeakInt).getValue();
         IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFiles[0],
-                rtRange, mzRange, intensityType, minPeakInt, parameters);
+                rtRange, mzRange, intensityType, normalizationType, minPeakInt, parameters);
 
         newWindow.setVisible(true);
 
@@ -77,11 +79,11 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile) {
-	showIDAVisualizerSetupDialog(dataFile, null, null, null, null);
+	showIDAVisualizerSetupDialog(dataFile, null, null, null, null, null);
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile,
-            Range<Double> mzRange, Range<Double> rtRange, IntensityType intensityType, Integer minPeakInt) {
+            Range<Double> mzRange, Range<Double> rtRange, IntensityType intensityType, NormalizationType normalizationType, Integer minPeakInt) {
         ParameterSet parameters = MZmineCore.getConfiguration()
                 .getModuleParameters(IDAVisualizerModule.class);
 
@@ -106,7 +108,7 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
         mzRange = parameters.getParameter(IDAParameters.mzRange).getValue();
 
         IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFile,
-                rtRange, mzRange, intensityType, minPeakInt, parameters);
+                rtRange, mzRange, intensityType, normalizationType, minPeakInt, parameters);
 
         newWindow.setVisible(true);
 

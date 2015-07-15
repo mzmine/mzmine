@@ -48,19 +48,21 @@ class IDADataSet extends AbstractXYDataset implements Task {
     private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans, lastMSIndex;
     private final double[] rtValues, mzValues, intensityValues;
     private IntensityType intensityType;
+    private NormalizationType normalizationType;
     private final int[] scanNumbers;
     private double minPeakInt;
 
     private TaskStatus status = TaskStatus.WAITING;
 
     IDADataSet(RawDataFile rawDataFile, Range<Double> rtRange,
-	    Range<Double> mzRange, IntensityType intensityType, Integer minPeakInt, IDAVisualizerWindow visualizer) {
+	    Range<Double> mzRange, IntensityType intensityType, NormalizationType normalizationType, Integer minPeakInt, IDAVisualizerWindow visualizer) {
 
 	this.rawDataFile = rawDataFile;
 
 	totalRTRange = rtRange;
 	totalMZRange = mzRange;
 	this.intensityType = intensityType;
+	this.normalizationType = normalizationType;
 	this.minPeakInt = minPeakInt-EPSILON;
 
 	allScanNumbers = rawDataFile.getScanNumbers();
@@ -180,10 +182,36 @@ class IDADataSet extends AbstractXYDataset implements Task {
         return max;
     }
 
+    public Number getMaxZ(Range<Double> mzRange) {
+	double max = 1.0;
+        for (int row = 0; row < totalmsmsScans; row++) {
+            if(mzRange.contains(mzValues[row])){
+        	if (max < intensityValues[row]) {
+        	    max = intensityValues[row];
+            	}
+            }
+        }
+        return max;
+    }
+
     public Color getColor(int series, int item) {
-	double maxIntensity = (double) getMaxZ();
+	double maxIntensity = 1;
+	if (normalizationType == NormalizationType.all) {
+	    // Normalize based on all m/z values
+	    maxIntensity = (double) getMaxZ();
+	}
+	else if (normalizationType == NormalizationType.similar) {
+	    // Normalize based on similar m/z values
+	    double precursorMZ = mzValues[item];
+	    Double mzTolerance = precursorMZ*10/1000000;
+	    Range<Double> precursorMZRange = Range.closed(precursorMZ-mzTolerance,precursorMZ+mzTolerance);
+	    maxIntensity = (double) getMaxZ(precursorMZRange);
+	}
+
+	// Calculate normalized intensity
 	double normIntensity = (double) getZ(0,item)/maxIntensity;
-	
+	if (normIntensity > 1) {normIntensity = 1;}
+
 	// Convert normIntensity into gray color tone
 	// RGB tones go from 0 to 255 - we limit it to 220 to not include too light colors
 	int rgbVal = (int) Math.round(220-normIntensity*220);
