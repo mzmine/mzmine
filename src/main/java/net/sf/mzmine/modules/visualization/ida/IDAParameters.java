@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.ida;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
@@ -38,11 +39,15 @@ public class IDAParameters extends SimpleParameterSet {
     public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
-    
+
     public static final ComboParameter<IntensityType> intensityType = new ComboParameter<IntensityType>(
-            "Intensity normalization",
-            "The intensity of the data points can calculated based on either\n- total intensity of the MS/MS scan\n- intensity of the precursor ion in the MS scan",
-            IntensityType.values());
+	    "Intensity normalization",
+	    "The intensity of the data points can calculated based on either\n- total intensity of the MS/MS scan\n- intensity of the precursor ion in the MS scan",
+	    IntensityType.values());
+
+    public static final IntegerParameter minPeakInt = new IntegerParameter(
+	    "Min MS/MS peak intensity",
+	    "The minimum intensity of a single MS/MS ion which has to be present in the\nMS/MS spectrum for it to be included in the IDA visualizer.\nSet to 0 to include all.");
 
     public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
 
@@ -52,8 +57,9 @@ public class IDAParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public IDAParameters() {
-	super(new Parameter[] { dataFiles, retentionTimeRange,
-		mzRange, intensityType, peakThresholdSettings, windowSettings });
+	super(new Parameter[] { dataFiles, retentionTimeRange, mzRange,
+		intensityType, minPeakInt, peakThresholdSettings,
+		windowSettings });
     }
 
 }

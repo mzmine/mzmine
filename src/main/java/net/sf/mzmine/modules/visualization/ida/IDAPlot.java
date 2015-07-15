@@ -177,7 +177,6 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 	// Add data sets;
 	plot.setDataset(0, dataset);
 
-
 	// set rendering order
 	plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 

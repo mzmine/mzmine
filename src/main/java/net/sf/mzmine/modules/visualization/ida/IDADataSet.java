@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.ida;
 
+import java.awt.Color;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -47,17 +49,19 @@ class IDADataSet extends AbstractXYDataset implements Task {
     private final double[] rtValues, mzValues, intensityValues;
     private IntensityType intensityType;
     private final int[] scanNumbers;
+    private double minPeakInt;
 
     private TaskStatus status = TaskStatus.WAITING;
 
     IDADataSet(RawDataFile rawDataFile, Range<Double> rtRange,
-	    Range<Double> mzRange, IntensityType intensityType, IDAVisualizerWindow visualizer) {
+	    Range<Double> mzRange, IntensityType intensityType, Integer minPeakInt, IDAVisualizerWindow visualizer) {
 
 	this.rawDataFile = rawDataFile;
 
 	totalRTRange = rtRange;
 	totalMZRange = mzRange;
 	this.intensityType = intensityType;
+	this.minPeakInt = minPeakInt-EPSILON;
 
 	allScanNumbers = rawDataFile.getScanNumbers();
 	msmsScanNumbers = rawDataFile.getScanNumbers(2, rtRange);
@@ -78,7 +82,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
     public void run() {
 
 	status = TaskStatus.PROCESSING;
-	double totalScanIntensity;
+	double totalScanIntensity, maxPeakIntensity;
 
 	for (int index = 0; index < totalScans; index++) {
 
@@ -116,7 +120,15 @@ class IDADataSet extends AbstractXYDataset implements Task {
 		    }
 		}
 
-		if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ)) {
+		maxPeakIntensity = 0;
+		    DataPoint scanDataPoints[] = scan.getDataPoints();
+		    for (int x = 0; x < scanDataPoints.length; x++) {
+			if (maxPeakIntensity < scanDataPoints[x].getIntensity()) {
+			    maxPeakIntensity = scanDataPoints[x].getIntensity();
+			}
+		    }
+
+		if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ) && maxPeakIntensity > minPeakInt) {
 		    // Add values to arrays
 		    rtValues[processedScans] = scanRT;
 		    mzValues[processedScans] = precursorMZ;
@@ -168,6 +180,16 @@ class IDADataSet extends AbstractXYDataset implements Task {
         return max;
     }
 
+    public Color getColor(int series, int item) {
+	double maxIntensity = (double) getMaxZ();
+	double normIntensity = (double) getZ(0,item)/maxIntensity;
+	
+	// Convert normIntensity into gray color tone
+	// RGB tones go from 0 to 255 - we limit it to 220 to not include too light colors
+	int rgbVal = (int) Math.round(220-normIntensity*220);
+	return new Color(rgbVal, rgbVal, rgbVal);
+    }
+ 
     public RawDataFile getDataFile() {
 	return rawDataFile;
     }

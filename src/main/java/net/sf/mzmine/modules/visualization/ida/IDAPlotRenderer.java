@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.ida;
 
 import java.awt.Color;
+import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 
@@ -52,4 +53,9 @@ public class IDAPlotRenderer extends XYLineAndShapeRenderer {
 
     }
 
+    @Override
+    public Paint getItemPaint(int row, int col) {
+        IDADataSet IDADataSet = (IDADataSet) getPlot().getDataset();
+        return IDADataSet.getColor(row, col);
+    }
 }

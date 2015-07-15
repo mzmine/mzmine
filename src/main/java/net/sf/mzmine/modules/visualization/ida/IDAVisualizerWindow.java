@@ -53,7 +53,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
     public IDAVisualizerWindow(RawDataFile dataFile, 
 	    Range<Double> rtRange, Range<Double> mzRange,
-	    IntensityType intensityType, ParameterSet parameters) {
+	    IntensityType intensityType, Integer minPeakInt, ParameterSet parameters) {
 
 	super("IDA visualizer: [" + dataFile.getName() + "]");
 
@@ -63,7 +63,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	this.dataFile = dataFile;
 	this.tooltipMode = true;
 
-	dataset = new IDADataSet(dataFile, rtRange, mzRange, intensityType, this);
+	dataset = new IDADataSet(dataFile, rtRange, mzRange, intensityType, minPeakInt, this);
 
 	toolBar = new IDAToolBar(this);
 	add(toolBar, BorderLayout.EAST);
