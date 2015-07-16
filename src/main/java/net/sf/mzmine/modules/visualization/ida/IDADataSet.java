@@ -238,7 +238,55 @@ class IDADataSet extends AbstractXYDataset implements Task {
     public Color getColor(int series, int item) {
 	return colorValues[item];
     }
+
+    public void setColor(int series, int item, Color c) {
+	colorValues[item] = c;
+    }
  
+    /**
+     * Highlights all MS/MS spots for which a peak is found in the MS/MS spectrum with the m/z value 
+     *
+     * @param mz
+     *            m/z.
+     * @param ppm
+     *            ppm value.
+     * @param c
+     *            color.
+     * 
+     */
+    public void highlightSpectra(double mz, double ppm, int minIntensity, Color c) {
+	// mzRange
+	Double mzTolerance = mz*ppm/1000000;
+	Range<Double> precursorMZRange = Range.closed(mz-mzTolerance,mz+mzTolerance);
+
+	// Loop through all scans
+	for (int row = 0; row < scanNumbers.length; row++) {
+	    Scan msscan = rawDataFile.getScan(scanNumbers[row]);
+	    
+	    // Get total intensity of all peaks in MS/MS scan
+	    if (scanNumbers[row] > 0) {
+		DataPoint scanDataPoints[] = msscan.getDataPoints();
+
+		for (int x = 0; x < scanDataPoints.length; x++) {
+		    if(precursorMZRange.contains(scanDataPoints[x].getMZ()) && scanDataPoints[x].getIntensity() > minIntensity){
+			// If color is red green or blue then use toning from current color
+			int rgb = getColor(0, row).getRed();
+			if (c == Color.red) { setColor(0,row,new Color(255, rgb, rgb)); }
+			else if (c == Color.green) { setColor(0,row,new Color(rgb, 255, rgb)); }
+			else if (c == Color.blue) { setColor(0,row,new Color(rgb, rgb, 255)); }
+			else { setColor(0,row,c); }
+		    }
+
+		}
+
+	    }
+
+	}
+
+	fireDatasetChanged();
+    }
+    
+    
     public RawDataFile getDataFile() {
 	return rawDataFile;
     }

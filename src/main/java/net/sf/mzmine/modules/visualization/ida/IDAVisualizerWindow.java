@@ -165,6 +165,23 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 		tooltipMode = true;
 	    }
 	}
+
+	if (command.equals("FIND_SPECTRA")) {
+
+	    // ppm
+	    // m/z
+	    // min intensity
+	    // color
+	    double searchPPM = 5.0;
+	    double searchMZ = 184.0739;
+	    int minIntensity = 500;
+	    Color highligtColor = Color.red;
+
+	    // Find and highlight spectra with specific ion
+	    dataset.highlightSpectra(searchMZ, searchPPM, minIntensity, highligtColor);
+
+	}
+
     }
 
     IDAPlot getPlot() {

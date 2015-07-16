@@ -39,6 +39,7 @@ class IDAToolBar extends JToolBar {
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
     static final Icon tooltipsIcon = new ImageIcon("icons/tooltips2dploticon.png");
     static final Icon notooltipsIcon = new ImageIcon("icons/notooltips2dploticon.png");
+    static final Icon findIcon = new ImageIcon("icons/search.png");
 
     private JButton toggleContinuousModeButton, toggleTooltipButton;
 
@@ -65,6 +66,11 @@ class IDAToolBar extends JToolBar {
 	toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon,
 		masterFrame, "SWITCH_TOOLTIPS",
 		"Toggle displaying of tool tips on the peaks");
+
+	addSeparator();
+
+	GUIUtils.addButton(this, null, findIcon, masterFrame, "FIND_SPECTRA",
+		"Search for MS/MS spectra with specific ions");
 
     }
 
