@@ -39,6 +39,8 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.jfree.chart.plot.XYPlot;
+
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -199,9 +201,11 @@ class IDABottomPanel extends JPanel implements TreeModelListener,
 	PeakThresholdMode selectedPeakOption = (PeakThresholdMode) thresholdCombo
 		.getSelectedItem();
 	if (selectedPeakOption == PeakThresholdMode.TOP_PEAKS_AREA) {
-	    IDAXYPlot IDAXYPlot = (IDAXYPlot) masterFrame.getPlot().getXYPlot();
-	    mzRange = IDAXYPlot.getAxisRange();
-	    rtRange = IDAXYPlot.getDomainRange();
+	    XYPlot xyPlot = masterFrame.getPlot().getXYPlot();
+	    org.jfree.data.Range yAxis = xyPlot.getRangeAxis().getRange();
+	    org.jfree.data.Range xAxis = xyPlot.getDomainAxis().getRange();
+	    rtRange = Range.closed(xAxis.getLowerBound(),xAxis.getUpperBound());
+	    mzRange = Range.closed(yAxis.getLowerBound(),yAxis.getUpperBound());
 	}
 
 	for (PeakListRow peakRow : selectedPeakList.getRows()) {

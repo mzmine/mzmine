@@ -45,12 +45,13 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
     private RawDataFile rawDataFile;
     private Range<Double> totalRTRange, totalMZRange;
-    private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans, lastMSIndex;
+    private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans, allProcessedScans, processedColors, totalEntries, lastMSIndex;
     private final double[] rtValues, mzValues, intensityValues;
     private IntensityType intensityType;
     private NormalizationType normalizationType;
     private final int[] scanNumbers;
-    private double minPeakInt;
+    private double minPeakInt, maxIntensity;
+    private Color[] colorValues;
 
     private TaskStatus status = TaskStatus.WAITING;
 
@@ -70,11 +71,13 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
 	totalScans = allScanNumbers.length;
 	totalmsmsScans = msmsScanNumbers.length;
+	totalEntries = totalmsmsScans;
 	
 	scanNumbers = new int[totalScans];
 	rtValues = new double[totalmsmsScans];
 	mzValues = new double[totalmsmsScans];
 	intensityValues = new double[totalmsmsScans];
+	colorValues = new Color[totalmsmsScans];
 
 	MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
 
@@ -93,7 +96,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
 		return;
 
 	    Scan scan = rawDataFile.getScan(allScanNumbers[index]);
-	    
+
 	    if (scan.getMSLevel() == 1) {
 		// Store info about MS spectra for MS/MS to allow extraction of intensity of precursor ion in MS scan. 
 		lastMSIndex = index;
@@ -140,8 +143,52 @@ class IDADataSet extends AbstractXYDataset implements Task {
 		}
 
 	    }
+	    allProcessedScans++;
 
 	}
+
+	// Update max Z values
+        for (int row = 0; row < totalmsmsScans; row++) {
+            if (maxIntensity < intensityValues[row]) {
+        	maxIntensity = intensityValues[row];
+            }
+        }
+
+        // Update color table for all spots
+        totalEntries = processedScans-1;
+        for (int index = 0; index < processedScans-1; index++) {
+
+            // Cancel?
+	    if (status == TaskStatus.CANCELED)
+		return;
+	    
+	    double maxIntensityVal = 1;
+	    
+	    if (normalizationType == NormalizationType.all) {
+		// Normalize based on all m/z values
+		maxIntensityVal = maxIntensity;
+	    }
+	    else if (normalizationType == NormalizationType.similar) {
+		// Normalize based on similar m/z values
+		double precursorMZ = mzValues[index];
+		Double mzTolerance = precursorMZ*10/1000000;
+		Range<Double> precursorMZRange = Range.closed(precursorMZ-mzTolerance,precursorMZ+mzTolerance);
+		maxIntensityVal = (double) getMaxZ(precursorMZRange);
+	    }
+
+	    // Calculate normalized intensity
+	    double normIntensity = (double) intensityValues[index]/maxIntensityVal;
+	    if (normIntensity > 1) {normIntensity = 1;}
+
+	    // Convert normIntensity into gray color tone
+	    // RGB tones go from 0 to 255 - we limit it to 220 to not include too light colors
+	    int rgbVal = (int) Math.round(220-normIntensity*220);
+
+	    // Update color table
+	    colorValues[index] = new Color(rgbVal, rgbVal, rgbVal);
+
+	    processedColors++;
+        }
 
 	fireDatasetChanged();
 	status = TaskStatus.FINISHED;
@@ -173,13 +220,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
     }
 
     public Number getMaxZ() {
-	double max = intensityValues[0];
-        for (int row = 0; row < totalmsmsScans; row++) {
-            if (max < intensityValues[row]) {
-                max = intensityValues[row];
-            }
-        }
-        return max;
+        return maxIntensity;
     }
 
     public Number getMaxZ(Range<Double> mzRange) {
@@ -195,27 +236,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
     }
 
     public Color getColor(int series, int item) {
-	double maxIntensity = 1;
-	if (normalizationType == NormalizationType.all) {
-	    // Normalize based on all m/z values
-	    maxIntensity = (double) getMaxZ();
-	}
-	else if (normalizationType == NormalizationType.similar) {
-	    // Normalize based on similar m/z values
-	    double precursorMZ = mzValues[item];
-	    Double mzTolerance = precursorMZ*10/1000000;
-	    Range<Double> precursorMZRange = Range.closed(precursorMZ-mzTolerance,precursorMZ+mzTolerance);
-	    maxIntensity = (double) getMaxZ(precursorMZRange);
-	}
-
-	// Calculate normalized intensity
-	double normIntensity = (double) getZ(0,item)/maxIntensity;
-	if (normIntensity > 1) {normIntensity = 1;}
-
-	// Convert normIntensity into gray color tone
-	// RGB tones go from 0 to 255 - we limit it to 220 to not include too light colors
-	int rgbVal = (int) Math.round(220-normIntensity*220);
-	return new Color(rgbVal, rgbVal, rgbVal);
+	return colorValues[item];
     }
  
     public RawDataFile getDataFile() {
@@ -262,9 +283,8 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
     @Override
     public double getFinishedPercentage() {
-	if (totalScans == 0)
-	    return 0;
-	return (double) processedScans / totalScans;
+	if (totalScans == 0) { return 0; }
+	return (double) 0.5*(allProcessedScans/totalScans) + 0.5*(100*processedColors/totalEntries)/100;
     }
 
     @Override

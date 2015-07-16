@@ -55,7 +55,7 @@ public class IDAPlotRenderer extends XYLineAndShapeRenderer {
 
     @Override
     public Paint getItemPaint(int row, int col) {
-        IDADataSet IDADataSet = (IDADataSet) getPlot().getDataset();
-        return IDADataSet.getColor(row, col);
+	IDADataSet IDADataSet = (IDADataSet) getPlot().getDataset();
+	return IDADataSet.getColor(row, col);
     }
 }

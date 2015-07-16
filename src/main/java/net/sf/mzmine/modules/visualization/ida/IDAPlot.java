@@ -70,6 +70,9 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 
     private XYPlot plot;
 
+    // Zoom factor.
+    private static final double ZOOM_FACTOR = 1.2;
+
     // VisualizerWindow visualizer.
     private final ActionListener visualizer;
 
@@ -141,16 +144,16 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 	xAxis = new NumberAxis("Retention time (min)");
 	xAxis.setAutoRangeIncludesZero(false);
 	xAxis.setNumberFormatOverride(rtFormat);
-	xAxis.setUpperMargin(0);
-	xAxis.setLowerMargin(0);
+	xAxis.setUpperMargin(0.01);
+	xAxis.setLowerMargin(0.01);
 	plot.setDomainAxis(xAxis);
 
 	// Set the range log axis
 	yAxis = new NumberAxis("m/z");
 	yAxis.setAutoRangeIncludesZero(false);
 	yAxis.setNumberFormatOverride(mzFormat);
-	yAxis.setUpperMargin(0);
-	yAxis.setLowerMargin(0);
+	yAxis.setUpperMargin(0.1);
+	yAxis.setLowerMargin(0.1);
 	plot.setRangeAxis(yAxis);
 
 	// Set crosshair properties
@@ -188,6 +191,8 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 	GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
 	GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
+	// Register for mouse-wheel events
+	addMouseWheelListener(this);
     }
 
     @Override
@@ -272,10 +277,13 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 	}
     }
 
-    @Override
     public void mouseWheelMoved(MouseWheelEvent event) {
-	// TODO Auto-generated method stub
-	System.out.println("Mousewheel moved: " +event);
+	int notches = event.getWheelRotation();
+	if (notches < 0) {
+	    getXYPlot().getDomainAxis().resizeRange(1.0 / ZOOM_FACTOR);
+	} else {
+	    getXYPlot().getDomainAxis().resizeRange(ZOOM_FACTOR);
+	}
     }
 
     @Override

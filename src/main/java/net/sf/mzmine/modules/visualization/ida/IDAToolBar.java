@@ -58,7 +58,7 @@ class IDAToolBar extends JToolBar {
 
 	toggleContinuousModeButton = GUIUtils.addButton(this, null,
 		dataPointsIcon, masterFrame, "SHOW_DATA_POINTS",
-		"Toggle displaying of data points in continuous mode");
+		"Toggle displaying of data points for the peaks");
 
 	addSeparator();
 
