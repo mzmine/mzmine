@@ -171,7 +171,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	    // ppm
 	    // m/z
 	    // min intensity
-	    // color
+	    // color - allow only red, green, blue
 	    double searchPPM = 5.0;
 	    double searchMZ = 184.0739;
 	    int minIntensity = 500;

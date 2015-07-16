@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.ida;
 
 public enum PeakThresholdMode {
 
-    ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS(
+    NONE("None"), ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS(
 	    "Peaks above user-defined intensity"), TOP_PEAKS(
 	    "User-defined top peaks"), TOP_PEAKS_AREA(
 	    "User-defined top peaks in the displayed area");

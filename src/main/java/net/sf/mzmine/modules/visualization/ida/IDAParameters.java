@@ -41,18 +41,18 @@ public class IDAParameters extends SimpleParameterSet {
     public static final MZRangeParameter mzRange = new MZRangeParameter();
 
     public static final ComboParameter<IntensityType> intensityType = new ComboParameter<IntensityType>(
-	    "Intensity normalization",
+	    "Intensity",
 	    "The intensity of the data points can calculated based on either\n- Total intensity of the MS/MS scan\n- Intensity of the precursor ion in the MS scan",
 	    IntensityType.values());
 
     public static final ComboParameter<NormalizationType> normalizationType = new ComboParameter<NormalizationType>(
 	    "Normalize by",
-	    "The color of the datapoints can normalized based on either\n- All data points\n- Data points with a m/z within 10ppm.",
+	    "The color of the data points can normalized based on either\n- All data points\n- Data points with a m/z within 10ppm.",
 	    NormalizationType.values());
 
     public static final IntegerParameter minPeakInt = new IntegerParameter(
-	    "Min MS/MS peak intensity",
-	    "The minimum intensity of a single MS/MS ion which has to be present in the\nMS/MS spectrum for it to be included in the IDA visualizer.\nSet to 0 to include all.");
+	    "Min. MS/MS peak intensity",
+	    "The minimum intensity of a single MS/MS ion which has to be present in the\nMS/MS spectrum for it to be included in the IDA visualizer.\nSet to 0 to show all.");
 
     public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
 

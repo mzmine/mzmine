@@ -91,6 +91,7 @@ class IDABottomPanel extends JPanel implements TreeModelListener,
 	GUIUtils.addLabel(this, "Show: ", SwingConstants.RIGHT);
 
 	thresholdCombo = new JComboBox<Object>(PeakThresholdMode.values());
+	thresholdCombo.setSelectedItem(PeakThresholdMode.NONE);
 	thresholdCombo.setBackground(Color.white);
 	thresholdCombo.setFont(smallFont);
 	thresholdCombo.addActionListener(this);
