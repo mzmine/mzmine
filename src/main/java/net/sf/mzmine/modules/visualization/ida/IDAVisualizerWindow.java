@@ -32,8 +32,14 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.CursorPosition;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import com.google.common.collect.Range;
@@ -168,14 +174,43 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
 	if (command.equals("FIND_SPECTRA")) {
 
-	    // ppm
-	    // m/z
-	    // min intensity
-	    // color - allow only red, green, blue
-	    double searchPPM = 5.0;
-	    double searchMZ = 184.0739;
-	    int minIntensity = 500;
-	    Color highligtColor = Color.red;
+	    // Parameters
+	    final DoubleParameter inputMZ = new DoubleParameter(
+		    "Ion m/z",
+		    "m/z value of ion to search for.");
+
+	    final DoubleParameter inputPPM = new DoubleParameter(
+		    "PPM tolerance",
+		    "PPM tolerance for m/z value.");
+
+	    final IntegerParameter inputIntensity = new IntegerParameter(
+		    "Min. ion intensity",
+		    "Only ions with intensities above this value will be searched for.");
+
+	    final ComboParameter<Colors> inputColors = new ComboParameter<Colors>(
+		    "Color",
+		    "The color which the data points will be marked with.",
+		    Colors.values());
+
+	    Parameter<?>[] parameters = new Parameter<?>[4];
+	    parameters[0] = inputMZ;
+	    parameters[1] = inputPPM;
+	    parameters[2] = inputIntensity;
+	    parameters[3] = inputColors;
+
+	    final ParameterSet parametersSearch = new SimpleParameterSet(parameters);
+	    ExitCode exitCode = parametersSearch.showSetupDialog(this, true);
+
+	    if (exitCode != ExitCode.OK)
+		return;
+
+	    double searchMZ = parametersSearch.getParameter(inputMZ).getValue();
+	    double searchPPM = parametersSearch.getParameter(inputPPM).getValue();
+	    int minIntensity = parametersSearch.getParameter(inputIntensity).getValue();
+
+	    Color highligtColor = Color.red;;
+	    if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.green)) {highligtColor = Color.green;}
+	    if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.blue)) {highligtColor = Color.blue;}
 
 	    // Find and highlight spectra with specific ion
 	    dataset.highlightSpectra(searchMZ, searchPPM, minIntensity, highligtColor);
