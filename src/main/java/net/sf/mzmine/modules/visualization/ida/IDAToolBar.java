@@ -37,8 +37,10 @@ class IDAToolBar extends JToolBar {
     private static final long serialVersionUID = 1L;
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
-    static final Icon tooltipsIcon = new ImageIcon("icons/tooltips2dploticon.png");
-    static final Icon notooltipsIcon = new ImageIcon("icons/notooltips2dploticon.png");
+    static final Icon tooltipsIcon = new ImageIcon(
+	    "icons/tooltips2dploticon.png");
+    static final Icon notooltipsIcon = new ImageIcon(
+	    "icons/notooltips2dploticon.png");
     static final Icon findIcon = new ImageIcon("icons/search.png");
 
     private JButton toggleContinuousModeButton, toggleTooltipButton;

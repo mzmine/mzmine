@@ -45,37 +45,38 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull String getName() {
-        return MODULE_NAME;
+	return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
+	return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-        RawDataFile dataFiles[] = parameters
-                .getParameter(IDAParameters.dataFiles).getValue()
-                .getMatchingRawDataFiles();
-        Range<Double> rtRange = parameters.getParameter(
-                IDAParameters.retentionTimeRange).getValue();
-        Range<Double> mzRange = parameters.getParameter(IDAParameters.mzRange)
-                .getValue();
-        final IntensityType intensityType = parameters.getParameter(
-        	IDAParameters.intensityType).getValue();
-        final NormalizationType normalizationType = parameters.getParameter(
-        	IDAParameters.normalizationType).getValue();
-        Integer minPeakInt = parameters.getParameter(
-                IDAParameters.minPeakInt).getValue();
-        IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFiles[0],
-                rtRange, mzRange, intensityType, normalizationType, minPeakInt, parameters);
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+	RawDataFile dataFiles[] = parameters
+		.getParameter(IDAParameters.dataFiles).getValue()
+		.getMatchingRawDataFiles();
+	Range<Double> rtRange = parameters.getParameter(
+		IDAParameters.retentionTimeRange).getValue();
+	Range<Double> mzRange = parameters.getParameter(IDAParameters.mzRange)
+		.getValue();
+	final IntensityType intensityType = parameters.getParameter(
+		IDAParameters.intensityType).getValue();
+	final NormalizationType normalizationType = parameters.getParameter(
+		IDAParameters.normalizationType).getValue();
+	Integer minPeakInt = parameters.getParameter(IDAParameters.minPeakInt)
+		.getValue();
+	IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFiles[0],
+		rtRange, mzRange, intensityType, normalizationType, minPeakInt,
+		parameters);
 
-        newWindow.setVisible(true);
+	newWindow.setVisible(true);
 
-        return ExitCode.OK;
+	return ExitCode.OK;
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile) {
@@ -83,45 +84,48 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile,
-            Range<Double> mzRange, Range<Double> rtRange, IntensityType intensityType, NormalizationType normalizationType, Integer minPeakInt) {
-        ParameterSet parameters = MZmineCore.getConfiguration()
-                .getModuleParameters(IDAVisualizerModule.class);
+	    Range<Double> mzRange, Range<Double> rtRange,
+	    IntensityType intensityType, NormalizationType normalizationType,
+	    Integer minPeakInt) {
+	ParameterSet parameters = MZmineCore.getConfiguration()
+		.getModuleParameters(IDAVisualizerModule.class);
 
-        parameters.getParameter(IDAParameters.dataFiles).setValue(
-                RawDataFilesSelectionType.SPECIFIC_FILES,
-                new RawDataFile[] { dataFile });
+	parameters.getParameter(IDAParameters.dataFiles).setValue(
+		RawDataFilesSelectionType.SPECIFIC_FILES,
+		new RawDataFile[] { dataFile });
 
-        if (rtRange != null)
-            parameters.getParameter(IDAParameters.retentionTimeRange)
-                    .setValue(rtRange);
-        if (mzRange != null)
-            parameters.getParameter(IDAParameters.mzRange).setValue(mzRange);
+	if (rtRange != null)
+	    parameters.getParameter(IDAParameters.retentionTimeRange).setValue(
+		    rtRange);
+	if (mzRange != null)
+	    parameters.getParameter(IDAParameters.mzRange).setValue(mzRange);
 
-        ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
-                .getMainWindow(), true);
+	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
+		.getMainWindow(), true);
 
-        if (exitCode != ExitCode.OK)
-            return;
+	if (exitCode != ExitCode.OK)
+	    return;
 
-        rtRange = parameters.getParameter(IDAParameters.retentionTimeRange)
-                .getValue();
-        mzRange = parameters.getParameter(IDAParameters.mzRange).getValue();
+	rtRange = parameters.getParameter(IDAParameters.retentionTimeRange)
+		.getValue();
+	mzRange = parameters.getParameter(IDAParameters.mzRange).getValue();
 
-        IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFile,
-                rtRange, mzRange, intensityType, normalizationType, minPeakInt, parameters);
+	IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFile,
+		rtRange, mzRange, intensityType, normalizationType, minPeakInt,
+		parameters);
 
-        newWindow.setVisible(true);
+	newWindow.setVisible(true);
 
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return IDAParameters.class;
+	return IDAParameters.class;
     }
 
 }

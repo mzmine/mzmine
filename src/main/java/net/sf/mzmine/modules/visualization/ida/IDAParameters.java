@@ -63,8 +63,8 @@ public class IDAParameters extends SimpleParameterSet {
 
     public IDAParameters() {
 	super(new Parameter[] { dataFiles, retentionTimeRange, mzRange,
-		intensityType, normalizationType, minPeakInt, peakThresholdSettings,
-		windowSettings });
+		intensityType, normalizationType, minPeakInt,
+		peakThresholdSettings, windowSettings });
     }
 
 }

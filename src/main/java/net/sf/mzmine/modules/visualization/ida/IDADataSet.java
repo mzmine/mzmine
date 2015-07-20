@@ -45,7 +45,9 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
     private RawDataFile rawDataFile;
     private Range<Double> totalRTRange, totalMZRange;
-    private int allScanNumbers[], msmsScanNumbers[], totalScans, totalmsmsScans, processedScans, allProcessedScans, processedColors, totalEntries, lastMSIndex;
+    private int allScanNumbers[], msmsScanNumbers[], totalScans,
+	    totalmsmsScans, processedScans, allProcessedScans, processedColors,
+	    totalEntries, lastMSIndex;
     private final double[] rtValues, mzValues, intensityValues;
     private IntensityType intensityType;
     private NormalizationType normalizationType;
@@ -56,7 +58,9 @@ class IDADataSet extends AbstractXYDataset implements Task {
     private TaskStatus status = TaskStatus.WAITING;
 
     IDADataSet(RawDataFile rawDataFile, Range<Double> rtRange,
-	    Range<Double> mzRange, IntensityType intensityType, NormalizationType normalizationType, Integer minPeakInt, IDAVisualizerWindow visualizer) {
+	    Range<Double> mzRange, IntensityType intensityType,
+	    NormalizationType normalizationType, Integer minPeakInt,
+	    IDAVisualizerWindow visualizer) {
 
 	this.rawDataFile = rawDataFile;
 
@@ -64,7 +68,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
 	totalMZRange = mzRange;
 	this.intensityType = intensityType;
 	this.normalizationType = normalizationType;
-	this.minPeakInt = minPeakInt-EPSILON;
+	this.minPeakInt = minPeakInt - EPSILON;
 
 	allScanNumbers = rawDataFile.getScanNumbers();
 	msmsScanNumbers = rawDataFile.getScanNumbers(2, rtRange);
@@ -72,7 +76,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
 	totalScans = allScanNumbers.length;
 	totalmsmsScans = msmsScanNumbers.length;
 	totalEntries = totalmsmsScans;
-	
+
 	scanNumbers = new int[totalScans];
 	rtValues = new double[totalmsmsScans];
 	mzValues = new double[totalmsmsScans];
@@ -98,47 +102,56 @@ class IDADataSet extends AbstractXYDataset implements Task {
 	    Scan scan = rawDataFile.getScan(allScanNumbers[index]);
 
 	    if (scan.getMSLevel() == 1) {
-		// Store info about MS spectra for MS/MS to allow extraction of intensity of precursor ion in MS scan. 
+		// Store info about MS spectra for MS/MS to allow extraction of
+		// intensity of precursor ion in MS scan.
 		lastMSIndex = index;
-	    }
-	    else {
-		Double precursorMZ = scan.getPrecursorMZ();	// Precursor m/z value
-		Double scanRT = scan.getRetentionTime();	// Scan RT
+	    } else {
+		Double precursorMZ = scan.getPrecursorMZ(); // Precursor m/z
+							    // value
+		Double scanRT = scan.getRetentionTime(); // Scan RT
 
-		//Calculate total intensity
+		// Calculate total intensity
 		totalScanIntensity = 0;
-		if (intensityType == IntensityType.MS){
+		if (intensityType == IntensityType.MS) {
 		    // Get intensity of precursor ion from MS scan
-		    Scan msscan = rawDataFile.getScan(allScanNumbers[lastMSIndex]);
-		    Double mzTolerance = precursorMZ*10/1000000;
-		    Range<Double> precursorMZRange = Range.closed(precursorMZ-mzTolerance,precursorMZ+mzTolerance);
-		    DataPoint scanDataPoints[] = msscan.getDataPointsByMass(precursorMZRange);
+		    Scan msscan = rawDataFile
+			    .getScan(allScanNumbers[lastMSIndex]);
+		    Double mzTolerance = precursorMZ * 10 / 1000000;
+		    Range<Double> precursorMZRange = Range.closed(precursorMZ
+			    - mzTolerance, precursorMZ + mzTolerance);
+		    DataPoint scanDataPoints[] = msscan
+			    .getDataPointsByMass(precursorMZRange);
 		    for (int x = 0; x < scanDataPoints.length; x++) {
-			totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
+			totalScanIntensity = totalScanIntensity
+				+ scanDataPoints[x].getIntensity();
 		    }
-		}
-		else if (intensityType == IntensityType.MSMS){
+		} else if (intensityType == IntensityType.MSMS) {
 		    // Get total intensity of all peaks in MS/MS scan
 		    DataPoint scanDataPoints[] = scan.getDataPoints();
 		    for (int x = 0; x < scanDataPoints.length; x++) {
-			totalScanIntensity = totalScanIntensity + scanDataPoints[x].getIntensity();
+			totalScanIntensity = totalScanIntensity
+				+ scanDataPoints[x].getIntensity();
 		    }
 		}
 
 		maxPeakIntensity = 0;
-		    DataPoint scanDataPoints[] = scan.getDataPoints();
-		    for (int x = 0; x < scanDataPoints.length; x++) {
-			if (maxPeakIntensity < scanDataPoints[x].getIntensity()) {
-			    maxPeakIntensity = scanDataPoints[x].getIntensity();
-			}
+		DataPoint scanDataPoints[] = scan.getDataPoints();
+		for (int x = 0; x < scanDataPoints.length; x++) {
+		    if (maxPeakIntensity < scanDataPoints[x].getIntensity()) {
+			maxPeakIntensity = scanDataPoints[x].getIntensity();
 		    }
+		}
 
-		if (totalRTRange.contains(scanRT) && totalMZRange.contains(precursorMZ) && maxPeakIntensity > minPeakInt) {
+		if (totalRTRange.contains(scanRT)
+			&& totalMZRange.contains(precursorMZ)
+			&& maxPeakIntensity > minPeakInt) {
 		    // Add values to arrays
 		    rtValues[processedScans] = scanRT;
 		    mzValues[processedScans] = precursorMZ;
 		    intensityValues[processedScans] = totalScanIntensity;
-		    scanNumbers[processedScans] = index+1; //+1 because loop runs from 0 not 1
+		    scanNumbers[processedScans] = index + 1; // +1 because loop
+							     // runs from 0 not
+							     // 1
 		    processedScans++;
 		}
 
@@ -148,47 +161,51 @@ class IDADataSet extends AbstractXYDataset implements Task {
 	}
 
 	// Update max Z values
-        for (int row = 0; row < totalmsmsScans; row++) {
-            if (maxIntensity < intensityValues[row]) {
-        	maxIntensity = intensityValues[row];
-            }
-        }
+	for (int row = 0; row < totalmsmsScans; row++) {
+	    if (maxIntensity < intensityValues[row]) {
+		maxIntensity = intensityValues[row];
+	    }
+	}
 
-        // Update color table for all spots
-        totalEntries = processedScans-1;
-        for (int index = 0; index < processedScans-1; index++) {
+	// Update color table for all spots
+	totalEntries = processedScans - 1;
+	for (int index = 0; index < processedScans - 1; index++) {
 
-            // Cancel?
+	    // Cancel?
 	    if (status == TaskStatus.CANCELED)
 		return;
-	    
+
 	    double maxIntensityVal = 1;
-	    
+
 	    if (normalizationType == NormalizationType.all) {
 		// Normalize based on all m/z values
 		maxIntensityVal = maxIntensity;
-	    }
-	    else if (normalizationType == NormalizationType.similar) {
+	    } else if (normalizationType == NormalizationType.similar) {
 		// Normalize based on similar m/z values
 		double precursorMZ = mzValues[index];
-		Double mzTolerance = precursorMZ*10/1000000;
-		Range<Double> precursorMZRange = Range.closed(precursorMZ-mzTolerance,precursorMZ+mzTolerance);
+		Double mzTolerance = precursorMZ * 10 / 1000000;
+		Range<Double> precursorMZRange = Range.closed(precursorMZ
+			- mzTolerance, precursorMZ + mzTolerance);
 		maxIntensityVal = (double) getMaxZ(precursorMZRange);
 	    }
 
 	    // Calculate normalized intensity
-	    double normIntensity = (double) intensityValues[index]/maxIntensityVal;
-	    if (normIntensity > 1) {normIntensity = 1;}
+	    double normIntensity = (double) intensityValues[index]
+		    / maxIntensityVal;
+	    if (normIntensity > 1) {
+		normIntensity = 1;
+	    }
 
 	    // Convert normIntensity into gray color tone
-	    // RGB tones go from 0 to 255 - we limit it to 220 to not include too light colors
-	    int rgbVal = (int) Math.round(220-normIntensity*220);
+	    // RGB tones go from 0 to 255 - we limit it to 220 to not include
+	    // too light colors
+	    int rgbVal = (int) Math.round(220 - normIntensity * 220);
 
 	    // Update color table
 	    colorValues[index] = new Color(rgbVal, rgbVal, rgbVal);
 
 	    processedColors++;
-        }
+	}
 
 	fireDatasetChanged();
 	status = TaskStatus.FINISHED;
@@ -220,19 +237,19 @@ class IDADataSet extends AbstractXYDataset implements Task {
     }
 
     public Number getMaxZ() {
-        return maxIntensity;
+	return maxIntensity;
     }
 
     public Number getMaxZ(Range<Double> mzRange) {
 	double max = 1.0;
-        for (int row = 0; row < totalmsmsScans; row++) {
-            if(mzRange.contains(mzValues[row])){
-        	if (max < intensityValues[row]) {
-        	    max = intensityValues[row];
-            	}
-            }
-        }
-        return max;
+	for (int row = 0; row < totalmsmsScans; row++) {
+	    if (mzRange.contains(mzValues[row])) {
+		if (max < intensityValues[row]) {
+		    max = intensityValues[row];
+		}
+	    }
+	}
+	return max;
     }
 
     public Color getColor(int series, int item) {
@@ -242,9 +259,10 @@ class IDADataSet extends AbstractXYDataset implements Task {
     public void setColor(int series, int item, Color c) {
 	colorValues[item] = c;
     }
- 
+
     /**
-     * Highlights all MS/MS spots for which a peak is found in the MS/MS spectrum with the m/z value 
+     * Highlights all MS/MS spots for which a peak is found in the MS/MS
+     * spectrum with the m/z value
      *
      * @param mz
      *            m/z.
@@ -254,27 +272,36 @@ class IDADataSet extends AbstractXYDataset implements Task {
      *            color.
      * 
      */
-    public void highlightSpectra(double mz, double ppm, int minIntensity, Color c) {
+    public void highlightSpectra(double mz, double ppm, int minIntensity,
+	    Color c) {
 	// mzRange
-	Double mzTolerance = mz*ppm/1000000;
-	Range<Double> precursorMZRange = Range.closed(mz-mzTolerance,mz+mzTolerance);
+	Double mzTolerance = mz * ppm / 1000000;
+	Range<Double> precursorMZRange = Range.closed(mz - mzTolerance, mz
+		+ mzTolerance);
 
 	// Loop through all scans
 	for (int row = 0; row < scanNumbers.length; row++) {
 	    Scan msscan = rawDataFile.getScan(scanNumbers[row]);
-	    
+
 	    // Get total intensity of all peaks in MS/MS scan
 	    if (scanNumbers[row] > 0) {
 		DataPoint scanDataPoints[] = msscan.getDataPoints();
 
 		for (int x = 0; x < scanDataPoints.length; x++) {
-		    if(precursorMZRange.contains(scanDataPoints[x].getMZ()) && scanDataPoints[x].getIntensity() > minIntensity){
-			// If color is red green or blue then use toning from current color
+		    if (precursorMZRange.contains(scanDataPoints[x].getMZ())
+			    && scanDataPoints[x].getIntensity() > minIntensity) {
+			// If color is red green or blue then use toning from
+			// current color
 			int rgb = getColor(0, row).getRed();
-			if (c == Color.red) { setColor(0,row,new Color(255, rgb, rgb)); }
-			else if (c == Color.green) { setColor(0,row,new Color(rgb, 255, rgb)); }
-			else if (c == Color.blue) { setColor(0,row,new Color(rgb, rgb, 255)); }
-			else { setColor(0,row,c); }
+			if (c == Color.red) {
+			    setColor(0, row, new Color(255, rgb, rgb));
+			} else if (c == Color.green) {
+			    setColor(0, row, new Color(rgb, 255, rgb));
+			} else if (c == Color.blue) {
+			    setColor(0, row, new Color(rgb, rgb, 255));
+			} else {
+			    setColor(0, row, c);
+			}
 		    }
 
 		}
@@ -285,8 +312,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
 	fireDatasetChanged();
     }
-    
-    
+
     public RawDataFile getDataFile() {
 	return rawDataFile;
     }
@@ -331,8 +357,11 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
     @Override
     public double getFinishedPercentage() {
-	if (totalScans == 0) { return 0; }
-	return (double) 0.5*(allProcessedScans/totalScans) + 0.5*(100*processedColors/totalEntries)/100;
+	if (totalScans == 0) {
+	    return 0;
+	}
+	return (double) 0.5 * (allProcessedScans / totalScans) + 0.5
+		* (100 * processedColors / totalEntries) / 100;
     }
 
     @Override

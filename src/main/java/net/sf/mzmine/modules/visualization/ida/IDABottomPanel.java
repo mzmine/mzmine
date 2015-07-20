@@ -205,8 +205,10 @@ class IDABottomPanel extends JPanel implements TreeModelListener,
 	    XYPlot xyPlot = masterFrame.getPlot().getXYPlot();
 	    org.jfree.data.Range yAxis = xyPlot.getRangeAxis().getRange();
 	    org.jfree.data.Range xAxis = xyPlot.getDomainAxis().getRange();
-	    rtRange = Range.closed(xAxis.getLowerBound(),xAxis.getUpperBound());
-	    mzRange = Range.closed(yAxis.getLowerBound(),yAxis.getUpperBound());
+	    rtRange = Range
+		    .closed(xAxis.getLowerBound(), xAxis.getUpperBound());
+	    mzRange = Range
+		    .closed(yAxis.getLowerBound(), yAxis.getUpperBound());
 	}
 
 	for (PeakListRow peakRow : selectedPeakList.getRows()) {

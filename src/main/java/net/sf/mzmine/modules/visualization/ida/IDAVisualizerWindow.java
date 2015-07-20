@@ -57,9 +57,10 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
     private RawDataFile dataFile;
     private boolean tooltipMode;
 
-    public IDAVisualizerWindow(RawDataFile dataFile, 
-	    Range<Double> rtRange, Range<Double> mzRange,
-	    IntensityType intensityType, NormalizationType normalizationType, Integer minPeakInt, ParameterSet parameters) {
+    public IDAVisualizerWindow(RawDataFile dataFile, Range<Double> rtRange,
+	    Range<Double> mzRange, IntensityType intensityType,
+	    NormalizationType normalizationType, Integer minPeakInt,
+	    ParameterSet parameters) {
 
 	super("IDA visualizer: [" + dataFile.getName() + "]");
 
@@ -69,7 +70,8 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	this.dataFile = dataFile;
 	this.tooltipMode = true;
 
-	dataset = new IDADataSet(dataFile, rtRange, mzRange, intensityType, normalizationType, minPeakInt, this);
+	dataset = new IDADataSet(dataFile, rtRange, mzRange, intensityType,
+		normalizationType, minPeakInt, this);
 
 	toolBar = new IDAToolBar(this);
 	add(toolBar, BorderLayout.EAST);
@@ -122,14 +124,18 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
      * @return current cursor position
      */
     public CursorPosition getCursorPosition() {
-	double selectedRT = (double) IDAPlot.getXYPlot().getDomainCrosshairValue();
-	double selectedMZ = (double) IDAPlot.getXYPlot().getRangeCrosshairValue();
+	double selectedRT = (double) IDAPlot.getXYPlot()
+		.getDomainCrosshairValue();
+	double selectedMZ = (double) IDAPlot.getXYPlot()
+		.getRangeCrosshairValue();
 
 	int index = dataset.getIndex(selectedRT, selectedMZ);
 
 	if (index >= 0) {
 	    double intensity = (double) dataset.getZ(0, index);
-	    CursorPosition pos = new CursorPosition(selectedRT, selectedMZ, intensity, dataset.getDataFile(), dataset.getScanNumber(index));
+	    CursorPosition pos = new CursorPosition(selectedRT, selectedMZ,
+		    intensity, dataset.getDataFile(),
+		    dataset.getScanNumber(index));
 	    return pos;
 	}
 
@@ -152,7 +158,8 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	if (command.equals("SETUP_AXES")) {
-	    AxesSetupDialog dialog = new AxesSetupDialog(this,IDAPlot.getXYPlot());
+	    AxesSetupDialog dialog = new AxesSetupDialog(this,
+		    IDAPlot.getXYPlot());
 	    dialog.setVisible(true);
 	}
 
@@ -175,13 +182,11 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	if (command.equals("FIND_SPECTRA")) {
 
 	    // Parameters
-	    final DoubleParameter inputMZ = new DoubleParameter(
-		    "Ion m/z",
+	    final DoubleParameter inputMZ = new DoubleParameter("Ion m/z",
 		    "m/z value of ion to search for.");
 
 	    final DoubleParameter inputPPM = new DoubleParameter(
-		    "PPM tolerance",
-		    "PPM tolerance for m/z value.");
+		    "PPM tolerance", "PPM tolerance for m/z value.");
 
 	    final IntegerParameter inputIntensity = new IntegerParameter(
 		    "Min. ion intensity",
@@ -198,22 +203,33 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	    parameters[2] = inputIntensity;
 	    parameters[3] = inputColors;
 
-	    final ParameterSet parametersSearch = new SimpleParameterSet(parameters);
+	    final ParameterSet parametersSearch = new SimpleParameterSet(
+		    parameters);
 	    ExitCode exitCode = parametersSearch.showSetupDialog(this, true);
 
 	    if (exitCode != ExitCode.OK)
 		return;
 
 	    double searchMZ = parametersSearch.getParameter(inputMZ).getValue();
-	    double searchPPM = parametersSearch.getParameter(inputPPM).getValue();
-	    int minIntensity = parametersSearch.getParameter(inputIntensity).getValue();
+	    double searchPPM = parametersSearch.getParameter(inputPPM)
+		    .getValue();
+	    int minIntensity = parametersSearch.getParameter(inputIntensity)
+		    .getValue();
 
-	    Color highligtColor = Color.red;;
-	    if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.green)) {highligtColor = Color.green;}
-	    if (parametersSearch.getParameter(inputColors).getValue().equals(Colors.blue)) {highligtColor = Color.blue;}
+	    Color highligtColor = Color.red;
+	    ;
+	    if (parametersSearch.getParameter(inputColors).getValue()
+		    .equals(Colors.green)) {
+		highligtColor = Color.green;
+	    }
+	    if (parametersSearch.getParameter(inputColors).getValue()
+		    .equals(Colors.blue)) {
+		highligtColor = Color.blue;
+	    }
 
 	    // Find and highlight spectra with specific ion
-	    dataset.highlightSpectra(searchMZ, searchPPM, minIntensity, highligtColor);
+	    dataset.highlightSpectra(searchMZ, searchPPM, minIntensity,
+		    highligtColor);
 
 	}
 

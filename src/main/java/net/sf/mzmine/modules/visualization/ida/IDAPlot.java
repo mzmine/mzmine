@@ -91,7 +91,7 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
     private static final BasicStroke crossHairStroke = new BasicStroke(1,
 	    BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
 		    5, 3 }, 0);
-    
+
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
     private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
@@ -103,8 +103,9 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-    IDAPlot(final ActionListener listener, RawDataFile rawDataFile, IDAVisualizerWindow visualizer,
-	    IDADataSet dataset, Range<Double> rtRange, Range<Double> mzRange) {
+    IDAPlot(final ActionListener listener, RawDataFile rawDataFile,
+	    IDAVisualizerWindow visualizer, IDADataSet dataset,
+	    Range<Double> rtRange, Range<Double> mzRange) {
 
 	super(null, true);
 
@@ -187,7 +188,7 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 
 	// Add EMF and EPS options to the save as menu
 	JPopupMenu popupMenu = getPopupMenu();
-	JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);	
+	JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);
 	GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
 	GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
 
@@ -206,43 +207,47 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 
 	    JFileChooser chooser = new JFileChooser();
 	    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-	        "EMF Image", "EMF");
+		    "EMF Image", "EMF");
 	    chooser.setFileFilter(filter);
 	    int returnVal = chooser.showSaveDialog(null);
-	    if(returnVal == JFileChooser.APPROVE_OPTION) {
-	       String file = chooser.getSelectedFile().getPath();
-	       if (!file.toLowerCase().endsWith(".emf")) file += ".emf";
-	       
-	       int width = (int) this.getSize().getWidth();
-	       int height = (int) this.getSize().getHeight(); 
+	    if (returnVal == JFileChooser.APPROVE_OPTION) {
+		String file = chooser.getSelectedFile().getPath();
+		if (!file.toLowerCase().endsWith(".emf"))
+		    file += ".emf";
 
-	       // Save image
-	       SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EMF);
-	       new Thread(SI).start();
-	       
+		int width = (int) this.getSize().getWidth();
+		int height = (int) this.getSize().getHeight();
+
+		// Save image
+		SaveImage SI = new SaveImage(getChart(), file, width, height,
+			FileType.EMF);
+		new Thread(SI).start();
+
 	    }
 	}
 
 	if ("SAVE_EPS".equals(command)) {
-	    
+
 	    JFileChooser chooser = new JFileChooser();
 	    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-	        "EPS Image", "EPS");
+		    "EPS Image", "EPS");
 	    chooser.setFileFilter(filter);
 	    int returnVal = chooser.showSaveDialog(null);
-	    if(returnVal == JFileChooser.APPROVE_OPTION) {
-	       String file = chooser.getSelectedFile().getPath();
-	       if (!file.toLowerCase().endsWith(".eps")) file += ".eps";
-	       
-	       int width = (int) this.getSize().getWidth();
-	       int height = (int) this.getSize().getHeight(); 
-	       
-	       // Save image
-	       SaveImage SI = new SaveImage(getChart(), file, width, height, FileType.EPS);
-	       new Thread(SI).start();
-	       
+	    if (returnVal == JFileChooser.APPROVE_OPTION) {
+		String file = chooser.getSelectedFile().getPath();
+		if (!file.toLowerCase().endsWith(".eps"))
+		    file += ".eps";
+
+		int width = (int) this.getSize().getWidth();
+		int height = (int) this.getSize().getHeight();
+
+		// Save image
+		SaveImage SI = new SaveImage(getChart(), file, width, height,
+			FileType.EPS);
+		new Thread(SI).start();
+
 	    }
-	    
+
 	}
     }
 
