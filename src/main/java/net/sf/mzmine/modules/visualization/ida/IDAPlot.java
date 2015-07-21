@@ -120,7 +120,7 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 		"", // y-axis label
 		null, // data set
 		PlotOrientation.VERTICAL, // orientation
-		false, // create legend
+		true, // create legend
 		false, // generate tooltips
 		false // generate URLs
 		);

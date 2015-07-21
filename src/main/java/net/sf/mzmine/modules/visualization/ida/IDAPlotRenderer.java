@@ -47,6 +47,7 @@ public class IDAPlotRenderer extends XYLineAndShapeRenderer {
 
 	setBaseItemLabelsVisible(false);
 
+	setSeriesVisibleInLegend(0, false);
 	setSeriesItemLabelsVisible(0, false);
 	setSeriesPaint(0, pointColor);
 	setSeriesShape(0, dataPointsShape);

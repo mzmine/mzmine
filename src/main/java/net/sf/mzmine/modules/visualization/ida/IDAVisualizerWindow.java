@@ -23,9 +23,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
@@ -231,6 +235,15 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	    dataset.highlightSpectra(searchMZ, searchPPM, minIntensity,
 		    highligtColor);
 
+	    // Add legend entry
+	    LegendItemCollection chartLegend = IDAPlot.getXYPlot()
+		    .getLegendItems();
+	    chartLegend.add(new LegendItem("Ion: " + searchMZ, "",
+		    "MS/MS spectra which contain the " + searchMZ
+			    + " ion\nPPM: " + searchPPM + "\nMin intensity: "
+			    + minIntensity, "",
+		    new Ellipse2D.Double(0, 0, 7, 7), highligtColor));
+	    IDAPlot.getXYPlot().setFixedLegendItems(chartLegend);
 	}
 
     }
