@@ -162,10 +162,15 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 		    normalizationFactors = new double[1];
 		    normalizationFactorWeights = new double[1];
 		    Feature standardPeak = nearestStandardRow.getPeak(file);
-		    if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
-			normalizationFactors[0] = standardPeak.getHeight();
+		    if (standardPeak == null) {
+			// What to do if standard peak is not available?
+			normalizationFactors[0] = 1.0;
 		    } else {
-			normalizationFactors[0] = standardPeak.getArea();
+		    	if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
+		    	    normalizationFactors[0] = standardPeak.getHeight();
+		    	} else {
+		    	    normalizationFactors[0] = standardPeak.getArea();
+		    	}
 		    }
 		    logger.finest("Normalizing row #" + row.getID()
 			    + " using standard peak " + standardPeak
@@ -190,10 +195,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 
 			Feature standardPeak = standardRow.getPeak(file);
 			if (standardPeak == null) {
-			    // What to do if standard peak is not
-			    // available? (Currently this is ruled out by the
-			    // setup dialog, which shows only peaks that are
-			    // present in all samples)
+			    // What to do if standard peak is not available?
 			    normalizationFactors[standardRowIndex] = 1.0;
 			    normalizationFactorWeights[standardRowIndex] = 0.0;
 			} else {
