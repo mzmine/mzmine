@@ -198,37 +198,39 @@ class CSVExportTask extends AbstractTask {
                 }
             }
 
-            // Identity elements
-            length = identityElements.length;
-            PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
-            PeakIdentity[] peakIdentities = peakListRow.getPeakIdentities();
+	    // Identity elements
+	    length = identityElements.length;
+	    PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
+	    PeakIdentity[] peakIdentities = peakListRow.getPeakIdentities();
 
-            if (exportAllIDs && peakIdentities.length > 1) {
-                // Export all identification results
-        	for (int i = 0; i < length; i++) {
-        	    String propertyValue = "";
-        	    for (int x = 0; x < peakIdentities.length; x++) {
-        		if (x == 0) {
-        		    propertyValue = escapeStringForCSV(peakIdentities[x].getPropertyValue(identityElements[i]));
-        		}
-        		else {
-        		    propertyValue = propertyValue + idSeparator + escapeStringForCSV(peakIdentities[x].getPropertyValue(identityElements[i]));
-        		}
-        	    }
-        	    line.append(propertyValue + fieldSeparator);
-        	}
-            }
-            else if (peakIdentity != null) {
-                for (int i = 0; i < length; i++) {
-                    String propertyValue = escapeStringForCSV(peakIdentity
-                            .getPropertyValue(identityElements[i]));
-                    line.append(propertyValue + fieldSeparator);
-                }
-            } else {
-                for (int i = 0; i < length; i++) {
-                    line.append(fieldSeparator);
-                }
-            }
+	    if (exportAllIDs && peakIdentities.length > 1) {
+		// Export all identification results
+		for (int i = 0; i < length; i++) {
+		    String propertyValue = "";
+		    for (int x = 0; x < peakIdentities.length; x++) {
+			if (x == 0) {
+			    propertyValue = escapeStringForCSV(peakIdentities[x]
+				    .getPropertyValue(identityElements[i]));
+			} else {
+			    propertyValue = propertyValue
+				    + idSeparator
+				    + escapeStringForCSV(peakIdentities[x]
+					    .getPropertyValue(identityElements[i]));
+			}
+		    }
+		    line.append(propertyValue + fieldSeparator);
+		}
+	    } else if (peakIdentity != null) {
+		for (int i = 0; i < length; i++) {
+		    String propertyValue = escapeStringForCSV(peakIdentity
+			    .getPropertyValue(identityElements[i]));
+		    line.append(propertyValue + fieldSeparator);
+		}
+	    } else {
+		for (int i = 0; i < length; i++) {
+		    line.append(fieldSeparator);
+		}
+	    }
 
             // Data file elements
             length = dataFileElements.length;
