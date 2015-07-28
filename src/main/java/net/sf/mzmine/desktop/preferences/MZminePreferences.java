@@ -26,6 +26,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -56,11 +57,15 @@ public class MZminePreferences extends SimpleParameterSet {
     public static final FileNameParameter rExecPath = new FileNameParameter(
             "R executable path", "Full R executable file path (If left blank, MZmine will try to find out automatically).");
 
+    public static final BooleanParameter sendStatistics = new BooleanParameter(
+            "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
+            true);
+
     public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
     public MZminePreferences() {
 	super(new Parameter[] { mzFormat, rtFormat, intensityFormat,
-		numOfThreads, proxySettings, rExecPath, windowSetttings });
+		numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings });
     }
 
     @Override

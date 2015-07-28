@@ -118,6 +118,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     }
 
     @Override
+    public Boolean getSendStatistics() {
+	return preferences.getParameter(MZminePreferences.sendStatistics).getValue();
+    }
+
+    @Override
     public void loadConfiguration(File file) throws IOException {
 
         try {
