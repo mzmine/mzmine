@@ -13,11 +13,6 @@ HEAP_SIZE=AUTO
 # Default: /tmp
 TMP_FILE_DIRECTORY=/tmp
 
-# Allow MZmine to send anonymous statistics on the module usage? 
-# 1 = activated, 0 = deactivated
-# Default: 1
-export MZMINE_STATISTICS=1
-
 # It is usually not necessary to modify the JAVA_COMMAND parameter, but if you like to run
 # a specific Java Virtual Machine, you may set the path to the java command of that JVM
 JAVA_COMMAND=java
