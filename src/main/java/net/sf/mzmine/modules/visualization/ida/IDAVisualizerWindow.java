@@ -39,6 +39,7 @@ import net.sf.mzmine.modules.visualization.tic.CursorPosition;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
@@ -196,16 +197,22 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 		    "Min. ion intensity",
 		    "Only ions with intensities above this value will be searched for.");
 
+	    final BooleanParameter inputNL = new BooleanParameter(
+		    "Neutral Loss",
+		    "If selected, the ion to be searched for will be a neutral loss ion.\nIn this case, only ions above the min. intensity will be examined.",
+		    false);
+
 	    final ComboParameter<Colors> inputColors = new ComboParameter<Colors>(
 		    "Color",
 		    "The color which the data points will be marked with.",
 		    Colors.values());
 
-	    Parameter<?>[] parameters = new Parameter<?>[4];
+	    Parameter<?>[] parameters = new Parameter<?>[5];
 	    parameters[0] = inputMZ;
 	    parameters[1] = inputPPM;
 	    parameters[2] = inputIntensity;
-	    parameters[3] = inputColors;
+	    parameters[3] = inputNL;
+	    parameters[4] = inputColors;
 
 	    final ParameterSet parametersSearch = new SimpleParameterSet(
 		    parameters);
@@ -219,6 +226,8 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 		    .getValue();
 	    int minIntensity = parametersSearch.getParameter(inputIntensity)
 		    .getValue();
+	    boolean neutralLoss = parametersSearch.getParameter(inputNL)
+		    .getValue(); 
 
 	    Color highligtColor = Color.red;
 	    ;
@@ -233,7 +242,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
 	    // Find and highlight spectra with specific ion
 	    dataset.highlightSpectra(searchMZ, searchPPM, minIntensity,
-		    highligtColor);
+		    neutralLoss, highligtColor);
 
 	    // Add legend entry
 	    LegendItemCollection chartLegend = IDAPlot.getXYPlot()

@@ -273,7 +273,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
      * 
      */
     public void highlightSpectra(double mz, double ppm, int minIntensity,
-	    Color c) {
+	    boolean neutralLoss, Color c) {
 	// mzRange
 	Double mzTolerance = mz * ppm / 1000000;
 	Range<Double> precursorMZRange = Range.closed(mz - mzTolerance, mz
@@ -286,24 +286,64 @@ class IDADataSet extends AbstractXYDataset implements Task {
 	    // Get total intensity of all peaks in MS/MS scan
 	    if (scanNumbers[row] > 0) {
 		DataPoint scanDataPoints[] = msscan.getDataPoints();
+		double selectedIons[] = new double[scanDataPoints.length];
+		int ions = 0;
+		boolean colorSpectra = false;
 
-		for (int x = 0; x < scanDataPoints.length; x++) {
-		    if (precursorMZRange.contains(scanDataPoints[x].getMZ())
-			    && scanDataPoints[x].getIntensity() > minIntensity) {
-			// If color is red green or blue then use toning from
-			// current color
-			int rgb = getColor(0, row).getRed();
-			if (c == Color.red) {
-			    setColor(0, row, new Color(255, rgb, rgb));
-			} else if (c == Color.green) {
-			    setColor(0, row, new Color(rgb, 255, rgb));
-			} else if (c == Color.blue) {
-			    setColor(0, row, new Color(rgb, rgb, 255));
-			} else {
-			    setColor(0, row, c);
+		// Search for neutral loss in ms/ms spectrum
+		if (neutralLoss) {
+		    for (int x = 0; x < scanDataPoints.length; x++) {
+			if (scanDataPoints[x].getIntensity() > minIntensity) {
+			    selectedIons[ions] = scanDataPoints[x].getMZ();
+			    ions++;
 			}
 		    }
 
+		    if (ions > 1) {
+			double ionDiff[][] = new double[ions][ions];
+			for (int x = 0; x < ions; x++) {
+			    for (int y = 0; y < ions; y++) {
+				ionDiff[x][y] = Math.abs(selectedIons[x]
+					- selectedIons[y]);
+			    }
+			}
+
+			for (int x = 0; x < ions; x++) {
+			    for (int y = 0; y < ions; y++) {
+				if (precursorMZRange.contains(ionDiff[x][y])) {
+				    colorSpectra = true;
+				    break;
+				}
+			    }
+			}
+		    }
+		}
+
+		// Search for specific ion in ms/ms spectrum
+		else {
+		    for (int x = 0; x < scanDataPoints.length; x++) {
+			if (precursorMZRange
+				.contains(scanDataPoints[x].getMZ())
+				&& scanDataPoints[x].getIntensity() > minIntensity) {
+			    colorSpectra = true;
+			    break;
+			}
+		    }
+		}
+
+		if (colorSpectra) {
+		    // If color is red green or blue then use toning from
+		    // current color
+		    int rgb = getColor(0, row).getRed();
+		    if (c == Color.red) {
+			setColor(0, row, new Color(255, rgb, rgb));
+		    } else if (c == Color.green) {
+			setColor(0, row, new Color(rgb, 255, rgb));
+		    } else if (c == Color.blue) {
+			setColor(0, row, new Color(rgb, rgb, 255));
+		    } else {
+			setColor(0, row, c);
+		    }
 		}
 
 	    }
