@@ -275,7 +275,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
      *            color.
      * 
      */
-    public void highlightSpectra(double mz, MZTolerance searchMZTolerance, int minIntensity,
+    public void highlightSpectra(double mz, MZTolerance searchMZTolerance, double minIntensity,
 	    boolean neutralLoss, Color c) {
 	// mzRange
 	searchMZTolerance.getToleranceRange(mz);

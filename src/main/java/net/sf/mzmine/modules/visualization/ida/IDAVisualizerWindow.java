@@ -194,7 +194,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
 	    final MZToleranceParameter inputMZTolerance = new MZToleranceParameter();
 
-	    final IntegerParameter inputIntensity = new IntegerParameter(
+	    final DoubleParameter inputIntensity = new DoubleParameter(
 		    "Min. ion intensity",
 		    "Only ions with intensities above this value will be searched for.");
 
@@ -225,7 +225,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	    double searchMZ = parametersSearch.getParameter(inputMZ).getValue();
 	    MZTolerance searchMZTolerance = parametersSearch.getParameter(inputMZTolerance)
 		    .getValue();
-	    int minIntensity = parametersSearch.getParameter(inputIntensity)
+	    double minIntensity = parametersSearch.getParameter(inputIntensity)
 		    .getValue();
 	    boolean neutralLoss = parametersSearch.getParameter(inputNL)
 		    .getValue(); 
