@@ -99,6 +99,12 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
 		    rtRange);
 	if (mzRange != null)
 	    parameters.getParameter(IDAParameters.mzRange).setValue(mzRange);
+	if (intensityType != null)
+	    parameters.getParameter(IDAParameters.intensityType).setValue(intensityType);
+	if (normalizationType != null)
+	    parameters.getParameter(IDAParameters.normalizationType).setValue(normalizationType);
+	if (minPeakInt != null)
+	    parameters.getParameter(IDAParameters.minPeakInt).setValue(minPeakInt);
 
 	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
 		.getMainWindow(), true);
@@ -109,6 +115,9 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
 	rtRange = parameters.getParameter(IDAParameters.retentionTimeRange)
 		.getValue();
 	mzRange = parameters.getParameter(IDAParameters.mzRange).getValue();
+	intensityType = parameters.getParameter(IDAParameters.intensityType).getValue();
+	normalizationType = parameters.getParameter(IDAParameters.normalizationType).getValue();
+	minPeakInt = parameters.getParameter(IDAParameters.minPeakInt).getValue();
 
 	IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFile,
 		rtRange, mzRange, intensityType, normalizationType, minPeakInt,
