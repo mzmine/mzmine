@@ -134,6 +134,7 @@ public class CentWaveDetector implements PeakResolver {
                     if (chromatogram.getDataPoint(scanNumbers[start]) != null) {
 
                         int end = start;
+                        
                         while (end < peakRight
                                 && chromatogram
                                         .getDataPoint(scanNumbers[end + 1]) != null) {
@@ -141,8 +142,8 @@ public class CentWaveDetector implements PeakResolver {
                             end++;
                         }
 
-                        if (peakDuration.contains(retentionTimes[end]
-                                - retentionTimes[start])) {
+                        if ((end > start) && (peakDuration.contains(retentionTimes[end]
+                                - retentionTimes[start]))) {
 
                             resolvedPeaks.add(new ResolvedPeak(chromatogram,
                                     start, end));
