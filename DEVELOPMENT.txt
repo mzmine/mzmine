@@ -12,6 +12,6 @@ mvn clean package
 
 The final MZmine distribution will be placed in target/MZmine-2.**.zip
 
-If you encounter any problems, please contact the developers mailing list:
-mzmine-devel@lists.sourceforge.net
+If you encounter any problems, please contact the developers:
+https://groups.google.com/forum/#!forum/mzmine-devel
 
