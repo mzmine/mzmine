@@ -268,6 +268,8 @@ class IDADataSet extends AbstractXYDataset implements Task {
      *            m/z.
      * @param ppm
      *            ppm value.
+     * @param neutralLoss
+     *            true or false.
      * @param c
      *            color.
      * 
