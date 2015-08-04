@@ -44,6 +44,8 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -190,8 +192,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	    final DoubleParameter inputMZ = new DoubleParameter("Ion m/z",
 		    "m/z value of ion to search for.");
 
-	    final DoubleParameter inputPPM = new DoubleParameter(
-		    "PPM tolerance", "PPM tolerance for m/z value.");
+	    final MZToleranceParameter inputMZTolerance = new MZToleranceParameter();
 
 	    final IntegerParameter inputIntensity = new IntegerParameter(
 		    "Min. ion intensity",
@@ -209,7 +210,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
 	    Parameter<?>[] parameters = new Parameter<?>[5];
 	    parameters[0] = inputMZ;
-	    parameters[1] = inputPPM;
+	    parameters[1] = inputMZTolerance;
 	    parameters[2] = inputIntensity;
 	    parameters[3] = inputNL;
 	    parameters[4] = inputColors;
@@ -222,7 +223,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 		return;
 
 	    double searchMZ = parametersSearch.getParameter(inputMZ).getValue();
-	    double searchPPM = parametersSearch.getParameter(inputPPM)
+	    MZTolerance searchMZTolerance = parametersSearch.getParameter(inputMZTolerance)
 		    .getValue();
 	    int minIntensity = parametersSearch.getParameter(inputIntensity)
 		    .getValue();
@@ -241,7 +242,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	    }
 
 	    // Find and highlight spectra with specific ion
-	    dataset.highlightSpectra(searchMZ, searchPPM, minIntensity,
+	    dataset.highlightSpectra(searchMZ, searchMZTolerance, minIntensity,
 		    neutralLoss, highligtColor);
 
 	    // Add legend entry
@@ -249,7 +250,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 		    .getLegendItems();
 	    chartLegend.add(new LegendItem("Ion: " + searchMZ, "",
 		    "MS/MS spectra which contain the " + searchMZ
-			    + " ion\nPPM: " + searchPPM + "\nMin intensity: "
+			    + " ion\nTolerance: " + searchMZTolerance.toString() + "\nMin intensity: "
 			    + minIntensity, "",
 		    new Ellipse2D.Double(0, 0, 7, 7), highligtColor));
 	    IDAPlot.getXYPlot().setFixedLegendItems(chartLegend);

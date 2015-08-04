@@ -25,6 +25,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -274,12 +275,11 @@ class IDADataSet extends AbstractXYDataset implements Task {
      *            color.
      * 
      */
-    public void highlightSpectra(double mz, double ppm, int minIntensity,
+    public void highlightSpectra(double mz, MZTolerance searchMZTolerance, int minIntensity,
 	    boolean neutralLoss, Color c) {
 	// mzRange
-	Double mzTolerance = mz * ppm / 1000000;
-	Range<Double> precursorMZRange = Range.closed(mz - mzTolerance, mz
-		+ mzTolerance);
+	searchMZTolerance.getToleranceRange(mz);
+	Range<Double> precursorMZRange = searchMZTolerance.getToleranceRange(mz);
 
 	// Loop through all scans
 	for (int row = 0; row < scanNumbers.length; row++) {
