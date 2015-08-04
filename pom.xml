@@ -5,8 +5,8 @@
 	<groupId>net.sf.mzmine</groupId>
 	<artifactId>mzmine</artifactId>
 	<version>2.15</version>
-	<name>MZmine 2</name>
-	<description>MZmine 2 is an open-source project delivering a software for mass-spectrometry data processing, with the main focus on LC-MS data.</description>
+	<name>MZmine</name>
+	<description>MZmine is an open-source project delivering a software for mass-spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>http://mzmine.sourceforge.net/</url>
 
 	<properties>
