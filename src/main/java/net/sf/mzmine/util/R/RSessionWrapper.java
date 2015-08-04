@@ -57,8 +57,6 @@ public class RSessionWrapper {
     private static final Logger LOG = Logger.getLogger(RSessionWrapper.class
             .getName());
 
-    private static boolean DEBUG = false;
-
     // Rsession semaphore - non-parallelizable operations must be synchronized
     // using this semaphore.
     public static final Object R_SESSION_SEMAPHORE = new Object();
@@ -70,7 +68,7 @@ public class RSessionWrapper {
 
     private final Object R_DUMMY_SEMAPHORE = new Object();
 
-    private static final Level rsLogLvl = (DEBUG) ? Level.FINEST : Level.OFF;
+    private static final Level rsLogLvl = Level.FINEST;
     private static final Level logLvl = Level.FINEST;
     private static PrintStream logStream = new LoggerStream(LOG, rsLogLvl);
 
