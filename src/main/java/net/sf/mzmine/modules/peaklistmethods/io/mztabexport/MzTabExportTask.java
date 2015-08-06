@@ -98,23 +98,19 @@ class MzTabExportTask extends AbstractTask {
                     "PRIDE:0000330", "Arbitrary quantification unit", null));
             mtd.addSmallMoleculeSearchEngineScoreParam(1, new CVParam("MS",
                     "MS:1001153", "search engine specific score", null));
+	    mtd.addFixedModParam(1, new CVParam("MS", "MS:1002453",
+		    "No fixed modifications searched", null));
+	    mtd.addVariableModParam(1, new CVParam("MS", "MS:1002454",
+		    "No variable modifications searched", null));
 
             // Create stable columns
             MZTabColumnFactory factory = MZTabColumnFactory
                     .getInstance(Section.Small_Molecule);
+            factory.addDefaultStableColumns();
 
-            // Variable descriptions
-            int parameterCounter = 0;
-            for (UserParameter<?, ?> p : project.getParameters()) {
-                for (Object e : ((ComboParameter<?>) p).getChoices()) {
-                    parameterCounter++;
-                    mtd.addStudyVariableDescription(parameterCounter,
-                            String.valueOf(p) + ": " + String.valueOf(e));
-                    StudyVariable studyVariable = new StudyVariable(
-                            parameterCounter);
-                    factory.addAbundanceOptionalColumn(studyVariable);
-                }
-            }
+            // Add optional columns which have stable order
+            factory.addURIOptionalColumn();
+            factory.addBestSearchEngineScoreOptionalColumn(SmallMoleculeColumn.BEST_SEARCH_ENGINE_SCORE, 1);
 
             final RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
             int fileCounter = 0;
@@ -148,16 +144,26 @@ class MzTabExportTask extends AbstractTask {
                 }
 
                 // Additional columns
-                factory.addBestSearchEngineScoreOptionalColumn(
-                        SmallMoleculeColumn.BEST_SEARCH_ENGINE_SCORE, 1);
+                factory.addAbundanceOptionalColumn(new Assay(fileCounter));
                 factory.addOptionalColumn(new Assay(fileCounter), "peak_mz",
                         String.class);
                 factory.addOptionalColumn(new Assay(fileCounter), "peak_rt",
                         String.class);
                 factory.addOptionalColumn(new Assay(fileCounter),
                         "peak_height", String.class);
-                factory.addURIOptionalColumn();
-                factory.addAbundanceOptionalColumn(new Assay(fileCounter));
+            }
+
+            // Variable descriptions
+            int parameterCounter = 0;
+            for (UserParameter<?, ?> p : project.getParameters()) {
+                for (Object e : ((ComboParameter<?>) p).getChoices()) {
+                    parameterCounter++;
+                    mtd.addStudyVariableDescription(parameterCounter,
+                            String.valueOf(p) + ": " + String.valueOf(e));
+                    StudyVariable studyVariable = new StudyVariable(
+                            parameterCounter);
+                    factory.addAbundanceOptionalColumn(studyVariable);
+                }
             }
 
             // Write to file
