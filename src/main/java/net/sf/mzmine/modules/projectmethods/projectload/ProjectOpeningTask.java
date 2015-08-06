@@ -70,6 +70,10 @@ public class ProjectOpeningTask extends AbstractTask {
     private UserParameterOpenHandler userParameterOpenHandler;
 
     private int currentStage;
+    private double processedRawDataFiles = 0;
+    private double processedPeakDataFiles = 0;
+    private double rawdatafiles = 0;
+    private double peakdatafiles = 0;
     private String currentLoadedObjectName;
 
     // This hashtable maps stored IDs to raw data file objects
@@ -99,11 +103,13 @@ public class ProjectOpeningTask extends AbstractTask {
 	case 2:
 	    if (rawDataFileOpenHandler == null)
 		return 0;
-	    return rawDataFileOpenHandler.getProgress();
+	    return (rawDataFileOpenHandler.getProgress() / rawdatafiles + processedRawDataFiles
+		    / rawdatafiles) * 0.5;
 	case 3:
 	    if (peakListOpenHandler == null)
 		return 0;
-	    return peakListOpenHandler.getProgress();
+	    return 0.5 + (peakListOpenHandler.getProgress() / peakdatafiles + processedPeakDataFiles
+		    / peakdatafiles) * 0.5;
 	case 4:
 	    if (userParameterOpenHandler == null)
 		return 0;
@@ -129,8 +135,39 @@ public class ProjectOpeningTask extends AbstractTask {
 	    newProject = new MZmineProjectImpl();
 	    newProject.setProjectFile(openFile);
 
+	    // Close all windows related to previous project
+	    GUIUtils.closeAllWindows();
+
+	    // Replace the current project with the new one
+	    ProjectManager projectManager = MZmineCore.getProjectManager();
+	    projectManager.setCurrentProject(newProject);
+
 	    // Get project ZIP stream
 	    ZipFile zipFile = new ZipFile(openFile);
+
+	    // Find # raw data files and peak data files
+	    Pattern rawFilePattern = Pattern
+		    .compile("Raw data file #([\\d]+) (.*)\\.xml$");
+	    Pattern peakFilePattern = Pattern
+		    .compile("Peak list #([\\d]+) (.*)\\.xml$");
+
+	    Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+	    while (zipEntries.hasMoreElements()) {
+		ZipEntry entry = zipEntries.nextElement();
+		String entryName = entry.getName();
+
+		// Raw data files
+		Matcher fileMatcher = rawFilePattern.matcher(entryName);
+		if (fileMatcher.matches()) {
+		    rawdatafiles++;
+		}
+
+		// Peak data files
+		fileMatcher = peakFilePattern.matcher(entryName);
+		if (fileMatcher.matches()) {
+		    peakdatafiles++;
+		}
+	    }
 
 	    // Stage 1 - check version and load configuration
 	    currentStage++;
@@ -172,13 +209,6 @@ public class ProjectOpeningTask extends AbstractTask {
 	    // Final check for cancel
 	    if (isCanceled())
 		return;
-
-	    // Close all windows related to previous project
-	    GUIUtils.closeAllWindows();
-
-	    // Replace the current project with the new one
-	    ProjectManager projectManager = MZmineCore.getProjectManager();
-	    projectManager.setCurrentProject(newProject);
 
 	    logger.info("Finished opening project " + openFile);
 
@@ -365,6 +395,8 @@ public class ProjectOpeningTask extends AbstractTask {
 			zipFile, scansEntry, entry);
 		newProject.addFile(newFile);
 		dataFilesIDMap.put(fileID, newFile);
+
+		processedRawDataFiles++;
 	    }
 
 	}
@@ -402,6 +434,8 @@ public class ProjectOpeningTask extends AbstractTask {
 			.readPeakList(peakListStream);
 
 		newProject.addPeakList(newPeakList);
+
+		processedPeakDataFiles++;
 	    }
 
 	}
