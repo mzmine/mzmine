@@ -187,9 +187,14 @@ public class SpectraPlot extends ChartPanel {
 	JMenuItem saveAsMenu = (JMenuItem) popupMenu.getComponent(3);	
 	GUIUtils.addMenuItem(saveAsMenu, "EMF...", this, "SAVE_EMF");
 	GUIUtils.addMenuItem(saveAsMenu, "EPS...", this, "SAVE_EPS");
-	
+
 	// add items to popup menu
 	if (masterPlot instanceof SpectraVisualizerWindow) {
+
+	    popupMenu.addSeparator();
+
+	    GUIUtils.addMenuItem(popupMenu, "Export spectra to spectra file",
+		    masterPlot, "EXPORT_SPECTRA");
 
 	    popupMenu.addSeparator();
 

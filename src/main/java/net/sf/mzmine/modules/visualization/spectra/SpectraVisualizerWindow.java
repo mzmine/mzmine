@@ -24,15 +24,19 @@ import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -412,6 +416,80 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	    AxesSetupDialog dialog = new AxesSetupDialog(this,
 		    spectrumPlot.getXYPlot());
 	    dialog.setVisible(true);
+	}
+
+	if (command.equals("EXPORT_SPECTRA")) {
+
+	    boolean acceptable = false;
+	    String path = null;
+	    String extension = "";
+
+	    JFileChooser FileChooser = new JFileChooser();
+
+	    // Export file chooser
+	    do {
+		path = null;
+		File f = null;
+
+		// Remove the accept-all (.*) file filter
+		FileChooser.setAcceptAllFileFilterUsed(false);
+
+		// Add file filters
+		FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
+			"MGF - Mascot Generic Format", "mgf"));
+		FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
+			"MSP - NIST file Format", "msp"));
+		FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
+			"TXT - Plain text Format", "txt"));
+
+		if (FileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+		    path = FileChooser.getSelectedFile().getAbsolutePath();
+
+		    if (FileChooser.getFileFilter().getDescription()
+			    .contains("MGF")) {
+			extension = "mgf";
+		    } else if (FileChooser.getFileFilter().getDescription()
+			    .contains("TXT")) {
+			extension = "txt";
+		    } else if (FileChooser.getFileFilter().getDescription()
+			    .contains("MSP")) {
+			extension = "msp";
+		    }
+
+		    if (!path.substring(path.length() - 3, path.length())
+			    .toLowerCase().contains(extension)) {
+			path = path + "." + extension;
+		    }
+
+		    f = new File(path);
+
+		    if (f.exists()) {
+			int result = JOptionPane
+				.showConfirmDialog(
+					this,
+					"The file already exists. Do you want to append the spectra to the file?",
+					"Existing file",
+					JOptionPane.YES_NO_CANCEL_OPTION);
+			if (result == JOptionPane.YES_OPTION) {
+			    acceptable = true;
+			}
+			else if (result == JOptionPane.CANCEL_OPTION) {
+			    path = null;
+			    break;
+			}
+		    } else {
+			acceptable = true;
+		    }
+		} else {
+		    acceptable = true;
+		}
+	    } while (!acceptable);
+
+	    if (path != null) {
+		MZmineCore.getTaskController().addTask(
+			new ExportSpectraTask(currentScan, new File(path),
+				extension));
+	    }
 	}
 
 	if (command.equals("ADD_ISOTOPE_PATTERN")) {
