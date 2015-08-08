@@ -46,6 +46,7 @@ public class SpectraToolBar extends JToolBar {
     static final Icon isotopePeakIcon = new ImageIcon(
 	    "icons/isotopepeakicon.png");
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    static final Icon exportIcon = new ImageIcon("icons/exporticon.png");
 
     private JButton centroidContinuousButton, dataPointsButton;
 
@@ -88,6 +89,11 @@ public class SpectraToolBar extends JToolBar {
 
 	GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
 		"Setup ranges for axes");
+
+	addSeparator();
+
+	GUIUtils.addButton(this, null, exportIcon, masterFrame, "EXPORT_SPECTRA",
+		"Export spectra to spectra file");
 
     }
 
