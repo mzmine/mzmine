@@ -126,6 +126,14 @@ class MzTabImportTask extends AbstractTask {
 	    // Load mzTab file
 	    MZTabFileParser mzTabFileParser = new MZTabFileParser(inputFile,
 		    logStream);
+
+	    if (!mzTabFileParser.getErrorList().getErrorList().isEmpty()) {
+		setStatus(TaskStatus.ERROR);
+		setErrorMessage("Error processing " + inputFile + ":\n"
+			    + mzTabFileParser.getErrorList().toString());
+		return;
+	    }
+
 	    MZTabFile mzTabFile = mzTabFileParser.getMZTabFile();
 
 	    // Let's say the initial parsing took 10% of the time
