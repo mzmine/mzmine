@@ -74,13 +74,8 @@ public class ProjectOpeningTask extends AbstractTask {
     private PeakListOpenHandler peakListOpenHandler;
     private UserParameterOpenHandler userParameterOpenHandler;
 
-    private int currentStage;
     private CountingInputStream cis;
     private int totalBytes;
-    private double processedRawDataFiles = 0;
-    private double processedPeakDataFiles = 0;
-    private double rawdatafiles = 0;
-    private double peakdatafiles = 0;
     private String currentLoadedObjectName;
 
     // This hashtable maps stored IDs to raw data file objects
@@ -153,32 +148,7 @@ public class ProjectOpeningTask extends AbstractTask {
     	    ZipInputStream zis = new ZipInputStream (cis);
     	    ZipFile zipFile = new ZipFile(openFile);
 
-    	    // Find # raw data files and peak data files
-    	    Pattern rawFilePattern = Pattern
-    		    .compile("Raw data file #([\\d]+) (.*)\\.xml$");
-    	    Pattern peakFilePattern = Pattern
-    		    .compile("Peak list #([\\d]+) (.*)\\.xml$");
-
-    	    Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
-    	    while (zipEntries.hasMoreElements()) {
-    		ZipEntry entry = zipEntries.nextElement();
-    		String entryName = entry.getName();
-
-    		// Raw data files
-    		Matcher fileMatcher = rawFilePattern.matcher(entryName);
-    		if (fileMatcher.matches()) {
-    		    rawdatafiles++;
-    		}
-
-    		// Peak data files
-    		fileMatcher = peakFilePattern.matcher(entryName);
-    		if (fileMatcher.matches()) {
-    		    peakdatafiles++;
-    		}
-    	    }
-
             // Stage 1 - check version and load configuration
-            currentStage++;
             loadVersion(zipFile);
             loadConfiguration(zipFile);
             if (isCanceled()) {
@@ -187,7 +157,6 @@ public class ProjectOpeningTask extends AbstractTask {
     	    }
 
             // Stage 2 - load raw data files
-            currentStage++;
             loadRawDataFiles(zipFile);
             if (isCanceled()) {
     	        zipFile.close();
@@ -195,7 +164,6 @@ public class ProjectOpeningTask extends AbstractTask {
     	    }
 
             // Stage 3 - load peak lists
-            currentStage++;
             loadPeakLists(zipFile);
             if (isCanceled()) {
     	        zipFile.close();
@@ -203,7 +171,6 @@ public class ProjectOpeningTask extends AbstractTask {
     	    }
 
             // Stage 4 - load user parameters
-            currentStage++;
             loadUserParameters(zipFile);
             if (isCanceled()) {
     	        zipFile.close();
@@ -211,7 +178,6 @@ public class ProjectOpeningTask extends AbstractTask {
             }
 
             // Stage 5 - finish and close the project ZIP file
-            currentStage++;
             zipFile.close();
 
             // Final check for cancel
@@ -403,8 +369,6 @@ public class ProjectOpeningTask extends AbstractTask {
 			zipFile, scansEntry, entry);
 		newProject.addFile(newFile);
 		dataFilesIDMap.put(fileID, newFile);
-
-		processedRawDataFiles++;
 	    }
 
 	}
@@ -442,8 +406,6 @@ public class ProjectOpeningTask extends AbstractTask {
 			.readPeakList(peakListStream);
 
 		newProject.addPeakList(newPeakList);
-
-		processedPeakDataFiles++;
 	    }
 
 	}
