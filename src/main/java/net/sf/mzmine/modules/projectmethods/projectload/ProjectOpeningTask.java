@@ -75,7 +75,7 @@ public class ProjectOpeningTask extends AbstractTask {
     private UserParameterOpenHandler userParameterOpenHandler;
 
     private CountingInputStream cis;
-    private int totalBytes;
+    private long totalBytes;
     private String currentLoadedObjectName;
 
     // This hashtable maps stored IDs to raw data file objects
@@ -101,8 +101,8 @@ public class ProjectOpeningTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-        if (cis != null) {
-            return cis.getCount()/totalBytes;
+        if (cis != null && totalBytes > 0) {
+            return (double) cis.getCount()/totalBytes;
         }
         return 0;
     }
@@ -141,51 +141,46 @@ public class ProjectOpeningTask extends AbstractTask {
     	    // Replace the current project with the new one
     	    projectManager.setCurrentProject(newProject);
 
+    	    // ZIP file size
+    	    totalBytes = openFile.length();
+
     	    // Get project ZIP stream
     	    FileInputStream fis = new FileInputStream(openFile);
-    	    totalBytes = fis.available();
     	    cis = new CountingInputStream(fis);
     	    ZipInputStream zis = new ZipInputStream (cis);
     	    ZipFile zipFile = new ZipFile(openFile);
 
             // Stage 1 - check version and load configuration
-            loadVersion(zipFile);
-            loadConfiguration(zipFile);
+            loadVersion(zis);
+            loadConfiguration(zis);
             if (isCanceled()) {
-    	        zipFile.close();
+                zis.close();
     	        return;
     	    }
 
-            // Stage 2 - load raw data files
-            loadRawDataFiles(zipFile);
+            // Stage 2 - load raw data files and peak lists
+           loadData(zis, zipFile);
             if (isCanceled()) {
-    	        zipFile.close();
+                zis.close();
     	        return;
     	    }
 
-            // Stage 3 - load peak lists
-            loadPeakLists(zipFile);
+            // Stage 3 - load user parameters
+            loadUserParameters(zis);
             if (isCanceled()) {
-    	        zipFile.close();
-    	        return;
-    	    }
-
-            // Stage 4 - load user parameters
-            loadUserParameters(zipFile);
-            if (isCanceled()) {
-    	        zipFile.close();
+                zis.close();
     	        return;
             }
 
-            // Stage 5 - finish and close the project ZIP file
-            zipFile.close();
+            // Stage 4 - finish and close the project ZIP file
+            zis.close();
 
             // Final check for cancel
             if (isCanceled())
                 return;
 
             logger.info("Finished opening project " + openFile);
-    
+
             setStatus(TaskStatus.FINISHED);
 
 	} catch (Throwable e) {
@@ -223,12 +218,12 @@ public class ProjectOpeningTask extends AbstractTask {
      * Load the version info from the ZIP file and checks whether such version
      * can be opened with this MZmine
      */
-    private void loadVersion(ZipFile zipFile) throws IOException {
+    private void loadVersion(ZipInputStream zis) throws IOException {
 
 	logger.info("Checking project version");
 
-	ZipEntry versionEntry = zipFile
-		.getEntry(ProjectSavingTask.VERSION_FILENAME);
+        ZipEntry versionEntry = findFile(ProjectSavingTask.VERSION_FILENAME,
+                zis);
 
 	if (versionEntry == null) {
 	    throw new IOException(
@@ -237,12 +232,8 @@ public class ProjectOpeningTask extends AbstractTask {
 
 	Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)");
 
-	InputStream versionInputStream = zipFile.getInputStream(versionEntry);
-	BufferedReader reader = new BufferedReader(new InputStreamReader(
-		versionInputStream));
-	String projectVersionString = reader.readLine();
-	reader.close();
-
+	BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
+        String projectVersionString = reader.readLine();
 	String mzmineVersionString = MZmineCore.getMZmineVersion();
 
 	Matcher m = versionPattern.matcher(mzmineVersionString);
@@ -309,19 +300,18 @@ public class ProjectOpeningTask extends AbstractTask {
     /**
      * Load the configuration file from the project zip file
      */
-    private void loadConfiguration(ZipFile zipFile) throws IOException {
+    private void loadConfiguration(ZipInputStream zis) throws IOException {
 
 	logger.info("Loading configuration file");
 
-	ZipEntry configEntry = zipFile
-		.getEntry(ProjectSavingTask.CONFIG_FILENAME);
+	ZipEntry configEntry = findFile(ProjectSavingTask.CONFIG_FILENAME, zis);
 
 	if (configEntry == null) {
 	    throw new IOException(
 		    "This file is not valid MZmine 2 project. It does not contain configuration data.");
 	}
 
-	InputStream configInputStream = zipFile.getInputStream(configEntry);
+	InputStream configInputStream = zis;
 	File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 	FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
 	StreamCopy copyMachine = new StreamCopy();
@@ -338,81 +328,57 @@ public class ProjectOpeningTask extends AbstractTask {
 	tempConfigFile.delete();
     }
 
-    private void loadRawDataFiles(ZipFile zipFile) throws IOException,
-	    ParserConfigurationException, SAXException, InstantiationException,
-	    IllegalAccessException {
+    private void loadData(ZipInputStream zis, ZipFile zipFile)
+            throws IOException, ParserConfigurationException, SAXException,
+            InstantiationException, IllegalAccessException {
 
-	logger.info("Loading raw data files");
+        logger.info("Loading raw data files and peak lists");
 
-	Pattern filePattern = Pattern
-		.compile("Raw data file #([\\d]+) (.*)\\.xml$");
+        Pattern rawFilePattern = Pattern.compile("Raw data file #([\\d]+) (.*)\\.xml$");
+        Pattern peakListPattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml$");
 
-	Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
-	while (zipEntries.hasMoreElements()) {
+        ZipEntry entry;
+        while ((entry = zis.getNextEntry()) != null) {
 
-	    // Canceled
-	    if (isCanceled())
-		return;
+            // Canceled
+            if (isCanceled())
+                return;
 
-	    ZipEntry entry = zipEntries.nextElement();
-	    String entryName = entry.getName();
-	    Matcher fileMatcher = filePattern.matcher(entryName);
+            String entryName = entry.getName();
+            Matcher rawFileMatcher = rawFilePattern.matcher(entryName);
+            Matcher peakListMatcher = peakListPattern.matcher(entryName);
 
-	    if (fileMatcher.matches()) {
-		String fileID = fileMatcher.group(1);
-		currentLoadedObjectName = fileMatcher.group(2);
+            if (rawFileMatcher.matches()) {
+                String fileID = rawFileMatcher.group(1);
+                currentLoadedObjectName = rawFileMatcher.group(2);
 
-		String scansFileName = entryName.replaceFirst("\\.xml$",
-			".scans");
-		ZipEntry scansEntry = zipFile.getEntry(scansFileName);
-		RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
-			zipFile, scansEntry, entry);
-		newProject.addFile(newFile);
-		dataFilesIDMap.put(fileID, newFile);
-	    }
+                String scansFileName = entryName.replaceFirst("\\.xml$",
+                        ".scans");
 
-	}
+                ZipEntry scansEntry = zipFile.getEntry(scansFileName);
 
-    }
+                RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
+                        zipFile, scansEntry, entry);
+                newProject.addFile(newFile);
+                dataFilesIDMap.put(fileID, newFile);
+            }
 
-    private void loadPeakLists(ZipFile zipFile) throws IOException,
-	    ParserConfigurationException, SAXException, InstantiationException,
-	    IllegalAccessException {
+            else if (peakListMatcher.matches()) {
 
-	logger.info("Loading peak lists");
+                currentLoadedObjectName = peakListMatcher.group(2);
 
-	Pattern filePattern = Pattern
-		.compile("Peak list #([\\d]+) (.*)\\.xml$");
+                InputStream peakListStream = zis;
 
-	Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
-	while (zipEntries.hasMoreElements()) {
+                PeakList newPeakList = peakListOpenHandler
+                        .readPeakList(peakListStream);
 
-	    // Canceled
-	    if (isCanceled())
-		return;
-
-	    ZipEntry entry = zipEntries.nextElement();
-	    String entryName = entry.getName();
-
-	    Matcher fileMatcher = filePattern.matcher(entryName);
-
-	    if (fileMatcher.matches()) {
-
-		currentLoadedObjectName = fileMatcher.group(2);
-
-		InputStream peakListStream = zipFile.getInputStream(entry);
-
-		PeakList newPeakList = peakListOpenHandler
-			.readPeakList(peakListStream);
-
-		newProject.addPeakList(newPeakList);
-	    }
-
-	}
+                newProject.addPeakList(newPeakList);
+            }
+        }
 
     }
 
-    private void loadUserParameters(ZipFile zipFile) throws IOException,
+    private void loadUserParameters(ZipInputStream zis) throws IOException,
 	    ParserConfigurationException, SAXException, InstantiationException,
 	    IllegalAccessException {
 
@@ -422,7 +388,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
 	logger.info("Loading user parameters");
 
-	ZipEntry entry = zipFile.getEntry("User parameters.xml");
+	ZipEntry entry = findFile("User parameters.xml",zis);
 
 	// If there are no parameters, just ignore
 	if (entry == null)
@@ -430,10 +396,27 @@ public class ProjectOpeningTask extends AbstractTask {
 
 	currentLoadedObjectName = "User parameters";
 
-	InputStream userParamStream = zipFile.getInputStream(entry);
+	InputStream userParamStream = zis;
 
 	userParameterOpenHandler.readUserParameters(userParamStream);
 
+    }
+
+    public ZipEntry findFile(String name, ZipInputStream zis)
+    {
+        ZipEntry entry;
+        try {
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().equals(name)) {
+                    return entry;
+                }
+             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return null;
     }
 
 }
