@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.projectmethods.projectload;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
@@ -59,6 +61,8 @@ import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
 
+import com.google.common.io.CountingInputStream;
+
 public class ProjectOpeningTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -71,6 +75,8 @@ public class ProjectOpeningTask extends AbstractTask {
     private UserParameterOpenHandler userParameterOpenHandler;
 
     private int currentStage;
+    private CountingInputStream cis;
+    private int totalBytes;
     private double processedRawDataFiles = 0;
     private double processedPeakDataFiles = 0;
     private double rawdatafiles = 0;
@@ -100,26 +106,10 @@ public class ProjectOpeningTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-	switch (currentStage) {
-	case 2:
-	    if (rawDataFileOpenHandler == null)
-		return 0;
-	    return (rawDataFileOpenHandler.getProgress() / rawdatafiles + processedRawDataFiles
-		    / rawdatafiles) * 0.5;
-	case 3:
-	    if (peakListOpenHandler == null)
-		return 0;
-	    return 0.5 + (peakListOpenHandler.getProgress() / peakdatafiles + processedPeakDataFiles
-		    / peakdatafiles) * 0.5;
-	case 4:
-	    if (userParameterOpenHandler == null)
-		return 0;
-	    return userParameterOpenHandler.getProgress();
-	case 5:
-	    return 1;
-	default:
-	    return 0;
-	}
+        if (cis != null) {
+            return cis.getCount()/totalBytes;
+        }
+        return 0;
     }
 
     /**
@@ -131,9 +121,6 @@ public class ProjectOpeningTask extends AbstractTask {
             // Check if existing raw data files are present
             ProjectManager projectManager = MZmineCore.getProjectManager();
             if (projectManager.getCurrentProject().getDataFiles().length > 0) {
-                System.out.println(projectManager.getCurrentProject()
-                        .getDataFiles().length);
-
                 int dialogResult = JOptionPane
                         .showConfirmDialog(
                                 null,
@@ -149,87 +136,91 @@ public class ProjectOpeningTask extends AbstractTask {
             logger.info("Started opening project " + openFile);
             setStatus(TaskStatus.PROCESSING);
 
-    	    // Create a new project
-    	    newProject = new MZmineProjectImpl();
-    	    newProject.setProjectFile(openFile);
-    
+            // Create a new project
+            newProject = new MZmineProjectImpl();
+            newProject.setProjectFile(openFile);
+
     	    // Close all windows related to previous project
     	    GUIUtils.closeAllWindows();
-    
+
     	    // Replace the current project with the new one
     	    projectManager.setCurrentProject(newProject);
-    
+
     	    // Get project ZIP stream
+    	    FileInputStream fis = new FileInputStream(openFile);
+    	    totalBytes = fis.available();
+    	    cis = new CountingInputStream(fis);
+    	    ZipInputStream zis = new ZipInputStream (cis);
     	    ZipFile zipFile = new ZipFile(openFile);
-    
+
     	    // Find # raw data files and peak data files
     	    Pattern rawFilePattern = Pattern
     		    .compile("Raw data file #([\\d]+) (.*)\\.xml$");
     	    Pattern peakFilePattern = Pattern
     		    .compile("Peak list #([\\d]+) (.*)\\.xml$");
-    
+
     	    Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
     	    while (zipEntries.hasMoreElements()) {
     		ZipEntry entry = zipEntries.nextElement();
     		String entryName = entry.getName();
-    
+
     		// Raw data files
     		Matcher fileMatcher = rawFilePattern.matcher(entryName);
     		if (fileMatcher.matches()) {
     		    rawdatafiles++;
     		}
-    
+
     		// Peak data files
     		fileMatcher = peakFilePattern.matcher(entryName);
     		if (fileMatcher.matches()) {
     		    peakdatafiles++;
     		}
     	    }
-    
-    	    // Stage 1 - check version and load configuration
-    	    currentStage++;
-    	    loadVersion(zipFile);
-    	    loadConfiguration(zipFile);
-    	    if (isCanceled()) {
-    		zipFile.close();
-    		return;
+
+            // Stage 1 - check version and load configuration
+            currentStage++;
+            loadVersion(zipFile);
+            loadConfiguration(zipFile);
+            if (isCanceled()) {
+    	        zipFile.close();
+    	        return;
     	    }
-    
-    	    // Stage 2 - load raw data files
-    	    currentStage++;
-    	    loadRawDataFiles(zipFile);
-    	    if (isCanceled()) {
-    		zipFile.close();
-    		return;
+
+            // Stage 2 - load raw data files
+            currentStage++;
+            loadRawDataFiles(zipFile);
+            if (isCanceled()) {
+    	        zipFile.close();
+    	        return;
     	    }
-    
-    	    // Stage 3 - load peak lists
-    	    currentStage++;
-    	    loadPeakLists(zipFile);
-    	    if (isCanceled()) {
-    		zipFile.close();
-    		return;
+
+            // Stage 3 - load peak lists
+            currentStage++;
+            loadPeakLists(zipFile);
+            if (isCanceled()) {
+    	        zipFile.close();
+    	        return;
     	    }
+
+            // Stage 4 - load user parameters
+            currentStage++;
+            loadUserParameters(zipFile);
+            if (isCanceled()) {
+    	        zipFile.close();
+    	        return;
+            }
+
+            // Stage 5 - finish and close the project ZIP file
+            currentStage++;
+            zipFile.close();
+
+            // Final check for cancel
+            if (isCanceled())
+                return;
+
+            logger.info("Finished opening project " + openFile);
     
-    	    // Stage 4 - load user parameters
-    	    currentStage++;
-    	    loadUserParameters(zipFile);
-    	    if (isCanceled()) {
-    		zipFile.close();
-    		return;
-    	    }
-    
-    	    // Stage 5 - finish and close the project ZIP file
-    	    currentStage++;
-    	    zipFile.close();
-    
-    	    // Final check for cancel
-    	    if (isCanceled())
-    		return;
-    
-    	    logger.info("Finished opening project " + openFile);
-    
-    	    setStatus(TaskStatus.FINISHED);
+            setStatus(TaskStatus.FINISHED);
 
 	} catch (Throwable e) {
 
