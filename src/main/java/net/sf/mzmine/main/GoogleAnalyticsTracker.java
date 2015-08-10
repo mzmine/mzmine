@@ -51,15 +51,15 @@ public class GoogleAnalyticsTracker implements Runnable {
 
     public void run() {
 
-	// Only send data if SendStatistics variable is not set to 0
-	Boolean SendStatistics = MZmineCore.getConfiguration().getSendStatistics();
+	// Only send data if sendStatistics variable is not set to 0
+	Boolean sendStatistics = MZmineCore.getConfiguration().getSendStatistics();
 
 	// Don't send statistics for developers version
 	if (MZmineCore.getMZmineVersion().equals("0.0")) {
-	    SendStatistics = false;
+	    sendStatistics = false;
 	}
 
-	if (SendStatistics) {
+	if (sendStatistics) {
 
 	    // Find screen size for multiple screen setup
 	    GraphicsEnvironment g = GraphicsEnvironment.getLocalGraphicsEnvironment();
