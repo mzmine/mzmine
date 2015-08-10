@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.sf.mzmine.datamodel.PeakList;
@@ -127,92 +128,108 @@ public class ProjectOpeningTask extends AbstractTask {
     public void run() {
 
 	try {
+            // Check if existing raw data files are present
+            ProjectManager projectManager = MZmineCore.getProjectManager();
+            if (projectManager.getCurrentProject().getDataFiles().length > 0) {
+                System.out.println(projectManager.getCurrentProject()
+                        .getDataFiles().length);
 
-	    logger.info("Started opening project " + openFile);
-	    setStatus(TaskStatus.PROCESSING);
+                int dialogResult = JOptionPane
+                        .showConfirmDialog(
+                                null,
+                                "Loading the project will replace the existing raw data files and peak lists. Do you want to proceed?",
+                                "Warning", JOptionPane.YES_NO_OPTION);
 
-	    // Create a new project
-	    newProject = new MZmineProjectImpl();
-	    newProject.setProjectFile(openFile);
+                if (dialogResult != JOptionPane.YES_OPTION) {
+                    cancel();
+                    return;
+                }
+            }
 
-	    // Close all windows related to previous project
-	    GUIUtils.closeAllWindows();
+            logger.info("Started opening project " + openFile);
+            setStatus(TaskStatus.PROCESSING);
 
-	    // Replace the current project with the new one
-	    ProjectManager projectManager = MZmineCore.getProjectManager();
-	    projectManager.setCurrentProject(newProject);
-
-	    // Get project ZIP stream
-	    ZipFile zipFile = new ZipFile(openFile);
-
-	    // Find # raw data files and peak data files
-	    Pattern rawFilePattern = Pattern
-		    .compile("Raw data file #([\\d]+) (.*)\\.xml$");
-	    Pattern peakFilePattern = Pattern
-		    .compile("Peak list #([\\d]+) (.*)\\.xml$");
-
-	    Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
-	    while (zipEntries.hasMoreElements()) {
-		ZipEntry entry = zipEntries.nextElement();
-		String entryName = entry.getName();
-
-		// Raw data files
-		Matcher fileMatcher = rawFilePattern.matcher(entryName);
-		if (fileMatcher.matches()) {
-		    rawdatafiles++;
-		}
-
-		// Peak data files
-		fileMatcher = peakFilePattern.matcher(entryName);
-		if (fileMatcher.matches()) {
-		    peakdatafiles++;
-		}
-	    }
-
-	    // Stage 1 - check version and load configuration
-	    currentStage++;
-	    loadVersion(zipFile);
-	    loadConfiguration(zipFile);
-	    if (isCanceled()) {
-		zipFile.close();
-		return;
-	    }
-
-	    // Stage 2 - load raw data files
-	    currentStage++;
-	    loadRawDataFiles(zipFile);
-	    if (isCanceled()) {
-		zipFile.close();
-		return;
-	    }
-
-	    // Stage 3 - load peak lists
-	    currentStage++;
-	    loadPeakLists(zipFile);
-	    if (isCanceled()) {
-		zipFile.close();
-		return;
-	    }
-
-	    // Stage 4 - load user parameters
-	    currentStage++;
-	    loadUserParameters(zipFile);
-	    if (isCanceled()) {
-		zipFile.close();
-		return;
-	    }
-
-	    // Stage 5 - finish and close the project ZIP file
-	    currentStage++;
-	    zipFile.close();
-
-	    // Final check for cancel
-	    if (isCanceled())
-		return;
-
-	    logger.info("Finished opening project " + openFile);
-
-	    setStatus(TaskStatus.FINISHED);
+    	    // Create a new project
+    	    newProject = new MZmineProjectImpl();
+    	    newProject.setProjectFile(openFile);
+    
+    	    // Close all windows related to previous project
+    	    GUIUtils.closeAllWindows();
+    
+    	    // Replace the current project with the new one
+    	    projectManager.setCurrentProject(newProject);
+    
+    	    // Get project ZIP stream
+    	    ZipFile zipFile = new ZipFile(openFile);
+    
+    	    // Find # raw data files and peak data files
+    	    Pattern rawFilePattern = Pattern
+    		    .compile("Raw data file #([\\d]+) (.*)\\.xml$");
+    	    Pattern peakFilePattern = Pattern
+    		    .compile("Peak list #([\\d]+) (.*)\\.xml$");
+    
+    	    Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+    	    while (zipEntries.hasMoreElements()) {
+    		ZipEntry entry = zipEntries.nextElement();
+    		String entryName = entry.getName();
+    
+    		// Raw data files
+    		Matcher fileMatcher = rawFilePattern.matcher(entryName);
+    		if (fileMatcher.matches()) {
+    		    rawdatafiles++;
+    		}
+    
+    		// Peak data files
+    		fileMatcher = peakFilePattern.matcher(entryName);
+    		if (fileMatcher.matches()) {
+    		    peakdatafiles++;
+    		}
+    	    }
+    
+    	    // Stage 1 - check version and load configuration
+    	    currentStage++;
+    	    loadVersion(zipFile);
+    	    loadConfiguration(zipFile);
+    	    if (isCanceled()) {
+    		zipFile.close();
+    		return;
+    	    }
+    
+    	    // Stage 2 - load raw data files
+    	    currentStage++;
+    	    loadRawDataFiles(zipFile);
+    	    if (isCanceled()) {
+    		zipFile.close();
+    		return;
+    	    }
+    
+    	    // Stage 3 - load peak lists
+    	    currentStage++;
+    	    loadPeakLists(zipFile);
+    	    if (isCanceled()) {
+    		zipFile.close();
+    		return;
+    	    }
+    
+    	    // Stage 4 - load user parameters
+    	    currentStage++;
+    	    loadUserParameters(zipFile);
+    	    if (isCanceled()) {
+    		zipFile.close();
+    		return;
+    	    }
+    
+    	    // Stage 5 - finish and close the project ZIP file
+    	    currentStage++;
+    	    zipFile.close();
+    
+    	    // Final check for cancel
+    	    if (isCanceled())
+    		return;
+    
+    	    logger.info("Finished opening project " + openFile);
+    
+    	    setStatus(TaskStatus.FINISHED);
 
 	} catch (Throwable e) {
 
