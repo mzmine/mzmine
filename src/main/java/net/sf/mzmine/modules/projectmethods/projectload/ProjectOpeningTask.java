@@ -26,7 +26,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -147,33 +146,33 @@ public class ProjectOpeningTask extends AbstractTask {
     	    // Get project ZIP stream
     	    FileInputStream fis = new FileInputStream(openFile);
     	    cis = new CountingInputStream(fis);
-    	    ZipInputStream zis = new ZipInputStream (cis);
+    	    MyZIS zis = new MyZIS(cis);
     	    ZipFile zipFile = new ZipFile(openFile);
 
             // Stage 1 - check version and load configuration
             loadVersion(zis);
             loadConfiguration(zis);
             if (isCanceled()) {
-                zis.close();
+                zis.closeZIS();
     	        return;
     	    }
 
             // Stage 2 - load raw data files and peak lists
            loadData(zis, zipFile);
             if (isCanceled()) {
-                zis.close();
+                zis.closeZIS();
     	        return;
     	    }
 
             // Stage 3 - load user parameters
             loadUserParameters(zis);
             if (isCanceled()) {
-                zis.close();
+                zis.closeZIS();
     	        return;
             }
 
             // Stage 4 - finish and close the project ZIP file
-            zis.close();
+            zis.closeZIS();
 
             // Final check for cancel
             if (isCanceled())
