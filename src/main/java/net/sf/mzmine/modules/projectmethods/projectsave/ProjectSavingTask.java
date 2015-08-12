@@ -46,13 +46,11 @@ import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
 
-/**
- * 
- */
 public class ProjectSavingTask extends AbstractTask {
 
     public static final String VERSION_FILENAME = "MZMINE_VERSION";
     public static final String CONFIG_FILENAME = "configuration.xml";
+    public static final String PARAMETERS_FILENAME = "User parameters.xml";
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -70,19 +68,19 @@ public class ProjectSavingTask extends AbstractTask {
     private Hashtable<RawDataFile, String> dataFilesIDMap;
 
     public ProjectSavingTask(MZmineProject project, ParameterSet parameters) {
-	this.savedProject = (MZmineProjectImpl) project;
-	this.saveFile = parameters.getParameter(
-		ProjectLoaderParameters.projectFile).getValue();
-	dataFilesIDMap = new Hashtable<RawDataFile, String>();
+        this.savedProject = (MZmineProjectImpl) project;
+        this.saveFile = parameters.getParameter(
+                ProjectLoaderParameters.projectFile).getValue();
+        dataFilesIDMap = new Hashtable<RawDataFile, String>();
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-	if (currentSavedObjectName == null)
-	    return "Saving project";
-	return "Saving project (" + currentSavedObjectName + ")";
+        if (currentSavedObjectName == null)
+            return "Saving project";
+        return "Saving project (" + currentSavedObjectName + ")";
     }
 
     /**
@@ -90,25 +88,25 @@ public class ProjectSavingTask extends AbstractTask {
      */
     public double getFinishedPercentage() {
 
-	switch (currentStage) {
+        switch (currentStage) {
 
-	case 2:
-	    if (rawDataFileSaveHandler == null)
-		return 0;
-	    return rawDataFileSaveHandler.getProgress();
-	case 3:
-	    if (peakListSaveHandler == null)
-		return 0;
-	    return peakListSaveHandler.getProgress();
-	case 4:
-	    if (userParameterSaveHandler == null)
-		return 0;
-	    return userParameterSaveHandler.getProgress();
-	case 5:
-	    return 1;
-	default:
-	    return 0;
-	}
+        case 2:
+            if (rawDataFileSaveHandler == null)
+                return 0;
+            return rawDataFileSaveHandler.getProgress();
+        case 3:
+            if (peakListSaveHandler == null)
+                return 0;
+            return peakListSaveHandler.getProgress();
+        case 4:
+            if (userParameterSaveHandler == null)
+                return 0;
+            return userParameterSaveHandler.getProgress();
+        case 5:
+            return 1;
+        default:
+            return 0;
+        }
     }
 
     /**
@@ -116,18 +114,18 @@ public class ProjectSavingTask extends AbstractTask {
      */
     public void cancel() {
 
-	logger.info("Canceling saving of project to " + saveFile);
+        logger.info("Canceling saving of project to " + saveFile);
 
-	setStatus(TaskStatus.CANCELED);
+        setStatus(TaskStatus.CANCELED);
 
-	if (rawDataFileSaveHandler != null)
-	    rawDataFileSaveHandler.cancel();
+        if (rawDataFileSaveHandler != null)
+            rawDataFileSaveHandler.cancel();
 
-	if (peakListSaveHandler != null)
-	    peakListSaveHandler.cancel();
+        if (peakListSaveHandler != null)
+            peakListSaveHandler.cancel();
 
-	if (userParameterSaveHandler != null)
-	    userParameterSaveHandler.cancel();
+        if (userParameterSaveHandler != null)
+            userParameterSaveHandler.cancel();
 
     }
 
@@ -136,109 +134,109 @@ public class ProjectSavingTask extends AbstractTask {
      */
     public void run() {
 
-	try {
+        try {
 
-	    logger.info("Saving project to " + saveFile);
-	    setStatus(TaskStatus.PROCESSING);
+            logger.info("Saving project to " + saveFile);
+            setStatus(TaskStatus.PROCESSING);
 
-	    // Prepare a temporary ZIP file. We create this file in the same
-	    // directory as the final saveFile to avoid moving between
-	    // filesystems in the last stage (renameTo)
-	    File tempFile = File.createTempFile(saveFile.getName(), ".tmp",
-		    saveFile.getParentFile());
-	    tempFile.deleteOnExit();
+            // Prepare a temporary ZIP file. We create this file in the same
+            // directory as the final saveFile to avoid moving between
+            // filesystems in the last stage (renameTo)
+            File tempFile = File.createTempFile(saveFile.getName(), ".tmp",
+                    saveFile.getParentFile());
+            tempFile.deleteOnExit();
 
-	    // Create a ZIP stream writing to the temporary file
-	    FileOutputStream tempStream = new FileOutputStream(tempFile);
-	    ZipOutputStream zipStream = new ZipOutputStream(tempStream);
+            // Create a ZIP stream writing to the temporary file
+            FileOutputStream tempStream = new FileOutputStream(tempFile);
+            ZipOutputStream zipStream = new ZipOutputStream(tempStream);
 
-	    // Stage 1 - save version and configuration
-	    currentStage++;
-	    saveVersion(zipStream);
-	    saveConfiguration(zipStream);
-	    if (isCanceled()) {
-		zipStream.close();
-		tempFile.delete();
-		return;
-	    }
+            // Stage 1 - save version and configuration
+            currentStage++;
+            saveVersion(zipStream);
+            saveConfiguration(zipStream);
+            if (isCanceled()) {
+                zipStream.close();
+                tempFile.delete();
+                return;
+            }
 
-	    // Stage 2 - save RawDataFile objects
-	    currentStage++;
-	    saveRawDataFiles(zipStream);
-	    if (isCanceled()) {
-		zipStream.close();
-		tempFile.delete();
-		return;
-	    }
+            // Stage 2 - save RawDataFile objects
+            currentStage++;
+            saveRawDataFiles(zipStream);
+            if (isCanceled()) {
+                zipStream.close();
+                tempFile.delete();
+                return;
+            }
 
-	    // Stage 3 - save PeakList objects
-	    currentStage++;
-	    savePeakLists(zipStream);
-	    if (isCanceled()) {
-		zipStream.close();
-		tempFile.delete();
-		return;
-	    }
+            // Stage 3 - save PeakList objects
+            currentStage++;
+            savePeakLists(zipStream);
+            if (isCanceled()) {
+                zipStream.close();
+                tempFile.delete();
+                return;
+            }
 
-	    // Stage 4 - save user parameters
-	    currentStage++;
-	    saveUserParameters(zipStream);
-	    if (isCanceled()) {
-		zipStream.close();
-		tempFile.delete();
-		return;
-	    }
+            // Stage 4 - save user parameters
+            currentStage++;
+            saveUserParameters(zipStream);
+            if (isCanceled()) {
+                zipStream.close();
+                tempFile.delete();
+                return;
+            }
 
-	    // Stage 5 - finish and close the temporary ZIP file
-	    currentStage++;
-	    currentSavedObjectName = null;
-	    zipStream.close();
+            // Stage 5 - finish and close the temporary ZIP file
+            currentStage++;
+            currentSavedObjectName = null;
+            zipStream.close();
 
-	    // Final check for cancel
-	    if (isCanceled()) {
-		tempFile.delete();
-		return;
-	    }
+            // Final check for cancel
+            if (isCanceled()) {
+                tempFile.delete();
+                return;
+            }
 
-	    // Move the temporary ZIP file to the final location
-	    if (saveFile.exists() && !saveFile.delete()) {
-		throw new IOException("Could not delete old file " + saveFile);
-	    }
+            // Move the temporary ZIP file to the final location
+            if (saveFile.exists() && !saveFile.delete()) {
+                throw new IOException("Could not delete old file " + saveFile);
+            }
 
-	    boolean renameOK = tempFile.renameTo(saveFile);
-	    if (!renameOK) {
-		throw new IOException("Could not move the temporary file "
-			+ tempFile + " to the final location " + saveFile);
-	    }
+            boolean renameOK = tempFile.renameTo(saveFile);
+            if (!renameOK) {
+                throw new IOException("Could not move the temporary file "
+                        + tempFile + " to the final location " + saveFile);
+            }
 
-	    // Update the location of the project
-	    savedProject.setProjectFile(saveFile);
+            // Update the location of the project
+            savedProject.setProjectFile(saveFile);
 
-	    // Update the window title to reflect the new name of the project
-	    if (MZmineCore.getDesktop() instanceof MainWindow) {
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		mainWindow.updateTitle();
-	    }
+            // Update the window title to reflect the new name of the project
+            if (MZmineCore.getDesktop() instanceof MainWindow) {
+                MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+                mainWindow.updateTitle();
+            }
 
-	    logger.info("Finished saving the project to " + saveFile);
+            logger.info("Finished saving the project to " + saveFile);
 
-	    setStatus(TaskStatus.FINISHED);
+            setStatus(TaskStatus.FINISHED);
 
-	} catch (Throwable e) {
+        } catch (Throwable e) {
 
-	    setStatus(TaskStatus.ERROR);
+            setStatus(TaskStatus.ERROR);
 
-	    if (currentSavedObjectName == null) {
-		setErrorMessage("Failed saving the project: "
-			+ ExceptionUtils.exceptionToString(e));
-	    } else {
-		setErrorMessage("Failed saving the project. Error while saving "
-			+ currentSavedObjectName
-			+ ": "
-			+ ExceptionUtils.exceptionToString(e));
-	    }
+            if (currentSavedObjectName == null) {
+                setErrorMessage("Failed saving the project: "
+                        + ExceptionUtils.exceptionToString(e));
+            } else {
+                setErrorMessage("Failed saving the project. Error while saving "
+                        + currentSavedObjectName
+                        + ": "
+                        + ExceptionUtils.exceptionToString(e));
+            }
 
-	}
+        }
     }
 
     /**
@@ -248,11 +246,11 @@ public class ProjectSavingTask extends AbstractTask {
      */
     private void saveVersion(ZipOutputStream zipStream) throws IOException {
 
-	zipStream.putNextEntry(new ZipEntry(VERSION_FILENAME));
+        zipStream.putNextEntry(new ZipEntry(VERSION_FILENAME));
 
-	String MZmineVersion = MZmineCore.getMZmineVersion();
+        String MZmineVersion = MZmineCore.getMZmineVersion();
 
-	zipStream.write(MZmineVersion.getBytes());
+        zipStream.write(MZmineVersion.getBytes());
 
     }
 
@@ -262,29 +260,29 @@ public class ProjectSavingTask extends AbstractTask {
      * @throws java.io.IOException
      */
     private void saveConfiguration(ZipOutputStream zipStream)
-	    throws IOException {
+            throws IOException {
 
-	logger.info("Saving configuration file");
+        logger.info("Saving configuration file");
 
-	currentSavedObjectName = "configuration";
+        currentSavedObjectName = "configuration";
 
-	zipStream.putNextEntry(new ZipEntry(CONFIG_FILENAME));
-	File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+        zipStream.putNextEntry(new ZipEntry(CONFIG_FILENAME));
+        File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 
-	try {
-	    MZmineCore.getConfiguration().saveConfiguration(tempConfigFile);
-	} catch (Exception e) {
-	    throw new IOException("Could not save configuration"
-		    + ExceptionUtils.exceptionToString(e));
-	}
+        try {
+            MZmineCore.getConfiguration().saveConfiguration(tempConfigFile);
+        } catch (Exception e) {
+            throw new IOException("Could not save configuration"
+                    + ExceptionUtils.exceptionToString(e));
+        }
 
-	FileInputStream fileStream = new FileInputStream(tempConfigFile);
+        FileInputStream fileStream = new FileInputStream(tempConfigFile);
 
-	StreamCopy copyMachine = new StreamCopy();
-	copyMachine.copy(fileStream, zipStream);
+        StreamCopy copyMachine = new StreamCopy();
+        copyMachine.copy(fileStream, zipStream);
 
-	fileStream.close();
-	tempConfigFile.delete();
+        fileStream.close();
+        tempConfigFile.delete();
     }
 
     /**
@@ -294,22 +292,22 @@ public class ProjectSavingTask extends AbstractTask {
      * @throws TransformerConfigurationException
      */
     private void saveRawDataFiles(ZipOutputStream zipStream)
-	    throws IOException, TransformerConfigurationException, SAXException {
+            throws IOException, TransformerConfigurationException, SAXException {
 
-	rawDataFileSaveHandler = new RawDataFileSaveHandler(zipStream);
+        rawDataFileSaveHandler = new RawDataFileSaveHandler(zipStream);
 
-	RawDataFile rawDataFiles[] = savedProject.getDataFiles();
+        RawDataFile rawDataFiles[] = savedProject.getDataFiles();
 
-	for (int i = 0; i < rawDataFiles.length; i++) {
+        for (int i = 0; i < rawDataFiles.length; i++) {
 
-	    if (isCanceled())
-		return;
+            if (isCanceled())
+                return;
 
-	    currentSavedObjectName = rawDataFiles[i].getName();
-	    rawDataFileSaveHandler.writeRawDataFile(
-		    (RawDataFileImpl) rawDataFiles[i], i + 1);
-	    dataFilesIDMap.put(rawDataFiles[i], String.valueOf(i + 1));
-	}
+            currentSavedObjectName = rawDataFiles[i].getName();
+            rawDataFileSaveHandler.writeRawDataFile(
+                    (RawDataFileImpl) rawDataFiles[i], i + 1);
+            dataFilesIDMap.put(rawDataFiles[i], String.valueOf(i + 1));
+        }
     }
 
     /**
@@ -319,28 +317,28 @@ public class ProjectSavingTask extends AbstractTask {
      * @throws TransformerConfigurationException
      */
     private void savePeakLists(ZipOutputStream zipStream) throws IOException,
-	    TransformerConfigurationException, SAXException {
+            TransformerConfigurationException, SAXException {
 
-	PeakList peakLists[] = savedProject.getPeakLists();
+        PeakList peakLists[] = savedProject.getPeakLists();
 
-	for (int i = 0; i < peakLists.length; i++) {
+        for (int i = 0; i < peakLists.length; i++) {
 
-	    if (isCanceled())
-		return;
+            if (isCanceled())
+                return;
 
-	    logger.info("Saving peak list: " + peakLists[i].getName());
+            logger.info("Saving peak list: " + peakLists[i].getName());
 
-	    String peakListSavedName = "Peak list #" + (i + 1) + " "
-		    + peakLists[i].getName();
+            String peakListSavedName = "Peak list #" + (i + 1) + " "
+                    + peakLists[i].getName();
 
-	    zipStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
+            zipStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
 
-	    peakListSaveHandler = new PeakListSaveHandler(zipStream,
-		    dataFilesIDMap);
+            peakListSaveHandler = new PeakListSaveHandler(zipStream,
+                    dataFilesIDMap);
 
-	    currentSavedObjectName = peakLists[i].getName();
-	    peakListSaveHandler.savePeakList(peakLists[i]);
-	}
+            currentSavedObjectName = peakLists[i].getName();
+            peakListSaveHandler.savePeakList(peakLists[i]);
+        }
     }
 
     /**
@@ -350,20 +348,20 @@ public class ProjectSavingTask extends AbstractTask {
      * @throws TransformerConfigurationException
      */
     private void saveUserParameters(ZipOutputStream zipStream)
-	    throws IOException, TransformerConfigurationException, SAXException {
+            throws IOException, TransformerConfigurationException, SAXException {
 
-	if (isCanceled())
-	    return;
+        if (isCanceled())
+            return;
 
-	logger.info("Saving user parameters");
+        logger.info("Saving user parameters");
 
-	zipStream.putNextEntry(new ZipEntry("User parameters.xml"));
+        zipStream.putNextEntry(new ZipEntry(PARAMETERS_FILENAME));
 
-	userParameterSaveHandler = new UserParameterSaveHandler(zipStream,
-		savedProject, dataFilesIDMap);
+        userParameterSaveHandler = new UserParameterSaveHandler(zipStream,
+                savedProject, dataFilesIDMap);
 
-	currentSavedObjectName = "User parameters";
-	userParameterSaveHandler.saveParameters();
+        currentSavedObjectName = "User parameters";
+        userParameterSaveHandler.saveParameters();
 
     }
 
