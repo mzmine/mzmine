@@ -20,13 +20,10 @@
 package net.sf.mzmine.modules.projectmethods.projectload.version_2_0;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -39,23 +36,20 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.project.impl.StorableScan;
-import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
-	RawDataFileOpenHandler {
+        RawDataFileOpenHandler {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private StringBuffer charBuffer;
     private RawDataFileImpl newRawDataFile;
-    private int numberOfScans = 0, parsedScans = 0;
     private int scanNumber;
     private int msLevel;
-    // private int parentScan;
     private int[] fragmentScan;
     private int numberOfFragments;
     private double precursorMZ;
@@ -63,90 +57,43 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
     private double retentionTime;
     private MassSpectrumType spectrumType;
     private int dataPointsNumber;
-    private int stepNumber;
     private long storageFileOffset;
     private int fragmentCount;
-    private StreamCopy copyMachine;
 
     private boolean canceled = false;
 
     /**
-     * Extract the scan file and copies it into the temporary folder. Create a
-     * new raw data file using the information from the XML raw data description
-     * file
+     * Create a new raw data file using the information from the XML raw data
+     * description file
      * 
      * @param Name
      *            raw data file name
      * @throws SAXException
      * @throws ParserConfigurationException
      */
-    public RawDataFile readRawDataFile(ZipFile zipFile, ZipEntry scansEntry,
-	    ZipEntry xmlEntry) throws IOException,
-	    ParserConfigurationException, SAXException {
+    public RawDataFile readRawDataFile(InputStream is, File scansFile)
+            throws IOException, ParserConfigurationException, SAXException {
 
-	stepNumber = 0;
-	numberOfScans = 0;
-	parsedScans = 0;
-	storageFileOffset = 0;
+        storageFileOffset = 0;
 
-	charBuffer = new StringBuffer();
+        charBuffer = new StringBuffer();
 
-	// Writes the scan file into a temporary file
-	logger.info("Moving scan file : " + scansEntry.getName()
-		+ " to the temporary folder");
+        newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+        newRawDataFile.openDataPointsFile(scansFile);
 
-	newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+        // Reads the XML file (raw data description)
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        SAXParser saxParser = factory.newSAXParser();
+        saxParser.parse(is, this);
 
-	File tempFile = RawDataFileImpl.createNewDataPointsFile();
+        // Adds the raw data file to MZmine
+        RawDataFile rawDataFile = newRawDataFile.finishWriting();
+        return rawDataFile;
 
-	InputStream scanInputStream = zipFile.getInputStream(scansEntry);
-	FileOutputStream fileStream = new FileOutputStream(tempFile);
-
-	// Extracts the scan file from the zip project file to the temporary
-	// folder
-	copyMachine = new StreamCopy();
-	stepNumber++;
-	copyMachine.copy(scanInputStream, fileStream, scansEntry.getSize());
-	fileStream.close();
-
-	stepNumber++;
-
-	// Reads the XML file (raw data description)
-	InputStream xmlInputStream = zipFile.getInputStream(xmlEntry);
-	SAXParserFactory factory = SAXParserFactory.newInstance();
-	SAXParser saxParser = factory.newSAXParser();
-	saxParser.parse(xmlInputStream, this);
-
-	// Adds the raw data file to MZmine
-	newRawDataFile.openDataPointsFile(tempFile);
-	RawDataFile rawDataFile = newRawDataFile.finishWriting();
-	return rawDataFile;
-
-    }
-
-    /**
-     * @return the progress of these functions loading the raw data from the zip
-     *         file
-     */
-    public double getProgress() {
-
-	switch (stepNumber) {
-	case 1:
-	    // We can estimate that copying the scan file takes ~75% of the time
-	    return copyMachine.getProgress() * 0.75;
-	case 2:
-	    if (numberOfScans == 0)
-		return 0;
-	    return ((double) parsedScans / numberOfScans) * 0.25 + 0.75;
-	default:
-	    return 0.0;
-	}
     }
 
     public void cancel() {
-	canceled = true;
-	if (copyMachine != null)
-	    copyMachine.cancel();
+        canceled = true;
     }
 
     /**
@@ -154,24 +101,24 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
      *      java.lang.String, java.lang.String, org.xml.sax.Attributes)
      */
     public void startElement(String namespaceURI, String lName, String qName,
-	    Attributes attrs) throws SAXException {
+            Attributes attrs) throws SAXException {
 
-	if (canceled)
-	    throw new SAXException("Parsing canceled");
+        if (canceled)
+            throw new SAXException("Parsing canceled");
 
-	// This will remove any remaining characters from previous elements
-	getTextOfElement();
+        // This will remove any remaining characters from previous elements
+        getTextOfElement();
 
-	if (qName.equals(RawDataElementName_2_0.QUANTITY_FRAGMENT_SCAN
-		.getElementName())) {
-	    numberOfFragments = Integer
-		    .parseInt(attrs.getValue(RawDataElementName_2_0.QUANTITY
-			    .getElementName()));
-	    if (numberOfFragments > 0) {
-		fragmentScan = new int[numberOfFragments];
-		fragmentCount = 0;
-	    }
-	}
+        if (qName.equals(RawDataElementName_2_0.QUANTITY_FRAGMENT_SCAN
+                .getElementName())) {
+            numberOfFragments = Integer
+                    .parseInt(attrs.getValue(RawDataElementName_2_0.QUANTITY
+                            .getElementName()));
+            if (numberOfFragments > 0) {
+                fragmentScan = new int[numberOfFragments];
+                fragmentCount = 0;
+            }
+        }
     }
 
     /**
@@ -179,99 +126,98 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
      *      java.lang.String, java.lang.String)
      */
     public void endElement(String namespaceURI, String sName, String qName)
-	    throws SAXException {
+            throws SAXException {
 
-	if (canceled)
-	    throw new SAXException("Parsing canceled");
+        if (canceled)
+            throw new SAXException("Parsing canceled");
 
-	// <NAME>
-	if (qName.equals(RawDataElementName_2_0.NAME.getElementName())) {
+        // <NAME>
+        if (qName.equals(RawDataElementName_2_0.NAME.getElementName())) {
 
-	    // Adds the scan file and the name to the new raw data file
-	    String name = getTextOfElement();
-	    logger.info("Loading raw data file: " + name);
-	    newRawDataFile.setName(name);
-	}
+            // Adds the scan file and the name to the new raw data file
+            String name = getTextOfElement();
+            logger.info("Loading raw data file: " + name);
+            newRawDataFile.setName(name);
+        }
 
-	if (qName.equals(RawDataElementName_2_0.QUANTITY_SCAN.getElementName())) {
-	    numberOfScans = Integer.parseInt(getTextOfElement());
-	}
+        if (qName.equals(RawDataElementName_2_0.QUANTITY_SCAN.getElementName())) {
+            Integer.parseInt(getTextOfElement());
+        }
 
-	if (qName.equals(RawDataElementName_2_0.SCAN_ID.getElementName())) {
-	    scanNumber = Integer.parseInt(getTextOfElement());
-	    parsedScans++;
-	}
+        if (qName.equals(RawDataElementName_2_0.SCAN_ID.getElementName())) {
+            scanNumber = Integer.parseInt(getTextOfElement());
+        }
 
-	if (qName.equals(RawDataElementName_2_0.MS_LEVEL.getElementName())) {
-	    msLevel = Integer.parseInt(getTextOfElement());
-	}
+        if (qName.equals(RawDataElementName_2_0.MS_LEVEL.getElementName())) {
+            msLevel = Integer.parseInt(getTextOfElement());
+        }
 
-	if (qName.equals(RawDataElementName_2_0.PARENT_SCAN.getElementName())) {
-	    // parentScan = Integer.parseInt(getTextOfElement());
-	}
+        if (qName.equals(RawDataElementName_2_0.PARENT_SCAN.getElementName())) {
+            Integer.parseInt(getTextOfElement());
+        }
 
-	if (qName.equals(RawDataElementName_2_0.PRECURSOR_MZ.getElementName())) {
-	    precursorMZ = Double.parseDouble(getTextOfElement());
-	}
+        if (qName.equals(RawDataElementName_2_0.PRECURSOR_MZ.getElementName())) {
+            precursorMZ = Double.parseDouble(getTextOfElement());
+        }
 
-	if (qName.equals(RawDataElementName_2_0.PRECURSOR_CHARGE
-		.getElementName())) {
-	    precursorCharge = Integer.parseInt(getTextOfElement());
-	}
+        if (qName.equals(RawDataElementName_2_0.PRECURSOR_CHARGE
+                .getElementName())) {
+            precursorCharge = Integer.parseInt(getTextOfElement());
+        }
 
-	if (qName
-		.equals(RawDataElementName_2_0.RETENTION_TIME.getElementName())) {
-	    // Before MZmine 2.6 retention time was saved in seconds, but now we
-	    // use
-	    // minutes, so we need to divide by 60
-	    retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
-	}
+        if (qName
+                .equals(RawDataElementName_2_0.RETENTION_TIME.getElementName())) {
+            // Before MZmine 2.6 retention time was saved in seconds, but now we
+            // use
+            // minutes, so we need to divide by 60
+            retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
+        }
 
-	if (qName.equals(RawDataElementName_2_0.CENTROIDED.getElementName())) {
-	    boolean centroided = Boolean.parseBoolean(getTextOfElement());
-	    if (centroided)
-		spectrumType = MassSpectrumType.CENTROIDED;
-	    else
-		spectrumType = MassSpectrumType.PROFILE;
-	}
+        if (qName.equals(RawDataElementName_2_0.CENTROIDED.getElementName())) {
+            boolean centroided = Boolean.parseBoolean(getTextOfElement());
+            if (centroided)
+                spectrumType = MassSpectrumType.CENTROIDED;
+            else
+                spectrumType = MassSpectrumType.PROFILE;
+        }
 
-	if (qName.equals(RawDataElementName_2_0.QUANTITY_DATAPOINTS
-		.getElementName())) {
-	    dataPointsNumber = Integer.parseInt(getTextOfElement());
-	}
+        if (qName.equals(RawDataElementName_2_0.QUANTITY_DATAPOINTS
+                .getElementName())) {
+            dataPointsNumber = Integer.parseInt(getTextOfElement());
+        }
 
-	if (qName.equals(RawDataElementName_2_0.FRAGMENT_SCAN.getElementName())) {
-	    fragmentScan[fragmentCount++] = Integer
-		    .parseInt(getTextOfElement());
-	}
+        if (qName.equals(RawDataElementName_2_0.FRAGMENT_SCAN.getElementName())) {
+            fragmentScan[fragmentCount++] = Integer
+                    .parseInt(getTextOfElement());
+        }
 
-	if (qName.equals(RawDataElementName_2_0.SCAN.getElementName())) {
+        if (qName.equals(RawDataElementName_2_0.SCAN.getElementName())) {
 
-	    try {
-		int newStorageID = 1;
-		TreeMap<Integer, Long> dataPointsOffsets = newRawDataFile
-			.getDataPointsOffsets();
-		TreeMap<Integer, Integer> dataPointsLengths = newRawDataFile
-			.getDataPointsLengths();
-		if (!dataPointsOffsets.isEmpty())
-		    newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
+            try {
+                int newStorageID = 1;
+                TreeMap<Integer, Long> dataPointsOffsets = newRawDataFile
+                        .getDataPointsOffsets();
+                TreeMap<Integer, Integer> dataPointsLengths = newRawDataFile
+                        .getDataPointsLengths();
+                if (!dataPointsOffsets.isEmpty())
+                    newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
 
-		StorableScan storableScan = new StorableScan(newRawDataFile,
-			newStorageID, dataPointsNumber, scanNumber, msLevel,
-			retentionTime, precursorMZ,
-			precursorCharge, fragmentScan, spectrumType,
-			PolarityType.UNKNOWN, "", null);
-		newRawDataFile.addScan(storableScan);
+                StorableScan storableScan = new StorableScan(newRawDataFile,
+                        newStorageID, dataPointsNumber, scanNumber, msLevel,
+                        retentionTime, precursorMZ, precursorCharge,
+                        fragmentScan, spectrumType, PolarityType.UNKNOWN, "",
+                        null);
+                newRawDataFile.addScan(storableScan);
 
-		dataPointsOffsets.put(newStorageID, storageFileOffset);
-		dataPointsLengths.put(newStorageID, dataPointsNumber);
+                dataPointsOffsets.put(newStorageID, storageFileOffset);
+                dataPointsLengths.put(newStorageID, dataPointsNumber);
 
-	    } catch (IOException e) {
-		throw new SAXException(e);
-	    }
-	    storageFileOffset += dataPointsNumber * 4 * 2;
+            } catch (IOException e) {
+                throw new SAXException(e);
+            }
+            storageFileOffset += dataPointsNumber * 4 * 2;
 
-	}
+        }
     }
 
     /**
@@ -280,11 +226,11 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
      * @return String element text
      */
     private String getTextOfElement() {
-	String text = charBuffer.toString();
-	text = text.replaceAll("[\n\r\t]+", "");
-	text = text.replaceAll("^\\s+", "");
-	charBuffer.delete(0, charBuffer.length());
-	return text;
+        String text = charBuffer.toString();
+        text = text.replaceAll("[\n\r\t]+", "");
+        text = text.replaceAll("^\\s+", "");
+        charBuffer.delete(0, charBuffer.length());
+        return text;
     }
 
     /**
@@ -293,6 +239,6 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
      * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
     public void characters(char buf[], int offset, int len) throws SAXException {
-	charBuffer = charBuffer.append(buf, offset, len);
+        charBuffer = charBuffer.append(buf, offset, len);
     }
 }

@@ -27,6 +27,8 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
+import com.google.common.io.CountingInputStream;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -48,39 +50,45 @@ public class XMLImportTask extends AbstractTask {
     private final MZmineProject project;
     private final File fileName;
 
+    // progress
+    private CountingInputStream cis;
+    private long totalBytes;
+
     /**
      * 
      * @param parameters
      */
     public XMLImportTask(MZmineProject project, ParameterSet parameters) {
-	this.project = project;
-	fileName = parameters.getParameter(XMLImportParameters.filename)
-		.getValue();
+        this.project = project;
+        fileName = parameters.getParameter(XMLImportParameters.filename)
+                .getValue();
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-	super.cancel();
-	if (peakListOpenHander != null)
-	    peakListOpenHander.cancel();
+        super.cancel();
+        if (peakListOpenHander != null)
+            peakListOpenHander.cancel();
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-	if (peakListOpenHander == null)
-	    return 0;
-	return peakListOpenHander.getProgress();
+        if (cis != null && totalBytes > 0) {
+            return (double) cis.getCount() / totalBytes;
+        }
+        return 0;
+
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-	return "Loading peak list from " + fileName;
+        return "Loading peak list from " + fileName;
     }
 
     /**
@@ -88,57 +96,60 @@ public class XMLImportTask extends AbstractTask {
      */
     public void run() {
 
-	setStatus(TaskStatus.PROCESSING);
-	logger.info("Started parsing file " + fileName);
+        setStatus(TaskStatus.PROCESSING);
+        logger.info("Started parsing file " + fileName);
 
-	try {
+        try {
 
-	    if ((!fileName.exists()) || (!fileName.canRead())) {
-		throw new Exception(
-			"Parsing Cancelled, file does not exist or is not readable");
-	    }
+            if ((!fileName.exists()) || (!fileName.canRead())) {
+                throw new Exception(
+                        "Parsing Cancelled, file does not exist or is not readable");
+            }
 
-	    FileInputStream fis = new FileInputStream(fileName);
-	    InputStream finalStream = fis;
-	    byte b[] = new byte[32];
-	    fis.read(b);
-	    String firstLine = new String(b);
-	    if (!firstLine.contains("<?xml")) {
-		FileChannel fc = fis.getChannel();
-		fc.position(0);
-		@SuppressWarnings("resource")
-		ZipInputStream zis = new ZipInputStream(fis);
-		zis.getNextEntry();
-		finalStream = zis;
-	    } else {
-		FileChannel fc = fis.getChannel();
-		fc.position(0);
-	    }
+            totalBytes = fileName.length();
 
-	    Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<String, RawDataFile>();
-	    for (RawDataFile file : project.getDataFiles()) {
-		dataFilesIDMap.put(file.getName(), file);
-	    }
+            FileInputStream fis = new FileInputStream(fileName);
+            cis = new CountingInputStream(fis);
+            InputStream finalStream = cis;
+            byte b[] = new byte[32];
+            fis.read(b);
+            String firstLine = new String(b);
+            if (!firstLine.contains("<?xml")) {
+                FileChannel fc = fis.getChannel();
+                fc.position(0);
+                @SuppressWarnings("resource")
+                ZipInputStream zis = new ZipInputStream(cis);
+                zis.getNextEntry();
+                finalStream = zis;
+            } else {
+                FileChannel fc = fis.getChannel();
+                fc.position(0);
+            }
 
-	    peakListOpenHander = new PeakListOpenHandler_2_0(dataFilesIDMap);
+            Hashtable<String, RawDataFile> dataFilesIDMap = new Hashtable<String, RawDataFile>();
+            for (RawDataFile file : project.getDataFiles()) {
+                dataFilesIDMap.put(file.getName(), file);
+            }
 
-	    buildingPeakList = peakListOpenHander.readPeakList(finalStream);
-	    finalStream.close();
+            peakListOpenHander = new PeakListOpenHandler_2_0(dataFilesIDMap);
 
-	} catch (Throwable e) {
-	    /* we may already have set the status to CANCELED */
-	    if (getStatus() == TaskStatus.PROCESSING)
-		setStatus(TaskStatus.ERROR);
-	    setErrorMessage(e.toString());
-	    e.printStackTrace();
-	    return;
-	}
+            buildingPeakList = peakListOpenHander.readPeakList(finalStream);
+            finalStream.close();
 
-	// Add new peaklist to the project or MZviewer.desktop
-	project.addPeakList(buildingPeakList);
+        } catch (Throwable e) {
+            /* we may already have set the status to CANCELED */
+            if (getStatus() == TaskStatus.PROCESSING)
+                setStatus(TaskStatus.ERROR);
+            setErrorMessage(e.toString());
+            e.printStackTrace();
+            return;
+        }
 
-	logger.info("Finished parsing " + fileName);
-	setStatus(TaskStatus.FINISHED);
+        // Add new peaklist to the project or MZviewer.desktop
+        project.addPeakList(buildingPeakList);
+
+        logger.info("Finished parsing " + fileName);
+        setStatus(TaskStatus.FINISHED);
 
     }
 
