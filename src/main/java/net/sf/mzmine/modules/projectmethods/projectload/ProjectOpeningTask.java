@@ -19,20 +19,19 @@
 
 package net.sf.mzmine.modules.projectmethods.projectload;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 
 import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
@@ -59,7 +58,6 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.StreamCopy;
 
-import org.apache.fop.util.UnclosableInputStream;
 import org.xml.sax.SAXException;
 
 import com.google.common.io.CountingInputStream;
@@ -77,7 +75,7 @@ public class ProjectOpeningTask extends AbstractTask {
     private StreamCopy copyMachine;
 
     private CountingInputStream cis;
-    private long totalBytes;
+    private long totalBytes, finishedBytes;
     private String currentLoadedObjectName;
 
     // This hashtable maps stored IDs to raw data file objects
@@ -103,10 +101,19 @@ public class ProjectOpeningTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-        if (cis != null && totalBytes > 0) {
-            return (double) cis.getCount() / totalBytes;
+
+        if (totalBytes == 0)
+            return 0;
+
+        long totalReadBytes = this.finishedBytes;
+
+        // Add the current ZIP entry progress to totalReadBytes
+        synchronized (this) {
+            if (cis != null)
+                totalReadBytes += cis.getCount();
         }
-        return 0;
+
+        return (double) totalReadBytes / totalBytes;
     }
 
     /**
@@ -143,15 +150,15 @@ public class ProjectOpeningTask extends AbstractTask {
             // Replace the current project with the new one
             projectManager.setCurrentProject(newProject);
 
-            // ZIP file size
-            totalBytes = openFile.length();
+            // Open the ZIP file
+            ZipFile zipFile = new ZipFile(openFile);
 
-            // Get project ZIP stream
-            final FileInputStream fis = new FileInputStream(openFile);
-            final BufferedInputStream bis = new BufferedInputStream(fis, 1000000);
-            this.cis = new CountingInputStream(bis);
-            final ZipInputStream zis = new ZipInputStream(cis);
-            ZipEntry zipEntry;
+            // Get total uncompressed size
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                totalBytes += entry.getSize();
+            }
 
             final Pattern rawFilePattern = Pattern
                     .compile("Raw data file #([\\d]+) (.*)\\.xml$");
@@ -162,31 +169,32 @@ public class ProjectOpeningTask extends AbstractTask {
 
             boolean versionInformationLoaded = false;
 
-            while ((zipEntry = zis.getNextEntry()) != null) {
+            // Iterate over the entries and read them
+            entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
 
                 if (isCanceled()) {
-                    zis.close();
+                    zipFile.close();
                     return;
                 }
 
-                // Avoid the automatic closing of the stream by the SAXParser
-                final UnclosableInputStream uis = new UnclosableInputStream(zis);
-
-                String entryName = zipEntry.getName();
+                ZipEntry entry = entries.nextElement();
+                String entryName = entry.getName();
+                cis = new CountingInputStream(zipFile.getInputStream(entry));
 
                 // Load version
                 if (entryName.equals(ProjectSavingTask.VERSION_FILENAME)) {
-                    loadVersion(uis);
+                    loadVersion(cis);
                     versionInformationLoaded = true;
                 }
 
                 // Load configuration
                 if (entryName.equals(ProjectSavingTask.CONFIG_FILENAME))
-                    loadConfiguration(uis);
+                    loadConfiguration(cis);
 
                 // Load user parameters
                 if (entryName.equals(ProjectSavingTask.PARAMETERS_FILENAME)) {
-                    loadUserParameters(uis);
+                    loadUserParameters(cis);
                 }
 
                 // Load a raw data file
@@ -195,7 +203,7 @@ public class ProjectOpeningTask extends AbstractTask {
                 if (rawFileMatcher.matches()) {
                     final String fileID = rawFileMatcher.group(1);
                     final String fileName = rawFileMatcher.group(2);
-                    loadRawDataFile(uis, fileID, fileName);
+                    loadRawDataFile(cis, fileID, fileName);
                 }
 
                 // Load the scan data of a raw data file
@@ -204,7 +212,7 @@ public class ProjectOpeningTask extends AbstractTask {
                 if (scansFileMatcher.matches()) {
                     final String fileID = scansFileMatcher.group(1);
                     final String fileName = scansFileMatcher.group(2);
-                    loadScansFile(uis, fileID, fileName);
+                    loadScansFile(cis, fileID, fileName);
                 }
 
                 // Load a peak list
@@ -212,19 +220,27 @@ public class ProjectOpeningTask extends AbstractTask {
                         .matcher(entryName);
                 if (peakListMatcher.matches()) {
                     final String peakListName = peakListMatcher.group(2);
-                    loadPeakList(uis, peakListName);
+                    loadPeakList(cis, peakListName);
                 }
 
-                zis.closeEntry();
+                // Close the ZIP entry
+                cis.close();
+
+                // Add the uncompressed entry size finishedBytes
+                synchronized (this) {
+                    finishedBytes += entry.getSize();
+                    cis = null;
+                }
+
             }
+
+            // Finish and close the project ZIP file
+            zipFile.close();
 
             if (!versionInformationLoaded) {
                 throw new IOException(
                         "This file is not valid MZmine 2 project. It does not contain version information.");
             }
-
-            // Finish and close the project ZIP file
-            zis.close();
 
             // Final check for cancel
             if (isCanceled())
