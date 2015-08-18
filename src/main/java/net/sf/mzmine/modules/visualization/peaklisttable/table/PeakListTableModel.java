@@ -143,6 +143,12 @@ public class PeakListTableModel extends AbstractTableModel {
 		return peak.getRawDataPointsRTRange().upperEndpoint();
 	    case DATAPOINTS:
 		return peak.getScanNumbers().length;
+	    case FWHM:
+                return peak.getFWHM();
+            case TF:
+                return peak.getTailingFactor();
+            case AF:
+                return peak.getAsymmetryFactor();
 	    }
 
 	}

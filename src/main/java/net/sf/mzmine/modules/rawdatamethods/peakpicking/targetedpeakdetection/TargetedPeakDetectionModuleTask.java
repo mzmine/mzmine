@@ -34,6 +34,7 @@ import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -179,6 +180,9 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
 	// Append processed peak list to the project
 	project.addPeakList(processedPeakList);
+
+        // Add quality parameters to peaks
+        new QualityParameters(processedPeakList);
 
 	// Add task description to peakList
 	processedPeakList

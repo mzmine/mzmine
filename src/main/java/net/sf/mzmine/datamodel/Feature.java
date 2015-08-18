@@ -145,4 +145,34 @@ public interface Feature {
      */
     public void setCharge(int charge);
 
+   /**
+    * This method returns the full width at half maximum (FWHM) of the peak
+    */
+    public Double getFWHM();
+
+    /**
+     * This method returns the tailing factor of the peak
+     */
+    public Double getTailingFactor();
+
+    /**
+     * This method returns the asymmetry factor of the peak
+     */
+    public Double getAsymmetryFactor();
+
+    /**
+     * Sets the full width at half maximum (FWHM)
+     */
+    public void setFWHM(Double fwhm);
+
+    /**
+     * Sets the tailing factor
+     */
+    public void setTailingFactor(Double tf);
+
+    /**
+     * Sets the asymmetry factor
+     */
+    public void setAsymmetryFactor(Double af);
+
 }

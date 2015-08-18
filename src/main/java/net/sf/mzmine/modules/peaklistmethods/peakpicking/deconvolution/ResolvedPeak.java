@@ -46,6 +46,7 @@ public class ResolvedPeak implements Feature {
 
     // Chromatogram m/z, RT, height, area
     private double mz, rt, height, area;
+    private Double fwhm = null, tf = null, af = null;
 
     // Scan numbers
     private int scanNumbers[];
@@ -258,6 +259,30 @@ public class ResolvedPeak implements Feature {
 
     public void setCharge(int charge) {
 	this.charge = charge;
+    }
+
+    public Double getFWHM() {
+        return fwhm;
+    }
+
+    public void setFWHM(Double fwhm) {
+        this.fwhm = fwhm;
+    }
+
+    public Double getTailingFactor() {
+        return tf;
+    }
+
+    public void setTailingFactor(Double tf) {
+        this.tf = tf;
+    }
+
+    public Double getAsymmetryFactor() {
+        return af;
+    }
+
+    public void setAsymmetryFactor(Double af) {
+        this.af = af;
     }
 
 }
