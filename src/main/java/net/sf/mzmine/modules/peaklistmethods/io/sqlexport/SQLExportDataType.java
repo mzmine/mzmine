@@ -48,6 +48,9 @@ public enum SQLExportDataType {
     PEAKAREA("      Area", false, true, "DOUBLE"), //
     PEAKCHARGE("      Charge", false, true, "INT"), //
     DATAPOINTS("      # Data points", false, true, "INT"), //
+    FWHM("      FWHM", false, true, "DOUBLE"), //
+    TAILINGFACTOR("      Tailing factor", false, true, "DOUBLE"), //
+    ASYMMETRYFACTOR("      Asymmetry factor", false, true, "DOUBLE"), //
     RAWFILE("      Raw data file name", false, true, "STRING"), //
 
     TITLE4("Other", false, false, ""), //
