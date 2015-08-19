@@ -40,6 +40,7 @@ public class TrianglePeakModel implements Feature {
 
     // Peak information
     private double rt, height, mz, area;
+    private Double fwhm = null, tf = null, af = null;
     private int[] scanNumbers;
     private RawDataFile rawDataFile;
     private FeatureStatus status;
@@ -183,6 +184,31 @@ public class TrianglePeakModel implements Feature {
 
     public void setCharge(int charge) {
 	this.charge = charge;
+    }
+
+
+    public Double getFWHM() {
+        return fwhm;
+    }
+
+    public void setFWHM(Double fwhm) {
+        this.fwhm = fwhm;
+    }
+
+    public Double getTailingFactor() {
+        return tf;
+    }
+
+    public void setTailingFactor(Double tf) {
+        this.tf = tf;
+    }
+
+    public Double getAsymmetryFactor() {
+        return af;
+    }
+
+    public void setAsymmetryFactor(Double af) {
+        this.af = af;
     }
 
 }

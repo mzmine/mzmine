@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.peaklisttable.table;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +60,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
     private FormattedCellRenderer mzRenderer, rtRenderer, intensityRenderer;
     private TableCellRenderer peakShapeRenderer, identityRenderer,
-	    peakStatusRenderer;
+	    peakStatusRenderer, datapointsRenderer, qcRenderer;
     private DefaultTableCellRenderer defaultRenderer, defaultRendererLeft;
 
     private ParameterSet parameters;
@@ -99,6 +100,8 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 	defaultRenderer.setHorizontalAlignment(SwingConstants.CENTER);
 	defaultRendererLeft = new DefaultTableCellRenderer();
 	defaultRendererLeft.setHorizontalAlignment(SwingConstants.LEFT);
+	datapointsRenderer = new FormattedCellRenderer(new DecimalFormat());
+	qcRenderer = new FormattedCellRenderer(new DecimalFormat());
 
     }
 
@@ -232,12 +235,27 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 		case HEIGHT:
 		    newColumn.setCellRenderer(intensityRenderer);
 		    break;
-		case AREA:
-		    newColumn.setCellRenderer(intensityRenderer);
-		    break;
-		default:
-		    newColumn.setCellRenderer(defaultRenderer);
-		    break;
+                case AREA:
+                    newColumn.setCellRenderer(intensityRenderer);
+                    break;
+                case CHARGE:
+                    newColumn.setCellRenderer(datapointsRenderer);
+                    break;
+                case DATAPOINTS:
+                    newColumn.setCellRenderer(datapointsRenderer);
+                    break;
+                case FWHM:
+                    newColumn.setCellRenderer(qcRenderer);
+                    break;
+                case TF:
+                    newColumn.setCellRenderer(qcRenderer);
+                    break;
+                case AF:
+                    newColumn.setCellRenderer(qcRenderer);
+                    break;
+                default:
+                    newColumn.setCellRenderer(defaultRenderer);
+                    break;
 		}
 
 		this.addColumn(newColumn);

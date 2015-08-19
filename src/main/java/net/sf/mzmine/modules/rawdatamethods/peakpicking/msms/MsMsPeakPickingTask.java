@@ -30,6 +30,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -144,6 +145,10 @@ public class MsMsPeakPickingTask extends AbstractTask {
         }
 
         project.addPeakList(newPeakList);
+
+        // Add quality parameters to peaks
+        QualityParameters.calculateQualityParameters(newPeakList);
+
         logger.info("Finished MS/MS peak builder on " + dataFile + ", "
                 + processedScans + " scans processed");
 

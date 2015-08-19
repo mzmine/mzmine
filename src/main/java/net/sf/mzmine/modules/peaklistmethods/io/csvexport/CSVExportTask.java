@@ -257,6 +257,11 @@ class CSVExportTask extends AbstractTask {
                             line.append(peak.getRawDataPointsRTRange()
                                     .upperEndpoint() + fieldSeparator);
                             break;
+                        case PEAK_DURATION:
+                            line.append(RangeUtils.rangeLength(peak
+                                    .getRawDataPointsRTRange())
+                                    + fieldSeparator);
+                            break;
                         case PEAK_HEIGHT:
                             line.append(peak.getHeight() + fieldSeparator);
                             break;
@@ -270,11 +275,18 @@ class CSVExportTask extends AbstractTask {
                             line.append(peak.getScanNumbers().length
                                     + fieldSeparator);
                             break;
-                        case PEAK_DURATION:
-                            line.append(RangeUtils.rangeLength(peak
-                                    .getRawDataPointsRTRange())
+                        case PEAK_FWHM:
+                            line.append(peak.getFWHM() + fieldSeparator);
+                            break;
+                        case PEAK_TAILINGFACTOR:
+                            line.append(peak.getTailingFactor()
                                     + fieldSeparator);
                             break;
+                        case PEAK_ASYMMETRYFACTOR:
+                            line.append(peak.getAsymmetryFactor()
+                                    + fieldSeparator);
+                            break;
+
                         }
                     } else {
                         switch (dataFileElements[i]) {

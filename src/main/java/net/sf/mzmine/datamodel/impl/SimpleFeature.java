@@ -44,8 +44,9 @@ public class SimpleFeature implements Feature {
 
     private DataPoint dataPointsPerScan[];
 
-    // M/Z, RT, Height and Area
+    // M/Z, RT, Height and Area, FWHM, Tailing factor, Asymmetry factor
     private double mz, rt, height, area;
+    private Double fwhm, tf, af;
 
     // Boundaries of the peak raw data points
     private Range<Double> rtRange, mzRange, intensityRange;
@@ -90,7 +91,9 @@ public class SimpleFeature implements Feature {
 	this.mzRange = mzRange;
 	this.intensityRange = intensityRange;
 	this.dataPointsPerScan = dataPointsPerScan;
-
+        this.fwhm = null;
+        this.tf = null;
+        this.af = null;
     }
 
     /**
@@ -104,6 +107,9 @@ public class SimpleFeature implements Feature {
 	this.rt = p.getRT();
 	this.height = p.getHeight();
 	this.area = p.getArea();
+	this.fwhm = p.getFWHM();
+	this.tf = p.getTailingFactor();
+	this.af = p.getAsymmetryFactor();
 
 	this.rtRange = p.getRawDataPointsRTRange();
 	this.mzRange = p.getRawDataPointsMZRange();
@@ -269,6 +275,51 @@ public class SimpleFeature implements Feature {
 
     public void setCharge(int charge) {
 	this.charge = charge;
+    }
+
+    /**
+     * This method returns the full width at half maximum (FWHM) of the peak
+     */
+    public Double getFWHM() {
+        return fwhm;
+    }
+
+    /**
+     * @param fwhm
+     *            The full width at half maximum (FWHM) to set.
+     */
+    public void setFWHM(Double fwhm) {
+        this.fwhm = fwhm;
+    }
+
+    /**
+     * This method returns the tailing factor of the peak
+     */
+    public Double getTailingFactor() {
+        return tf;
+    }
+
+    /**
+     * @param tf
+     *            The tailing factor to set.
+     */
+    public void setTailingFactor(Double tf) {
+        this.tf = tf;
+    }
+
+    /**
+     * This method returns the asymmetry factor of the peak
+     */
+    public Double getAsymmetryFactor() {
+        return af;
+    }
+
+    /**
+     * @param af
+     *            The asymmetry factor to set.
+     */
+    public void setAsymmetryFactor(Double af) {
+        this.af = af;
     }
 
 }

@@ -44,6 +44,7 @@ class SameRangePeak implements Feature {
 
     // Raw M/Z, RT, Height and Area
     private double mz, rt, height, area;
+    private Double fwhm = null, tf = null, af = null;
 
     // Boundaries of the peak
     private Range<Double> rtRange, mzRange, intensityRange;
@@ -275,6 +276,30 @@ class SameRangePeak implements Feature {
 
     public void setCharge(int charge) {
 	this.charge = charge;
+    }
+
+    public Double getFWHM() {
+        return fwhm;
+    }
+
+    public void setFWHM(Double fwhm) {
+        this.fwhm = fwhm;
+    }
+
+    public Double getTailingFactor() {
+        return tf;
+    }
+
+    public void setTailingFactor(Double tf) {
+        this.tf = tf;
+    }
+
+    public Double getAsymmetryFactor() {
+        return af;
+    }
+
+    public void setAsymmetryFactor(Double af) {
+        this.af = af;
     }
 
 }

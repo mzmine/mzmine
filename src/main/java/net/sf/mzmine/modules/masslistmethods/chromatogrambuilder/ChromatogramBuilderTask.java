@@ -30,6 +30,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -170,6 +171,9 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
 	// Add new peaklist to the project
 	project.addPeakList(newPeakList);
+
+        // Add quality parameters to peaks
+	QualityParameters.calculateQualityParameters(newPeakList);
 
 	setStatus(TaskStatus.FINISHED);
 

@@ -26,11 +26,14 @@ public enum ExportRowDataFileElement {
     PEAK_RT("Peak RT", false),
     PEAK_RT_START("Peak RT start", false),
     PEAK_RT_END("Peak RT end", false),
+    PEAK_DURATION("Peak duration time", false),
     PEAK_HEIGHT("Peak height", false),
     PEAK_AREA("Peak area", false),
     PEAK_CHARGE("Peak charge", false),
     PEAK_DATAPOINTS("Peak # data points", false),
-    PEAK_DURATION("Peak duration time", false);
+    PEAK_FWHM("Peak FWHM", false),
+    PEAK_TAILINGFACTOR("Peak tailing factor", false),
+    PEAK_ASYMMETRYFACTOR("Peak asymmetry factor", false);
 
     private final String name;
     private final boolean common;
