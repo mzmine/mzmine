@@ -80,7 +80,8 @@ public class RawDataFilesParameter implements
     public RawDataFilesParameter cloneParameter() {
         RawDataFilesParameter copy = new RawDataFilesParameter(minCount,
                 maxCount);
-        copy.value = value.clone();
+        if (value != null)
+            copy.value = value.clone();
         return copy;
     }
 

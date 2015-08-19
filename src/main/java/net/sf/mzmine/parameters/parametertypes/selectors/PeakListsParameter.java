@@ -79,7 +79,8 @@ public class PeakListsParameter implements
     @Override
     public PeakListsParameter cloneParameter() {
         PeakListsParameter copy = new PeakListsParameter(minCount, maxCount);
-        copy.value = value.clone();
+        if (value != null)
+            copy.value = value.clone();
         return copy;
     }
 
