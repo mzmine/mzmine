@@ -90,8 +90,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public RowsFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT,
                 MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
-                GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-                AUTO_REMOVE });
+                GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT,
+                COMMENT_TEXT, AUTO_REMOVE });
     }
 
     @Override

@@ -33,6 +33,7 @@ import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -164,6 +165,9 @@ class ShapeModelerTask extends AbstractTask {
 
 	// Add new peaklist to the project
 	project.addPeakList(newPeakList);
+
+        // Add quality parameters to peaks
+        new QualityParameters(newPeakList);
 
 	// Remove the original peaklist if requested
 	if (removeOriginal)

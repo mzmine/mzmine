@@ -238,6 +238,9 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
                 case AREA:
                     newColumn.setCellRenderer(intensityRenderer);
                     break;
+                case CHARGE:
+                    newColumn.setCellRenderer(datapointsRenderer);
+                    break;
                 case DATAPOINTS:
                     newColumn.setCellRenderer(datapointsRenderer);
                     break;

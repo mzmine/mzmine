@@ -32,6 +32,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -142,6 +143,10 @@ class ManualPickerTask extends AbstractTask {
 	    if (!rows.contains(peakListRow)) {
 		peakList.addRow(peakListRow);
 	    }
+
+	    // Add quality parameters to peaks
+	    new QualityParameters(peakList);
+
 	    project.notifyObjectChanged(peakList, true);
 	}
 	if (table != null) {
