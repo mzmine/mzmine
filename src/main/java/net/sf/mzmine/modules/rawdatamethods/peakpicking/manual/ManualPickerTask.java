@@ -145,7 +145,7 @@ class ManualPickerTask extends AbstractTask {
 	    }
 
 	    // Add quality parameters to peaks
-	    new QualityParameters(peakList);
+	    QualityParameters.calculateQualityParameters(peakList);
 
 	    project.notifyObjectChanged(peakList, true);
 	}

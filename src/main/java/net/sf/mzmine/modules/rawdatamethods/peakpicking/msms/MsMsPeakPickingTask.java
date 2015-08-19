@@ -147,7 +147,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
         project.addPeakList(newPeakList);
 
         // Add quality parameters to peaks
-        new QualityParameters(newPeakList);
+        QualityParameters.calculateQualityParameters(newPeakList);
 
         logger.info("Finished MS/MS peak builder on " + dataFile + ", "
                 + processedScans + " scans processed");

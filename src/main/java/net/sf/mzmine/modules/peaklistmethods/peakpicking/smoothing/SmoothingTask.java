@@ -244,7 +244,7 @@ public class SmoothingTask extends AbstractTask {
 		project.addPeakList(newPeakList);
 
 	        // Add quality parameters to peaks
-	        new QualityParameters(newPeakList);
+		QualityParameters.calculateQualityParameters(newPeakList);
 
 		// Remove the original peak-list if requested.
 		if (removeOriginal) {

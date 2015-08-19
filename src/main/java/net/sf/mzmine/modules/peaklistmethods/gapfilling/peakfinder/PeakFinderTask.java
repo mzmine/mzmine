@@ -200,7 +200,7 @@ class PeakFinderTask extends AbstractTask {
 	project.addPeakList(processedPeakList);
 
         // Add quality parameters to peaks
-        new QualityParameters(processedPeakList);
+	QualityParameters.calculateQualityParameters(processedPeakList);
 
 	// Add task description to peakList
 	processedPeakList

@@ -150,7 +150,7 @@ public class PeakExtenderTask extends AbstractTask {
 	project.addPeakList(extendedPeakList);
 
         // Add quality parameters to peaks
-        new QualityParameters(extendedPeakList);
+	QualityParameters.calculateQualityParameters(extendedPeakList);
 
 	// Load previous applied methods
 	for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {

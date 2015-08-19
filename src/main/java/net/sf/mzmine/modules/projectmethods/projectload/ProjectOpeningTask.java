@@ -442,7 +442,7 @@ public class ProjectOpeningTask extends AbstractTask {
         newProject.addPeakList(newPeakList);
 
         // Add quality parameters to peaks
-        new QualityParameters(newPeakList);
+        QualityParameters.calculateQualityParameters(newPeakList);
     }
 
     private void loadUserParameters(InputStream is) throws IOException,

@@ -147,7 +147,7 @@ public class DeconvolutionTask extends AbstractTask {
                         project.addPeakList(newPeakList);
 
                         // Add quality parameters to peaks
-                        new QualityParameters(newPeakList);
+                        QualityParameters.calculateQualityParameters(newPeakList);
 
                         // Remove the original peaklist if requested.
                         if (parameters.getParameter(AUTO_REMOVE).getValue()) {
