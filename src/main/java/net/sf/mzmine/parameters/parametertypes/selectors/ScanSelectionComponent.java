@@ -32,6 +32,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.main.MZmineCore;
@@ -39,12 +42,11 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
-
-import com.google.common.collect.Range;
 
 public class ScanSelectionComponent extends JPanel implements ActionListener {
 
@@ -59,6 +61,7 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
     private Integer msLevel;
     private PolarityType polarity;
     private MassSpectrumType spectrumType;
+    private String scanDefinition;
 
     public ScanSelectionComponent() {
 
@@ -82,13 +85,14 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
         polarity = newValue.getPolarity();
         spectrumType = newValue.getSpectrumType();
         msLevel = newValue.getMsLevel();
+        scanDefinition = newValue.getScanDefinition();
 
         updateRestrictionList();
     }
 
     public ScanSelection getValue() {
         return new ScanSelection(scanNumberRange, scanRTRange, polarity,
-                spectrumType, msLevel);
+                spectrumType, msLevel, scanDefinition);
     }
 
     public void actionPerformed(ActionEvent event) {
@@ -99,8 +103,8 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
 
             SimpleParameterSet paramSet;
             ExitCode exitCode;
-            Window parent = (Window) SwingUtilities.getAncestorOfClass(
-                    Window.class, this);
+            Window parent = (Window) SwingUtilities
+                    .getAncestorOfClass(Window.class, this);
 
             final IntRangeParameter scanNumParameter = new IntRangeParameter(
                     "Scan number", "Range of included scan numbers", false,
@@ -110,6 +114,10 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
                 rtParameter.setValue(scanRTRange);
             final IntegerParameter msLevelParameter = new IntegerParameter(
                     "MS level", "MS level", msLevel, false);
+            final StringParameter scanDefinitionParameter = new StringParameter(
+                    "Scan definition",
+                    "Include only scans that match this scan definition. You can use wild cards, e.g. *FTMS*",
+                    scanDefinition, false);
             final String polarityTypes[] = { "Any", "+", "-" };
             final ComboParameter<String> polarityParameter = new ComboParameter<>(
                     "Polarity", "Include only scans of this polarity",
@@ -136,19 +144,21 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
                 }
             }
 
-            paramSet = new SimpleParameterSet(new Parameter[] {
-                    scanNumParameter, rtParameter, msLevelParameter,
-                    polarityParameter, spectrumTypeParameter });
+            paramSet = new SimpleParameterSet(
+                    new Parameter[] { scanNumParameter, rtParameter,
+                            msLevelParameter, scanDefinitionParameter,
+                            polarityParameter, spectrumTypeParameter });
             exitCode = paramSet.showSetupDialog(parent, true);
             if (exitCode == ExitCode.OK) {
                 scanNumberRange = paramSet.getParameter(scanNumParameter)
                         .getValue();
                 scanRTRange = paramSet.getParameter(rtParameter).getValue();
                 msLevel = paramSet.getParameter(msLevelParameter).getValue();
+                scanDefinition = paramSet.getParameter(scanDefinitionParameter)
+                        .getValue();
                 final int selectedPolarityIndex = Arrays.asList(polarityTypes)
-                        .indexOf(
-                                paramSet.getParameter(polarityParameter)
-                                        .getValue());
+                        .indexOf(paramSet.getParameter(polarityParameter)
+                                .getValue());
                 switch (selectedPolarityIndex) {
                 case 1:
                     polarity = PolarityType.POSITIVE;
@@ -160,10 +170,9 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
                     polarity = null;
                     break;
                 }
-                final int selectedSpectraTypeIndex = Arrays
-                        .asList(spectraTypes).indexOf(
-                                paramSet.getParameter(spectrumTypeParameter)
-                                        .getValue());
+                final int selectedSpectraTypeIndex = Arrays.asList(spectraTypes)
+                        .indexOf(paramSet.getParameter(spectrumTypeParameter)
+                                .getValue());
                 switch (selectedSpectraTypeIndex) {
                 case 1:
                     spectrumType = MassSpectrumType.CENTROIDED;
@@ -188,6 +197,7 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
             polarity = null;
             spectrumType = null;
             msLevel = null;
+            scanDefinition = null;
         }
 
         updateRestrictionList();
@@ -203,7 +213,7 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
 
         if ((scanNumberRange == null) && (scanRTRange == null)
                 && (polarity == null) && (spectrumType == null)
-                && (msLevel == null)) {
+                && (msLevel == null) && Strings.isNullOrEmpty(scanDefinition)) {
             restrictionsList.setText("All");
             return;
         }
@@ -223,12 +233,15 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
         if (msLevel != null) {
             newText.append("MS level: " + msLevel + "<br>");
         }
+        if (!Strings.isNullOrEmpty(scanDefinition)) {
+            newText.append("Scan definition: " + scanDefinition + "<br>");
+        }
         if (polarity != null) {
             newText.append("Polarity: " + polarity.asSingleChar() + "<br>");
         }
         if (spectrumType != null) {
-            newText.append("Spectrum type: "
-                    + spectrumType.toString().toLowerCase());
+            newText.append(
+                    "Spectrum type: " + spectrumType.toString().toLowerCase());
         }
 
         restrictionsList.setText(newText.toString());

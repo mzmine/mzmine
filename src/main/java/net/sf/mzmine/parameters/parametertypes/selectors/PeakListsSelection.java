@@ -20,13 +20,12 @@
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.util.ArrayList;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+
+import com.google.common.base.Strings;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
-
-import com.google.common.base.Strings;
+import net.sf.mzmine.util.TextUtils;
 
 public class PeakListsSelection implements Cloneable {
 
@@ -59,26 +58,14 @@ public class PeakListsSelection implements Cloneable {
 
                 final String plName = pl.getName();
 
-                // Generate a regular expression, replacing * with .*
-                try {
-                    final StringBuilder regex = new StringBuilder("^");
-                    String sections[] = namePattern.split("\\*", -1);
-                    for (int i = 0; i < sections.length; i++) {
-                        if (i > 0)
-                            regex.append(".*");
-                        regex.append(Pattern.quote(sections[i]));
-                    }
-                    regex.append("$");
+                final String regex = TextUtils
+                        .createRegexFromWildcards(namePattern);
 
-                    if (plName.matches(regex.toString())) {
-                        if (matchingPeakLists.contains(pl))
-                            continue;
-                        matchingPeakLists.add(pl);
-                        continue plCheck;
-                    }
-                } catch (PatternSyntaxException e) {
-                    e.printStackTrace();
-                    continue;
+                if (plName.matches(regex)) {
+                    if (matchingPeakLists.contains(pl))
+                        continue;
+                    matchingPeakLists.add(pl);
+                    continue plCheck;
                 }
             }
             return matchingPeakLists.toArray(new PeakList[0]);
