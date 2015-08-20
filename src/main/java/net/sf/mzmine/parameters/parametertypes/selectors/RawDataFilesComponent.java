@@ -23,6 +23,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -54,6 +55,8 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
 
         numFilesLabel = new JLabel();
         add(numFilesLabel);
+
+        add(Box.createHorizontalStrut(10));
 
         typeCombo = new JComboBox<>(RawDataFilesSelectionType.values());
         typeCombo.addActionListener(this);
