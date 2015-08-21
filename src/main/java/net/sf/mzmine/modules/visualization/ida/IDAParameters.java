@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.ida;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -50,7 +50,7 @@ public class IDAParameters extends SimpleParameterSet {
 	    "The color of the data points can normalized based on either\n- All data points\n- Data points with a m/z within 10ppm.",
 	    NormalizationType.values());
 
-    public static final IntegerParameter minPeakInt = new IntegerParameter(
+    public static final DoubleParameter minPeakInt = new DoubleParameter(
 	    "Min. MS/MS peak intensity",
 	    "The minimum intensity of a single MS/MS ion which has to be present in the\nMS/MS spectrum for it to be included in the IDA visualizer.\nSet to 0 to show all.");
 
