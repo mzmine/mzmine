@@ -60,7 +60,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
     IDADataSet(RawDataFile rawDataFile, Range<Double> rtRange,
 	    Range<Double> mzRange, IntensityType intensityType,
-	    NormalizationType normalizationType, Integer minPeakInt,
+	    NormalizationType normalizationType, Double minPeakInt,
 	    IDAVisualizerWindow visualizer) {
 
 	this.rawDataFile = rawDataFile;

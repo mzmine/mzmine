@@ -42,7 +42,6 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -66,7 +65,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
     public IDAVisualizerWindow(RawDataFile dataFile, Range<Double> rtRange,
 	    Range<Double> mzRange, IntensityType intensityType,
-	    NormalizationType normalizationType, Integer minPeakInt,
+	    NormalizationType normalizationType, Double minPeakInt,
 	    ParameterSet parameters) {
 
 	super("IDA visualizer: [" + dataFile.getName() + "]");
