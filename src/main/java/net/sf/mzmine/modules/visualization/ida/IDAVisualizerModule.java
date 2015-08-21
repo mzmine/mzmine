@@ -80,13 +80,13 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile) {
-	showIDAVisualizerSetupDialog(dataFile, null, null, null, null, 0);
+	showIDAVisualizerSetupDialog(dataFile, null, null, null, null, null);
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile,
 	    Range<Double> mzRange, Range<Double> rtRange,
 	    IntensityType intensityType, NormalizationType normalizationType,
-	    double minPeakInt) {
+	    Double minPeakInt) {
 	ParameterSet parameters = MZmineCore.getConfiguration()
 		.getModuleParameters(IDAVisualizerModule.class);
 
