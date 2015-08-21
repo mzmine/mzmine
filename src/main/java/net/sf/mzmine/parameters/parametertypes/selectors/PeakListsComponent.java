@@ -23,6 +23,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -54,6 +55,8 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
         numPeakListsLabel = new JLabel();
         add(numPeakListsLabel);
+        
+        add(Box.createHorizontalStrut(10));
 
         typeCombo = new JComboBox<>(PeakListsSelectionType.values());
         typeCombo.addActionListener(this);

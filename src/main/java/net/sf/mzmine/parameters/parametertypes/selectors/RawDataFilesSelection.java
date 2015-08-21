@@ -20,13 +20,12 @@
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.util.ArrayList;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+
+import com.google.common.base.Strings;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-
-import com.google.common.base.Strings;
+import net.sf.mzmine.util.TextUtils;
 
 public class RawDataFilesSelection implements Cloneable {
 
@@ -59,26 +58,14 @@ public class RawDataFilesSelection implements Cloneable {
 
                 final String fileName = file.getName();
 
-                // Generate a regular expression, replacing * with .*
-                try {
-                    final StringBuilder regex = new StringBuilder("^");
-                    String sections[] = namePattern.split("\\*", -1);
-                    for (int i = 0; i < sections.length; i++) {
-                        if (i > 0)
-                            regex.append(".*");
-                        regex.append(Pattern.quote(sections[i]));
-                    }
-                    regex.append("$");
+                final String regex = TextUtils
+                        .createRegexFromWildcards(namePattern);
 
-                    if (fileName.matches(regex.toString())) {
-                        if (matchingDataFiles.contains(file))
-                            continue;
-                        matchingDataFiles.add(file);
-                        continue fileCheck;
-                    }
-                } catch (PatternSyntaxException e) {
-                    e.printStackTrace();
-                    continue;
+                if (fileName.matches(regex)) {
+                    if (matchingDataFiles.contains(file))
+                        continue;
+                    matchingDataFiles.add(file);
+                    continue fileCheck;
                 }
             }
             return matchingDataFiles.toArray(new RawDataFile[0]);

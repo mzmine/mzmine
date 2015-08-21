@@ -24,12 +24,14 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-
-import com.google.common.collect.Range;
+import net.sf.mzmine.util.TextUtils;
 
 @Immutable
 public class ScanSelection {
@@ -39,27 +41,30 @@ public class ScanSelection {
     private final PolarityType polarity;
     private final MassSpectrumType spectrumType;
     private final Integer msLevel;
+    private String scanDefinition;
 
     public ScanSelection() {
-        this(null, null, null, null, 1);
+        this(1);
     }
 
     public ScanSelection(int msLevel) {
-        this(null, null, null, null, msLevel);
+        this(null, null, null, null, msLevel, null);
     }
 
     public ScanSelection(Range<Double> scanRTRange, int msLevel) {
-        this(null, scanRTRange, null, null, msLevel);
+        this(null, scanRTRange, null, null, msLevel, null);
     }
 
     public ScanSelection(Range<Integer> scanNumberRange,
             Range<Double> scanRTRange, PolarityType polarity,
-            MassSpectrumType spectrumType, Integer msLevel) {
+            MassSpectrumType spectrumType, Integer msLevel,
+            String scanDefinition) {
         this.scanNumberRange = scanNumberRange;
         this.scanRTRange = scanRTRange;
         this.polarity = polarity;
         this.spectrumType = spectrumType;
         this.msLevel = msLevel;
+        this.scanDefinition = scanDefinition;
     }
 
     public Range<Integer> getScanNumberRange() {
@@ -82,26 +87,52 @@ public class ScanSelection {
         return msLevel;
     }
 
+    public String getScanDefinition() {
+        return scanDefinition;
+    }
+
     public Scan[] getMatchingScans(RawDataFile dataFile) {
 
-        final List<Scan> matchingScans = new ArrayList<Scan>();
+        final List<Scan> matchingScans = new ArrayList<>();
 
         int scanNumbers[] = dataFile.getScanNumbers();
         for (int scanNumber : scanNumbers) {
+
             Scan scan = dataFile.getScan(scanNumber);
+
             if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel())))
                 continue;
+
             if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
                 continue;
+
             if ((spectrumType != null)
                     && (!spectrumType.equals(scan.getSpectrumType())))
                 continue;
+
             if ((scanNumberRange != null)
                     && (!scanNumberRange.contains(scanNumber)))
                 continue;
+
             if ((scanRTRange != null)
                     && (!scanRTRange.contains(scan.getRetentionTime())))
                 continue;
+
+            if (!Strings.isNullOrEmpty(scanDefinition)) {
+
+                final String actualScanDefition = scan.getScanDefinition();
+
+                if (Strings.isNullOrEmpty(actualScanDefition))
+                    continue;
+
+                final String regex = TextUtils
+                        .createRegexFromWildcards(scanDefinition);
+
+                if (!actualScanDefition.matches(regex))
+                    continue;
+
+            }
+
             matchingScans.add(scan);
         }
 
