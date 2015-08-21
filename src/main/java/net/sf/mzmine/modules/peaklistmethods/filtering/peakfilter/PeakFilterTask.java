@@ -177,9 +177,19 @@ public class PeakFilterTask extends AbstractTask {
                 final double peakArea = peak.getArea();
                 final double peakHeight = peak.getHeight();
                 final int peakDatapoints = peak.getScanNumbers().length;
-                final double peakFWHM = peak.getFWHM();
-                final double peakTailingFactor = peak.getTailingFactor();
-                final double peakAsymmetryFactor = peak.getAsymmetryFactor();
+
+                Double peakFWHM = peak.getFWHM();
+                Double peakTailingFactor = peak.getTailingFactor();
+                Double peakAsymmetryFactor = peak.getAsymmetryFactor();
+                if (peakFWHM == null) {
+                    peakFWHM = -1.0;
+                }
+                if (peakTailingFactor == null) {
+                    peakTailingFactor = -1.0;
+                }
+                if (peakAsymmetryFactor == null) {
+                    peakAsymmetryFactor = -1.0;
+                }
 
                 // Check Duration
                 if (filterByDuration) {
@@ -219,8 +229,6 @@ public class PeakFilterTask extends AbstractTask {
                     final Range<Integer> datapointsRange = parameters
                             .getParameter(PeakFilterParameters.PEAK_DATAPOINTS)
                             .getEmbeddedParameter().getValue();
-                    System.out.println(datapointsRange);
-                    System.out.println(peakDatapoints);
                     if (!datapointsRange.contains(peakDatapoints)) {
                         // Mark peak to be removed
                         keepPeak[i] = false;
