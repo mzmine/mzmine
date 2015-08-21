@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
+package net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter;
 
 import java.util.Collection;
 
@@ -35,10 +35,10 @@ import net.sf.mzmine.util.ExitCode;
  * Implements a filter for alignment results. The filter removes rows that have
  * fewer than a defined number of peaks detected and other conditions.
  */
-public class RowsFilterModule implements MZmineProcessingModule {
+public class PeakFilterModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Peak list rows filter";
-    private static final String MODULE_DESCRIPTION = "This method removes certain rows from a peak list based on given restrictions.";
+    private static final String MODULE_NAME = "Peak filter";
+    private static final String MODULE_DESCRIPTION = "This method removes certain peak entries based on given restrictions.";
 
     @Override
     public @Nonnull String getName() {
@@ -56,12 +56,12 @@ public class RowsFilterModule implements MZmineProcessingModule {
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
         final PeakList[] peakLists = parameters
-                .getParameter(RowsFilterParameters.PEAK_LISTS).getValue()
+                .getParameter(PeakFilterParameters.PEAK_LISTS).getValue()
                 .getMatchingPeakLists();
 
         for (PeakList peakList : peakLists) {
 
-            Task newTask = new RowsFilterTask(project, peakList, parameters);
+            Task newTask = new PeakFilterTask(project, peakList, parameters);
             tasks.add(newTask);
 
         }
@@ -76,6 +76,6 @@ public class RowsFilterModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return RowsFilterParameters.class;
+        return PeakFilterParameters.class;
     }
 }
