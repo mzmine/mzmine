@@ -37,7 +37,7 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class PeakFilterModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Peak list filter";
+    private static final String MODULE_NAME = "Peak filter";
     private static final String MODULE_DESCRIPTION = "This method removes certain peak entries based on given restrictions.";
 
     @Override
