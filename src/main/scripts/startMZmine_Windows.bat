@@ -42,7 +42,7 @@ if exist C:\Windows\System32\wbem\wmic.exe (
   set ADDRESS_WIDTH=32
 )
 
-:: By default we set the HEAP_SIZE to 1024 MB on 32-bit systems. On 64-bit systems we 
+:: By default we set the maximum HEAP_SIZE to 1024 MB on 32-bit systems. On 64-bit systems we 
 :: either set it to half of the total memory or 2048 MB less than the total memory.
 if %HEAP_SIZE%==AUTO (
   if %ADDRESS_WIDTH%==32 (
@@ -55,7 +55,7 @@ if %HEAP_SIZE%==AUTO (
     )
   )
 )
-echo Java heap size set to %HEAP_SIZE% MB
+echo Java maximum heap size set to %HEAP_SIZE% MB
 
 
 
@@ -79,7 +79,7 @@ mkdir %TMP_FILE_DIRECTORY%
 :: Java specific commands
 :: **********************
 
-set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m
+set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms1024m -Xmx%HEAP_SIZE%m
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 :: Starts the Java Virtual Machine
