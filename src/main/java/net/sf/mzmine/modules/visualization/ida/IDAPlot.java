@@ -150,7 +150,7 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 	plot.setDomainAxis(xAxis);
 
 	// Set the range log axis
-	yAxis = new NumberAxis("m/z");
+	yAxis = new NumberAxis("Precursor m/z");
 	yAxis.setAutoRangeIncludesZero(false);
 	yAxis.setNumberFormatOverride(mzFormat);
 	yAxis.setUpperMargin(0.1);

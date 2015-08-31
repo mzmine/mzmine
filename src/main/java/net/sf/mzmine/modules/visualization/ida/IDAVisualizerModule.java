@@ -40,8 +40,8 @@ import com.google.common.collect.Range;
  */
 public class IDAVisualizerModule implements MZmineRunnableModule {
 
-    private static final String MODULE_NAME = "IDA visualizer";
-    private static final String MODULE_DESCRIPTION = "IDA visualizer."; // TODO
+    private static final String MODULE_NAME = "MS/MS visualizer";
+    private static final String MODULE_DESCRIPTION = "MS/MS visualizer."; // TODO
 
     @Override
     public @Nonnull String getName() {
@@ -80,7 +80,7 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile) {
-	showIDAVisualizerSetupDialog(dataFile, null, null, null, null, null);
+    	showIDAVisualizerSetupDialog(dataFile, null, null, null, null, 0.0);
     }
 
     public static void showIDAVisualizerSetupDialog(RawDataFile dataFile,

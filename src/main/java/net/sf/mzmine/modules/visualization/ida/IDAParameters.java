@@ -52,7 +52,7 @@ public class IDAParameters extends SimpleParameterSet {
 
     public static final DoubleParameter minPeakInt = new DoubleParameter(
 	    "Min. MS/MS peak intensity",
-	    "The minimum intensity of a single MS/MS ion which has to be present in the\nMS/MS spectrum for it to be included in the IDA visualizer.\nSet to 0 to show all.");
+	    "The minimum intensity of a single MS/MS ion which has to be present in the\nMS/MS spectrum for it to be included in the MS/MS visualizer.\nSet to 0 to show all.");
 
     public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
 
