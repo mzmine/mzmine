@@ -84,12 +84,12 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show mass spectrum", this,
                 "SHOW_SPECTRUM");
-        GUIUtils.addMenuItem(dataFilePopupMenu, "Show IDA visualizer", this,
-                "SHOW_IDA");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show 2D visualizer", this,
                 "SHOW_2D");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show 3D visualizer", this,
                 "SHOW_3D");
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Show MS/MS visualizer", this,
+                "SHOW_IDA");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Sort alphabetically", this,
                 "SORT_FILES");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file extension", this,

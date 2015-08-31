@@ -189,8 +189,8 @@ public class MZmineModulesList {
 
 	    // Visualizers
 	    TICVisualizerModule.class, SpectraVisualizerModule.class,
-	    IDAVisualizerModule.class, 
 	    TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
+	    IDAVisualizerModule.class, 
 	    NeutralLossVisualizerModule.class, PeakListTableModule.class,
 	    IsotopePatternExportModule.class, MSMSExportModule.class,
 	    ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
