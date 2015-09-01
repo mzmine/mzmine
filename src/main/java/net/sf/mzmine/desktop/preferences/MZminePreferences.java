@@ -37,16 +37,16 @@ import org.w3c.dom.Element;
 public class MZminePreferences extends SimpleParameterSet {
 
     public static final NumberFormatParameter mzFormat = new NumberFormatParameter(
-	    "m/z value format", "Format of m/z values", false,
-	    new DecimalFormat("0.0000"));
+            "m/z value format", "Format of m/z values", false,
+            new DecimalFormat("0.0000"));
 
     public static final NumberFormatParameter rtFormat = new NumberFormatParameter(
-	    "Retention time value format", "Format of retention time values",
-	    false, new DecimalFormat("0.0"));
+            "Retention time value format", "Format of retention time values",
+            false, new DecimalFormat("0.0"));
 
     public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
-	    "Intensity format", "Format of intensity values", true,
-	    new DecimalFormat("0.0E0"));
+            "Intensity format", "Format of intensity values", true,
+            new DecimalFormat("0.0E0"));
 
     public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
@@ -55,59 +55,62 @@ public class MZminePreferences extends SimpleParameterSet {
             new ProxySettings());
 
     public static final FileNameParameter rExecPath = new FileNameParameter(
-            "R executable path", "Full R executable file path (If left blank, MZmine will try to find out automatically).");
+            "R executable path",
+            "Full R executable file path (If left blank, MZmine will try to find out automatically). On Windows, this should point to your R.exe file.");
 
     public static final BooleanParameter sendStatistics = new BooleanParameter(
-            "Send anonymous statistics", "Allow MZmine to send anonymous statistics on the module usage?",
+            "Send anonymous statistics",
+            "Allow MZmine to send anonymous statistics on the module usage?",
             true);
 
     public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
     public MZminePreferences() {
-	super(new Parameter[] { mzFormat, rtFormat, intensityFormat,
-		numOfThreads, proxySettings, rExecPath, sendStatistics, windowSetttings });
+        super(new Parameter[] { mzFormat, rtFormat, intensityFormat,
+                numOfThreads, proxySettings, rExecPath, sendStatistics,
+                windowSetttings });
     }
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	ExitCode retVal = super.showSetupDialog(parent, valueCheckRequired);
+        ExitCode retVal = super.showSetupDialog(parent, valueCheckRequired);
 
-	if (retVal == ExitCode.OK) {
+        if (retVal == ExitCode.OK) {
 
-	    // Update proxy settings
-	    updateSystemProxySettings();
+            // Update proxy settings
+            updateSystemProxySettings();
 
-	    // Repaint windows to update number formats
-	    MZmineCore.getDesktop().getMainWindow().repaint();
-	}
+            // Repaint windows to update number formats
+            MZmineCore.getDesktop().getMainWindow().repaint();
+        }
 
-	return retVal;
+        return retVal;
     }
 
     public void loadValuesFromXML(Element xmlElement) {
-	super.loadValuesFromXML(xmlElement);
-	updateSystemProxySettings();
+        super.loadValuesFromXML(xmlElement);
+        updateSystemProxySettings();
     }
 
     private void updateSystemProxySettings() {
-	// Update system proxy settings
-	Boolean proxyEnabled = getParameter(proxySettings).getValue();
-	if ((proxyEnabled != null) && (proxyEnabled)) {
-	    ParameterSet proxyParams = getParameter(proxySettings)
-		    .getEmbeddedParameters();
-	    String address = proxyParams.getParameter(
-		    ProxySettings.proxyAddress).getValue();
-	    String port = proxyParams.getParameter(ProxySettings.proxyPort)
-		    .getValue();
-	    System.setProperty("http.proxySet", "true");
-	    System.setProperty("http.proxyHost", address);
-	    System.setProperty("http.proxyPort", port);
-	} else {
-	    System.clearProperty("http.proxySet");
-	    System.clearProperty("http.proxyHost");
-	    System.clearProperty("http.proxyPort");
-	}
+        // Update system proxy settings
+        Boolean proxyEnabled = getParameter(proxySettings).getValue();
+        if ((proxyEnabled != null) && (proxyEnabled)) {
+            ParameterSet proxyParams = getParameter(proxySettings)
+                    .getEmbeddedParameters();
+            String address = proxyParams
+                    .getParameter(ProxySettings.proxyAddress).getValue();
+            String port = proxyParams.getParameter(ProxySettings.proxyPort)
+                    .getValue();
+            System.setProperty("http.proxySet", "true");
+            System.setProperty("http.proxyHost", address);
+            System.setProperty("http.proxyPort", port);
+        } else {
+            System.clearProperty("http.proxySet");
+            System.clearProperty("http.proxyHost");
+            System.clearProperty("http.proxyPort");
+        }
     }
 
 }
