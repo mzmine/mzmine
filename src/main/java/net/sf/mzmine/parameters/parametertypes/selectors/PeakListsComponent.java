@@ -23,6 +23,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -52,6 +53,8 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
         BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
         setLayout(layout);
+
+        setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
         numPeakListsLabel = new JLabel();
         add(numPeakListsLabel);

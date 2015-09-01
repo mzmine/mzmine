@@ -19,13 +19,14 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.awt.Insets;
 import java.util.Collection;
 
 import javax.swing.JCheckBox;
 
-import net.sf.mzmine.parameters.UserParameter;
-
 import org.w3c.dom.Element;
+
+import net.sf.mzmine.parameters.UserParameter;
 
 /**
  * Simple Parameter implementation
@@ -66,7 +67,9 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
 
     @Override
     public JCheckBox createEditingComponent() {
-	return new JCheckBox();
+    JCheckBox checkBox = new JCheckBox();
+        checkBox.setMargin(new Insets(0, 7, 0, 0));
+	return checkBox;
     }
 
     @Override

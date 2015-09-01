@@ -30,8 +30,8 @@ import org.w3c.dom.Element;
  * Simple Parameter implementation
  * 
  */
-public class FileNameParameter implements
-	UserParameter<File, FileNameComponent> {
+public class FileNameParameter
+        implements UserParameter<File, FileNameComponent> {
 
     private String name, description;
     private File value;
@@ -39,20 +39,22 @@ public class FileNameParameter implements
     private int textfield_columns = 15;
 
     public FileNameParameter(String name, String description) {
-	this(name, description, null);
+        this(name, description, null);
     }
 
-    public FileNameParameter(String name, String description, String extension) {
-	this.name = name;
-	this.description = description;
-	this.extension = extension;
+    public FileNameParameter(String name, String description,
+            String extension) {
+        this.name = name;
+        this.description = description;
+        this.extension = extension;
     }
-    
-    public FileNameParameter(String name, String description, String extension, int textfield_columns) {
-	this.name = name;
-	this.description = description;
-	this.extension = extension;	
-	this.textfield_columns = textfield_columns;
+
+    public FileNameParameter(String name, String description, String extension,
+            int textfield_columns) {
+        this.name = name;
+        this.description = description;
+        this.extension = extension;
+        this.textfield_columns = textfield_columns;
     }
 
     /**
@@ -60,7 +62,7 @@ public class FileNameParameter implements
      */
     @Override
     public String getName() {
-	return name;
+        return name;
     }
 
     /**
@@ -68,68 +70,69 @@ public class FileNameParameter implements
      */
     @Override
     public String getDescription() {
-	return description;
+        return description;
     }
 
     @Override
     public FileNameComponent createEditingComponent() {
-	return new FileNameComponent(textfield_columns);
+        return new FileNameComponent(textfield_columns);
     }
 
     @Override
     public File getValue() {
-	return value;
+        return value;
     }
 
     @Override
     public void setValue(File value) {
-	this.value = value;
+        this.value = value;
     }
 
     @Override
     public FileNameParameter cloneParameter() {
-	FileNameParameter copy = new FileNameParameter(name, description);
-	copy.setValue(this.getValue());
-	return copy;
+        FileNameParameter copy = new FileNameParameter(name, description);
+        copy.setValue(this.getValue());
+        return copy;
     }
 
     @Override
     public void setValueFromComponent(FileNameComponent component) {
-	File compValue = component.getValue();
-	if (extension != null) {
-	    if (!compValue.getName().endsWith(extension))
-		compValue = new File(compValue.getPath() + "." + extension);
-	}
-	this.value = compValue;
+        File compValue = component.getValue();
+        if (extension != null) {
+            if (!compValue.getName().endsWith(extension))
+                compValue = new File(compValue.getPath() + "." + extension);
+        }
+        this.value = compValue;
     }
 
     @Override
-    public void setValueToComponent(FileNameComponent component, File newValue) {
-	component.setValue(newValue);
+    public void setValueToComponent(FileNameComponent component,
+            File newValue) {
+        component.setValue(newValue);
     }
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
-	String fileString = xmlElement.getTextContent();
-	if (fileString.length() == 0)
-	    return;
-	this.value = new File(fileString);
+        String fileString = xmlElement.getTextContent();
+        if (fileString.length() == 0)
+            return;
+        this.value = new File(fileString);
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
-	if (value == null)
-	    return;
-	xmlElement.setTextContent(value.getPath());
+        if (value == null)
+            return;
+        xmlElement.setTextContent(value.getPath());
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-	if (value == null) {
-	    errorMessages.add(name + " is not set properly");
-	    return false;
-	}
-	return true;
+        if (value == null) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
     }
 
 }

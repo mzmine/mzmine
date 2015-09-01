@@ -21,6 +21,7 @@ package net.sf.mzmine.parameters.parametertypes.ranges;
 
 import java.awt.GridBagConstraints;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
@@ -35,6 +36,8 @@ public class IntRangeComponent extends GridBagPanel {
     private JTextField minTxtField, maxTxtField;
 
     public IntRangeComponent() {
+
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
         minTxtField = new JTextField();
         minTxtField.setColumns(8);

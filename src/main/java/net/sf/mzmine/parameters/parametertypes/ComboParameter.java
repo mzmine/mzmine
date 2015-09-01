@@ -22,32 +22,31 @@ package net.sf.mzmine.parameters.parametertypes;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.swing.JComboBox;
+import org.w3c.dom.Element;
 
 import net.sf.mzmine.parameters.UserParameter;
-
-import org.w3c.dom.Element;
 
 /**
  * Combo Parameter implementation
  * 
  */
-public class ComboParameter<ValueType> implements
-	UserParameter<ValueType, JComboBox<ValueType>> {
+public class ComboParameter<ValueType>
+        implements UserParameter<ValueType, ComboComponent<ValueType>> {
 
     private String name, description;
     private ValueType choices[], value;
 
-    public ComboParameter(String name, String description, ValueType choices[]) {
-	this(name, description, choices, null);
+    public ComboParameter(String name, String description,
+            ValueType choices[]) {
+        this(name, description, choices, null);
     }
 
     public ComboParameter(String name, String description, ValueType choices[],
-	    ValueType defaultValue) {
-	this.name = name;
-	this.description = description;
-	this.choices = choices;
-	this.value = defaultValue;
+            ValueType defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.choices = choices;
+        this.value = defaultValue;
     }
 
     /**
@@ -55,101 +54,103 @@ public class ComboParameter<ValueType> implements
      */
     @Override
     public String getDescription() {
-	return description;
+        return description;
     }
 
     @Override
-    public JComboBox<ValueType> createEditingComponent() {
-	return new JComboBox<ValueType>(choices);
+    public ComboComponent<ValueType> createEditingComponent() {
+        ComboComponent<ValueType> comboComponent = new ComboComponent<ValueType>(
+                choices);
+        return comboComponent;
     }
 
     @Override
     public ValueType getValue() {
-	return value;
+        return value;
     }
 
     public ValueType[] getChoices() {
-	return choices;
+        return choices;
     }
 
     public void setChoices(ValueType newChoices[]) {
-	this.choices = newChoices;
+        this.choices = newChoices;
     }
 
     @Override
     public void setValue(ValueType value) {
-	this.value = value;
+        this.value = value;
     }
 
     @Override
     public ComboParameter<ValueType> cloneParameter() {
-	ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name,
-		description, choices);
-	copy.value = this.value;
-	return copy;
+        ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name,
+                description, choices);
+        copy.value = this.value;
+        return copy;
     }
 
     @Override
-    public void setValueFromComponent(JComboBox<ValueType> component) {
-	Object selectedItem = component.getSelectedItem();
-	if (selectedItem == null) {
-	    value = null;
-	    return;
-	}
-	if (!Arrays.asList(choices).contains(selectedItem)) {
-	    throw new IllegalArgumentException("Invalid value for parameter "
-		    + name + ": " + selectedItem);
-	}
-	int index = component.getSelectedIndex();
-	if (index < 0)
-	    return;
+    public void setValueFromComponent(ComboComponent<ValueType> component) {
+        Object selectedItem = component.getSelectedItem();
+        if (selectedItem == null) {
+            value = null;
+            return;
+        }
+        if (!Arrays.asList(choices).contains(selectedItem)) {
+            throw new IllegalArgumentException("Invalid value for parameter "
+                    + name + ": " + selectedItem);
+        }
+        int index = component.getSelectedIndex();
+        if (index < 0)
+            return;
 
-	value = choices[index];
+        value = choices[index];
     }
 
     @Override
-    public void setValueToComponent(JComboBox<ValueType> component,
-	    ValueType newValue) {
-	component.setSelectedItem(newValue);
+    public void setValueToComponent(ComboComponent<ValueType> component,
+            ValueType newValue) {
+        component.setSelectedItem(newValue);
     }
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
-	String elementString = xmlElement.getTextContent();
-	if (elementString.length() == 0)
-	    return;
-	for (ValueType option : choices) {
-	    if (option.toString().equals(elementString)) {
-		value = option;
-		break;
-	    }
-	}
+        String elementString = xmlElement.getTextContent();
+        if (elementString.length() == 0)
+            return;
+        for (ValueType option : choices) {
+            if (option.toString().equals(elementString)) {
+                value = option;
+                break;
+            }
+        }
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
-	if (value == null)
-	    return;
-	xmlElement.setTextContent(value.toString());
+        if (value == null)
+            return;
+        xmlElement.setTextContent(value.toString());
     }
 
     @Override
     public String getName() {
-	return name;
+        return name;
     }
 
     @Override
     public String toString() {
-	return name;
+        return name;
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-	if (value == null) {
-	    errorMessages.add(name + " is not set properly");
-	    return false;
-	}
-	return true;
+        if (value == null) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
     }
 
 }

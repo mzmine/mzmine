@@ -25,6 +25,7 @@ import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -67,6 +68,8 @@ public class ScanSelectionComponent extends JPanel implements ActionListener {
 
         BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
         setLayout(layout);
+
+        setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
         restrictionsList = new JLabel();
         add(restrictionsList);
