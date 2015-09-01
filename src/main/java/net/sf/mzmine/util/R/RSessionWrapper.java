@@ -21,7 +21,6 @@ package net.sf.mzmine.util.R;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,14 +28,9 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.LoggerStream;
-import net.sf.mzmine.util.TextUtils;
-import net.sf.mzmine.util.R.Rsession.RserverConf;
-import net.sf.mzmine.util.R.Rsession.Rsession;
 
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
@@ -48,7 +42,10 @@ import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
-import com.google.common.base.Strings;
+import net.sf.mzmine.util.LoggerStream;
+import net.sf.mzmine.util.TextUtils;
+import net.sf.mzmine.util.R.Rsession.RserverConf;
+import net.sf.mzmine.util.R.Rsession.Rsession;
 
 /**
  * @description TODO
@@ -65,8 +62,6 @@ public class RSessionWrapper {
     public static Rsession MASTER_SESSION = null;
     private static int MASTER_PORT = -1;
     public static final ArrayList<RSessionWrapper> R_SESSIONS_REG = new ArrayList<RSessionWrapper>();
-    public final static String R_HOME_KEY = "R_HOME";
-    public static String R_HOME = null;
 
     private final Object R_DUMMY_SEMAPHORE = new Object();
 
@@ -76,8 +71,7 @@ public class RSessionWrapper {
 
     // Enhanced remote security stuffs.
     private static final String RS_LOGIN = "MZmineUser";
-    private static final String RS_DYN_PWD = String
-            .valueOf(java.util.UUID.randomUUID());
+    private static final String RS_DYN_PWD = String.valueOf(UUID.randomUUID());
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
     // ----
@@ -136,51 +130,6 @@ public class RSessionWrapper {
     }
 
     // ** R path utilities
-    /**
-     * Helper class that consumes output of a process. In addition, it filters
-     * output of the REG command on Windows to look for InstallPath registry
-     * entry which specifies the location of R.
-     */
-    static class StreamHog extends Thread {
-        InputStream is;
-        boolean capture;
-        String installPath;
-
-        StreamHog(InputStream is, boolean capture) {
-            this.is = is;
-            this.capture = capture;
-            start();
-        }
-
-        public String getInstallPath() {
-            return installPath;
-        }
-
-        public void run() {
-            try {
-                BufferedReader br = new BufferedReader(
-                        new InputStreamReader(is));
-                String line = null;
-                while ((line = br.readLine()) != null) {
-                    if (capture) { // we are supposed to capture the output from
-                        // REG command
-                        int i = line.indexOf("InstallPath");
-                        if (i >= 0) {
-                            String s = line.substring(i + 11).trim();
-                            int j = s.indexOf("REG_SZ");
-                            if (j >= 0)
-                                s = s.substring(j + 6).trim();
-                            installPath = s;
-                            LOG.log(Level.FINEST, "R InstallPath = " + s);
-                        }
-                    } else
-                        LOG.log(Level.FINEST, "Rserve > " + line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     /**
      * Utility class to consume and eventually redirect system call outputs.
@@ -227,85 +176,6 @@ public class RSessionWrapper {
         }
     }
 
-    public static String getRexecutablePath() {
-
-        // Get it manually if set in "Project > Preferences".
-        String rPath = MZmineCore.getConfiguration().getRexecPath();
-        System.out.println("rpath " + rPath);
-        if (!Strings.isNullOrEmpty(rPath)) {
-            File f = new File(rPath);
-            if (f.exists())
-                return f.getPath();
-        }
-
-        // Otherwise: automated attempt...
-
-        // Win: Get R path from registry.
-        if (isWindows()) {
-            LOG.log(Level.FINEST,
-                    "Windows: Query registry to find where R is installed ...");
-            String installPath = null;
-            try {
-                Process rp = Runtime.getRuntime()
-                        .exec("reg query HKLM\\Software\\R-core\\R");
-                StreamHog regHog = new StreamHog(rp.getInputStream(), true);
-                rp.waitFor();
-                regHog.join();
-                installPath = regHog.getInstallPath();
-            } catch (Exception rge) {
-                LOG.log(Level.SEVERE,
-                        "ERROR: Unable to run REG to find the location of R: "
-                                + rge);
-                return null;
-            }
-            if (installPath == null) {
-                LOG.log(Level.SEVERE,
-                        "ERROR: Cannot find path to R. Make sure reg is available"
-                                + " and R was installed with registry settings.");
-                return null;
-            }
-            File f = new File(installPath);
-            return ((f.exists()) ? installPath + "\\bin\\R.exe" : null);
-        }
-
-        // Mac OSX.
-        File f = new File("/Library/Frameworks/R.framework/Resources/bin/R");
-        if (f.exists())
-            return f.getPath();
-
-        // *NUX.
-        f = new File("/usr/local/lib/R/bin/R");
-        if (f.exists())
-            return f.getPath();
-        f = new File("/usr/lib/R/bin/R");
-        if (f.exists())
-            return f.getPath();
-        f = new File("/sw/bin/R");
-        if (f.exists())
-            return f.getPath();
-        f = new File("/usr/common/bin/R");
-        if (f.exists())
-            return f.getPath();
-        f = new File("/opt/bin/R");
-        if (f.exists())
-            return f.getPath();
-
-        return null;
-
-    }
-
-    public static String getRhomePath() {
-        String rPath = getRexecutablePath();
-        if (rPath != null) {
-            if (RSessionWrapper.isWindows()) {
-                return rPath.substring(0, rPath.length() - 10);
-            } else {
-                return rPath.substring(0, rPath.length() - 5);
-            }
-        }
-        return null;
-    }
-
     // LET'S GET STARTED
 
     /**
@@ -328,12 +198,14 @@ public class RSessionWrapper {
                     + "case the path to the R installation directory could not be "
                     + "detected automatically, if the 'R executable path' is properly "
                     + "set in the project's preferences. (Note: alternatively, the '"
-                    + R_HOME_KEY + "' environment variable can also be used).";
+                    + RLocationDetection.R_HOME_ENV_KEY
+                    + "' environment variable can also be used).";
 
             final String r_homeFailureMsg = "Correct path to the R installation directory could not be "
                     + "detected automatically. Please try setting manually "
                     + "the 'R executable path' in the project's preferences. "
-                    + "(Note: alternatively, the '" + R_HOME_KEY
+                    + "(Note: alternatively, the '"
+                    + RLocationDetection.R_HOME_ENV_KEY
                     + "' environment variable can also be used).";
 
             if (this.rEngine == null) {
@@ -344,26 +216,9 @@ public class RSessionWrapper {
 
                     synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
 
-                        if (R_HOME == null) {
-                            R_HOME = System.getenv(R_HOME_KEY);
-                        }
-
-                        // If retrieving 'R_HOME' from environment failed, try
-                        // to find out automatically. (Since
-                        // 'Rsession.newInstanceTry()', checks the environment
-                        // first).
-                        // @See getRhomePath().
-                        if (R_HOME == null || !(new File(R_HOME).exists())) {
-                            // Set "R_HOME" system property.
-                            R_HOME = RSessionWrapper.getRhomePath();
-                            if (R_HOME != null && new File(R_HOME).exists()) {
-                                System.setProperty(R_HOME_KEY, R_HOME);
-                            }
-                        }
-
-                        LOG.log(logLvl, "R_HOME set to '" + R_HOME + "'");
-
-                        if (R_HOME == null)
+                        final String rLocation = RLocationDetection.getRExecutablePath();
+                         
+                        if (rLocation == null)
                             throw new RSessionWrapperException(
                                     r_homeFailureMsg);
 
@@ -405,6 +260,7 @@ public class RSessionWrapper {
                             // will die/stop with the app. anyway.
                         }
                     }
+
 
                     // Need a new session to be completely instantiated before
                     // asking for another one.
@@ -503,6 +359,7 @@ public class RSessionWrapper {
 
             }
         } catch (Throwable t) {
+            t.printStackTrace();
             throw new RSessionWrapperException(
                     TextUtils.wrapText(t.getMessage(), 80));
         }
@@ -881,11 +738,14 @@ public class RSessionWrapper {
         // Do nothing if session was canceled.
         if (!this.userCanceled) {
 
+
             // Load R engine.
             getRengineInstance();
 
             // Load & check required R packages.
             loadAndCheckRequiredPackages();
+            
+
         }
     }
 
