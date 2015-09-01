@@ -24,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
@@ -45,52 +46,55 @@ public class FileNameComponent extends JPanel implements ActionListener {
 
     public FileNameComponent(int textfieldcolumns) {
 
-	txtFilename = new JTextField();
-	txtFilename.setColumns(textfieldcolumns);
-	txtFilename.setFont(smallFont);
-	add(txtFilename);
+        setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
-	JButton btnFileBrowser = new JButton("...");
-	btnFileBrowser.addActionListener(this);
-	add(btnFileBrowser);
+        txtFilename = new JTextField();
+        txtFilename.setColumns(textfieldcolumns);
+        txtFilename.setFont(smallFont);
+        txtFilename. setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));
+        add(txtFilename);
+
+        JButton btnFileBrowser = new JButton("...");
+        btnFileBrowser.addActionListener(this);
+        add(btnFileBrowser);
 
     }
 
     public File getValue() {
-	String fileName = txtFilename.getText();
-	File file = new File(fileName);
-	return file;
+        String fileName = txtFilename.getText();
+        File file = new File(fileName);
+        return file;
     }
 
     public void setValue(File value) {
-	txtFilename.setText(value.getPath());
+        txtFilename.setText(value.getPath());
     }
 
     public void actionPerformed(ActionEvent e) {
 
-	JFileChooser fileChooser = new JFileChooser();
-	fileChooser.setMultiSelectionEnabled(false);
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setMultiSelectionEnabled(false);
 
-	String currentPath = txtFilename.getText();
-	if (currentPath.length() > 0) {
-	    File currentFile = new File(currentPath);
-	    File currentDir = currentFile.getParentFile();
-	    if (currentDir != null && currentDir.exists())
-		fileChooser.setCurrentDirectory(currentDir);
-	}
+        String currentPath = txtFilename.getText();
+        if (currentPath.length() > 0) {
+            File currentFile = new File(currentPath);
+            File currentDir = currentFile.getParentFile();
+            if (currentDir != null && currentDir.exists())
+                fileChooser.setCurrentDirectory(currentDir);
+        }
 
-	int returnVal = fileChooser.showDialog(MZmineCore.getDesktop()
-		.getMainWindow(), "Select file");
+        int returnVal = fileChooser.showDialog(
+                MZmineCore.getDesktop().getMainWindow(), "Select file");
 
-	if (returnVal == JFileChooser.APPROVE_OPTION) {
-	    String selectedPath = fileChooser.getSelectedFile().getPath();
-	    txtFilename.setText(selectedPath);
-	}
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            String selectedPath = fileChooser.getSelectedFile().getPath();
+            txtFilename.setText(selectedPath);
+        }
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-	txtFilename.setToolTipText(toolTip);
+        txtFilename.setToolTipText(toolTip);
     }
 
 }

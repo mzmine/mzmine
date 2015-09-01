@@ -21,13 +21,13 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
 
-import javax.swing.JTextField;
-
-import net.sf.mzmine.parameters.UserParameter;
+import javax.swing.BorderFactory;
 
 import org.w3c.dom.Element;
 
-public class StringParameter implements UserParameter<String, JTextField> {
+import net.sf.mzmine.parameters.UserParameter;
+
+public class StringParameter implements UserParameter<String, StringComponent> {
 
     private String name, description, value;
     private int inputsize = 20;
@@ -75,8 +75,12 @@ public class StringParameter implements UserParameter<String, JTextField> {
     }
 
     @Override
-    public JTextField createEditingComponent() {
-        return new JTextField(inputsize);
+    public StringComponent createEditingComponent() {
+        StringComponent stringComponent = new StringComponent(inputsize);
+        stringComponent.setBorder(
+                BorderFactory.createCompoundBorder(stringComponent.getBorder(),
+                        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+        return stringComponent;
     }
 
     public String getValue() {
@@ -101,12 +105,13 @@ public class StringParameter implements UserParameter<String, JTextField> {
     }
 
     @Override
-    public void setValueFromComponent(JTextField component) {
+    public void setValueFromComponent(StringComponent component) {
         value = component.getText();
     }
 
     @Override
-    public void setValueToComponent(JTextField component, String newValue) {
+    public void setValueToComponent(StringComponent component,
+            String newValue) {
         component.setText(newValue);
     }
 

@@ -16,53 +16,39 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.parameters.parametertypes;
 
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-/**
- */
-public class PercentComponent extends JPanel {
+public class StringComponent extends JPanel {
 
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
-    private JTextField percentField;
 
-    public PercentComponent() {
+    private final JTextField textField;
 
-        setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
-        percentField = new JTextField();
-        percentField.setColumns(4);
-        add(percentField);
-
-        add(new JLabel("%"));
-
+    public StringComponent(int inputsize) {
+    	textField = new JTextField(inputsize);
+    	textField.setBorder(
+                BorderFactory.createCompoundBorder(textField.getBorder(),
+                        BorderFactory.createEmptyBorder(0, 2, 0, 0)));
+    	add(textField);
     }
 
-    public void setValue(double value) {
-        String stringValue = String.valueOf(value * 100);
-        percentField.setText(stringValue);
+    public void setText(String text) {
+    	textField.setText(text);
     }
 
-    public Double getValue() {
-        String stringValue = percentField.getText();
-        try {
-            double doubleValue = Double.parseDouble(stringValue) / 100;
-            return doubleValue;
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    public String getText() {
+	return textField.getText();
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-        percentField.setToolTipText(toolTip);
+    	textField.setToolTipText(toolTip);
     }
-
 }
