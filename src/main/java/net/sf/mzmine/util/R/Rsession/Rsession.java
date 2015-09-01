@@ -62,7 +62,6 @@ public class Rsession implements Logger {
     public boolean TRY_MODE_DEFAULT = true;
     public boolean TRY_MODE = false;
     public static final String CAST_ERROR = "Cannot cast ";
-    private static final String __ = "  ";
     private static final String _PACKAGE_ = "  package ";
     public RConnection connection;
     Logger console;
@@ -1728,7 +1727,7 @@ public class Rsession implements Logger {
      * @param varname
      *            R objects to delete
      */
-    public boolean unset(Collection varname) {
+    public boolean unset(Collection<?> varname) {
         boolean done = true;
         for (Object v : varname) {
             done = done & rm(v.toString());
@@ -1886,7 +1885,7 @@ public class Rsession implements Logger {
         } else if (var instanceof Map) {
             try {
                 synchronized (connection) {
-                    connection.assign(varname, asRList((Map) var));
+                    connection.assign(varname, asRList((Map<?,?>) var));
                 }
             } catch (Exception ex) {
                 log(HEAD_ERROR + ex.getMessage() + "\n  set(String varname="
@@ -1903,7 +1902,7 @@ public class Rsession implements Logger {
         return true;
     }
 
-    public static REXPList asRList(Map m) {
+    public static REXPList asRList(Map<?,?> m) {
         RList l = new RList();
         for (Object o : m.keySet()) {
             Object v = m.get(o);
@@ -1924,7 +1923,7 @@ public class Rsession implements Logger {
             } else if (v instanceof boolean[]) {
                 l.put(o.toString(), new REXPLogical((boolean[]) v));
             } else if (v instanceof Map) {
-                l.put(o.toString(), asRList((Map) v));
+                l.put(o.toString(), asRList((Map<?,?>) v));
             } else if (v instanceof RList) {
                 l.put(o.toString(), (RList) v);
             } else if (v == null) {
