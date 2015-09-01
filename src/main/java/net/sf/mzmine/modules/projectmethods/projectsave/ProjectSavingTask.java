@@ -61,7 +61,8 @@ public class ProjectSavingTask extends AbstractTask {
     private PeakListSaveHandler peakListSaveHandler;
     private UserParameterSaveHandler userParameterSaveHandler;
 
-    private int currentStage;
+    private final int totalSaveItems;
+    private int currentStage, finishedSaveItems = 0;
     private String currentSavedObjectName;
 
     // This hashtable maps raw data files to their ID within the saved project
@@ -69,9 +70,11 @@ public class ProjectSavingTask extends AbstractTask {
 
     public ProjectSavingTask(MZmineProject project, ParameterSet parameters) {
         this.savedProject = (MZmineProjectImpl) project;
-        this.saveFile = parameters.getParameter(
-                ProjectLoaderParameters.projectFile).getValue();
+        this.saveFile = parameters
+                .getParameter(ProjectLoaderParameters.projectFile).getValue();
         dataFilesIDMap = new Hashtable<RawDataFile, String>();
+        this.totalSaveItems = project.getDataFiles().length
+                + project.getPeakLists().length;
     }
 
     /**
@@ -88,25 +91,31 @@ public class ProjectSavingTask extends AbstractTask {
      */
     public double getFinishedPercentage() {
 
-        switch (currentStage) {
+        if (totalSaveItems == 0)
+            return 0.0;
 
+        double currentItemProgress = 0.0;
+
+        switch (currentStage) {
         case 2:
-            if (rawDataFileSaveHandler == null)
-                return 0;
-            return rawDataFileSaveHandler.getProgress();
+            if (rawDataFileSaveHandler != null)
+                currentItemProgress = rawDataFileSaveHandler.getProgress();
+            break;
         case 3:
-            if (peakListSaveHandler == null)
-                return 0;
-            return peakListSaveHandler.getProgress();
+            if (peakListSaveHandler != null)
+                currentItemProgress = peakListSaveHandler.getProgress();
+            break;
         case 4:
-            if (userParameterSaveHandler == null)
-                return 0;
-            return userParameterSaveHandler.getProgress();
         case 5:
-            return 1;
+            return 1.0;
         default:
             return 0;
         }
+
+        double progress = ((double) finishedSaveItems + currentItemProgress)
+                / totalSaveItems;
+
+        return progress;
     }
 
     /**
@@ -231,8 +240,7 @@ public class ProjectSavingTask extends AbstractTask {
                         + ExceptionUtils.exceptionToString(e));
             } else {
                 setErrorMessage("Failed saving the project. Error while saving "
-                        + currentSavedObjectName
-                        + ": "
+                        + currentSavedObjectName + ": "
                         + ExceptionUtils.exceptionToString(e));
             }
 
@@ -291,8 +299,8 @@ public class ProjectSavingTask extends AbstractTask {
      * @throws SAXException
      * @throws TransformerConfigurationException
      */
-    private void saveRawDataFiles(ZipOutputStream zipStream)
-            throws IOException, TransformerConfigurationException, SAXException {
+    private void saveRawDataFiles(ZipOutputStream zipStream) throws IOException,
+            TransformerConfigurationException, SAXException {
 
         rawDataFileSaveHandler = new RawDataFileSaveHandler(zipStream);
 
@@ -304,9 +312,10 @@ public class ProjectSavingTask extends AbstractTask {
                 return;
 
             currentSavedObjectName = rawDataFiles[i].getName();
-            rawDataFileSaveHandler.writeRawDataFile(
-                    (RawDataFileImpl) rawDataFiles[i], i + 1);
+            rawDataFileSaveHandler
+                    .writeRawDataFile((RawDataFileImpl) rawDataFiles[i], i + 1);
             dataFilesIDMap.put(rawDataFiles[i], String.valueOf(i + 1));
+            finishedSaveItems++;
         }
     }
 
@@ -338,6 +347,7 @@ public class ProjectSavingTask extends AbstractTask {
 
             currentSavedObjectName = peakLists[i].getName();
             peakListSaveHandler.savePeakList(peakLists[i]);
+            finishedSaveItems++;
         }
     }
 
@@ -348,7 +358,8 @@ public class ProjectSavingTask extends AbstractTask {
      * @throws TransformerConfigurationException
      */
     private void saveUserParameters(ZipOutputStream zipStream)
-            throws IOException, TransformerConfigurationException, SAXException {
+            throws IOException, TransformerConfigurationException,
+            SAXException {
 
         if (isCanceled())
             return;
