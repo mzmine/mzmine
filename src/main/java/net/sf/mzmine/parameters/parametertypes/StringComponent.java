@@ -33,9 +33,6 @@ public class StringComponent extends JPanel {
 
     public StringComponent(int inputsize) {
     	textField = new JTextField(inputsize);
-    	textField.setBorder(
-                BorderFactory.createCompoundBorder(textField.getBorder(),
-                        BorderFactory.createEmptyBorder(0, 2, 0, 0)));
     	add(textField);
     }
 

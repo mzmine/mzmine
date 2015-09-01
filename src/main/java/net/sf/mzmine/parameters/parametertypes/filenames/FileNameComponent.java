@@ -51,7 +51,6 @@ public class FileNameComponent extends JPanel implements ActionListener {
         txtFilename = new JTextField();
         txtFilename.setColumns(textfieldcolumns);
         txtFilename.setFont(smallFont);
-        txtFilename. setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 0));
         add(txtFilename);
 
         JButton btnFileBrowser = new JButton("...");
