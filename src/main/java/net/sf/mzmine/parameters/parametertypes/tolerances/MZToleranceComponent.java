@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.parameters.parametertypes.tolerances;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -33,42 +34,43 @@ public class MZToleranceComponent extends JPanel {
 
     public MZToleranceComponent() {
 
-	mzToleranceField = new JTextField();
-	mzToleranceField.setColumns(6);
-	add(mzToleranceField);
+        setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
 
-	add(new JLabel("m/z  or"));
+        mzToleranceField = new JTextField();
+        mzToleranceField.setColumns(6);
+        add(mzToleranceField);
 
-	ppmToleranceField = new JTextField();
-	ppmToleranceField.setColumns(6);
-	add(ppmToleranceField);
+        add(new JLabel("m/z  or"));
 
-	add(new JLabel("ppm"));
+        ppmToleranceField = new JTextField();
+        ppmToleranceField.setColumns(6);
+        add(ppmToleranceField);
 
+        add(new JLabel("ppm"));
     }
 
     public void setValue(MZTolerance value) {
-	mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
-	ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+        mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
+        ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
     }
 
     public MZTolerance getValue() {
-	try {
-	    double mzTolerance = Double.parseDouble(mzToleranceField.getText());
-	    double ppmTolerance = Double.parseDouble(ppmToleranceField
-		    .getText());
-	    MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
-	    return value;
-	} catch (NumberFormatException e) {
-	    return null;
-	}
+        try {
+            double mzTolerance = Double.parseDouble(mzToleranceField.getText());
+            double ppmTolerance = Double
+                    .parseDouble(ppmToleranceField.getText());
+            MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
+            return value;
+        } catch (NumberFormatException e) {
+            return null;
+        }
 
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-	mzToleranceField.setToolTipText(toolTip);
-	ppmToleranceField.setToolTipText(toolTip);
+        mzToleranceField.setToolTipText(toolTip);
+        ppmToleranceField.setToolTipText(toolTip);
     }
 
 }

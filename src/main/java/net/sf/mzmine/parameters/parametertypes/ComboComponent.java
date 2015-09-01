@@ -16,53 +16,41 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.parameters.parametertypes;
 
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
-/**
- */
-public class PercentComponent extends JPanel {
+public class ComboComponent<ValueType> extends JPanel {
 
     /**
      * 
      */
     private static final long serialVersionUID = 1L;
-    private JTextField percentField;
 
-    public PercentComponent() {
+    private final JComboBox<ValueType> comboBox;
 
-        setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
-        percentField = new JTextField();
-        percentField.setColumns(4);
-        add(percentField);
-
-        add(new JLabel("%"));
-
-    }
-
-    public void setValue(double value) {
-        String stringValue = String.valueOf(value * 100);
-        percentField.setText(stringValue);
-    }
-
-    public Double getValue() {
-        String stringValue = percentField.getText();
-        try {
-            double doubleValue = Double.parseDouble(stringValue) / 100;
-            return doubleValue;
-        } catch (NumberFormatException e) {
-            return null;
-        }
+    public ComboComponent(ValueType choices[]) {
+        setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
+        comboBox = new JComboBox<ValueType>(choices);
+    	add(comboBox);
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-        percentField.setToolTipText(toolTip);
+        comboBox.setToolTipText(toolTip);
     }
 
+    public Object getSelectedItem() {
+        return comboBox.getSelectedItem();
+    }
+
+    public int getSelectedIndex() {
+        return comboBox.getSelectedIndex();
+    }
+
+    public void setSelectedItem(ValueType newValue) {
+        comboBox.setSelectedItem(newValue);
+    }
 }

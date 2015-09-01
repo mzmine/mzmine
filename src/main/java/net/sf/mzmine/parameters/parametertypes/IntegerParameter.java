@@ -19,18 +19,13 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.util.Collection;
 
-import javax.swing.InputVerifier;
-import javax.swing.JComponent;
-import javax.swing.JTextField;
-import javax.swing.text.JTextComponent;
-
-import net.sf.mzmine.parameters.UserParameter;
+import javax.swing.BorderFactory;
 
 import org.w3c.dom.Element;
+
+import net.sf.mzmine.parameters.UserParameter;
 
 /**
  * Integer parameter. Note that we prefer to use JTextField rather than
@@ -40,7 +35,7 @@ import org.w3c.dom.Element;
  * when formatter is set to 1 decimal digit, it becomes impossible to enter 2
  * decimals etc.
  */
-public class IntegerParameter implements UserParameter<Integer, JTextField> {
+public class IntegerParameter implements UserParameter<Integer, IntegerComponent> {
 
     // Text field width.
     private static final int WIDTH = 100;
@@ -93,23 +88,17 @@ public class IntegerParameter implements UserParameter<Integer, JTextField> {
     }
 
     @Override
-    public JTextField createEditingComponent() {
-
-        final JTextField textField = new JTextField();
-        textField.setPreferredSize(new Dimension(WIDTH, textField
-                .getPreferredSize().height));
-
-        // Add an input verifier if any bounds are specified.
-        if (minimum != null || maximum != null) {
-
-            textField.setInputVerifier(new MinMaxVerifier());
-        }
-
-        return textField;
+    public IntegerComponent createEditingComponent() {
+        IntegerComponent integerComponent = new IntegerComponent(WIDTH, minimum,
+                maximum);
+        integerComponent.setBorder(
+                BorderFactory.createCompoundBorder(integerComponent.getBorder(),
+                        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+        return integerComponent;
     }
 
     @Override
-    public void setValueFromComponent(final JTextField component) {
+    public void setValueFromComponent(final IntegerComponent component) {
 
         final String textValue = component.getText();
         try {
@@ -135,7 +124,7 @@ public class IntegerParameter implements UserParameter<Integer, JTextField> {
     }
 
     @Override
-    public void setValueToComponent(final JTextField component,
+    public void setValueToComponent(final IntegerComponent component,
             final Integer newValue) {
 
         component.setText(String.valueOf(newValue));
@@ -186,41 +175,5 @@ public class IntegerParameter implements UserParameter<Integer, JTextField> {
     private boolean checkBounds(final int number) {
         return (minimum == null || number >= minimum)
                 && (maximum == null || number <= maximum);
-    }
-
-    /**
-     * Input verifier used when minimum or maximum bounds are defined.
-     */
-    private class MinMaxVerifier extends InputVerifier {
-
-        @Override
-        public boolean shouldYieldFocus(final JComponent input) {
-
-            final boolean yield = super.shouldYieldFocus(input);
-            if (!yield) {
-
-                // Beep and highlight.
-                Toolkit.getDefaultToolkit().beep();
-                ((JTextComponent) input).selectAll();
-            }
-
-            return yield;
-        }
-
-        @Override
-        public boolean verify(final JComponent input) {
-
-            boolean verified = false;
-            try {
-
-                verified = checkBounds(Integer
-                        .parseInt(((JTextComponent) input).getText()));
-            } catch (final NumberFormatException e) {
-
-                // not a number.
-            }
-
-            return verified;
-        }
     }
 }

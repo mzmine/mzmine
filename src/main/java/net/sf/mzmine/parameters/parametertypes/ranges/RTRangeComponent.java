@@ -23,6 +23,7 @@ import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
@@ -44,6 +45,8 @@ public class RTRangeComponent extends DoubleRangeComponent implements
     public RTRangeComponent() {
 
         super(MZmineCore.getConfiguration().getRTFormat());
+
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
         add(new JLabel("min."), 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
