@@ -30,6 +30,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -37,15 +43,10 @@ import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.project.impl.StorableMassList;
 import net.sf.mzmine.project.impl.StorableScan;
+import net.sf.mzmine.util.RangeUtils;
 
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import com.google.common.collect.Range;
-
-public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
-        RawDataFileOpenHandler {
+public class RawDataFileOpenHandler_2_5 extends DefaultHandler
+        implements RawDataFileOpenHandler {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -124,9 +125,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 
         if (qName.equals(RawDataElementName_2_5.QUANTITY_FRAGMENT_SCAN
                 .getElementName())) {
-            numberOfFragments = Integer
-                    .parseInt(attrs.getValue(RawDataElementName_2_5.QUANTITY
-                            .getElementName()));
+            numberOfFragments = Integer.parseInt(attrs.getValue(
+                    RawDataElementName_2_5.QUANTITY.getElementName()));
             if (numberOfFragments > 0) {
                 fragmentScan = new int[numberOfFragments];
                 fragmentCount = 0;
@@ -134,26 +134,23 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
         }
 
         if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
-            currentStorageID = Integer.parseInt(attrs
-                    .getValue(RawDataElementName_2_5.STORAGE_ID
-                            .getElementName()));
+            currentStorageID = Integer.parseInt(attrs.getValue(
+                    RawDataElementName_2_5.STORAGE_ID.getElementName()));
         }
 
         if (qName.equals(RawDataElementName_2_5.STORED_DATA.getElementName())) {
-            storedDataID = Integer.parseInt(attrs
-                    .getValue(RawDataElementName_2_5.STORAGE_ID
-                            .getElementName()));
-            storedDataNumDP = Integer.parseInt(attrs
-                    .getValue(RawDataElementName_2_5.QUANTITY_DATAPOINTS
+            storedDataID = Integer.parseInt(attrs.getValue(
+                    RawDataElementName_2_5.STORAGE_ID.getElementName()));
+            storedDataNumDP = Integer.parseInt(
+                    attrs.getValue(RawDataElementName_2_5.QUANTITY_DATAPOINTS
                             .getElementName()));
         }
 
         if (qName.equals(RawDataElementName_2_5.MASS_LIST.getElementName())) {
-            String name = attrs.getValue(RawDataElementName_2_5.NAME
-                    .getElementName());
-            int storageID = Integer.parseInt(attrs
-                    .getValue(RawDataElementName_2_5.STORAGE_ID
-                            .getElementName()));
+            String name = attrs
+                    .getValue(RawDataElementName_2_5.NAME.getElementName());
+            int storageID = Integer.parseInt(attrs.getValue(
+                    RawDataElementName_2_5.STORAGE_ID.getElementName()));
             StorableMassList newML = new StorableMassList(newRawDataFile,
                     storageID, name, null);
             massLists.add(newML);
@@ -179,7 +176,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
             newRawDataFile.setName(name);
         }
 
-        if (qName.equals(RawDataElementName_2_5.QUANTITY_SCAN.getElementName())) {
+        if (qName.equals(
+                RawDataElementName_2_5.QUANTITY_SCAN.getElementName())) {
             // number of scans - actually not used for anything
             Integer.parseInt(getTextOfElement());
         }
@@ -211,40 +209,41 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
             }
         }
 
-        if (qName.equals(RawDataElementName_2_5.SCAN_DESCRIPTION
-                .getElementName())) {
+        if (qName.equals(
+                RawDataElementName_2_5.SCAN_DESCRIPTION.getElementName())) {
             scanDescription = getTextOfElement();
         }
 
-        if (qName.equals(RawDataElementName_2_5.SCAN_MZ_RANGE.getElementName())) {
-            String rangeItems[] = getTextOfElement().split("-");
-            double low = Double.parseDouble(rangeItems[0]);
-            double high = Double.parseDouble(rangeItems[1]);
-            scanMZRange = Range.closed(low, high);
+        if (qName.equals(
+                RawDataElementName_2_5.SCAN_MZ_RANGE.getElementName())) {
+            final String text = getTextOfElement();
+            scanMZRange = RangeUtils.parseRange(text);
         }
 
-        if (qName.equals(RawDataElementName_2_5.PRECURSOR_CHARGE
-                .getElementName())) {
+        if (qName.equals(
+                RawDataElementName_2_5.PRECURSOR_CHARGE.getElementName())) {
             precursorCharge = Integer.parseInt(getTextOfElement());
         }
 
-        if (qName.equals(RawDataElementName_2_5.PRECURSOR_MZ.getElementName())) {
+        if (qName
+                .equals(RawDataElementName_2_5.PRECURSOR_MZ.getElementName())) {
             precursorMZ = Double.parseDouble(getTextOfElement());
         }
 
-        if (qName
-                .equals(RawDataElementName_2_5.RETENTION_TIME.getElementName())) {
+        if (qName.equals(
+                RawDataElementName_2_5.RETENTION_TIME.getElementName())) {
             // Before MZmine 2.6 retention time was saved in seconds, but now we
             // use minutes, so we need to divide by 60
             retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
         }
 
-        if (qName.equals(RawDataElementName_2_5.QUANTITY_DATAPOINTS
-                .getElementName())) {
+        if (qName.equals(
+                RawDataElementName_2_5.QUANTITY_DATAPOINTS.getElementName())) {
             dataPointsNumber = Integer.parseInt(getTextOfElement());
         }
 
-        if (qName.equals(RawDataElementName_2_5.FRAGMENT_SCAN.getElementName())) {
+        if (qName.equals(
+                RawDataElementName_2_5.FRAGMENT_SCAN.getElementName())) {
             fragmentScan[fragmentCount++] = Integer
                     .parseInt(getTextOfElement());
         }
@@ -302,7 +301,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
      * 
      * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
-    public void characters(char buf[], int offset, int len) throws SAXException {
+    public void characters(char buf[], int offset, int len)
+            throws SAXException {
         charBuffer = charBuffer.append(buf, offset, len);
     }
 }
