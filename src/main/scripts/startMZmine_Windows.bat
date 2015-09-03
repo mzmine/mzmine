@@ -44,14 +44,14 @@ if exist C:\Windows\System32\wbem\wmic.exe (
 
 
 :: Find Java version
+Set JAVA_BIT_VERSION=32
 for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "version"') do ( @set JAVA_VERSION=%%~g )
-for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "Java HotSpot(TM)"') do (@set JAVA_BIT_VERSION=%%g)
-if x%JAVA_BIT_VERSION:64-Bit=%==x%JAVA_BIT_VERSION% (Set JAVA_BIT_VERSION=32-Bit)
-echo Java version is %JAVA_VERSION%(%JAVA_BIT_VERSION%)
+for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "64-Bit"') do (@set JAVA_BIT_VERSION=64)
+echo Java version is %JAVA_VERSION%(%JAVA_BIT_VERSION%-Bit)
 
 
 :: Prompt user with error if 32-Bit Java is found on 64-Bit Windows
-if %ADDRESS_WIDTH%==64 if %JAVA_BIT_VERSION%==32-Bit (
+if %ADDRESS_WIDTH%==64 if %JAVA_BIT_VERSION%==32 (
 	echo.
 	echo *******************************************************************************
 	echo *******************************************************************************
@@ -109,7 +109,7 @@ mkdir %TMP_FILE_DIRECTORY%
 :: Java specific commands
 :: **********************
 
-set JAVA_PARAMETERS=-classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms1024m -Xmx%HEAP_SIZE%m
+set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms1024m -Xmx%HEAP_SIZE%m
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 :: Starts the Java Virtual Machine
