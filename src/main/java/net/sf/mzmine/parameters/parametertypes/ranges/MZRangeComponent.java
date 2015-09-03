@@ -23,6 +23,7 @@ import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 
@@ -39,8 +40,8 @@ import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 import com.google.common.collect.Range;
 
-public class MZRangeComponent extends DoubleRangeComponent implements
-        ActionListener {
+public class MZRangeComponent extends DoubleRangeComponent
+        implements ActionListener {
 
     private static final long serialVersionUID = 1L;
     private final JButton setAutoButton, fromFormulaButton;
@@ -48,6 +49,8 @@ public class MZRangeComponent extends DoubleRangeComponent implements
     public MZRangeComponent() {
 
         super(MZmineCore.getConfiguration().getMZFormat());
+
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
         setAutoButton = new JButton("Auto range");
         setAutoButton.addActionListener(this);
