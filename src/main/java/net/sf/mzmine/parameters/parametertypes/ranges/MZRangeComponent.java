@@ -40,8 +40,8 @@ import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 import com.google.common.collect.Range;
 
-public class MZRangeComponent extends DoubleRangeComponent implements
-        ActionListener {
+public class MZRangeComponent extends DoubleRangeComponent
+        implements ActionListener {
 
     private static final long serialVersionUID = 1L;
     private final JButton setAutoButton, fromFormulaButton;
