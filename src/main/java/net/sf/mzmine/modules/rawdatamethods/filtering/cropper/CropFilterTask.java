@@ -19,6 +19,11 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.cropper;
 
+import java.util.logging.Logger;
+
+import com.google.common.collect.Range;
+
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
@@ -26,19 +31,22 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-import com.google.common.collect.Range;
-
 public class CropFilterTask extends AbstractTask {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private MZmineProject project;
     private RawDataFile dataFile;
     private int processedScans, totalScans;
+    private Scan[] scans;
 
     // User parameters
-    private Range<Double> retentionTimeRange;
+    private ScanSelection scanSelection;
+    private Range<Double> mzRange;
     private String suffix;
     private boolean removeOriginal;
 
@@ -47,12 +55,14 @@ public class CropFilterTask extends AbstractTask {
         this.project = project;
         this.dataFile = dataFile;
 
-        this.retentionTimeRange = parameters.getParameter(
-                CropFilterParameters.retentionTimeRange).getValue();
+        this.scanSelection = parameters
+                .getParameter(CropFilterParameters.scanSelection).getValue();
+        this.mzRange = parameters.getParameter(CropFilterParameters.mzRange)
+                .getValue();
         this.suffix = parameters.getParameter(CropFilterParameters.suffix)
                 .getValue();
-        this.removeOriginal = parameters.getParameter(
-                CropFilterParameters.autoRemove).getValue();
+        this.removeOriginal = parameters
+                .getParameter(CropFilterParameters.autoRemove).getValue();
     }
 
     /**
@@ -63,21 +73,37 @@ public class CropFilterTask extends AbstractTask {
 
         setStatus(TaskStatus.PROCESSING);
 
+        logger.info("Started crop filter on " + dataFile);
+
+        scans = scanSelection.getMatchingScans(dataFile);
+        totalScans = scans.length;
+
+        // Check if we have any scans
+        if (totalScans == 0) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("No scans match the selected criteria");
+            return;
+        }
+
         try {
 
             RawDataFileWriter rawDataFileWriter = MZmineCore
                     .createNewFile(dataFile.getName() + " " + suffix);
 
-            int[] scanNumbers = dataFile.getScanNumbers();
-            totalScans = scanNumbers.length;
+            for (Scan scan : scans) {
 
-            for (processedScans = 0; processedScans < totalScans; processedScans++) {
-                Scan scan = dataFile.getScan(scanNumbers[processedScans]);
+                SimpleScan scanCopy = new SimpleScan(scan);
 
-                if (retentionTimeRange.contains(scan.getRetentionTime())) {
-                    Scan scanCopy = new SimpleScan(scan);
-                    rawDataFileWriter.addScan(scanCopy);
+                // Check if we have something to crop
+                if (!mzRange.encloses(scan.getDataPointMZRange())) {
+                    DataPoint croppedDataPoints[] = scan
+                            .getDataPointsByMass(mzRange);
+                    scanCopy.setDataPoints(croppedDataPoints);
                 }
+
+                rawDataFileWriter.addScan(scanCopy);
+
+                processedScans++;
             }
 
             RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
