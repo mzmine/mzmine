@@ -124,6 +124,29 @@ public class ChromatogramBuilderTask extends AbstractTask {
         scans = scanSelection.getMatchingScans(dataFile);
         totalScans = scans.length;
 
+        // Check if we have any scans
+        if (totalScans == 0) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("No scans match the selected criteria");
+            return;
+        }
+
+        // Check if the scans are properly ordered by RT
+        double prevRT = Double.NEGATIVE_INFINITY;
+        for (Scan s : scans) {
+            if (s.getRetentionTime() < prevRT) {
+                setStatus(TaskStatus.ERROR);
+                final String msg = "Retention time of scan #"
+                        + s.getScanNumber()
+                        + " is smaller then the retention time of the previous scan."
+                        + " Please make sure you only use scans with increasing retention times."
+                        + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
+                setErrorMessage(msg);
+                return;
+            }
+            prevRT = s.getRetentionTime();
+        }
+
         // Create new peak list
         newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
@@ -176,7 +199,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         project.addPeakList(newPeakList);
 
         // Add quality parameters to peaks
-	QualityParameters.calculateQualityParameters(newPeakList);
+        QualityParameters.calculateQualityParameters(newPeakList);
 
         setStatus(TaskStatus.FINISHED);
 
