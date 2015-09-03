@@ -36,6 +36,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.Chromatogram;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ArrayUtils;
@@ -52,7 +53,8 @@ public class GridMassTask extends AbstractTask {
     private int totalScans;
     private float procedure = 0;
     private int newPeakID = 0;
-    private int[] scanNumbers;
+    private ScanSelection scanSelection;
+    private Scan[] scans;
     Datum[] roi[];
     double retentiontime[];
 
@@ -85,7 +87,9 @@ public class GridMassTask extends AbstractTask {
 
 	this.project = project;
 	this.dataFile = dataFile;
-
+        this.scanSelection = parameters
+                .getParameter(GridMassParameters.scanSelection)
+                .getValue();
 	this.mzTol = parameters.getParameter(GridMassParameters.mzTolerance)
 		.getValue();
 	this.minimumTimeSpan = parameters
@@ -142,21 +146,44 @@ public class GridMassTask extends AbstractTask {
 
 	logger.info("Started GRIDMASS v1.0 [Apr-09-2014] on " + dataFile);
 
-	scanNumbers = dataFile.getScanNumbers(1);
-	totalScans = scanNumbers.length;
+        scans = scanSelection.getMatchingScans(dataFile);
+        totalScans = scans.length;
+
+        // Check if we have any scans
+        if (totalScans == 0) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("No scans match the selected criteria");
+            return;
+        }
+
+        // Check if the scans are properly ordered by RT
+        double prevRT = Double.NEGATIVE_INFINITY;
+        for (Scan s : scans) {
+            if (s.getRetentionTime() < prevRT) {
+                setStatus(TaskStatus.ERROR);
+                final String msg = "Retention time of scan #"
+                        + s.getScanNumber()
+                        + " is smaller then the retention time of the previous scan."
+                        + " Please make sure you only use scans with increasing retention times."
+                        + " You can restrict the scan numbers in the parameters, or you can use the Crop filter module";
+                setErrorMessage(msg);
+                return;
+            }
+            prevRT = s.getRetentionTime();
+        }
 
 	// Create new peak list
 	newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
 	int j;
 	// minimumTimeSpan
-	Scan scan = dataFile.getScan(scanNumbers[0]);
+	Scan scan = scans[0];
 	double minRT = scan.getRetentionTime();
 	double maxRT = scan.getRetentionTime();
 	retentiontime = new double[totalScans];
 	int i;
 	for (i = 0; i < totalScans; i++) {
-	    scan = dataFile.getScan(scanNumbers[i]);
+	    scan = scans[i];
 	    double irt = scan.getRetentionTime();
 	    if (irt < minRT)
 		minRT = irt;
@@ -198,9 +225,9 @@ public class GridMassTask extends AbstractTask {
 	logger.info("Determining intensities (mass sum) per scan on "
 		+ dataFile);
 	for (i = 0; i < totalScans; i++) {
-	    if (i % 100 == 0 && isCanceled())
+	    if (isCanceled())
 		return;
-	    scan = dataFile.getScan(scanNumbers[i]);
+	    scan = scans[i];
 	    IndexedDataPoint mzv[] = data[i]; // scan.getDataPoints();
 	    double prev = (mzv.length > 0 ? mzv[0].datapoint.getMZ() : 0);
 	    double massSum = 0;
@@ -266,7 +293,7 @@ public class GridMassTask extends AbstractTask {
 	    if (i % 100 == 0 && isCanceled())
 		return;
 	    if (scanOk[i]) {
-		scan = dataFile.getScan(scanNumbers[i]);
+		scan = scans[i];
 		IndexedDataPoint mzv[] = data[i];
 		DataPoint mzvOriginal[] = scan.getDataPoints();
 		ArrayList<Datum> dal = new ArrayList<Datum>();
@@ -871,7 +898,7 @@ public class GridMassTask extends AbstractTask {
 		}
 		if (max.intensity > 0) {
 		    adds++;
-		    peak.addMzPeak(scanNumbers[i], new SimpleDataPoint(
+		    peak.addMzPeak(scans[i].getScanNumber(), new SimpleDataPoint(
 			    max.mzOriginal, max.intensityOriginal));
 		}
 	    }
@@ -988,7 +1015,7 @@ public class GridMassTask extends AbstractTask {
 	double sum = 0;
 	double maxValue = 0;
 	for (int i = l; i <= r; i++) {
-	    DataPoint mzs[] = getCachedDataPoints(scanNumbers[i]);
+	    DataPoint mzs[] = getCachedDataPoints(scans[i].getScanNumber());
 	    if (mzs != null) {
 		for (int j = findFirstMass(min, mzs); j < mzs.length; j++) {
 		    double mass = mzs[j].getMZ();
@@ -1061,8 +1088,8 @@ public class GridMassTask extends AbstractTask {
 	    PearsonCorrelation stats, int spotId) {
 	boolean passSpot = false;
 	Spot s = new Spot();
-	if (r >= scanNumbers.length)
-	    r = scanNumbers.length - 1;
+	if (r >= scans.length)
+	    r = scans.length - 1;
 	if (l < 0)
 	    l = 0;
 	for (int i = l; i <= r; i++) {
@@ -1095,7 +1122,7 @@ public class GridMassTask extends AbstractTask {
 		}
 		if (chr != null && mzMax != null) {
 		    // Add ONLY THE MAX INTENSITY PER SCAN
-		    chr.addMzPeak(scanNumbers[i], new SimpleDataPoint(mzMax.mz,
+		    chr.addMzPeak(scans[i].getScanNumber(), new SimpleDataPoint(mzMax.mz,
 			    mzMax.intensity)); // mzMax
 		}
 		if (stats != null && mzMax != null) {
