@@ -19,21 +19,22 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.cropper;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 public class CropFilterParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-    public static final DoubleRangeParameter retentionTimeRange = new DoubleRangeParameter(
-            "Retention time", "retention time boundary of the cropped region",
-            MZmineCore.getConfiguration().getRTFormat());
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
+
+    public static final MZRangeParameter mzRange = new MZRangeParameter("m/z",
+            "m/z boundary of the cropped region");
 
     public static final StringParameter suffix = new StringParameter("Suffix",
             "This string is added to filename as suffix", "filtered");
@@ -43,7 +44,7 @@ public class CropFilterParameters extends SimpleParameterSet {
             "If checked, original file will be removed and only filtered version remains");
 
     public CropFilterParameters() {
-        super(new Parameter[] { dataFiles, retentionTimeRange, suffix,
+        super(new Parameter[] { dataFiles, scanSelection, mzRange, suffix,
                 autoRemove });
     }
 
