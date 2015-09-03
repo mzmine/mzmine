@@ -42,6 +42,36 @@ if exist C:\Windows\System32\wbem\wmic.exe (
   set ADDRESS_WIDTH=32
 )
 
+
+:: Find Java version
+for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "version"') do ( @set JAVA_VERSION=%%~g )
+for /f "tokens=3" %%g in ('java -version 2^>^&1 ^| findstr /i "Java HotSpot(TM)"') do (@set JAVA_BIT_VERSION=%%g)
+if x%JAVA_BIT_VERSION:64-Bit=%==x%JAVA_BIT_VERSION% (Set JAVA_BIT_VERSION=32-Bit)
+echo Java version is %JAVA_VERSION%(%JAVA_BIT_VERSION%)
+
+
+:: Prompt user with error if 32-Bit Java is found on 64-Bit Windows
+if %ADDRESS_WIDTH%==64 if %JAVA_BIT_VERSION%==32-Bit (
+	echo.
+	echo *******************************************************************************
+	echo *******************************************************************************
+	echo.
+	echo Warning: You have installed a 32-Bit version of Java on a 64-Bit Windows.
+	echo We suggest that you uninstall all Java versions and install the latest 64-Bit
+	echo version instead. If you want to continue running MZmine, the software will only
+	echo be able to access 1GB of memory.
+	echo.
+	echo Please press any button to continue.
+	echo.
+	echo *******************************************************************************
+	echo *******************************************************************************
+	echo.
+	pause > tempFile
+	del tempFile
+	set HEAP_SIZE=1024
+)
+
+
 :: By default we set the maximum HEAP_SIZE to 1024 MB on 32-bit systems. On 64-bit systems we 
 :: either set it to half of the total memory or 2048 MB less than the total memory.
 if %HEAP_SIZE%==AUTO (
@@ -56,7 +86,7 @@ if %HEAP_SIZE%==AUTO (
   )
 )
 echo Java maximum heap size set to %HEAP_SIZE% MB
-
+echo.
 
 
 :: *************************************************
@@ -79,7 +109,7 @@ mkdir %TMP_FILE_DIRECTORY%
 :: Java specific commands
 :: **********************
 
-set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms1024m -Xmx%HEAP_SIZE%m
+set JAVA_PARAMETERS=-classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms1024m -Xmx%HEAP_SIZE%m
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 :: Starts the Java Virtual Machine
