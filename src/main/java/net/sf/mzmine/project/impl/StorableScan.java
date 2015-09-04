@@ -416,7 +416,7 @@ public class StorableScan implements Scan {
     }
 
     @Override
-    public PolarityType getPolarity() {
+    public @Nonnull PolarityType getPolarity() {
 	if (polarity == null)
 	    polarity = PolarityType.UNKNOWN;
 	return polarity;
@@ -430,7 +430,7 @@ public class StorableScan implements Scan {
     }
 
     @Override
-    public Range<Double> getScanningMZRange() {
+    public @Nonnull Range<Double> getScanningMZRange() {
 	if (scanMZRange == null)
 	    scanMZRange = getDataPointMZRange();
 	return scanMZRange;
