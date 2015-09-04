@@ -197,7 +197,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
                     .getModuleParameters(OrderDataFilesModule.class);
             params.getParameter(OrderDataFilesParameters.dataFiles).setValue(
                     RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
-            module.runModule(null, params, null);
+            module.runModule(MZmineCore.getProjectManager().getCurrentProject(), params, new ArrayList<Task>());
             // restore selection
             tree.setSelectionPaths(savedSelection);
         }
@@ -321,7 +321,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
             params.getParameter(OrderPeakListsParameters.peakLists)
                     .setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS,
                             selectedPeakLists);
-            module.runModule(null, params, null);
+            module.runModule(MZmineCore.getProjectManager().getCurrentProject(), params, new ArrayList<Task>());
             // restore selection
             tree.setSelectionPaths(savedSelection);
         }
