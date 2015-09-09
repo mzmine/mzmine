@@ -41,6 +41,7 @@
  PRECURSOR: double int
  MASS VALUES: int x int BYTES
  INTENSITY VALUES: int x int BYTES
+ END OF SCAN
 
  notes:
  RT is in minutes
@@ -77,9 +78,19 @@ const int DEBUG = false;
 int main(int argc, char* argv[])
 {
 
+	// Set locale to C, otherwise we might get decimal commas instead of decimal points at some locales
+	setlocale(LC_ALL, "C");
+
 	// Disable output buffering and set output to binary mode, otherwise cout would automatically translate \n to \r\n
 	setvbuf(stdout, 0, _IONBF, 0);
-	_setmode(fileno(stdout), _O_BINARY);
+	_setmode(_fileno(stdout), _O_BINARY);
+
+	// Prepare vectors 
+	vector<ExtendedStatsType> extStatsTypes;
+	vector<double> precursorValues;
+	vector<MSScanStats> stats;
+	vector<float> masses;
+	vector<float> intensities;
 
 	try {
 
@@ -103,11 +114,6 @@ int main(int argc, char* argv[])
 		MassLynxRawScanReader RSR(RR);
 		MassLynxRawScanStatsReader RSSR(RR);
 
-		vector<ExtendedStatsType> extStatsTypes;
-		vector<MSScanStats> stats;
-		vector<float> masses;
-		vector<float> intensities;
-
 		// Get number of functions in the file
 		int nFuncs = RI.GetFunctionCount();
 		
@@ -125,45 +131,12 @@ int main(int argc, char* argv[])
 				cout << "DEBUG: " << extStatsTypes.size() << " extended stats fields:\n";
 
 				for (int i = 0; i < extStatsTypes.size(); ++i) {
-					vector<char>   char_values;
-					vector<short>  short_values;
-					vector<int>    long_values;
-					vector<float>  float_values;
-					vector<double> double_values;
-					int nScan = 10;
-					switch (extStatsTypes[i].typeCode)
-					{
-					case CHAR:
-						RSSR.getExtendedStatsField<char>(func, extStatsTypes[i], char_values);
-						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << char_values[nScan] << "\n";
-						break;
-					case SHORT_INT:
-						RSSR.getExtendedStatsField<short>(func, extStatsTypes[i], short_values);
-						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << short_values[nScan] << "\n";
-						break;
-					case LONG_INT:
-						RSSR.getExtendedStatsField<int>(func, extStatsTypes[i], long_values);
-						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << long_values[nScan] << "\n";
-						break;
-					case SINGLE_FLOAT:
-						RSSR.getExtendedStatsField<float>(func, extStatsTypes[i], float_values);
-						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << float_values[nScan] << "\n";
-						break;
-					case DOUBLE_FLOAT:
-						RSSR.getExtendedStatsField<double>(func, extStatsTypes[i], double_values);
-						cout << "   Scan " << nScan << " has " << extStatsTypes[i].name << " = " << double_values[nScan] << "\n";
-						break;
-					default:
-						break;
-					}
+					cout << (i + 1) << " " << extStatsTypes[i].name << " type " << extStatsTypes[i].typeCode << "\n";
 				}
 
 			}
 
-			getchar();
-
 		}
-
 		
 		// Calculate total number of scans
 		long totalNumScans = 0;
@@ -177,13 +150,13 @@ int main(int argc, char* argv[])
 		for (int func = 0; func < nFuncs; func++) {
 
 			const int nScans = RI.GetScansInFunction(func);
-
-			// If there are no scans, skip this functino (otherwise, RSSR.readScanStats() would thrown an exception)
+			
+			// If there are no scans, skip this function (otherwise, RSSR.readScanStats() would thrown an exception)
 			if (nScans == 0) continue;
-
+			
 			// Get details about scans
 			RSSR.getExtendedStatsTypes(func, extStatsTypes);
-
+			
 			// Obtain precursor data
 			ExtendedStatsType setMassType;
 			for (int i = 0; i < extStatsTypes.size(); i++)
@@ -193,7 +166,10 @@ int main(int argc, char* argv[])
 					break;
 				}
 			}
-			vector<double> precursorValues;
+
+			// For some reason, the getExtrendedStatsField function requires the vector to reserve the memory
+			// in advance, otherwise the program will crash due to buffer overflow
+			precursorValues.reserve(nScans);
 			RSSR.getExtendedStatsField(func, setMassType, precursorValues);
 
 			// Get type of function
@@ -242,9 +218,12 @@ int main(int argc, char* argv[])
 			RI.GetAcquisitionMassRange(func, mzRangeLow, mzRangeHigh);
 
 			// Scan stats contain retention times and numbers of data points
+			stats.reserve(nScans);
 			RSSR.readScanStats(func, stats);
 
 			for (int scanIndex = 0; scanIndex < nScans; scanIndex++) {
+
+				cout << "START SCAN\n";
 
 				cout << "SCAN NUMBER: " << curScanNum << "\n";
 				curScanNum++;
@@ -260,16 +239,28 @@ int main(int argc, char* argv[])
 				cout << "RETENTION TIME: " << stats[scanIndex].rt << "\n";
 
 				cout << "MZ RANGE: " << mzRangeLow << " - " << mzRangeHigh << "\n";
-
+				
+				// Read the spectrum data
+				masses.reserve(stats[scanIndex].peaksInScan);
+				intensities.reserve(stats[scanIndex].peaksInScan);
 				RSR.readSpectrum(func, scanIndex, masses, intensities);
 
-				cout << "MASS VALUES: " << stats[scanIndex].peaksInScan << " x " << sizeof(masses[0]) << " BYTES\n";
+				// Note: the size of masses & intensities array should be the same as stats[scanIndex].peaksInScan, 
+				// but for some Waters files it is actually different (maybe the peaksInScan value is stored incorrectly?). 
+				// It is essential to ignore the peaksInScan value and report the length using masses.size() 
 
-				if (!DEBUG) fwrite(&masses[0], sizeof(masses[0]), stats[scanIndex].peaksInScan, stdout);
+				cout << "MASS VALUES: " << masses.size() << " x " << sizeof(masses[0]) << " BYTES\n";
 
-				cout << "INTENSITY VALUES: " << stats[scanIndex].peaksInScan << " x " << sizeof(intensities[0]) << " BYTES\n";
+				if (!DEBUG) 
+					fwrite(&masses[0], sizeof(masses[0]), masses.size(), stdout);
+				
 
-				if (!DEBUG) fwrite(&intensities[0], sizeof(intensities[0]), stats[scanIndex].peaksInScan, stdout);
+				cout << "INTENSITY VALUES: " << intensities.size() << " x " << sizeof(intensities[0]) << " BYTES\n";
+
+				if (!DEBUG) 
+					fwrite(&intensities[0], sizeof(intensities[0]), masses.size(), stdout);
+				
+				cout << "END OF SCAN\n";
 
 			}
 

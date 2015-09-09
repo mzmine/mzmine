@@ -62,6 +62,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using MSFileReaderLib;
+using System.Threading;
+using System.Globalization;
 
 namespace ThermoRawDump
 {
@@ -72,6 +74,9 @@ namespace ThermoRawDump
 
             try
             {
+                // It is essential to change the system locale to en-US, otherwise at some locales 
+                // numbers might come out with decimal comma instead of decimal point
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
                 if (args.Length != 1)
                 {
@@ -228,7 +233,7 @@ namespace ThermoRawDump
                     Buffer.BlockCopy((Array)rawData, numOfBytes, byteBuffer, 0, numOfBytes);
                     stdout.Write(byteBuffer, 0, numOfBytes);
 
-
+                    Console.Write("END OF SCAN\n");
                 }
 
                 rawFile.Close();
