@@ -109,7 +109,7 @@ mkdir %TMP_FILE_DIRECTORY%
 :: Java specific commands
 :: **********************
 
-set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms1024m -Xmx%HEAP_SIZE%m
+set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseG1GC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms1024m -Xmx%HEAP_SIZE%m
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 :: Starts the Java Virtual Machine
