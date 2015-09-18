@@ -19,14 +19,12 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import javax.swing.BorderFactory;
+import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
 public class ComboComponent<ValueType> extends JPanel {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private final JComboBox<ValueType> comboBox;
@@ -34,7 +32,7 @@ public class ComboComponent<ValueType> extends JPanel {
     public ComboComponent(ValueType choices[]) {
         setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
         comboBox = new JComboBox<ValueType>(choices);
-    	add(comboBox);
+        add(comboBox);
     }
 
     @Override
@@ -52,5 +50,9 @@ public class ComboComponent<ValueType> extends JPanel {
 
     public void setSelectedItem(ValueType newValue) {
         comboBox.setSelectedItem(newValue);
+    }
+
+    public void setModel(ComboBoxModel<ValueType> model) {
+        comboBox.setModel(model);
     }
 }
