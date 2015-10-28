@@ -92,10 +92,15 @@ public class GoogleAnalyticsTracker implements Runnable {
 		    }
 		    else if (System.getProperty("os.name").toLowerCase().contains("macintosh")) {
 			userAgent = "Mozilla/5.0 (Mozilla/5.0 (Macintosh)";
-		    }
-		    else if (System.getProperty("os.name").toLowerCase().contains("linux")) {
+                    } else if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+                    userAgent = "Mozilla/5.0 (Macintosh; Intel " + System.getProperty("os.name") + " "
+                                    + System.getProperty("os.version").replace(".", "_") + ")";
+                    } else if (System.getProperty("os.name").toLowerCase().contains("linux")) {
 			userAgent = "Mozilla/5.0 (Mozilla/5.0 (Linux)";
-		    }
+                    } else {
+                            userAgent = "Mozilla/5.0 (" + System.getProperty("os.name") + " "
+                                            + System.getProperty("os.version") + ")";
+                    }
 		}
 	    }
 
