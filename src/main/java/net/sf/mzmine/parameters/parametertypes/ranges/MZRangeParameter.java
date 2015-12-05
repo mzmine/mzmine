@@ -19,11 +19,14 @@
 
 package net.sf.mzmine.parameters.parametertypes.ranges;
 
-
 public class MZRangeParameter extends DoubleRangeParameter {
 
     public MZRangeParameter() {
         super("m/z", "m/z range", null, true, null);
+    }
+
+    public MZRangeParameter(boolean valueRequired) {
+        super("m/z", "m/z range", null, valueRequired, null);
     }
 
     public MZRangeParameter(String name, String description) {
