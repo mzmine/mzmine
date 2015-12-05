@@ -32,8 +32,8 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.base.Strings;
 
-public class RawDataFilesParameter implements
-        UserParameter<RawDataFilesSelection, RawDataFilesComponent> {
+public class RawDataFilesParameter
+        implements UserParameter<RawDataFilesSelection, RawDataFilesComponent> {
 
     private int minCount, maxCount;
 
@@ -41,6 +41,11 @@ public class RawDataFilesParameter implements
 
     public RawDataFilesParameter() {
         this(1, Integer.MAX_VALUE);
+    }
+
+    public RawDataFilesParameter(RawDataFilesSelection value) {
+        this(1, Integer.MAX_VALUE);
+        this.value = value;
     }
 
     public RawDataFilesParameter(int minCount) {
@@ -109,8 +114,8 @@ public class RawDataFilesParameter implements
             return false;
         }
         if (matchingFiles.length > maxCount) {
-            errorMessages.add("Maximum " + maxCount
-                    + " raw data files may be selected");
+            errorMessages.add(
+                    "Maximum " + maxCount + " raw data files may be selected");
             return false;
         }
         return true;
@@ -128,8 +133,8 @@ public class RawDataFilesParameter implements
         if (Strings.isNullOrEmpty(attrValue))
             selectionType = RawDataFilesSelectionType.GUI_SELECTED_FILES;
         else
-            selectionType = RawDataFilesSelectionType.valueOf(xmlElement
-                    .getAttribute("type"));
+            selectionType = RawDataFilesSelectionType
+                    .valueOf(xmlElement.getAttribute("type"));
 
         ArrayList<Object> newValues = new ArrayList<Object>();
 

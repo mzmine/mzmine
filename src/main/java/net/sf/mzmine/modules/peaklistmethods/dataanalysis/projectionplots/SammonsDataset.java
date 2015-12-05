@@ -37,12 +37,9 @@ import net.sf.mzmine.util.PeakMeasurementType;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
-public class SammonsDataset extends AbstractXYDataset implements
-        ProjectionPlotDataset {
+public class SammonsDataset extends AbstractXYDataset
+        implements ProjectionPlotDataset {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -77,17 +74,20 @@ public class SammonsDataset extends AbstractXYDataset implements
                 .getParameter(ProjectionPlotParameters.peakLists).getValue()
                 .getMatchingPeakLists()[0];
         this.parameters = parameters;
-        this.xAxisDimension = parameters.getParameter(
-                ProjectionPlotParameters.xAxisComponent).getValue();
-        this.yAxisDimension = parameters.getParameter(
-                ProjectionPlotParameters.yAxisComponent).getValue();
-
-        coloringType = parameters.getParameter(
-                ProjectionPlotParameters.coloringType).getValue();
-        selectedRawDataFiles = parameters.getParameter(
-                ProjectionPlotParameters.dataFiles).getValue();
-        selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
+        this.xAxisDimension = parameters
+                .getParameter(ProjectionPlotParameters.xAxisComponent)
                 .getValue();
+        this.yAxisDimension = parameters
+                .getParameter(ProjectionPlotParameters.yAxisComponent)
+                .getValue();
+
+        coloringType = parameters
+                .getParameter(ProjectionPlotParameters.coloringType).getValue();
+        selectedRawDataFiles = parameters
+                .getParameter(ProjectionPlotParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
+        selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
+                .getMatchingRows(peakList);
 
         datasetTitle = "Sammon's projection";
 
@@ -115,15 +115,15 @@ public class SammonsDataset extends AbstractXYDataset implements
             Vector<Object> availableParameterValues = new Vector<Object>();
             UserParameter<?, ?> selectedParameter = coloringType.getParameter();
             for (RawDataFile rawDataFile : selectedRawDataFiles) {
-                Object paramValue = project.getParameterValue(
-                        selectedParameter, rawDataFile);
+                Object paramValue = project.getParameterValue(selectedParameter,
+                        rawDataFile);
                 if (!availableParameterValues.contains(paramValue))
                     availableParameterValues.add(paramValue);
             }
 
             for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
-                Object paramValue = project.getParameterValue(
-                        selectedParameter, selectedRawDataFiles[ind]);
+                Object paramValue = project.getParameterValue(selectedParameter,
+                        selectedRawDataFiles[ind]);
                 groupsForSelectedRawDataFiles[ind] = availableParameterValues
                         .indexOf(paramValue);
             }
@@ -210,8 +210,9 @@ public class SammonsDataset extends AbstractXYDataset implements
 
         // Generate matrix of raw data (input to Sammon's projection)
         boolean useArea = false;
-        if (parameters.getParameter(
-                ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA)
+        if (parameters
+                .getParameter(ProjectionPlotParameters.peakMeasurementType)
+                .getValue() == PeakMeasurementType.AREA)
             useArea = true;
 
         double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
@@ -252,8 +253,8 @@ public class SammonsDataset extends AbstractXYDataset implements
         component1Coords = result[xAxisDimension - 1];
         component2Coords = result[yAxisDimension - 1];
 
-        ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
-                this, parameters);
+        ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList, this,
+                parameters);
         newFrame.setVisible(true);
 
         setStatus(TaskStatus.FINISHED);

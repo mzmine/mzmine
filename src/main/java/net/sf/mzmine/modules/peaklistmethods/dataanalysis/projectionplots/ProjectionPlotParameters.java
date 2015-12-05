@@ -19,25 +19,22 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
-import java.awt.Window;
-
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import net.sf.mzmine.util.PeakMeasurementType;
 
 public class ProjectionPlotParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-    public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
-            "Data files", "Samples", new RawDataFile[0]);
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
+            new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
 
     public static final ColoringTypeParameter coloringType = new ColoringTypeParameter();
 
@@ -55,41 +52,12 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
             "Y-axis component", "Component on the Y-axis",
             componentPossibleValues, componentPossibleValues[1]);
 
-    public static final MultiChoiceParameter<PeakListRow> rows = new MultiChoiceParameter<PeakListRow>(
-            "Peak list rows", "Peak list rows to include in calculation",
-            new PeakListRow[0]);
+    public static final PeakSelectionParameter rows = new PeakSelectionParameter(
+            "Peak list rows", "Peak list rows to include in calculation", null);
 
     public ProjectionPlotParameters() {
         super(new Parameter[] { peakLists, dataFiles, rows, coloringType,
                 peakMeasurementType, xAxisComponent, yAxisComponent });
-    }
-
-    @Override
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-        PeakList selectedPeakList[] = getParameter(peakLists).getValue()
-                .getMatchingPeakLists();
-
-        RawDataFile dataFileChoices[];
-
-        if ((selectedPeakList != null) && (selectedPeakList.length == 1)) {
-            dataFileChoices = selectedPeakList[0].getRawDataFiles();
-        } else {
-            dataFileChoices = new RawDataFile[0];
-        }
-
-        PeakListRow rowChoices[];
-        if ((selectedPeakList != null) && (selectedPeakList.length == 1)) {
-            rowChoices = selectedPeakList[0].getRows();
-        } else {
-            rowChoices = new PeakListRow[0];
-        }
-
-        getParameter(ProjectionPlotParameters.dataFiles).setChoices(
-                dataFileChoices);
-        getParameter(ProjectionPlotParameters.rows).setChoices(rowChoices);
-
-        return super.showSetupDialog(parent, valueCheckRequired);
     }
 
 }

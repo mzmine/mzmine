@@ -40,9 +40,6 @@ import net.sf.mzmine.util.PeakMeasurementType;
 public class PCADataset extends AbstractXYDataset
         implements ProjectionPlotDataset {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -89,9 +86,10 @@ public class PCADataset extends AbstractXYDataset
                 .getParameter(ProjectionPlotParameters.coloringType).getValue();
 
         selectedRawDataFiles = parameters
-                .getParameter(ProjectionPlotParameters.dataFiles).getValue();
+                .getParameter(ProjectionPlotParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
         selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
-                .getValue();
+                .getMatchingRows(peakList);
 
         datasetTitle = "Principal component analysis";
 

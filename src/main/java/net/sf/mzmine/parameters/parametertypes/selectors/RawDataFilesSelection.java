@@ -29,10 +29,18 @@ import net.sf.mzmine.util.TextUtils;
 
 public class RawDataFilesSelection implements Cloneable {
 
-    private RawDataFilesSelectionType selectionType = RawDataFilesSelectionType.GUI_SELECTED_FILES;
+    private RawDataFilesSelectionType selectionType;
     private RawDataFile specificFiles[];
     private String namePattern;
     private RawDataFile batchLastFiles[];
+
+    public RawDataFilesSelection() {
+        this(RawDataFilesSelectionType.GUI_SELECTED_FILES);
+    }
+
+    public RawDataFilesSelection(RawDataFilesSelectionType selectionType) {
+        this.selectionType = selectionType;
+    }
 
     public RawDataFile[] getMatchingRawDataFiles() {
 
