@@ -51,7 +51,7 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
 
     private final DefaultListModel<PeakSelection> selectionListModel;
     private final JList<PeakSelection> selectionList;
-    private final JButton addButton, removeButton;
+    private final JButton addButton, removeButton, allButton;
 
     public PeakSelectionComponent() {
 
@@ -66,6 +66,8 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         addButton = GUIUtils.addButton(buttonPanel, "Add", null, this);
         removeButton = GUIUtils.addButton(buttonPanel, "Remove", null, this);
+        allButton = GUIUtils.addButton(buttonPanel, "Set all", null, this);
+
         add(buttonPanel, BorderLayout.EAST);
     }
 
@@ -104,10 +106,18 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
                         .getValue();
                 Range<Double> rtRange = paramSet.getParameter(rtParameter)
                         .getValue();
+                if ((idRange == null) && (mzRange == null) && (rtRange == null))
+                    return;
                 PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange);
                 selectionListModel.addElement(ps);
             }
+        }
 
+        if (src == allButton) {
+            Range<Integer> idRange = Range.closed(1, Integer.MAX_VALUE);
+            PeakSelection ps = new PeakSelection(idRange, null, null);
+            selectionListModel.clear();
+            selectionListModel.addElement(ps);
         }
 
         if (src == removeButton) {

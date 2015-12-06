@@ -81,6 +81,10 @@ public class PeakSelectionParameter
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
+        if ((value == null) || (value.size() == 0)) {
+            errorMessages.add("No peaks selected");
+            return false;
+        }
         return true;
     }
 

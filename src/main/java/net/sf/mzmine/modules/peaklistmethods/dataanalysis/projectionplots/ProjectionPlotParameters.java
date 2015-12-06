@@ -19,10 +19,16 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -53,7 +59,9 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
             componentPossibleValues, componentPossibleValues[1]);
 
     public static final PeakSelectionParameter rows = new PeakSelectionParameter(
-            "Peak list rows", "Peak list rows to include in calculation", null);
+            "Peak list rows", "Peak list rows to include in calculation",
+            Arrays.asList(new PeakSelection[] { new PeakSelection(
+                    Range.closed(1, Integer.MAX_VALUE), null, null) }));
 
     public ProjectionPlotParameters() {
         super(new Parameter[] { peakLists, dataFiles, rows, coloringType,
