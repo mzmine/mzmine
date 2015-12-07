@@ -75,7 +75,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 		StandardCompoundNormalizerParameters.autoRemove).getValue();
 	standardRows = parameters.getParameter(
 		StandardCompoundNormalizerParameters.standardCompounds)
-		.getValue();
+		.getMatchingRows(peakList);
 
     }
 

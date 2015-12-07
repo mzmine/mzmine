@@ -78,8 +78,6 @@ public class IntensityPlotModule implements MZmineRunnableModule {
         parameters.getParameter(IntensityPlotParameters.dataFiles).setValue(
                 peakList.getRawDataFiles());
 
-        parameters.getParameter(IntensityPlotParameters.selectedRows)
-                .setChoices(rows);
         parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(
                 rows);
 
@@ -94,8 +92,7 @@ public class IntensityPlotModule implements MZmineRunnableModule {
         parameters.getParameter(IntensityPlotParameters.xAxisValueSource)
                 .setChoices(xAxisSources);
 
-        ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
-                .getMainWindow(), true);
+        ExitCode exitCode = parameters.showSetupDialog(null, true);
 
         if (exitCode == ExitCode.OK) {
             IntensityPlotWindow newFrame = new IntensityPlotWindow(

@@ -30,6 +30,7 @@ import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.util.XMLUtils;
 
 public class ScanSelectionParameter
         implements UserParameter<ScanSelection, ScanSelectionComponent> {
@@ -94,31 +95,11 @@ public class ScanSelectionParameter
         Integer msLevel = null;
         String scanDefinition = null;
 
-        NodeList items = xmlElement.getElementsByTagName("scan_numbers");
-        for (int i = 0; i < items.getLength(); i++) {
-            if (items.item(i).getChildNodes().getLength() != 2)
-                continue;
-            String minText = items.item(i).getChildNodes().item(0)
-                    .getTextContent();
-            String maxText = items.item(i).getChildNodes().item(1)
-                    .getTextContent();
-            scanNumberRange = Range.closed(Integer.valueOf(minText),
-                    Integer.valueOf(maxText));
-        }
+        scanNumberRange = XMLUtils.parseIntegerRange(xmlElement,
+                "scan_numbers");
+        scanRTRange = XMLUtils.parseDoubleRange(xmlElement, "retention_time");
 
-        items = xmlElement.getElementsByTagName("retention_time");
-        for (int i = 0; i < items.getLength(); i++) {
-            if (items.item(i).getChildNodes().getLength() != 2)
-                continue;
-            String minText = items.item(i).getChildNodes().item(0)
-                    .getTextContent();
-            String maxText = items.item(i).getChildNodes().item(1)
-                    .getTextContent();
-            scanRTRange = Range.closed(Double.valueOf(minText),
-                    Double.valueOf(maxText));
-        }
-
-        items = xmlElement.getElementsByTagName("ms_level");
+        NodeList items = xmlElement.getElementsByTagName("ms_level");
         for (int i = 0; i < items.getLength(); i++) {
             msLevel = Integer.valueOf(items.item(i).getTextContent());
         }
@@ -161,33 +142,9 @@ public class ScanSelectionParameter
         final Integer msLevel = value.getMsLevel();
         final String scanDefinition = value.getScanDefinition();
 
-        if (scanNumberRange != null) {
-            Element scanNumElement = parentDocument
-                    .createElement("scan_numbers");
-            xmlElement.appendChild(scanNumElement);
-            Element newElement = parentDocument.createElement("min");
-            newElement.setTextContent(
-                    String.valueOf(scanNumberRange.lowerEndpoint()));
-            scanNumElement.appendChild(newElement);
-            newElement = parentDocument.createElement("max");
-            newElement.setTextContent(
-                    String.valueOf(scanNumberRange.upperEndpoint()));
-            scanNumElement.appendChild(newElement);
-        }
-
-        if (scanRetentionTimeRange != null) {
-            Element scanRtElement = parentDocument
-                    .createElement("retention_time");
-            xmlElement.appendChild(scanRtElement);
-            Element newElement = parentDocument.createElement("min");
-            newElement.setTextContent(
-                    String.valueOf(scanRetentionTimeRange.lowerEndpoint()));
-            scanRtElement.appendChild(newElement);
-            newElement = parentDocument.createElement("max");
-            newElement.setTextContent(
-                    String.valueOf(scanRetentionTimeRange.upperEndpoint()));
-            scanRtElement.appendChild(newElement);
-        }
+        XMLUtils.appendRange(xmlElement, "scan_numbers", scanNumberRange);
+        XMLUtils.appendRange(xmlElement, "retention_time",
+                scanRetentionTimeRange);
 
         if (polarity != null) {
             Element newElement = parentDocument.createElement("polarity");

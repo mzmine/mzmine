@@ -31,13 +31,12 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-/**
- */
 public class IntensityPlotParameters extends SimpleParameterSet {
 
     public static final String rawDataFilesOption = "Raw data file";
@@ -49,13 +48,14 @@ public class IntensityPlotParameters extends SimpleParameterSet {
             "Raw data files", "Raw data files to display", new RawDataFile[0]);
 
     public static final ComboParameter<Object> xAxisValueSource = new ComboParameter<Object>(
-            "X axis value", "X axis value", new Object[] { rawDataFilesOption });
+            "X axis value", "X axis value",
+            new Object[] { rawDataFilesOption });
 
     public static final ComboParameter<YAxisValueSource> yAxisValueSource = new ComboParameter<YAxisValueSource>(
             "Y axis value", "Y axis value", YAxisValueSource.values());
 
-    public static final MultiChoiceParameter<PeakListRow> selectedRows = new MultiChoiceParameter<PeakListRow>(
-            "Peak list rows", "Select peaks to display", new PeakListRow[0]);
+    public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
+
     /**
      * Windows size and position
      */
@@ -78,8 +78,6 @@ public class IntensityPlotParameters extends SimpleParameterSet {
 
         getParameter(dataFiles).setChoices(plDataFiles);
         getParameter(dataFiles).setValue(plDataFiles);
-
-        getParameter(selectedRows).setChoices(plRows);
 
         return super.showSetupDialog(parent, valueCheckRequired);
     }
