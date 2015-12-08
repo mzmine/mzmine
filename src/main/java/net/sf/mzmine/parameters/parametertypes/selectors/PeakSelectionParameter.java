@@ -99,7 +99,9 @@ public class PeakSelectionParameter
                     "id");
             Range<Double> mzRange = XMLUtils.parseDoubleRange(selElement, "mz");
             Range<Double> rtRange = XMLUtils.parseDoubleRange(selElement, "rt");
-            PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange);
+            String name = XMLUtils.parseString(selElement, "name");
+            PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange,
+                    name);
             newValue.add(ps);
         }
         this.value = newValue;
@@ -112,11 +114,12 @@ public class PeakSelectionParameter
         Document parentDocument = xmlElement.getOwnerDocument();
 
         for (PeakSelection ps : value) {
-            Element sel = parentDocument.createElement("selection");
-            xmlElement.appendChild(sel);
-            XMLUtils.appendRange(xmlElement, "id", ps.getIDRange());
-            XMLUtils.appendRange(xmlElement, "mz", ps.getMZRange());
-            XMLUtils.appendRange(xmlElement, "rt", ps.getRTRange());
+            Element selElement = parentDocument.createElement("selection");
+            xmlElement.appendChild(selElement);
+            XMLUtils.appendRange(selElement, "id", ps.getIDRange());
+            XMLUtils.appendRange(selElement, "mz", ps.getMZRange());
+            XMLUtils.appendRange(selElement, "rt", ps.getRTRange());
+            XMLUtils.appendString(selElement, "name", ps.getName());
         }
 
     }
@@ -146,7 +149,8 @@ public class PeakSelectionParameter
             Range<Integer> idRange = Range.singleton(row.getID());
             Range<Double> mzRange = Range.singleton(row.getAverageMZ());
             Range<Double> rtRange = Range.singleton(row.getAverageRT());
-            PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange);
+            PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange,
+                    null);
             newValue.add(ps);
         }
         setValue(newValue);

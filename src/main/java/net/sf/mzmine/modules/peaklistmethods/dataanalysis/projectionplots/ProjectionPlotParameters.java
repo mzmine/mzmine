@@ -19,10 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-
-import com.google.common.collect.Range;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -60,8 +57,8 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
 
     public static final PeakSelectionParameter rows = new PeakSelectionParameter(
             "Peak list rows", "Peak list rows to include in calculation",
-            Arrays.asList(new PeakSelection[] { new PeakSelection(
-                    Range.closed(1, Integer.MAX_VALUE), null, null) }));
+            Arrays.asList(new PeakSelection[] {
+                    new PeakSelection(null, null, null, null) }));
 
     public ProjectionPlotParameters() {
         super(new Parameter[] { peakLists, dataFiles, rows, coloringType,

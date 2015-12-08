@@ -23,10 +23,10 @@ import java.text.NumberFormat;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.main.MZmineConfiguration;
 import net.sf.mzmine.main.MZmineCore;
 
 @Immutable
@@ -34,12 +34,14 @@ public class PeakSelection {
 
     private final Range<Integer> idRange;
     private final Range<Double> mzRange, rtRange;
+    private final String name;
 
     public PeakSelection(Range<Integer> idRange, Range<Double> mzRange,
-            Range<Double> rtRange) {
+            Range<Double> rtRange, String name) {
         this.idRange = idRange;
         this.mzRange = mzRange;
         this.rtRange = rtRange;
+        this.name = name;
     }
 
     public Range<Integer> getIDRange() {
@@ -54,8 +56,15 @@ public class PeakSelection {
         return rtRange;
     }
 
+    public String getName() {
+        return name;
+    }
+
     @Override
     public String toString() {
+        if (idRange == null && mzRange == null && rtRange == null
+                && Strings.isNullOrEmpty(name))
+            return "All";
         StringBuilder sb = new StringBuilder();
         if (idRange != null) {
             if (sb.length() > 0)
@@ -93,6 +102,12 @@ public class PeakSelection {
             }
             sb.append(" min");
         }
+        if (!Strings.isNullOrEmpty(name)) {
+            if (sb.length() > 0)
+                sb.append(", ");
+            sb.append("name: ");
+            sb.append(name);
+        }
         return sb.toString();
     }
 
@@ -105,6 +120,16 @@ public class PeakSelection {
 
         if ((rtRange != null) && (!rtRange.contains(row.getAverageRT())))
             return false;
+
+        if (!Strings.isNullOrEmpty(name)) {
+            if ((row.getPreferredPeakIdentity() == null)
+                    || (row.getPreferredPeakIdentity().getName() == null))
+                return false;
+            if (!row.getPreferredPeakIdentity().getName().toLowerCase()
+                    .contains(name.toLowerCase()))
+                return false;
+        }
+
         return true;
 
     }

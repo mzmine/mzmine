@@ -71,13 +71,14 @@ public class IntensityPlotParameters extends SimpleParameterSet {
 
         PeakList selectedPeakLists[] = getParameter(peakList).getValue()
                 .getMatchingPeakLists();
-        RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
-        PeakListRow plRows[] = selectedPeakLists[0].getRows();
-        Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ,
-                SortingDirection.Ascending));
-
-        getParameter(dataFiles).setChoices(plDataFiles);
-        getParameter(dataFiles).setValue(plDataFiles);
+        if (selectedPeakLists.length > 0) {
+            RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
+            PeakListRow plRows[] = selectedPeakLists[0].getRows();
+            Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ,
+                    SortingDirection.Ascending));
+            getParameter(dataFiles).setChoices(plDataFiles);
+            getParameter(dataFiles).setValue(plDataFiles);
+        }
 
         return super.showSetupDialog(parent, valueCheckRequired);
     }
