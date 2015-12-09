@@ -33,35 +33,45 @@ public class XMLUtils {
     public static Range<Integer> parseIntegerRange(Element xmlElement,
             String tagName) {
         NodeList items = xmlElement.getElementsByTagName(tagName);
-        for (int i = 0; i < items.getLength(); i++) {
-            if (items.item(i).getChildNodes().getLength() != 2)
-                continue;
-            String minText = items.item(i).getChildNodes().item(0)
-                    .getTextContent();
-            String maxText = items.item(i).getChildNodes().item(1)
-                    .getTextContent();
-            Range<Integer> r = Range.closed(Integer.valueOf(minText),
-                    Integer.valueOf(maxText));
-            return r;
-        }
-        return null;
+        if (items.getLength() == 0)
+            return null;
+        Element tag = (Element) items.item(0);
+        items = tag.getElementsByTagName("min");
+        if (items.getLength() == 0)
+            return null;
+        Element min = (Element) items.item(0);
+        items = tag.getElementsByTagName("max");
+        if (items.getLength() == 0)
+            return null;
+        Element max = (Element) items.item(0);
+
+        String minText = min.getTextContent();
+        String maxText = max.getTextContent();
+        Range<Integer> r = Range.closed(Integer.valueOf(minText),
+                Integer.valueOf(maxText));
+        return r;
     }
 
     public static Range<Double> parseDoubleRange(Element xmlElement,
             String tagName) {
         NodeList items = xmlElement.getElementsByTagName(tagName);
-        for (int i = 0; i < items.getLength(); i++) {
-            if (items.item(i).getChildNodes().getLength() != 2)
-                continue;
-            String minText = items.item(i).getChildNodes().item(0)
-                    .getTextContent();
-            String maxText = items.item(i).getChildNodes().item(1)
-                    .getTextContent();
-            Range<Double> r = Range.closed(Double.valueOf(minText),
-                    Double.valueOf(maxText));
-            return r;
-        }
-        return null;
+        if (items.getLength() == 0)
+            return null;
+        Element tag = (Element) items.item(0);
+        items = tag.getElementsByTagName("min");
+        if (items.getLength() == 0)
+            return null;
+        Element min = (Element) items.item(0);
+        items = tag.getElementsByTagName("max");
+        if (items.getLength() == 0)
+            return null;
+        Element max = (Element) items.item(0);
+
+        String minText = min.getTextContent();
+        String maxText = max.getTextContent();
+        Range<Double> r = Range.closed(Double.valueOf(minText),
+                Double.valueOf(maxText));
+        return r;
     }
 
     public static void appendRange(Element xmlElement, String tagName,
@@ -78,5 +88,22 @@ public class XMLUtils {
         newElement.appendChild(maxElement);
         xmlElement.appendChild(newElement);
 
+    }
+
+    public static void appendString(Element xmlElement, String tagName,
+            String value) {
+        if (value == null)
+            return;
+        Document parentDocument = xmlElement.getOwnerDocument();
+        Element newElement = parentDocument.createElement(tagName);
+        newElement.setTextContent(value);
+    }
+
+    public static String parseString(Element xmlElement, String tagName) {
+        NodeList items = xmlElement.getElementsByTagName(tagName);
+        if (items.getLength() == 0)
+            return null;
+        else
+            return items.item(0).getTextContent();
     }
 }

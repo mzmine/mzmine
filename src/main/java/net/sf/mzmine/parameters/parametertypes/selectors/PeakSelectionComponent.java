@@ -20,6 +20,7 @@
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,6 +33,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
 import com.google.common.collect.Lists;
@@ -39,6 +41,7 @@ import com.google.common.collect.Range;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
@@ -51,7 +54,7 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
 
     private final DefaultListModel<PeakSelection> selectionListModel;
     private final JList<PeakSelection> selectionList;
-    private final JButton addButton, removeButton, allButton;
+    private final JButton addButton, removeButton, allButton, clearButton;
 
     public PeakSelectionComponent() {
 
@@ -59,6 +62,9 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
 
         selectionListModel = new DefaultListModel<PeakSelection>();
         selectionList = new JList<>(selectionListModel);
+        selectionList.setSelectionMode(
+                ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        selectionList.setPreferredSize(new Dimension(200, 50));
         JScrollPane scrollPane = new JScrollPane(selectionList);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -66,7 +72,8 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         addButton = GUIUtils.addButton(buttonPanel, "Add", null, this);
         removeButton = GUIUtils.addButton(buttonPanel, "Remove", null, this);
-        allButton = GUIUtils.addButton(buttonPanel, "Set all", null, this);
+        allButton = GUIUtils.addButton(buttonPanel, "Set to all", null, this);
+        clearButton = GUIUtils.addButton(buttonPanel, "Clear", null, this);
 
         add(buttonPanel, BorderLayout.EAST);
     }
@@ -94,8 +101,11 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
                     "Range of included peak IDs", false, null);
             final MZRangeParameter mzParameter = new MZRangeParameter(false);
             final RTRangeParameter rtParameter = new RTRangeParameter(false);
+            final StringParameter nameParameter = new StringParameter("Name",
+                    "Peak identity name", null, false);
             SimpleParameterSet paramSet = new SimpleParameterSet(
-                    new Parameter[] { idParameter, mzParameter, rtParameter });
+                    new Parameter[] { idParameter, mzParameter, rtParameter,
+                            nameParameter });
             Window parent = (Window) SwingUtilities
                     .getAncestorOfClass(Window.class, this);
             ExitCode exitCode = paramSet.showSetupDialog(parent, true);
@@ -106,16 +116,15 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
                         .getValue();
                 Range<Double> rtRange = paramSet.getParameter(rtParameter)
                         .getValue();
-                if ((idRange == null) && (mzRange == null) && (rtRange == null))
-                    return;
-                PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange);
+                String name = paramSet.getParameter(nameParameter).getValue();
+                PeakSelection ps = new PeakSelection(idRange, mzRange, rtRange,
+                        name);
                 selectionListModel.addElement(ps);
             }
         }
 
         if (src == allButton) {
-            Range<Integer> idRange = Range.closed(1, Integer.MAX_VALUE);
-            PeakSelection ps = new PeakSelection(idRange, null, null);
+            PeakSelection ps = new PeakSelection(null, null, null, null);
             selectionListModel.clear();
             selectionListModel.addElement(ps);
         }
@@ -124,6 +133,10 @@ public class PeakSelectionComponent extends JPanel implements ActionListener {
             for (PeakSelection p : selectionList.getSelectedValuesList()) {
                 selectionListModel.removeElement(p);
             }
+        }
+
+        if (src == clearButton) {
+            selectionListModel.clear();
         }
 
     }
