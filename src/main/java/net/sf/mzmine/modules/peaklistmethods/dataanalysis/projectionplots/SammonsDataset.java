@@ -206,6 +206,17 @@ public class SammonsDataset extends AbstractXYDataset
 
         setStatus(TaskStatus.PROCESSING);
 
+        if (selectedRows.length == 0) {
+            this.status = TaskStatus.ERROR;
+            errorMessage = "No peaks selected for Sammons plot";
+            return;
+        }
+        if (selectedRawDataFiles.length == 0) {
+            this.status = TaskStatus.ERROR;
+            errorMessage = "No raw data files selected for Sammons plot";
+            return;
+        }
+        
         logger.info("Computing projection plot");
 
         // Generate matrix of raw data (input to Sammon's projection)
