@@ -205,6 +205,17 @@ public class CDADataset extends AbstractXYDataset
 
         status = TaskStatus.PROCESSING;
 
+        if (selectedRows.length == 0) {
+            this.status = TaskStatus.ERROR;
+            errorMessage = "No peaks selected for CDA plot";
+            return;
+        }
+        if (selectedRawDataFiles.length == 0) {
+            this.status = TaskStatus.ERROR;
+            errorMessage = "No raw data files selected for CDA plot";
+            return;
+        }
+        
         logger.info("Computing projection plot");
 
         // Generate matrix of raw data (input to CDA)

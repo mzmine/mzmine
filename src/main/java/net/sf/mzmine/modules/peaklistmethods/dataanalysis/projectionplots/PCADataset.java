@@ -32,6 +32,7 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -212,6 +213,17 @@ public class PCADataset extends AbstractXYDataset
         final boolean useArea = (parameters
                 .getParameter(ProjectionPlotParameters.peakMeasurementType)
                 .getValue() == PeakMeasurementType.AREA);
+
+        if (selectedRows.length == 0) {
+            this.status = TaskStatus.ERROR;
+            errorMessage = "No peaks selected for PCA plot";
+            return;
+        }
+        if (selectedRawDataFiles.length == 0) {
+            this.status = TaskStatus.ERROR;
+            errorMessage = "No raw data files selected for PCA plot";
+            return;
+        }
 
         double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
         for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
