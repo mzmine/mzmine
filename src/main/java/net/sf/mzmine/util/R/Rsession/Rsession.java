@@ -86,6 +86,16 @@ public class Rsession implements Logger {
     private static String tmpDir = null;
     public static final Object R_SESSION_SEMAPHORE = new Object();
     public static ArrayList<Integer> PORTS_REG = new ArrayList<Integer>();
+    //** GLG HACK: Logging fix **//
+    // No sink file (Passed to false) a lot faster not to sink the output
+    // We never need this feature in MZmine anyway...
+    boolean SINK_OUTPUT = false; //true;
+    // GLG HACK: fixed sink file in case of multiple instances
+    // (Appending the port number of the instance to file name)
+    String SINK_FILE_BASE = ".Rout";
+    String SINK_FILE = null;
+    String lastOuput = "";
+
 
     void cleanupListeners() {
         if (loggers != null) {
@@ -489,6 +499,9 @@ public class Rsession implements Logger {
 
         loggers = new LinkedList<Logger>();
         loggers.add(console);
+        
+        // Make sink file specific to current Rserve instance
+        SINK_FILE = SINK_FILE_BASE + "-" + serverconf.port;
 
         startup();
     }
@@ -611,6 +624,8 @@ public class Rsession implements Logger {
             // int port = (rServeConf.port != -1) ? rServeConf.port :
             // RserverConf.getNewAvailablePort();
             if (port_tmp != port) {
+                // Keep sink file specific to current Rserve instance
+            	SINK_FILE = SINK_FILE_BASE + "-" + port;
                 println("WARNING: Changed the original requested port from "
                         + port_tmp + " to " + port + "!", Level.WARNING);
             }
@@ -1131,10 +1146,6 @@ public class Rsession implements Logger {
         return silentlyVoidEval(expression, TRY_MODE_DEFAULT);
     }
 
-    boolean SINK_OUTPUT = true;
-    String SINK_FILE = ".Rout";
-
-    String lastOuput = "";
 
     public String getLastOutput() {
         if (!SINK_OUTPUT) {
