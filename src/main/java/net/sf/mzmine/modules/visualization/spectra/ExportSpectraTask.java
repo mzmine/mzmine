@@ -84,8 +84,7 @@ public class ExportSpectraTask extends AbstractTask {
 
 			// Handle mzML export
 			if (extension.equals("mzML")) {
-				LOG.info("not yet implemented");
-				// exportmzML();
+				exportmzML();
 			} else {
 				// Handle text export
 				exportText();
@@ -163,4 +162,28 @@ public class ExportSpectraTask extends AbstractTask {
 			writer.close();
 		}
 	}
+
+
+public void exportmzML() throws IOException {
+
+	// Open the writer - append data if file already exists
+	final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, true));
+	try {
+		// Write Header row
+		switch (extension) {
+		case "mzML":
+			//writer.write("Name: Scan#: " + scan.getScanNumber() + ", RT: " + scan.getRetentionTime() + " min");
+			//writer.newLine();
+			LOG.info("mzML export not yet implemented");
+			break;
+		}
+		
+		
+	} finally {
+
+		// Close
+		writer.close();
+	}
 }
+}
+
