@@ -469,7 +469,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
 		    f = new File(path);
 
-		    if (f.exists()) {
+		    if (f.exists() && !extension.equals("mzML")) {
 			int result = JOptionPane
 				.showConfirmDialog(
 					this,
