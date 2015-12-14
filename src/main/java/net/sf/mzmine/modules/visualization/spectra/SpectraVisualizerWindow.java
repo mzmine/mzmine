@@ -441,6 +441,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 			"MSP - NIST file Format", "msp"));
 		FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
 			"TXT - Plain text Format", "txt"));
+		FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
+			"mzML - mzML Format", "mzML"));
 
 		if (FileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 		    path = FileChooser.getSelectedFile().getAbsolutePath();
@@ -454,7 +456,11 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 		    } else if (FileChooser.getFileFilter().getDescription()
 			    .contains("MSP")) {
 			extension = "msp";
-		    }
+			}
+		    else if (FileChooser.getFileFilter().getDescription()
+				    .contains("mzML")) {
+				extension = "mzML";
+			}
 
 		    if (!path.substring(path.length() - 3, path.length())
 			    .toLowerCase().contains(extension)) {
