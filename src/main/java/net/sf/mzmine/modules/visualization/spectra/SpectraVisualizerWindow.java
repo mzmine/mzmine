@@ -458,7 +458,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 			extension = "msp";
 			}
 		    else if (FileChooser.getFileFilter().getDescription()
-				    .contains("mzML")) {
+				.contains("mzML")) {
 				extension = "mzML";
 			}
 
