@@ -49,178 +49,189 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
  */
 public class ExportSpectraTask extends AbstractTask {
 
-	// Logger
-	private static final Logger LOG = Logger.getLogger(ExportSpectraTask.class.getName());
+    // Logger
+    private static final Logger LOG = Logger
+            .getLogger(ExportSpectraTask.class.getName());
 
-	private final File exportFile;
-	private final Scan scan;
-	private final String extension;
+    private final File exportFile;
+    private final Scan scan;
+    private final String extension;
 
-	private int progress;
-	private int progressMax;
+    private int progress;
+    private int progressMax;
 
-	/**
-	 * Create the task.
-	 *
-	 * @param currentScan
-	 *            scan to export.
-	 * @param file
-	 *            file to save scan data to.
-	 */
-	public ExportSpectraTask(final Scan currentScan, final File file, final String ext) {
-		scan = currentScan;
-		exportFile = file;
-		extension = ext;
-		progress = 0;
-		progressMax = 0;
-	}
+    /**
+     * Create the task.
+     *
+     * @param currentScan
+     *            scan to export.
+     * @param file
+     *            file to save scan data to.
+     */
+    public ExportSpectraTask(final Scan currentScan, final File file,
+            final String ext) {
+        scan = currentScan;
+        exportFile = file;
+        extension = ext;
+        progress = 0;
+        progressMax = 0;
+    }
 
-	@Override
-	public String getTaskDescription() {
-		return "Exporting spectrum # " + scan.getScanNumber() + " for " + scan.getDataFile().getName();
-	}
+    @Override
+    public String getTaskDescription() {
+        return "Exporting spectrum # " + scan.getScanNumber() + " for "
+                + scan.getDataFile().getName();
+    }
 
-	@Override
-	public double getFinishedPercentage() {
-		return progressMax == 0 ? 0.0 : (double) progress / (double) progressMax;
-	}
+    @Override
+    public double getFinishedPercentage() {
+        return progressMax == 0 ? 0.0
+                : (double) progress / (double) progressMax;
+    }
 
-	@Override
-	public void run() {
+    @Override
+    public void run() {
 
-		// Update the status of this task
-		setStatus(TaskStatus.PROCESSING);
+        // Update the status of this task
+        setStatus(TaskStatus.PROCESSING);
 
-		// Handle text export below
-		try {
+        // Handle text export below
+        try {
 
-			// Handle mzML export
-			if (extension.equals("mzML")) {
-				exportmzML();
-			} else {
-				// Handle text export
-				exportText();
-			}
-			// Success
-			LOG.info("Exported spectrum # " + scan.getScanNumber() + " for " + scan.getDataFile().getName());
+            // Handle mzML export
+            if (extension.equals("mzML")) {
+                exportmzML();
+            } else {
+                // Handle text export
+                exportText();
+            }
+            // Success
+            LOG.info("Exported spectrum # " + scan.getScanNumber() + " for "
+                    + scan.getDataFile().getName());
 
-			setStatus(TaskStatus.FINISHED);
+            setStatus(TaskStatus.FINISHED);
 
-		} catch (Throwable t) {
+        } catch (Throwable t) {
 
-			LOG.log(Level.SEVERE, "Spectrum export error", t);
-			setStatus(TaskStatus.ERROR);
-			setErrorMessage(t.getMessage());
-		}
-	}
+            LOG.log(Level.SEVERE, "Spectrum export error", t);
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage(t.getMessage());
+        }
+    }
 
-	/**
-	 * Export the chromatogram - text formats
-	 *
-	 * @throws IOException
-	 *             if there are i/o problems.
-	 */
-	public void exportText() throws IOException {
+    /**
+     * Export the chromatogram - text formats
+     *
+     * @throws IOException
+     *             if there are i/o problems.
+     */
+    public void exportText() throws IOException {
 
-		// Open the writer - append data if file already exists
-		final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, true));
-		try {
-			// Write Header row
-			switch (extension) {
-			case "txt":
-				writer.write("Name: Scan#: " + scan.getScanNumber() + ", RT: " + scan.getRetentionTime() + " min");
-				writer.newLine();
-				break;
-			case "mgf":
-				writer.write("BEGIN IONS");
-				writer.newLine();
-				writer.write("PEPMASS=" + scan.getPrecursorMZ());
-				writer.newLine();
-				writer.write("CHARGE=" + scan.getPrecursorCharge());
-				writer.newLine();
-				writer.write("Title: Scan#: " + scan.getScanNumber() + ", RT: " + scan.getRetentionTime() + " min");
-				writer.newLine();
-				writer.newLine();
-				break;
-			case "msp":
-				break;
-			}
+        // Open the writer - append data if file already exists
+        final BufferedWriter writer = new BufferedWriter(
+                new FileWriter(exportFile, true));
+        try {
+            // Write Header row
+            switch (extension) {
+            case "txt":
+                writer.write("Name: Scan#: " + scan.getScanNumber() + ", RT: "
+                        + scan.getRetentionTime() + " min");
+                writer.newLine();
+                break;
+            case "mgf":
+                writer.write("BEGIN IONS");
+                writer.newLine();
+                writer.write("PEPMASS=" + scan.getPrecursorMZ());
+                writer.newLine();
+                writer.write("CHARGE=" + scan.getPrecursorCharge());
+                writer.newLine();
+                writer.write("Title: Scan#: " + scan.getScanNumber() + ", RT: "
+                        + scan.getRetentionTime() + " min");
+                writer.newLine();
+                writer.newLine();
+                break;
+            case "msp":
+                break;
+            }
 
-			// Write the data points
-			DataPoint[] dataPoints = scan.getDataPoints();
-			final int itemCount = dataPoints.length;
-			progressMax = itemCount;
+            // Write the data points
+            DataPoint[] dataPoints = scan.getDataPoints();
+            final int itemCount = dataPoints.length;
+            progressMax = itemCount;
 
-			for (int i = 0; i < itemCount; i++) {
+            for (int i = 0; i < itemCount; i++) {
 
-				// Write data point row
-				writer.write(dataPoints[i].getMZ() + " " + dataPoints[i].getIntensity());
-				writer.newLine();
+                // Write data point row
+                writer.write(dataPoints[i].getMZ() + " "
+                        + dataPoints[i].getIntensity());
+                writer.newLine();
 
-				progress = i + 1;
-			}
+                progress = i + 1;
+            }
 
-			// Write footer row
-			if (extension.equals("mgf")) {
-				writer.newLine();
-				writer.write("END IONS");
-				writer.newLine();
-			}
+            // Write footer row
+            if (extension.equals("mgf")) {
+                writer.newLine();
+                writer.write("END IONS");
+                writer.newLine();
+            }
 
-			writer.newLine();
-		} finally {
+            writer.newLine();
+        } finally {
 
-			// Close
-			writer.close();
-		}
-	}
+            // Close
+            writer.close();
+        }
+    }
 
-	/**
-	 * Export the chromatogram - mzML format
-	 *
-	 * @throws IOException
-	 *             if there are i/o problems.
-	 */
+    /**
+     * Export the chromatogram - mzML format
+     *
+     * @throws IOException
+     *             if there are i/o problems.
+     */
 
-	public void exportmzML() throws MSDKException {
+    public void exportmzML() throws MSDKException {
 
-		// Initialize objects
-		DataPointStore store = DataPointStoreFactory.getMemoryDataStore();
-		RawDataFile inputFile = MSDKObjectBuilder.getRawDataFile("MZmine2 mzML export", exportFile, FileType.MZML,
-				store);
+        // Initialize objects
+        DataPointStore store = DataPointStoreFactory.getMemoryDataStore();
+        RawDataFile inputFile = MSDKObjectBuilder.getRawDataFile(
+                "MZmine2 mzML export", exportFile, FileType.MZML, store);
 
-		//Get data from MZmine2 style scan
-		Integer scanNum = scan.getScanNumber();
-		Integer msLevel = scan.getMSLevel();
-		DataPoint[] dp = scan.getDataPoints();
+        // Get data from MZmine2 style scan
+        Integer scanNum = scan.getScanNumber();
+        Integer msLevel = scan.getMSLevel();
+        DataPoint[] dp = scan.getDataPoints();
 
-		//Initialize MSDK style DataPointStore
-		MsSpectrumDataPointList MSDKdp = MSDKObjectBuilder.getMsSpectrumDataPointList();
-		MSDKdp.allocate(dp.length);
-		
-		//Initialize MSDK style Scan
-		MsFunction dummyFunction = MSDKObjectBuilder.getMsFunction(msLevel);
-		MsScan MSDKscan = MSDKObjectBuilder.getMsScan(store, scanNum, dummyFunction);
+        // Initialize MSDK style DataPointStore
+        MsSpectrumDataPointList MSDKdp = MSDKObjectBuilder
+                .getMsSpectrumDataPointList();
+        MSDKdp.allocate(dp.length);
 
-		//Iterate & convert from MZmine2 style to MSDK style
-		for (DataPoint d : dp) {
-			MSDKdp.add(d.getMZ(), (float) d.getIntensity());
-		}
+        // Initialize MSDK style Scan
+        MsFunction dummyFunction = MSDKObjectBuilder.getMsFunction(msLevel);
+        MsScan MSDKscan = MSDKObjectBuilder.getMsScan(store, scanNum,
+                dummyFunction);
 
-		//Put the data in the scan
-		MSDKscan.setDataPoints(MSDKdp);
+        // Iterate & convert from MZmine2 style to MSDK style
+        for (DataPoint d : dp) {
+            MSDKdp.add(d.getMZ(), (float) d.getIntensity());
+        }
 
-		
-		MassSpectrumType t = scan.getSpectrumType();
-		if (t == MassSpectrumType.CENTROIDED)
-			MSDKscan.setSpectrumType(MsSpectrumType.CENTROIDED);
-		else
-			MSDKscan.setSpectrumType(MsSpectrumType.PROFILE);
+        // Put the data in the scan
+        MSDKscan.setDataPoints(MSDKdp);
 
-		inputFile.addScan(MSDKscan);
+        MassSpectrumType t = scan.getSpectrumType();
+        if (t == MassSpectrumType.CENTROIDED)
+            MSDKscan.setSpectrumType(MsSpectrumType.CENTROIDED);
+        else
+            MSDKscan.setSpectrumType(MsSpectrumType.PROFILE);
 
-		// Actually write to disk
-		MzMLFileExportMethod method = new MzMLFileExportMethod(inputFile, exportFile);
-		method.execute();
-	}
+        inputFile.addScan(MSDKscan);
+
+        // Actually write to disk
+        MzMLFileExportMethod method = new MzMLFileExportMethod(inputFile,
+                exportFile);
+        method.execute();
+    }
 }
