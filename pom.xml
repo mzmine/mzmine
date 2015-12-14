@@ -394,6 +394,12 @@
 			<artifactId>freehep-graphicsio-emf</artifactId>
 			<version>2.4</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>io.github.msdk</groupId>
+			<artifactId>msdk-io-mzml</artifactId>
+			<version>0.0.2</version>
+		</dependency>
 
 	</dependencies>
 
