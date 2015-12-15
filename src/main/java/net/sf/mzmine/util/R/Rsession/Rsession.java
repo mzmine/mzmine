@@ -87,9 +87,7 @@ public class Rsession implements Logger {
     public static final Object R_SESSION_SEMAPHORE = new Object();
     public static ArrayList<Integer> PORTS_REG = new ArrayList<Integer>();
     //** GLG HACK: Logging fix **//
-    // No sink file (Passed to false) a lot faster not to sink the output
-    // We never need this feature in MZmine anyway...
-    boolean SINK_OUTPUT = false; //true;
+    boolean SINK_OUTPUT = true;
     // GLG HACK: fixed sink file in case of multiple instances
     // (Appending the port number of the instance to file name)
     String SINK_FILE_BASE = ".Rout";
