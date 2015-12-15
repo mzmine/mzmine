@@ -86,7 +86,6 @@ public class Rsession implements Logger {
     private static String tmpDir = null;
     public static final Object R_SESSION_SEMAPHORE = new Object();
     public static ArrayList<Integer> PORTS_REG = new ArrayList<Integer>();
-<<<<<<< HEAD
     //** GLG HACK: Logging fix **//
     boolean SINK_OUTPUT = true;
     // GLG HACK: fixed sink file in case of multiple instances
@@ -95,8 +94,6 @@ public class Rsession implements Logger {
     String SINK_FILE = null;
     String lastOuput = "";
 
-=======
->>>>>>> 606b77efe39249b8810c3e98cbe30fe3e1052e0a
 
     void cleanupListeners() {
         if (loggers != null) {
@@ -500,6 +497,9 @@ public class Rsession implements Logger {
 
         loggers = new LinkedList<Logger>();
         loggers.add(console);
+        
+        // Make sink file specific to current Rserve instance
+        SINK_FILE = SINK_FILE_BASE + "-" + serverconf.port;
 
         startup();
     }
@@ -622,6 +622,8 @@ public class Rsession implements Logger {
             // int port = (rServeConf.port != -1) ? rServeConf.port :
             // RserverConf.getNewAvailablePort();
             if (port_tmp != port) {
+                // Keep sink file specific to current Rserve instance
+                SINK_FILE = SINK_FILE_BASE + "-" + port;
                 println("WARNING: Changed the original requested port from "
                         + port_tmp + " to " + port + "!", Level.WARNING);
             }
@@ -1142,10 +1144,6 @@ public class Rsession implements Logger {
         return silentlyVoidEval(expression, TRY_MODE_DEFAULT);
     }
 
-    boolean SINK_OUTPUT = true;
-    String SINK_FILE = ".Rout";
-
-    String lastOuput = "";
 
     public String getLastOutput() {
         if (!SINK_OUTPUT) {
