@@ -203,7 +203,8 @@ public class ExportSpectraTask extends AbstractTask {
         Integer scanNum = scan.getScanNumber();
         Integer msLevel = scan.getMSLevel();
         DataPoint[] dp = scan.getDataPoints();
-        PolarityType polarity = scan.getPolarity(); //mzMine2 PolarityType object
+        PolarityType polarity = scan.getPolarity(); // mzMine2 PolarityType
+                                                    // object
         Double precursorMZ = scan.getPrecursorMZ();
 
         // Initialize MSDK style DataPointStore
@@ -224,23 +225,27 @@ public class ExportSpectraTask extends AbstractTask {
         // Put the data in the scan
         MSDKscan.setDataPoints(MSDKdp);
 
-        //Parse if data is profile vs centroid
+        // Parse if data is profile vs centroid
         MassSpectrumType t = scan.getSpectrumType();
         if (t == MassSpectrumType.CENTROIDED)
             MSDKscan.setSpectrumType(MsSpectrumType.CENTROIDED);
         else
             MSDKscan.setSpectrumType(MsSpectrumType.PROFILE);
 
-        //Parse polarity of data from mzMine2 style to MSDK style
+        // Parse polarity of data from mzMine2 style to MSDK style
         if (polarity.equals(PolarityType.POSITIVE))
-            MSDKscan.setPolarity(io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
+            MSDKscan.setPolarity(
+                    io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
         else if (polarity.equals(PolarityType.NEGATIVE))
-            MSDKscan.setPolarity(io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
+            MSDKscan.setPolarity(
+                    io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
         else
-            MSDKscan.setPolarity(io.github.msdk.datamodel.rawdata.PolarityType.UNKNOWN);
-        
-        //Precursor
-        
+            MSDKscan.setPolarity(
+                    io.github.msdk.datamodel.rawdata.PolarityType.UNKNOWN);
+
+        // Parse precursor from mzMine2 style to MSDK style
+        if (!precursorMZ.equals((float) 0))
+            LOG.log(Level.INFO, "Not implemented. Precursor:",precursorMZ); // Set MSDK precursor
         inputFile.addScan(MSDKscan);
 
         // Actually write to disk
