@@ -29,13 +29,6 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.desktop.impl.WindowsMenu;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -52,6 +45,13 @@ import org.jfree.chart.renderer.category.StatisticalLineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 /**
  * 
@@ -92,7 +92,7 @@ public class IntensityPlotWindow extends JFrame {
         Object xAxisValueSource = parameters.getParameter(
                 IntensityPlotParameters.xAxisValueSource).getValue();
         boolean isCombo = (xAxisValueSource instanceof ParameterWrapper)
-                && (((ParameterWrapper) xAxisValueSource).getParameter() instanceof ComboParameter);
+                && (!( ((ParameterWrapper) xAxisValueSource).getParameter() instanceof DoubleParameter));
         if ((xAxisValueSource == IntensityPlotParameters.rawDataFilesOption)
                 || isCombo) {
 
