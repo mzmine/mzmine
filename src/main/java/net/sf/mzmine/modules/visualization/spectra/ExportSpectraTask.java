@@ -39,6 +39,7 @@ import io.github.msdk.datamodel.rawdata.RawDataFile;
 import io.github.msdk.io.mzml.MzMLFileExportMethod;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -202,6 +203,8 @@ public class ExportSpectraTask extends AbstractTask {
         Integer scanNum = scan.getScanNumber();
         Integer msLevel = scan.getMSLevel();
         DataPoint[] dp = scan.getDataPoints();
+        PolarityType polarity = scan.getPolarity(); //mzMine2 PolarityType object
+        Double precursorMZ = scan.getPrecursorMZ();
 
         // Initialize MSDK style DataPointStore
         MsSpectrumDataPointList MSDKdp = MSDKObjectBuilder
@@ -221,12 +224,23 @@ public class ExportSpectraTask extends AbstractTask {
         // Put the data in the scan
         MSDKscan.setDataPoints(MSDKdp);
 
+        //Parse if data is profile vs centroid
         MassSpectrumType t = scan.getSpectrumType();
         if (t == MassSpectrumType.CENTROIDED)
             MSDKscan.setSpectrumType(MsSpectrumType.CENTROIDED);
         else
             MSDKscan.setSpectrumType(MsSpectrumType.PROFILE);
 
+        //Parse polarity of data from mzMine2 style to MSDK style
+        if (polarity.equals(PolarityType.POSITIVE))
+            MSDKscan.setPolarity(io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
+        else if (polarity.equals(PolarityType.NEGATIVE))
+            MSDKscan.setPolarity(io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
+        else
+            MSDKscan.setPolarity(io.github.msdk.datamodel.rawdata.PolarityType.UNKNOWN);
+        
+        //Precursor
+        
         inputFile.addScan(MSDKscan);
 
         // Actually write to disk
