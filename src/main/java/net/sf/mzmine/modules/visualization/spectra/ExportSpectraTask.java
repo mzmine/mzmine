@@ -203,14 +203,17 @@ public class ExportSpectraTask extends AbstractTask {
         Integer scanNum = scan.getScanNumber();
         Integer msLevel = scan.getMSLevel();
         DataPoint[] dp = scan.getDataPoints();
-        PolarityType polarity = scan.getPolarity(); // mzMine2 PolarityType
-                                                    // object
+        PolarityType polarity = scan.getPolarity();
         Double precursorMZ = scan.getPrecursorMZ();
+        String scanDefinition = scan.getScanDefinition();
 
         // Initialize MSDK style DataPointStore
         MsSpectrumDataPointList MSDKdp = MSDKObjectBuilder
                 .getMsSpectrumDataPointList();
         MSDKdp.allocate(dp.length);
+
+        // GUI progress bar updating
+        progressMax = dp.length;
 
         // Initialize MSDK style Scan
         MsFunction dummyFunction = MSDKObjectBuilder.getMsFunction(msLevel);
@@ -220,6 +223,8 @@ public class ExportSpectraTask extends AbstractTask {
         // Iterate & convert from MZmine2 style to MSDK style
         for (DataPoint d : dp) {
             MSDKdp.add(d.getMZ(), (float) d.getIntensity());
+            // GUI progress bar updating
+            progress += 1;
         }
 
         // Put the data in the scan
@@ -238,14 +243,22 @@ public class ExportSpectraTask extends AbstractTask {
                     io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
         else if (polarity.equals(PolarityType.NEGATIVE))
             MSDKscan.setPolarity(
-                    io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
+                    io.github.msdk.datamodel.rawdata.PolarityType.NEGATIVE);
         else
             MSDKscan.setPolarity(
                     io.github.msdk.datamodel.rawdata.PolarityType.UNKNOWN);
 
         // Parse precursor from mzMine2 style to MSDK style
         if (!precursorMZ.equals((float) 0))
-            LOG.log(Level.INFO, "Not implemented. Precursor:",precursorMZ); // Set MSDK precursor
+            LOG.log(Level.INFO,
+                    "mzML export. Precursor detection not yet implemented",
+                    precursorMZ); // Set
+        // MSDK
+        // precursor
+
+        // Parse scanDefinition to MSDK style
+        MSDKscan.setScanDefinition(scanDefinition);
+
         inputFile.addScan(MSDKscan);
 
         // Actually write to disk
