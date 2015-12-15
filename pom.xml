@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.mzmine</groupId>
 	<artifactId>mzmine</artifactId>
-	<version>2.17</version>
+	<version>2.18.1</version>
 	<name>MZmine</name>
 	<description>MZmine is an open-source project delivering a software for mass-spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>https://mzmine.github.io</url>
@@ -393,6 +393,12 @@
 			<groupId>org.freehep</groupId>
 			<artifactId>freehep-graphicsio-emf</artifactId>
 			<version>2.4</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.github.msdk</groupId>
+			<artifactId>msdk-io-mzml</artifactId>
+			<version>0.0.2</version>
 		</dependency>
 
 	</dependencies>
