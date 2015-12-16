@@ -218,6 +218,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 	    }
 
 	} catch (Exception e) {
+	    e.printStackTrace();
 	    logger.log(Level.WARNING, "Could not connect to " + db, e);
 	    setStatus(TaskStatus.ERROR);
 	    setErrorMessage("Could not connect to " + db + ": "

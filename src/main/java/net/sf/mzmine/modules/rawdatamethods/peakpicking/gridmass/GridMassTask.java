@@ -55,6 +55,7 @@ public class GridMassTask extends AbstractTask {
     private int newPeakID = 0;
     private ScanSelection scanSelection;
     private Scan[] scans;
+    private int scanNumbers[];
     Datum[] roi[];
     double retentiontime[];
 
@@ -147,6 +148,7 @@ public class GridMassTask extends AbstractTask {
 	logger.info("Started GRIDMASS v1.0 [Apr-09-2014] on " + dataFile);
 
         scans = scanSelection.getMatchingScans(dataFile);
+        scanNumbers = scanSelection.getMatchingScanNumbers(dataFile);
         totalScans = scans.length;
 
         // Check if we have any scans
@@ -568,7 +570,7 @@ public class GridMassTask extends AbstractTask {
 		if (sx.getMaxDatumScans() >= tolScans
 			&& (sx.getContigousMaxDatumScans() >= tolScans || sx
 				.getContigousToMaxDatumScansRatio() > 0.5)) {
-		    Chromatogram peak = new Chromatogram(dataFile);
+		    Chromatogram peak = new Chromatogram(dataFile, scanNumbers);
 		    if (addMaxDatumFromScans(sx, peak) > 0) {
 			peak.finishChromatogram();
 			if (peak.getArea() > 1e-6) {

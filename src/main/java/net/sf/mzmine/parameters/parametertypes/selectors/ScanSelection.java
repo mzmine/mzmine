@@ -26,6 +26,7 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
 
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
@@ -137,6 +138,55 @@ public class ScanSelection {
         }
 
         return matchingScans.toArray(new Scan[matchingScans.size()]);
+
+    }
+    
+    public int[] getMatchingScanNumbers(RawDataFile dataFile) {
+
+        final List<Integer> matchingScans = new ArrayList<>();
+
+        int scanNumbers[] = dataFile.getScanNumbers();
+        for (int scanNumber : scanNumbers) {
+
+            Scan scan = dataFile.getScan(scanNumber);
+
+            if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel())))
+                continue;
+
+            if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
+                continue;
+
+            if ((spectrumType != null)
+                    && (!spectrumType.equals(scan.getSpectrumType())))
+                continue;
+
+            if ((scanNumberRange != null)
+                    && (!scanNumberRange.contains(scanNumber)))
+                continue;
+
+            if ((scanRTRange != null)
+                    && (!scanRTRange.contains(scan.getRetentionTime())))
+                continue;
+
+            if (!Strings.isNullOrEmpty(scanDefinition)) {
+
+                final String actualScanDefition = scan.getScanDefinition();
+
+                if (Strings.isNullOrEmpty(actualScanDefition))
+                    continue;
+
+                final String regex = TextUtils
+                        .createRegexFromWildcards(scanDefinition);
+
+                if (!actualScanDefition.matches(regex))
+                    continue;
+
+            }
+
+            matchingScans.add(scanNumber);
+        }
+
+        return Ints.toArray(matchingScans);
 
     }
 }
