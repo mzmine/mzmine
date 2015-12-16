@@ -23,6 +23,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,12 +34,14 @@ import io.github.msdk.datamodel.files.FileType;
 import io.github.msdk.datamodel.impl.MSDKObjectBuilder;
 import io.github.msdk.datamodel.msspectra.MsSpectrumDataPointList;
 import io.github.msdk.datamodel.msspectra.MsSpectrumType;
+import io.github.msdk.datamodel.rawdata.IsolationInfo;
 import io.github.msdk.datamodel.rawdata.MsFunction;
 import io.github.msdk.datamodel.rawdata.MsScan;
 import io.github.msdk.datamodel.rawdata.RawDataFile;
 import io.github.msdk.io.mzml.MzMLFileExportMethod;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -202,11 +205,18 @@ public class ExportSpectraTask extends AbstractTask {
         Integer scanNum = scan.getScanNumber();
         Integer msLevel = scan.getMSLevel();
         DataPoint[] dp = scan.getDataPoints();
+        PolarityType polarity = scan.getPolarity();
+        Double precursorMZ = scan.getPrecursorMZ();
+        String scanDefinition = scan.getScanDefinition();
+        Integer precursorCharge = scan.getPrecursorCharge();
 
         // Initialize MSDK style DataPointStore
         MsSpectrumDataPointList MSDKdp = MSDKObjectBuilder
                 .getMsSpectrumDataPointList();
         MSDKdp.allocate(dp.length);
+
+        // GUI progress bar updating
+        progressMax = dp.length;
 
         // Initialize MSDK style Scan
         MsFunction dummyFunction = MSDKObjectBuilder.getMsFunction(msLevel);
@@ -216,16 +226,42 @@ public class ExportSpectraTask extends AbstractTask {
         // Iterate & convert from MZmine2 style to MSDK style
         for (DataPoint d : dp) {
             MSDKdp.add(d.getMZ(), (float) d.getIntensity());
+            // GUI progress bar updating
+            progress += 1;
         }
 
         // Put the data in the scan
         MSDKscan.setDataPoints(MSDKdp);
 
+        // Parse if data is profile vs centroid
         MassSpectrumType t = scan.getSpectrumType();
         if (t == MassSpectrumType.CENTROIDED)
             MSDKscan.setSpectrumType(MsSpectrumType.CENTROIDED);
         else
             MSDKscan.setSpectrumType(MsSpectrumType.PROFILE);
+
+        // Parse polarity of data from mzMine2 style to MSDK style
+        if (polarity.equals(PolarityType.POSITIVE))
+            MSDKscan.setPolarity(
+                    io.github.msdk.datamodel.rawdata.PolarityType.POSITIVE);
+        else if (polarity.equals(PolarityType.NEGATIVE))
+            MSDKscan.setPolarity(
+                    io.github.msdk.datamodel.rawdata.PolarityType.NEGATIVE);
+        else
+            MSDKscan.setPolarity(
+                    io.github.msdk.datamodel.rawdata.PolarityType.UNKNOWN);
+
+        // Parse precursor from mzMine2 style to MSDK style
+        if (!precursorMZ.equals(0f)) {
+            List<IsolationInfo> MSDKprecursor = MSDKscan.getIsolations();
+            IsolationInfo MSDKisolationInfo = MSDKObjectBuilder
+                    .getIsolationInfo(null, null, precursorMZ, precursorCharge,
+                            null);
+            MSDKprecursor.add(MSDKisolationInfo);
+        }
+
+        // Parse scanDefinition to MSDK style
+        MSDKscan.setScanDefinition(scanDefinition);
 
         inputFile.addScan(MSDKscan);
 
