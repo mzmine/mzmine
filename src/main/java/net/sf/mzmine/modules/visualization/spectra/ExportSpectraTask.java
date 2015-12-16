@@ -23,6 +23,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +34,7 @@ import io.github.msdk.datamodel.files.FileType;
 import io.github.msdk.datamodel.impl.MSDKObjectBuilder;
 import io.github.msdk.datamodel.msspectra.MsSpectrumDataPointList;
 import io.github.msdk.datamodel.msspectra.MsSpectrumType;
+import io.github.msdk.datamodel.rawdata.IsolationInfo;
 import io.github.msdk.datamodel.rawdata.MsFunction;
 import io.github.msdk.datamodel.rawdata.MsScan;
 import io.github.msdk.datamodel.rawdata.RawDataFile;
@@ -206,6 +208,7 @@ public class ExportSpectraTask extends AbstractTask {
         PolarityType polarity = scan.getPolarity();
         Double precursorMZ = scan.getPrecursorMZ();
         String scanDefinition = scan.getScanDefinition();
+        Integer precursorCharge = scan.getPrecursorCharge();
 
         // Initialize MSDK style DataPointStore
         MsSpectrumDataPointList MSDKdp = MSDKObjectBuilder
@@ -249,12 +252,13 @@ public class ExportSpectraTask extends AbstractTask {
                     io.github.msdk.datamodel.rawdata.PolarityType.UNKNOWN);
 
         // Parse precursor from mzMine2 style to MSDK style
-        if (!precursorMZ.equals((float) 0))
-            LOG.log(Level.INFO,
-                    "mzML export. Precursor detection not yet implemented",
-                    precursorMZ); // Set
-        // MSDK
-        // precursor
+        if (!precursorMZ.equals(0f)) {
+            List<IsolationInfo> MSDKprecursor = MSDKscan.getIsolations();
+            IsolationInfo MSDKisolationInfo = MSDKObjectBuilder
+                    .getIsolationInfo(null, null, precursorMZ, precursorCharge,
+                            null);
+            MSDKprecursor.add(MSDKisolationInfo);
+        }
 
         // Parse scanDefinition to MSDK style
         MSDKscan.setScanDefinition(scanDefinition);
