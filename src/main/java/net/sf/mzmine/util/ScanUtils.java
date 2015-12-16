@@ -79,7 +79,7 @@ public class ScanUtils {
 	}
 
 	buf.append(" ");
-	buf.append(scan.getPolarity());
+	buf.append(scan.getPolarity().asSingleChar());
 
 	/*if ((scan.getScanDefinition() != null)
 		&& (scan.getScanDefinition().length() > 0)) {
@@ -552,7 +552,7 @@ public class ScanUtils {
 	assert dataPoints.length > 0;
 
 	double lowMz = dataPoints[0].getMZ();
-	double highMz = dataPoints[0].getMZ();
+	double highMz = lowMz;
 	for (int i = 1; i < dataPoints.length; i++) {
 	    if (dataPoints[i].getMZ() < lowMz) {
 		lowMz = dataPoints[i].getMZ();
@@ -563,6 +563,29 @@ public class ScanUtils {
 	}
 
 	return Range.closed(lowMz, highMz);
+    }
+    
+    /**
+     * Find the RT range of given scans. We assume there is at least one scan.
+     */
+    public static @Nonnull Range<Double> findRtRange(
+            @Nonnull Scan scans[]) {
+
+        assert scans.length > 0;
+
+        double lowRt = scans[0].getRetentionTime();
+        double highRt = lowRt;
+        for (int i = 1; i < scans.length; i++) {
+            if (scans[i].getRetentionTime() < lowRt) {
+                lowRt = scans[i].getRetentionTime();
+                continue;
+            }
+            if (scans[i].getRetentionTime() > highRt) {
+                highRt = scans[i].getRetentionTime();
+            }
+        }
+
+        return Range.closed(lowRt, highRt);
     }
 
     public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {

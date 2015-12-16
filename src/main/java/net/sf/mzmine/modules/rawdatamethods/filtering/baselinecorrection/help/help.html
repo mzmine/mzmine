@@ -260,15 +260,15 @@
 </p>
 <ol>
 	<h4>Quick install - The whole thing can be setup as follows:<h4>
-		    <pre>	install.packages(c("rJava", "ptw", "baseline", "hyperSpec"))
+		    <pre>	install.packages(c("Rserve", "ptw", "baseline", "hyperSpec"))
 	source("http://bioconductor.org/biocLite.R")
 	biocLite("PROcess")
 		</pre>
 	<h4>Detailed install:<h4>
-    <li><a href="http://cran.r-project.org/web/packages/rJava/index.html">rJava</a> (All correctors): provides an interface between
+    <li><a href="https://rforge.net/Rserve/doc.html">Rserve</a> (All correctors): provides an interface between
         MZmine and R. 
-		To install <span style="font-family: monospace;">rJava</span> run R and enter:
-        <pre>install.packages("rJava")</pre>
+		To install <span style="font-family: monospace;">Rserve</span> from CRAN packages run R and enter:
+        <pre>install.packages("Rserve")</pre>
     </li>
     <li><a href="http://cran.r-project.org/web/packages/ptw/index.html">ptw</a> (Asymmetric corrector): 
 			parametric time-warping provides the asymmetric least-squares implementation. 
@@ -295,34 +295,6 @@ biocLite("PROcess")
     </li>
 </ol>
 
-<p>
-You will also need to correctly configure several environment variables in your MZmine start-up script
-(startMZmine_Windows.bat, startMZmine_Linux.sh or startMZmine_MacOSX.command):
-</p>
-
-<dl>
-    <dt>R_HOME</dt>
-    <dd>This is the directory where R is installed, e.g. for Windows it will be something like <span
-            style="font-family: monospace;">C:\Program&nbsp;Files\R\R-2.15.0</span>.
-    </dd>
-
-    <dt>R_LIBS_USER</dt>
-    <dd>This is the directory in which R installs third-party packages. It's usually a sub-directory of your personal
-        directory, e.g. for Windows it will be something like <span style="font-family: monospace;">%USERPROFILE%\Documents\R\win-library\2.15</span>.
-    </dd>
-
-    <dt>PATH</dt>
-    <dd><strong>Append</strong> the directory that contains R's libraries. It will be a sub-directory of %R_HOME%, e.g.
-        for 32-bit Windows it will be something like <span style="font-family: monospace;">%R_HOME%\bin\i386</span> or
-        for 64-bit Windows <span style="font-family: monospace;">%R_HOME%\bin\x64</span>.
-    </dd>
-
-    <dt>JRI_LIB_PATH</dt>
-    <dd>This is the directory where rJava has installed its JRI libraries. It will be a sub-directory of %R_LIBS_USER%,
-        e.g. for 32-bit Windows it will be something like <span style="font-family: monospace;">%R_LIBS_USER%\rJava\jri\i386</span>
-        or for 64-bit Windows <span style="font-family: monospace;">%R_LIBS_USER%\rJava\jri\x64</span>.
-    </dd>
-</dl>
 
 <h3>References</h3>
 
@@ -333,6 +305,9 @@ You will also need to correctly configure several environment variables in your 
                 href="http://pubs.acs.org/doi/abs/10.1021/ac051370e">Sign constraints improve the detection of
             differences between complex spectral data sets: LC-IR as an example</a>", <span style="font-style: italic;">Analytical
             Chemistry</span>, <strong>77</strong>, 7998 – 8007.
+        </td>
+        <td>[2]</td>
+        <td>Rserve "A TCP/IP server which allows other programs to use facilities of R"<a href="https://rforge.net/Rserve/">https://rforge.net/Rserve/</a>.
         </td>
     </tr>
 </table>

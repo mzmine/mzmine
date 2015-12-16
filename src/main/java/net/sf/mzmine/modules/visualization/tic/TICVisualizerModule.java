@@ -28,10 +28,12 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
@@ -62,39 +64,34 @@ public class TICVisualizerModule implements MZmineRunnableModule {
         final RawDataFile[] dataFiles = parameters
                 .getParameter(TICVisualizerParameters.DATA_FILES).getValue()
                 .getMatchingRawDataFiles();
-        final int msLevel = parameters.getParameter(
-                TICVisualizerParameters.MS_LEVEL).getValue();
-        final Range<Double> rtRange = parameters.getParameter(
-                TICVisualizerParameters.RT_RANGE).getValue();
-        final Range<Double> mzRange = parameters.getParameter(
-                TICVisualizerParameters.MZ_RANGE).getValue();
-        final PlotType plotType = parameters.getParameter(
-                TICVisualizerParameters.PLOT_TYPE).getValue();
-        final Feature[] selectionPeaks = parameters.getParameter(
-                TICVisualizerParameters.PEAKS).getValue();
+        final Range<Double> mzRange = parameters
+                .getParameter(TICVisualizerParameters.MZ_RANGE).getValue();
+        final ScanSelection scanSelection = parameters
+                .getParameter(TICVisualizerParameters.scanSelection).getValue();
+        final TICPlotType plotType = parameters
+                .getParameter(TICVisualizerParameters.PLOT_TYPE).getValue();
+        final Feature[] selectionPeaks = parameters
+                .getParameter(TICVisualizerParameters.PEAKS).getValue();
 
         // Add the window to the desktop only if we actually have any raw
         // data to show.
         boolean weHaveData = false;
-        for (int i = 0, dataFilesLength = dataFiles.length; !weHaveData
-                && i < dataFilesLength; i++) {
-
-            weHaveData = dataFiles[i].getScanNumbers(msLevel, rtRange).length > 0;
+        for (RawDataFile dataFile : dataFiles) {
+            Scan selectedScans[] = scanSelection.getMatchingScans(dataFile);
+            if (selectedScans.length > 0)
+                weHaveData = true;
         }
 
         if (weHaveData) {
             TICVisualizerWindow window = new TICVisualizerWindow(dataFiles,
-                    plotType, msLevel, rtRange, mzRange, selectionPeaks,
-                    ((TICVisualizerParameters) parameters).getPeakLabelMap(),
-                    ((TICVisualizerParameters) parameters).getHiddenMzRange());
+                    plotType, scanSelection, mzRange, selectionPeaks,
+                    ((TICVisualizerParameters) parameters).getPeakLabelMap());
             window.setVisible(true);
 
         } else {
 
             MZmineCore.getDesktop().displayErrorMessage(
-                    MZmineCore.getDesktop().getMainWindow(),
-                    "No scans found at MS level " + msLevel
-                            + " within given retention time range.");
+                    MZmineCore.getDesktop().getMainWindow(), "No scans found");
         }
 
         return ExitCode.OK;
@@ -106,15 +103,16 @@ public class TICVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void setupNewTICVisualizer(final RawDataFile[] dataFiles) {
-        setupNewTICVisualizer(MZmineCore.getProjectManager()
-                .getCurrentProject().getDataFiles(), dataFiles, new Feature[0],
-                new Feature[0], null, null, null);
+        setupNewTICVisualizer(
+                MZmineCore.getProjectManager().getCurrentProject()
+                        .getDataFiles(),
+                dataFiles, new Feature[0], new Feature[0], null, null, null);
     }
 
     public static void setupNewTICVisualizer(final RawDataFile[] allFiles,
             final RawDataFile[] selectedFiles, final Feature[] allPeaks,
             final Feature[] selectedPeaks,
-            final Map<Feature, String> peakLabels, final Range<Double> rtRange,
+            final Map<Feature, String> peakLabels, ScanSelection scanSelection,
             final Range<Double> mzRange) {
 
         assert allFiles != null;
@@ -122,16 +120,14 @@ public class TICVisualizerModule implements MZmineRunnableModule {
         final TICVisualizerModule myInstance = MZmineCore
                 .getModuleInstance(TICVisualizerModule.class);
         final TICVisualizerParameters myParameters = (TICVisualizerParameters) MZmineCore
-                .getConfiguration().getModuleParameters(
-                        TICVisualizerModule.class);
-        myParameters.getParameter(TICVisualizerParameters.MS_LEVEL).setValue(1);
-        myParameters.getParameter(TICVisualizerParameters.PLOT_TYPE).setValue(
-                PlotType.BASEPEAK);
+                .getConfiguration()
+                .getModuleParameters(TICVisualizerModule.class);
+        myParameters.getParameter(TICVisualizerParameters.PLOT_TYPE)
+                .setValue(TICPlotType.BASEPEAK);
 
-        if (rtRange != null) {
-
-            myParameters.getParameter(TICVisualizerParameters.RT_RANGE)
-                    .setValue(rtRange);
+        if (scanSelection != null) {
+            myParameters.getParameter(TICVisualizerParameters.scanSelection)
+                    .setValue(scanSelection);
         }
 
         if (mzRange != null) {
@@ -139,9 +135,8 @@ public class TICVisualizerModule implements MZmineRunnableModule {
                     .setValue(mzRange);
         }
 
-        if (myParameters.showSetupDialog(MZmineCore.getDesktop()
-                .getMainWindow(), true, allFiles, selectedFiles, allPeaks,
-                selectedPeaks) == ExitCode.OK) {
+        if (myParameters.showSetupDialog(null, true, allFiles, selectedFiles,
+                allPeaks, selectedPeaks) == ExitCode.OK) {
 
             final TICVisualizerParameters p = (TICVisualizerParameters) myParameters
                     .cloneParameterSet();
@@ -150,24 +145,20 @@ public class TICVisualizerModule implements MZmineRunnableModule {
                 p.setPeakLabelMap(peakLabels);
             }
 
-            if (mzRange != null) {
-                p.setHiddenMzRange(mzRange);
-            }
-
-            myInstance.runModule(MZmineCore.getProjectManager()
-                    .getCurrentProject(), p, new ArrayList<Task>());
+            myInstance.runModule(
+                    MZmineCore.getProjectManager().getCurrentProject(), p,
+                    new ArrayList<Task>());
         }
     }
 
-    public static void showNewTICVisualizerWindow(
-            final RawDataFile[] dataFiles, final Feature[] selectionPeaks,
-            final Map<Feature, String> peakLabels, final int msLevel,
-            final PlotType plotType, final Range<Double> rtRange,
+    public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
+            final Feature[] selectionPeaks,
+            final Map<Feature, String> peakLabels,
+            final ScanSelection scanSelection, final TICPlotType plotType,
             final Range<Double> mzRange) {
 
         TICVisualizerWindow window = new TICVisualizerWindow(dataFiles,
-                plotType, msLevel, rtRange, mzRange, selectionPeaks,
-                peakLabels, null);
+                plotType, scanSelection, mzRange, selectionPeaks, peakLabels);
         window.setVisible(true);
     }
 

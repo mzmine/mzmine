@@ -29,6 +29,7 @@ public class ExtendedPeak implements Feature {
 
     // Chromatogram m/z, RT, height, area
     private double mz, rt, height, area;
+    private Double fwhm = null, tf = null, af = null;
 
     // Top intensity scan, fragment scan
     private int representativeScan = -1, fragmentScan = -1;
@@ -254,4 +255,29 @@ public class ExtendedPeak implements Feature {
     public String toString() {
 	return PeakUtils.peakToString(this);
     }
+
+    public Double getFWHM() {
+        return fwhm;
+    }
+
+    public void setFWHM(Double fwhm) {
+        this.fwhm = fwhm;
+    }
+
+    public Double getTailingFactor() {
+        return tf;
+    }
+
+    public void setTailingFactor(Double tf) {
+        this.tf = tf;
+    }
+
+    public Double getAsymmetryFactor() {
+        return af;
+    }
+
+    public void setAsymmetryFactor(Double af) {
+        this.af = af;
+    }
+
 }

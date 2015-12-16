@@ -44,25 +44,27 @@ class CSVExportTask extends AbstractTask {
     private ExportRowCommonElement[] commonElements;
     private String[] identityElements;
     private ExportRowDataFileElement[] dataFileElements;
+    private Boolean exportAllIDs;
+    private String idSeparator;
 
     CSVExportTask(ParameterSet parameters) {
 
         this.peakList = parameters.getParameter(CSVExportParameters.peakList)
                 .getValue().getMatchingPeakLists()[0];
-
         fileName = parameters.getParameter(CSVExportParameters.filename)
                 .getValue();
         fieldSeparator = parameters.getParameter(
                 CSVExportParameters.fieldSeparator).getValue();
-
         commonElements = parameters.getParameter(
                 CSVExportParameters.exportCommonItems).getValue();
-
         identityElements = parameters.getParameter(
                 CSVExportParameters.exportIdentityItems).getValue();
         dataFileElements = parameters.getParameter(
                 CSVExportParameters.exportDataFileItems).getValue();
-
+        exportAllIDs = parameters.getParameter(
+                CSVExportParameters.exportAllIDs).getValue();
+        idSeparator = parameters.getParameter(
+                CSVExportParameters.idSeparator).getValue();
     }
 
     public double getFinishedPercentage() {
@@ -196,20 +198,39 @@ class CSVExportTask extends AbstractTask {
                 }
             }
 
-            // Identity elements
-            length = identityElements.length;
-            PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
-            if (peakIdentity != null) {
-                for (int i = 0; i < length; i++) {
-                    String propertyValue = escapeStringForCSV(peakIdentity
-                            .getPropertyValue(identityElements[i]));
-                    line.append(propertyValue + fieldSeparator);
-                }
-            } else {
-                for (int i = 0; i < length; i++) {
-                    line.append(fieldSeparator);
-                }
-            }
+	    // Identity elements
+	    length = identityElements.length;
+	    PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
+	    PeakIdentity[] peakIdentities = peakListRow.getPeakIdentities();
+
+	    if (exportAllIDs && peakIdentities.length > 1) {
+		// Export all identification results
+		for (int i = 0; i < length; i++) {
+		    String propertyValue = "";
+		    for (int x = 0; x < peakIdentities.length; x++) {
+			if (x == 0) {
+			    propertyValue = escapeStringForCSV(peakIdentities[x]
+				    .getPropertyValue(identityElements[i]));
+			} else {
+			    propertyValue = propertyValue
+				    + idSeparator
+				    + escapeStringForCSV(peakIdentities[x]
+					    .getPropertyValue(identityElements[i]));
+			}
+		    }
+		    line.append(propertyValue + fieldSeparator);
+		}
+	    } else if (peakIdentity != null) {
+		for (int i = 0; i < length; i++) {
+		    String propertyValue = escapeStringForCSV(peakIdentity
+			    .getPropertyValue(identityElements[i]));
+		    line.append(propertyValue + fieldSeparator);
+		}
+	    } else {
+		for (int i = 0; i < length; i++) {
+		    line.append(fieldSeparator);
+		}
+	    }
 
             // Data file elements
             length = dataFileElements.length;
@@ -236,6 +257,11 @@ class CSVExportTask extends AbstractTask {
                             line.append(peak.getRawDataPointsRTRange()
                                     .upperEndpoint() + fieldSeparator);
                             break;
+                        case PEAK_DURATION:
+                            line.append(RangeUtils.rangeLength(peak
+                                    .getRawDataPointsRTRange())
+                                    + fieldSeparator);
+                            break;
                         case PEAK_HEIGHT:
                             line.append(peak.getHeight() + fieldSeparator);
                             break;
@@ -249,11 +275,18 @@ class CSVExportTask extends AbstractTask {
                             line.append(peak.getScanNumbers().length
                                     + fieldSeparator);
                             break;
-                        case PEAK_DURATION:
-                            line.append(RangeUtils.rangeLength(peak
-                                    .getRawDataPointsRTRange())
+                        case PEAK_FWHM:
+                            line.append(peak.getFWHM() + fieldSeparator);
+                            break;
+                        case PEAK_TAILINGFACTOR:
+                            line.append(peak.getTailingFactor()
                                     + fieldSeparator);
                             break;
+                        case PEAK_ASYMMETRYFACTOR:
+                            line.append(peak.getAsymmetryFactor()
+                                    + fieldSeparator);
+                            break;
+
                         }
                     } else {
                         switch (dataFileElements[i]) {

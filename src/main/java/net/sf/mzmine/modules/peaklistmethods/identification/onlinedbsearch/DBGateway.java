@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch;
 import java.io.IOException;
 
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 public interface DBGateway {
 

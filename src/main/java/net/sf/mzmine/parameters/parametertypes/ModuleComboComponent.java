@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
@@ -44,6 +45,8 @@ public class ModuleComboComponent extends JPanel implements ActionListener {
     public ModuleComboComponent(MZmineProcessingStep<?> modules[]) {
 
 	super(new BorderLayout());
+
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
 	assert modules != null;
 	assert modules.length > 0;

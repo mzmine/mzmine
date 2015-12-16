@@ -23,31 +23,27 @@ import java.awt.Window;
 import java.util.ArrayList;
 
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.parameters.parametertypes.ComboComponent;
 
 public class HeatmapSetupDialog extends ParameterSetupDialog {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
-    private JComboBox<Object> selDataCombo, refGroupCombo;
+    private ComboComponent<?> selDataCombo, refGroupCombo;
     private UserParameter<?, ?> previousParameterSelection;
 
-    @SuppressWarnings("unchecked")
     public HeatmapSetupDialog(Window parent, boolean valueCheckRequired,
             HeatMapParameters parameters) {
         super(parent, valueCheckRequired, parameters);
 
         // Get a reference to the combo boxes
-        selDataCombo = (JComboBox<Object>) this
+        selDataCombo = (ComboComponent<?>) this
                 .getComponentForParameter(HeatMapParameters.selectionData);
-        refGroupCombo = (JComboBox<Object>) this
+        refGroupCombo = (ComboComponent<?>) this
                 .getComponentForParameter(HeatMapParameters.referenceGroup);
 
         // Save a reference to current "Sample parameter" value
@@ -59,6 +55,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
 
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void parametersChanged() {
 
@@ -88,7 +85,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
             Object newValues[] = values.toArray();
             super.parameterSet.getParameter(HeatMapParameters.referenceGroup)
                     .setChoices(newValues);
-            refGroupCombo.setModel(new DefaultComboBoxModel<Object>(newValues));
+            refGroupCombo.setModel(new DefaultComboBoxModel(newValues));
 
             previousParameterSelection = currentParameterSelection;
         }

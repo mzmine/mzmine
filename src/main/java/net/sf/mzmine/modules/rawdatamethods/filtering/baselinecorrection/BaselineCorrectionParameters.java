@@ -37,10 +37,10 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.util.ExitCode;
 
 /**
@@ -48,11 +48,6 @@ import net.sf.mzmine.util.ExitCode;
  * "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors"
  * sub-package for method specific parameters.
  * 
- * @author $Author$
- * @version $Revision$
- * 
- *          Reduced strictly to the parameters common to all the
- *          BaselineCorrectors.
  */
 public class BaselineCorrectionParameters extends SimpleParameterSet {
 
@@ -117,9 +112,10 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
             MZmineCore.getConfiguration().getMZFormat(), 1.0, 0.001, null);
 
     /**
-     * MS-level.
+     * Scans
      */
-    public static final MSLevelParameter MS_LEVEL = new MSLevelParameter();
+    public static final IntegerParameter MS_LEVEL = new IntegerParameter(
+            "MS level", "MS level of scans to apply this method to", 1, 1, null);
 
     /**
      * Remove original data file.

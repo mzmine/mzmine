@@ -19,11 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-import java.awt.Window;
-
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.em.EMClusterer;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.farthestfirst.FarthestFirstClusterer;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchical.HierarClusterer;
@@ -33,8 +28,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class ClusteringParameters extends SimpleParameterSet {
 
@@ -54,38 +48,11 @@ public class ClusteringParameters extends SimpleParameterSet {
             ClusteringDataType.values());
 
     public ClusteringParameters() {
-        super(
-                new Parameter[] { peakLists,
-                        ProjectionPlotParameters.peakMeasurementType,
-                        ProjectionPlotParameters.dataFiles,
-                        ProjectionPlotParameters.rows, clusteringAlgorithm,
-                        typeOfData });
+        super(new Parameter[] { peakLists,
+                ProjectionPlotParameters.peakMeasurementType,
+                ProjectionPlotParameters.dataFiles,
+                ProjectionPlotParameters.rows, clusteringAlgorithm,
+                typeOfData });
     }
 
-    @Override
-    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-
-        PeakList selectedPeakList[] = getParameter(peakLists).getValue()
-                .getMatchingPeakLists();
-
-        RawDataFile dataFileChoices[];
-        if (selectedPeakList.length == 1) {
-            dataFileChoices = selectedPeakList[0].getRawDataFiles();
-        } else {
-            dataFileChoices = new RawDataFile[0];
-        }
-
-        PeakListRow rowChoices[];
-        if (selectedPeakList.length == 1) {
-            rowChoices = selectedPeakList[0].getRows();
-        } else {
-            rowChoices = new PeakListRow[0];
-        }
-
-        getParameter(ProjectionPlotParameters.dataFiles).setChoices(
-                dataFileChoices);
-        getParameter(ProjectionPlotParameters.rows).setChoices(rowChoices);
-
-        return super.showSetupDialog(parent, valueCheckRequired);
-    }
 }

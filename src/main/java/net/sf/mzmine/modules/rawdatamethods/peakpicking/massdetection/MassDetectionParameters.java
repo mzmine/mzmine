@@ -32,10 +32,11 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.recursive.
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet.WaveletMassDetector;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class MassDetectionParameters extends SimpleParameterSet {
@@ -47,12 +48,13 @@ public class MassDetectionParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+            new ScanSelection(1));
+
     public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
             "Mass detector",
             "Algorithm to use for mass detection and its parameters",
             massDetectors);
-
-    public static final MSLevelParameter msLevel = new MSLevelParameter();
 
     public static final StringParameter name = new StringParameter(
             "Mass list name",
@@ -60,7 +62,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
             "masses");
 
     public MassDetectionParameters() {
-        super(new Parameter[] { dataFiles, massDetector, msLevel, name });
+        super(new Parameter[] { dataFiles, scanSelection, massDetector, name });
     }
 
     @Override
@@ -75,7 +77,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
         // Do an additional check for centroid/continuous data and show a
         // warning if there is a potential problem
         boolean centroidData = false;
-        int selectedMSLevel = getParameter(msLevel).getValue();
+        ScanSelection scanSel = getParameter(scanSelection).getValue();
         RawDataFile selectedFiles[] = getParameter(dataFiles).getValue()
                 .getMatchingRawDataFiles();
 
@@ -84,9 +86,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
             return exitCode;
 
         for (RawDataFile file : selectedFiles) {
-            int scanNums[] = file.getScanNumbers(selectedMSLevel);
-            for (int scanNum : scanNums) {
-                Scan s = file.getScan(scanNum);
+            Scan scans[] = scanSel.getMatchingScans(file);
+            for (Scan s : scans) {
                 if (s.getSpectrumType() == MassSpectrumType.CENTROIDED)
                     centroidData = true;
             }
@@ -97,16 +98,12 @@ public class MassDetectionParameters extends SimpleParameterSet {
                 .toString();
 
         if ((centroidData) && (!massDetectorName.startsWith("Centroid"))) {
-            String msg = "One or more selected files contains centroided data points at MS level "
-                    + selectedMSLevel
-                    + ". The selected mass detector could give unexpected results.";
+            String msg = "One or more selected files contains centroided data points. The selected mass detector could give unexpected results.";
             MZmineCore.getDesktop().displayMessage(null, msg);
         }
 
         if ((!centroidData) && (massDetectorName.startsWith("Centroid"))) {
-            String msg = "None one of the selected files contain centroided data points at MS level "
-                    + selectedMSLevel
-                    + ". The selected mass detector could give unexpected results.";
+            String msg = "None one of the selected files contain centroided data points. The selected mass detector could give unexpected results.";
             MZmineCore.getDesktop().displayMessage(null, msg);
         }
 

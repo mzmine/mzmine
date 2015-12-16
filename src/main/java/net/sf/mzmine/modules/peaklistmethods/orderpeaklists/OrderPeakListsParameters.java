@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.orderpeaklists;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class OrderPeakListsParameters extends SimpleParameterSet {
 

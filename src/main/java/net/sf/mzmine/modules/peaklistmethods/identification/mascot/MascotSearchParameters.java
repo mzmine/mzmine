@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class MascotSearchParameters extends SimpleParameterSet {
 

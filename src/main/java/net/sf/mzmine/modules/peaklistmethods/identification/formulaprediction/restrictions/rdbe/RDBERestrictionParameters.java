@@ -24,13 +24,13 @@ import java.text.NumberFormat;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 
 import com.google.common.collect.Range;
 
 public class RDBERestrictionParameters extends SimpleParameterSet {
 
-    public static final RangeParameter rdbeRange = new RangeParameter(
+    public static final DoubleRangeParameter rdbeRange = new DoubleRangeParameter(
 	    "RDBE range",
 	    "Range of allowed RDBE (Range or Double Bonds Equivalents) value",
 	    NumberFormat.getNumberInstance(), Range.closed(-1.0, 40.0));

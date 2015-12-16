@@ -54,7 +54,7 @@ public class FormulaPredictionPeakListModule implements MZmineProcessingModule {
     }
 
     @Override
-    public ExitCode runModule(@Nonnull MZmineProject project,
+    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
         PeakList peakLists[] = parameters
                 .getParameter(FormulaPredictionPeakListParameters.PEAK_LISTS)

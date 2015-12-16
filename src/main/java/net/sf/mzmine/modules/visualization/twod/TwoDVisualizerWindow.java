@@ -28,6 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -47,76 +48,71 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
     private TwoDBottomPanel bottomPanel;
     private TwoDDataSet dataset;
     private RawDataFile dataFile;
-    private int msLevel;
     private boolean tooltipMode;
     private boolean logScale;
 
-    public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
-	    Range<Double> rtRange, Range<Double> mzRange,
-	    ParameterSet parameters) {
+    public TwoDVisualizerWindow(RawDataFile dataFile, Scan scans[],
+            Range<Double> rtRange, Range<Double> mzRange,
+            ParameterSet parameters) {
 
-	super("2D view: [" + dataFile.getName() + "]");
+        super("2D view: [" + dataFile.getName() + "]");
 
-	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-	setBackground(Color.white);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setBackground(Color.white);
 
-	this.dataFile = dataFile;
-	this.msLevel = msLevel;
+        this.dataFile = dataFile;
 
-	this.tooltipMode = true;
+        this.tooltipMode = true;
 
-	dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
+        dataset = new TwoDDataSet(dataFile, scans, rtRange, mzRange, this);
 
-	toolBar = new TwoDToolBar(this);
-	add(toolBar, BorderLayout.EAST);
+        toolBar = new TwoDToolBar(this);
+        add(toolBar, BorderLayout.EAST);
 
-	twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
-	add(twoDPlot, BorderLayout.CENTER);
+        twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
+        add(twoDPlot, BorderLayout.CENTER);
 
-	bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
-	add(bottomPanel, BorderLayout.SOUTH);
+        bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
+        add(bottomPanel, BorderLayout.SOUTH);
 
-	updateTitle();
+        updateTitle();
 
-	// After we have constructed everything, load the peak lists into the
-	// bottom panel
-	bottomPanel.rebuildPeakListSelector();
+        // After we have constructed everything, load the peak lists into the
+        // bottom panel
+        bottomPanel.rebuildPeakListSelector();
 
-	MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
+        MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
-	// Add the Windows menu
-	JMenuBar menuBar = new JMenuBar();
-	menuBar.add(new WindowsMenu());
-	setJMenuBar(menuBar);
+        // Add the Windows menu
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.add(new WindowsMenu());
+        setJMenuBar(menuBar);
 
-	pack();
+        pack();
 
-	// get the window settings parameter
-	ParameterSet paramSet = MZmineCore.getConfiguration()
-		.getModuleParameters(TwoDVisualizerModule.class);
-	WindowSettingsParameter settings = paramSet
-		.getParameter(TwoDParameters.windowSettings);
+        // get the window settings parameter
+        ParameterSet paramSet = MZmineCore.getConfiguration()
+                .getModuleParameters(TwoDVisualizerModule.class);
+        WindowSettingsParameter settings = paramSet
+                .getParameter(TwoDVisualizerParameters.windowSettings);
 
-	// update the window and listen for changes
-	settings.applySettingsToWindow(this);
-	this.addComponentListener(settings);
+        // update the window and listen for changes
+        settings.applySettingsToWindow(this);
+        this.addComponentListener(settings);
 
     }
 
     public void dispose() {
-	super.dispose();
-	MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
+        super.dispose();
+        MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
     }
 
     void updateTitle() {
-	StringBuffer title = new StringBuffer();
-	title.append("[");
-	title.append(dataFile.getName());
-	title.append("]: 2D view");
-	title.append(", MS");
-	title.append(msLevel);
-	twoDPlot.setTitle(title.toString());
-
+        StringBuffer title = new StringBuffer();
+        title.append("[");
+        title.append(dataFile.getName());
+        title.append("]: 2D view");
+        twoDPlot.setTitle(title.toString());
     }
 
     /**
@@ -124,55 +120,55 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
      */
     public void actionPerformed(ActionEvent event) {
 
-	String command = event.getActionCommand();
+        String command = event.getActionCommand();
 
-	if (command.equals("SWITCH_PALETTE")) {
-	    twoDPlot.getXYPlot().switchPalette();
-	}
+        if (command.equals("SWITCH_PALETTE")) {
+            twoDPlot.getXYPlot().switchPalette();
+        }
 
-	if (command.equals("SHOW_DATA_POINTS")) {
-	    twoDPlot.switchDataPointsVisible();
-	}
+        if (command.equals("SHOW_DATA_POINTS")) {
+            twoDPlot.switchDataPointsVisible();
+        }
 
-	if (command.equals("SETUP_AXES")) {
-	    AxesSetupDialog dialog = new AxesSetupDialog(this,
-		    twoDPlot.getXYPlot());
-	    dialog.setVisible(true);
-	}
+        if (command.equals("SETUP_AXES")) {
+            AxesSetupDialog dialog = new AxesSetupDialog(this,
+                    twoDPlot.getXYPlot());
+            dialog.setVisible(true);
+        }
 
-	if (command.equals("SWITCH_PLOTMODE")) {
+        if (command.equals("SWITCH_PLOTMODE")) {
 
-	    if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
-		toolBar.setCentroidButton(true);
-		twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
-	    } else {
-		toolBar.setCentroidButton(false);
-		twoDPlot.setPlotMode(PlotMode.CENTROID);
-	    }
-	}
+            if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
+                toolBar.setCentroidButton(true);
+                twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
+            } else {
+                toolBar.setCentroidButton(false);
+                twoDPlot.setPlotMode(PlotMode.CENTROID);
+            }
+        }
 
-	if (command.equals("SWITCH_TOOLTIPS")) {
-	    if (tooltipMode) {
-		twoDPlot.showPeaksTooltips(false);
-		toolBar.setTooltipButton(false);
-		tooltipMode = false;
-	    } else {
-		twoDPlot.showPeaksTooltips(true);
-		toolBar.setTooltipButton(true);
-		tooltipMode = true;
-	    }
-	}
+        if (command.equals("SWITCH_TOOLTIPS")) {
+            if (tooltipMode) {
+                twoDPlot.showPeaksTooltips(false);
+                toolBar.setTooltipButton(false);
+                tooltipMode = false;
+            } else {
+                twoDPlot.showPeaksTooltips(true);
+                toolBar.setTooltipButton(true);
+                tooltipMode = true;
+            }
+        }
 
-	if (command.equals("SWITCH_LOG_SCALE")) {
-	    if (twoDPlot != null) {
-		logScale = !logScale;
-		twoDPlot.setLogScale(logScale);
-	    }
-	}
+        if (command.equals("SWITCH_LOG_SCALE")) {
+            if (twoDPlot != null) {
+                logScale = !logScale;
+                twoDPlot.setLogScale(logScale);
+            }
+        }
 
     }
 
     TwoDPlot getPlot() {
-	return twoDPlot;
+        return twoDPlot;
     }
 }

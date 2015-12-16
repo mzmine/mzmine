@@ -30,6 +30,7 @@ import java.awt.event.ItemListener;
 import java.awt.Font;
 
 import javax.annotation.Nonnull;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -42,8 +43,8 @@ import javax.swing.table.TableCellRenderer;
 
 import net.sf.mzmine.util.GUIUtils;
 
-public class SQLColumnSettingsComponent extends JPanel implements
-	ActionListener {
+public class SQLColumnSettingsComponent extends JPanel
+        implements ActionListener {
 
     /**
      * 
@@ -57,114 +58,116 @@ public class SQLColumnSettingsComponent extends JPanel implements
 
     public SQLColumnSettingsComponent() {
 
-	super(new BorderLayout());
+        super(new BorderLayout());
 
-	value = new SQLColumnSettings();
+        setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-	// columnsTable = new JTable(value);
-	columnsTable = new JTable(value) {
-	    /**
-	     * 
-	     */
-	    private static final long serialVersionUID = 1L;
+        value = new SQLColumnSettings();
 
-	    public Component prepareRenderer(TableCellRenderer renderer,
-		    int row, int column) {
-		Component c = super.prepareRenderer(renderer, row, column);
-		if (!isCellEditable(row, column)) {
-		    if (isCellSelected(row, column)) {
-			c.setBackground(Color.decode("#3399FF"));
-			c.setForeground(Color.white);
-		    } else {
-			c.setBackground(Color.decode("#E3E3E3"));
-		    }
-		} else {
-		    if (isCellSelected(row, column)) {
-			c.setBackground(Color.decode("#3399FF"));
-			c.setForeground(Color.white);
-		    } else {
-			c.setBackground(Color.white);
-			c.setForeground(Color.black);
-		    }
-		}
-		return c;
-	    }
-	};
+        // columnsTable = new JTable(value);
+        columnsTable = new JTable(value) {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
 
-	columnsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	columnsTable.setRowSelectionAllowed(true);
-	columnsTable.setColumnSelectionAllowed(false);
-	columnsTable.getTableHeader().setReorderingAllowed(false);
-	columnsTable.getTableHeader().setResizingAllowed(false);
-	columnsTable
-		.setPreferredScrollableViewportSize(new Dimension(550, 220));
+            public Component prepareRenderer(TableCellRenderer renderer,
+                    int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                if (!isCellEditable(row, column)) {
+                    if (isCellSelected(row, column)) {
+                        c.setBackground(Color.decode("#3399FF"));
+                        c.setForeground(Color.white);
+                    } else {
+                        c.setBackground(Color.decode("#E3E3E3"));
+                    }
+                } else {
+                    if (isCellSelected(row, column)) {
+                        c.setBackground(Color.decode("#3399FF"));
+                        c.setForeground(Color.white);
+                    } else {
+                        c.setBackground(Color.white);
+                        c.setForeground(Color.black);
+                    }
+                }
+                return c;
+            }
+        };
 
-	columnsTable.setRowHeight(columnsTable.getRowHeight() + 5);
-	columnsTable.setFont(new Font(getFont().getName(), Font.PLAIN, 13));
+        columnsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        columnsTable.setRowSelectionAllowed(true);
+        columnsTable.setColumnSelectionAllowed(false);
+        columnsTable.getTableHeader().setReorderingAllowed(false);
+        columnsTable.getTableHeader().setResizingAllowed(false);
+        columnsTable
+                .setPreferredScrollableViewportSize(new Dimension(550, 220));
 
-	JComboBox<SQLExportDataType> dataTypeCombo = new JComboBox<SQLExportDataType>(
-		SQLExportDataType.values());
-	dataTypeCombo.setMaximumRowCount(22);
-	DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
-	columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
+        columnsTable.setRowHeight(columnsTable.getRowHeight() + 5);
+        columnsTable.setFont(new Font(getFont().getName(), Font.PLAIN, 13));
 
-	// Create an ItemListener for the JComboBox component.
-	dataTypeCombo.addItemListener(new ItemListener() {
-	    @Override
-	    public void itemStateChanged(ItemEvent e) {
-		JComboBox<?> dataTypeCombo = (JComboBox<?>) e.getSource();
-		Boolean selected = ((SQLExportDataType) dataTypeCombo
-			.getSelectedItem()).isSelectableValue();
-		if (!selected && e.getStateChange() == 1) {
-		    // Invalid selection - selection of title rows in JComboBox
-		    // is not allowed
-		    dataTypeCombo.setSelectedIndex(dataTypeCombo
-			    .getSelectedIndex() + 1);
-		}
-	    }
-	});
+        JComboBox<SQLExportDataType> dataTypeCombo = new JComboBox<SQLExportDataType>(
+                SQLExportDataType.values());
+        dataTypeCombo.setMaximumRowCount(22);
+        DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
+        columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
 
-	JScrollPane elementsScroll = new JScrollPane(columnsTable);
-	add(elementsScroll, BorderLayout.CENTER);
+        // Create an ItemListener for the JComboBox component.
+        dataTypeCombo.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                JComboBox<?> dataTypeCombo = (JComboBox<?>) e.getSource();
+                Boolean selected = ((SQLExportDataType) dataTypeCombo
+                        .getSelectedItem()).isSelectableValue();
+                if (!selected && e.getStateChange() == 1) {
+                    // Invalid selection - selection of title rows in JComboBox
+                    // is not allowed
+                    dataTypeCombo.setSelectedIndex(
+                            dataTypeCombo.getSelectedIndex() + 1);
+                }
+            }
+        });
 
-	// Add buttons
-	JPanel buttonsPanel = new JPanel();
-	BoxLayout buttonsPanelLayout = new BoxLayout(buttonsPanel,
-		BoxLayout.Y_AXIS);
-	buttonsPanel.setLayout(buttonsPanelLayout);
-	addColumnButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
-	removeColumnButton = GUIUtils.addButton(buttonsPanel, "Remove", null,
-		this);
-	add(buttonsPanel, BorderLayout.EAST);
+        JScrollPane elementsScroll = new JScrollPane(columnsTable);
+        add(elementsScroll, BorderLayout.CENTER);
+
+        // Add buttons
+        JPanel buttonsPanel = new JPanel();
+        BoxLayout buttonsPanelLayout = new BoxLayout(buttonsPanel,
+                BoxLayout.Y_AXIS);
+        buttonsPanel.setLayout(buttonsPanelLayout);
+        addColumnButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
+        removeColumnButton = GUIUtils.addButton(buttonsPanel, "Remove", null,
+                this);
+        add(buttonsPanel, BorderLayout.EAST);
 
     }
 
     public void actionPerformed(ActionEvent event) {
 
-	Object src = event.getSource();
+        Object src = event.getSource();
 
-	if (src == addColumnButton) {
-	    value.addNewRow();
-	}
+        if (src == addColumnButton) {
+            value.addNewRow();
+        }
 
-	if (src == removeColumnButton) {
-	    int selectedRow = columnsTable.getSelectedRow();
-	    if (selectedRow < 0)
-		return;
-	    value.removeRow(selectedRow);
-	}
+        if (src == removeColumnButton) {
+            int selectedRow = columnsTable.getSelectedRow();
+            if (selectedRow < 0)
+                return;
+            value.removeRow(selectedRow);
+        }
     }
 
     void setValue(@Nonnull SQLColumnSettings newValue) {
 
-	// Clear the table
-	this.value = newValue;
-	columnsTable.setModel(newValue);
+        // Clear the table
+        this.value = newValue;
+        columnsTable.setModel(newValue);
     }
 
     @Nonnull
     synchronized SQLColumnSettings getValue() {
-	return value;
+        return value;
     }
 
 }

@@ -21,7 +21,6 @@ package net.sf.mzmine.util.R;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,14 +28,9 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.LoggerStream;
-import net.sf.mzmine.util.TextUtils;
-import net.sf.mzmine.util.R.Rsession.RserverConf;
-import net.sf.mzmine.util.R.Rsession.Rsession;
 
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
@@ -48,16 +42,19 @@ import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import net.sf.mzmine.util.LoggerStream;
+import net.sf.mzmine.util.TextUtils;
+import net.sf.mzmine.util.R.Rsession.RserverConf;
+import net.sf.mzmine.util.R.Rsession.Rsession;
+
 /**
  * @description TODO
  */
 public class RSessionWrapper {
 
     // Logger.
-    private static final Logger LOG = Logger.getLogger(RSessionWrapper.class
-            .getName());
-
-    private static boolean DEBUG = false;
+    private static final Logger LOG = Logger
+            .getLogger(RSessionWrapper.class.getName());
 
     // Rsession semaphore - non-parallelizable operations must be synchronized
     // using this semaphore.
@@ -65,19 +62,16 @@ public class RSessionWrapper {
     public static Rsession MASTER_SESSION = null;
     private static int MASTER_PORT = -1;
     public static final ArrayList<RSessionWrapper> R_SESSIONS_REG = new ArrayList<RSessionWrapper>();
-    public final static String R_HOME_KEY = "R_HOME";
-    public static String R_HOME = null;
 
     private final Object R_DUMMY_SEMAPHORE = new Object();
 
-    private static final Level rsLogLvl = (DEBUG) ? Level.FINEST : Level.OFF;
+    private static final Level rsLogLvl = Level.FINEST;
     private static final Level logLvl = Level.FINEST;
     private static PrintStream logStream = new LoggerStream(LOG, rsLogLvl);
 
     // Enhanced remote security stuffs.
     private static final String RS_LOGIN = "MZmineUser";
-    private static final String RS_DYN_PWD = String.valueOf(java.util.UUID
-            .randomUUID());
+    private static final String RS_DYN_PWD = String.valueOf(UUID.randomUUID());
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
     // ----
@@ -103,8 +97,8 @@ public class RSessionWrapper {
     // Check if OS is windows.
     public static boolean isWindows() {
         String osname = System.getProperty("os.name");
-        return (osname != null && osname.length() >= 7 && osname
-                .substring(0, 7).equals("Windows"));
+        return (osname != null && osname.length() >= 7
+                && osname.substring(0, 7).equals("Windows"));
     }
 
     // Mute output stream utility.
@@ -114,8 +108,8 @@ public class RSessionWrapper {
             super(new NullByteArrayOutputStream());
         }
 
-        private static class NullByteArrayOutputStream extends
-                ByteArrayOutputStream {
+        private static class NullByteArrayOutputStream
+                extends ByteArrayOutputStream {
 
             @Override
             public void write(int b) {
@@ -136,51 +130,6 @@ public class RSessionWrapper {
     }
 
     // ** R path utilities
-    /**
-     * Helper class that consumes output of a process. In addition, it filters
-     * output of the REG command on Windows to look for InstallPath registry
-     * entry which specifies the location of R.
-     */
-    static class StreamHog extends Thread {
-        InputStream is;
-        boolean capture;
-        String installPath;
-
-        StreamHog(InputStream is, boolean capture) {
-            this.is = is;
-            this.capture = capture;
-            start();
-        }
-
-        public String getInstallPath() {
-            return installPath;
-        }
-
-        public void run() {
-            try {
-                BufferedReader br = new BufferedReader(
-                        new InputStreamReader(is));
-                String line = null;
-                while ((line = br.readLine()) != null) {
-                    if (capture) { // we are supposed to capture the output from
-                        // REG command
-                        int i = line.indexOf("InstallPath");
-                        if (i >= 0) {
-                            String s = line.substring(i + 11).trim();
-                            int j = s.indexOf("REG_SZ");
-                            if (j >= 0)
-                                s = s.substring(j + 6).trim();
-                            installPath = s;
-                            LOG.log(Level.FINEST, "R InstallPath = " + s);
-                        }
-                    } else
-                        LOG.log(Level.FINEST, "Rserve > " + line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     /**
      * Utility class to consume and eventually redirect system call outputs.
@@ -227,84 +176,6 @@ public class RSessionWrapper {
         }
     }
 
-    public static String getRexecutablePath() {
-
-        // Get it manually if set in "Project > Preferences".
-        String rPath = MZmineCore.getConfiguration().getRexecPath();
-        if (rPath != null && rPath != "") {
-            File f = new File(rPath);
-            if (f.exists())
-                return f.getPath();
-        }
-
-        // Otherwise: automated attempt...
-
-        // Win: Get R path from registry.
-        if (isWindows()) {
-            LOG.log(Level.FINEST,
-                    "Windows: Query registry to find where R is installed ...");
-            String installPath = null;
-            try {
-                Process rp = Runtime.getRuntime().exec(
-                        "reg query HKLM\\Software\\R-core\\R");
-                StreamHog regHog = new StreamHog(rp.getInputStream(), true);
-                rp.waitFor();
-                regHog.join();
-                installPath = regHog.getInstallPath();
-            } catch (Exception rge) {
-                LOG.log(Level.SEVERE,
-                        "ERROR: Unable to run REG to find the location of R: "
-                                + rge);
-                return null;
-            }
-            if (installPath == null) {
-                LOG.log(Level.SEVERE,
-                        "ERROR: Cannot find path to R. Make sure reg is available"
-                                + " and R was installed with registry settings.");
-                return null;
-            }
-            File f = new File(installPath);
-            return ((f.exists()) ? installPath + "\\bin\\R.exe" : null);
-        }
-
-        // Mac OSX.
-        File f = new File("/Library/Frameworks/R.framework/Resources/bin/R");
-        if (f.exists())
-            return f.getPath();
-
-        // *NUX.
-        f = new File("/usr/local/lib/R/bin/R");
-        if (f.exists())
-            return f.getPath();
-        f = new File("/usr/lib/R/bin/R");
-        if (f.exists())
-            return f.getPath();
-        f = new File("/sw/bin/R");
-        if (f.exists())
-            return f.getPath();
-        f = new File("/usr/common/bin/R");
-        if (f.exists())
-            return f.getPath();
-        f = new File("/opt/bin/R");
-        if (f.exists())
-            return f.getPath();
-
-        return null;
-
-    }
-
-    public static String getRhomePath() {
-        String rPath = getRexecutablePath();
-        if (rPath != null) {
-            if (RSessionWrapper.isWindows()) {
-                return rPath.substring(0, rPath.length() - 10);
-            } else {
-                return rPath.substring(0, rPath.length() - 5);
-            }
-        }
-        return null;
-    }
-
     // LET'S GET STARTED
 
     /**
@@ -322,18 +193,19 @@ public class RSessionWrapper {
 
         try {
 
-            String globalFailureMsg = "Could not start Rserve ( R> install.packages(c('Rserve')) ). "
+            final String globalFailureMsg = "Could not start Rserve ( R> install.packages(c('Rserve')) ). "
                     + "Please check if R and Rserve are installed and, in "
                     + "case the path to the R installation directory could not be "
                     + "detected automatically, if the 'R executable path' is properly "
                     + "set in the project's preferences. (Note: alternatively, the '"
-                    + R_HOME_KEY + "' environment variable can also be used).";
+                    + RLocationDetection.R_HOME_ENV_KEY
+                    + "' environment variable can also be used).";
 
-            String r_homeFailureMsg = "Correct path to the R installation directory could not be "
+            final String r_homeFailureMsg = "Correct path to the R installation directory could not be "
                     + "detected automatically. Please try setting manually "
                     + "the 'R executable path' in the project's preferences. "
                     + "(Note: alternatively, the '"
-                    + R_HOME_KEY
+                    + RLocationDetection.R_HOME_ENV_KEY
                     + "' environment variable can also be used).";
 
             if (this.rEngine == null) {
@@ -344,27 +216,11 @@ public class RSessionWrapper {
 
                     synchronized (RSessionWrapper.R_SESSION_SEMAPHORE) {
 
-                        if (R_HOME == null) {
-                            R_HOME = System.getenv(R_HOME_KEY);
-                        }
-
-                        // If retrieving 'R_HOME' from environment failed, try
-                        // to find out automatically. (Since
-                        // 'Rsession.newInstanceTry()', checks the environment
-                        // first).
-                        // @See getRhomePath().
-                        if (R_HOME == null || !(new File(R_HOME).exists())) {
-                            // Set "R_HOME" system property.
-                            R_HOME = RSessionWrapper.getRhomePath();
-                            if (R_HOME != null && new File(R_HOME).exists()) {
-                                System.setProperty(R_HOME_KEY, R_HOME);
-                                LOG.log(logLvl, "'" + R_HOME_KEY + "' set to '"
-                                        + System.getProperty(R_HOME_KEY) + "'");
-                            }
-                        }
-
-                        if (R_HOME == null)
-                            throw new RSessionWrapperException(r_homeFailureMsg);
+                        final String rLocation = RLocationDetection.getRExecutablePath();
+                         
+                        if (rLocation == null)
+                            throw new RSessionWrapperException(
+                                    r_homeFailureMsg);
 
                         // // Security...
                         // Properties props = new Properties();
@@ -376,7 +232,8 @@ public class RSessionWrapper {
                         // (computing) instances (Released at app. exit - see
                         // note below).
                         if (!isWindows
-                                && (RSessionWrapper.MASTER_SESSION == null || !checkMasterConnectivity())) {
+                                && (RSessionWrapper.MASTER_SESSION == null
+                                        || !checkMasterConnectivity())) {
 
                             // We absolutely need real new instance on a new
                             // port here (in case other Rserve, not spawned by
@@ -404,6 +261,7 @@ public class RSessionWrapper {
                         }
                     }
 
+
                     // Need a new session to be completely instantiated before
                     // asking for another one.
                     // Otherwise, under Windows, the "multi-instance emulation"
@@ -412,7 +270,8 @@ public class RSessionWrapper {
                     // before trying to get another one).
                     // Win: Synch with any previous session, if applicable.
                     // *NUX: Synch with nothing that matters.
-                    Object rSemaphore = (isWindows) ? RSessionWrapper.R_SESSION_SEMAPHORE
+                    Object rSemaphore = (isWindows)
+                            ? RSessionWrapper.R_SESSION_SEMAPHORE
                             : this.R_DUMMY_SEMAPHORE;
                     synchronized (rSemaphore) {
 
@@ -444,12 +303,13 @@ public class RSessionWrapper {
                             // everything related to it and it only when exiting
                             // (gracefully or not).
                             // Rsession.newLocalInstance(logStream, null);
-                            this.session = Rsession.newRemoteInstance(
-                                    logStream, conf, TMP_DIR);
+                            this.session = Rsession.newRemoteInstance(logStream,
+                                    conf, TMP_DIR);
                         }
 
                         if (this.session == null)
-                            throw new IllegalArgumentException(globalFailureMsg);
+                            throw new IllegalArgumentException(
+                                    globalFailureMsg);
 
                         this.register();
 
@@ -474,17 +334,17 @@ public class RSessionWrapper {
 
                     if (this.session.connection != null) {
                         // Keep an opened instance and store the related PID.
-                        this.rServePid = this.session.connection.eval(
-                                "Sys.getpid()").asInteger();
+                        this.rServePid = this.session.connection
+                                .eval("Sys.getpid()").asInteger();
                         this.rEngine = this.session.connection;
-                        LOG.log(logLvl, "Rserve: started instance (pid: '"
-                                + this.rServePid + "' | port: '"
-                                + this.session.rServeConf.port + "').");
+                        LOG.log(logLvl,
+                                "Rserve: started instance (pid: '"
+                                        + this.rServePid + "' | port: '"
+                                        + this.session.rServeConf.port + "').");
 
                         // Quick test
-                        LOG.log(logLvl,
-                                ((RConnection) this.rEngine).eval(
-                                        "R.version.string").asString());
+                        LOG.log(logLvl, ((RConnection) this.rEngine)
+                                .eval("R.version.string").asString());
                         LOG.log(logLvl,
                                 ((RConnection) this.rEngine).getServerVersion()
                                         + "");
@@ -499,23 +359,22 @@ public class RSessionWrapper {
 
             }
         } catch (Throwable t) {
-            throw new RSessionWrapperException(TextUtils.wrapText(
-                    t.getMessage(), 80));
+            t.printStackTrace();
+            throw new RSessionWrapperException(
+                    TextUtils.wrapText(t.getMessage(), 80));
         }
     }
 
-    public void loadPackage(String packageName) throws RSessionWrapperException {
+    public void loadPackage(String packageName)
+            throws RSessionWrapperException {
 
         String loadCode = "library(" + packageName + ", logical.return = TRUE)";
 
         if (TRY_MODE)
             loadCode = "try(" + loadCode + ", silent=TRUE)";
 
-        String errorMsg = "The \""
-                + this.callerFeatureName
-                + "\" requires "
-                + "the \""
-                + packageName
+        String errorMsg = "The \"" + this.callerFeatureName + "\" requires "
+                + "the \"" + packageName
                 + "\" R package, which couldn't be loaded - is it installed in R?";
 
         if (this.session != null && !this.userCanceled) {
@@ -557,11 +416,8 @@ public class RSessionWrapper {
         if (TRY_MODE)
             checkVersionCode = "try(" + checkVersionCode + ", silent=TRUE)";
 
-        String errorMsg = "The \""
-                + this.callerFeatureName
-                + "\" requires "
-                + "the \""
-                + packageName
+        String errorMsg = "The \"" + this.callerFeatureName + "\" requires "
+                + "the \"" + packageName
                 + "\" R package, which was found, but is too old? - please update '"
                 + packageName + "' to version " + version + " or later.";
 
@@ -570,8 +426,8 @@ public class RSessionWrapper {
                     + "' for version '" + version + "'...");
             int version_ok = 0;
             try {
-                version_ok = ((RConnection) this.rEngine)
-                        .eval(checkVersionCode).asInteger();
+                version_ok = ((RConnection) this.rEngine).eval(checkVersionCode)
+                        .asInteger();
             } catch (RserveException | REXPMismatchException e) {
                 // Remain silent if eval KO ("server down").
                 version_ok = Integer.MIN_VALUE;
@@ -882,11 +738,14 @@ public class RSessionWrapper {
         // Do nothing if session was canceled.
         if (!this.userCanceled) {
 
+
             // Load R engine.
             getRengineInstance();
 
             // Load & check required R packages.
             loadAndCheckRequiredPackages();
+            
+
         }
     }
 
@@ -908,12 +767,14 @@ public class RSessionWrapper {
 
             try {
 
-                LOG.log(logLvl, "Rserve: try terminate "
-                        + ((this.rServePid == -1) ? "pending" : "")
+                LOG.log(logLvl,
+                        "Rserve: try terminate " + ((this.rServePid == -1)
+                                ? "pending" : "")
                         + " session"
-                        + ((this.rServePid == -1) ? "..." : " (pid: '"
-                                + this.rServePid + "' | port: '"
-                                + this.session.rServeConf.port + "')..."));
+                        + ((this.rServePid == -1) ? "..."
+                                : " (pid: '" + this.rServePid + "' | port: '"
+                                        + this.session.rServeConf.port
+                                        + "')..."));
 
                 // Avoid 'Rsession' to 'printStackTrace' while catching
                 // 'SocketException'
@@ -927,12 +788,14 @@ public class RSessionWrapper {
                 }
                 RSessionWrapper.unMuteStdOutErr();
 
-                LOG.log(logLvl, "Rserve: terminated "
-                        + ((this.rServePid == -1) ? "pending" : "")
+                LOG.log(logLvl,
+                        "Rserve: terminated " + ((this.rServePid == -1)
+                                ? "pending" : "")
                         + " session"
-                        + ((this.rServePid == -1) ? "..." : " (pid: '"
-                                + this.rServePid + "' | port: '"
-                                + this.session.rServeConf.port + "')..."));
+                        + ((this.rServePid == -1) ? "..."
+                                : " (pid: '" + this.rServePid + "' | port: '"
+                                        + this.session.rServeConf.port
+                                        + "')..."));
 
                 // Release session (prevents from calling close again on a
                 // closed instance).
@@ -950,8 +813,8 @@ public class RSessionWrapper {
                     msg = "Rserve error: something when wrong with instance of pid '"
                             + this.rServePid + "'. Details:\n";
                 }
-                throw new RSessionWrapperException(msg
-                        + TextUtils.wrapText(t.getMessage(), 80));
+                throw new RSessionWrapperException(
+                        msg + TextUtils.wrapText(t.getMessage(), 80));
 
             } finally {
                 // Make sure to restore standard outputs.
@@ -1027,8 +890,8 @@ public class RSessionWrapper {
                         }
                     };
 
-                    Process proc = new ProcessBuilder("TASKKILL", "/PID", ""
-                            + rSession.getPID(), "/F").start();
+                    Process proc = new ProcessBuilder("TASKKILL", "/PID",
+                            "" + rSession.getPID(), "/F").start();
                     StreamGobbler errorGobbler = new StreamGobbler(
                             proc.getErrorStream(), "Error", os_err); // ,
                     // fos_err);

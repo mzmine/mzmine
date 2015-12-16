@@ -32,6 +32,7 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.Sammon
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot.LogratioPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterModule;
+import net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter.PeakFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.PeakFinderModule;
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange.SameRangeGapFillerModule;
@@ -81,6 +82,7 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection.Ta
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeCalculatorModule;
 import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
+import net.sf.mzmine.modules.visualization.ida.IDAVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule;
@@ -158,6 +160,7 @@ public class MZmineModulesList {
 	    // Peak list filtering
 	    DuplicateFilterModule.class,
 	    RowsFilterModule.class,
+	    PeakFilterModule.class,
 
 	    // Normalization
 	    RTNormalizerModule.class,
@@ -187,6 +190,7 @@ public class MZmineModulesList {
 	    // Visualizers
 	    TICVisualizerModule.class, SpectraVisualizerModule.class,
 	    TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
+	    IDAVisualizerModule.class, 
 	    NeutralLossVisualizerModule.class, PeakListTableModule.class,
 	    IsotopePatternExportModule.class, MSMSExportModule.class,
 	    ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,

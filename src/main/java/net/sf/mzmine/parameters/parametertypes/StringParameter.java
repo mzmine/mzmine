@@ -21,31 +21,41 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
 
-import javax.swing.JTextField;
-
-import net.sf.mzmine.parameters.UserParameter;
+import javax.swing.BorderFactory;
 
 import org.w3c.dom.Element;
 
-public class StringParameter implements UserParameter<String, JTextField> {
+import net.sf.mzmine.parameters.UserParameter;
+
+public class StringParameter implements UserParameter<String, StringComponent> {
 
     private String name, description, value;
     private int inputsize = 20;
+    private boolean valueRequired = true;
 
     public StringParameter(String name, String description) {
-	this(name, description, null);
+        this(name, description, null);
     }
 
     public StringParameter(String name, String description, int inputsize) {
-	this.name = name;
-	this.description = description;
-	this.inputsize = inputsize;
+        this.name = name;
+        this.description = description;
+        this.inputsize = inputsize;
     }
 
-    public StringParameter(String name, String description, String defaultValue) {
-	this.name = name;
-	this.description = description;
-	this.value = defaultValue;
+    public StringParameter(String name, String description,
+            String defaultValue) {
+        this.name = name;
+        this.description = description;
+        this.value = defaultValue;
+    }
+
+    public StringParameter(String name, String description, String defaultValue,
+            boolean valueRequired) {
+        this.name = name;
+        this.description = description;
+        this.value = defaultValue;
+        this.valueRequired = valueRequired;
     }
 
     /**
@@ -53,7 +63,7 @@ public class StringParameter implements UserParameter<String, JTextField> {
      */
     @Override
     public String getName() {
-	return name;
+        return name;
     }
 
     /**
@@ -61,64 +71,71 @@ public class StringParameter implements UserParameter<String, JTextField> {
      */
     @Override
     public String getDescription() {
-	return description;
+        return description;
     }
 
     @Override
-    public JTextField createEditingComponent() {
-	return new JTextField(inputsize);
+    public StringComponent createEditingComponent() {
+        StringComponent stringComponent = new StringComponent(inputsize);
+        stringComponent.setBorder(
+                BorderFactory.createCompoundBorder(stringComponent.getBorder(),
+                        BorderFactory.createEmptyBorder(0, 4, 0, 0)));
+        return stringComponent;
     }
 
     public String getValue() {
-	return value;
+        return value;
     }
 
     @Override
     public void setValue(String value) {
-	this.value = value;
+        this.value = value;
     }
 
     @Override
     public StringParameter cloneParameter() {
-	StringParameter copy = new StringParameter(name, description);
-	copy.setValue(this.getValue());
-	return copy;
+        StringParameter copy = new StringParameter(name, description);
+        copy.setValue(this.getValue());
+        return copy;
     }
 
     @Override
     public String toString() {
-	return name;
+        return name;
     }
 
     @Override
-    public void setValueFromComponent(JTextField component) {
-	value = component.getText();
+    public void setValueFromComponent(StringComponent component) {
+        value = component.getText();
     }
 
     @Override
-    public void setValueToComponent(JTextField component, String newValue) {
-	component.setText(newValue);
+    public void setValueToComponent(StringComponent component,
+            String newValue) {
+        component.setText(newValue);
     }
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
-	value = xmlElement.getTextContent();
+        value = xmlElement.getTextContent();
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
-	if (value == null)
-	    return;
-	xmlElement.setTextContent(value);
+        if (value == null)
+            return;
+        xmlElement.setTextContent(value);
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-	if ((value == null) || (value.trim().length() == 0)) {
-	    errorMessages.add(name + " is not set properly");
-	    return false;
-	}
-	return true;
+        if (!valueRequired)
+            return true;
+        if ((value == null) || (value.trim().length() == 0)) {
+            errorMessages.add(name + " is not set properly");
+            return false;
+        }
+        return true;
     }
 
 }

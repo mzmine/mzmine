@@ -80,7 +80,7 @@ public class NewVersionCheck implements Runnable {
 	} else {
 	    final String msg = "An updated version is available: MZmine "
 		    + newestVersion;
-	    final String msg2 = "Please download the newest version from: http://mzmine.sourceforge.net.";
+	    final String msg2 = "Please download the newest version from: http://mzmine.github.io";
 	    logger.info(msg);
 	    if (checkType.equals(CheckType.MENU)) {
 		desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(),

@@ -53,4 +53,6 @@ public interface MZmineConfiguration {
     
     public String getRexecPath();
 
+    public Boolean getSendStatistics();
+
 }

@@ -56,8 +56,8 @@ public class MzTabImportModule implements MZmineProcessingModule {
     }
 
     @Override
-    public ExitCode runModule(@Nonnull MZmineProject project,
-	    ParameterSet parameters, Collection<Task> tasks) {
+    public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
+	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 	MzTabImportTask task = new MzTabImportTask(project, parameters);
 	tasks.add(task);
 	return ExitCode.OK;

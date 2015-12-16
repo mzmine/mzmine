@@ -32,9 +32,10 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.RTTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -197,6 +198,9 @@ class PeakFinderTask extends AbstractTask {
 
 	// Append processed peak list to the project
 	project.addPeakList(processedPeakList);
+
+        // Add quality parameters to peaks
+	QualityParameters.calculateQualityParameters(processedPeakList);
 
 	// Add task description to peakList
 	processedPeakList

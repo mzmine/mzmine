@@ -30,11 +30,9 @@ import org.xml.sax.SAXException;
 
 public interface PeakListOpenHandler {
 
-    public PeakList readPeakList(InputStream inputStream) throws IOException,
-	    ParserConfigurationException, SAXException;
+    PeakList readPeakList(InputStream inputStream) throws IOException,
+            ParserConfigurationException, SAXException;
 
-    public double getProgress();
-
-    public void cancel();
+    void cancel();
 
 }

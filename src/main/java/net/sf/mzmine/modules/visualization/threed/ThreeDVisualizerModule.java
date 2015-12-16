@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -27,19 +26,21 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
-import visad.VisADException;
-
-import com.google.common.collect.Range;
+import net.sf.mzmine.util.ScanUtils;
 
 /**
  * 3D visualizer module
@@ -70,21 +71,18 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
         final RawDataFile[] dataFiles = parameters
                 .getParameter(ThreeDVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
-        final int msLevel = parameters.getParameter(
-                ThreeDVisualizerParameters.msLevel).getValue();
-        final Range<Double> rtRange = parameters.getParameter(
-                ThreeDVisualizerParameters.retentionTimeRange).getValue();
+        final ScanSelection scanSel = parameters
+                .getParameter(ThreeDVisualizerParameters.scanSelection)
+                .getValue();
+        Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
+        Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
         final Desktop desktop = MZmineCore.getDesktop();
 
         // Check scan numbers.
-        final RawDataFile dataFile = dataFiles[0];
-        if (dataFile.getScanNumbers(msLevel, rtRange).length == 0) {
-
-            desktop.displayErrorMessage(
-                    MZmineCore.getDesktop().getMainWindow(),
-                    "No scans found at MS level " + msLevel
-                            + " within given retention time range.");
+        if (scans.length == 0) {
+            desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+                    "No scans found");
             return ExitCode.ERROR;
 
         }
@@ -93,35 +91,27 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
                 .getModuleParameters(ThreeDVisualizerModule.class);
         try {
             ThreeDVisualizerWindow window = new ThreeDVisualizerWindow(
-                    dataFile,
-                    msLevel,
-                    rtRange,
-                    myParameters.getParameter(
-                            ThreeDVisualizerParameters.rtResolution).getValue(),
-                    myParameters.getParameter(
-                            ThreeDVisualizerParameters.mzRange).getValue(),
-                    myParameters.getParameter(
-                            ThreeDVisualizerParameters.mzResolution).getValue());
+                    dataFiles[0], scans, rtRange,
+                    myParameters
+                            .getParameter(
+                                    ThreeDVisualizerParameters.rtResolution)
+                            .getValue(),
+                    myParameters
+                            .getParameter(ThreeDVisualizerParameters.mzRange)
+                            .getValue(),
+                    myParameters
+                            .getParameter(
+                                    ThreeDVisualizerParameters.mzResolution)
+                            .getValue());
             window.setVisible(true);
-        } catch (RemoteException e) {
-
-            final String msg = "Couldn't create 3D plot";
-            LOG.log(Level.WARNING, msg, e);
-            desktop.displayErrorMessage(
-                    MZmineCore.getDesktop().getMainWindow(), msg);
-        } catch (VisADException e) {
-            final String msg = "Couldn't create 3D plot";
-            LOG.log(Level.WARNING, msg, e);
-            desktop.displayErrorMessage(
-                    MZmineCore.getDesktop().getMainWindow(), msg);
-        } catch (Error e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             // Missing Java3D may cause UnsatisfiedLinkError or
             // NoClassDefFoundError.
-            final String msg = "It seems that Java3D is not installed. Please install Java3D and try again.";
-            LOG.log(Level.WARNING, msg, e);
-            desktop.displayErrorMessage(
-                    MZmineCore.getDesktop().getMainWindow(), msg);
+            final String msg = "Error initializing Java3D. Please file an issue at https://github.com/mzmine/mzmine2/issues and include the complete output of your MZmine console.";
+            LOG.log(Level.SEVERE, msg, e);
+            desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+                    msg);
         }
 
         return ExitCode.OK;
@@ -142,16 +132,15 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
         myParameters.getParameter(ThreeDVisualizerParameters.dataFiles)
                 .setValue(RawDataFilesSelectionType.SPECIFIC_FILES,
                         new RawDataFile[] { dataFile });
-        myParameters
-                .getParameter(ThreeDVisualizerParameters.retentionTimeRange)
-                .setValue(rtRange);
-        myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(
-                mzRange);
-        if (myParameters.showSetupDialog(MZmineCore.getDesktop()
-                .getMainWindow(), true) == ExitCode.OK) {
-            myInstance.runModule(MZmineCore.getProjectManager()
-                    .getCurrentProject(), myParameters.cloneParameterSet(),
-                    new ArrayList<Task>());
+        myParameters.getParameter(ThreeDVisualizerParameters.scanSelection)
+                .setValue(new ScanSelection(rtRange, 1));
+        myParameters.getParameter(ThreeDVisualizerParameters.mzRange)
+                .setValue(mzRange);
+        if (myParameters.showSetupDialog(
+                MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+            myInstance.runModule(
+                    MZmineCore.getProjectManager().getCurrentProject(),
+                    myParameters.cloneParameterSet(), new ArrayList<Task>());
         }
     }
 

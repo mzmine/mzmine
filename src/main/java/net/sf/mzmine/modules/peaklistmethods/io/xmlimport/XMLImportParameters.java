@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.io.xmlimport;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 public class XMLImportParameters extends SimpleParameterSet {
 

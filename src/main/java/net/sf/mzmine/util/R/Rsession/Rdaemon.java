@@ -27,20 +27,19 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
-import java.util.Properties;
-import net.sf.mzmine.util.R.Rsession.Logger;
-import net.sf.mzmine.util.R.Rsession.Logger.Level;
+
 import org.rosuda.REngine.Rserve.RConnection;
+
+import net.sf.mzmine.util.R.RLocationDetection;
+import net.sf.mzmine.util.R.Rsession.Logger.Level;
 
 public class Rdaemon {
 
     RserverConf conf;
     Process process;
     Logger log;
-    static File APP_DIR = new File(System.getProperty("user.home")
-            + File.separator + ".Rserve");
-    public static String R_HOME = null;
+    static File APP_DIR = new File(
+            System.getProperty("user.home") + File.separator + ".Rserve");
 
     private static boolean RSERVE_INSTALLED = false;
 
@@ -56,16 +55,9 @@ public class Rdaemon {
         }
     }
 
-    public Rdaemon(RserverConf conf, Logger log, String R_HOME) {
+    public Rdaemon(RserverConf conf, Logger log) {
         this.conf = conf;
         this.log = log;
-        findR_HOME(R_HOME);
-        // findRserve_HOME(Rserve_HOME);
-        println("Environment variables:\n  " + R_HOME_KEY + "="
-                + Rdaemon.R_HOME /*
-                                  * + "\n  " + Rserve_HOME_KEY + "=" +
-                                  * Rdaemon.Rserve_HOME
-                                  */, Level.INFO);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
@@ -80,68 +72,15 @@ public class Rdaemon {
         stop();
     }
 
-    public Rdaemon(RserverConf conf, Logger log) {
-        this(conf, log, null);
-    }
-
     public final static String R_HOME_KEY = "R_HOME";
-
-    public static boolean findR_HOME(String r_HOME) {
-        Map<String, String> env = System.getenv();
-        Properties prop = System.getProperties();
-
-        R_HOME = r_HOME;
-        if (R_HOME == null || !(new File(R_HOME).exists())) {
-            if (env.containsKey(R_HOME_KEY)) {
-                R_HOME = env.get(R_HOME_KEY);
-            }
-
-            if (R_HOME == null || prop.containsKey(R_HOME_KEY)
-                    || !(new File(R_HOME).exists())) {
-                R_HOME = prop.getProperty(R_HOME_KEY);
-
-            }
-
-            if (R_HOME == null || !(new File(R_HOME).exists())) {
-                R_HOME = null;
-                if (System.getProperty("os.name").contains("Win")) {
-                    for (int major = 20; major >= 0; major--) {
-                        // int major = 10;//known to work with R 2.9 only.
-                        if (R_HOME == null) {
-                            for (int minor = 10; minor >= 0; minor--) {
-                                // int minor = 0;
-                                r_HOME = "C:\\Program Files\\R\\R-3." + major
-                                        + "." + minor + "\\";
-                                if (new File(r_HOME).exists()) {
-                                    R_HOME = r_HOME;
-                                    break;
-                                }
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                } else {
-                    R_HOME = "/usr/lib/R/";
-                }
-            }
-        }
-
-        if (R_HOME == null) {
-            return false;
-        }
-        return new File(R_HOME).exists();
-
-    }
 
     static void setRecursiveExecutable(File path) {
         for (File f : path.listFiles()) {
             if (f.isDirectory()) {
                 f.setExecutable(true);
                 setRecursiveExecutable(f);
-            } else if (!f.canExecute()
-                    && (f.getName().endsWith(".so") || f.getName().endsWith(
-                            ".dll"))) {
+            } else if (!f.canExecute() && (f.getName().endsWith(".so")
+                    || f.getName().endsWith(".dll"))) {
                 f.setExecutable(true);
             }
         }
@@ -194,11 +133,6 @@ public class Rdaemon {
     }
 
     public void start(String http_proxy, String tmpDirectory) {
-        if (R_HOME == null || !(new File(R_HOME).exists())) {
-            throw new IllegalArgumentException(
-                    "R_HOME environment variable not correctly set.\nYou can set it using 'java ... -D"
-                            + R_HOME_KEY + "=[Path to R] ...' startup command.");
-        }
 
         if (!conf.isLocal()) {
             throw new UnsupportedOperationException(
@@ -214,28 +148,24 @@ public class Rdaemon {
 
         // Do things with Rserve install only if it hasn't been checked
         // successfully already.
+        final String rCmd = RLocationDetection.getRExecutablePath();
+        if (rCmd == null) {
+            String notice = "Please install R";
+            println(notice, Level.ERROR);
+            System.err.println(notice);
+            return;
+        }
+
         if (!Rdaemon.RSERVE_INSTALLED) {
             println("checking Rserve is available... ", Level.INFO);
-            Rdaemon.RSERVE_INSTALLED = StartRserve.isRserveInstalled(R_HOME
-                    + File.separator
-                    + "bin"
-                    + File.separator
-                    + "R"
-                    + (System.getProperty("os.name").contains("Win") ? ".exe"
-                            : ""));
+            Rdaemon.RSERVE_INSTALLED = StartRserve.isRserveInstalled(rCmd);
 
             boolean RserveInstalled = Rdaemon.RSERVE_INSTALLED;
             if (!RserveInstalled) {
+
                 println("  no", Level.INFO);
-                RserveInstalled = StartRserve.installRserve(
-                        R_HOME
-                                + File.separator
-                                + "bin"
-                                + File.separator
-                                + "R"
-                                + (System.getProperty("os.name")
-                                        .contains("Win") ? ".exe" : ""),
-                        http_proxy, null);
+                RserveInstalled = StartRserve.installRserve(rCmd, http_proxy,
+                        null);
                 if (RserveInstalled) {
                     println("  ok", Level.INFO);
                 } else {
@@ -274,14 +204,13 @@ public class Rdaemon {
             } else {
                 // RserveArgs.append(" --RS-pidfile \\'" +
                 // System.getProperty("user.dir") + "/rs_pid.txt\\'");
-                tmpDir = new File((tmpDirectory != null) ? tmpDirectory
-                        : "/tmp");
+                tmpDir = new File(
+                        (tmpDirectory != null) ? tmpDirectory : "/tmp");
                 tmpFile = File.createTempFile("rs_pid", ".pid", tmpDir);
-                RserveArgs.append(" --RS-pidfile \\'" /*
-                                                       * + System.getProperty(
-                                                       * "user.dir")
-                                                       */+ tmpFile.getPath()
-                        + "\\'");
+                RserveArgs.append(
+                        " --RS-pidfile \\'" /*
+                                             * + System.getProperty( "user.dir")
+                                             */ + tmpFile.getPath() + "\\'");
             }
             tmpFile.deleteOnExit();
         } catch (IOException e) {
@@ -295,21 +224,8 @@ public class Rdaemon {
             RserveArgs.append(" --RS-port " + conf.port);
         }
 
-        boolean started = StartRserve
-                .launchRserve(
-                        R_HOME
-                                + File.separator
-                                + "bin"
-                                + File.separator
-                                + "R"
-                                + (System.getProperty("os.name")
-                                        .contains("Win") ? ".exe" : ""), /*
-                                                                          * Rserve_HOME
-                                                                          * +
-                                                                          * "\\\\.."
-                                                                          * ,
-                                                                          */
-                        "--no-save --slave", RserveArgs.toString(), false);
+        boolean started = StartRserve.launchRserve(rCmd, "--no-save --slave",
+                RserveArgs.toString(), false);
 
         if (started) {
             println("  ok", Level.INFO);
@@ -326,53 +242,5 @@ public class Rdaemon {
         return sb.toString();
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        /*
-         * final ProcessBuilder builder = new
-         * ProcessBuilder("/usr/lib/R/bin/Rserve", "--vanilla");
-         * builder.environment().put("R_HOME", "/usr/lib/R");
-         * builder.redirectErrorStream(true); final Process process =
-         * builder.start(); BufferedReader br = null; try { final InputStream is
-         * = process.getInputStream(); final InputStreamReader isr = new
-         * InputStreamReader(is); br = new BufferedReader(isr); String line;
-         * while ((line = br.readLine()) != null) { //if (LOG.isDebugEnabled())
-         * { // LOG.debug(host + ":" + port + "> " + line); //}
-         * System.out.println(line); }
-         * 
-         * process.waitFor(); // if (LOG.isInfoEnabled()) { //
-         * LOG.info("Rserve on " + host + ":" + port + " terminated"); // } }
-         * catch (InterruptedException e) { System.out.println("Interrupted!");
-         * // LOG.error("Interrupted!", e); process.destroy();
-         * Thread.currentThread().interrupt(); } finally { br.close();
-         * //IOUtils.closeQuietly(br); }
-         * 
-         * Thread.sleep(1000); process.destroy();
-         * 
-         * 
-         * final int exitValue = process.exitValue();
-         * System.out.println("exitValue=" + exitValue); // if
-         * (LOG.isInfoEnabled()) { // LOG.info("Rserve on " + host + ":" + port
-         * + " returned " + exitValue); // } // return exitValue;
-         */
-        // System.setProperty("Rserve.home","/usr/lib/R/bin/");
-        Rdaemon d = new Rdaemon(new RserverConf(null, -1, null, null, null),
-                new Logger() {
-
-                    public void println(String message, Level l) {
-                        if (l == Level.INFO) {
-                            System.out.println(message);
-                        } else {
-                            System.err.println(message);
-                        }
-                    }
-
-                    public void close() {
-                    }
-
-                });
-        d.start(null, null);
-        Thread.sleep(2000);
-        d.stop();
-        Thread.sleep(2000);
-    }
+  
 }

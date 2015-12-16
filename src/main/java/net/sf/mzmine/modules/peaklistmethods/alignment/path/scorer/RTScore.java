@@ -26,8 +26,8 @@ import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.AlignmentP
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.ScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.RTTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
 

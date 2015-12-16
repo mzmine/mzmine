@@ -62,7 +62,7 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements
     private JTable tableLookupValues;
     private InterpolatingLookupPaintScaleSetupDialogTableModel tableModel;
 
-    private TreeMap<Double, Color> lookupTable;
+    private TreeMap<Double, Color> lookupTable = new TreeMap<Double, Color>();
 
     private JButton buttonAddModify;
     private JButton buttonDelete;
@@ -117,7 +117,6 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements
 
 	// Sub-panel for scrollpane & list
 	JPanel panelList = new JPanel();
-	lookupTable = new TreeMap<Double, Color>();
 
 	tableModel = new InterpolatingLookupPaintScaleSetupDialogTableModel(
 		lookupTable);

@@ -29,12 +29,12 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
 
 import com.google.common.collect.Range;
@@ -61,8 +61,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public static final OptionalParameter<RTRangeParameter> RT_RANGE = new OptionalParameter<>(
             new RTRangeParameter());
 
-    public static final OptionalParameter<RangeParameter> PEAK_DURATION = new OptionalParameter<>(
-            new RangeParameter("Peak duration range",
+    public static final OptionalParameter<DoubleRangeParameter> PEAK_DURATION = new OptionalParameter<>(
+            new DoubleRangeParameter("Peak duration range",
                     "Permissible range of (average) peak durations per row",
                     MZmineCore.getConfiguration().getRTFormat(), Range.closed(
                             0.0, 10.0)));
@@ -90,8 +90,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public RowsFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT,
                 MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
-                GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-                AUTO_REMOVE });
+                GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT,
+                COMMENT_TEXT, AUTO_REMOVE });
     }
 
     @Override

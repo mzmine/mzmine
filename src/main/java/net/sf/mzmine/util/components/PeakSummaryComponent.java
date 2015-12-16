@@ -58,9 +58,10 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
-import net.sf.mzmine.modules.visualization.tic.PlotType;
+import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 import com.google.common.collect.Range;
 
@@ -74,7 +75,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
     private static final DecimalFormat formatter = new DecimalFormat("###.#");
 
     private static final Font defaultFont = new Font("SansSerif", Font.PLAIN,
-	    11);
+            11);
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 14);
     private static final Font ratioFont = new Font("SansSerif", Font.PLAIN, 18);
 
@@ -90,15 +91,15 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
     private PeakListRow row;
 
     private static String[] visualizers = { "Chromatogram", "Mass spectrum",
-	    "Peak in 2D", "Peak in 3D", "MS/MS", "Isotope pattern" };
+            "Peak in 2D", "Peak in 3D", "MS/MS", "Isotope pattern" };
 
     private Color bg = new Color(255, 250, 205); // default color
 
     public PeakSummaryComponent(PeakListRow row, boolean headerVisible,
-	    boolean ratioVisible, boolean graphVisible, boolean tableVisible,
-	    boolean buttonsVisible, Color backgroundColor) {
-	this(row, row.getRawDataFiles(), headerVisible, ratioVisible,
-		graphVisible, tableVisible, buttonsVisible, backgroundColor);
+            boolean ratioVisible, boolean graphVisible, boolean tableVisible,
+            boolean buttonsVisible, Color backgroundColor) {
+        this(row, row.getRawDataFiles(), headerVisible, ratioVisible,
+                graphVisible, tableVisible, buttonsVisible, backgroundColor);
     }
 
     /**
@@ -108,182 +109,182 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
      * @param frame
      */
     public PeakSummaryComponent(PeakListRow row, RawDataFile[] rawDataFiles,
-	    boolean headerVisible, boolean ratioVisible, boolean graphVisible,
-	    boolean tableVisible, boolean buttonsVisible, Color backgroundColor) {
+            boolean headerVisible, boolean ratioVisible, boolean graphVisible,
+            boolean tableVisible, boolean buttonsVisible, Color backgroundColor) {
 
-	if (backgroundColor != null) {
-	    bg = backgroundColor;
-	}
+        if (backgroundColor != null) {
+            bg = backgroundColor;
+        }
 
-	setBackground(bg);
+        setBackground(bg);
 
-	this.row = row;
+        this.row = row;
 
-	// Get info
-	Feature[] peaks = new Feature[rawDataFiles.length];
-	for (int i = 0; i < peaks.length; i++) {
-	    peaks[i] = row.getPeak(rawDataFiles[i]);
-	}
+        // Get info
+        Feature[] peaks = new Feature[rawDataFiles.length];
+        for (int i = 0; i < peaks.length; i++) {
+            peaks[i] = row.getPeak(rawDataFiles[i]);
+        }
 
-	PeakIdentity identity = row.getPreferredPeakIdentity();
+        PeakIdentity identity = row.getPreferredPeakIdentity();
 
-	// General container
-	JPanel pnlAll = new JPanel(new BorderLayout());
-	pnlAll.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-	pnlAll.setBackground(bg);
+        // General container
+        JPanel pnlAll = new JPanel(new BorderLayout());
+        pnlAll.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        pnlAll.setBackground(bg);
 
-	// Header peak identification & ratio
-	JPanel headerPanel = new JPanel();
-	headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
-	JLabel name, info;
-	if (identity != null) {
-	    name = new JLabel(identity.getName(), SwingUtilities.LEFT);
-	    StringBuffer buf = new StringBuffer();
-	    Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-	    Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
-	    buf.append("#" + row.getID() + " ");
-	    buf.append(mzFormat.format(row.getAverageMZ()));
-	    buf.append(" m/z @");
-	    buf.append(timeFormat.format(row.getAverageRT()));
-	    info = new JLabel(buf.toString(), SwingUtilities.LEFT);
-	    info.setBackground(bg);
-	    info.setFont(defaultFont);
-	    headerPanel.add(name, BorderLayout.NORTH);
-	    headerPanel.add(info, BorderLayout.CENTER);
-	} else {
-	    name = new JLabel(row.toString(), SwingUtilities.LEFT);
-	    headerPanel.add(name, BorderLayout.CENTER);
-	}
+        // Header peak identification & ratio
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        JLabel name, info;
+        if (identity != null) {
+            name = new JLabel(identity.getName(), SwingUtilities.LEFT);
+            StringBuffer buf = new StringBuffer();
+            Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+            Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+            buf.append("#" + row.getID() + " ");
+            buf.append(mzFormat.format(row.getAverageMZ()));
+            buf.append(" m/z @");
+            buf.append(timeFormat.format(row.getAverageRT()));
+            info = new JLabel(buf.toString(), SwingUtilities.LEFT);
+            info.setBackground(bg);
+            info.setFont(defaultFont);
+            headerPanel.add(name, BorderLayout.NORTH);
+            headerPanel.add(info, BorderLayout.CENTER);
+        } else {
+            name = new JLabel(row.toString(), SwingUtilities.LEFT);
+            headerPanel.add(name, BorderLayout.CENTER);
+        }
 
-	name.setFont(titleFont);
-	name.setBackground(bg);
-	headerPanel.setBackground(bg);
-	headerPanel.setPreferredSize(new Dimension(290, 50));
-	headerPanel.setVisible(headerVisible);
+        name.setFont(titleFont);
+        name.setBackground(bg);
+        headerPanel.setBackground(bg);
+        headerPanel.setPreferredSize(new Dimension(290, 50));
+        headerPanel.setVisible(headerVisible);
 
-	// Ratio between peaks
-	JPanel ratioPanel = new JPanel(new BorderLayout());
-	ratio = new JLabel("", SwingUtilities.LEFT);
-	ratio.setFont(ratioFont);
+        // Ratio between peaks
+        JPanel ratioPanel = new JPanel(new BorderLayout());
+        ratio = new JLabel("", SwingUtilities.LEFT);
+        ratio.setFont(ratioFont);
 
-	ratio.setBackground(bg);
-	ratioPanel.add(ratio, BorderLayout.CENTER);
+        ratio.setBackground(bg);
+        ratioPanel.add(ratio, BorderLayout.CENTER);
 
-	ratioPanel.setBackground(bg);
-	ratioPanel.setVisible(ratioVisible);
+        ratioPanel.setBackground(bg);
+        ratioPanel.setVisible(ratioVisible);
 
-	JPanel headerAndRatioPanel = new JPanel(new BorderLayout());
-	headerAndRatioPanel.add(headerPanel, BorderLayout.WEST);
-	headerAndRatioPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
-	headerAndRatioPanel.add(ratioPanel, BorderLayout.EAST);
-	headerAndRatioPanel.setBackground(bg);
-	pnlAll.add(headerAndRatioPanel, BorderLayout.NORTH);
-	// <-
+        JPanel headerAndRatioPanel = new JPanel(new BorderLayout());
+        headerAndRatioPanel.add(headerPanel, BorderLayout.WEST);
+        headerAndRatioPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
+        headerAndRatioPanel.add(ratioPanel, BorderLayout.EAST);
+        headerAndRatioPanel.setBackground(bg);
+        pnlAll.add(headerAndRatioPanel, BorderLayout.NORTH);
+        // <-
 
-	// Plot section
-	JPanel plotPanel = new JPanel();
-	plotPanel.setLayout(new BoxLayout(plotPanel, BoxLayout.Y_AXIS));
-	Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-	Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
-	plotPanel.setBorder(BorderFactory.createCompoundBorder(one, two));
-	plotPanel.setBackground(Color.white);
-	// No tooltip
-	CombinedXICComponent xic = new CombinedXICComponent(peaks, -1);
-	xic.setPreferredSize(xicPreferredSize);
-	plotPanel.add(xic);
-	plotPanel.setVisible(graphVisible);
-	pnlAll.add(plotPanel, BorderLayout.CENTER);
-	// <-
+        // Plot section
+        JPanel plotPanel = new JPanel();
+        plotPanel.setLayout(new BoxLayout(plotPanel, BoxLayout.Y_AXIS));
+        Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+        Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+        plotPanel.setBorder(BorderFactory.createCompoundBorder(one, two));
+        plotPanel.setBackground(Color.white);
+        // No tooltip
+        CombinedXICComponent xic = new CombinedXICComponent(peaks, -1);
+        xic.setPreferredSize(xicPreferredSize);
+        plotPanel.add(xic);
+        plotPanel.setVisible(graphVisible);
+        pnlAll.add(plotPanel, BorderLayout.CENTER);
+        // <-
 
-	// Table with peak's information
-	JPanel tablePanel = new JPanel();
-	tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
-	tablePanel.setBackground(bg);
+        // Table with peak's information
+        JPanel tablePanel = new JPanel();
+        tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
+        tablePanel.setBackground(bg);
 
-	listElementModel = new PeakSummaryTableModel();
-	peaksInfoList = new JTable();
-	peaksInfoList.setModel(listElementModel);
-	peaksInfoList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	peaksInfoList.setDefaultRenderer(Object.class,
-		new PeakSummaryTableCellRenderer());
+        listElementModel = new PeakSummaryTableModel();
+        peaksInfoList = new JTable();
+        peaksInfoList.setModel(listElementModel);
+        peaksInfoList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        peaksInfoList.setDefaultRenderer(Object.class,
+                new PeakSummaryTableCellRenderer());
 
-	int colorIndex = 0;
-	Color peakColor;
+        int colorIndex = 0;
+        Color peakColor;
 
-	for (Feature peak : peaks) {
-	    // set color for current XIC
-	    if (peak != null) {
-		peakColor = CombinedXICComponent.plotColors[colorIndex];
-		listElementModel.addElement(peak, peakColor);
-	    }
-	    colorIndex = (colorIndex + 1)
-		    % CombinedXICComponent.plotColors.length;
-	}
+        for (Feature peak : peaks) {
+            // set color for current XIC
+            if (peak != null) {
+                peakColor = CombinedXICComponent.plotColors[colorIndex];
+                listElementModel.addElement(peak, peakColor);
+            }
+            colorIndex = (colorIndex + 1)
+                    % CombinedXICComponent.plotColors.length;
+        }
 
-	JPanel listPanel = new JPanel(new BorderLayout());
-	listPanel.add(new JScrollPane(peaksInfoList), BorderLayout.CENTER);
-	listPanel.add(peaksInfoList.getTableHeader(), BorderLayout.NORTH);
-	listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        JPanel listPanel = new JPanel(new BorderLayout());
+        listPanel.add(new JScrollPane(peaksInfoList), BorderLayout.CENTER);
+        listPanel.add(peaksInfoList.getTableHeader(), BorderLayout.NORTH);
+        listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-	Dimension d = calculatedTableDimension(peaksInfoList);
-	listPanel.setPreferredSize(d);
+        Dimension d = calculatedTableDimension(peaksInfoList);
+        listPanel.setPreferredSize(d);
 
-	tablePanel.add(Box.createVerticalStrut(5));
-	tablePanel.add(listPanel, BorderLayout.CENTER);
-	tablePanel.setBackground(bg);
-	tablePanel.setVisible(tableVisible);
+        tablePanel.add(Box.createVerticalStrut(5));
+        tablePanel.add(listPanel, BorderLayout.CENTER);
+        tablePanel.setBackground(bg);
+        tablePanel.setVisible(tableVisible);
 
-	// Buttons
-	comboShow = new JComboBox<String>(visualizers);
+        // Buttons
+        comboShow = new JComboBox<String>(visualizers);
 
-	btnShow = new JButton("Show");
-	btnShow.setActionCommand("SHOW");
-	btnShow.addActionListener(this);
+        btnShow = new JButton("Show");
+        btnShow.setActionCommand("SHOW");
+        btnShow.addActionListener(this);
 
-	btnChange = new JButton("Change");
-	btnChange.setActionCommand("CHANGE");
-	btnChange.addActionListener(this);
+        btnChange = new JButton("Change");
+        btnChange.setActionCommand("CHANGE");
+        btnChange.addActionListener(this);
 
-	JPanel pnlShow = new JPanel(new BorderLayout());
-	pnlShow.setBorder(BorderFactory
-		.createEtchedBorder(EtchedBorder.LOWERED));
+        JPanel pnlShow = new JPanel(new BorderLayout());
+        pnlShow.setBorder(BorderFactory
+                .createEtchedBorder(EtchedBorder.LOWERED));
 
-	pnlShow.add(comboShow, BorderLayout.NORTH);
-	pnlShow.add(btnShow, BorderLayout.CENTER);
-	pnlShow.setBackground(bg);
+        pnlShow.add(comboShow, BorderLayout.NORTH);
+        pnlShow.add(btnShow, BorderLayout.CENTER);
+        pnlShow.setBackground(bg);
 
-	JPanel buttonsPanel = new JPanel(new BorderLayout());
-	buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-	buttonsPanel.add(pnlShow, BorderLayout.NORTH);
-	buttonsPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
-	buttonsPanel.add(btnChange, BorderLayout.SOUTH);
-	buttonsPanel.setBackground(bg);
-	buttonsPanel.setVisible(buttonsVisible);
+        JPanel buttonsPanel = new JPanel(new BorderLayout());
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        buttonsPanel.add(pnlShow, BorderLayout.NORTH);
+        buttonsPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
+        buttonsPanel.add(btnChange, BorderLayout.SOUTH);
+        buttonsPanel.setBackground(bg);
+        buttonsPanel.setVisible(buttonsVisible);
 
-	JPanel buttonsAndTablePanel = new JPanel(new BorderLayout());
-	buttonsAndTablePanel.add(tablePanel, BorderLayout.CENTER);
-	buttonsAndTablePanel.add(buttonsPanel, BorderLayout.EAST);
-	buttonsAndTablePanel.setBackground(bg);
+        JPanel buttonsAndTablePanel = new JPanel(new BorderLayout());
+        buttonsAndTablePanel.add(tablePanel, BorderLayout.CENTER);
+        buttonsAndTablePanel.add(buttonsPanel, BorderLayout.EAST);
+        buttonsAndTablePanel.setBackground(bg);
 
-	pnlAll.add(buttonsAndTablePanel, BorderLayout.SOUTH);
-	setLayout(new BorderLayout());
-	setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-	add(pnlAll, BorderLayout.CENTER);
+        pnlAll.add(buttonsAndTablePanel, BorderLayout.SOUTH);
+        setLayout(new BorderLayout());
+        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        add(pnlAll, BorderLayout.CENTER);
 
     }
 
     public void setRatio(double area1, double area2) {
-	String text;
-	Color ratioColor;
-	if (area1 > area2) {
-	    text = formatter.format(area1 / area2) + "x";
-	    ratioColor = CombinedXICComponent.plotColors[0];
-	} else {
-	    text = formatter.format(area2 / area1) + "x";
-	    ratioColor = CombinedXICComponent.plotColors[1];
-	}
-	ratio.setForeground(ratioColor);
-	ratio.setText(text);
+        String text;
+        Color ratioColor;
+        if (area1 > area2) {
+            text = formatter.format(area1 / area2) + "x";
+            ratioColor = CombinedXICComponent.plotColors[0];
+        } else {
+            text = formatter.format(area2 / area1) + "x";
+            ratioColor = CombinedXICComponent.plotColors[1];
+        }
+        ratio.setForeground(ratioColor);
+        ratio.setText(text);
     }
 
     /**
@@ -292,206 +293,208 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
      */
     private Dimension calculatedTableDimension(JTable peaksInfoList) {
 
-	int numRows = peaksInfoList.getRowCount();
-	int numCols = peaksInfoList.getColumnCount();
-	int maxWidth = 0, compWidth, totalWidth = 0, totalHeight = 0;
-	TableCellRenderer renderer = peaksInfoList
-		.getDefaultRenderer(Object.class);
-	TableCellRenderer headerRenderer = peaksInfoList.getTableHeader()
-		.getDefaultRenderer();
-	TableModel model = peaksInfoList.getModel();
-	Component comp;
-	TableColumn column;
+        int numRows = peaksInfoList.getRowCount();
+        int numCols = peaksInfoList.getColumnCount();
+        int maxWidth = 0, compWidth, totalWidth = 0, totalHeight = 0;
+        TableCellRenderer renderer = peaksInfoList
+                .getDefaultRenderer(Object.class);
+        TableCellRenderer headerRenderer = peaksInfoList.getTableHeader()
+                .getDefaultRenderer();
+        TableModel model = peaksInfoList.getModel();
+        Component comp;
+        TableColumn column;
 
-	for (int c = 0; c < numCols; c++) {
-	    for (int r = 0; r < numRows; r++) {
+        for (int c = 0; c < numCols; c++) {
+            for (int r = 0; r < numRows; r++) {
 
-		if (r == 0) {
-		    comp = headerRenderer.getTableCellRendererComponent(
-			    peaksInfoList, model.getColumnName(c), false,
-			    false, r, c);
-		    compWidth = comp.getPreferredSize().width + 10;
-		    maxWidth = Math.max(maxWidth, compWidth);
+                if (r == 0) {
+                    comp = headerRenderer.getTableCellRendererComponent(
+                            peaksInfoList, model.getColumnName(c), false,
+                            false, r, c);
+                    compWidth = comp.getPreferredSize().width + 10;
+                    maxWidth = Math.max(maxWidth, compWidth);
 
-		}
+                }
 
-		comp = renderer.getTableCellRendererComponent(peaksInfoList,
-			model.getValueAt(r, c), false, false, r, c);
+                comp = renderer.getTableCellRendererComponent(peaksInfoList,
+                        model.getValueAt(r, c), false, false, r, c);
 
-		compWidth = comp.getPreferredSize().width + 10;
-		maxWidth = Math.max(maxWidth, compWidth);
+                compWidth = comp.getPreferredSize().width + 10;
+                maxWidth = Math.max(maxWidth, compWidth);
 
-		if (c == 0) {
-		    totalHeight += comp.getPreferredSize().height;
-		}
+                if (c == 0) {
+                    totalHeight += comp.getPreferredSize().height;
+                }
 
-		// Consider max 10 rows
-		if (r == 8) {
-		    break;
-		}
+                // Consider max 10 rows
+                if (r == 8) {
+                    break;
+                }
 
-	    }
-	    totalWidth += maxWidth;
-	    column = peaksInfoList.getColumnModel().getColumn(c);
-	    column.setPreferredWidth(maxWidth);
-	    maxWidth = 0;
-	}
+            }
+            totalWidth += maxWidth;
+            column = peaksInfoList.getColumnModel().getColumn(c);
+            column.setPreferredWidth(maxWidth);
+            maxWidth = 0;
+        }
 
-	// add 30x10 px for a scrollbar
-	totalWidth += 30;
-	totalHeight += 10;
+        // add 30x10 px for a scrollbar
+        totalWidth += 30;
+        totalHeight += 10;
 
-	comp = headerRenderer.getTableCellRendererComponent(peaksInfoList,
-		model.getColumnName(0), false, false, 0, 0);
-	totalHeight += comp.getPreferredSize().height;
+        comp = headerRenderer.getTableCellRendererComponent(peaksInfoList,
+                model.getColumnName(0), false, false, 0, 0);
+        totalHeight += comp.getPreferredSize().height;
 
-	return new Dimension(totalWidth, totalHeight);
+        return new Dimension(totalWidth, totalHeight);
 
     }
 
     public void actionPerformed(ActionEvent e) {
 
-	String command = e.getActionCommand();
+        String command = e.getActionCommand();
 
-	if (command.equals("SHOW")) {
+        if (command.equals("SHOW")) {
 
-	    String visualizerType = (String) comboShow.getSelectedItem();
-	    int[] indexesRow = peaksInfoList.getSelectedRows();
-	    Feature[] selectedPeaks = new Feature[indexesRow.length];
-	    RawDataFile[] dataFiles = new RawDataFile[indexesRow.length];
-	    Range<Double> rtRange = null, mzRange = null;
-	    for (int i = 0; i < indexesRow.length; i++) {
-		selectedPeaks[i] = listElementModel.getElementAt(indexesRow[i]);
-		dataFiles[i] = selectedPeaks[i].getDataFile();
+            String visualizerType = (String) comboShow.getSelectedItem();
+            int[] indexesRow = peaksInfoList.getSelectedRows();
+            Feature[] selectedPeaks = new Feature[indexesRow.length];
+            RawDataFile[] dataFiles = new RawDataFile[indexesRow.length];
+            Range<Double> rtRange = null, mzRange = null;
+            for (int i = 0; i < indexesRow.length; i++) {
+                selectedPeaks[i] = listElementModel.getElementAt(indexesRow[i]);
+                dataFiles[i] = selectedPeaks[i].getDataFile();
 
-		if ((rtRange == null) || (mzRange == null)) {
-		    rtRange = dataFiles[i].getDataRTRange(1);
-		    mzRange = selectedPeaks[i].getRawDataPointsMZRange();
-		} else {
-		    rtRange = rtRange.span(dataFiles[i].getDataRTRange(1));
-		    mzRange = mzRange.span(selectedPeaks[i]
-			    .getRawDataPointsMZRange());
-		}
-	    }
+                if ((rtRange == null) || (mzRange == null)) {
+                    rtRange = dataFiles[i].getDataRTRange(1);
+                    mzRange = selectedPeaks[i].getRawDataPointsMZRange();
+                } else {
+                    rtRange = rtRange.span(dataFiles[i].getDataRTRange(1));
+                    mzRange = mzRange.span(selectedPeaks[i]
+                            .getRawDataPointsMZRange());
+                }
+            }
 
-	    if (dataFiles.length == 0) {
-		return;
-	    }
+            if (dataFiles.length == 0) {
+                return;
+            }
 
-	    if (visualizerType.equals("Chromatogram")) {
+            if (visualizerType.equals("Chromatogram")) {
 
-		// Label best peak with preferred identity.
-		final Feature bestPeak = row.getBestPeak();
-		final PeakIdentity peakIdentity = row
-			.getPreferredPeakIdentity();
-		final Map<Feature, String> labelMap = new HashMap<Feature, String>(
-			1);
-		if (bestPeak != null && peakIdentity != null) {
+                // Label best peak with preferred identity.
+                final Feature bestPeak = row.getBestPeak();
+                final PeakIdentity peakIdentity = row
+                        .getPreferredPeakIdentity();
+                final Map<Feature, String> labelMap = new HashMap<Feature, String>(
+                        1);
+                if (bestPeak != null && peakIdentity != null) {
 
-		    labelMap.put(bestPeak, peakIdentity.getName());
-		}
+                    labelMap.put(bestPeak, peakIdentity.getName());
+                }
 
-		TICVisualizerModule.showNewTICVisualizerWindow(dataFiles,
-			selectedPeaks, labelMap, 1, PlotType.BASEPEAK, rtRange,
-			mzRange);
-		return;
+                ScanSelection scanSelection = new ScanSelection(rtRange, 1);
 
-	    } else if (visualizerType.equals("Mass spectrum")) {
-		for (int i = 0; i < selectedPeaks.length; i++) {
-		    SpectraVisualizerModule.showNewSpectrumWindow(dataFiles[i],
-			    selectedPeaks[i].getRepresentativeScanNumber());
-		}
-	    } else if (visualizerType.equals("Peak in 2D")) {
-		for (int i = 0; i < selectedPeaks.length; i++) {
-		    Range<Double> peakRTRange = selectedPeaks[i]
-			    .getRawDataPointsRTRange();
-		    Range<Double> peakMZRange = selectedPeaks[i]
-			    .getRawDataPointsMZRange();
-		    final double rtLen = peakRTRange.upperEndpoint()
-			    - peakRTRange.lowerEndpoint();
-		    Range<Double> localRTRange = Range.closed(
-			    Math.max(0, peakRTRange.lowerEndpoint() - rtLen),
-			    peakRTRange.upperEndpoint() + rtLen);
+                TICVisualizerModule.showNewTICVisualizerWindow(dataFiles,
+                        selectedPeaks, labelMap, scanSelection,
+                        TICPlotType.BASEPEAK, mzRange);
+                return;
 
-		    final double mzLen = peakMZRange.upperEndpoint()
-			    - peakMZRange.lowerEndpoint();
-		    Range<Double> localMZRange = Range.closed(
-			    Math.max(0, peakMZRange.lowerEndpoint() - mzLen),
-			    peakMZRange.upperEndpoint() + mzLen);
-		    TwoDVisualizerModule.show2DVisualizerSetupDialog(
-			    dataFiles[i], localMZRange, localRTRange);
-		}
-	    } else if (visualizerType.equals("Peak in 3D")) {
-		for (int i = 0; i < selectedPeaks.length; i++) {
-		    Range<Double> peakRTRange = selectedPeaks[i]
-			    .getRawDataPointsRTRange();
-		    Range<Double> peakMZRange = selectedPeaks[i]
-			    .getRawDataPointsMZRange();
-		    final double rtLen = peakRTRange.upperEndpoint()
-			    - peakRTRange.lowerEndpoint();
-		    Range<Double> localRTRange = Range.closed(
-			    Math.max(0, peakRTRange.lowerEndpoint() - rtLen),
-			    peakRTRange.upperEndpoint() + rtLen);
-		    final double mzLen = peakMZRange.upperEndpoint()
-			    - peakMZRange.lowerEndpoint();
-		    Range<Double> localMZRange = Range.closed(
-			    Math.max(0, peakMZRange.lowerEndpoint() - mzLen),
-			    peakMZRange.upperEndpoint() + mzLen);
-		    ThreeDVisualizerModule.setupNew3DVisualizer(dataFiles[i],
-			    localMZRange, localRTRange);
-		}
-	    } else if (visualizerType.equals("MS/MS")) {
-		for (int i = 0; i < selectedPeaks.length; i++) {
-		    int scanNumber = selectedPeaks[i]
-			    .getMostIntenseFragmentScanNumber();
-		    if (scanNumber > 0) {
-			SpectraVisualizerModule.showNewSpectrumWindow(
-				dataFiles[i], scanNumber);
-		    } else {
-			JFrame frame = (JFrame) SwingUtilities
-				.getAncestorOfClass(JFrame.class, this);
-			MZmineCore.getDesktop().displayMessage(
-				frame,
-				"There is no fragment for the mass "
-					+ MZmineCore
-						.getConfiguration()
-						.getMZFormat()
-						.format(selectedPeaks[i]
-							.getMZ())
-					+ "m/z in the current raw data.");
-			return;
-		    }
-		}
+            } else if (visualizerType.equals("Mass spectrum")) {
+                for (int i = 0; i < selectedPeaks.length; i++) {
+                    SpectraVisualizerModule.showNewSpectrumWindow(dataFiles[i],
+                            selectedPeaks[i].getRepresentativeScanNumber());
+                }
+            } else if (visualizerType.equals("Peak in 2D")) {
+                for (int i = 0; i < selectedPeaks.length; i++) {
+                    Range<Double> peakRTRange = selectedPeaks[i]
+                            .getRawDataPointsRTRange();
+                    Range<Double> peakMZRange = selectedPeaks[i]
+                            .getRawDataPointsMZRange();
+                    final double rtLen = peakRTRange.upperEndpoint()
+                            - peakRTRange.lowerEndpoint();
+                    Range<Double> localRTRange = Range.closed(
+                            Math.max(0, peakRTRange.lowerEndpoint() - rtLen),
+                            peakRTRange.upperEndpoint() + rtLen);
 
-	    } else if (visualizerType.equals("Isotope pattern")) {
-		for (int i = 0; i < selectedPeaks.length; i++) {
-		    IsotopePattern ip = selectedPeaks[i].getIsotopePattern();
-		    if (ip == null) {
-			return;
-		    }
-		    SpectraVisualizerModule
-			    .showNewSpectrumWindow(
-				    dataFiles[i],
-				    selectedPeaks[i]
-					    .getMostIntenseFragmentScanNumber(),
-				    ip);
+                    final double mzLen = peakMZRange.upperEndpoint()
+                            - peakMZRange.lowerEndpoint();
+                    Range<Double> localMZRange = Range.closed(
+                            Math.max(0, peakMZRange.lowerEndpoint() - mzLen),
+                            peakMZRange.upperEndpoint() + mzLen);
+                    TwoDVisualizerModule.show2DVisualizerSetupDialog(
+                            dataFiles[i], localMZRange, localRTRange);
+                }
+            } else if (visualizerType.equals("Peak in 3D")) {
+                for (int i = 0; i < selectedPeaks.length; i++) {
+                    Range<Double> peakRTRange = selectedPeaks[i]
+                            .getRawDataPointsRTRange();
+                    Range<Double> peakMZRange = selectedPeaks[i]
+                            .getRawDataPointsMZRange();
+                    final double rtLen = peakRTRange.upperEndpoint()
+                            - peakRTRange.lowerEndpoint();
+                    Range<Double> localRTRange = Range.closed(
+                            Math.max(0, peakRTRange.lowerEndpoint() - rtLen),
+                            peakRTRange.upperEndpoint() + rtLen);
+                    final double mzLen = peakMZRange.upperEndpoint()
+                            - peakMZRange.lowerEndpoint();
+                    Range<Double> localMZRange = Range.closed(
+                            Math.max(0, peakMZRange.lowerEndpoint() - mzLen),
+                            peakMZRange.upperEndpoint() + mzLen);
+                    ThreeDVisualizerModule.setupNew3DVisualizer(dataFiles[i],
+                            localMZRange, localRTRange);
+                }
+            } else if (visualizerType.equals("MS/MS")) {
+                for (int i = 0; i < selectedPeaks.length; i++) {
+                    int scanNumber = selectedPeaks[i]
+                            .getMostIntenseFragmentScanNumber();
+                    if (scanNumber > 0) {
+                        SpectraVisualizerModule.showNewSpectrumWindow(
+                                dataFiles[i], scanNumber);
+                    } else {
+                        JFrame frame = (JFrame) SwingUtilities
+                                .getAncestorOfClass(JFrame.class, this);
+                        MZmineCore.getDesktop().displayMessage(
+                                frame,
+                                "There is no fragment for the mass "
+                                        + MZmineCore
+                                                .getConfiguration()
+                                                .getMZFormat()
+                                                .format(selectedPeaks[i]
+                                                        .getMZ())
+                                        + "m/z in the current raw data.");
+                        return;
+                    }
+                }
 
-		}
-	    }
-	    return;
-	}
+            } else if (visualizerType.equals("Isotope pattern")) {
+                for (int i = 0; i < selectedPeaks.length; i++) {
+                    IsotopePattern ip = selectedPeaks[i].getIsotopePattern();
+                    if (ip == null) {
+                        return;
+                    }
+                    SpectraVisualizerModule
+                            .showNewSpectrumWindow(
+                                    dataFiles[i],
+                                    selectedPeaks[i]
+                                            .getMostIntenseFragmentScanNumber(),
+                                    ip);
 
-	if (command.equals("CHANGE")) {
-	    int indexRow = peaksInfoList.getSelectedRow();
-	    if (indexRow == -1) {
-		return;
-	    }
-	    Feature selectedPeak = listElementModel.getElementAt(indexRow);
-	    ManualPeakPickerModule.runManualDetection(
-		    selectedPeak.getDataFile(), row, null, null);
+                }
+            }
+            return;
+        }
 
-	    return;
-	}
+        if (command.equals("CHANGE")) {
+            int indexRow = peaksInfoList.getSelectedRow();
+            if (indexRow == -1) {
+                return;
+            }
+            Feature selectedPeak = listElementModel.getElementAt(indexRow);
+            ManualPeakPickerModule.runManualDetection(
+                    selectedPeak.getDataFile(), row, null, null);
+
+            return;
+        }
 
     }
 

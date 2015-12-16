@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -35,32 +36,33 @@ public class PercentComponent extends JPanel {
 
     public PercentComponent() {
 
-	percentField = new JTextField();
-	percentField.setColumns(4);
-	add(percentField);
+        setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+        percentField = new JTextField();
+        percentField.setColumns(4);
+        add(percentField);
 
-	add(new JLabel("%"));
+        add(new JLabel("%"));
 
     }
 
     public void setValue(double value) {
-	String stringValue = String.valueOf(value * 100);
-	percentField.setText(stringValue);
+        String stringValue = String.valueOf(value * 100);
+        percentField.setText(stringValue);
     }
 
     public Double getValue() {
-	String stringValue = percentField.getText();
-	try {
-	    double doubleValue = Double.parseDouble(stringValue) / 100;
-	    return doubleValue;
-	} catch (NumberFormatException e) {
-	    return null;
-	}
+        String stringValue = percentField.getText();
+        try {
+            double doubleValue = Double.parseDouble(stringValue) / 100;
+            return doubleValue;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-	percentField.setToolTipText(toolTip);
+        percentField.setToolTipText(toolTip);
     }
 
 }

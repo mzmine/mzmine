@@ -22,11 +22,11 @@ package net.sf.mzmine.modules.visualization.threed;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
-import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
-import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 /**
  * 3D visualizer parameter set
@@ -34,20 +34,19 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
-	    1, 1);
+            1, 1);
 
-    public static final MSLevelParameter msLevel = new MSLevelParameter();
-
-    public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
-
-    public static final IntegerParameter rtResolution = new IntegerParameter(
-	    "Retention time resolution",
-	    "Number of data points on retention time axis", 500);
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
+            new ScanSelection(1));
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
 
+    public static final IntegerParameter rtResolution = new IntegerParameter(
+            "Retention time resolution",
+            "Number of data points on retention time axis", 500);
+
     public static final IntegerParameter mzResolution = new IntegerParameter(
-	    "m/z resolution", "Number of data points on m/z axis", 500);
+            "m/z resolution", "Number of data points on m/z axis", 500);
 
     /**
      * Windows size and position
@@ -55,8 +54,8 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public ThreeDVisualizerParameters() {
-	super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
-		rtResolution, mzRange, mzResolution, windowSettings });
+        super(new Parameter[] { dataFiles, scanSelection, mzRange,
+                rtResolution, mzResolution, windowSettings });
     }
 
 }

@@ -73,39 +73,11 @@
 <pre>source("http://bioconductor.org/biocLite.R")
 biocLite("CAMERA")</pre>
 
-<p>To run R from MZmine the rJava package [<a href="#ref3">3</a>] must be installed in R, so also run the following R
+<p>To run R from MZmine the Rserve package [<a href="#ref3">3</a>] must be installed in R, so also run the following R
     command:</p>
 
-<pre>install.packages("rJava")</pre>
+<pre>install.packages("Rserve")</pre>
 
-<p>
-    You will also need to correctly configure several environment variables in your MZmine start-up script
-    (startMZmine_Windows.bat, startMZmine_Linux.sh or startMZmine_MacOSX.command):
-</p>
-
-<dl>
-    <dt>R_HOME</dt>
-    <dd>This is the directory where R is installed, e.g. for Windows it will be something like <span
-            style="font-family: monospace;">C:\Program&nbsp;Files\R\R-2.15.0</span>.
-    </dd>
-
-    <dt>R_LIBS_USER</dt>
-    <dd>This is the directory in which R installs third-party packages. It's usually a sub-directory of your personal
-        directory, e.g. for Windows it will be something like <span style="font-family: monospace;">%USERPROFILE%\Documents\R\win-library\2.15</span>.
-    </dd>
-
-    <dt>PATH</dt>
-    <dd><strong>Append</strong> the directory that contains R's libraries. It will be a sub-directory of %R_HOME%, e.g.
-        for 32-bit Windows it will be something like <span style="font-family: monospace;">%R_HOME%\bin\i386</span> or
-        for 64-bit Windows <span style="font-family: monospace;">%R_HOME%\bin\x64</span>.
-    </dd>
-
-    <dt>JRI_LIB_PATH</dt>
-    <dd>This is the directory where rJava has installed its JRI libraries. It will be a sub-directory of %R_LIBS_USER%,
-        e.g. for 32-bit Windows it will be something like <span style="font-family: monospace;">%R_LIBS_USER%\rJava\jri\i386</span>
-        or for 64-bit Windows <span style="font-family: monospace;">%R_LIBS_USER%\rJava\jri\x64</span>.
-    </dd>
-</dl>
 
 <h2>References</h2>
 
@@ -124,7 +96,7 @@ biocLite("CAMERA")</pre>
 </p>
 
 <p>
-    <a name="ref3"></a> [3] rJava "Low-level R to Java interface" <a href="http://www.rforge.net/rJava/">http://www.rforge.net/rJava/</a>.
+    <a name="ref3"></a> [3] Rserve "A TCP/IP server which allows other programs to use facilities of R" <a href="https://rforge.net/Rserve/">https://rforge.net/Rserve/</a>.
 </p>
 </body>
 </html>

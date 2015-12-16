@@ -19,9 +19,9 @@
 
 package net.sf.mzmine.modules.projectmethods.projectload;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.io.InputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -31,12 +31,9 @@ import org.xml.sax.SAXException;
 
 public interface RawDataFileOpenHandler {
 
-    public RawDataFile readRawDataFile(ZipFile zipFile, ZipEntry scansEntry,
-	    ZipEntry xmlEntry) throws IOException,
-	    ParserConfigurationException, SAXException;
+    RawDataFile readRawDataFile(InputStream is, File scansFile) throws IOException,
+            ParserConfigurationException, SAXException;
 
-    public double getProgress();
-
-    public void cancel();
+    void cancel();
 
 }

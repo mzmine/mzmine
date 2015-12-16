@@ -113,8 +113,18 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
     @Override
     public String getRexecPath() {
-        File f = preferences.getParameter(MZminePreferences.rExecPath).getValue();
-        return (f != null && f.exists()) ? f.getAbsolutePath() : null;
+        File f = preferences.getParameter(MZminePreferences.rExecPath)
+                .getValue();
+        if (f == null)
+            return null;
+        else
+            return f.getPath();
+    }
+
+    @Override
+    public Boolean getSendStatistics() {
+        return preferences.getParameter(MZminePreferences.sendStatistics)
+                .getValue();
     }
 
     @Override
@@ -154,8 +164,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
                 Element moduleElement = (Element) nodes.item(0);
 
-                ParameterSet moduleParameters = getModuleParameters(module
-                        .getClass());
+                ParameterSet moduleParameters = getModuleParameters(
+                        module.getClass());
                 moduleParameters.loadValuesFromXML(moduleElement);
             }
 
@@ -196,8 +206,8 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
                         .createElement("parameters");
                 moduleElement.appendChild(paramElement);
 
-                ParameterSet moduleParameters = getModuleParameters(module
-                        .getClass());
+                ParameterSet moduleParameters = getModuleParameters(
+                        module.getClass());
                 moduleParameters.saveValuesToXML(paramElement);
 
             }

@@ -44,8 +44,8 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.RTTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 
 import com.google.common.collect.Range;
 

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.TreeSet;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -66,6 +67,8 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
     public MultiChoiceComponent(final Object[] theChoices) {
 
 	super(new BorderLayout());
+
+	setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
 	// Create choices panel.
 	choices = theChoices.clone();

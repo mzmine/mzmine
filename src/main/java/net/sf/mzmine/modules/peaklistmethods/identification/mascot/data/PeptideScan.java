@@ -419,7 +419,7 @@ public class PeptideScan implements Scan {
     @Override
     public @Nonnull PolarityType getPolarity() {
 	// TODO Auto-generated method stub
-	return null;
+	return PolarityType.UNKNOWN;
     }
 
     @Override
@@ -429,9 +429,9 @@ public class PeptideScan implements Scan {
     }
 
     @Override
-    public Range<Double> getScaningMZRange() {
+    public @Nonnull Range<Double> getScanningMZRange() {
 	// TODO Auto-generated method stub
-	return null;
+	return Range.all();
     }
 
 }

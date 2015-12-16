@@ -70,7 +70,7 @@ public class FormulaUtils {
 	    String element = matcher.group(1);
 	    String countString = matcher.group(2);
 	    int addCount = 1;
-	    if (countString.length() > 0)
+	    if ((countString.length() > 0) && (! countString.equals("-")))
 		addCount = Integer.parseInt(countString);
 	    int currentCount = 0;
 	    if (parsedFormula.containsKey(element)) {

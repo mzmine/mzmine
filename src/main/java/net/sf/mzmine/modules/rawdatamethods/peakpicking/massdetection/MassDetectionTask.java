@@ -27,17 +27,18 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleMassList;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 public class MassDetectionTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    private RawDataFile dataFile;
+    private final RawDataFile dataFile;
 
     // scan counter
     private int processedScans = 0, totalScans = 0;
-    private int msLevel;
+    private final ScanSelection scanSelection;
 
     // User parameters
     private String name;
@@ -51,16 +52,16 @@ public class MassDetectionTask extends AbstractTask {
      */
     public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters) {
 
-	this.dataFile = dataFile;
+        this.dataFile = dataFile;
 
-	this.massDetector = parameters.getParameter(
-		MassDetectionParameters.massDetector).getValue();
+        this.massDetector = parameters.getParameter(
+                MassDetectionParameters.massDetector).getValue();
 
-	this.msLevel = parameters.getParameter(MassDetectionParameters.msLevel)
-		.getValue();
+        this.scanSelection = parameters.getParameter(
+                MassDetectionParameters.scanSelection).getValue();
 
-	this.name = parameters.getParameter(MassDetectionParameters.name)
-		.getValue();
+        this.name = parameters.getParameter(MassDetectionParameters.name)
+                .getValue();
 
     }
 
@@ -68,21 +69,21 @@ public class MassDetectionTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-	return "Detecting masses in " + dataFile;
+        return "Detecting masses in " + dataFile;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-	if (totalScans == 0)
-	    return 0;
-	else
-	    return (double) processedScans / totalScans;
+        if (totalScans == 0)
+            return 0;
+        else
+            return (double) processedScans / totalScans;
     }
 
     public RawDataFile getDataFile() {
-	return dataFile;
+        return dataFile;
     }
 
     /**
@@ -90,36 +91,34 @@ public class MassDetectionTask extends AbstractTask {
      */
     public void run() {
 
-	setStatus(TaskStatus.PROCESSING);
+        setStatus(TaskStatus.PROCESSING);
 
-	logger.info("Started mass detector on " + dataFile);
+        logger.info("Started mass detector on " + dataFile);
 
-	int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-	totalScans = scanNumbers.length;
+        final Scan scans[] = scanSelection.getMatchingScans(dataFile);
+        totalScans = scans.length;
 
-	// Process scans one by one
-	for (int i = 0; i < totalScans; i++) {
+        // Process scans one by one
+        for (Scan scan : scans) {
 
-	    if (isCanceled())
-		return;
+            if (isCanceled())
+                return;
 
-	    Scan scan = dataFile.getScan(scanNumbers[i]);
+            MassDetector detector = massDetector.getModule();
+            DataPoint mzPeaks[] = detector.getMassValues(scan,
+                    massDetector.getParameterSet());
 
-	    MassDetector detector = massDetector.getModule();
-	    DataPoint mzPeaks[] = detector.getMassValues(scan,
-		    massDetector.getParameterSet());
+            SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
 
-	    SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
+            // Add new mass list to the scan
+            scan.addMassList(newMassList);
 
-	    // Add new mass list to the scan
-	    scan.addMassList(newMassList);
+            processedScans++;
+        }
 
-	    processedScans++;
-	}
+        setStatus(TaskStatus.FINISHED);
 
-	setStatus(TaskStatus.FINISHED);
-
-	logger.info("Finished mass detector on " + dataFile);
+        logger.info("Finished mass detector on " + dataFile);
 
     }
 

@@ -42,7 +42,7 @@ import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScore;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreParameters;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.FormulaUtils;

@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import org.jfree.data.xy.AbstractXYDataset;
+
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -30,19 +32,15 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakMeasurementType;
 
-import org.jfree.data.xy.AbstractXYDataset;
+public class PCADataset extends AbstractXYDataset
+        implements ProjectionPlotDataset {
 
-public class PCADataset extends AbstractXYDataset implements
-        ProjectionPlotDataset {
-
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -78,18 +76,21 @@ public class PCADataset extends AbstractXYDataset implements
                 .getMatchingPeakLists()[0];
         this.parameters = parameters;
 
-        this.xAxisPC = parameters.getParameter(
-                ProjectionPlotParameters.xAxisComponent).getValue();
-        this.yAxisPC = parameters.getParameter(
-                ProjectionPlotParameters.yAxisComponent).getValue();
-
-        coloringType = parameters.getParameter(
-                ProjectionPlotParameters.coloringType).getValue();
-
-        selectedRawDataFiles = parameters.getParameter(
-                ProjectionPlotParameters.dataFiles).getValue();
-        selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
+        this.xAxisPC = parameters
+                .getParameter(ProjectionPlotParameters.xAxisComponent)
                 .getValue();
+        this.yAxisPC = parameters
+                .getParameter(ProjectionPlotParameters.yAxisComponent)
+                .getValue();
+
+        coloringType = parameters
+                .getParameter(ProjectionPlotParameters.coloringType).getValue();
+
+        selectedRawDataFiles = parameters
+                .getParameter(ProjectionPlotParameters.dataFiles).getValue()
+                .getMatchingRawDataFiles();
+        selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
+                .getMatchingRows(peakList);
 
         datasetTitle = "Principal component analysis";
 
@@ -117,15 +118,15 @@ public class PCADataset extends AbstractXYDataset implements
             Vector<Object> availableParameterValues = new Vector<Object>();
             UserParameter<?, ?> selectedParameter = coloringType.getParameter();
             for (RawDataFile rawDataFile : selectedRawDataFiles) {
-                Object paramValue = project.getParameterValue(
-                        selectedParameter, rawDataFile);
+                Object paramValue = project.getParameterValue(selectedParameter,
+                        rawDataFile);
                 if (!availableParameterValues.contains(paramValue))
                     availableParameterValues.add(paramValue);
             }
 
             for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
-                Object paramValue = project.getParameterValue(
-                        selectedParameter, selectedRawDataFiles[ind]);
+                Object paramValue = project.getParameterValue(selectedParameter,
+                        selectedRawDataFiles[ind]);
                 groupsForSelectedRawDataFiles[ind] = availableParameterValues
                         .indexOf(paramValue);
             }
@@ -206,13 +207,23 @@ public class PCADataset extends AbstractXYDataset implements
 
         status = TaskStatus.PROCESSING;
 
-        logger.info("Computing projection plot");
+        logger.info("Computing PCA projection plot");
 
         // Generate matrix of raw data (input to PCA)
-        boolean useArea = false;
-        if (parameters.getParameter(
-                ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA)
-            useArea = true;
+        final boolean useArea = (parameters
+                .getParameter(ProjectionPlotParameters.peakMeasurementType)
+                .getValue() == PeakMeasurementType.AREA);
+
+        if (selectedRows.length == 0) {
+            this.status = TaskStatus.ERROR;
+            errorMessage = "No peaks selected for PCA plot";
+            return;
+        }
+        if (selectedRawDataFiles.length == 0) {
+            this.status = TaskStatus.ERROR;
+            errorMessage = "No raw data files selected for PCA plot";
+            return;
+        }
 
         double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
         for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
@@ -235,7 +246,17 @@ public class PCADataset extends AbstractXYDataset implements
 
         // Scale data and do PCA
         Preprocess.scaleToUnityVariance(rawData);
+
+        // Replace NaN values with 0.0
+        for (int i = 0; i < rawData.length; i++) {
+            for (int j = 0; j < rawData[i].length; j++) {
+                if (Double.isNaN(rawData[i][j]))
+                    rawData[i][j] = 0.0;
+            }
+        }
+
         PCA pcaProj = new PCA(rawData, numComponents);
+
         projectionStatus = pcaProj.getProjectionStatus();
 
         double[][] result = pcaProj.getState();
@@ -246,8 +267,8 @@ public class PCADataset extends AbstractXYDataset implements
         component1Coords = result[xAxisPC - 1];
         component2Coords = result[yAxisPC - 1];
 
-        ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
-                this, parameters);
+        ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList, this,
+                parameters);
         newFrame.setVisible(true);
 
         status = TaskStatus.FINISHED;

@@ -34,7 +34,10 @@ public enum DataFileColumnType {
     HEIGHT("Height", Double.class),
     AREA("Area", Double.class),
     CHARGE("Charge", Integer.class),
-    DATAPOINTS("# Data points", Integer.class);
+    DATAPOINTS("# Data points", Integer.class),
+    FWHM("FWHM", Double.class),
+    TF("Tailing factor", Double.class),
+    AF("Asymmetry factor", Double.class);
 
     private final String columnName;
     private final Class<?> columnClass;

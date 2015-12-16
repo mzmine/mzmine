@@ -33,8 +33,9 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakSorter;
@@ -147,6 +148,9 @@ public class PeakExtenderTask extends AbstractTask {
 
 	// Add new peakList to the project
 	project.addPeakList(extendedPeakList);
+
+        // Add quality parameters to peaks
+	QualityParameters.calculateQualityParameters(extendedPeakList);
 
 	// Load previous applied methods
 	for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {

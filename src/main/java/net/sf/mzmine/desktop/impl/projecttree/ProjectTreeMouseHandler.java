@@ -41,6 +41,7 @@ import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParameters;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
+import net.sf.mzmine.modules.visualization.ida.IDAVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
@@ -53,8 +54,8 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.PeakListsSelectionType;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesSelectionType;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsSelectionType;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
@@ -87,6 +88,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
                 "SHOW_2D");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show 3D visualizer", this,
                 "SHOW_3D");
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Show MS/MS visualizer", this,
+                "SHOW_IDA");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Sort alphabetically", this,
                 "SORT_FILES");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file extension", this,
@@ -158,13 +161,21 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
                 module.runModule(project, parameters, new ArrayList<Task>());
         }
 
+        if (command.equals("SHOW_IDA")) {
+            RawDataFile[] selectedFiles = tree
+                    .getSelectedObjects(RawDataFile.class);
+            if (selectedFiles.length == 0)
+                return;
+            IDAVisualizerModule.showIDAVisualizerSetupDialog(selectedFiles[0]);
+
+        }
+
         if (command.equals("SHOW_2D")) {
             RawDataFile[] selectedFiles = tree
                     .getSelectedObjects(RawDataFile.class);
             if (selectedFiles.length == 0)
                 return;
             TwoDVisualizerModule.show2DVisualizerSetupDialog(selectedFiles[0]);
-
         }
 
         if (command.equals("SHOW_3D")) {
@@ -186,7 +197,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
                     .getModuleParameters(OrderDataFilesModule.class);
             params.getParameter(OrderDataFilesParameters.dataFiles).setValue(
                     RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
-            module.runModule(null, params, null);
+            module.runModule(MZmineCore.getProjectManager().getCurrentProject(), params, new ArrayList<Task>());
             // restore selection
             tree.setSelectionPaths(savedSelection);
         }
@@ -310,7 +321,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
             params.getParameter(OrderPeakListsParameters.peakLists)
                     .setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS,
                             selectedPeakLists);
-            module.runModule(null, params, null);
+            module.runModule(MZmineCore.getProjectManager().getCurrentProject(), params, new ArrayList<Task>());
             // restore selection
             tree.setSelectionPaths(savedSelection);
         }
@@ -335,7 +346,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 
     }
 
-    public void mousePressed(MouseEvent e) {
+    public void mouseClicked(MouseEvent e) {
 
         if (e.isPopupTrigger())
             handlePopupTriggerEvent(e);
@@ -345,13 +356,17 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 
     }
 
+    public void mousePressed(MouseEvent e) {
+        if (e.isPopupTrigger())
+            handlePopupTriggerEvent(e);
+    }
+
     public void mouseReleased(MouseEvent e) {
         if (e.isPopupTrigger())
             handlePopupTriggerEvent(e);
     }
 
     private void handlePopupTriggerEvent(MouseEvent e) {
-
         TreePath clickedPath = tree.getPathForLocation(e.getX(), e.getY());
         if (clickedPath == null)
             return;

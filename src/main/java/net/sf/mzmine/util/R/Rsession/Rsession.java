@@ -62,7 +62,6 @@ public class Rsession implements Logger {
     public boolean TRY_MODE_DEFAULT = true;
     public boolean TRY_MODE = false;
     public static final String CAST_ERROR = "Cannot cast ";
-    private static final String __ = "  ";
     private static final String _PACKAGE_ = "  package ";
     public RConnection connection;
     Logger console;
@@ -87,6 +86,14 @@ public class Rsession implements Logger {
     private static String tmpDir = null;
     public static final Object R_SESSION_SEMAPHORE = new Object();
     public static ArrayList<Integer> PORTS_REG = new ArrayList<Integer>();
+    //** GLG HACK: Logging fix **//
+    boolean SINK_OUTPUT = true;
+    // GLG HACK: fixed sink file in case of multiple instances
+    // (Appending the port number of the instance to file name)
+    String SINK_FILE_BASE = ".Rout";
+    String SINK_FILE = null;
+    String lastOuput = "";
+
 
     void cleanupListeners() {
         if (loggers != null) {
@@ -490,6 +497,9 @@ public class Rsession implements Logger {
 
         loggers = new LinkedList<Logger>();
         loggers.add(console);
+        
+        // Make sink file specific to current Rserve instance
+        SINK_FILE = SINK_FILE_BASE + "-" + serverconf.port;
 
         startup();
     }
@@ -612,6 +622,8 @@ public class Rsession implements Logger {
             // int port = (rServeConf.port != -1) ? rServeConf.port :
             // RserverConf.getNewAvailablePort();
             if (port_tmp != port) {
+                // Keep sink file specific to current Rserve instance
+                SINK_FILE = SINK_FILE_BASE + "-" + port;
                 println("WARNING: Changed the original requested port from "
                         + port_tmp + " to " + port + "!", Level.WARNING);
             }
@@ -1132,10 +1144,6 @@ public class Rsession implements Logger {
         return silentlyVoidEval(expression, TRY_MODE_DEFAULT);
     }
 
-    boolean SINK_OUTPUT = true;
-    String SINK_FILE = ".Rout";
-
-    String lastOuput = "";
 
     public String getLastOutput() {
         if (!SINK_OUTPUT) {
@@ -1728,7 +1736,7 @@ public class Rsession implements Logger {
      * @param varname
      *            R objects to delete
      */
-    public boolean unset(Collection varname) {
+    public boolean unset(Collection<?> varname) {
         boolean done = true;
         for (Object v : varname) {
             done = done & rm(v.toString());
@@ -1886,7 +1894,7 @@ public class Rsession implements Logger {
         } else if (var instanceof Map) {
             try {
                 synchronized (connection) {
-                    connection.assign(varname, asRList((Map) var));
+                    connection.assign(varname, asRList((Map<?,?>) var));
                 }
             } catch (Exception ex) {
                 log(HEAD_ERROR + ex.getMessage() + "\n  set(String varname="
@@ -1903,7 +1911,7 @@ public class Rsession implements Logger {
         return true;
     }
 
-    public static REXPList asRList(Map m) {
+    public static REXPList asRList(Map<?,?> m) {
         RList l = new RList();
         for (Object o : m.keySet()) {
             Object v = m.get(o);
@@ -1924,7 +1932,7 @@ public class Rsession implements Logger {
             } else if (v instanceof boolean[]) {
                 l.put(o.toString(), new REXPLogical((boolean[]) v));
             } else if (v instanceof Map) {
-                l.put(o.toString(), asRList((Map) v));
+                l.put(o.toString(), asRList((Map<?,?>) v));
             } else if (v instanceof RList) {
                 l.put(o.toString(), (RList) v);
             } else if (v == null) {

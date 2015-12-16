@@ -52,9 +52,9 @@ public class RawDataFileTypeDetector {
     private static final String MZDATA_HEADER = "<mzData";
 
     // See "https://code.google.com/p/unfinnigan/wiki/FileHeader"
-    private static final String THERMO_HEADER = String.valueOf(new char[] {
-	    0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0, 'i', 0, 'g', 0, 'a', 0,
-	    'n', 0 });
+    private static final String THERMO_HEADER = String
+            .valueOf(new char[] { 0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0,
+                    'i', 0, 'g', 0, 'a', 0, 'n', 0 });
 
     /**
      * 
@@ -63,52 +63,53 @@ public class RawDataFileTypeDetector {
      */
     public static RawDataFileType detectDataFileType(File fileName) {
 
-	if (fileName.isDirectory()) {
-	    // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
-	    for (File f : fileName.listFiles()) {
-		if (f.isFile() && f.getName().matches("_FUNC[0-9]{3}.DAT"))
-		    return RawDataFileType.WATERS_RAW;
-	    }
-	    // We don't recognize any other directory type than Waters
-	    return null;
-	}
+        if (fileName.isDirectory()) {
+            // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
+            for (File f : fileName.listFiles()) {
+                if (f.isFile() && f.getName().toUpperCase()
+                        .matches("_FUNC[0-9]{3}.DAT"))
+                    return RawDataFileType.WATERS_RAW;
+            }
+            // We don't recognize any other directory type than Waters
+            return null;
+        }
 
-	if (fileName.getName().toLowerCase().endsWith(".csv")) {
-	    return RawDataFileType.AGILENT_CSV;
-	}
+        if (fileName.getName().toLowerCase().endsWith(".csv")) {
+            return RawDataFileType.AGILENT_CSV;
+        }
 
-	try {
+        try {
 
-	    // Read the first 1kB of the file into a String
-	    InputStreamReader reader = new InputStreamReader(
-		    new FileInputStream(fileName), "ISO-8859-1");
-	    char buffer[] = new char[1024];
-	    reader.read(buffer);
-	    reader.close();
-	    String fileHeader = new String(buffer);
+            // Read the first 1kB of the file into a String
+            InputStreamReader reader = new InputStreamReader(
+                    new FileInputStream(fileName), "ISO-8859-1");
+            char buffer[] = new char[1024];
+            reader.read(buffer);
+            reader.close();
+            String fileHeader = new String(buffer);
 
-	    if (fileHeader.startsWith(THERMO_HEADER)) {
-		return RawDataFileType.THERMO_RAW;
-	    }
+            if (fileHeader.startsWith(THERMO_HEADER)) {
+                return RawDataFileType.THERMO_RAW;
+            }
 
-	    if (fileHeader.startsWith(CDF_HEADER)) {
-		return RawDataFileType.NETCDF;
-	    }
+            if (fileHeader.startsWith(CDF_HEADER)) {
+                return RawDataFileType.NETCDF;
+            }
 
-	    if (fileHeader.contains(MZML_HEADER))
-		return RawDataFileType.MZML;
+            if (fileHeader.contains(MZML_HEADER))
+                return RawDataFileType.MZML;
 
-	    if (fileHeader.contains(MZDATA_HEADER))
-		return RawDataFileType.MZDATA;
+            if (fileHeader.contains(MZDATA_HEADER))
+                return RawDataFileType.MZDATA;
 
-	    if (fileHeader.contains(MZXML_HEADER))
-		return RawDataFileType.MZXML;
+            if (fileHeader.contains(MZXML_HEADER))
+                return RawDataFileType.MZXML;
 
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-	return null;
+        return null;
 
     }
 

@@ -244,6 +244,18 @@ class SQLExportTask extends AbstractTask {
                                 .setDouble(i + 1, peak.getScanNumbers().length);
                         loopDataFiles = true;
                         break;
+                    case FWHM:
+                        statement.setDouble(i + 1, peak.getFWHM());
+                        loopDataFiles = true;
+                        break;
+                    case TAILINGFACTOR:
+                        statement.setDouble(i + 1, peak.getTailingFactor());
+                        loopDataFiles = true;
+                        break;
+                    case ASYMMETRYFACTOR:
+                        statement.setDouble(i + 1, peak.getAsymmetryFactor());
+                        loopDataFiles = true;
+                        break;
                     case RAWFILE:
                         statement.setString(i + 1, rawDataFile.getName());
                         loopDataFiles = true;
