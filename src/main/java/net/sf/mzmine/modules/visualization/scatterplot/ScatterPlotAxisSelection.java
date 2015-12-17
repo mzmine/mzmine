@@ -71,7 +71,8 @@ public class ScatterPlotAxisSelection {
 	for (RawDataFile dataFile : row.getRawDataFiles()) {
 	    Object fileValue = MZmineCore.getProjectManager()
 		    .getCurrentProject().getParameterValue(parameter, dataFile);
-	    if (fileValue == parameterValue) {
+	    if (fileValue == null) continue;
+	    if (fileValue.toString().equals(parameterValue.toString())) {
 		Feature peak = row.getPeak(dataFile);
 		if ((peak != null) && (peak.getArea() > 0)) {
 		    totalArea += peak.getArea();

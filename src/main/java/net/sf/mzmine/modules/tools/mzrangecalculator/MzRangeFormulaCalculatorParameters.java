@@ -27,7 +27,7 @@ import net.sf.mzmine.parameters.parametertypes.FormulaParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class MzRangeCalculatorParameters extends SimpleParameterSet {
+public class MzRangeFormulaCalculatorParameters extends SimpleParameterSet {
 
     static final FormulaParameter formula = new FormulaParameter();
 
@@ -41,7 +41,7 @@ public class MzRangeCalculatorParameters extends SimpleParameterSet {
 
     static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-    public MzRangeCalculatorParameters() {
+    public MzRangeFormulaCalculatorParameters() {
 	super(new Parameter[] { formula, ionType, charge, mzTolerance });
     }
 

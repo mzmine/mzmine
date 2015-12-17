@@ -27,10 +27,13 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeCalculatorModule;
+import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
+import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -38,13 +41,11 @@ import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionComponent;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
-import com.google.common.collect.Range;
-
 public class MZRangeComponent extends DoubleRangeComponent
         implements ActionListener {
 
     private static final long serialVersionUID = 1L;
-    private final JButton setAutoButton, fromFormulaButton;
+    private final JButton setAutoButton, fromMassButton, fromFormulaButton;
 
     public MZRangeComponent() {
 
@@ -59,9 +60,13 @@ public class MZRangeComponent extends DoubleRangeComponent
         setAutoButton.setEnabled(currentFiles.length > 0);
         add(setAutoButton, 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
+        fromMassButton = new JButton("From mass");
+        fromMassButton.addActionListener(this);
+        add(fromMassButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+        
         fromFormulaButton = new JButton("From formula");
         fromFormulaButton.addActionListener(this);
-        add(fromFormulaButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+        add(fromFormulaButton, 5, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
     }
 
@@ -107,8 +112,15 @@ public class MZRangeComponent extends DoubleRangeComponent
                 setValue(mzRange);
         }
 
+        if (src == fromMassButton) {
+            Range<Double> mzRange = MzRangeMassCalculatorModule
+                    .showRangeCalculationDialog();
+            if (mzRange != null)
+                setValue(mzRange);
+        }
+        
         if (src == fromFormulaButton) {
-            Range<Double> mzRange = MzRangeCalculatorModule
+            Range<Double> mzRange = MzRangeFormulaCalculatorModule
                     .showRangeCalculationDialog();
             if (mzRange != null)
                 setValue(mzRange);
@@ -120,6 +132,7 @@ public class MZRangeComponent extends DoubleRangeComponent
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         setAutoButton.setEnabled(enabled);
+        fromMassButton.setEnabled(enabled);
         fromFormulaButton.setEnabled(enabled);
     }
 
