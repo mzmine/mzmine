@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import org.jfree.data.xy.AbstractXYDataset;
+
 import jmprojection.CDA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -34,8 +36,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakMeasurementType;
-
-import org.jfree.data.xy.AbstractXYDataset;
 
 public class CDADataset extends AbstractXYDataset
         implements ProjectionPlotDataset {
@@ -87,8 +87,7 @@ public class CDADataset extends AbstractXYDataset
         selectedRawDataFiles = parameters
                 .getParameter(ProjectionPlotParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
-        selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
-                .getMatchingRows(peakList);
+        selectedRows = peakList.getRows();
 
         datasetTitle = "Curvilinear distance analysis";
 

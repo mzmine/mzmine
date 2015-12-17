@@ -42,7 +42,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchical.HierarClusterer;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotDataset;
-import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotParameters;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -88,10 +87,9 @@ public class ClusteringTask extends AbstractXYDataset
         this.peakList = parameters.getParameter(ClusteringParameters.peakLists)
                 .getValue().getMatchingPeakLists()[0];
         this.selectedRawDataFiles = parameters
-                .getParameter(ProjectionPlotParameters.dataFiles).getValue()
+                .getParameter(ClusteringParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
-        this.selectedRows = parameters
-                .getParameter(ProjectionPlotParameters.rows)
+        this.selectedRows = parameters.getParameter(ClusteringParameters.rows)
                 .getMatchingRows(peakList);
         clusteringStep = parameters
                 .getParameter(ClusteringParameters.clusteringAlgorithm)
@@ -371,13 +369,11 @@ public class ClusteringTask extends AbstractXYDataset
     private double[][] createMatrix(boolean isForSamples) {
         // Generate matrix of raw data (input to CDA)
         boolean useArea = true;
-        if (parameters
-                .getParameter(ProjectionPlotParameters.peakMeasurementType)
+        if (parameters.getParameter(ClusteringParameters.peakMeasurementType)
                 .getValue() == PeakMeasurementType.AREA) {
             useArea = true;
         }
-        if (parameters
-                .getParameter(ProjectionPlotParameters.peakMeasurementType)
+        if (parameters.getParameter(ClusteringParameters.peakMeasurementType)
                 .getValue() == PeakMeasurementType.HEIGHT) {
             useArea = false;
         }
