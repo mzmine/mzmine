@@ -36,8 +36,8 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 import com.google.common.collect.Range;
 
-public class RTRangeComponent extends DoubleRangeComponent implements
-        ActionListener {
+public class RTRangeComponent extends DoubleRangeComponent
+        implements ActionListener {
 
     private static final long serialVersionUID = 1L;
     private final JButton setAutoButton;
@@ -78,8 +78,11 @@ public class RTRangeComponent extends DoubleRangeComponent implements
                 if (rdc == null) {
                     setupDialog = (ParameterSetupDialog) setupDialog
                             .getParent();
-                    rdc = (RawDataFilesComponent) setupDialog
-                            .getComponentForParameter(new RawDataFilesParameter());
+                    if (setupDialog != null) {
+                        rdc = (RawDataFilesComponent) setupDialog
+                                .getComponentForParameter(
+                                        new RawDataFilesParameter());
+                    }
                 }
                 if (rdc != null)
                     currentFiles = rdc.getValue().getMatchingRawDataFiles();
