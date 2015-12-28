@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.common.collect.Range;
+
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.datapointstore.DataPointStore;
 import io.github.msdk.datamodel.datapointstore.DataPointStoreFactory;
@@ -255,7 +257,7 @@ public class ExportSpectraTask extends AbstractTask {
         if (!precursorMZ.equals(0f)) {
             List<IsolationInfo> MSDKprecursor = MSDKscan.getIsolations();
             IsolationInfo MSDKisolationInfo = MSDKObjectBuilder
-                    .getIsolationInfo(null, null, precursorMZ, precursorCharge,
+                    .getIsolationInfo(Range.singleton(precursorMZ), null, precursorMZ, precursorCharge,
                             null);
             MSDKprecursor.add(MSDKisolationInfo);
         }
