@@ -56,9 +56,9 @@ public class MZToleranceComponent extends JPanel {
 
     public MZTolerance getValue() {
         try {
-            double mzTolerance = Double.parseDouble(mzToleranceField.getText());
+            double mzTolerance = Double.parseDouble(mzToleranceField.getText().trim());
             double ppmTolerance = Double
-                    .parseDouble(ppmToleranceField.getText());
+                    .parseDouble(ppmToleranceField.getText().trim());
             MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
             return value;
         } catch (NumberFormatException e) {

@@ -57,8 +57,8 @@ public class DoubleRangeComponent extends GridBagPanel {
         String maxString = maxTxtField.getText();
 
         try {
-            Number minValue = format.parse(minString);
-            Number maxValue = format.parse(maxString);
+            Number minValue = format.parse(minString.trim());
+            Number maxValue = format.parse(maxString.trim());
 
             if ((minValue == null) || (maxValue == null))
                 return null;

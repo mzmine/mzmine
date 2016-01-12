@@ -57,7 +57,7 @@ public class IntegerComponent extends JPanel {
     }
 
     public String getText() {
-        return textField.getText();
+        return textField.getText().trim();
     }
 
     @Override
