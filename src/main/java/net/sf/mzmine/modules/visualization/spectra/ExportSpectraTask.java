@@ -182,6 +182,8 @@ public class ExportSpectraTask extends AbstractTask {
             }
 
             writer.newLine();
+        } catch (Exception e) {
+            throw (new IOException(e));
         } finally {
 
             // Close
@@ -257,8 +259,8 @@ public class ExportSpectraTask extends AbstractTask {
         if (!precursorMZ.equals(0f)) {
             List<IsolationInfo> MSDKprecursor = MSDKscan.getIsolations();
             IsolationInfo MSDKisolationInfo = MSDKObjectBuilder
-                    .getIsolationInfo(Range.singleton(precursorMZ), null, precursorMZ, precursorCharge,
-                            null);
+                    .getIsolationInfo(Range.singleton(precursorMZ), null,
+                            precursorMZ, precursorCharge, null);
             MSDKprecursor.add(MSDKisolationInfo);
         }
 
