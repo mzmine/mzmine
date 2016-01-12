@@ -47,7 +47,7 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return MzRangeMassCalculatorParameters.class;
+        return MzRangeFormulaCalculatorParameters.class;
     }
 
     /**
