@@ -30,11 +30,10 @@ import java.util.logging.Logger;
 import com.google.common.collect.Range;
 
 import io.github.msdk.MSDKException;
-import io.github.msdk.datamodel.datapointstore.DataPointStore;
-import io.github.msdk.datamodel.datapointstore.DataPointStoreFactory;
+import io.github.msdk.datamodel.datastore.DataPointStore;
+import io.github.msdk.datamodel.datastore.DataPointStoreFactory;
 import io.github.msdk.datamodel.files.FileType;
 import io.github.msdk.datamodel.impl.MSDKObjectBuilder;
-import io.github.msdk.datamodel.msspectra.MsSpectrumDataPointList;
 import io.github.msdk.datamodel.msspectra.MsSpectrumType;
 import io.github.msdk.datamodel.rawdata.IsolationInfo;
 import io.github.msdk.datamodel.rawdata.MsFunction;
@@ -214,11 +213,6 @@ public class ExportSpectraTask extends AbstractTask {
         String scanDefinition = scan.getScanDefinition();
         Integer precursorCharge = scan.getPrecursorCharge();
 
-        // Initialize MSDK style DataPointStore
-        MsSpectrumDataPointList MSDKdp = MSDKObjectBuilder
-                .getMsSpectrumDataPointList();
-        MSDKdp.allocate(dp.length);
-
         // GUI progress bar updating
         progressMax = dp.length;
 
@@ -228,14 +222,17 @@ public class ExportSpectraTask extends AbstractTask {
                 dummyFunction);
 
         // Iterate & convert from MZmine2 style to MSDK style
-        for (DataPoint d : dp) {
-            MSDKdp.add(d.getMZ(), (float) d.getIntensity());
+        double mzValues[]=new double[dp.length];
+        float intensityValues[]=new float[dp.length];
+        for (int i = 0; i < dp.length; i++) {
+            mzValues[i]=dp[i].getMZ();
+            intensityValues[i]=(float) dp[i].getIntensity();
             // GUI progress bar updating
             progress += 1;
         }
 
         // Put the data in the scan
-        MSDKscan.setDataPoints(MSDKdp);
+        MSDKscan.setDataPoints(mzValues, intensityValues, mzValues.length);
 
         // Parse if data is profile vs centroid
         MassSpectrumType t = scan.getSpectrumType();
