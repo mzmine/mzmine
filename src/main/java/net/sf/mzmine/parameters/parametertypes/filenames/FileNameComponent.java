@@ -30,8 +30,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.main.MZmineCore;
-
 /**
  */
 public class FileNameComponent extends JPanel implements ActionListener {
@@ -82,8 +80,7 @@ public class FileNameComponent extends JPanel implements ActionListener {
                 fileChooser.setCurrentDirectory(currentDir);
         }
 
-        int returnVal = fileChooser.showDialog(
-                MZmineCore.getDesktop().getMainWindow(), "Select file");
+        int returnVal = fileChooser.showDialog(null, "Select file");
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             String selectedPath = fileChooser.getSelectedFile().getPath();

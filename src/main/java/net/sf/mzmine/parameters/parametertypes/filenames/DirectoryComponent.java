@@ -33,8 +33,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.main.MZmineCore;
-
 /**
  */
 public class DirectoryComponent extends JPanel implements ActionListener {
@@ -48,7 +46,8 @@ public class DirectoryComponent extends JPanel implements ActionListener {
     private static final int TEXT_FIELD_COLUMNS = 15;
 
     // Text field font.
-    private static final Font SMALL_FONT = new Font("SansSerif", Font.PLAIN, 10);
+    private static final Font SMALL_FONT = new Font("SansSerif", Font.PLAIN,
+            10);
 
     // Chooser title.
     private static final String TITLE = "Select Directory";
@@ -61,63 +60,62 @@ public class DirectoryComponent extends JPanel implements ActionListener {
      */
     public DirectoryComponent() {
 
-	super(new BorderLayout());
+        super(new BorderLayout());
 
-	// Create text field.
-	txtDirectory = new JTextField();
-	txtDirectory.setColumns(TEXT_FIELD_COLUMNS);
-	txtDirectory.setFont(SMALL_FONT);
+        // Create text field.
+        txtDirectory = new JTextField();
+        txtDirectory.setColumns(TEXT_FIELD_COLUMNS);
+        txtDirectory.setFont(SMALL_FONT);
 
-	// Chooser button.
-	final JButton btnFileBrowser = new JButton("...");
-	btnFileBrowser.addActionListener(this);
+        // Chooser button.
+        final JButton btnFileBrowser = new JButton("...");
+        btnFileBrowser.addActionListener(this);
 
-	add(txtDirectory, BorderLayout.CENTER);
-	add(btnFileBrowser, BorderLayout.EAST);
+        add(txtDirectory, BorderLayout.CENTER);
+        add(btnFileBrowser, BorderLayout.EAST);
     }
 
     public File getValue() {
 
-	return new File(txtDirectory.getText());
+        return new File(txtDirectory.getText());
     }
 
     public void setValue(final File value) {
 
-	txtDirectory.setText(value.getPath());
+        txtDirectory.setText(value.getPath());
     }
 
     @Override
     public void setToolTipText(final String text) {
 
-	txtDirectory.setToolTipText(text);
+        txtDirectory.setToolTipText(text);
     }
 
     @Override
     public void actionPerformed(final ActionEvent e) {
 
-	// Create chooser.
-	final JFileChooser chooser = new JFileChooser();
-	chooser.setMultiSelectionEnabled(false);
-	chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-	chooser.setAcceptAllFileFilterUsed(false);
-	chooser.setDialogTitle(TITLE);
+        // Create chooser.
+        final JFileChooser chooser = new JFileChooser();
+        chooser.setMultiSelectionEnabled(false);
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
+        chooser.setDialogTitle(TITLE);
 
-	// Set current directory.
-	final String currentPath = txtDirectory.getText();
-	if (currentPath.length() > 0) {
+        // Set current directory.
+        final String currentPath = txtDirectory.getText();
+        if (currentPath.length() > 0) {
 
-	    final File currentFile = new File(currentPath);
-	    final File currentDir = currentFile.getParentFile();
-	    if (currentDir != null && currentDir.exists()) {
+            final File currentFile = new File(currentPath);
+            final File currentDir = currentFile.getParentFile();
+            if (currentDir != null && currentDir.exists()) {
 
-		chooser.setCurrentDirectory(currentDir);
-	    }
-	}
+                chooser.setCurrentDirectory(currentDir);
+            }
+        }
 
-	// Open chooser.
-	if (chooser.showDialog(MZmineCore.getDesktop().getMainWindow(), TITLE) == JFileChooser.APPROVE_OPTION) {
-
-	    txtDirectory.setText(chooser.getSelectedFile().getPath());
-	}
+        // Open chooser.
+        if (chooser.showDialog(null, TITLE) == JFileChooser.APPROVE_OPTION) {
+            txtDirectory.setText(chooser.getSelectedFile().getPath());
+        }
     }
 }
