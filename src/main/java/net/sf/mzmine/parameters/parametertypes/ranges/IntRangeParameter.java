@@ -29,8 +29,8 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.collect.Range;
 
-public class IntRangeParameter implements
-        UserParameter<Range<Integer>, IntRangeComponent> {
+public class IntRangeParameter
+        implements UserParameter<Range<Integer>, IntRangeComponent> {
 
     private final String name, description;
     private final boolean valueRequired;
@@ -130,9 +130,10 @@ public class IntRangeParameter implements
             errorMessages.add(name + " is not set properly");
             return false;
         }
-        if ((value != null) && (value.lowerEndpoint() >= value.upperEndpoint())) {
+        if ((value != null)
+                && (value.lowerEndpoint() > value.upperEndpoint())) {
             errorMessages.add(name
-                    + " range maximum must be higher than minimum");
+                    + " range maximum must be higher than minimum, or equal");
             return false;
         }
 
