@@ -30,25 +30,27 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.collect.Range;
 
-public class DoubleRangeParameter implements
-        UserParameter<Range<Double>, DoubleRangeComponent> {
+public class DoubleRangeParameter
+        implements UserParameter<Range<Double>, DoubleRangeComponent> {
 
     private final String name, description;
     private final boolean valueRequired;
     private NumberFormat format;
     private Range<Double> value;
 
-    public DoubleRangeParameter(String name, String description, NumberFormat format) {
+    public DoubleRangeParameter(String name, String description,
+            NumberFormat format) {
         this(name, description, format, true, null);
     }
 
-    public DoubleRangeParameter(String name, String description, NumberFormat format,
-            Range<Double> defaultValue) {
+    public DoubleRangeParameter(String name, String description,
+            NumberFormat format, Range<Double> defaultValue) {
         this(name, description, format, true, defaultValue);
     }
 
-    public DoubleRangeParameter(String name, String description, NumberFormat format,
-            boolean valueRequired, Range<Double> defaultValue) {
+    public DoubleRangeParameter(String name, String description,
+            NumberFormat format, boolean valueRequired,
+            Range<Double> defaultValue) {
         this.name = name;
         this.description = description;
         this.format = format;
@@ -92,7 +94,8 @@ public class DoubleRangeParameter implements
 
     @Override
     public DoubleRangeParameter cloneParameter() {
-        DoubleRangeParameter copy = new DoubleRangeParameter(name, description, format);
+        DoubleRangeParameter copy = new DoubleRangeParameter(name, description,
+                format);
         copy.setValue(this.getValue());
         return copy;
     }
@@ -142,9 +145,10 @@ public class DoubleRangeParameter implements
             errorMessages.add(name + " is not set properly");
             return false;
         }
-        if ((value != null) && (value.lowerEndpoint() >= value.upperEndpoint())) {
+        if ((value != null)
+                && (value.lowerEndpoint() > value.upperEndpoint())) {
             errorMessages.add(name
-                    + " range maximum must be higher than minimum");
+                    + " range maximum must be higher than minimum, or equal");
             return false;
         }
 
