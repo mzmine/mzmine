@@ -50,6 +50,7 @@ import uk.ac.ebi.pride.jmztab.model.StudyVariable;
 class MzTabExportTask extends AbstractTask {
 
     private int processedRows = 0, totalRows = 0;
+    String newLine = System.lineSeparator();
 
     // parameter values
     private final MZmineProject project;
@@ -170,9 +171,9 @@ class MzTabExportTask extends AbstractTask {
             FileWriter writer = new FileWriter(fileName);
             BufferedWriter out = new BufferedWriter(writer);
             out.write(mtd.toString());
-            out.write("\n");
+            out.write(newLine);
             out.write(factory.toString());
-            out.write("\n");
+            out.write(newLine);
 
             // Write data rows
             for (PeakListRow peakListRow : peakList.getRows()) {
@@ -253,7 +254,7 @@ class MzTabExportTask extends AbstractTask {
                     }
 
                     out.write(sm.toString());
-                    out.write("\n");
+                    out.write(newLine);
                 }
 
             }
