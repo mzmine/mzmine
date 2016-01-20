@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.mztabimport;
 
+import java.io.File;
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
@@ -37,30 +38,35 @@ public class MzTabImportModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull String getName() {
-	return MODULE_NAME;
+        return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.PEAKLISTIMPORT;
+        return MZmineModuleCategory.PEAKLISTIMPORT;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return MzTabImportParameters.class;
+        return MzTabImportParameters.class;
     }
 
     @Override
     public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
-	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
-	MzTabImportTask task = new MzTabImportTask(project, parameters);
-	tasks.add(task);
-	return ExitCode.OK;
+            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+        File inputFiles[] = parameters.getParameter(MzTabImportParameters.file)
+                .getValue();
+        for (File inputFile : inputFiles) {
+            MzTabImportTask task = new MzTabImportTask(project, parameters,
+                    inputFile);
+            tasks.add(task);
+        }
+        return ExitCode.OK;
     }
 
 }

@@ -73,10 +73,9 @@ class MzTabImportTask extends AbstractTask {
     // underlying tasks for importing raw data
     private final List<Task> underlyingTasks = new ArrayList<Task>();
 
-    MzTabImportTask(MZmineProject project, ParameterSet parameters) {
+    MzTabImportTask(MZmineProject project, ParameterSet parameters, File inputFile) {
 	this.project = project;
-	this.inputFile = parameters.getParameter(MzTabImportParameters.file)
-		.getValue();
+	this.inputFile = inputFile;
 	this.importRawFiles = parameters.getParameter(
 		MzTabImportParameters.importrawfiles).getValue();
     }
