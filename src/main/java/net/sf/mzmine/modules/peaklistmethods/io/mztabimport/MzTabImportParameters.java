@@ -22,18 +22,18 @@ package net.sf.mzmine.modules.peaklistmethods.io.mztabimport;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 
 public class MzTabImportParameters extends SimpleParameterSet {
 
-    public static final FileNameParameter file = new FileNameParameter("File",
-	    "mzTab file to import.", "mzTab", 32);
+    public static final FileNamesParameter file = new FileNamesParameter(
+            "mzTab files", "mzTab files to import.");
 
     public static final BooleanParameter importrawfiles = new BooleanParameter(
-	    "Import raw data files?",
-	    "If selected, raw data files will also be imported if they are available. If some raw data files cannot be found, empty files will be generated instead.");
+            "Import raw data files?",
+            "If selected, raw data files will also be imported if they are available. If some raw data files cannot be found, empty files will be generated instead.");
 
     public MzTabImportParameters() {
-	super(new Parameter[] { file, importrawfiles });
+        super(new Parameter[] { file, importrawfiles });
     }
 }
