@@ -112,6 +112,10 @@ mkdir %TMP_FILE_DIRECTORY%
 set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseG1GC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms1024m -Xmx%HEAP_SIZE%m
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
+:: Make sure we are in the correct directory
+set SCRIPTDIR=%~dp0
+cd %SCRIPTDIR%
+
 :: Starts the Java Virtual Machine
 %JAVA_COMMAND% %JAVA_PARAMETERS% %MAIN_CLASS% %*
 
