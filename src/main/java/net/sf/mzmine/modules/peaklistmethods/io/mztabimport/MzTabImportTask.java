@@ -203,6 +203,12 @@ class MzTabImportTask extends AbstractTask {
 
 		if (fileToImport.exists() && fileToImport.canRead())
 		    filesToImport.add(fileToImport);
+		else {
+		    // Check if the raw file exists in the same folder as the mzTab file
+		    File checkFile = new File(inputFile.getParentFile(), fileToImport.getName());
+		    if (checkFile.exists() && checkFile.canRead())
+	                    filesToImport.add(checkFile);
+		}
 
 	    }
 
