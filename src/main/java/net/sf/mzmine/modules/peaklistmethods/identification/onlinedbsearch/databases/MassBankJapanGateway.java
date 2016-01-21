@@ -123,7 +123,7 @@ public class MassBankJapanGateway implements DBGateway {
 		    "Could not parse compound name for compound " + ID));
 	}
 
-	DBCompound newCompound = new DBCompound(OnlineDatabase.MASSBANK, ID,
+	DBCompound newCompound = new DBCompound(OnlineDatabase.MASSBANKJapan, ID,
 		compoundName, compoundFormula, databaseURL, structure2DURL,
 		structure3DURL);
 
