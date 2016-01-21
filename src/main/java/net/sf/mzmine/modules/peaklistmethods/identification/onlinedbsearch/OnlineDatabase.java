@@ -45,7 +45,7 @@ public enum OnlineDatabase implements MZmineModule {
     YMDB("Yeast Metabolome Database (YMDB)", YMDBGateway.class), //
     METLIN("METLIN Database", MetLinGateway.class, MetLinParameters.class), //
     LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class), //
-    MASSBANKJapan("Japanese MassBank (Metabolics, Environmental)", MassBankJapanGateway.class), //
+    MASSBANKJapan("Japanese MassBank (Metabolomics, Environmental)", MassBankJapanGateway.class), //
 	MASSBANKEurope("European MassBank (Metabolomics, Environmental, Literature, Tentatives, Unknowns)", MassBankEuropeGateway.class), //
     CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class,
 	    ChemSpiderParameters.class), //
