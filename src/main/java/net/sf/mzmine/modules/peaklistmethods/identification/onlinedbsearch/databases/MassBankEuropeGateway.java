@@ -35,17 +35,17 @@ import net.sf.mzmine.util.RangeUtils;
 
 import com.google.common.collect.Range;
 
-public class MassBankGateway implements DBGateway {
+public class MassBankEuropeGateway implements DBGateway {
 
     // Unfortunately, we need to list all the instrument types here
-    private static final String instrumentTypes[] = { "EI-B", "EI-EBEB",
-	    "GC-EI-TOF", "CE-ESI-TOF", "ESI-IT-MS/MS", "ESI-QqQ-MS/MS",
-	    "ESI-QqTOF-MS/MS", "LC-ESI-IT", "LC-ESI-ITFT", "LC-ESI-ITTOF",
-	    "LC-ESI-Q", "LC-ESI-QIT", "LC-ESI-QQ", "LC-ESI-QTOF", "CI-B",
-	    "FAB-B", "FAB-EB", "FAB-EBEB", "FD-B", "FI-B", "MALDI-TOF" };
+    private static final String instrumentTypes[] = { "APCI-ITFT", "APCI-ITTOF", "CE-ESI-TOF", "CI-B", "EI-B", "EI-EBEB",
+		"ESI-FTICR", "ESI-ITFT", "ESI-ITTOF", "ESI-QTOF", "FAB-B", "FAB-EB", "FAB-EBEB", "FD-B", "FI-B",
+		"GC-EI-QQ",	"GC-EI-TOF", "HPLC-ESI-TOF", "LC-APCI-Q", "LC-APCI-QTOF", "LC-APPI-QQ", "LC-ESI-IT", 
+		"LC-ESI-ITFT", "LC-ESI-ITTOF", "LC-ESI-Q", "LC-ESI-QFT", "LC-ESI-QIT", "LC-ESI-QQ", "LC-ESI-QTOF",
+		"LC-ESI-TOF", "MALDI-QIT", "MALDI-TOF", "MALDI-TOFTOF", "UPLC-ESI-QTOF"  };
 
-    private static final String massBankSearchAddress = "http://www.massbank.jp/jsp/Result.jsp?type=quick";
-    private static final String massBankEntryAddress = "http://www.massbank.jp/jsp/FwdRecord.jsp?id=";
+    private static final String massBankSearchAddress = "http://massbank.ufz.de/MassBank/jsp/Result.jsp?type=quick";
+    private static final String massBankEntryAddress = "http://massbank.ufz.de/MassBank/jsp/FwdRecord.jsp?id=";
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
