@@ -69,7 +69,7 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
 
         String formula = myParameters
                 .getParameter(MzRangeFormulaCalculatorParameters.formula)
-                .getValue();
+                .getValue().trim();
         IonizationType ionType = myParameters
                 .getParameter(MzRangeFormulaCalculatorParameters.ionType)
                 .getValue();
