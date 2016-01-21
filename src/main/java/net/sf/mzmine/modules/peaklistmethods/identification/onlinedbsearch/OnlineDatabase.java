@@ -27,7 +27,8 @@ import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.datab
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.HMDBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.KEGGGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.LipidMapsGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MassBankGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MassBankJapanGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MassBankEuropeGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MetLinGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MetLinParameters;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.PlantCycGateway;
@@ -44,7 +45,8 @@ public enum OnlineDatabase implements MZmineModule {
     YMDB("Yeast Metabolome Database (YMDB)", YMDBGateway.class), //
     METLIN("METLIN Database", MetLinGateway.class, MetLinParameters.class), //
     LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class), //
-    MASSBANK("MassBank Database", MassBankGateway.class), //
+    MASSBANKJapan("Japanese MassBank (Metabolomics, Environmental)", MassBankJapanGateway.class), //
+	MASSBANKEurope("European MassBank (Metabolomics, Environmental, Literature, Tentatives, Unknowns)", MassBankEuropeGateway.class), //
     CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class,
 	    ChemSpiderParameters.class), //
     PLANTCYC("PlantCyc Database", PlantCycGateway.class);
