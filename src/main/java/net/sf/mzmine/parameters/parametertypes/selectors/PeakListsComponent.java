@@ -19,13 +19,12 @@
 
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
+import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -51,28 +50,21 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
     public PeakListsComponent() {
 
-        BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
-        setLayout(layout);
+        super(new BorderLayout());
 
         setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
         numPeakListsLabel = new JLabel();
-        add(numPeakListsLabel);
-        
-        add(Box.createHorizontalStrut(10));
+        add(numPeakListsLabel, BorderLayout.WEST);
 
         typeCombo = new JComboBox<>(PeakListsSelectionType.values());
         typeCombo.addActionListener(this);
-        add(typeCombo);
+        add(typeCombo, BorderLayout.CENTER);
 
         detailsButton = new JButton("...");
         detailsButton.setEnabled(false);
         detailsButton.addActionListener(this);
-        add(detailsButton);
-
-        // Do not allow resizing below the required size for individual
-        // components
-        setMinimumSize(getPreferredSize());
+        add(detailsButton, BorderLayout.EAST);
 
     }
 
@@ -98,16 +90,16 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
             if (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS) {
                 final MultiChoiceParameter<PeakList> plsParameter = new MultiChoiceParameter<PeakList>(
-                        "Select peak lists", "Select peak lists", MZmineCore
-                                .getProjectManager().getCurrentProject()
+                        "Select peak lists", "Select peak lists",
+                        MZmineCore.getProjectManager().getCurrentProject()
                                 .getPeakLists(),
                         currentValue.getSpecificPeakLists());
                 final SimpleParameterSet paramSet = new SimpleParameterSet(
                         new Parameter[] { plsParameter });
                 final Window parent = (Window) SwingUtilities
                         .getAncestorOfClass(Window.class, this);
-                final ExitCode exitCode = paramSet
-                        .showSetupDialog(parent, true);
+                final ExitCode exitCode = paramSet.showSetupDialog(parent,
+                        true);
                 if (exitCode == ExitCode.OK) {
                     PeakList pls[] = paramSet.getParameter(plsParameter)
                             .getValue();
@@ -125,8 +117,8 @@ public class PeakListsComponent extends JPanel implements ActionListener {
                         new Parameter[] { nameParameter });
                 final Window parent = (Window) SwingUtilities
                         .getAncestorOfClass(Window.class, this);
-                final ExitCode exitCode = paramSet
-                        .showSetupDialog(parent, true);
+                final ExitCode exitCode = paramSet.showSetupDialog(parent,
+                        true);
                 if (exitCode == ExitCode.OK) {
                     String namePattern = paramSet.getParameter(nameParameter)
                             .getValue();
@@ -156,7 +148,8 @@ public class PeakListsComponent extends JPanel implements ActionListener {
     }
 
     private void updateNumPeakLists() {
-        if (currentValue.getSelectionType() == PeakListsSelectionType.BATCH_LAST_PEAKLISTS) {
+        if (currentValue
+                .getSelectionType() == PeakListsSelectionType.BATCH_LAST_PEAKLISTS) {
             numPeakListsLabel.setText("");
             numPeakListsLabel.setToolTipText("");
         } else {
