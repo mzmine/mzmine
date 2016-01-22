@@ -19,13 +19,12 @@
 
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
+import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -51,29 +50,21 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
 
     public RawDataFilesComponent() {
 
-        BoxLayout layout = new BoxLayout(this, BoxLayout.X_AXIS);
-        setLayout(layout);
+        super(new BorderLayout());
 
         setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
         numFilesLabel = new JLabel();
-        add(numFilesLabel);
-
-        add(Box.createHorizontalStrut(10));
+        add(numFilesLabel, BorderLayout.WEST);
 
         typeCombo = new JComboBox<>(RawDataFilesSelectionType.values());
         typeCombo.addActionListener(this);
-        add(typeCombo);
+        add(typeCombo, BorderLayout.CENTER);
 
         detailsButton = new JButton("...");
         detailsButton.setEnabled(false);
         detailsButton.addActionListener(this);
-        add(detailsButton);
-
-        // Do not allow resizing below the required size for individual
-        // components
-        setMinimumSize(getPreferredSize());
-
+        add(detailsButton, BorderLayout.EAST);
     }
 
     void setValue(RawDataFilesSelection newValue) {
@@ -98,16 +89,16 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
 
             if (type == RawDataFilesSelectionType.SPECIFIC_FILES) {
                 final MultiChoiceParameter<RawDataFile> filesParameter = new MultiChoiceParameter<RawDataFile>(
-                        "Select files", "Select files", MZmineCore
-                                .getProjectManager().getCurrentProject()
+                        "Select files", "Select files",
+                        MZmineCore.getProjectManager().getCurrentProject()
                                 .getDataFiles(),
                         currentValue.getSpecificFiles());
                 final SimpleParameterSet paramSet = new SimpleParameterSet(
                         new Parameter[] { filesParameter });
                 final Window parent = (Window) SwingUtilities
                         .getAncestorOfClass(Window.class, this);
-                final ExitCode exitCode = paramSet
-                        .showSetupDialog(parent, true);
+                final ExitCode exitCode = paramSet.showSetupDialog(parent,
+                        true);
                 if (exitCode == ExitCode.OK) {
                     RawDataFile files[] = paramSet.getParameter(filesParameter)
                             .getValue();
@@ -125,8 +116,8 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
                         new Parameter[] { nameParameter });
                 final Window parent = (Window) SwingUtilities
                         .getAncestorOfClass(Window.class, this);
-                final ExitCode exitCode = paramSet
-                        .showSetupDialog(parent, true);
+                final ExitCode exitCode = paramSet.showSetupDialog(parent,
+                        true);
                 if (exitCode == ExitCode.OK) {
                     String namePattern = paramSet.getParameter(nameParameter)
                             .getValue();
@@ -156,7 +147,8 @@ public class RawDataFilesComponent extends JPanel implements ActionListener {
     }
 
     private void updateNumFiles() {
-        if (currentValue.getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES) {
+        if (currentValue
+                .getSelectionType() == RawDataFilesSelectionType.BATCH_LAST_FILES) {
             numFilesLabel.setText("");
             numFilesLabel.setToolTipText("");
         } else {
