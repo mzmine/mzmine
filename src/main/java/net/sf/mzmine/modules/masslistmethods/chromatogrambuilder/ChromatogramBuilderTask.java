@@ -125,13 +125,6 @@ public class ChromatogramBuilderTask extends AbstractTask {
         int allScanNumbers[] = scanSelection.getMatchingScanNumbers(dataFile);
         totalScans = scans.length;
 
-        // Check if we have any scans
-        if (totalScans == 0) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("No scans match the selected criteria");
-            return;
-        }
-
         // Check if the scans are properly ordered by RT
         double prevRT = Double.NEGATIVE_INFINITY;
         for (Scan s : scans) {
