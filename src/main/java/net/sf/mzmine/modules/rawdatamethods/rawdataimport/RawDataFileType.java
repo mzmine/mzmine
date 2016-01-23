@@ -30,6 +30,8 @@ public enum RawDataFileType {
     NETCDF, //
     AGILENT_CSV, //
     THERMO_RAW, //
-    WATERS_RAW //
+    WATERS_RAW, //
+    ZIP, //
+    GZIP
 
 }

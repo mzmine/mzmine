@@ -33,55 +33,57 @@ import net.sf.mzmine.util.ExitCode;
 public class RawDataImportParameters extends SimpleParameterSet {
 
     private static final FileFilter filters[] = new FileFilter[] {
-	    new FileNameExtensionFilter("All raw data files", "cdf", "nc",
-		    "mzData", "mzML", "mzXML", "xml", "raw", "csv"),
-	    new FileNameExtensionFilter("All XML files", "xml"),
-	    new FileNameExtensionFilter("NetCDF files", "cdf", "nc"),
-	    new FileNameExtensionFilter("mzData files", "mzData"),
-	    new FileNameExtensionFilter("mzML files", "mzML"),
-	    new FileNameExtensionFilter("Thermo RAW files", "raw"),
-	    new FileNameExtensionFilter("Waters RAW folders", "raw"),
-	    new FileNameExtensionFilter("mzXML files", "mzXML"),
-	    new FileNameExtensionFilter("Agilent CSV files", "csv") };
+            new FileNameExtensionFilter("All raw data files", "cdf", "nc",
+                    "mzData", "mzML", "mzXML", "xml", "raw", "csv", "zip",
+                    "gz"),
+            new FileNameExtensionFilter("All XML files", "xml"),
+            new FileNameExtensionFilter("NetCDF files", "cdf", "nc"),
+            new FileNameExtensionFilter("mzData files", "mzData"),
+            new FileNameExtensionFilter("mzML files", "mzML"),
+            new FileNameExtensionFilter("Thermo RAW files", "raw"),
+            new FileNameExtensionFilter("Waters RAW folders", "raw"),
+            new FileNameExtensionFilter("mzXML files", "mzXML"),
+            new FileNameExtensionFilter("Agilent CSV files", "csv"),
+            new FileNameExtensionFilter("Compressed files", "zip", "gz") };
 
     public static final FileNamesParameter fileNames = new FileNamesParameter();
 
     public RawDataImportParameters() {
-	super(new Parameter[] { fileNames });
+        super(new Parameter[] { fileNames });
     }
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = new JFileChooser();
 
-	// We need to allow directories, because Waters raw data come in
-	// directories, not files
-	chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        // We need to allow directories, because Waters raw data come in
+        // directories, not files
+        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
-	for (FileFilter filter : filters)
-	    chooser.setFileFilter(filter);
-	chooser.setFileFilter(filters[0]);
+        for (FileFilter filter : filters)
+            chooser.setFileFilter(filter);
+        chooser.setFileFilter(filters[0]);
 
-	File lastFiles[] = getParameter(fileNames).getValue();
-	if ((lastFiles != null) && (lastFiles.length > 0)) {
-	    File currentDir = lastFiles[0].getParentFile();
-	    if ((currentDir != null) && (currentDir.exists()))
-		chooser.setCurrentDirectory(currentDir);
-	}
+        File lastFiles[] = getParameter(fileNames).getValue();
+        if ((lastFiles != null) && (lastFiles.length > 0)) {
+            File currentDir = lastFiles[0].getParentFile();
+            if ((currentDir != null) && (currentDir.exists()))
+                chooser.setCurrentDirectory(currentDir);
+        }
 
-	chooser.setMultiSelectionEnabled(true);
+        chooser.setMultiSelectionEnabled(true);
 
-	int returnVal = chooser.showOpenDialog(parent);
+        int returnVal = chooser.showOpenDialog(parent);
 
-	if (returnVal != JFileChooser.APPROVE_OPTION)
-	    return ExitCode.CANCEL;
+        if (returnVal != JFileChooser.APPROVE_OPTION)
+            return ExitCode.CANCEL;
 
-	File selectedFiles[] = chooser.getSelectedFiles();
+        File selectedFiles[] = chooser.getSelectedFiles();
 
-	getParameter(fileNames).setValue(selectedFiles);
+        getParameter(fileNames).setValue(selectedFiles);
 
-	return ExitCode.OK;
+        return ExitCode.OK;
 
     }
 
