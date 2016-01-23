@@ -25,9 +25,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * Dynamically-built Windows menu.
@@ -35,50 +38,63 @@ import javax.swing.event.MenuListener;
  */
 public class WindowsMenu extends JMenu implements ActionListener, MenuListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
+
+    private final JMenuItem closeAllMenuItem;
 
     /**
      * Create the "Windows" menu for a MDI view
      */
     public WindowsMenu() {
-	super("Windows");
-	this.addMenuListener(this);
+
+        super("Windows");
+
+        this.addMenuListener(this);
+
+        closeAllMenuItem = new JMenuItem("Close all windows");
+        closeAllMenuItem.addActionListener(this);
+        add(closeAllMenuItem);
+
+        addSeparator();
 
     }
 
     public void actionPerformed(ActionEvent event) {
 
-	Object src = event.getSource();
+        Object src = event.getSource();
 
-	if (src instanceof FrameMenuItem) {
-	    FrameMenuItem item = (FrameMenuItem) src;
-	    Window frame = item.getFrame();
-	    frame.toFront();
-	    frame.requestFocus();
-	}
+        if (src instanceof FrameMenuItem) {
+            FrameMenuItem item = (FrameMenuItem) src;
+            Window frame = item.getFrame();
+            frame.toFront();
+            frame.requestFocus();
+        }
+
+        if (src == closeAllMenuItem) {
+            // Close all Swing Frames
+            for (Frame window : Frame.getFrames()) {
+                if (window != MZmineCore.getDesktop().getMainWindow()) {
+                    window.dispose();
+                }
+            }
+        }
 
     }
 
     class FrameMenuItem extends JRadioButtonMenuItem {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private Frame window;
+        private static final long serialVersionUID = 1L;
+        private Frame window;
 
-	FrameMenuItem(Frame window, ActionListener listener) {
-	    super(window.getTitle());
-	    addActionListener(listener);
-	    this.window = window;
-	}
+        FrameMenuItem(Frame window, ActionListener listener) {
+            super(window.getTitle());
+            addActionListener(listener);
+            this.window = window;
+        }
 
-	Window getFrame() {
-	    return window;
-	}
+        Window getFrame() {
+            return window;
+        }
 
     }
 
@@ -90,17 +106,23 @@ public class WindowsMenu extends JMenu implements ActionListener, MenuListener {
 
     public void menuSelected(MenuEvent event) {
 
-	// Remove all previous items
-	removeAll();
+        // Remove all previous items
+        while (getItemCount() > 2)
+            remove(2);
 
-	// Create a menu item for each window
-	for (Frame window : Frame.getFrames()) {
+        int windowsAdded = 0;
+        // Create a menu item for each window
+        for (Frame window : Frame.getFrames()) {
 
-	    if (window.isVisible()) {
-		FrameMenuItem newItem = new FrameMenuItem(window, this);
-		add(newItem);
-	    }
-	}
+            if (window.isVisible()) {
+                FrameMenuItem newItem = new FrameMenuItem(window, this);
+                add(newItem);
+                windowsAdded++;
+            }
+        }
+
+        // Disable the Close all button if we only have the main window
+        closeAllMenuItem.setEnabled(windowsAdded > 1);
     }
 
 }
