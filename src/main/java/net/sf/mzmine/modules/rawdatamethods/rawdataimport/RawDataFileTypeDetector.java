@@ -56,6 +56,12 @@ public class RawDataFileTypeDetector {
             .valueOf(new char[] { 0x01, 0xA1, 'F', 0, 'i', 0, 'n', 0, 'n', 0,
                     'i', 0, 'g', 0, 'a', 0, 'n', 0 });
 
+    private static final String GZIP_HEADER = String
+            .valueOf(new char[] { 0x1f, 0x8b });
+
+    private static final String ZIP_HEADER = String
+            .valueOf(new char[] { 'P', 'K', 0x03, 0x04 });
+
     /**
      * 
      * @return Detected file type or null if the file is not of any supported
@@ -90,6 +96,14 @@ public class RawDataFileTypeDetector {
 
             if (fileHeader.startsWith(THERMO_HEADER)) {
                 return RawDataFileType.THERMO_RAW;
+            }
+
+            if (fileHeader.startsWith(GZIP_HEADER)) {
+                return RawDataFileType.GZIP;
+            }
+
+            if (fileHeader.startsWith(ZIP_HEADER)) {
+                return RawDataFileType.ZIP;
             }
 
             if (fileHeader.startsWith(CDF_HEADER)) {
