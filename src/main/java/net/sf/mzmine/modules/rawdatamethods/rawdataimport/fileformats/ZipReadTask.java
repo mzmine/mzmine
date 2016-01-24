@@ -23,9 +23,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
@@ -36,12 +33,14 @@ import javax.annotation.Nonnull;
 
 import org.apache.commons.io.FilenameUtils;
 
+import com.google.common.io.Files;
+
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataFileType;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataFileTypeDetector;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
-import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportParameters;
-import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -56,7 +55,8 @@ public class ZipReadTask extends AbstractTask {
     private final @Nonnull MZmineProject project;
     private final RawDataFileType fileType;
 
-    private StreamCopy copy;
+    private StreamCopy copy = null;
+    private Task decompressedOpeningTask = null;
 
     public ZipReadTask(@Nonnull MZmineProject project, File fileToOpen,
             RawDataFileType fileType) {
@@ -69,7 +69,11 @@ public class ZipReadTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-        return copy == null ? 0 : copy.getProgress();
+        if (decompressedOpeningTask != null)
+            return decompressedOpeningTask.getFinishedPercentage();
+        if (copy != null)
+            return copy.getProgress();
+        return 0.0;
     }
 
     /**
@@ -79,7 +83,7 @@ public class ZipReadTask extends AbstractTask {
 
         // Update task status
         setStatus(TaskStatus.PROCESSING);
-        logger.info("Started decompressing file " + file);
+        logger.info("Started opening compressed file " + file);
 
         try {
 
@@ -89,11 +93,11 @@ public class ZipReadTask extends AbstractTask {
                     || newName.toLowerCase().endsWith(".gz")) {
                 newName = FilenameUtils.removeExtension(newName);
             }
-            long decompressedSize = 0;
 
             // Create decompressing stream
             FileInputStream fis = new FileInputStream(file);
             InputStream is;
+            long decompressedSize = 0;
             switch (fileType) {
             case ZIP:
                 ZipInputStream zis = new ZipInputStream(fis);
@@ -113,8 +117,7 @@ public class ZipReadTask extends AbstractTask {
                 return;
             }
 
-            File tmpDir = Files.createTempDirectory("mzmine").toFile();
-
+            File tmpDir = Files.createTempDir();
             File tmpFile = new File(tmpDir, newName);
             logger.finest("Decompressing to file " + tmpFile);
             tmpFile.deleteOnExit();
@@ -129,18 +132,36 @@ public class ZipReadTask extends AbstractTask {
             is.close();
             ous.close();
 
+            // Find the type of the decompressed file
+            RawDataFileType fileType = RawDataFileTypeDetector
+                    .detectDataFileType(tmpFile);
+            logger.finest("File " + tmpFile + " type detected as " + fileType);
+
+            if (fileType == null) {
+                setErrorMessage(
+                        "Could not determine the file type of file " + newName);
+                setStatus(TaskStatus.ERROR);
+                return;
+            }
+
             // Run the import module on the decompressed file
-            RawDataImportModule importModule = MZmineCore
-                    .getModuleInstance(RawDataImportModule.class);
-            ParameterSet parameters = MZmineCore.getConfiguration()
-                    .getModuleParameters(RawDataImportModule.class)
-                    .cloneParameterSet();
-            parameters.getParameter(RawDataImportParameters.fileNames)
-                    .setValue(new File[] { tmpFile });
-            List<Task> newTasks = new ArrayList<>();
-            importModule.runModule(project, parameters, newTasks);
-            MZmineCore.getTaskController()
-                    .addTasks(newTasks.toArray(new Task[0]));
+            RawDataFileWriter newMZmineFile = MZmineCore.createNewFile(newName);
+            decompressedOpeningTask = RawDataImportModule.createOpeningTask(
+                    fileType, project, tmpFile, newMZmineFile);
+
+            if (decompressedOpeningTask == null) {
+                setErrorMessage("File type " + fileType + " of file " + newName
+                        + " is not supported.");
+                setStatus(TaskStatus.ERROR);
+                return;
+            }
+
+            // Run the underlying task
+            decompressedOpeningTask.run();
+
+            // Delete temporary folder
+            tmpFile.delete();
+            tmpDir.delete();
 
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Could not open file " + file.getPath(),
@@ -150,7 +171,7 @@ public class ZipReadTask extends AbstractTask {
             return;
         }
 
-        logger.info("Finished decompressing " + file);
+        logger.info("Finished opening compressed file " + file);
 
         // Update task status
         setStatus(TaskStatus.FINISHED);
@@ -158,7 +179,10 @@ public class ZipReadTask extends AbstractTask {
     }
 
     public String getTaskDescription() {
-        return "Decompressing file " + file;
+        if (decompressedOpeningTask != null)
+            return decompressedOpeningTask.getTaskDescription();
+        else
+            return "Decompressing file " + file;
     }
 
     @Override
