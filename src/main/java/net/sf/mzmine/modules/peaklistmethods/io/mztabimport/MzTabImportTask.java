@@ -208,6 +208,21 @@ class MzTabImportTask extends AbstractTask {
 		    File checkFile = new File(inputFile.getParentFile(), fileToImport.getName());
 		    if (checkFile.exists() && checkFile.canRead())
 	                    filesToImport.add(checkFile);
+		    else
+		    {
+		        //Append .gz & check again if file exists as a workaround to .gz not getting preserved when .mzML.gz importing
+		        checkFile = new File(inputFile.getParentFile(),fileToImport.getName()+".gz");
+		        if (checkFile.exists() && checkFile.canRead())
+                            filesToImport.add(checkFile);
+		        else
+	                    {
+	                        //One more level of checking, appending .zip & checking as a workaround
+	                        checkFile = new File(inputFile.getParentFile(),fileToImport.getName()+".zip");
+	                        if (checkFile.exists() && checkFile.canRead())
+	                            filesToImport.add(checkFile);
+	                    }
+		    }
+		    
 		}
 
 	    }
