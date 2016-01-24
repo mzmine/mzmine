@@ -70,9 +70,9 @@ public class ZipReadTask extends AbstractTask {
      */
     public double getFinishedPercentage() {
         if (decompressedOpeningTask != null)
-            return decompressedOpeningTask.getFinishedPercentage();
+            return (decompressedOpeningTask.getFinishedPercentage()/2.0)+0.5; //Reports 50% to 100%
         if (copy != null)
-            return copy.getProgress();
+            return copy.getProgress()/2.0;  //Reports up to 50%
         return 0.0;
     }
 
@@ -110,6 +110,9 @@ public class ZipReadTask extends AbstractTask {
                 break;
             case GZIP:
                 is = new GZIPInputStream(fis);
+                decompressedSize = (long)(file.length()*1.5); //Ballpark a decompressedFile size so the GUI can show progress
+                if (decompressedSize < 0)
+                    decompressedSize = 0;
                 break;
             default:
                 setErrorMessage("Cannot decompress file type: " + fileType);
@@ -189,6 +192,8 @@ public class ZipReadTask extends AbstractTask {
     public void cancel() {
         if (copy != null)
             copy.cancel();
+        //Is it possible to delete the temporary files here?  
+        //Otherwise canceling the task potential leaves an incompletely decompressed file
         super.cancel();
     }
 
