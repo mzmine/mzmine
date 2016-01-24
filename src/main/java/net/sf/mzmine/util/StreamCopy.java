@@ -29,7 +29,7 @@ import java.nio.channels.WritableByteChannel;
 
 public class StreamCopy {
 
-    private long copiedLength, totalLenght;
+    private long copiedLength, totalLength;
     private boolean canceled = false, finished = false;
 
     /**
@@ -53,10 +53,10 @@ public class StreamCopy {
      * @param output
      *            OutputStream
      */
-    public void copy(InputStream input, OutputStream output, long totalLenght)
+    public void copy(InputStream input, OutputStream output, long totalLength)
             throws IOException {
 
-        this.totalLenght = totalLenght;
+        this.totalLength = totalLength;
 
         ReadableByteChannel in = Channels.newChannel(input);
         WritableByteChannel out = Channels.newChannel(output);
@@ -89,9 +89,11 @@ public class StreamCopy {
     public double getProgress() {
         if (finished)
             return 1.0;
-        if (totalLenght == 0)
+        if (totalLength == 0)
             return 0;
-        return (double) copiedLength / totalLenght;
+        if (copiedLength >= totalLength)
+            return 1.0;
+        return (double) (double)copiedLength / (double)totalLength;
     }
 
     /**
