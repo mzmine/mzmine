@@ -344,10 +344,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                         if ((upper - lower) < 0.000001) {
                             //Workaround to make ultra narrow mzRanges (e.g. from imported mzTab peaklist), 
                             //a more reasonable default for a HRAM instrument (~5ppm)
-              
                             double fiveppm = (upper*5E-6);
-                            Range<Double> tempmzRange = Range.open(lower-fiveppm,upper+fiveppm);
-                            mzRange = tempmzRange;
+                            mzRange = Range.closed(lower-fiveppm,upper+fiveppm);
                         }       
                     } else {
                         mzRange = mzRange.span(peak.getRawDataPointsMZRange());
