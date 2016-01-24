@@ -55,6 +55,7 @@ public class ZipReadTask extends AbstractTask {
     private final @Nonnull MZmineProject project;
     private final RawDataFileType fileType;
 
+    private File tmpDir, tmpFile;
     private StreamCopy copy = null;
     private Task decompressedOpeningTask = null;
 
@@ -63,17 +64,6 @@ public class ZipReadTask extends AbstractTask {
         this.project = project;
         this.file = fileToOpen;
         this.fileType = fileType;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public double getFinishedPercentage() {
-        if (decompressedOpeningTask != null)
-            return (decompressedOpeningTask.getFinishedPercentage()/2.0)+0.5; //Reports 50% to 100%
-        if (copy != null)
-            return copy.getProgress()/2.0;  //Reports up to 50%
-        return 0.0;
     }
 
     /**
@@ -110,7 +100,11 @@ public class ZipReadTask extends AbstractTask {
                 break;
             case GZIP:
                 is = new GZIPInputStream(fis);
-                decompressedSize = (long)(file.length()*1.5); //Ballpark a decompressedFile size so the GUI can show progress
+                decompressedSize = (long) (file.length() * 1.5); // Ballpark a
+                                                                 // decompressedFile
+                                                                 // size so the
+                                                                 // GUI can show
+                                                                 // progress
                 if (decompressedSize < 0)
                     decompressedSize = 0;
                 break;
@@ -120,8 +114,8 @@ public class ZipReadTask extends AbstractTask {
                 return;
             }
 
-            File tmpDir = Files.createTempDir();
-            File tmpFile = new File(tmpDir, newName);
+            tmpDir = Files.createTempDir();
+            tmpFile = new File(tmpDir, newName);
             logger.finest("Decompressing to file " + tmpFile);
             tmpFile.deleteOnExit();
             tmpDir.deleteOnExit();
@@ -134,6 +128,9 @@ public class ZipReadTask extends AbstractTask {
             // Close the streams
             is.close();
             ous.close();
+
+            if (isCanceled())
+                return;
 
             // Find the type of the decompressed file
             RawDataFileType fileType = RawDataFileTypeDetector
@@ -162,9 +159,12 @@ public class ZipReadTask extends AbstractTask {
             // Run the underlying task
             decompressedOpeningTask.run();
 
-            // Delete temporary folder
+            // Delete the temporary folder
             tmpFile.delete();
             tmpDir.delete();
+
+            if (isCanceled())
+                return;
 
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Could not open file " + file.getPath(),
@@ -188,13 +188,36 @@ public class ZipReadTask extends AbstractTask {
             return "Decompressing file " + file;
     }
 
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        if (decompressedOpeningTask != null)
+            return (decompressedOpeningTask.getFinishedPercentage() / 2.0)
+                    + 0.5; // Reports 50% to 100%
+        if (copy != null) {
+            // Reports up to 50%. In case of .gz files, the uncompressed size
+            // was only estimated, so we make sure the progress bar doesn't go
+            // over 100%
+            double copyProgress = copy.getProgress() / 2.0;
+            if (copyProgress > 1.0)
+                copyProgress = 1.0;
+            return copyProgress;
+        }
+        return 0.0;
+    }
+
     @Override
     public void cancel() {
+        super.cancel();
+        if (decompressedOpeningTask != null)
+            decompressedOpeningTask.cancel();
         if (copy != null)
             copy.cancel();
-        //Is it possible to delete the temporary files here?  
-        //Otherwise canceling the task potential leaves an incompletely decompressed file
-        super.cancel();
+        if ((tmpFile != null) && (tmpFile.exists()))
+            tmpFile.delete();
+        if ((tmpDir != null) && (tmpDir.exists()))
+            tmpDir.delete();
     }
 
 }
