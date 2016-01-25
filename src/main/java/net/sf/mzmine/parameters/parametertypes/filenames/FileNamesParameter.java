@@ -22,6 +22,8 @@ package net.sf.mzmine.parameters.parametertypes.filenames;
 import java.io.File;
 import java.util.Collection;
 
+import javax.swing.filechooser.FileFilter;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -37,10 +39,13 @@ public class FileNamesParameter
 
     private String name, description;
     private File value[];
+    private FileFilter[] filters;
 
-    public FileNamesParameter(String name, String description) {
+    public FileNamesParameter(String name, String description,
+            FileFilter[] filters) {
         this.name = name;
         this.description = description;
+        this.filters = filters;
     }
 
     /**
@@ -61,7 +66,7 @@ public class FileNamesParameter
 
     @Override
     public FileNamesComponent createEditingComponent() {
-        return new FileNamesComponent();
+        return new FileNamesComponent(filters);
     }
 
     @Override
@@ -76,7 +81,8 @@ public class FileNamesParameter
 
     @Override
     public FileNamesParameter cloneParameter() {
-        FileNamesParameter copy = new FileNamesParameter(name, description);
+        FileNamesParameter copy = new FileNamesParameter(name, description,
+                filters);
         copy.setValue(this.getValue());
         return copy;
     }

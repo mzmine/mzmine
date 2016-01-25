@@ -19,6 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.mztabimport;
 
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -26,8 +29,11 @@ import net.sf.mzmine.parameters.parametertypes.filenames.FileNamesParameter;
 
 public class MzTabImportParameters extends SimpleParameterSet {
 
+    private static final FileFilter filters[] = new FileFilter[] {
+            new FileNameExtensionFilter("mztab files", "mztab") };
+
     public static final FileNamesParameter file = new FileNamesParameter(
-            "mzTab files", "mzTab files to import.");
+            "mzTab files", "mzTab files to import.", filters);
 
     public static final BooleanParameter importrawfiles = new BooleanParameter(
             "Import raw data files?",
