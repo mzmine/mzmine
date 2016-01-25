@@ -32,6 +32,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.filechooser.FileFilter;
 
 public class FileNamesComponent extends JPanel implements ActionListener {
 
@@ -40,7 +41,11 @@ public class FileNamesComponent extends JPanel implements ActionListener {
 
     private JTextArea txtFilename;
 
-    public FileNamesComponent() {
+    private FileFilter[] filters;
+
+    public FileNamesComponent(FileFilter[] filters) {
+
+        this.filters = filters;
 
         setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
@@ -82,7 +87,12 @@ public class FileNamesComponent extends JPanel implements ActionListener {
 
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(true);
+        if ((filters != null) && (filters.length > 0)) {
+            for (FileFilter f : filters)
+                fileChooser.addChoosableFileFilter(f);
+            fileChooser.setFileFilter(filters[0]);
 
+        }
         String currentPaths[] = txtFilename.getText().split("\n");
         if (currentPaths.length > 0) {
             File currentFile = new File(currentPaths[0].trim());
