@@ -132,16 +132,16 @@ setlocal disableDelayedExpansion
 
 :: Kill/clean-up remaining Rserve instances
 :: Load the file path "array"
-for /f "tokens=1* delims=:" %%A in ('dir /b %TMP_FILE_DIRECTORY%\rs_pid_*.pid^|findstr /n "^"') do (
+for /f "tokens=1* delims=:" %%A in ('dir /b %TMP_FILE_DIRECTORY%\rs_pid_*.pid 2^>nul ^|findstr /n "^"') do (
   set "file.%%A=%TMP_FILE_DIRECTORY%\%%B"
   set "file.count=%%A"
 )
 :: Access the values
 setlocal enableDelayedExpansion
 for /l %%N in (1 1 %file.count%) do (
-  echo !file.%%N!
+  echo Found pidfile: !file.%%N!
   set /P pid=<!file.%%N!
-  echo !pid!
+  echo Killing Rserve tree from main instance / pid: !pid!.
   del !file.%%N!
   taskkill /PID !pid! /F 2>nul
 )
