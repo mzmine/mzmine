@@ -256,13 +256,7 @@
 		<dependency>
 			<groupId>uk.ac.ebi.jmzml</groupId>
 			<artifactId>jmzml</artifactId>
-			<version>1.7.3</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>slf4j-log4j12</artifactId>
-					<groupId>org.slf4j</groupId>
-				</exclusion>
-			</exclusions>
+			<version>1.7.4</version>
 		</dependency>
 		<!-- End of jmzreader parsers -->
 
