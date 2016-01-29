@@ -42,7 +42,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
     public static final DoubleParameter SEARCH_RT_RANGE = new DoubleParameter(
 	    "Search minimum in RT range (min)",
 	    "If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
-	    MZmineCore.getConfiguration().getRTFormat(), null, 0.001, null);
+	    MZmineCore.getConfiguration().getRTFormat());
 
     public static final PercentParameter MIN_RELATIVE_HEIGHT = new PercentParameter(
 	    "Minimum relative height",

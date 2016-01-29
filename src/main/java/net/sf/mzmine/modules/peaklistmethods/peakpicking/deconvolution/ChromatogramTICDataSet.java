@@ -38,7 +38,7 @@ public class ChromatogramTICDataSet extends AbstractXYDataset {
     public ChromatogramTICDataSet(Feature chromatogram) {
 	this.chromatogram = chromatogram;
 	this.dataFile = chromatogram.getDataFile();
-	this.scanNumbers = dataFile.getScanNumbers(1);
+	this.scanNumbers = chromatogram.getScanNumbers();
     }
 
     public Comparable<?> getSeriesKey(int series) {

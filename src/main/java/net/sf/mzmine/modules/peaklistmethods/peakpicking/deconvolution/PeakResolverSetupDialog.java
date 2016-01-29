@@ -39,11 +39,11 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
-import net.sf.mzmine.datamodel.DataPoint;
+import org.jfree.data.xy.XYDataset;
+
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -53,8 +53,6 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
-
-import org.jfree.data.xy.XYDataset;
 
 /**
  * This class extends ParameterSetupDialog class.
@@ -71,7 +69,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
             .getLogger(PeakResolverSetupDialog.class.getName());
 
     // Combo-box font.
-    private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN, 10);
+    private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN,
+            10);
 
     // Maximum peak count.
     private static final int MAX_PEAKS = 30;
@@ -199,8 +198,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
                 LOG.finest("Loading new preview peak " + previewRow);
 
                 ticPlot.removeAllTICDataSets();
-                ticPlot.addTICDataset(new ChromatogramTICDataSet(previewRow
-                        .getPeaks()[0]));
+                ticPlot.addTICDataset(
+                        new ChromatogramTICDataSet(previewRow.getPeaks()[0]));
 
                 // Auto-range to axes.
                 ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
@@ -214,83 +213,70 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
                 // If there is some illegal value, do not load the preview but
                 // just exit.
-                if (parameterSet.checkParameterValues(new ArrayList<String>(0))) {
+                ArrayList<String> errors = new ArrayList<String>();
+                if (!parameterSet
+                        .checkParameterValues(errors)) {
+                    LOG.fine("Illegal parameter value: " + errors);
+                    return;
+                }
 
-                    // Load the intensities and RTs into array.
-                    final Feature previewPeak = previewRow.getPeaks()[0];
-                    final RawDataFile dataFile = previewPeak.getDataFile();
-                    final int[] scanNumbers = dataFile.getScanNumbers(1);
-                    final int scanCount = scanNumbers.length;
-                    final double[] retentionTimes = new double[scanCount];
-                    final double[] intensities = new double[scanCount];
-                    for (int i = 0; i < scanCount; i++) {
+                // Load the intensities and RTs into array.
+                final Feature previewPeak = previewRow.getPeaks()[0];
 
-                        final int scanNumber = scanNumbers[i];
-                        final DataPoint dp = previewPeak
-                                .getDataPoint(scanNumber);
-                        intensities[i] = dp != null ? dp.getIntensity() : 0.0;
-                        retentionTimes[i] = dataFile.getScan(scanNumber)
-                                .getRetentionTime();
+                // Resolve peaks.
+                Feature[] resolvedPeaks = {};
+                RSessionWrapper rSession;
+                try {
+
+                    if (peakResolver.getRequiresR()) {
+                        // Check R availability, by trying to open the
+                        // connection.
+                        String[] reqPackages = peakResolver
+                                .getRequiredRPackages();
+                        String[] reqPackagesVersions = peakResolver
+                                .getRequiredRPackagesVersions();
+                        String callerFeatureName = peakResolver.getName();
+                        rSession = new RSessionWrapper(callerFeatureName,
+                                reqPackages, reqPackagesVersions);
+                        rSession.open();
+                    } else {
+                        rSession = null;
                     }
 
-                    // Resolve peaks.
-                    Feature[] resolvedPeaks = {};
-                    RSessionWrapper rSession;
-                    try {
+                    resolvedPeaks = peakResolver.resolvePeaks(previewPeak,
+                            parameters, rSession);
 
-                        if (peakResolver.getRequiresR()) {
-                            // Check R availability, by trying to open the
-                            // connection.
-                            String[] reqPackages = peakResolver
-                                    .getRequiredRPackages();
-                            String[] reqPackagesVersions = peakResolver
-                                    .getRequiredRPackagesVersions();
-                            String callerFeatureName = peakResolver.getName();
-                            rSession = new RSessionWrapper(callerFeatureName,
-                                    reqPackages, reqPackagesVersions);
-                            rSession.open();
-                        } else {
-                            rSession = null;
-                        }
+                    // Turn off R instance.
+                    if (rSession != null)
+                        rSession.close(false);
 
-                        resolvedPeaks = peakResolver.resolvePeaks(previewPeak,
-                                scanNumbers, retentionTimes, intensities,
-                                parameters, rSession);
+                } catch (RSessionWrapperException e) {
 
-                        // Turn off R instance.
-                        if (rSession != null)
-                            rSession.close(false);
+                    throw new IllegalStateException(e.getMessage());
+                } catch (Throwable t) {
 
-                    } catch (RSessionWrapperException e) {
+                    LOG.log(Level.SEVERE, "Peak deconvolution error", t);
+                    MZmineCore.getDesktop().displayErrorMessage(this,
+                            t.toString());
+                }
 
-                        throw new IllegalStateException(e.getMessage());
-                    } catch (Throwable t) {
+                // Add resolved peaks to TIC plot.
+                final int peakCount = Math.min(MAX_PEAKS, resolvedPeaks.length);
+                for (int i = 0; i < peakCount; i++) {
 
-                        LOG.log(Level.SEVERE, "Peak deconvolution error", t);
-                        MZmineCore.getDesktop().displayErrorMessage(this,
-                                t.getMessage());
-                    }
+                    final XYDataset peakDataSet = new PeakDataSet(
+                            resolvedPeaks[i]);
+                    ticPlot.addPeakDataset(peakDataSet);
+                }
 
-                    // Add resolved peaks to TIC plot.
-                    final int peakCount = Math.min(MAX_PEAKS,
-                            resolvedPeaks.length);
-                    for (int i = 0; i < peakCount; i++) {
+                // Check peak count.
+                if (resolvedPeaks.length > MAX_PEAKS) {
+                    MZmineCore.getDesktop().displayMessage(this,
+                            "Too many peaks detected, please adjust parameter values");
 
-                        final XYDataset peakDataSet = new PeakDataSet(
-                                resolvedPeaks[i]);
-                        ticPlot.addPeakDataset(peakDataSet);
-                    }
-
-                    // Check peak count.
-                    if (resolvedPeaks.length > MAX_PEAKS) {
-                        MZmineCore
-                                .getDesktop()
-                                .displayMessage(this,
-                                        "Too many peaks detected, please adjust parameter values");
-
-                    }
                 }
             }
+
         }
     }
 
@@ -335,9 +321,11 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         comboPeak.setPreferredSize(new Dimension(PREFERRED_PEAK_COMBO_WIDTH,
                 comboPeak.getPreferredSize().height));
 
-        pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, new JComponent[] {
-                new JLabel("Peak list"), comboPeakList,
-                new JLabel("Chromatogram"), comboPeak });
+        pnlLabelsFields = GUIUtils
+                .makeTablePanel(2, 2,
+                        new JComponent[] { new JLabel("Peak list"),
+                                comboPeakList, new JLabel("Chromatogram"),
+                                comboPeak });
 
         // Put all together.
         pnlVisible = new JPanel(new BorderLayout());
