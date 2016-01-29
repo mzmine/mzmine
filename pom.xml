@@ -92,7 +92,7 @@
 	</build>
 	<repositories>
 		<repository>
-			<!-- jmzreader repository -->
+			<!-- jmzreader and jmzml repository -->
 			<id>ebi-repo</id>
 			<name>The EBI Maven repository</name>
 			<url>http://www.ebi.ac.uk/~maven/m2repo/</url>
@@ -103,11 +103,14 @@
 			<name>MZmine local libraries</name>
 			<url>file://${project.basedir}/src/main/lib</url>
 		</repository>
-  		<repository>
+<!--
+   Removed the FreeHEP repo, because the freehep-graphicsio-emf artifact is now in Maven Central
+ 		<repository>
     		<id>freehep-maven</id>
     		<name>Maven FreeHEP</name>
     		<url>http://java.freehep.org/maven2</url>
   		</repository>
+--> 
 	</repositories>
 	<dependencies>
 		<dependency>
