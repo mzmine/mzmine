@@ -29,7 +29,9 @@ import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -53,10 +55,24 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
-            final int[] scanNumbers, final double[] retentionTimes,
-            final double[] intensities, ParameterSet parameters,
+            ParameterSet parameters,
             RSessionWrapper rSession) {
 
+        int scanNumbers[] = chromatogram.getScanNumbers();
+        final int scanCount = scanNumbers.length;
+        double retentionTimes[] = new double[scanCount];
+        double intensities[] = new double[scanCount];
+        RawDataFile dataFile = chromatogram.getDataFile();
+        for (int i = 0; i < scanCount; i++) {
+            final int scanNum = scanNumbers[i];
+            retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
+            DataPoint dp = chromatogram.getDataPoint(scanNum);
+            if (dp != null)
+                intensities[i] = dp.getIntensity();
+            else
+                intensities[i] = 0.0;
+        }
+        
         final double amplitudeOfNoise = parameters
                 .getParameter(NOISE_AMPLITUDE).getValue();
 
@@ -71,7 +87,6 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
             avgIntensity += intensity;
         }
 
-        final int scanCount = scanNumbers.length;
         avgIntensity /= (double) scanCount;
 
         final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);

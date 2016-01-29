@@ -35,7 +35,9 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
@@ -94,9 +96,24 @@ public class CentWaveDetector implements PeakResolver {
 
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
-            final int[] scanNumbers, final double[] retentionTimes,
-            final double[] intensities, final ParameterSet parameters,
+            final ParameterSet parameters,
             RSessionWrapper rSession) throws RSessionWrapperException {
+        
+        int scanNumbers[] = chromatogram.getScanNumbers();
+        final int scanCount = scanNumbers.length;
+        double retentionTimes[] = new double[scanCount];
+        double intensities[] = new double[scanCount];
+        RawDataFile dataFile = chromatogram.getDataFile();
+        for (int i = 0; i < scanCount; i++) {
+            final int scanNum = scanNumbers[i];
+            retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
+            DataPoint dp = chromatogram.getDataPoint(scanNum);
+            if (dp != null)
+                intensities[i] = dp.getIntensity();
+            else
+                intensities[i] = 0.0;
+        }
+        
         // Call findPeaks.centWave.
         double[][] peakMatrix = null;
 
