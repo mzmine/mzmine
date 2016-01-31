@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.5.10</cdk.version>
+		<cdk.version>1.5.12</cdk.version>
 		<jmztab.version>3.0.2</jmztab.version>
 	</properties>
 
@@ -103,14 +103,9 @@
 			<name>MZmine local libraries</name>
 			<url>file://${project.basedir}/src/main/lib</url>
 		</repository>
-<!--
-   Removed the FreeHEP repo, because the freehep-graphicsio-emf artifact is now in Maven Central
- 		<repository>
-    		<id>freehep-maven</id>
-    		<name>Maven FreeHEP</name>
-    		<url>http://java.freehep.org/maven2</url>
-  		</repository>
---> 
+		<!-- Removed the FreeHEP repo, because the freehep-graphicsio-emf artifact 
+			is now in Maven Central <repository> <id>freehep-maven</id> <name>Maven FreeHEP</name> 
+			<url>http://java.freehep.org/maven2</url> </repository> -->
 	</repositories>
 	<dependencies>
 		<dependency>
@@ -148,7 +143,7 @@
 		<dependency>
 			<groupId>edu.ucar</groupId>
 			<artifactId>netcdf4</artifactId>
-			<version>4.5.3</version>
+			<version>4.5.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ostermiller</groupId>
@@ -179,12 +174,22 @@
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
 			<artifactId>weka-stable</artifactId>
-			<version>3.6.12</version>
+			<version>3.6.13</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
 			<artifactId>jmol</artifactId>
 			<version>13.0.14</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.14</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>1.7.14</version>
 		</dependency>
 
 		<!-- Start of CDK dependencies -->
@@ -231,34 +236,11 @@
 
 		<!-- End of CDK dependencies -->
 
-		<!-- Start of parsers (http://code.google.com/p/jmzreader/) -->
-
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>jmzreader</artifactId>
-			<version>1.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>mzxml-parser</artifactId>
-			<version>1.3.3</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>mzdata-parser</artifactId>
-			<version>1.2.1</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>mzml-wrapper</artifactId>
-			<version>1.2</version>
-		</dependency>
 		<dependency>
 			<groupId>uk.ac.ebi.jmzml</groupId>
 			<artifactId>jmzml</artifactId>
 			<version>1.7.4</version>
 		</dependency>
-		<!-- End of jmzreader parsers -->
 
 		<!-- Start of Apache Axis 1.4 -->
 
@@ -318,14 +300,14 @@
 			<version>1.0</version>
 		</dependency>
 
-        <!-- rosuda: REngine/Rserve -->
+		<!-- rosuda: REngine/Rserve -->
 		<dependency>
-    		<groupId>org.rosuda.REngine</groupId>
-    		<artifactId>Rserve</artifactId>
-    		<version>1.8.1</version>
+			<groupId>org.rosuda.REngine</groupId>
+			<artifactId>Rserve</artifactId>
+			<version>1.8.1</version>
 		</dependency>
-        <!-- rosuda: END -->
-        
+		<!-- rosuda: END -->
+
 		<dependency>
 			<groupId>mzmine</groupId>
 			<artifactId>macspecificsetup</artifactId>
@@ -388,16 +370,16 @@
 			<!-- based on mzTab specification version 1.0 RC5 -->
 		</dependency>
 		<dependency>
-        	<groupId>org.apache.xmlgraphics</groupId>
-        	<artifactId>fop</artifactId>
-        	<version>1.0</version>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>fop</artifactId>
+			<version>1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.freehep</groupId>
 			<artifactId>freehep-graphicsio-emf</artifactId>
 			<version>2.4</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>io.github.msdk</groupId>
 			<artifactId>msdk-io-mzml</artifactId>

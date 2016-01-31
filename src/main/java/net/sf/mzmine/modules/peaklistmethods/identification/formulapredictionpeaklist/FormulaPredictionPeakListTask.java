@@ -23,6 +23,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.openscience.cdk.formula.MolecularFormulaGenerator;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -49,16 +58,6 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.FormulaUtils;
 
-import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.formula.MolecularFormulaGenerator;
-import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-
-import com.google.common.collect.Range;
-
 public class FormulaPredictionPeakListTask extends AbstractTask {
 
     private List<ResultFormula> ResultingFormulas;
@@ -72,7 +71,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
     private PeakList peakList;
     private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
     private ParameterSet isotopeParameters, msmsParameters, ratiosParameters,
-	    rdbeParameters;
+            rdbeParameters;
     private MZTolerance mzTolerance;
     private String message;
     private int totalRows, finishedRows;
@@ -86,62 +85,73 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
      */
     FormulaPredictionPeakListTask(PeakList peakList, ParameterSet parameters) {
 
-	/*
-	 * searchedMass = parameters.getParameter(
-	 * FormulaPredictionPeakListParameters.neutralMass).getValue();
-	 */
-	this.peakList = peakList;
-	charge = parameters.getParameter(
-		FormulaPredictionPeakListParameters.charge).getValue();
-	ionType = (IonizationType) parameters.getParameter(
-		FormulaPredictionPeakListParameters.ionization).getValue();
-	mzTolerance = parameters.getParameter(
-		FormulaPredictionPeakListParameters.mzTolerance).getValue();
-	elementCounts = parameters.getParameter(
-		FormulaPredictionPeakListParameters.elements).getValue();
+        /*
+         * searchedMass = parameters.getParameter(
+         * FormulaPredictionPeakListParameters.neutralMass).getValue();
+         */
+        this.peakList = peakList;
+        charge = parameters
+                .getParameter(FormulaPredictionPeakListParameters.charge)
+                .getValue();
+        ionType = (IonizationType) parameters
+                .getParameter(FormulaPredictionPeakListParameters.ionization)
+                .getValue();
+        mzTolerance = parameters
+                .getParameter(FormulaPredictionPeakListParameters.mzTolerance)
+                .getValue();
+        elementCounts = parameters
+                .getParameter(FormulaPredictionPeakListParameters.elements)
+                .getValue();
 
-	checkIsotopes = parameters.getParameter(
-		FormulaPredictionPeakListParameters.isotopeFilter).getValue();
-	isotopeParameters = parameters.getParameter(
-		FormulaPredictionPeakListParameters.isotopeFilter)
-		.getEmbeddedParameters();
+        checkIsotopes = parameters
+                .getParameter(FormulaPredictionPeakListParameters.isotopeFilter)
+                .getValue();
+        isotopeParameters = parameters
+                .getParameter(FormulaPredictionPeakListParameters.isotopeFilter)
+                .getEmbeddedParameters();
 
-	checkMSMS = parameters.getParameter(
-		FormulaPredictionPeakListParameters.msmsFilter).getValue();
-	msmsParameters = parameters.getParameter(
-		FormulaPredictionPeakListParameters.msmsFilter)
-		.getEmbeddedParameters();
+        checkMSMS = parameters
+                .getParameter(FormulaPredictionPeakListParameters.msmsFilter)
+                .getValue();
+        msmsParameters = parameters
+                .getParameter(FormulaPredictionPeakListParameters.msmsFilter)
+                .getEmbeddedParameters();
 
-	checkRDBE = parameters.getParameter(
-		FormulaPredictionPeakListParameters.rdbeRestrictions)
-		.getValue();
-	rdbeParameters = parameters.getParameter(
-		FormulaPredictionPeakListParameters.rdbeRestrictions)
-		.getEmbeddedParameters();
+        checkRDBE = parameters
+                .getParameter(
+                        FormulaPredictionPeakListParameters.rdbeRestrictions)
+                .getValue();
+        rdbeParameters = parameters
+                .getParameter(
+                        FormulaPredictionPeakListParameters.rdbeRestrictions)
+                .getEmbeddedParameters();
 
-	checkRatios = parameters.getParameter(
-		FormulaPredictionPeakListParameters.elementalRatios).getValue();
-	ratiosParameters = parameters.getParameter(
-		FormulaPredictionPeakListParameters.elementalRatios)
-		.getEmbeddedParameters();
+        checkRatios = parameters
+                .getParameter(
+                        FormulaPredictionPeakListParameters.elementalRatios)
+                .getValue();
+        ratiosParameters = parameters
+                .getParameter(
+                        FormulaPredictionPeakListParameters.elementalRatios)
+                .getEmbeddedParameters();
 
-	message = "Formula Prediction";
+        message = "Formula Prediction";
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-	if (totalRows == 0)
-	    return 0.0;
-	return (double) finishedRows / (double) totalRows;
+        if (totalRows == 0)
+            return 0.0;
+        return (double) finishedRows / (double) totalRows;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-	return message;
+        return message;
     }
 
     /**
@@ -149,189 +159,184 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
      */
     public void run() {
 
-	setStatus(TaskStatus.PROCESSING);
+        setStatus(TaskStatus.PROCESSING);
 
-	totalRows = peakList.getNumberOfRows();
+        totalRows = peakList.getNumberOfRows();
 
-	for (PeakListRow row : peakList.getRows()) {
+        for (PeakListRow row : peakList.getRows()) {
 
-	    if (row.getPeakIdentities().length > 0) {
-		continue;
-	    }
+            if (row.getPeakIdentities().length > 0) {
+                continue;
+            }
 
-	    this.ResultingFormulas = new ArrayList<ResultFormula>();
+            this.ResultingFormulas = new ArrayList<ResultFormula>();
 
-	    this.searchedMass = (row.getAverageMZ() - ionType.getAddedMass())
-		    * charge;
+            this.searchedMass = (row.getAverageMZ() - ionType.getAddedMass())
+                    * charge;
 
-	    message = "Formula prediction for "
-		    + MZmineCore.getConfiguration().getMZFormat()
-			    .format(searchedMass);
+            message = "Formula prediction for " + MZmineCore.getConfiguration()
+                    .getMZFormat().format(searchedMass);
 
-	    massRange = mzTolerance.getToleranceRange(searchedMass);
+            massRange = mzTolerance.getToleranceRange(searchedMass);
 
-	    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-	    try {
-		generator = new MolecularFormulaGenerator(builder,
-			massRange.lowerEndpoint(), massRange.upperEndpoint(),
-			elementCounts);
-	    } catch (CDKException e) {
-		e.printStackTrace();
-		setStatus(TaskStatus.ERROR);
-		setErrorMessage("Invalid parameters for chemical formula generator: "
-			+ e.getMessage());
-	    }
+            IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+            generator = new MolecularFormulaGenerator(builder,
+                    massRange.lowerEndpoint(), massRange.upperEndpoint(),
+                    elementCounts);
 
-	    IMolecularFormula cdkFormula;
-	    while ((cdkFormula = generator.getNextFormula()) != null) {
-		// Mass is ok, so test other constraints
-		checkConstraints(cdkFormula, row);
+            IMolecularFormula cdkFormula;
+            while ((cdkFormula = generator.getNextFormula()) != null) {
+                // Mass is ok, so test other constraints
+                checkConstraints(cdkFormula, row);
 
-	    }
+            }
 
-	    if (isCanceled())
-		return;
+            if (isCanceled())
+                return;
 
-	    for (ResultFormula f : this.ResultingFormulas) {
-		SimplePeakIdentity newIdentity = new SimplePeakIdentity(
-			f.getFormulaAsString());
-		row.addPeakIdentity(newIdentity, false);
-	    }
+            for (ResultFormula f : this.ResultingFormulas) {
+                SimplePeakIdentity newIdentity = new SimplePeakIdentity(
+                        f.getFormulaAsString());
+                row.addPeakIdentity(newIdentity, false);
+            }
 
-	    finishedRows++;
+            finishedRows++;
 
-	}
+        }
 
-	if (isCanceled())
-	    return;
+        if (isCanceled())
+            return;
 
-	logger.finest("Finished formula search for all the peaks");
+        logger.finest("Finished formula search for all the peaks");
 
-	setStatus(TaskStatus.FINISHED);
+        setStatus(TaskStatus.FINISHED);
 
     }
 
     private void checkConstraints(IMolecularFormula cdkFormula,
-	    PeakListRow peakListRow) {
+            PeakListRow peakListRow) {
 
-	// Check elemental ratios
-	if (checkRatios) {
-	    boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula,
-		    ratiosParameters);
-	    if (!check) {
-		return;
-	    }
-	}
+        // Check elemental ratios
+        if (checkRatios) {
+            boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula,
+                    ratiosParameters);
+            if (!check) {
+                return;
+            }
+        }
 
-	Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
+        Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
 
-	// Check RDBE condition
-	if (checkRDBE && (rdbeValue != null)) {
-	    boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue,
-		    rdbeParameters);
-	    if (!check) {
-		return;
-	    }
-	}
+        // Check RDBE condition
+        if (checkRDBE && (rdbeValue != null)) {
+            boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue,
+                    rdbeParameters);
+            if (!check) {
+                return;
+            }
+        }
 
-	// Calculate isotope similarity score
-	IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
-	IsotopePattern predictedIsotopePattern = null;
-	Double isotopeScore = null;
-	if ((checkIsotopes) && (detectedPattern != null)) {
+        // Calculate isotope similarity score
+        IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
+        IsotopePattern predictedIsotopePattern = null;
+        Double isotopeScore = null;
+        if ((checkIsotopes) && (detectedPattern != null)) {
 
-	    String stringFormula = MolecularFormulaManipulator
-		    .getString(cdkFormula);
+            String stringFormula = MolecularFormulaManipulator
+                    .getString(cdkFormula);
 
-	    String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula,
-		    ionType, charge);
+            String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula,
+                    ionType, charge);
 
-	    final double isotopeNoiseLevel = isotopeParameters.getParameter(
-		    IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
+            final double isotopeNoiseLevel = isotopeParameters
+                    .getParameter(
+                            IsotopePatternScoreParameters.isotopeNoiseLevel)
+                    .getValue();
 
-	    final double detectedPatternHeight = detectedPattern
-		    .getHighestDataPoint().getIntensity();
+            final double detectedPatternHeight = detectedPattern
+                    .getHighestDataPoint().getIntensity();
 
-	    final double minPredictedAbundance = isotopeNoiseLevel
-		    / detectedPatternHeight;
+            final double minPredictedAbundance = isotopeNoiseLevel
+                    / detectedPatternHeight;
 
-	    predictedIsotopePattern = IsotopePatternCalculator
-		    .calculateIsotopePattern(adjustedFormula,
-			    minPredictedAbundance, charge,
-			    ionType.getPolarity());
+            predictedIsotopePattern = IsotopePatternCalculator
+                    .calculateIsotopePattern(adjustedFormula,
+                            minPredictedAbundance, charge,
+                            ionType.getPolarity());
 
-	    isotopeScore = IsotopePatternScoreCalculator
-		    .getSimilarityScore(detectedPattern,
-			    predictedIsotopePattern, isotopeParameters);
+            isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(
+                    detectedPattern, predictedIsotopePattern,
+                    isotopeParameters);
 
-	    final double minScore = isotopeParameters.getParameter(
-		    IsotopePatternScoreParameters.isotopePatternScoreThreshold)
-		    .getValue();
+            final double minScore = isotopeParameters
+                    .getParameter(
+                            IsotopePatternScoreParameters.isotopePatternScoreThreshold)
+                    .getValue();
 
-	    if (isotopeScore < minScore) {
-		return;
-	    }
+            if (isotopeScore < minScore) {
+                return;
+            }
 
-	}
+        }
 
-	// MS/MS evaluation is slowest, so let's do it last
-	Double msmsScore = null;
-	Feature bestPeak = peakListRow.getBestPeak();
-	RawDataFile dataFile = bestPeak.getDataFile();
-	Map<DataPoint, String> msmsAnnotations = null;
-	int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+        // MS/MS evaluation is slowest, so let's do it last
+        Double msmsScore = null;
+        Feature bestPeak = peakListRow.getBestPeak();
+        RawDataFile dataFile = bestPeak.getDataFile();
+        Map<DataPoint, String> msmsAnnotations = null;
+        int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 
-	if ((checkMSMS) && (msmsScanNumber > 0)) {
-	    Scan msmsScan = dataFile.getScan(msmsScanNumber);
-	    String massListName = msmsParameters.getParameter(
-		    MSMSScoreParameters.massList).getValue();
-	    MassList ms2MassList = msmsScan.getMassList(massListName);
-	    if (ms2MassList == null) {
-		setStatus(TaskStatus.ERROR);
-		setErrorMessage("The MS/MS scan #" + msmsScanNumber
-			+ " in file " + dataFile.getName()
-			+ " does not have a mass list called '" + massListName
-			+ "'");
-		return;
-	    }
+        if ((checkMSMS) && (msmsScanNumber > 0)) {
+            Scan msmsScan = dataFile.getScan(msmsScanNumber);
+            String massListName = msmsParameters
+                    .getParameter(MSMSScoreParameters.massList).getValue();
+            MassList ms2MassList = msmsScan.getMassList(massListName);
+            if (ms2MassList == null) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("The MS/MS scan #" + msmsScanNumber
+                        + " in file " + dataFile.getName()
+                        + " does not have a mass list called '" + massListName
+                        + "'");
+                return;
+            }
 
-	    MSMSScore score = MSMSScoreCalculator.evaluateMSMS(cdkFormula,
-		    msmsScan, msmsParameters);
+            MSMSScore score = MSMSScoreCalculator.evaluateMSMS(cdkFormula,
+                    msmsScan, msmsParameters);
 
-	    double minMSMSScore = msmsParameters.getParameter(
-		    MSMSScoreParameters.msmsMinScore).getValue();
+            double minMSMSScore = msmsParameters
+                    .getParameter(MSMSScoreParameters.msmsMinScore).getValue();
 
-	    if (score != null) {
-		msmsScore = score.getScore();
-		msmsAnnotations = score.getAnnotation();
+            if (score != null) {
+                msmsScore = score.getScore();
+                msmsAnnotations = score.getAnnotation();
 
-		// Check the MS/MS condition
-		if (msmsScore < minMSMSScore) {
-		    return;
-		}
-	    }
+                // Check the MS/MS condition
+                if (msmsScore < minMSMSScore) {
+                    return;
+                }
+            }
 
-	}
+        }
 
-	// Create a new formula entry
-	final ResultFormula resultEntry = new ResultFormula(cdkFormula,
-		predictedIsotopePattern, rdbeValue, isotopeScore, msmsScore,
-		msmsAnnotations);
+        // Create a new formula entry
+        final ResultFormula resultEntry = new ResultFormula(cdkFormula,
+                predictedIsotopePattern, rdbeValue, isotopeScore, msmsScore,
+                msmsAnnotations);
 
-	// Add the new formula entry
-	ResultingFormulas.add(resultEntry);
+        // Add the new formula entry
+        ResultingFormulas.add(resultEntry);
 
     }
 
     @Override
     public void cancel() {
-	super.cancel();
+        super.cancel();
 
-	// We need to cancel the formula generator, because searching for next
-	// candidate formula may take a looong time
-	if (generator != null) {
-	    generator.cancel();
-	}
+        // We need to cancel the formula generator, because searching for next
+        // candidate formula may take a looong time
+        if (generator != null) {
+            generator.cancel();
+        }
 
     }
 }
