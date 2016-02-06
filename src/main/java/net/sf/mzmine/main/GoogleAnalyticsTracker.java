@@ -31,20 +31,38 @@ import java.util.Locale;
 import java.util.Random;
 import java.net.HttpURLConnection;
 
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.HeadLessDesktop;
+
 public class GoogleAnalyticsTracker implements Runnable {
 
     // Parameters
     String trackingUrl = "http://www.google-analytics.com/__utm.gif";
     String trackingCode = "UA-63013892-3"; // Google Analytics Tracking Code
     String hostName = "localhost"; // Host name
-    String userAgent = null; // User Agent name
-    String os = "Unknown"; // Operating System
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); // Screen Size
-    String systemLocale = Locale.getDefault().toString().replace("_", "-"); // Language
+    String userAgent = null;       // User Agent name
+    String os = "Unknown";         // Operating System
+    Dimension screenSize;          // Screen Size
+    String systemLocale;           // Language
     String pageTitle, pageUrl;
     Random random = new Random();
+    boolean sendGUIinfo = false;
 
     public GoogleAnalyticsTracker(String title, String url) {
+        
+        // Parameters
+        this.sendGUIinfo = false;
+        Desktop desktop = MZmineCore.getDesktop();
+        // Only if not in "headless" mode
+        this.sendGUIinfo = (desktop.getMainWindow() != null 
+                && !(desktop instanceof HeadLessDesktop));
+        if (this.sendGUIinfo) {
+            screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        }
+        systemLocale = Locale.getDefault().toString().replace("_", "-");
+        random = new Random();
+        
+        // Init
 	pageTitle = title;
 	pageUrl = url;
     }
@@ -62,16 +80,19 @@ public class GoogleAnalyticsTracker implements Runnable {
 	if (sendStatistics) {
 
 	    // Find screen size for multiple screen setup
-	    GraphicsEnvironment g = GraphicsEnvironment.getLocalGraphicsEnvironment();
-	    GraphicsDevice[] devices = g.getScreenDevices();
-	    if (devices.length > 1) {
-		int totalWidth = 0;
-		for (int i = 0; i < devices.length; i++) {
-		    totalWidth += devices[i].getDisplayMode().getWidth();
-		}
-		screenSize = new Dimension(totalWidth,(int) screenSize.getHeight());
+	    if (this.sendGUIinfo)
+	    {
+	        GraphicsEnvironment g = GraphicsEnvironment.getLocalGraphicsEnvironment();
+	        GraphicsDevice[] devices = g.getScreenDevices();
+	        if (devices.length > 1) {
+	            int totalWidth = 0;
+	            for (int i = 0; i < devices.length; i++) {
+	                totalWidth += devices[i].getDisplayMode().getWidth();
+	            }
+	            screenSize = new Dimension(totalWidth,(int) screenSize.getHeight());
+	        }
 	    }
-	    
+
 	    if (hostName.equals("localhost")) {
 		try {
 		    hostName = InetAddress.getLocalHost().getHostName();
@@ -114,7 +135,10 @@ public class GoogleAnalyticsTracker implements Runnable {
 	    url.append("?utmwv=1"); // Analytics version
 	    url.append("&utmn=" + random.nextInt()); // Random int
 	    url.append("&utmcs=UTF-8"); // Encoding
-	    url.append("&utmsr=" + (int) screenSize.getWidth() + "x" + (int) screenSize.getHeight()); // Screen size
+	    if (this.sendGUIinfo) {
+	        url.append("&utmsr=" + (int) screenSize.getWidth() + "x" 
+	                + (int) screenSize.getHeight()); // Screen size
+	    }
 	    url.append("&utmul=" + systemLocale); // User language
 	    url.append("&utmje=1"); // Java Enabled
 	    url.append("&utmcr=1"); // Carriage return
