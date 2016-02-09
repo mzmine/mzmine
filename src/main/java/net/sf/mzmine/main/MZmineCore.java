@@ -201,8 +201,8 @@ public final class MZmineCore {
 	}
 
 	// if we have GUI, show it now
-	if (desktop.getMainWindow() != null) {
-
+	if (desktop.getMainWindow() != null && !(desktop instanceof HeadLessDesktop))
+	{
 	    // update the size and position of the main window
 	    ParameterSet paramSet = configuration.getPreferences();
 	    WindowSettingsParameter settings = paramSet
@@ -223,7 +223,7 @@ public final class MZmineCore {
 	    nvcThread.start();
 
 	    // Tracker
-	    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("GUI Loaded", "/JAVA/Main/GUI");
+	    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (GUI mode)", "/JAVA/Main/GUI");
 	    Thread gatThread = new Thread(GAT);
 	    gatThread.setPriority(Thread.MIN_PRIORITY);
 	    gatThread.start();
@@ -236,10 +236,10 @@ public final class MZmineCore {
 
 	// if arguments were specified (= running without GUI), run the batch
 	// mode
-	if (args.length > 0) {
+	if (args.length > 0 && desktop instanceof HeadLessDesktop) {
 
 	    // Tracker
-	    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("GUI Loaded", "/JAVA/Main/GUI");
+	    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker("MZmine Loaded (Headless mode)", "/JAVA/Main/GUI");
 	    Thread gatThread = new Thread(GAT);
 	    gatThread.setPriority(Thread.MIN_PRIORITY);
 	    gatThread.start();
