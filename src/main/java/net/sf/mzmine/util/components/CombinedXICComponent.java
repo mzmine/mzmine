@@ -24,6 +24,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -42,13 +43,13 @@ public class CombinedXICComponent extends JComponent {
     private static final long serialVersionUID = 1L;
 
     public static final Border componentBorder = BorderFactory
-	    .createLineBorder(Color.lightGray);
+            .createLineBorder(Color.lightGray);
 
     // plot colors for plotted files, circulated by numberOfDataSets
     public static final Color[] plotColors = { new Color(0, 0, 192), // blue
-	    new Color(192, 0, 0), // red
-	    new Color(0, 192, 0), // green
-	    Color.magenta, Color.cyan, Color.orange };
+            new Color(192, 0, 0), // red
+            new Color(0, 192, 0), // green
+            Color.magenta, Color.cyan, Color.orange };
 
     private Feature[] peaks;
 
@@ -61,102 +62,102 @@ public class CombinedXICComponent extends JComponent {
      */
     public CombinedXICComponent(Feature[] peaks, int id) {
 
-	// We use the tool tip text as a id for customTooltipProvider
-	if (id >= 0)
-	    setToolTipText(ComponentToolTipManager.CUSTOM + id);
+        // We use the tool tip text as a id for customTooltipProvider
+        if (id >= 0)
+            setToolTipText(ComponentToolTipManager.CUSTOM + id);
 
-	double maxIntensity = 0;
-	this.peaks = peaks;
+        double maxIntensity = 0;
+        this.peaks = peaks;
 
-	// find data boundaries
-	for (Feature peak : peaks) {
-	    if (peak == null)
-		continue;
+        // find data boundaries
+        for (Feature peak : peaks) {
+            if (peak == null)
+                continue;
 
-	    maxIntensity = Math.max(maxIntensity, peak
-		    .getRawDataPointsIntensityRange().upperEndpoint());
-	    if (rtRange == null)
-		rtRange = peak.getDataFile().getDataRTRange(1);
-	    else
-		rtRange = rtRange.span(peak.getDataFile().getDataRTRange(1));
-	}
+            maxIntensity = Math.max(maxIntensity,
+                    peak.getRawDataPointsIntensityRange().upperEndpoint());
+            if (rtRange == null)
+                rtRange = peak.getDataFile().getDataRTRange();
+            else
+                rtRange = rtRange.span(peak.getDataFile().getDataRTRange());
+        }
 
-	this.maxIntensity = maxIntensity;
+        this.maxIntensity = maxIntensity;
 
-	this.setBorder(componentBorder);
+        this.setBorder(componentBorder);
 
     }
 
     public void paint(Graphics g) {
 
-	super.paint(g);
+        super.paint(g);
 
-	// use Graphics2D for antialiasing
-	Graphics2D g2 = (Graphics2D) g;
+        // use Graphics2D for antialiasing
+        Graphics2D g2 = (Graphics2D) g;
 
-	// turn on antialiasing
-	g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-		RenderingHints.VALUE_ANTIALIAS_ON);
+        // turn on antialiasing
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
 
-	// get canvas size
-	Dimension size = getSize();
+        // get canvas size
+        Dimension size = getSize();
 
-	int colorIndex = 0;
+        int colorIndex = 0;
 
-	for (Feature peak : peaks) {
+        for (Feature peak : peaks) {
 
-	    // set color for current XIC
-	    g2.setColor(plotColors[colorIndex]);
-	    colorIndex = (colorIndex + 1) % plotColors.length;
+            // set color for current XIC
+            g2.setColor(plotColors[colorIndex]);
+            colorIndex = (colorIndex + 1) % plotColors.length;
 
-	    // if we have no data, just return
-	    if ((peak == null) || (peak.getScanNumbers().length == 0))
-		continue;
+            // if we have no data, just return
+            if ((peak == null) || (peak.getScanNumbers().length == 0))
+                continue;
 
-	    // get scan numbers, one data point per each scan
-	    int scanNumbers[] = peak.getScanNumbers();
+            // get scan numbers, one data point per each scan
+            int scanNumbers[] = peak.getScanNumbers();
 
-	    // for each datapoint, find [X:Y] coordinates of its point in
-	    // painted image
-	    int xValues[] = new int[scanNumbers.length + 2];
-	    int yValues[] = new int[scanNumbers.length + 2];
+            // for each datapoint, find [X:Y] coordinates of its point in
+            // painted image
+            int xValues[] = new int[scanNumbers.length + 2];
+            int yValues[] = new int[scanNumbers.length + 2];
 
-	    // find one datapoint with maximum intensity in each scan
-	    for (int i = 0; i < scanNumbers.length; i++) {
+            // find one datapoint with maximum intensity in each scan
+            for (int i = 0; i < scanNumbers.length; i++) {
 
-		double dataPointIntensity = 0;
-		DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+                double dataPointIntensity = 0;
+                DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
 
-		if (dataPoint != null)
-		    dataPointIntensity = dataPoint.getIntensity();
+                if (dataPoint != null)
+                    dataPointIntensity = dataPoint.getIntensity();
 
-		// get retention time (X value)
-		double retentionTime = peak.getDataFile()
-			.getScan(scanNumbers[i]).getRetentionTime();
+                // get retention time (X value)
+                double retentionTime = peak.getDataFile()
+                        .getScan(scanNumbers[i]).getRetentionTime();
 
-		// calculate [X:Y] coordinates
-		xValues[i + 1] = (int) Math.floor((retentionTime - rtRange
-			.lowerEndpoint())
-			/ (rtRange.upperEndpoint() - rtRange.lowerEndpoint())
-			* (size.width - 1));
-		yValues[i + 1] = size.height
-			- (int) Math.floor(dataPointIntensity / maxIntensity
-				* (size.height - 1));
+                // calculate [X:Y] coordinates
+                xValues[i + 1] = (int) Math
+                        .floor((retentionTime - rtRange.lowerEndpoint())
+                                / (rtRange.upperEndpoint()
+                                        - rtRange.lowerEndpoint())
+                        * (size.width - 1));
+                yValues[i + 1] = size.height - (int) Math.floor(
+                        dataPointIntensity / maxIntensity * (size.height - 1));
 
-	    }
+            }
 
-	    // add first point
-	    xValues[0] = xValues[1];
-	    yValues[0] = size.height - 1;
+            // add first point
+            xValues[0] = xValues[1];
+            yValues[0] = size.height - 1;
 
-	    // add terminal point
-	    xValues[xValues.length - 1] = xValues[xValues.length - 2];
-	    yValues[yValues.length - 1] = size.height - 1;
+            // add terminal point
+            xValues[xValues.length - 1] = xValues[xValues.length - 2];
+            yValues[yValues.length - 1] = size.height - 1;
 
-	    // draw the peak shape
-	    g2.drawPolyline(xValues, yValues, xValues.length);
+            // draw the peak shape
+            g2.drawPolyline(xValues, yValues, xValues.length);
 
-	}
+        }
 
     }
 
