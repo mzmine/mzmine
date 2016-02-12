@@ -33,7 +33,10 @@ public class CSVExportParameters extends SimpleParameterSet {
 
     public static final FileNameParameter filename = new FileNameParameter(
 	    "Filename",
-	    "Name of exported peak list file name. If the file already exists, it will be overwritten.",
+	    "Name of the output CSV file. " +
+	    "Use pattern \"{}\" in the file name to substitute with peak list name. " +
+	    "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). " +
+	    "If the file already exists, it will be overwritten.",
 	    "csv");
 
     public static final StringParameter fieldSeparator = new StringParameter(
