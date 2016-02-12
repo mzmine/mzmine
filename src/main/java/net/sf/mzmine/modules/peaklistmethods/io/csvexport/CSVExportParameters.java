@@ -29,12 +29,14 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class CSVExportParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakList = new PeakListsParameter(1,
-	    1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(1);
 
     public static final FileNameParameter filename = new FileNameParameter(
 	    "Filename",
-	    "Name of exported peak list file name. If the file already exists, it will be overwritten.",
+	    "Name of the output CSV file. " +
+	    "Use pattern \"{}\" in the file name to substitute with peak list name. " +
+	    "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). " +
+	    "If the file already exists, it will be overwritten.",
 	    "csv");
 
     public static final StringParameter fieldSeparator = new StringParameter(
@@ -61,7 +63,7 @@ public class CSVExportParameters extends SimpleParameterSet {
 	    "Character(s) used to separate identification results in the exported file", ";");
 
     public CSVExportParameters() {
-	super(new Parameter[] { peakList, filename, fieldSeparator,
+	super(new Parameter[] { peakLists, filename, fieldSeparator,
 		exportCommonItems, exportIdentityItems, exportDataFileItems, exportAllIDs, idSeparator });
     }
 

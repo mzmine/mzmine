@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
@@ -35,11 +37,12 @@ import net.sf.mzmine.util.RangeUtils;
 
 class CSVExportTask extends AbstractTask {
 
-    private PeakList peakList;
+    private PeakList[] peakLists;
     private int processedRows = 0, totalRows = 0;
 
     // parameter values
     private File fileName;
+    private String plNamePattern = "{}";
     private String fieldSeparator;
     private ExportRowCommonElement[] commonElements;
     private String[] identityElements;
@@ -49,8 +52,8 @@ class CSVExportTask extends AbstractTask {
 
     CSVExportTask(ParameterSet parameters) {
 
-        this.peakList = parameters.getParameter(CSVExportParameters.peakList)
-                .getValue().getMatchingPeakLists()[0];
+        this.peakLists = parameters.getParameter(CSVExportParameters.peakLists)
+                .getValue().getMatchingPeakLists();
         fileName = parameters.getParameter(CSVExportParameters.filename)
                 .getValue();
         fieldSeparator = parameters.getParameter(
@@ -75,35 +78,67 @@ class CSVExportTask extends AbstractTask {
     }
 
     public String getTaskDescription() {
-        return "Exporting peak list " + peakList + " to " + fileName;
+        return "Exporting peak list(s) " 
+                + Arrays.toString(peakLists) + " to CSV file(s)";
     }
 
     public void run() {
 
         setStatus(TaskStatus.PROCESSING);
 
-        // Open file
-        FileWriter writer;
-        try {
-            writer = new FileWriter(fileName);
-        } catch (Exception e) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("Could not open file " + fileName + " for writing.");
-            return;
+        // Shall export several files?
+        boolean substitute = fileName.getPath().contains(plNamePattern);
+
+        // Total number of rows
+        for (PeakList peakList: peakLists) {
+            totalRows += peakList.getNumberOfRows();
         }
 
-        // Get number of rows
-        totalRows = peakList.getNumberOfRows();
+        // Process peak lists
+        for (PeakList peakList: peakLists) {
 
-        exportPeakList(peakList, writer);
+            // Filename
+            File curFile = fileName;
+            if (substitute) {
+                // Substitute
+                String newFilename = fileName.getPath().replaceAll(
+                        Pattern.quote(plNamePattern), peakList.getName());
+                // Cleanup from illegal filename characters
+                newFilename = newFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
+                curFile = new File(newFilename);
+            }
 
-        // Close file
-        try {
-            writer.close();
-        } catch (Exception e) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("Could not close file " + fileName);
-            return;
+            // Open file
+            FileWriter writer;
+            try {
+                writer = new FileWriter(curFile);
+            } catch (Exception e) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Could not open file " + curFile 
+                        + " for writing.");
+                return;
+            }
+
+            exportPeakList(peakList, writer, curFile);
+
+            // Cancel?
+            if (isCanceled()) {
+                return;
+            }
+
+            // Close file
+            try {
+                writer.close();
+            } catch (Exception e) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Could not close file " + curFile);
+                return;
+            }
+
+            // If peak list substitution pattern wasn't found, 
+            // treat one peak list only
+            if (!substitute)
+                break;
         }
 
         if (getStatus() == TaskStatus.PROCESSING)
@@ -111,7 +146,8 @@ class CSVExportTask extends AbstractTask {
 
     }
 
-    private void exportPeakList(PeakList peakList, FileWriter writer) {
+    private void exportPeakList(PeakList peakList, FileWriter writer, 
+            File fileName) {
 
         RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
 
