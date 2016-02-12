@@ -125,6 +125,11 @@ class CSVExportTask extends AbstractTask {
                 setErrorMessage("Could not close file " + curFile);
                 return;
             }
+
+            // If peak list substitution pattern wasn't found, 
+            // treat one peak list only
+            if (!substitute)
+                break;
         }
 
         if (getStatus() == TaskStatus.PROCESSING)
