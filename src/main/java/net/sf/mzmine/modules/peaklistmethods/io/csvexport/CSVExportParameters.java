@@ -29,8 +29,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class CSVExportParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakList = new PeakListsParameter(1,
-	    1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(1);
 
     public static final FileNameParameter filename = new FileNameParameter(
 	    "Filename",
@@ -61,7 +60,7 @@ public class CSVExportParameters extends SimpleParameterSet {
 	    "Character(s) used to separate identification results in the exported file", ";");
 
     public CSVExportParameters() {
-	super(new Parameter[] { peakList, filename, fieldSeparator,
+	super(new Parameter[] { peakLists, filename, fieldSeparator,
 		exportCommonItems, exportIdentityItems, exportDataFileItems, exportAllIDs, idSeparator });
     }
 
