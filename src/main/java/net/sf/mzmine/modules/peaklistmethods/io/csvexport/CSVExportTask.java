@@ -115,9 +115,6 @@ class CSVExportTask extends AbstractTask {
                 return;
             }
 
-            // Get number of rows
-            totalRows = peakList.getNumberOfRows();
-
             exportPeakList(peakList, writer, curFile);
 
             // Close file
