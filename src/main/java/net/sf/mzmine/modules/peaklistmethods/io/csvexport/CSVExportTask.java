@@ -100,8 +100,12 @@ class CSVExportTask extends AbstractTask {
             // Filename
             File curFile = fileName;
             if (substitute) {
-                curFile = new File(fileName.getPath().replaceAll(
-                        Pattern.quote(plNamePattern), peakList.getName()));
+                // Substitute
+                String newFilename = fileName.getPath().replaceAll(
+                        Pattern.quote(plNamePattern), peakList.getName());
+                // Cleanup from illegal filename characters
+                newFilename = newFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
+                curFile = new File(newFilename);
             }
 
             // Open file
@@ -116,6 +120,11 @@ class CSVExportTask extends AbstractTask {
             }
 
             exportPeakList(peakList, writer, curFile);
+
+            // Cancel?
+            if (isCanceled()) {
+                return;
+            }
 
             // Close file
             try {
