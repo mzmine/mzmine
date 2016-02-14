@@ -54,7 +54,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
 	    boolean isSelected, boolean hasFocus, int row, int column) {
 
-	JPanel newPanel = new JPanel();
+        JPanel newPanel = new JPanel();
 	newPanel.setLayout(new OverlayLayout(newPanel));
 
 	Color bgColor;
@@ -89,7 +89,6 @@ class PeakShapeCellRenderer implements TableCellRenderer {
 			.upperEndpoint();
 		break;
 	    }
-
 	    PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
 
 	    newPanel.add(xic);

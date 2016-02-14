@@ -42,7 +42,7 @@ public class MZminePreferences extends SimpleParameterSet {
 
     public static final NumberFormatParameter rtFormat = new NumberFormatParameter(
             "Retention time value format", "Format of retention time values",
-            false, new DecimalFormat("0.0"));
+            false, new DecimalFormat("0.00"));
 
     public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
             "Intensity format", "Format of intensity values", true,
