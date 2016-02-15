@@ -31,6 +31,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.projecttree.PeakListTreeModel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -342,6 +343,32 @@ public class SimplePeakList implements PeakList {
     public Range<Double> getRowsRTRange() {
 	updateMaxIntensity(); // Update range before returning value
 	return rtRange;
+    }
+    
+    public double[] calculateMS2Similarity(Feature peak) {
+        
+        //Fetch parameter peak MS2.
+        int ms2ScanNumber = peak.getMostIntenseFragmentScanNumber();
+        Scan peakMS2A = peak.getDataFile().getScan(ms2ScanNumber);
+        
+        //Initialize the doubleArray to hold the results.
+        int peakListLength = getRows().length;
+        double[] doubleArray = new double[peakListLength];
+        
+        //Iterate over other peaks in the peaklist
+        PeakListRow[] rows = getRows();
+        for( int i = 0; i < rows.length; i++)
+        {
+        Feature[] features = rows[i].getPeaks();
+        Feature theFeature = features[0]; //Pick the first peak because lazy 
+        Scan peakMS2B = peak.getDataFile().getScan(theFeature.getMostIntenseFragmentScanNumber());
+        //Compare PeakA to every PeakB, and store it in doubleArray
+        //IMPLEMENT BELOW
+        
+        }
+        
+
+        return doubleArray;
     }
 
 }

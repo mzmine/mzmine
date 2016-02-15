@@ -226,5 +226,13 @@ public interface PeakList {
      * Returns the whole retention time range of the peak list
      */
     public Range<Double> getRowsRTRange();
+    
+    /**
+     * 
+     * Prototyping function.  For a given peak, compare its MS2 pattern to all other peaks in the peaklist.
+     */
+    
+    public double[] calculateMS2Similarity(Feature peak);
+
 
 }
