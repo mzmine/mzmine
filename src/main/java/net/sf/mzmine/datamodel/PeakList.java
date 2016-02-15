@@ -232,7 +232,7 @@ public interface PeakList {
      * Prototyping function.  For a given peak, compare its MS2 pattern to all other peaks in the peaklist.
      */
     
-    public double[] calculateMS2Similarity(Feature peak);
+    public double[] calculateMS2Similarity(Feature peak,double intensityThreshold, double mzRangePPM);
 
 
 }

@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -52,65 +53,65 @@ public class SimplePeakList implements PeakList {
     private Range<Double> mzRange, rtRange;
 
     public static DateFormat dateFormat = new SimpleDateFormat(
-	    "yyyy/MM/dd HH:mm:ss");
+            "yyyy/MM/dd HH:mm:ss");
 
     public SimplePeakList(String name, RawDataFile dataFile) {
-	this(name, new RawDataFile[] { dataFile });
+        this(name, new RawDataFile[] { dataFile });
     }
 
     public SimplePeakList(String name, RawDataFile[] dataFiles) {
-	if ((dataFiles == null) || (dataFiles.length == 0)) {
-	    throw (new IllegalArgumentException(
-		    "Cannot create a peak list with no data files"));
-	}
-	this.name = name;
-	this.dataFiles = new RawDataFile[dataFiles.length];
+        if ((dataFiles == null) || (dataFiles.length == 0)) {
+            throw (new IllegalArgumentException(
+                    "Cannot create a peak list with no data files"));
+        }
+        this.name = name;
+        this.dataFiles = new RawDataFile[dataFiles.length];
 
-	RawDataFile dataFile;
-	for (int i = 0; i < dataFiles.length; i++) {
-	    dataFile = dataFiles[i];
-	    this.dataFiles[i] = dataFile;
-	}
-	peakListRows = new ArrayList<PeakListRow>();
-	descriptionOfAppliedTasks = new Vector<PeakListAppliedMethod>();
+        RawDataFile dataFile;
+        for (int i = 0; i < dataFiles.length; i++) {
+            dataFile = dataFiles[i];
+            this.dataFiles[i] = dataFile;
+        }
+        peakListRows = new ArrayList<PeakListRow>();
+        descriptionOfAppliedTasks = new Vector<PeakListAppliedMethod>();
 
-	dateCreated = dateFormat.format(new Date());
+        dateCreated = dateFormat.format(new Date());
 
     }
 
     @Override
     public String getName() {
-	return name;
+        return name;
     }
 
     @Override
     public String toString() {
-	return name;
+        return name;
     }
 
     /**
      * Returns number of raw data files participating in the alignment
      */
     public int getNumberOfRawDataFiles() {
-	return dataFiles.length;
+        return dataFiles.length;
     }
 
     /**
      * Returns all raw data files participating in the alignment
      */
     public RawDataFile[] getRawDataFiles() {
-	return dataFiles;
+        return dataFiles;
     }
 
     public RawDataFile getRawDataFile(int position) {
-	return dataFiles[position];
+        return dataFiles[position];
     }
 
     /**
      * Returns number of rows in the alignment result
      */
     public int getNumberOfRows() {
-	return peakListRows.size();
+        return peakListRows.size();
     }
 
     /**
@@ -123,75 +124,75 @@ public class SimplePeakList implements PeakList {
      *            Raw data file where the peak is detected/estimated
      */
     public Feature getPeak(int row, RawDataFile rawDataFile) {
-	return peakListRows.get(row).getPeak(rawDataFile);
+        return peakListRows.get(row).getPeak(rawDataFile);
     }
 
     /**
      * Returns all peaks for a raw data file
      */
     public Feature[] getPeaks(RawDataFile rawDataFile) {
-	Vector<Feature> peakSet = new Vector<Feature>();
-	for (int row = 0; row < getNumberOfRows(); row++) {
-	    Feature p = peakListRows.get(row).getPeak(rawDataFile);
-	    if (p != null)
-		peakSet.add(p);
-	}
-	return peakSet.toArray(new Feature[0]);
+        Vector<Feature> peakSet = new Vector<Feature>();
+        for (int row = 0; row < getNumberOfRows(); row++) {
+            Feature p = peakListRows.get(row).getPeak(rawDataFile);
+            if (p != null)
+                peakSet.add(p);
+        }
+        return peakSet.toArray(new Feature[0]);
     }
 
     /**
      * Returns all peaks on one row
      */
     public PeakListRow getRow(int row) {
-	return peakListRows.get(row);
+        return peakListRows.get(row);
     }
 
     public PeakListRow[] getRows() {
-	return peakListRows.toArray(new PeakListRow[0]);
+        return peakListRows.toArray(new PeakListRow[0]);
     }
 
     public PeakListRow[] getRowsInsideMZRange(Range<Double> mzRange) {
-	Range<Double> all = Range.all();
-	return getRowsInsideScanAndMZRange(all, mzRange);
+        Range<Double> all = Range.all();
+        return getRowsInsideScanAndMZRange(all, mzRange);
     }
 
     public PeakListRow[] getRowsInsideScanRange(Range<Double> rtRange) {
-	Range<Double> all = Range.all();
-	return getRowsInsideScanAndMZRange(rtRange, all);
+        Range<Double> all = Range.all();
+        return getRowsInsideScanAndMZRange(rtRange, all);
     }
 
     public PeakListRow[] getRowsInsideScanAndMZRange(Range<Double> rtRange,
-	    Range<Double> mzRange) {
-	Vector<PeakListRow> rowsInside = new Vector<PeakListRow>();
+            Range<Double> mzRange) {
+        Vector<PeakListRow> rowsInside = new Vector<PeakListRow>();
 
-	for (PeakListRow row : peakListRows) {
-	    if (rtRange.contains(row.getAverageRT())
-		    && mzRange.contains(row.getAverageMZ()))
-		rowsInside.add(row);
-	}
+        for (PeakListRow row : peakListRows) {
+            if (rtRange.contains(row.getAverageRT())
+                    && mzRange.contains(row.getAverageMZ()))
+                rowsInside.add(row);
+        }
 
-	return rowsInside.toArray(new PeakListRow[0]);
+        return rowsInside.toArray(new PeakListRow[0]);
     }
 
     public void addRow(PeakListRow row) {
-	List<RawDataFile> myFiles = Arrays.asList(this.getRawDataFiles());
-	for (RawDataFile testFile : row.getRawDataFiles()) {
-	    if (!myFiles.contains(testFile))
-		throw (new IllegalArgumentException("Data file " + testFile
-			+ " is not in this peak list"));
-	}
-	peakListRows.add(row);
-	if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
-	    maxDataPointIntensity = row.getDataPointMaxIntensity();
-	}
+        List<RawDataFile> myFiles = Arrays.asList(this.getRawDataFiles());
+        for (RawDataFile testFile : row.getRawDataFiles()) {
+            if (!myFiles.contains(testFile))
+                throw (new IllegalArgumentException("Data file " + testFile
+                        + " is not in this peak list"));
+        }
+        peakListRows.add(row);
+        if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
+            maxDataPointIntensity = row.getDataPointMaxIntensity();
+        }
 
-	if (mzRange == null) {
-	    mzRange = Range.singleton(row.getAverageMZ());
-	    rtRange = Range.singleton(row.getAverageRT());
-	} else {
-	    mzRange = mzRange.span(Range.singleton(row.getAverageMZ()));
-	    rtRange = rtRange.span(Range.singleton(row.getAverageRT()));
-	}
+        if (mzRange == null) {
+            mzRange = Range.singleton(row.getAverageMZ());
+            rtRange = Range.singleton(row.getAverageRT());
+        } else {
+            mzRange = mzRange.span(Range.singleton(row.getAverageMZ()));
+            rtRange = rtRange.span(Range.singleton(row.getAverageRT()));
+        }
     }
 
     /**
@@ -204,9 +205,9 @@ public class SimplePeakList implements PeakList {
      * @return
      */
     public Feature[] getPeaksInsideScanRange(RawDataFile file,
-	    Range<Double> rtRange) {
-	Range<Double> all = Range.all();
-	return getPeaksInsideScanAndMZRange(file, rtRange, all);
+            Range<Double> rtRange) {
+        Range<Double> all = Range.all();
+        return getPeaksInsideScanAndMZRange(file, rtRange, all);
     }
 
     /**
@@ -214,9 +215,9 @@ public class SimplePeakList implements PeakList {
      *      double)
      */
     public Feature[] getPeaksInsideMZRange(RawDataFile file,
-	    Range<Double> mzRange) {
-	Range<Double> all = Range.all();
-	return getPeaksInsideScanAndMZRange(file, all, mzRange);
+            Range<Double> mzRange) {
+        Range<Double> all = Range.all();
+        return getPeaksInsideScanAndMZRange(file, all, mzRange);
     }
 
     /**
@@ -224,58 +225,58 @@ public class SimplePeakList implements PeakList {
      *      double, double, double)
      */
     public Feature[] getPeaksInsideScanAndMZRange(RawDataFile file,
-	    Range<Double> rtRange, Range<Double> mzRange) {
-	Vector<Feature> peaksInside = new Vector<Feature>();
+            Range<Double> rtRange, Range<Double> mzRange) {
+        Vector<Feature> peaksInside = new Vector<Feature>();
 
-	Feature[] peaks = getPeaks(file);
-	for (Feature p : peaks) {
-	    if (rtRange.contains(p.getRT()) && mzRange.contains(p.getMZ()))
-		peaksInside.add(p);
-	}
+        Feature[] peaks = getPeaks(file);
+        for (Feature p : peaks) {
+            if (rtRange.contains(p.getRT()) && mzRange.contains(p.getMZ()))
+                peaksInside.add(p);
+        }
 
-	return peaksInside.toArray(new Feature[0]);
+        return peaksInside.toArray(new Feature[0]);
     }
 
     /**
      * @see net.sf.mzmine.datamodel.PeakList#removeRow(net.sf.mzmine.datamodel.PeakListRow)
      */
     public void removeRow(PeakListRow row) {
-	peakListRows.remove(row);
+        peakListRows.remove(row);
 
-	// We have to update the project tree model
-	MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-		.getProjectManager().getCurrentProject();
-	PeakListTreeModel treeModel = project.getPeakListTreeModel();
-	treeModel.removeObject(row);
+        // We have to update the project tree model
+        MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
+                .getProjectManager().getCurrentProject();
+        PeakListTreeModel treeModel = project.getPeakListTreeModel();
+        treeModel.removeObject(row);
 
-	updateMaxIntensity();
+        updateMaxIntensity();
     }
 
     /**
      * @see net.sf.mzmine.datamodel.PeakList#removeRow(net.sf.mzmine.datamodel.PeakListRow)
      */
     public void removeRow(int rowNum) {
-	removeRow(peakListRows.get(rowNum));
+        removeRow(peakListRows.get(rowNum));
     }
 
     private void updateMaxIntensity() {
-	maxDataPointIntensity = 0;
-	mzRange = null;
-	rtRange = null;
-	for (PeakListRow peakListRow : peakListRows) {
-	    if (peakListRow.getDataPointMaxIntensity() > maxDataPointIntensity)
-		maxDataPointIntensity = peakListRow.getDataPointMaxIntensity();
+        maxDataPointIntensity = 0;
+        mzRange = null;
+        rtRange = null;
+        for (PeakListRow peakListRow : peakListRows) {
+            if (peakListRow.getDataPointMaxIntensity() > maxDataPointIntensity)
+                maxDataPointIntensity = peakListRow.getDataPointMaxIntensity();
 
-	    if (mzRange == null) {
-		mzRange = Range.singleton(peakListRow.getAverageMZ());
-		rtRange = Range.singleton(peakListRow.getAverageRT());
-	    } else {
-		mzRange = mzRange.span(Range.singleton(peakListRow
-			.getAverageMZ()));
-		rtRange = rtRange.span(Range.singleton(peakListRow
-			.getAverageRT()));
-	    }
-	}
+            if (mzRange == null) {
+                mzRange = Range.singleton(peakListRow.getAverageMZ());
+                rtRange = Range.singleton(peakListRow.getAverageRT());
+            } else {
+                mzRange = mzRange.span(Range.singleton(peakListRow
+                        .getAverageMZ()));
+                rtRange = rtRange.span(Range.singleton(peakListRow
+                        .getAverageRT()));
+            }
+        }
     }
 
     /**
@@ -283,90 +284,161 @@ public class SimplePeakList implements PeakList {
      */
     public int getPeakRowNum(Feature peak) {
 
-	PeakListRow rows[] = getRows();
+        PeakListRow rows[] = getRows();
 
-	for (int i = 0; i < rows.length; i++) {
-	    if (rows[i].hasPeak(peak))
-		return i;
-	}
+        for (int i = 0; i < rows.length; i++) {
+            if (rows[i].hasPeak(peak))
+                return i;
+        }
 
-	return -1;
+        return -1;
     }
 
     /**
      * @see net.sf.mzmine.datamodel.PeakList#getDataPointMaxIntensity()
      */
     public double getDataPointMaxIntensity() {
-	return maxDataPointIntensity;
+        return maxDataPointIntensity;
     }
 
     public boolean hasRawDataFile(RawDataFile hasFile) {
-	return Arrays.asList(dataFiles).contains(hasFile);
+        return Arrays.asList(dataFiles).contains(hasFile);
     }
 
     public PeakListRow getPeakRow(Feature peak) {
-	PeakListRow rows[] = getRows();
+        PeakListRow rows[] = getRows();
 
-	for (int i = 0; i < rows.length; i++) {
-	    if (rows[i].hasPeak(peak))
-		return rows[i];
-	}
+        for (int i = 0; i < rows.length; i++) {
+            if (rows[i].hasPeak(peak))
+                return rows[i];
+        }
 
-	return null;
+        return null;
     }
 
     public void setName(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod) {
-	descriptionOfAppliedTasks.add(appliedMethod);
+        descriptionOfAppliedTasks.add(appliedMethod);
     }
 
     public PeakListAppliedMethod[] getAppliedMethods() {
-	return descriptionOfAppliedTasks.toArray(new PeakListAppliedMethod[0]);
+        return descriptionOfAppliedTasks.toArray(new PeakListAppliedMethod[0]);
     }
 
     public String getDateCreated() {
-	return dateCreated;
+        return dateCreated;
     }
 
     public void setDateCreated(String date) {
-	this.dateCreated = date;
+        this.dateCreated = date;
     }
 
     public Range<Double> getRowsMZRange() {
-	updateMaxIntensity(); // Update range before returning value
-	return mzRange;
+        updateMaxIntensity(); // Update range before returning value
+        return mzRange;
     }
 
     public Range<Double> getRowsRTRange() {
-	updateMaxIntensity(); // Update range before returning value
-	return rtRange;
+        updateMaxIntensity(); // Update range before returning value
+        return rtRange;
     }
-    
-    public double[] calculateMS2Similarity(Feature peak) {
-        
-        //Fetch parameter peak MS2.
+
+    public double[] calculateMS2Similarity(Feature peak,double intensityThreshold, double mzRangePPM) {
+        //This could probably return some sort of key:value dictionary (say scanHash:similarity) for the similarity scores, 
+        //instead of the current double[] return
+        double runningScoreTotal = 0.0;
+
+        //Fetch parameter peak MS2 scan.
         int ms2ScanNumber = peak.getMostIntenseFragmentScanNumber();
         Scan peakMS2A = peak.getDataFile().getScan(ms2ScanNumber);
-        
+        RawDataFile peak1DataFile = peak.getDataFile();
+        int peak1ID = peak.hashCode(); //Use this for the key:value dictionary?
+
+
         //Initialize the doubleArray to hold the results.
         int peakListLength = getRows().length;
         double[] doubleArray = new double[peakListLength];
-        
+
         //Iterate over other peaks in the peaklist
         PeakListRow[] rows = getRows();
         for( int i = 0; i < rows.length; i++)
         {
-        Feature[] features = rows[i].getPeaks();
-        Feature theFeature = features[0]; //Pick the first peak because lazy 
-        Scan peakMS2B = peak.getDataFile().getScan(theFeature.getMostIntenseFragmentScanNumber());
-        //Compare PeakA to every PeakB, and store it in doubleArray
-        //IMPLEMENT BELOW
-        
+            runningScoreTotal = 0.0;
+            Feature[] features = rows[i].getPeaks();
+            Feature theFeature = null;
+
+            //Iterate over the peaks in the peaklist row
+            for ( int z = 0; i<features.length; z++)
+            {
+                theFeature = features[z]; //selecting columns from peaklist
+                if (features[z].getDataFile() == peak1DataFile)
+                {
+                    //theFeature has the same raw file as the initially provided peak.  
+                    //That is the feature (of a given row) that we want to look for an MS2 for.
+                    break;   
+                }
+            }
+
+            Scan peakMS2B = null;
+            DataPoint[] peaks1 = null;
+            DataPoint[] peaks2 = null;
+            if (theFeature != null)
+            {
+                //Fetch peaklist peak MS2 scan.
+                peakMS2B = theFeature.getDataFile().getScan(theFeature.getMostIntenseFragmentScanNumber());
+                int peak2ID = theFeature.hashCode(); // Use in key:value store?
+
+                //Compare PeakA to every PeakB, and store it in doubleArray
+                peaks1 = peakMS2A.getDataPointsOverIntensity(intensityThreshold);
+                peaks2 = peakMS2B.getDataPointsOverIntensity(intensityThreshold);
+            }
+
+
+            if (peakMS2A == null || peakMS2B == null || peaks1.length == 0 || peaks2.length == 0)
+            {
+                //Something went wrong.  Maybe MS2 not available? Set zero for this similarity.
+                doubleArray[i] = 0.0;
+            }
+            else 
+            {
+                //build a binned list of peaks in scan 2 -> possible heuristic here which I didn't implement
+                /*
+                long peaks2max = 0;
+                List<Integer> binnedMZList = new ArrayList<Integer>();
+                for ( int j = 0; j < peaks2.length; j++)
+                {
+                    java.lang.Integer mzInteger = new java.lang.Integer( ((int)java.lang.Math.round(peaks1[j].getMZ())) );
+                    if (peaks2max < mzInteger.longValue()){
+                        peaks2max = mzInteger.longValue();
+                    }
+                    binnedMZList.add( mzInteger );
+                }
+                 */
+
+                //Compare every spectral peak vs every spectral peak. No heuristics to make it faster.
+                for (int j = 0; j < peaks1.length; j++)
+                {
+                    //iterate over all peaks in peaks1
+
+
+                    for (int k = 0; k < peaks2.length; k++)
+                    {
+                        //iterate over all peaks in peaks2
+                        if (Math.abs( peaks1[j].getMZ() - peaks2[k].getMZ() ) < peaks1[j].getMZ()*1e-6*mzRangePPM)
+                        { 
+                            runningScoreTotal += peaks1[j].getIntensity()*peaks2[k].getIntensity();  
+                        }
+
+                    }
+                    doubleArray[i] = runningScoreTotal;
+                }
+
+            }
         }
-        
+
 
         return doubleArray;
     }
