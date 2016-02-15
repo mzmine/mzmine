@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Vector;
 
@@ -45,6 +46,8 @@ public class ResultTableModel extends AbstractTableModel {
 
     private final NumberFormat massFormat = MZmineCore.getConfiguration()
 	    .getMZFormat();
+    
+    private final NumberFormat ppmFormat = new DecimalFormat("0.0");
 
     ResultTableModel(double searchedMass) {
 	this.searchedMass = searchedMass;
@@ -58,8 +61,8 @@ public class ResultTableModel extends AbstractTableModel {
 	switch (col) {
 	case 0:
 	case 1:
-	    return String.class;
 	case 2:
+	    return String.class;
 	case 3:
 	case 4:
 	case 5:
@@ -87,7 +90,7 @@ public class ResultTableModel extends AbstractTableModel {
 	    return massFormat.format(massDifference);
 	case 2:
             double massDifferencePPM = massDifference/formulaMass*1E6;
-            return massFormat.format(massDifferencePPM);
+            return ppmFormat.format(massDifferencePPM);
 	case 3:
 	    return formula.getRDBE();
 	case 4:

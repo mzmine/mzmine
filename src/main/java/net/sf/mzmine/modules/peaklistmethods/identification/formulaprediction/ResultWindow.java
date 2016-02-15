@@ -95,6 +95,8 @@ public class ResultWindow extends JFrame implements ActionListener {
 
 	resultsTableModel = new ResultTableModel(searchedMass);
 	resultsTable = new JTable();
+	//int rowHeight = resultsTable.getRowHeight();
+	resultsTable.setRowHeight(22);
 	resultsTable.setModel(resultsTableModel);
 	resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	resultsTable.getTableHeader().setReorderingAllowed(false);
@@ -112,8 +114,8 @@ public class ResultWindow extends JFrame implements ActionListener {
 	DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
 	renderer.setHorizontalAlignment(SwingConstants.LEFT);
 	resultsTable.setDefaultRenderer(Double.class, renderer);
-	columnModel.getColumn(3).setCellRenderer(new PercentageCellRenderer(1));
 	columnModel.getColumn(4).setCellRenderer(new PercentageCellRenderer(1));
+	columnModel.getColumn(5).setCellRenderer(new PercentageCellRenderer(1));
 
 	JScrollPane listScroller = new JScrollPane(resultsTable);
 	listScroller.setPreferredSize(new Dimension(350, 100));
