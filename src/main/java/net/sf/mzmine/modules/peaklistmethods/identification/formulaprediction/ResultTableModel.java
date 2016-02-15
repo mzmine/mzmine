@@ -36,7 +36,7 @@ public class ResultTableModel extends AbstractTableModel {
     public static final String checkMark = new String(new char[] { '\u2713' });
     public static final String crossMark = new String(new char[] { '\u2717' });
 
-    private static final String[] columnNames = { "Formula", "Mass difference",
+    private static final String[] columnNames = { "Formula", "Mass difference (Da)","Mass difference (ppm)",
 	    "RDBE", "Isotope pattern score", "MS/MS score" };
 
     private double searchedMass;
@@ -62,6 +62,7 @@ public class ResultTableModel extends AbstractTableModel {
 	case 2:
 	case 3:
 	case 4:
+	case 5:
 	    return Double.class;
 	}
 	return null;
@@ -77,18 +78,21 @@ public class ResultTableModel extends AbstractTableModel {
 
     public Object getValueAt(int row, int col) {
 	ResultFormula formula = formulas.get(row);
+        double formulaMass = formula.getExactMass();
+        double massDifference = searchedMass - formulaMass;
 	switch (col) {
 	case 0:
 	    return "<HTML>" + formula.getFormulaAsHTML() + "</HTML>";
 	case 1:
-	    double formulaMass = formula.getExactMass();
-	    double massDifference = Math.abs(searchedMass - formulaMass);
 	    return massFormat.format(massDifference);
 	case 2:
-	    return formula.getRDBE();
+            double massDifferencePPM = massDifference/formulaMass*1E6;
+            return massFormat.format(massDifferencePPM);
 	case 3:
-	    return formula.getIsotopeScore();
+	    return formula.getRDBE();
 	case 4:
+	    return formula.getIsotopeScore();
+	case 5:
 	    return formula.getMSMSScore();
 	}
 	return null;
