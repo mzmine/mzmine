@@ -76,8 +76,6 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
             "Parameter", "Paremeter defining the group of each sample.",
             new Object[0]);
 
-    public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter(
-            "Only identified?", "Select to filter only identified compounds");
 
     public static final OptionalParameter<StringParameter> IDENTITY_TEXT = new OptionalParameter<>(
             new StringParameter(
@@ -93,9 +91,9 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
             "If checked, the original peak list will be removed leaving only the filtered version");
 
     public PeakComparisonRowFilterParameters() {
-        super(new Parameter[] { PEAK_LISTS, SUFFIX,
+        super(new Parameter[] { PEAK_LISTS, SUFFIX, COLUMN1, COLUMN2,
                 MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
-                GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT,
+                GROUPSPARAMETER, IDENTITY_TEXT,
                 COMMENT_TEXT, AUTO_REMOVE });
     }
 
