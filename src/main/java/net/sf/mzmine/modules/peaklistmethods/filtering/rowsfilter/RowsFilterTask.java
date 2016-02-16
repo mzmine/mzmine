@@ -176,11 +176,14 @@ public class RowsFilterTask extends AbstractTask {
                 RowsFilterParameters.RT_RANGE).getValue();
         final boolean filterByDuration = parameters.getParameter(
                 RowsFilterParameters.PEAK_DURATION).getValue();
-
+        final boolean removeRow = parameters.getParameter(
+                RowsFilterParameters.REMOVE_ROW).getValue();
+        
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
         totalRows = rows.length;
         for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
+
 
             final PeakListRow row = rows[processedRows];
 
@@ -188,59 +191,86 @@ public class RowsFilterTask extends AbstractTask {
 
             // Check number of peaks.
             if (filterByMinPeakCount) {
+
                 final int minPeakCount = parameters
                         .getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
                         .getEmbeddedParameter().getValue();
-                if (peakCount < minPeakCount)
+                if (peakCount < minPeakCount && !removeRow)
+                    continue;
+                if (peakCount >= minPeakCount && removeRow)
                     continue;
             }
 
             // Check identities.
-            if (onlyIdentified && row.getPreferredPeakIdentity() == null)
-                continue;
-
+            if (onlyIdentified)
+            {
+                
+                if (row.getPreferredPeakIdentity() == null && !removeRow)
+                    continue;
+                if (row.getPreferredPeakIdentity() != null && removeRow)
+                    continue;
+            }
+            
             // Check average m/z.
             if (filterByMzRange) {
                 final Range<Double> mzRange = parameters
                         .getParameter(RowsFilterParameters.MZ_RANGE)
                         .getEmbeddedParameter().getValue();
-                if (!mzRange.contains(row.getAverageMZ()))
+                System.out.println("entering function");
+                if (!mzRange.contains(row.getAverageMZ()) && !removeRow)
+                    continue;
+                if (mzRange.contains(row.getAverageMZ()) && removeRow)
                     continue;
             }
 
             // Check average RT.
             if (filterByRtRange) {
+
                 final Range<Double> rtRange = parameters
                         .getParameter(RowsFilterParameters.RT_RANGE)
                         .getEmbeddedParameter().getValue();
 
-                if (!rtRange.contains(row.getAverageRT()))
+                if (!rtRange.contains(row.getAverageRT()) && !removeRow)
+                    continue;
+                if (rtRange.contains(row.getAverageRT()) && removeRow)
                     continue;
             }
 
             // Search peak identity text.
             if (filterByIdentityText) {
-                if (row.getPreferredPeakIdentity() == null)
+
+                if (row.getPreferredPeakIdentity() == null && !removeRow)
                     continue;
+                if (row.getPreferredPeakIdentity() != null && removeRow)
+                {
                 final String searchText = parameters
                         .getParameter(RowsFilterParameters.IDENTITY_TEXT)
                         .getEmbeddedParameter().getValue().toLowerCase().trim();
                 final String rowText = row.getPreferredPeakIdentity().getName()
                         .toLowerCase().trim();
-                if (!rowText.contains(searchText))
+                if (!rowText.contains(searchText) && !removeRow)
                     continue;
+                if (rowText.contains(searchText) && removeRow)
+                    continue;
+                }
             }
 
             // Search peak comment text.
             if (filterByCommentText) {
-                if (row.getComment() == null)
+
+                if (row.getComment() == null && !removeRow)
                     continue;
+                if (row.getComment() != null && removeRow)
+                {
                 final String searchText = parameters
                         .getParameter(RowsFilterParameters.COMMENT_TEXT)
                         .getEmbeddedParameter().getValue().toLowerCase().trim();
                 final String rowText = row.getComment().toLowerCase().trim();
-                if (!rowText.contains(searchText))
+                if (!rowText.contains(searchText) && !removeRow)
                     continue;
+                if (rowText.contains(searchText) && removeRow)
+                    continue; 
+                }
             }
 
             // Calculate average duration and isotope pattern count.
@@ -264,26 +294,33 @@ public class RowsFilterTask extends AbstractTask {
 
             // Check isotope pattern count.
             if (filterByMinIsotopePatternSize) {
+
                 final int minIsotopePatternSize = parameters
                         .getParameter(
                                 RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT)
                         .getEmbeddedParameter().getValue();
-                if (maxIsotopePatternSizeOnRow < minIsotopePatternSize)
+                if (maxIsotopePatternSizeOnRow < minIsotopePatternSize && !removeRow)
+                    continue;
+                if (maxIsotopePatternSizeOnRow >= minIsotopePatternSize && removeRow)
                     continue;
             }
 
             // Check average duration.
             avgDuration /= (double) peakCount;
             if (filterByDuration) {
+
                 final Range<Double> durationRange = parameters
                         .getParameter(RowsFilterParameters.PEAK_DURATION)
                         .getEmbeddedParameter().getValue();
-                if (!durationRange.contains(avgDuration))
+                if (!durationRange.contains(avgDuration) && !removeRow)
+                    continue;
+                if (durationRange.contains(avgDuration) && removeRow)
                     continue;
             }
 
             // Good row?
-            newPeakList.addRow(copyPeakRow(row));
+            newPeakList.addRow(copyPeakRow(row)); //Only add the row if the criteria have failed.
+            
         }
 
         return newPeakList;

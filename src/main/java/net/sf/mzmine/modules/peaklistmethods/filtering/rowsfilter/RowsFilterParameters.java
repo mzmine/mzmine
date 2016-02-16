@@ -82,6 +82,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public static final OptionalParameter<StringParameter> COMMENT_TEXT = new OptionalParameter<>(
             new StringParameter("Text in comment",
                     "Only rows that contain this text in their comment field will be retained."));
+    
+    public static final BooleanParameter REMOVE_ROW = new BooleanParameter(
+            "Remove rows instead of keeping?",
+            "If checked, rows will be removed based on criteria instead of kept");
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",
@@ -91,7 +95,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT,
                 MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
                 GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT,
-                COMMENT_TEXT, AUTO_REMOVE });
+                COMMENT_TEXT, REMOVE_ROW,AUTO_REMOVE });
     }
 
     @Override
