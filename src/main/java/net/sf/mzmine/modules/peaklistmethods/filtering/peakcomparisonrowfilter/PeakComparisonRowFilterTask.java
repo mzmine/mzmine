@@ -158,22 +158,13 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
                         getTaskDescription(), parameters));
 
         // Get parameters.
-        final boolean onlyIdentified = parameters.getParameter(
-                PeakComparisonRowFilterParameters.HAS_IDENTITIES).getValue();
-        final boolean filterByIdentityText = parameters.getParameter(
-                PeakComparisonRowFilterParameters.IDENTITY_TEXT).getValue();
-        final boolean filterByCommentText = parameters.getParameter(
-                PeakComparisonRowFilterParameters.COMMENT_TEXT).getValue();
         final String groupingParameter = (String) parameters.getParameter(
-                PeakComparisonRowFilterParameters.GROUPSPARAMETER).getValue();
-        final boolean filterByMinIsotopePatternSize = parameters.getParameter(
-                PeakComparisonRowFilterParameters.MIN_ISOTOPE_PATTERN_COUNT).getValue();
+                PeakComparisonRowFilterParameters.GROUPSPARAMETER).getValue();        
         final boolean filterByMzRange = parameters.getParameter(
                 PeakComparisonRowFilterParameters.MZ_RANGE).getValue();
         final boolean filterByRtRange = parameters.getParameter(
                 PeakComparisonRowFilterParameters.RT_RANGE).getValue();
-        final boolean filterByDuration = parameters.getParameter(
-                PeakComparisonRowFilterParameters.PEAK_DURATION).getValue();
+
 
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
