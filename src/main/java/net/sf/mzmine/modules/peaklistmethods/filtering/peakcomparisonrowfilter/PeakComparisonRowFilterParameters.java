@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.filtering.peakcomparisonrowfilter;
 
 import java.awt.Window;
+import java.text.DecimalFormat;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -48,17 +49,17 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
     
     public static final IntegerParameter COLUMN_INDEX_1 = new IntegerParameter(
             "1st peak column to compare (zero indexed)",
-             "index of second column for comparison, e.g. \"0\"");
+             "index of second column for comparison, e.g. \"0\"",0);
     
     public static final IntegerParameter COLUMN_INDEX_2 = new IntegerParameter(
             "2nd peak column to compare (zero indexed)",
-             "index of second column for comparison,e.g. \"1\"");
+             "index of second column for comparison,e.g. \"1\"",1);
     
     public static final OptionalParameter<DoubleRangeParameter> FOLD_CHANGE = new OptionalParameter<>(
             new DoubleRangeParameter("Fold change range : log2(peak1/peak2)",
                     "Range of fold change to return",
-                    MZmineCore.getConfiguration().getRTFormat(), Range.closed(
-                            0.0, 10.0)));
+                    new DecimalFormat("0.0"),Range.closed(
+                            -5.0, 5.0)));
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",
