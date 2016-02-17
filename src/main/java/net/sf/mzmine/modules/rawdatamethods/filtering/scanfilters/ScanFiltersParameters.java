@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean.MeanFilter;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample.ResampleFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.roundresample.RndResampleFilter;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay.SGFilter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -32,7 +33,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 public class ScanFiltersParameters extends SimpleParameterSet {
 
     public static final ScanFilter rawDataFilters[] = { new SGFilter(),
-            new MeanFilter(), new ResampleFilter() };
+            new MeanFilter(), new ResampleFilter(), new RndResampleFilter() };
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
