@@ -36,6 +36,7 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -157,51 +158,67 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
                 .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
                         getTaskDescription(), parameters));
 
-        // Get parameters.
-        final String groupingParameter = (String) parameters.getParameter(
-                PeakComparisonRowFilterParameters.GROUPSPARAMETER).getValue();        
-        final boolean filterByMzRange = parameters.getParameter(
-                PeakComparisonRowFilterParameters.MZ_RANGE).getValue();
-        final boolean filterByRtRange = parameters.getParameter(
-                PeakComparisonRowFilterParameters.RT_RANGE).getValue();
+        // Get parameters.        
+        final boolean foldChangeBool = parameters.getParameter(
+                PeakComparisonRowFilterParameters.FOLD_CHANGE).getValue();
+        final boolean columnIndex1 = parameters.getParameter(
+                PeakComparisonRowFilterParameters.COLUMN_INDEX_1).getValue();
+        final boolean columnIndex2 = parameters.getParameter(
+                PeakComparisonRowFilterParameters.COLUMN_INDEX_2).getValue();
+        final Range<Double> foldChangeRange = parameters.getParameter(
+                PeakComparisonRowFilterParameters.FOLD_CHANGE)
+                .getEmbeddedParameter().getValue();
+        final int columnIndex1Value = parameters
+                .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_1)
+                .getEmbeddedParameter().getValue();
+        final int columnIndex2Value = parameters
+                .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_2)
+                .getEmbeddedParameter().getValue();
 
-
+        
+        
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
+        RawDataFile rawDataFile1;
+        RawDataFile rawDataFile2;
+        int lengthRawDataFiles = 0;
+        int lengthPeaks = 0;
+        Feature peak1;
+        Feature peak2;
         totalRows = rows.length;
+        double foldChange = 0;
         for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
-
-            final PeakListRow row = rows[processedRows];
-
-            final int peakCount = getPeakCount(row, groupingParameter);
-
-            // Check number of peaks.
-
-            // Check identities.
-
-
-            // Check average m/z.
-
-            // Check average RT.
-
-
-            // Search peak identity text.
-
-
-            // Search peak comment text.
-
-
-            // Calculate average duration and isotope pattern count.
-           
-
-            // Check isotope pattern count.
+            
             
 
-            // Check average duration.
+            final PeakListRow row = rows[processedRows];
+                
+            final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+            lengthRawDataFiles = rawDataFiles.length;
+            //rawDataFile1 = rawDataFiles[columnIndex1Value];
+            //rawDataFile2 = rawDataFiles[columnIndex2Value];
+            
+            final Feature[] peaks = row.getPeaks();
+            lengthPeaks = peaks.length;
+            peak1 = peaks[columnIndex1Value];
+            peak2 = peaks[columnIndex2Value];
+            
+            if ( peak1 != null && peak2 != null)
+            {
+            
+                foldChange = Math.log(peak1.getArea()/peak2.getArea()) / Math.log(2);
+            
+
+            
+                if ( foldChangeRange.contains(foldChange) )
+                    newPeakList.addRow(copyPeakRow(row)); //Row matches criteria
+
+            }
+            
            
 
-            // Good row?
-            newPeakList.addRow(copyPeakRow(row));
+
+            
         }
 
         return newPeakList;

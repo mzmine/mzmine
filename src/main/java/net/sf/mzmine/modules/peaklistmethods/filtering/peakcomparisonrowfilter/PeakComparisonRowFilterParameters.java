@@ -46,55 +46,30 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
     public static final StringParameter SUFFIX = new StringParameter(
             "Name suffix", "Suffix to be added to peak list name", "filtered");
     
-    public static final OptionalParameter<IntegerParameter> COLUMN1 = new OptionalParameter<>(
+    public static final OptionalParameter<IntegerParameter> COLUMN_INDEX_1 = new OptionalParameter<>(
             new IntegerParameter("1st peak comparison column (zero indexed)",
                     "index of 1st column for comparison", 1, 0,
                     null));
     
-    public static final OptionalParameter<IntegerParameter> COLUMN2 = new OptionalParameter<>(
+    public static final OptionalParameter<IntegerParameter> COLUMN_INDEX_2 = new OptionalParameter<>(
             new IntegerParameter("2nd peak comparison column (zero indexed)",
                     "index of second column for comparison", 1, 0,
                     null));
 
-    public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT = new OptionalParameter<>(
-            new IntegerParameter("Minimum peaks in an isotope pattern",
-                    "Minimum number of peaks required in an isotope pattern"));
 
-    public static final OptionalParameter<MZRangeParameter> MZ_RANGE = new OptionalParameter<>(
-            new MZRangeParameter());
-
-    public static final OptionalParameter<RTRangeParameter> RT_RANGE = new OptionalParameter<>(
-            new RTRangeParameter());
-
-    public static final OptionalParameter<DoubleRangeParameter> PEAK_DURATION = new OptionalParameter<>(
-            new DoubleRangeParameter("Peak duration range",
-                    "Permissible range of (average) peak durations per row",
+    public static final OptionalParameter<DoubleRangeParameter> FOLD_CHANGE = new OptionalParameter<>(
+            new DoubleRangeParameter("Fold change (log2)",
+                    "Range of fold change to return",
                     MZmineCore.getConfiguration().getRTFormat(), Range.closed(
                             0.0, 10.0)));
-
-    public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
-            "Parameter", "Paremeter defining the group of each sample.",
-            new Object[0]);
-
-
-    public static final OptionalParameter<StringParameter> IDENTITY_TEXT = new OptionalParameter<>(
-            new StringParameter(
-                    "Text in identity",
-                    "Only rows that contain this text in their peak identity field will be retained."));
-
-    public static final OptionalParameter<StringParameter> COMMENT_TEXT = new OptionalParameter<>(
-            new StringParameter("Text in comment",
-                    "Only rows that contain this text in their comment field will be retained."));
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",
             "If checked, the original peak list will be removed leaving only the filtered version");
 
     public PeakComparisonRowFilterParameters() {
-        super(new Parameter[] { PEAK_LISTS, SUFFIX, COLUMN1, COLUMN2,
-                MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
-                GROUPSPARAMETER, IDENTITY_TEXT,
-                COMMENT_TEXT, AUTO_REMOVE });
+        super(new Parameter[] { PEAK_LISTS, SUFFIX, COLUMN_INDEX_1, COLUMN_INDEX_2,
+                FOLD_CHANGE, AUTO_REMOVE });
     }
 
     @Override
@@ -115,7 +90,6 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
             }
         }
 
-        getParameter(PeakComparisonRowFilterParameters.GROUPSPARAMETER).setChoices(choices);
         ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
                 valueCheckRequired, this);
         dialog.setVisible(true);
