@@ -109,6 +109,10 @@ class CustomDBSearchTask extends AbstractTask {
 	    if (ignoreFirstLine)
 		finishedLines++;
 	    for (; finishedLines < databaseValues.length; finishedLines++) {
+	        if (isCanceled()) {
+	            dbFileReader.close();
+	            return;
+	        }
 		try {
 		    processOneLine(databaseValues[finishedLines]);
 		} catch (Exception e) {
