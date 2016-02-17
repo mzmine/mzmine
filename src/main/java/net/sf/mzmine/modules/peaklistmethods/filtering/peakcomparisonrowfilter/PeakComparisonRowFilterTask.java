@@ -19,14 +19,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.peakcomparisonrowfilter;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+
+
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
@@ -36,13 +34,10 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.RangeUtils;
 
 import com.google.common.collect.Range;
 
@@ -273,46 +268,5 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
         return newRow;
     }
-
-    private int getPeakCount(PeakListRow row, String groupingParameter) {
-        if (groupingParameter.contains("Filtering by ")) {
-            HashMap<String, Integer> groups = new HashMap<String, Integer>();
-            for (RawDataFile file : project.getDataFiles()) {
-                UserParameter<?, ?> params[] = project.getParameters();
-                for (UserParameter<?, ?> p : params) {
-                    groupingParameter = groupingParameter
-                            .replace("Filtering by ", "");
-                    if (groupingParameter.equals(p.getName())) {
-                        String parameterValue = String
-                                .valueOf(project.getParameterValue(p, file));
-                        if (row.hasPeak(file)) {
-                            if (groups.containsKey(parameterValue)) {
-                                groups.put(parameterValue,
-                                        groups.get(parameterValue) + 1);
-                            } else {
-                                groups.put(parameterValue, 1);
-                            }
-                        } else {
-                            groups.put(parameterValue, 0);
-                        }
-                    }
-                }
-            }
-
-            Set<String> ref = groups.keySet();
-            Iterator<String> it = ref.iterator();
-            int min = Integer.MAX_VALUE;
-            while (it.hasNext()) {
-                String name = (String) it.next();
-                int val = groups.get(name);
-                if (val < min) {
-                    min = val;
-                }
-            }
-            return min;
-
-        } else {
-            return row.getNumberOfPeaks();
-        }
-    }
+    
 }
