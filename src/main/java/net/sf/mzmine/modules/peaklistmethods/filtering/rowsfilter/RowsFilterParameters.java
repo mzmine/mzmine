@@ -83,9 +83,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
             new StringParameter("Text in comment",
                     "Only rows that contain this text in their comment field will be retained."));
     
-    public static final BooleanParameter REMOVE_ROW = new BooleanParameter(
-            "Remove rows instead of keeping?",
-            "If checked, rows will be removed based on criteria instead of kept");
+    public static final ComboParameter<Object> REMOVE_ROW = new ComboParameter<Object>(
+            "Keep or remove rows",
+            "If selected, rows will be removed based on criteria instead of kept",new Object[0]);
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",
@@ -116,6 +116,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
             }
         }
 
+        String[] removeRowChoices = {"Keep rows that match all criteria","Remove rows that match all criteria"};
+        getParameter(RowsFilterParameters.REMOVE_ROW).setChoices(removeRowChoices);
+        
         getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
         ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
                 valueCheckRequired, this);

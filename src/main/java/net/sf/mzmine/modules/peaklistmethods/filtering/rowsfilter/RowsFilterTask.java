@@ -176,8 +176,14 @@ public class RowsFilterTask extends AbstractTask {
                 RowsFilterParameters.RT_RANGE).getValue();
         final boolean filterByDuration = parameters.getParameter(
                 RowsFilterParameters.PEAK_DURATION).getValue();
-        final boolean removeRow = parameters.getParameter(
+        final String removeRowString = (String) parameters.getParameter(
                 RowsFilterParameters.REMOVE_ROW).getValue();
+        
+        boolean removeRow = false;
+        if ( removeRowString.equalsIgnoreCase("Keep rows that match all criteria") )
+            removeRow = false;
+        if ( removeRowString.equalsIgnoreCase("Remove rows that match all criteria") )
+            removeRow = true;
         
         boolean filterRowCriteriaFailed = false; //Keep rows that don't match any criteria.  Keep by default.  
         //Remove by default w/ remove_row == true
@@ -186,6 +192,8 @@ public class RowsFilterTask extends AbstractTask {
         final PeakListRow[] rows = peakList.getRows();
         totalRows = rows.length;
         for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
+            
+            filterRowCriteriaFailed = false;
 
 
             final PeakListRow row = rows[processedRows];
@@ -215,7 +223,6 @@ public class RowsFilterTask extends AbstractTask {
                 final Range<Double> mzRange = parameters
                         .getParameter(RowsFilterParameters.MZ_RANGE)
                         .getEmbeddedParameter().getValue();
-                System.out.println("entering function");
                 if (!mzRange.contains(row.getAverageMZ()))
                     filterRowCriteriaFailed = true;
 
@@ -255,7 +262,7 @@ public class RowsFilterTask extends AbstractTask {
             if (filterByCommentText) {
 
                 if (row.getComment() == null && !removeRow)
-                    continue;
+                    filterRowCriteriaFailed = true;
                 if (row.getComment() != null && removeRow)
                 {
                 final String searchText = parameters
@@ -314,8 +321,8 @@ public class RowsFilterTask extends AbstractTask {
             if (!filterRowCriteriaFailed && !removeRow)
                 //Only add the row if none of the criteria have failed.
                 newPeakList.addRow(copyPeakRow(row));
-            if (filterRowCriteriaFailed && removeRow) //NOT FULLY IMPLEMENTED
-                //Only add the rows that don't meet any of the criteria.
+            if (filterRowCriteriaFailed && removeRow)
+                //Only remove rows that match *all* of the criteria, so add rows that fail any of the criteria.
                 newPeakList.addRow(copyPeakRow(row));
             
 
