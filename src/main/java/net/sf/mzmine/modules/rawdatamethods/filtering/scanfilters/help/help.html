@@ -88,5 +88,37 @@
             <dd>The length of m/z bin.</dd>
         </dl>
 
+        <h3>m/z round resample filter</h3>
+        <p>
+            All data points in each scan is shifted to the nearest rounded integer 
+            (ion number). The mass of the new data point will be on the rounded value. 
+            If several data points are competing for the same rounded 
+            value / mass, the new data point's intensity is the average of all the 
+            competing data points. 
+            <!-- the highest (most intensive) only is kept. --> 
+            Unless "Sum duplicate intensities" is checked, leading to a single new data 
+            point with intensity equal to the sum of the intensities of all the 
+            competing data points. 
+            If the scan is not centroided, its spectrum is first turned into centroid 
+            using a default "local maxima" algorithm, then the same algorithm as 
+            described above is applied.
+        </p>
+
+        <p>Spectrum data points before (blue) and after (green) the filter was applied.
+            <br><br>Centroid spectrum<br><img src="rndSamplingFilter.png" name="Round filter (centroid spectrum)">
+            <br><br>Profile spectrum<br><img src="rndSamplingFilterProfile.png" name="Round filter (profile spectrum)">
+        </p>
+
+        <h4>Method parameters</h4>
+        <dl>
+            <dt>Sum duplicate intensities</dt>
+            <dd>Sums ions count (intensity) of m/z peaks competing for being rounded at same m/z unit. 
+            If unchecked, the intensities are averaged rather than summed.</dd>
+        </dl>
+        <dl>
+            <dt>Remove zero intensity m/z peaks</dt>
+            <dd>Clear all scans spectra from m/z peaks with intensity equal to zero.</dd>
+        </dl>
+
     </body>
 </html>
