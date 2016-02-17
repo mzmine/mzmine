@@ -35,7 +35,6 @@ import net.sf.mzmine.datamodel.impl.SimpleScan;
  */
 public class LocMaxCentroidingAlgorithm {
 
-
     private final DataPoint[] dataPoints;
     private Scan inputScan;
     private SimpleScan newScan;
@@ -55,13 +54,13 @@ public class LocMaxCentroidingAlgorithm {
 
         // Copy all scan properties
         this.newScan = new SimpleScan(inputScan);
-        
+
         // Load data points
         for (int i = 0; i < dataPoints.length; ++i) {
             mzBuffer[i] = dataPoints[i].getMZ();
             intensityBuffer[i] = dataPoints[i].getIntensity();
         }
-        
+
         final int numOfDataPoints = inputScan.getNumberOfDataPoints();
         int newNumOfDataPoints = 0;
 
@@ -69,9 +68,11 @@ public class LocMaxCentroidingAlgorithm {
         ArrayList<DataPoint> newDataPoints = new ArrayList<DataPoint>();
         if (numOfDataPoints == 0) {
             for (int i = 0; i < numOfDataPoints; ++i) {
-                newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
+                newDataPoints.add(new SimpleDataPoint(mzBuffer[i],
+                        intensityBuffer[i]));
             }
-            newScan.setDataPoints(newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]));
+            newScan.setDataPoints(newDataPoints
+                    .toArray(new SimpleDataPoint[newDataPoints.size()]));
             newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
             return newScan;
         }
@@ -126,9 +127,11 @@ public class LocMaxCentroidingAlgorithm {
 
         // Store the new data points
         for (int i = 0; i < newNumOfDataPoints; ++i) {
-            newDataPoints.add(new SimpleDataPoint(mzBuffer[i], intensityBuffer[i]));
+            newDataPoints.add(new SimpleDataPoint(mzBuffer[i],
+                    intensityBuffer[i]));
         }
-        newScan.setDataPoints(newDataPoints.toArray(new SimpleDataPoint[newDataPoints.size()]));
+        newScan.setDataPoints(newDataPoints
+                .toArray(new SimpleDataPoint[newDataPoints.size()]));
         newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 
         return newScan;

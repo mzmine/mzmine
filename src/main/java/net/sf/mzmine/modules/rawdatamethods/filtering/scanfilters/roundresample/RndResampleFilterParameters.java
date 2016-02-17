@@ -31,24 +31,23 @@ public class RndResampleFilterParameters extends SimpleParameterSet {
 
     public static final BooleanParameter SUM_DUPLICATES = new BooleanParameter(
             "Sum duplicate intensities",
-            "Concatenates/sums ions count (intensity) of m/z peaks competing for being rounded at same m/z unit. " +
-            //"If unchecked, only the first m/z peak at given m/z is kept and the others are removed." +
-            "If unchecked, the intensities are averaged rather than summed.",
+            "Concatenates/sums ions count (intensity) of m/z peaks competing for being rounded at same m/z unit. "
+                    + "If unchecked, the intensities are averaged rather than summed.",
             true);
 
     public static final BooleanParameter REMOVE_ZERO_INTENSITY = new BooleanParameter(
             "Remove zero intensity m/z peaks",
             "Clear all scans spectra from m/z peaks with intensity equal to zero.",
             true);
-    
+
     public RndResampleFilterParameters() {
-	super(new Parameter[] { SUM_DUPLICATES, REMOVE_ZERO_INTENSITY });
+        super(new Parameter[] { SUM_DUPLICATES, REMOVE_ZERO_INTENSITY });
     }
 
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-	ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(parent,
-		valueCheckRequired, this, RndResampleFilter.class);
-	dialog.setVisible(true);
-	return dialog.getExitCode();
+        ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(parent,
+                valueCheckRequired, this, RndResampleFilter.class);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
     }
 }

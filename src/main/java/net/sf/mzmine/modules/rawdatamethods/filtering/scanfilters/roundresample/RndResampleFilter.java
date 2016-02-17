@@ -30,13 +30,12 @@ import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 
-
 public class RndResampleFilter implements ScanFilter {
-    
+
     private Scan inputScan;
-    
+
     public Scan filterScan(Scan scan, ParameterSet parameters) {
-        
+
         boolean sum_duplicates = parameters.getParameter(
                 RndResampleFilterParameters.SUM_DUPLICATES).getValue();
         boolean remove_zero_intensity = parameters.getParameter(
@@ -48,9 +47,9 @@ public class RndResampleFilter implements ScanFilter {
         // Otherwise, detect local maxima
         else
             inputScan = new LocMaxCentroidingAlgorithm(scan).centroidScan();
-        
+
         DataPoint dps[] = inputScan.getDataPoints();
-        
+
         // Cleanup first: Remove zero intensity data points (if requested)
         // Reuse dps array
         int newNumOfDataPoints = 0;
@@ -60,8 +59,7 @@ public class RndResampleFilter implements ScanFilter {
                 ++newNumOfDataPoints;
             }
         }
-        
-        
+
         // Getting started
         SimpleDataPoint[] newDps = new SimpleDataPoint[newNumOfDataPoints];
         for (int i = 0; i < newNumOfDataPoints; ++i) {
@@ -70,15 +68,15 @@ public class RndResampleFilter implements ScanFilter {
             // Create new DataPoint accordingly (intensity untouched)
             newDps[i] = new SimpleDataPoint(newMz, dps[i].getIntensity());
         }
-        
-        
+
         // Post-treatments
         // Cleanup: Merge duplicates/overlap
-        //ArrayList<SimpleDataPoint> dpsList = new ArrayList<SimpleDataPoint>();
+        // ArrayList<SimpleDataPoint> dpsList = new
+        // ArrayList<SimpleDataPoint>();
         double prevMz = -1.0, curMz = -1.0;
         double newIntensity = 0.0;
         double divider = 1.0;
-        
+
         // Reuse dps array
         newNumOfDataPoints = 0;
         for (int i = 0; i < newDps.length; ++i) {
@@ -88,47 +86,51 @@ public class RndResampleFilter implements ScanFilter {
                 // Handle duplicates
                 if (curMz == prevMz) {
                     if (sum_duplicates) {
-                        // Use sum 
+                        // Use sum
                         newIntensity += newDps[i].getIntensity();
-                        dps[newNumOfDataPoints-1] = new SimpleDataPoint(prevMz, newIntensity);
+                        dps[newNumOfDataPoints - 1] = new SimpleDataPoint(
+                                prevMz, newIntensity);
                     } else {
                         // Use average
                         newIntensity += newDps[i].getIntensity();
-                        dps[newNumOfDataPoints-1] = new SimpleDataPoint(prevMz, newIntensity);
+                        dps[newNumOfDataPoints - 1] = new SimpleDataPoint(
+                                prevMz, newIntensity);
                         divider += 1.0;
                     }
                 } else {
-                    dps[newNumOfDataPoints-1] = new SimpleDataPoint(prevMz, newIntensity / divider);
-                    
+                    dps[newNumOfDataPoints - 1] = new SimpleDataPoint(prevMz,
+                            newIntensity / divider);
+
                     dps[newNumOfDataPoints] = newDps[i];
                     ++newNumOfDataPoints;
-                    newIntensity = dps[newNumOfDataPoints-1].getIntensity();
+                    newIntensity = dps[newNumOfDataPoints - 1].getIntensity();
                     divider = 1.0;
-                }            
+                }
             } else {
                 dps[newNumOfDataPoints] = newDps[i];
                 ++newNumOfDataPoints;
             }
             prevMz = newDps[i].getMZ();
-        } 
+        }
 
-        
-	// Create updated scan
-	SimpleScan newScan = new SimpleScan(inputScan);
+        // Create updated scan
+        SimpleScan newScan = new SimpleScan(inputScan);
         newScan.setDataPoints(Arrays.copyOfRange(dps, 0, newNumOfDataPoints));
-	newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
+        newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 
-	return newScan;
+        return newScan;
 
     }
 
     @Override
-    public @Nonnull String getName() {
-	return "Round resampling filter";
+    public @Nonnull
+    String getName() {
+        return "Round resampling filter";
     }
 
     @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return RndResampleFilterParameters.class;
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
+        return RndResampleFilterParameters.class;
     }
 }

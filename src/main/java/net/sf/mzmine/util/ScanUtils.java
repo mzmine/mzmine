@@ -387,24 +387,23 @@ public class ScanUtils {
      * uses multiple checks for that purpose, as described in the code comments.
      */
     /*
-     * Adapted from MSDK:
-     * https://github.com/msdk/msdk/blob/master/msdk-spectra/
+     * Adapted from MSDK: https://github.com/msdk/msdk/blob/master/msdk-spectra/
      * msdk-spectra-spectrumtypedetection/src/main/java/io/github/
      * msdk/spectra/spectrumtypedetection/SpectrumTypeDetectionAlgorithm.java
      */
     public static MassSpectrumType detectSpectrumType(
             @Nonnull DataPoint[] dataPoints) {
-        
+
         double[] intensityValues = new double[dataPoints.length];
         double[] mzValues = new double[dataPoints.length];
-                
+
         // If the spectrum has less than 5 data points, it should be centroided.
         if (dataPoints.length < 5)
             return MassSpectrumType.CENTROIDED;
 
         int basePeakIndex = 0;
         boolean hasZeroDataPoint = false;
-        
+
         // Go through the data points and find the highest one
         int size = dataPoints.length;
         for (int i = 0; i < size; i++) {
@@ -415,11 +414,11 @@ public class ScanUtils {
             // Update the maxDataPointIndex accordingly
             if (intensityValues[i] > intensityValues[basePeakIndex])
                 basePeakIndex = i;
-            
+
             if (intensityValues[i] == 0.0)
                 hasZeroDataPoint = true;
         }
-        
+
         final double scanMzSpan = mzValues[size - 1] - mzValues[0];
 
         // Find the all data points around the base peak that have intensity
