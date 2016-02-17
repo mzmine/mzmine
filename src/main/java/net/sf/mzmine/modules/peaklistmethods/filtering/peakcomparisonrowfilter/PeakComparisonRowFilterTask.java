@@ -93,7 +93,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     @Override
     public String getTaskDescription() {
 
-        return "Filtering peak list rows";
+        return "Filtering peak list rows based on peak comparisons";
     }
 
     @Override
@@ -138,7 +138,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     }
 
     /**
-     * Filter the peak list rows.
+     * Filter the peak list rows by comparing peaks within a row.
      *
      * @param peakList
      *            peak list to filter.
@@ -181,7 +181,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
                 .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
                 .getEmbeddedParameter().getValue();
 
-        // Filter rows.
+        // Setup variables
         final PeakListRow[] rows = peakList.getRows();
         RawDataFile rawDataFile1;
         RawDataFile rawDataFile2;
@@ -192,59 +192,60 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
         double peak1Area = 1.0;
         double peak2Area = 1.0;
+        
+        boolean allCriteriaMatched = true;
 
-        // User tried to select a column from the peaklist that doesn't exist.
-        if (columnIndex1 > rawDataFiles.length)
-        {
+        // Error handling. User tried to select a column from the peaklist that doesn't exist.
+        if (columnIndex1 > rawDataFiles.length) {
             // throw new RuntimeException("Column 1 set too large.");
             setErrorMessage("Column 1 set too large.");
             setStatus(TaskStatus.ERROR);
             return peakList;
         }
-        if (columnIndex2 > rawDataFiles.length)
-        {
+        if (columnIndex2 > rawDataFiles.length) {
             setErrorMessage("Column 2 set too large.");
             setStatus(TaskStatus.ERROR);
             return peakList;
         }
-        
-        boolean allCriteriaMatched = true;
 
-            for (processedRows = 0; !isCanceled()
-                    && processedRows < totalRows; processedRows++) {
 
-                final PeakListRow row = rows[processedRows];
-                rawDataFile1 = rawDataFiles[columnIndex1];
-                rawDataFile2 = rawDataFiles[columnIndex2];
 
-                peak1 = row.getPeak(rawDataFile1);
-                peak2 = row.getPeak(rawDataFile2);
+        // Loop over the rows & filter
+        for (processedRows = 0; !isCanceled()
+                && processedRows < totalRows; processedRows++) {
 
-                peak1Area = 1.0;
-                peak2Area = 1.0;
+            allCriteriaMatched = true;
+            
+            peak1Area = 1.0; //Default value in case of null peak
+            peak2Area = 1.0;
+            
+            final PeakListRow row = rows[processedRows];
+            rawDataFile1 = rawDataFiles[columnIndex1];
+            rawDataFile2 = rawDataFiles[columnIndex2];
 
-                allCriteriaMatched = true;
-                
-                if (peak1 != null)
-                    peak1Area = peak1.getArea();
+            peak1 = row.getPeak(rawDataFile1);
+            peak2 = row.getPeak(rawDataFile2);
+          
 
-                if (peak2 != null)
-                    peak2Area = peak2.getArea();
+            if (peak1 != null)
+                peak1Area = peak1.getArea();
 
-                // Fold change criteria checking
-                if (evalutateFoldChange)
-                {
+            if (peak2 != null)
+                peak2Area = peak2.getArea();
+
+            // Fold change criteria checking.
+            if (evalutateFoldChange) {
                 foldChange = Math.log(peak1Area / peak2Area) / Math.log(2);
-                if (!foldChangeRange.contains(foldChange)) 
+                if (!foldChangeRange.contains(foldChange))
                     allCriteriaMatched = false;
-              
-                }
-                
-                //Good row?
-                if (allCriteriaMatched)
-                    newPeakList.addRow(copyPeakRow(row)); 
 
             }
+
+            // Good row?
+            if (allCriteriaMatched)
+                newPeakList.addRow(copyPeakRow(row));
+
+        }
 
         return newPeakList;
     }
