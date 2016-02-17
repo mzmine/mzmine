@@ -47,15 +47,15 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
             "Name suffix", "Suffix to be added to peak list name", "filtered");
     
     public static final IntegerParameter COLUMN_INDEX_1 = new IntegerParameter(
-            "1st peak comparison column (zero indexed)",
-             "index of second column for comparison");
+            "1st peak column to compare (zero indexed)",
+             "index of second column for comparison, e.g. \"0\"");
     
     public static final IntegerParameter COLUMN_INDEX_2 = new IntegerParameter(
-            "2nd peak comparison column (zero indexed)",
-             "index of second column for comparison");
+            "2nd peak column to compare (zero indexed)",
+             "index of second column for comparison,e.g. \"1\"");
     
     public static final OptionalParameter<DoubleRangeParameter> FOLD_CHANGE = new OptionalParameter<>(
-            new DoubleRangeParameter("Fold change (log2)",
+            new DoubleRangeParameter("Fold change range : log2(peak1/peak2)",
                     "Range of fold change to return",
                     MZmineCore.getConfiguration().getRTFormat(), Range.closed(
                             0.0, 10.0)));

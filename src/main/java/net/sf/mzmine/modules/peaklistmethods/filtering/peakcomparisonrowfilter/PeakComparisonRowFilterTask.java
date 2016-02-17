@@ -52,8 +52,8 @@ import com.google.common.collect.Range;
 public class PeakComparisonRowFilterTask extends AbstractTask {
 
     // Logger.
-    private static final Logger LOG = Logger.getLogger(PeakComparisonRowFilterTask.class
-            .getName());
+    private static final Logger LOG = Logger
+            .getLogger(PeakComparisonRowFilterTask.class.getName());
     // Peak lists.
     private final MZmineProject project;
     private final PeakList origPeakList;
@@ -71,8 +71,8 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
      * @param parameterSet
      *            task parameters.
      */
-    public PeakComparisonRowFilterTask(final MZmineProject project, final PeakList list,
-            final ParameterSet parameterSet) {
+    public PeakComparisonRowFilterTask(final MZmineProject project,
+            final PeakList list, final ParameterSet parameterSet) {
 
         // Initialize.
         this.project = project;
@@ -86,8 +86,8 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     @Override
     public double getFinishedPercentage() {
 
-        return totalRows == 0 ? 0.0 : (double) processedRows
-                / (double) totalRows;
+        return totalRows == 0 ? 0.0
+                : (double) processedRows / (double) totalRows;
     }
 
     @Override
@@ -108,20 +108,26 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
                 // Filter the peak list.
                 filteredPeakList = filterPeakListRows(origPeakList);
 
-                if (!isCanceled()) {
+                if (getStatus() == TaskStatus.ERROR)
+                    return;
 
-                    // Add new peaklist to the project
-                    project.addPeakList(filteredPeakList);
+                if (isCanceled())
+                    return;
 
-                    // Remove the original peaklist if requested
-                    if (parameters.getParameter(
-                            PeakComparisonRowFilterParameters.AUTO_REMOVE).getValue()) {
-                        project.removePeakList(origPeakList);
-                    }
+                // Add new peaklist to the project
+                project.addPeakList(filteredPeakList);
 
-                    setStatus(TaskStatus.FINISHED);
-                    LOG.info("Finished peak comparison rows filter");
+                // Remove the original peaklist if requested
+                if (parameters
+                        .getParameter(
+                                PeakComparisonRowFilterParameters.AUTO_REMOVE)
+                        .getValue()) {
+                    project.removePeakList(origPeakList);
                 }
+
+                setStatus(TaskStatus.FINISHED);
+                LOG.info("Finished peak comparison rows filter");
+
             } catch (Throwable t) {
 
                 setErrorMessage(t.getMessage());
@@ -142,35 +148,39 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     private PeakList filterPeakListRows(final PeakList peakList) {
 
         // Create new peak list.
-        final PeakList newPeakList = new SimplePeakList(peakList.getName()
-                + ' '
-                + parameters.getParameter(PeakComparisonRowFilterParameters.SUFFIX)
-                        .getValue(), peakList.getRawDataFiles());
+        final PeakList newPeakList = new SimplePeakList(
+                peakList.getName() + ' '
+                        + parameters
+                                .getParameter(
+                                        PeakComparisonRowFilterParameters.SUFFIX)
+                                .getValue(),
+                peakList.getRawDataFiles());
 
         // Copy previous applied methods.
-        for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+        for (final PeakListAppliedMethod method : peakList
+                .getAppliedMethods()) {
 
             newPeakList.addDescriptionOfAppliedTask(method);
         }
 
         // Add task description to peakList.
-        newPeakList
-                .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-                        getTaskDescription(), parameters));
+        newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                getTaskDescription(), parameters));
 
-        // Get parameters.        
-        final boolean foldChangeBool = parameters.getParameter(
-                PeakComparisonRowFilterParameters.FOLD_CHANGE).getValue();
-        final int columnIndex1 = parameters.getParameter(
-                PeakComparisonRowFilterParameters.COLUMN_INDEX_1).getValue();
-        final int columnIndex2 = parameters.getParameter(
-                PeakComparisonRowFilterParameters.COLUMN_INDEX_2).getValue();
-        final Range<Double> foldChangeRange = parameters.getParameter(
-                PeakComparisonRowFilterParameters.FOLD_CHANGE)
+        // Get parameters.
+        final boolean evalutateFoldChange = parameters
+                .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
+                .getValue();
+        final int columnIndex1 = parameters
+                .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_1)
+                .getValue();
+        final int columnIndex2 = parameters
+                .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_2)
+                .getValue();
+        final Range<Double> foldChangeRange = parameters
+                .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
                 .getEmbeddedParameter().getValue();
 
-        
-        
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
         RawDataFile rawDataFile1;
@@ -182,48 +192,59 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
         double peak1Area = 1.0;
         double peak2Area = 1.0;
-        
 
-            //User tried to select a column from the peaklist that doesn't exist.
-            if (columnIndex1 > rawDataFiles.length)
-                throw new RuntimeException("Column 1 set too large.");
-            if (columnIndex2 > rawDataFiles.length)
-                throw new RuntimeException("Column 2 set too large.");
- 
-        
-        for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
-            
-            final PeakListRow row = rows[processedRows]; 
-            rawDataFile1 = rawDataFiles[columnIndex1];
-            rawDataFile2 = rawDataFiles[columnIndex2];
-            
-            peak1 = row.getPeak(rawDataFile1);
-            peak2 = row.getPeak(rawDataFile2);
-            
-            peak1Area = 1.0;
-            peak2Area = 1.0;
-            
-            if ( peak1 != null)
-                peak1Area = peak1.getArea();
-            
-            if ( peak2 != null)
-                peak2Area = peak2.getArea();
-            
-            
-            //Fold change criteria checking
-                foldChange = Math.log(peak1Area/peak2Area) / Math.log(2);
-                if ( foldChangeRange.contains(foldChange) )
-                {
-                    newPeakList.addRow(copyPeakRow(row)); //Row matches criteria
-                }
-
-            
-            
-           
-
-
-            
+        // User tried to select a column from the peaklist that doesn't exist.
+        if (columnIndex1 > rawDataFiles.length)
+        {
+            // throw new RuntimeException("Column 1 set too large.");
+            setErrorMessage("Column 1 set too large.");
+            setStatus(TaskStatus.ERROR);
+            return peakList;
         }
+        if (columnIndex2 > rawDataFiles.length)
+        {
+            setErrorMessage("Column 2 set too large.");
+            setStatus(TaskStatus.ERROR);
+            return peakList;
+        }
+        
+        boolean allCriteriaMatched = true;
+
+            for (processedRows = 0; !isCanceled()
+                    && processedRows < totalRows; processedRows++) {
+
+                final PeakListRow row = rows[processedRows];
+                rawDataFile1 = rawDataFiles[columnIndex1];
+                rawDataFile2 = rawDataFiles[columnIndex2];
+
+                peak1 = row.getPeak(rawDataFile1);
+                peak2 = row.getPeak(rawDataFile2);
+
+                peak1Area = 1.0;
+                peak2Area = 1.0;
+
+                allCriteriaMatched = true;
+                
+                if (peak1 != null)
+                    peak1Area = peak1.getArea();
+
+                if (peak2 != null)
+                    peak2Area = peak2.getArea();
+
+                // Fold change criteria checking
+                if (evalutateFoldChange)
+                {
+                foldChange = Math.log(peak1Area / peak2Area) / Math.log(2);
+                if (!foldChangeRange.contains(foldChange)) 
+                    allCriteriaMatched = false;
+              
+                }
+                
+                //Good row?
+                if (allCriteriaMatched)
+                    newPeakList.addRow(copyPeakRow(row)); 
+
+            }
 
         return newPeakList;
     }
@@ -258,11 +279,11 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
             for (RawDataFile file : project.getDataFiles()) {
                 UserParameter<?, ?> params[] = project.getParameters();
                 for (UserParameter<?, ?> p : params) {
-                    groupingParameter = groupingParameter.replace(
-                            "Filtering by ", "");
+                    groupingParameter = groupingParameter
+                            .replace("Filtering by ", "");
                     if (groupingParameter.equals(p.getName())) {
-                        String parameterValue = String.valueOf(project
-                                .getParameterValue(p, file));
+                        String parameterValue = String
+                                .valueOf(project.getParameterValue(p, file));
                         if (row.hasPeak(file)) {
                             if (groups.containsKey(parameterValue)) {
                                 groups.put(parameterValue,
