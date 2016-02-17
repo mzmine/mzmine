@@ -186,7 +186,6 @@ public class RowsFilterTask extends AbstractTask {
             removeRow = true;
         
         boolean filterRowCriteriaFailed = false; //Keep rows that don't match any criteria.  Keep by default.  
-        //Remove by default w/ remove_row == true
         
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
@@ -235,7 +234,7 @@ public class RowsFilterTask extends AbstractTask {
                         .getParameter(RowsFilterParameters.RT_RANGE)
                         .getEmbeddedParameter().getValue();
 
-                if (!rtRange.contains(row.getAverageRT()) && !removeRow)
+                if (!rtRange.contains(row.getAverageRT()))
                     filterRowCriteriaFailed = true;
 
             }
@@ -261,9 +260,9 @@ public class RowsFilterTask extends AbstractTask {
             // Search peak comment text.
             if (filterByCommentText) {
 
-                if (row.getComment() == null && !removeRow)
+                if (row.getComment() == null)
                     filterRowCriteriaFailed = true;
-                if (row.getComment() != null && removeRow)
+                if (row.getComment() != null)
                 {
                 final String searchText = parameters
                         .getParameter(RowsFilterParameters.COMMENT_TEXT)

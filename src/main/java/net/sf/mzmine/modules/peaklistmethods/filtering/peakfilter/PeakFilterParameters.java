@@ -85,10 +85,6 @@ public class PeakFilterParameters extends SimpleParameterSet {
                     "Permissible range of the asymmetry factor for a peak",
                     MZmineCore.getConfiguration().getRTFormat(), Range.closed(
                             0.5, 2.0)));
-    
-    public static final BooleanParameter LOGICAL_NOT = new BooleanParameter(
-            "Exclude rows based instead of keeping",
-            "If checked, the peaklist will remove rows that match the critera");
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",
@@ -97,7 +93,7 @@ public class PeakFilterParameters extends SimpleParameterSet {
     public PeakFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA,
                 PEAK_HEIGHT, PEAK_DATAPOINTS, PEAK_FWHM, PEAK_TAILINGFACTOR,
-                PEAK_ASYMMETRYFACTOR, LOGICAL_NOT, AUTO_REMOVE });
+                PEAK_ASYMMETRYFACTOR, AUTO_REMOVE });
     }
 
     @Override
