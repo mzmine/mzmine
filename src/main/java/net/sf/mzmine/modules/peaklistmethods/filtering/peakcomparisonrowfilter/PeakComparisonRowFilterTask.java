@@ -161,18 +161,12 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         // Get parameters.        
         final boolean foldChangeBool = parameters.getParameter(
                 PeakComparisonRowFilterParameters.FOLD_CHANGE).getValue();
-        final boolean columnIndex1 = parameters.getParameter(
+        final int columnIndex1 = parameters.getParameter(
                 PeakComparisonRowFilterParameters.COLUMN_INDEX_1).getValue();
-        final boolean columnIndex2 = parameters.getParameter(
+        final int columnIndex2 = parameters.getParameter(
                 PeakComparisonRowFilterParameters.COLUMN_INDEX_2).getValue();
         final Range<Double> foldChangeRange = parameters.getParameter(
                 PeakComparisonRowFilterParameters.FOLD_CHANGE)
-                .getEmbeddedParameter().getValue();
-        final int columnIndex1Value = parameters
-                .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_1)
-                .getEmbeddedParameter().getValue();
-        final int columnIndex2Value = parameters
-                .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_2)
                 .getEmbeddedParameter().getValue();
 
         
@@ -181,39 +175,49 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         final PeakListRow[] rows = peakList.getRows();
         RawDataFile rawDataFile1;
         RawDataFile rawDataFile2;
-        int lengthRawDataFiles = 0;
-        int lengthPeaks = 0;
         Feature peak1;
         Feature peak2;
         totalRows = rows.length;
-        double foldChange = 0;
+        double foldChange = 0.0;
+        final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+        double peak1Area = 1.0;
+        double peak2Area = 1.0;
+        
+
+            //User tried to select a column from the peaklist that doesn't exist.
+            if (columnIndex1 > rawDataFiles.length)
+                throw new RuntimeException("Column 1 set too large.");
+            if (columnIndex2 > rawDataFiles.length)
+                throw new RuntimeException("Column 2 set too large.");
+ 
+        
         for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
             
+            final PeakListRow row = rows[processedRows]; 
+            rawDataFile1 = rawDataFiles[columnIndex1];
+            rawDataFile2 = rawDataFiles[columnIndex2];
             
-
-            final PeakListRow row = rows[processedRows];
-                
-            final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
-            lengthRawDataFiles = rawDataFiles.length;
-            //rawDataFile1 = rawDataFiles[columnIndex1Value];
-            //rawDataFile2 = rawDataFiles[columnIndex2Value];
+            peak1 = row.getPeak(rawDataFile1);
+            peak2 = row.getPeak(rawDataFile2);
             
-            final Feature[] peaks = row.getPeaks();
-            lengthPeaks = peaks.length;
-            peak1 = peaks[columnIndex1Value];
-            peak2 = peaks[columnIndex2Value];
+            peak1Area = 1.0;
+            peak2Area = 1.0;
             
-            if ( peak1 != null && peak2 != null)
-            {
+            if ( peak1 != null)
+                peak1Area = peak1.getArea();
             
-                foldChange = Math.log(peak1.getArea()/peak2.getArea()) / Math.log(2);
+            if ( peak2 != null)
+                peak2Area = peak2.getArea();
             
-
             
+            //Fold change criteria checking
+                foldChange = Math.log(peak1Area/peak2Area) / Math.log(2);
                 if ( foldChangeRange.contains(foldChange) )
+                {
                     newPeakList.addRow(copyPeakRow(row)); //Row matches criteria
+                }
 
-            }
+            
             
            
 

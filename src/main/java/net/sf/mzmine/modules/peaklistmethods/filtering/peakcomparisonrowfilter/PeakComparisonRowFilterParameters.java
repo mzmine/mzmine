@@ -46,17 +46,14 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
     public static final StringParameter SUFFIX = new StringParameter(
             "Name suffix", "Suffix to be added to peak list name", "filtered");
     
-    public static final OptionalParameter<IntegerParameter> COLUMN_INDEX_1 = new OptionalParameter<>(
-            new IntegerParameter("1st peak comparison column (zero indexed)",
-                    "index of 1st column for comparison", 1, 0,
-                    null));
+    public static final IntegerParameter COLUMN_INDEX_1 = new IntegerParameter(
+            "1st peak comparison column (zero indexed)",
+             "index of second column for comparison");
     
-    public static final OptionalParameter<IntegerParameter> COLUMN_INDEX_2 = new OptionalParameter<>(
-            new IntegerParameter("2nd peak comparison column (zero indexed)",
-                    "index of second column for comparison", 1, 0,
-                    null));
-
-
+    public static final IntegerParameter COLUMN_INDEX_2 = new IntegerParameter(
+            "2nd peak comparison column (zero indexed)",
+             "index of second column for comparison");
+    
     public static final OptionalParameter<DoubleRangeParameter> FOLD_CHANGE = new OptionalParameter<>(
             new DoubleRangeParameter("Fold change (log2)",
                     "Range of fold change to return",
