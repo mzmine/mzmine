@@ -36,7 +36,10 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
         implements UserParameter<Boolean, OptionalParameterComponent<?>> {
 
     private EmbeddedParameterType embeddedParameter;
-    private Boolean value;
+
+    // It is important to set default value here, otherwise the embedded value
+    // is not shown in the parameter setup dialog
+    private Boolean value = false;
 
     public OptionalParameter(EmbeddedParameterType embeddedParameter) {
         this.embeddedParameter = embeddedParameter;
