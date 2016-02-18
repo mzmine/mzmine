@@ -69,6 +69,7 @@ public class DiagonalLineRenderer extends XYLineAndShapeRenderer {
 	setBaseItemLabelGenerator(diagonallabelGenerator);
 	setBaseItemLabelsVisible(true);
 
+	setDrawSeriesLineAsPath(true);
     }
 
     public XYItemRendererState initialise(Graphics2D g2, Rectangle2D dataArea,

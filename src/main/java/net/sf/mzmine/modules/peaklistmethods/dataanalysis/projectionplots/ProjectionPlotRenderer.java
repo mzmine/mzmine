@@ -51,6 +51,8 @@ public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 		    && (color.getBlue() >= c.getBlue()))
 		return true;
 	}
+	
+	setDrawSeriesLineAsPath(true);
 
 	return false;
     }

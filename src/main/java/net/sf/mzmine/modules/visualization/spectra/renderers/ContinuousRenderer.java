@@ -72,6 +72,7 @@ public class ContinuousRenderer extends XYLineAndShapeRenderer {
 	SpectraToolTipGenerator tooltipGenerator = new SpectraToolTipGenerator();
 	setBaseToolTipGenerator(tooltipGenerator);
 
+	setDrawSeriesLineAsPath(true);
     }
 
     public void drawItem(Graphics2D g2, XYItemRendererState state,
