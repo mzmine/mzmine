@@ -49,8 +49,18 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
 
     public static final OptionalParameter<DoubleRangeParameter> FOLD_CHANGE = new OptionalParameter<>(
             new DoubleRangeParameter("Fold change range : log2(peak1/peak2)",
-                    "Range of fold change to return", new DecimalFormat("0.0"),
+                    "Return peaks with a fold change within this range", new DecimalFormat("0.0"),
                     Range.closed(-5.0, 5.0)));
+    
+    public static final OptionalParameter<DoubleRangeParameter> MZ_PPM_DIFF = new OptionalParameter<>(
+            new DoubleRangeParameter("m/z difference range : peak1 to peak2 (ppm)",
+                    "Return peaks with a m/z difference within this range", new DecimalFormat("0.0"),
+                    Range.closed(-5.0, 5.0)));
+    
+    public static final OptionalParameter<DoubleRangeParameter> RT_DIFF = new OptionalParameter<>(
+            new DoubleRangeParameter("RT difference range : peak1 to peak2 (min)",
+                    "Return peaks with an RT difference within this range", new DecimalFormat("0.0"),
+                    Range.closed(-0.2, 0.2)));
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",
@@ -58,7 +68,7 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
 
     public PeakComparisonRowFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, COLUMN_INDEX_1,
-                COLUMN_INDEX_2, FOLD_CHANGE, AUTO_REMOVE });
+                COLUMN_INDEX_2, FOLD_CHANGE, MZ_PPM_DIFF,RT_DIFF, AUTO_REMOVE });
     }
 
 }

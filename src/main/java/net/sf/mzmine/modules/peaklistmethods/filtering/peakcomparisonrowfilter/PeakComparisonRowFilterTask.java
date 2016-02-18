@@ -166,6 +166,12 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         final boolean evalutateFoldChange = parameters
                 .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
                 .getValue();
+        final boolean evalutatePPMdiff = parameters
+                .getParameter(PeakComparisonRowFilterParameters.MZ_PPM_DIFF)
+                .getValue();
+        final boolean evalutateRTdiff = parameters
+                .getParameter(PeakComparisonRowFilterParameters.RT_DIFF)
+                .getValue();
         final int columnIndex1 = parameters
                 .getParameter(PeakComparisonRowFilterParameters.COLUMN_INDEX_1)
                 .getValue();
@@ -175,6 +181,13 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         final Range<Double> foldChangeRange = parameters
                 .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
                 .getEmbeddedParameter().getValue();
+        final Range<Double> ppmDiffRange = parameters
+                .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
+                .getEmbeddedParameter().getValue();
+        final Range<Double> rtDiffRange = parameters
+                .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
+                .getEmbeddedParameter().getValue();
+
 
         // Setup variables
         final PeakListRow[] rows = peakList.getRows();
@@ -183,11 +196,8 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         Feature peak1;
         Feature peak2;
         totalRows = rows.length;
-        double foldChange = 0.0;
         final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
-        double peak1Area = 1.0;
-        double peak2Area = 1.0;
-        
+                
         boolean allCriteriaMatched = true;
 
         // Error handling. User tried to select a column from the peaklist that doesn't exist.
@@ -211,8 +221,15 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
             allCriteriaMatched = true;
             
-            peak1Area = 1.0; //Default value in case of null peak
-            peak2Area = 1.0;
+            double peak1Area = 1.0; //Default value in case of null peak
+            double peak2Area = 1.0;
+            double peak1MZ = -1.0;
+            double peak2MZ = -1.0;
+            double peak1RT = -1.0;
+            double peak2RT = -1.0;
+            double foldChange = 0.0;
+            double ppmDiff = 0.0;
+            double rtDiff = 0.0;
             
             final PeakListRow row = rows[processedRows];
             rawDataFile1 = rawDataFiles[columnIndex1];
@@ -224,15 +241,37 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
             if (peak1 != null)
                 peak1Area = peak1.getArea();
+                peak1MZ = peak1.getMZ();
+                peak1RT = peak1.getRT();
 
             if (peak2 != null)
                 peak2Area = peak2.getArea();
+                peak2MZ = peak2.getMZ();
+                peak2RT = peak2.getRT();
 
             // Fold change criteria checking.
             if (evalutateFoldChange) {
                 foldChange = Math.log(peak1Area / peak2Area) / Math.log(2);
                 if (!foldChangeRange.contains(foldChange))
                     allCriteriaMatched = false;
+             
+             //PPM difference evaluation
+             if (evalutatePPMdiff)
+             {
+              ppmDiff = (peak1MZ - peak2MZ)/peak1MZ * 1E6;
+              if (!ppmDiffRange.contains(ppmDiff))
+                  allCriteriaMatched = false; 
+             }
+             
+             //RT difference evaluation
+             if (evalutateRTdiff)
+             {
+              rtDiff = peak1RT - peak2RT;
+              if (!rtDiffRange.contains(rtDiff))
+                  allCriteriaMatched = false;
+             }
+                
+            
 
             }
 
