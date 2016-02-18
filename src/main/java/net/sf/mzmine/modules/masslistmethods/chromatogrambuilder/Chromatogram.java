@@ -39,7 +39,7 @@ import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 /**
- * Chromatogram implementing ChromatographicPeak. 
+ * Chromatogram implementing ChromatographicPeak.
  */
 public class Chromatogram implements Feature {
 
@@ -76,13 +76,9 @@ public class Chromatogram implements Feature {
     private int charge = 0;
 
     // Victor Trevino
-    private int minScan = Integer.MAX_VALUE;
-    private int maxScan = 0;
-    private double minTime = 0;
-    private double maxTime = 0;
     private double mzSum = 0;
     private int mzN = 0;
-    
+
     private final int scanNumbers[];
 
     /**
@@ -90,7 +86,7 @@ public class Chromatogram implements Feature {
      */
     public Chromatogram(RawDataFile dataFile, int scanNumbers[]) {
         this.dataFile = dataFile;
-        this.scanNumbers=scanNumbers;
+        this.scanNumbers = scanNumbers;
 
         rawDataPointsRTRange = dataFile.getDataRTRange(1);
 
@@ -112,16 +108,6 @@ public class Chromatogram implements Feature {
         mz = mzSum / mzN;
         buildingSegment.add(scanNumber);
 
-        // Victor Treviño
-        if (scanNumber < minScan) {
-            minScan = scanNumber;
-            minTime = dataFile.getScan(minScan).getRetentionTime();
-        }
-        if (scanNumber > maxScan) {
-            maxScan = scanNumber;
-            maxTime = dataFile.getScan(maxScan).getRetentionTime();
-        }
-        rt = (maxTime + minTime) / 2;
     }
 
     public DataPoint getDataPoint(int scanNumber) {
@@ -275,13 +261,21 @@ public class Chromatogram implements Feature {
                 this.charge = precursorCharge;
         }
 
-        // Victor Treviño
-        // using allScanNumbers : rawDataPointsRTRange = new
-        // Range(dataFile.getScan(allScanNumbers[0]).getRetentionTime(),
-        // dataFile.getScan(allScanNumbers[allScanNumbers.length-1]).getRetentionTime());
-        rawDataPointsRTRange = Range.closed(minTime, maxTime); // using the
-                                                               // "cached"
-                                                               // values
+        rawDataPointsRTRange = null;
+
+        for (int scanNum : allScanNumbers) {
+            double scanRt = dataFile.getScan(scanNum).getRetentionTime();
+            DataPoint dp = getDataPoint(scanNum);
+
+            if ((dp == null) || (dp.getIntensity() == 0.0))
+                continue;
+
+            if (rawDataPointsRTRange == null)
+                rawDataPointsRTRange = Range.singleton(scanRt);
+            else
+                rawDataPointsRTRange = rawDataPointsRTRange
+                        .span(Range.singleton(scanRt));
+        }
 
         // Discard the fields we don't need anymore
         buildingSegment = null;
@@ -297,14 +291,6 @@ public class Chromatogram implements Feature {
         double firstRT = dataFile.getScan(firstScan).getRetentionTime();
         double lastRT = dataFile.getScan(lastScan).getRetentionTime();
         return (lastRT - firstRT);
-    }
-
-    public double getBuildingFirstTime() {
-        return minTime;
-    }
-
-    public double getBuildingLastTime() {
-        return maxTime;
     }
 
     public int getNumberOfCommittedSegments() {
