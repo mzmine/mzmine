@@ -51,6 +51,7 @@ class PeakDataRenderer extends XYLineAndShapeRenderer {
 
 	PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
 	setBaseToolTipGenerator(toolTipGenerator);
+        setDrawSeriesLineAsPath(true);
 
     }
 
