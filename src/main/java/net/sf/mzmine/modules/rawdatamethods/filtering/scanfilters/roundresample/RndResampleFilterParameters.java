@@ -33,7 +33,7 @@ public class RndResampleFilterParameters extends SimpleParameterSet {
             "Sum duplicate intensities",
             "Concatenates/sums ions count (intensity) of m/z peaks competing for being rounded at same m/z unit. "
                     + "If unchecked, the intensities are averaged rather than summed.",
-            true);
+            false);
 
     public static final BooleanParameter REMOVE_ZERO_INTENSITY = new BooleanParameter(
             "Remove zero intensity m/z peaks",
