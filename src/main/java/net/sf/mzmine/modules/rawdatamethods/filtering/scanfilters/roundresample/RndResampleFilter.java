@@ -32,8 +32,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public class RndResampleFilter implements ScanFilter {
 
-    private Scan inputScan;
-
     public Scan filterScan(Scan scan, ParameterSet parameters) {
 
         boolean sum_duplicates = parameters.getParameter(
@@ -42,6 +40,7 @@ public class RndResampleFilter implements ScanFilter {
                 RndResampleFilterParameters.REMOVE_ZERO_INTENSITY).getValue();
 
         // If CENTROIDED scan, use it as-is
+        Scan inputScan;
         if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
             inputScan = scan;
         // Otherwise, detect local maxima
