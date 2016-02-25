@@ -31,6 +31,8 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -111,8 +113,10 @@ public class AdductSearchTask extends AbstractTask {
 		peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 			"Identification of adducts", parameters));
 
-		// Repaint the window to reflect the change in the peak list.
-		MZmineCore.getDesktop().getMainWindow().repaint();
+		// Repaint the window to reflect the change in the peak list
+		Desktop desktop = MZmineCore.getDesktop();
+		if (!(desktop instanceof HeadLessDesktop))
+		    desktop.getMainWindow().repaint();
 
 		// Done.
 		setStatus(TaskStatus.FINISHED);

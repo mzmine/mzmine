@@ -29,6 +29,8 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -136,8 +138,10 @@ public class FragmentSearchTask extends AbstractTask {
 		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 			"Identification of fragments", parameters));
 
-	// Repaint the window to reflect the change in the peak list
-	MZmineCore.getDesktop().getMainWindow().repaint();
+        // Repaint the window to reflect the change in the peak list
+        Desktop desktop = MZmineCore.getDesktop();
+        if (!(desktop instanceof HeadLessDesktop))
+            desktop.getMainWindow().repaint();
 
 	setStatus(TaskStatus.FINISHED);
 
