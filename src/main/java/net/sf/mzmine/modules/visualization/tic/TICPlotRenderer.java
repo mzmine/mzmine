@@ -43,6 +43,7 @@ public class TICPlotRenderer extends XYLineAndShapeRenderer {
 
     public TICPlotRenderer() {
 	super(true, false);
+        setDrawSeriesLineAsPath(true);
     }
 
     private AlphaComposite makeComposite(double alpha) {

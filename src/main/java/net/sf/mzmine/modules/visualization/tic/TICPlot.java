@@ -670,6 +670,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    renderer.setBaseItemLabelsVisible(labelsVisible == 2);
 	    renderer.setBaseItemLabelPaint(LABEL_COLOR);
 	    addDataSetRenderer(dataSet, renderer);
+	    renderer.setDrawSeriesLineAsPath(true);
 	    renderer.setBaseItemLabelGenerator(new XYItemLabelGenerator() {
 
 		@Override

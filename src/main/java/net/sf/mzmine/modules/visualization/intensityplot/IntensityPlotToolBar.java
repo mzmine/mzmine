@@ -93,6 +93,7 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
 		XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot)
 			.getRenderer();
 		linesVisible = renderer.getBaseLinesVisible();
+		renderer.setDrawSeriesLineAsPath(true);
 	    }
 
 	    // check for null value
@@ -117,6 +118,7 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
 		XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot)
 			.getRenderer();
 		renderer.setBaseLinesVisible(linesVisible);
+		renderer.setDrawSeriesLineAsPath(true);
 	    }
 
 	}

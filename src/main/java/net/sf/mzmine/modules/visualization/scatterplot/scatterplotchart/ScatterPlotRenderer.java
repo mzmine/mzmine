@@ -80,6 +80,8 @@ public class ScatterPlotRenderer extends XYLineAndShapeRenderer {
 	setSeriesItemLabelsVisible(1, false);
 	setSeriesPaint(1, searchColor);
 	setSeriesShape(1, dataPointsShape);
+	
+	setDrawSeriesLineAsPath(true);
 
     }
 

@@ -52,6 +52,7 @@ public class IDAPlotRenderer extends XYLineAndShapeRenderer {
 	setSeriesPaint(0, pointColor);
 	setSeriesShape(0, dataPointsShape);
 
+	setDrawSeriesLineAsPath(true);
     }
 
     @Override

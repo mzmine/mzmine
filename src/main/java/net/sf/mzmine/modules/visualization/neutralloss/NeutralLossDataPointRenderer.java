@@ -44,6 +44,7 @@ class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
 
     public NeutralLossDataPointRenderer(boolean lines, boolean shapes) {
 	super(lines, shapes);
+	setDrawSeriesLineAsPath(true);
     }
 
     public void setTransparency(float transparency) {

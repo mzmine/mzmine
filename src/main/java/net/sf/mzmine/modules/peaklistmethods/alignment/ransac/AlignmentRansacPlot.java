@@ -133,6 +133,7 @@ public class AlignmentRansacPlot extends ChartPanel {
 	renderer.setSeriesPaint(1, Color.GRAY);
 	renderer.setSeriesPaint(2, Color.BLUE);
 	renderer.setBaseItemLabelPaint(labelsColor);
+	renderer.setDrawSeriesLineAsPath(true);
 
 	plot.setRenderer(renderer);
 
