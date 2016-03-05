@@ -237,17 +237,20 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
             peak1 = row.getPeak(rawDataFile1);
             peak2 = row.getPeak(rawDataFile2);
-          
 
             if (peak1 != null)
+            {
                 peak1Area = peak1.getArea();
                 peak1MZ = peak1.getMZ();
                 peak1RT = peak1.getRT();
+            }
 
             if (peak2 != null)
+            {
                 peak2Area = peak2.getArea();
                 peak2MZ = peak2.getMZ();
                 peak2RT = peak2.getRT();
+            }
 
             // Fold change criteria checking.
             if (evalutateFoldChange) {
