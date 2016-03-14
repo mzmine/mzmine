@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -56,9 +56,9 @@ import net.sf.mzmine.util.SortingProperty;
 import com.google.common.collect.Range;
 
 /**
- * IDA visualizer's bottom panel
+ * MS/MS visualizer's bottom panel
  */
-class IDABottomPanel extends JPanel implements TreeModelListener,
+class MsMsBottomPanel extends JPanel implements TreeModelListener,
 	ActionListener {
 
     private static final long serialVersionUID = 1L;
@@ -72,10 +72,10 @@ class IDABottomPanel extends JPanel implements TreeModelListener,
     private JTextField peakTextField;
     private PeakThresholdParameter thresholdSettings;
 
-    private IDAVisualizerWindow masterFrame;
+    private MsMsVisualizerWindow masterFrame;
     private RawDataFile dataFile;
 
-    IDABottomPanel(IDAVisualizerWindow masterFrame, RawDataFile dataFile,
+    MsMsBottomPanel(MsMsVisualizerWindow masterFrame, RawDataFile dataFile,
 	    ParameterSet parameters) {
 
 	this.dataFile = dataFile;
@@ -121,7 +121,7 @@ class IDABottomPanel extends JPanel implements TreeModelListener,
 	add(peakListSelector);
 
 	thresholdSettings = parameters
-		.getParameter(IDAParameters.peakThresholdSettings);
+		.getParameter(MsMsParameters.peakThresholdSettings);
 
 	thresholdCombo.setSelectedItem(thresholdSettings.getMode());
 

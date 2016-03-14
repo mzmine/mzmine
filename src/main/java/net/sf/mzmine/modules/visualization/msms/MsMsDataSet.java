@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
 
@@ -37,7 +37,7 @@ import com.google.common.collect.Range;
 /**
  * 
  */
-class IDADataSet extends AbstractXYDataset implements Task {
+class MsMsDataSet extends AbstractXYDataset implements Task {
 
     private static final long serialVersionUID = 1L;
 
@@ -58,10 +58,10 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
     private TaskStatus status = TaskStatus.WAITING;
 
-    IDADataSet(RawDataFile rawDataFile, Range<Double> rtRange,
+    MsMsDataSet(RawDataFile rawDataFile, Range<Double> rtRange,
 	    Range<Double> mzRange, IntensityType intensityType,
 	    NormalizationType normalizationType, Double minPeakInt,
-	    IDAVisualizerWindow visualizer) {
+	    MsMsVisualizerWindow visualizer) {
 
 	this.rawDataFile = rawDataFile;
 
@@ -413,7 +413,7 @@ class IDADataSet extends AbstractXYDataset implements Task {
 
     @Override
     public String getTaskDescription() {
-	return "Updating IDA visualizer of " + rawDataFile;
+	return "Updating MS/MS visualizer of " + rawDataFile;
     }
 
 }

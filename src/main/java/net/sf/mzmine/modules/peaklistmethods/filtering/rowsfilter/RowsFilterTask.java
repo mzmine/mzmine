@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -42,8 +44,6 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
-
-import com.google.common.collect.Range;
 
 /**
  * Filters out peak list rows.
@@ -178,7 +178,10 @@ public class RowsFilterTask extends AbstractTask {
                 RowsFilterParameters.PEAK_DURATION).getValue();
         final String removeRowString = (String) parameters.getParameter(
                 RowsFilterParameters.REMOVE_ROW).getValue();
-        
+        Double minCount = parameters
+                .getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
+                .getEmbeddedParameter().getValue();
+
         boolean removeRow = false;
         if ( removeRowString.equalsIgnoreCase("Keep rows that match all criteria") )
             removeRow = false;
@@ -186,7 +189,13 @@ public class RowsFilterTask extends AbstractTask {
             removeRow = true;
         
         boolean filterRowCriteriaFailed = false; //Keep rows that don't match any criteria.  Keep by default.  
-        
+
+        // Handle < 1 values for minPeakCount
+        if (minCount < 1)
+            minCount = peakList.getRawDataFiles().length * minCount;
+        // Round value down to nearest hole number
+        int intMinCount = (int) (long) (double) minCount;
+
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
         totalRows = rows.length;
@@ -201,11 +210,7 @@ public class RowsFilterTask extends AbstractTask {
 
             // Check number of peaks.
             if (filterByMinPeakCount) {
-
-                final int minPeakCount = parameters
-                        .getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
-                        .getEmbeddedParameter().getValue();
-                if (peakCount < minPeakCount)
+                if (peakCount < intMinCount)
                     filterRowCriteriaFailed = true;
             }
 

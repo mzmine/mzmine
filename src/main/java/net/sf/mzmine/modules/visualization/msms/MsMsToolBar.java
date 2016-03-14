@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
 import java.awt.Insets;
@@ -30,9 +30,9 @@ import javax.swing.JToolBar;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * IDA visualizer's toolbar class
+ * MS/MS visualizer's toolbar class
  */
-class IDAToolBar extends JToolBar {
+class MsMsToolBar extends JToolBar {
 
     private static final long serialVersionUID = 1L;
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
@@ -45,7 +45,7 @@ class IDAToolBar extends JToolBar {
 
     private JButton toggleContinuousModeButton, toggleTooltipButton;
 
-    IDAToolBar(IDAVisualizerWindow masterFrame) {
+    MsMsToolBar(MsMsVisualizerWindow masterFrame) {
 
 	super(JToolBar.VERTICAL);
 

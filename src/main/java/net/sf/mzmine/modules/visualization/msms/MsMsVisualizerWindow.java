@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -51,24 +51,24 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import com.google.common.collect.Range;
 
 /**
- * IDA visualizer using JFreeChart library
+ * MS/MS visualizer using JFreeChart library
  */
-public class IDAVisualizerWindow extends JFrame implements ActionListener {
+public class MsMsVisualizerWindow extends JFrame implements ActionListener {
 
     private static final long serialVersionUID = 1L;
-    private IDAToolBar toolBar;
-    private IDAPlot IDAPlot;
-    private IDABottomPanel bottomPanel;
-    private IDADataSet dataset;
+    private MsMsToolBar toolBar;
+    private MsMsPlot IDAPlot;
+    private MsMsBottomPanel bottomPanel;
+    private MsMsDataSet dataset;
     private RawDataFile dataFile;
     private boolean tooltipMode;
 
-    public IDAVisualizerWindow(RawDataFile dataFile, Range<Double> rtRange,
+    public MsMsVisualizerWindow(RawDataFile dataFile, Range<Double> rtRange,
 	    Range<Double> mzRange, IntensityType intensityType,
 	    NormalizationType normalizationType, Double minPeakInt,
 	    ParameterSet parameters) {
 
-	super("IDA visualizer: [" + dataFile.getName() + "]");
+	super("MS/MS visualizer: [" + dataFile.getName() + "]");
 
 	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	setBackground(Color.white);
@@ -76,16 +76,16 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 	this.dataFile = dataFile;
 	this.tooltipMode = true;
 
-	dataset = new IDADataSet(dataFile, rtRange, mzRange, intensityType,
+	dataset = new MsMsDataSet(dataFile, rtRange, mzRange, intensityType,
 		normalizationType, minPeakInt, this);
 
-	toolBar = new IDAToolBar(this);
+	toolBar = new MsMsToolBar(this);
 	add(toolBar, BorderLayout.EAST);
 
-	IDAPlot = new IDAPlot(this, dataFile, this, dataset, rtRange, mzRange);
+	IDAPlot = new MsMsPlot(this, dataFile, this, dataset, rtRange, mzRange);
 	add(IDAPlot, BorderLayout.CENTER);
 
-	bottomPanel = new IDABottomPanel(this, dataFile, parameters);
+	bottomPanel = new MsMsBottomPanel(this, dataFile, parameters);
 	add(bottomPanel, BorderLayout.SOUTH);
 
 	updateTitle();
@@ -105,9 +105,9 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
-		.getModuleParameters(IDAVisualizerModule.class);
+		.getModuleParameters(MsMsVisualizerModule.class);
 	WindowSettingsParameter settings = paramSet
-		.getParameter(IDAParameters.windowSettings);
+		.getParameter(MsMsParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);
@@ -121,7 +121,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
     void updateTitle() {
 	StringBuffer title = new StringBuffer();
-	title.append("Time vs. m/z for IDA dependent precursor ions\n");
+	title.append("Time vs. m/z for precursor ions\n");
 	title.append(dataFile.getName());
 	IDAPlot.setTitle(title.toString());
     }
@@ -257,7 +257,7 @@ public class IDAVisualizerWindow extends JFrame implements ActionListener {
 
     }
 
-    IDAPlot getPlot() {
+    MsMsPlot getPlot() {
 	return IDAPlot;
     }
 }

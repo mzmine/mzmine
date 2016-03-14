@@ -17,20 +17,26 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
-public enum Colors {
+public enum PeakThresholdMode {
 
-    red("Red"), green("Green"), blue("Blue");
+    NONE("None"), ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS(
+	    "Peaks above user-defined intensity"), TOP_PEAKS(
+	    "User-defined top peaks"), TOP_PEAKS_AREA(
+	    "User-defined top peaks in the displayed area");
 
-    private String type;
+    private final String name;
 
-    Colors(String type) {
-	this.type = type;
+    PeakThresholdMode(String name) {
+	this.name = name;
+    }
+
+    public String getName() {
+	return this.name;
     }
 
     public String toString() {
-	return type;
+	return this.name;
     }
-
 }

@@ -17,15 +17,15 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
-public enum NormalizationType {
+public enum Colors {
 
-    all("All data points"), similar("Data points with a m/z within 10ppm");
+    red("Red"), green("Green"), blue("Blue");
 
     private String type;
 
-    NormalizationType(String type) {
+    Colors(String type) {
 	this.type = type;
     }
 
