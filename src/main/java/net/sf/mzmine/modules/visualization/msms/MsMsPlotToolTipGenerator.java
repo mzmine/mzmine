@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.text.NumberFormat;
 
@@ -25,7 +25,7 @@ import net.sf.mzmine.main.MZmineCore;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
-public class IDAPlotToolTipGenerator implements XYToolTipGenerator {
+public class MsMsPlotToolTipGenerator implements XYToolTipGenerator {
 
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -35,7 +35,7 @@ public class IDAPlotToolTipGenerator implements XYToolTipGenerator {
     @Override
     public String generateToolTip(XYDataset dataset, int series, int item) {
 
-	IDADataSet IDADataSet = (IDADataSet) dataset;
+	MsMsDataSet IDADataSet = (MsMsDataSet) dataset;
 
 	return String.valueOf("RT: "
 		+ rtFormat.format(IDADataSet.getX(series, item)) + "\nm/z: "

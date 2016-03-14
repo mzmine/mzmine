@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
 import java.awt.Paint;
@@ -26,7 +26,7 @@ import java.awt.geom.Ellipse2D;
 
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
-public class IDAPlotRenderer extends XYLineAndShapeRenderer {
+public class MsMsPlotRenderer extends XYLineAndShapeRenderer {
 
     /**
      * 
@@ -38,11 +38,11 @@ public class IDAPlotRenderer extends XYLineAndShapeRenderer {
 
     public static final Color pointColor = Color.black;
 
-    public IDAPlotRenderer() {
+    public MsMsPlotRenderer() {
 
 	super(false, true);
 
-	IDAPlotToolTipGenerator toolTipGenerator = new IDAPlotToolTipGenerator();
+	MsMsPlotToolTipGenerator toolTipGenerator = new MsMsPlotToolTipGenerator();
 	setBaseToolTipGenerator(toolTipGenerator);
 
 	setBaseItemLabelsVisible(false);
@@ -57,7 +57,7 @@ public class IDAPlotRenderer extends XYLineAndShapeRenderer {
 
     @Override
     public Paint getItemPaint(int row, int col) {
-	IDADataSet IDADataSet = (IDADataSet) getPlot().getDataset();
+	MsMsDataSet IDADataSet = (MsMsDataSet) getPlot().getDataset();
 	return IDADataSet.getColor(row, col);
     }
 }

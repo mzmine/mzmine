@@ -41,8 +41,8 @@ import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParameters;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
-import net.sf.mzmine.modules.visualization.ida.IDAVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
+import net.sf.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
@@ -166,7 +166,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
                     .getSelectedObjects(RawDataFile.class);
             if (selectedFiles.length == 0)
                 return;
-            IDAVisualizerModule.showIDAVisualizerSetupDialog(selectedFiles[0]);
+            MsMsVisualizerModule.showIDAVisualizerSetupDialog(selectedFiles[0]);
 
         }
 

@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -59,7 +59,7 @@ import com.google.common.collect.Range;
 /**
  * 
  */
-class IDAPlot extends ChartPanel implements MouseWheelListener {
+class MsMsPlot extends ChartPanel implements MouseWheelListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -82,7 +82,7 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
     private static final Color gridColor = Color.lightGray;
 
     // Renderers
-    private IDAPlotRenderer mainRenderer;
+    private MsMsPlotRenderer mainRenderer;
 
     // crosshair (selection) color
     private static final Color crossHairColor = Color.gray;
@@ -103,8 +103,8 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-    IDAPlot(final ActionListener listener, RawDataFile rawDataFile,
-	    IDAVisualizerWindow visualizer, IDADataSet dataset,
+    MsMsPlot(final ActionListener listener, RawDataFile rawDataFile,
+	    MsMsVisualizerWindow visualizer, MsMsDataSet dataset,
 	    Range<Double> rtRange, Range<Double> mzRange) {
 
 	super(null, true);
@@ -166,7 +166,7 @@ class IDAPlot extends ChartPanel implements MouseWheelListener {
 	plot.setRangeCrosshairStroke(crossHairStroke);
 
 	// Create renderers
-	mainRenderer = new IDAPlotRenderer();
+	mainRenderer = new MsMsPlotRenderer();
 	plot.setRenderer(0, mainRenderer);
 
 	// title
