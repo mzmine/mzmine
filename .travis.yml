@@ -4,4 +4,4 @@ jdk:
   - oraclejdk7
 
 sudo: false
-script: mvn verify
+script: mvn package
