@@ -99,7 +99,8 @@ public class FileNameParameter
     public void setValueFromComponent(FileNameComponent component) {
         File compValue = component.getValue();
         if (extension != null) {
-            if (!compValue.getName().endsWith(extension))
+            if (!compValue.getName()
+                    .toLowerCase().endsWith(extension.toLowerCase()))
                 compValue = new File(compValue.getPath() + "." + extension);
         }
         this.value = compValue;
