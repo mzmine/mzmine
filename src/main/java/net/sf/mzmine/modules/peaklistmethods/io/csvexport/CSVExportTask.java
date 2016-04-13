@@ -100,11 +100,12 @@ class CSVExportTask extends AbstractTask {
             // Filename
             File curFile = fileName;
             if (substitute) {
+                // Cleanup from illegal filename characters
+                String cleanPlName = peakList.getName().replaceAll(
+                        "[^a-zA-Z0-9.-]", "_");
                 // Substitute
                 String newFilename = fileName.getPath().replaceAll(
-                        Pattern.quote(plNamePattern), peakList.getName());
-                // Cleanup from illegal filename characters
-                newFilename = newFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
+                        Pattern.quote(plNamePattern), cleanPlName);
                 curFile = new File(newFilename);
             }
 
