@@ -27,11 +27,13 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class MzTabExportParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakList = new PeakListsParameter(1,1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(1);
 
     public static final FileNameParameter filename = new FileNameParameter(
 	    "Filename",
-	    "Name of exported mzTab file. If the file already exists, it will be overwritten.",
+            "Use pattern \"{}\" in the file name to substitute with peak list name. " +
+            "(i.e. \"blah{}blah.mzTab\" would become \"blahSourcePeakListNameblah.mzTab\"). " +
+            "If the file already exists, it will be overwritten.",
 	    "mzTab",
 	    32);
     
@@ -39,6 +41,6 @@ public class MzTabExportParameters extends SimpleParameterSet {
 	    "Include all peaks", "Includes peaks with unknown identity"); 
 
     public MzTabExportParameters() {
-	super(new Parameter[] { peakList, filename, exportall});
+	super(new Parameter[] { peakLists, filename, exportall});
     }
 }
