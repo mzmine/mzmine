@@ -19,9 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.peakcomparisonrowfilter;
 
-
-
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.Feature;
@@ -94,42 +91,39 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
     @Override
     public void run() {
 
-        if (!isCanceled()) {
+        try {
+            setStatus(TaskStatus.PROCESSING);
+            LOG.info("Filtering peak list rows");
 
-            try {
-                setStatus(TaskStatus.PROCESSING);
-                LOG.info("Filtering peak list rows");
+            // Filter the peak list.
+            filteredPeakList = filterPeakListRows(origPeakList);
 
-                // Filter the peak list.
-                filteredPeakList = filterPeakListRows(origPeakList);
+            if (getStatus() == TaskStatus.ERROR)
+                return;
 
-                if (getStatus() == TaskStatus.ERROR)
-                    return;
+            if (isCanceled())
+                return;
 
-                if (isCanceled())
-                    return;
+            // Add new peaklist to the project
+            project.addPeakList(filteredPeakList);
 
-                // Add new peaklist to the project
-                project.addPeakList(filteredPeakList);
-
-                // Remove the original peaklist if requested
-                if (parameters
-                        .getParameter(
-                                PeakComparisonRowFilterParameters.AUTO_REMOVE)
-                        .getValue()) {
-                    project.removePeakList(origPeakList);
-                }
-
-                setStatus(TaskStatus.FINISHED);
-                LOG.info("Finished peak comparison rows filter");
-
-            } catch (Throwable t) {
-
-                setErrorMessage(t.getMessage());
-                setStatus(TaskStatus.ERROR);
-                LOG.log(Level.SEVERE, "Peak comparison row filter error", t);
+            // Remove the original peaklist if requested
+            if (parameters
+                    .getParameter(PeakComparisonRowFilterParameters.AUTO_REMOVE)
+                    .getValue()) {
+                project.removePeakList(origPeakList);
             }
+
+            setStatus(TaskStatus.FINISHED);
+            LOG.info("Finished peak comparison rows filter");
+
+        } catch (Throwable t) {
+            t.printStackTrace();
+            setErrorMessage(t.getMessage());
+            setStatus(TaskStatus.ERROR);
+            LOG.log(Level.SEVERE, "Peak comparison row filter error", t);
         }
+
     }
 
     /**
@@ -188,7 +182,6 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
                 .getParameter(PeakComparisonRowFilterParameters.FOLD_CHANGE)
                 .getEmbeddedParameter().getValue();
 
-
         // Setup variables
         final PeakListRow[] rows = peakList.getRows();
         RawDataFile rawDataFile1;
@@ -197,31 +190,32 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
         Feature peak2;
         totalRows = rows.length;
         final RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
-                
+
         boolean allCriteriaMatched = true;
 
-        // Error handling. User tried to select a column from the peaklist that doesn't exist.
+        // Error handling. User tried to select a column from the peaklist that
+        // doesn't exist.
         if (columnIndex1 > rawDataFiles.length) {
-            // throw new RuntimeException("Column 1 set too large.");
             setErrorMessage("Column 1 set too large.");
             setStatus(TaskStatus.ERROR);
-            return peakList;
+            return null;
         }
         if (columnIndex2 > rawDataFiles.length) {
             setErrorMessage("Column 2 set too large.");
             setStatus(TaskStatus.ERROR);
-            return peakList;
+            return null;
         }
-
-
 
         // Loop over the rows & filter
         for (processedRows = 0; !isCanceled()
                 && processedRows < totalRows; processedRows++) {
 
+            if (isCanceled())
+                return null;
+
             allCriteriaMatched = true;
-            
-            double peak1Area = 1.0; //Default value in case of null peak
+
+            double peak1Area = 1.0; // Default value in case of null peak
             double peak2Area = 1.0;
             double peak1MZ = -1.0;
             double peak2MZ = -1.0;
@@ -230,7 +224,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
             double foldChange = 0.0;
             double ppmDiff = 0.0;
             double rtDiff = 0.0;
-            
+
             final PeakListRow row = rows[processedRows];
             rawDataFile1 = rawDataFiles[columnIndex1];
             rawDataFile2 = rawDataFiles[columnIndex2];
@@ -238,15 +232,13 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
             peak1 = row.getPeak(rawDataFile1);
             peak2 = row.getPeak(rawDataFile2);
 
-            if (peak1 != null)
-            {
+            if (peak1 != null) {
                 peak1Area = peak1.getArea();
                 peak1MZ = peak1.getMZ();
                 peak1RT = peak1.getRT();
             }
 
-            if (peak2 != null)
-            {
+            if (peak2 != null) {
                 peak2Area = peak2.getArea();
                 peak2MZ = peak2.getMZ();
                 peak2RT = peak2.getRT();
@@ -257,24 +249,20 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
                 foldChange = Math.log(peak1Area / peak2Area) / Math.log(2);
                 if (!foldChangeRange.contains(foldChange))
                     allCriteriaMatched = false;
-             
-             //PPM difference evaluation
-             if (evalutatePPMdiff)
-             {
-              ppmDiff = (peak1MZ - peak2MZ)/peak1MZ * 1E6;
-              if (!ppmDiffRange.contains(ppmDiff))
-                  allCriteriaMatched = false; 
-             }
-             
-             //RT difference evaluation
-             if (evalutateRTdiff)
-             {
-              rtDiff = peak1RT - peak2RT;
-              if (!rtDiffRange.contains(rtDiff))
-                  allCriteriaMatched = false;
-             }
-                
-            
+
+                // PPM difference evaluation
+                if (evalutatePPMdiff) {
+                    ppmDiff = (peak1MZ - peak2MZ) / peak1MZ * 1E6;
+                    if (!ppmDiffRange.contains(ppmDiff))
+                        allCriteriaMatched = false;
+                }
+
+                // RT difference evaluation
+                if (evalutateRTdiff) {
+                    rtDiff = peak1RT - peak2RT;
+                    if (!rtDiffRange.contains(rtDiff))
+                        allCriteriaMatched = false;
+                }
 
             }
 
@@ -310,5 +298,5 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
         return newRow;
     }
-    
+
 }
