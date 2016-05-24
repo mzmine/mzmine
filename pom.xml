@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.5.12</cdk.version>
+		<cdk.version>1.5.13</cdk.version>
 		<jmztab.version>3.0.2</jmztab.version>
 	</properties>
 
@@ -403,7 +403,13 @@
 		<dependency>
 			<groupId>io.github.msdk</groupId>
 			<artifactId>msdk-io-mzml</artifactId>
-			<version>0.0.4</version>
+			<version>0.0.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.github.msdk</groupId>
+			<artifactId>msdk-io-nativeformats</artifactId>
+			<version>0.0.6</version>
 		</dependency>
 
 	</dependencies>
