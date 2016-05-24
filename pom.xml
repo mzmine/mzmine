@@ -406,12 +406,6 @@
 			<version>0.0.6</version>
 		</dependency>
 
-		<dependency>
-			<groupId>io.github.msdk</groupId>
-			<artifactId>msdk-io-nativeformats</artifactId>
-			<version>0.0.6</version>
-		</dependency>
-
 	</dependencies>
 
 </project>
