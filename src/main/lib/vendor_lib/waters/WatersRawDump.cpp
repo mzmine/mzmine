@@ -1,54 +1,54 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
- *
- * This file is part of MZmine 2.
- *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
- * St, Fifth Floor, Boston, MA 02110-1301 USA
- *
- * ------------------------------------------------------------------------------
- *
- * This program binds to the MassLynxRaw.dll provided by the Waters and dumps the
- * contents of a given RAW folder as text+binary data. To compile this source, you
- * can use Microsoft Visual Studio 2013.
- *
- * Notes:
- *
- * 1) The library MassLynxRaw.dll comes from Waters MassLynx raw data library
- * (32-bit version)
- *
- * 2) We use \n (UNIX-style end of line), which is what the MZmine import module
- * expects. If we use the endl constant, it would add \r\n (Windows-style end of
- * line).
+* Copyright 2006-2014 The MZmine 2 Development Team
+*
+* This file is part of MZmine 2.
+*
+* MZmine 2 is free software; you can redistribute it and/or modify it under the
+* terms of the GNU General Public License as published by the Free Software
+* Foundation; either version 2 of the License, or (at your option) any later
+* version.
+*
+* MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+* A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License along with
+* MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+* St, Fifth Floor, Boston, MA 02110-1301 USA
+*
+* ------------------------------------------------------------------------------
+*
+* This program binds to the MassLynxRaw.dll provided by the Waters and dumps the
+* contents of a given RAW folder as text+binary data. To compile this source, you
+* can use Microsoft Visual Studio 2013.
+*
+* Notes:
+*
+* 1) The library MassLynxRaw.dll comes from Waters MassLynx raw data library
+* (32-bit version)
+*
+* 2) We use \n (UNIX-style end of line), which is what the MZmine import module
+* expects. If we use the endl constant, it would add \r\n (Windows-style end of
+* line).
 
- NUMBER OF SCANS: int
- SCAN NUMBER: int
- SCAN ID: string
- POLARITY: char
- MS LEVEL: int
- RETENTION TIME: double
- MZ RANGE: double - double
- PRECURSOR: double int
- MASS VALUES: int x int BYTES
- INTENSITY VALUES: int x int BYTES
- END OF SCAN
+NUMBER OF SCANS: int
+SCAN NUMBER: int
+SCAN ID: string
+POLARITY: char
+MS LEVEL: int
+RETENTION TIME: double
+MZ RANGE: double - double
+PRECURSOR: double int
+MASS VALUES: int x int BYTES
+INTENSITY VALUES: int x int BYTES
+END OF SCAN
 
- notes:
- RT is in minutes
- polarity is + or - or ?
- precursor corresponds to m/z and charge (0 if unknown)
+notes:
+RT is in minutes
+polarity is + or - or ?
+precursor corresponds to m/z and charge (0 if unknown)
 
- */
+*/
 
 #include <vector>
 #include <string>
@@ -116,10 +116,10 @@ int main(int argc, char* argv[])
 
 		// Get number of functions in the file
 		int nFuncs = RI.GetFunctionCount();
-		
+
 		if (DEBUG) {
 			for (int func = 0; func < nFuncs; func++) {
-				
+
 				string funcTypeString = RI.GetFunctionTypeString(func);
 				FunctionType funcType = RI.GetFunctionType(func);
 				cout << "DEBUG: function " << func << " type " << funcType << " = " << funcTypeString << "\n";
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 			}
 
 		}
-		
+
 		// Calculate total number of scans
 		long totalNumScans = 0;
 		for (int func = 0; func < nFuncs; func++) {
@@ -150,33 +150,39 @@ int main(int argc, char* argv[])
 		for (int func = 0; func < nFuncs; func++) {
 
 			const int nScans = RI.GetScansInFunction(func);
-			
+
 			// If there are no scans, skip this function (otherwise, RSSR.readScanStats() would thrown an exception)
 			if (nScans == 0) continue;
-			
+
 			// Get details about scans
 			RSSR.getExtendedStatsTypes(func, extStatsTypes);
 			
-			// Obtain precursor data
-			ExtendedStatsType setMassType;
+			// Look for precursor fuction
+			int havePrecursors = false;
+			ExtendedStatsType *setMassType = NULL;
 			for (int i = 0; i < extStatsTypes.size(); i++)
 			{
 				if (extStatsTypes[i].name == "Set Mass") {
-					setMassType = extStatsTypes[i];
+					setMassType = &extStatsTypes[i];
+					havePrecursors = true;
 					break;
 				}
 			}
 
-			// For some reason, the getExtrendedStatsField function requires the vector to reserve the memory
-			// in advance, otherwise the program will crash due to buffer overflow
-			precursorValues.reserve(nScans);
-			RSSR.getExtendedStatsField(func, setMassType, precursorValues);
+			// If there is precursor data, load it
+			if (havePrecursors) {
+				// For some reason, the getExtrendedStatsField function requires the vector to reserve the memory
+				// in advance, otherwise the program will crash due to buffer overflow
+				precursorValues.reserve(nScans);
+				RSSR.getExtendedStatsField(func, *setMassType, precursorValues);
+			}
 
 			// Get type of function
 			string funcTypeString = RI.GetFunctionTypeString(func);
 
 			// Get MS level
 			FunctionType funcType = RI.GetFunctionType(func);
+
 			int msLevel;
 			switch (funcType) {
 			case FT_MSMS:
@@ -234,12 +240,13 @@ int main(int argc, char* argv[])
 
 				cout << "MS LEVEL: " << msLevel << "\n";
 
-				cout << "PRECURSOR: " << precursorValues[scanIndex] << " 0\n";
+				if (havePrecursors)
+					cout << "PRECURSOR: " << precursorValues[scanIndex] << " 0\n";
 
 				cout << "RETENTION TIME: " << stats[scanIndex].rt << "\n";
 
 				cout << "MZ RANGE: " << mzRangeLow << " - " << mzRangeHigh << "\n";
-				
+
 				// Read the spectrum data
 				masses.reserve(stats[scanIndex].peaksInScan);
 				intensities.reserve(stats[scanIndex].peaksInScan);
@@ -251,15 +258,15 @@ int main(int argc, char* argv[])
 
 				cout << "MASS VALUES: " << masses.size() << " x " << sizeof(masses[0]) << " BYTES\n";
 
-				if (!DEBUG) 
+				if (!DEBUG)
 					fwrite(&masses[0], sizeof(masses[0]), masses.size(), stdout);
-				
+
 
 				cout << "INTENSITY VALUES: " << intensities.size() << " x " << sizeof(intensities[0]) << " BYTES\n";
 
-				if (!DEBUG) 
+				if (!DEBUG)
 					fwrite(&intensities[0], sizeof(intensities[0]), masses.size(), stdout);
-				
+
 				cout << "END OF SCAN\n";
 
 			}

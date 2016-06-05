@@ -245,6 +245,7 @@ class LinearNormalizerTask extends AbstractTask {
 	// Finally add all normalized rows to normalized alignment result
 	for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
 	    SimplePeakListRow normalizedRow = rowMap.get(originalpeakListRow);
+	    if (normalizedRow == null) continue;
 	    normalizedPeakList.addRow(normalizedRow);
 	}
 

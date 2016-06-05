@@ -36,7 +36,15 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.XYDataset;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Range;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -56,13 +64,6 @@ import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
-
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.data.xy.XYDataset;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Range;
 
 /**
  * Spectrum visualizer using JFreeChart library
@@ -87,6 +88,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
     // Currently loaded scan
     private Scan currentScan;
+
+    private File lastExportDirectory;
 
     // Current scan data set
     private ScanDataSet spectrumDataSet;
@@ -421,78 +424,87 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
         if (command.equals("EXPORT_SPECTRA")) {
 
-            boolean acceptable = false;
-            String path = null;
+            File selectedFile = null;
             String extension = "";
 
-            JFileChooser FileChooser = new JFileChooser();
+            JFileChooser fileChooser = new JFileChooser();
+
+            // Remove the accept-all (.*) file filter
+            fileChooser.setAcceptAllFileFilterUsed(false);
+
+            // Add file filters
+            fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
+                    "MGF - Mascot Generic Format", "mgf"));
+            fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
+                    "MSP - NIST file Format", "msp"));
+            fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
+                    "TXT - Plain text Format", "txt"));
+            fileChooser.addChoosableFileFilter(
+                    new FileNameExtensionFilter("mzML - mzML Format", "mzML"));
 
             // Export file chooser
             do {
-                path = null;
-                File f = null;
 
-                // Remove the accept-all (.*) file filter
-                FileChooser.setAcceptAllFileFilterUsed(false);
+                if ((lastExportDirectory != null)
+                        && (lastExportDirectory.isDirectory())) {
+                    fileChooser.setCurrentDirectory(lastExportDirectory);
+                }
 
-                // Add file filters
-                FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
-                        "MGF - Mascot Generic Format", "mgf"));
-                FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
-                        "MSP - NIST file Format", "msp"));
-                FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
-                        "TXT - Plain text Format", "txt"));
-                FileChooser.addChoosableFileFilter(new FileNameExtensionFilter(
-                        "mzML - mzML Format", "mzML"));
+                int result = fileChooser.showSaveDialog(null);
+                if (result != JFileChooser.APPROVE_OPTION)
+                    return;
 
-                if (FileChooser
-                        .showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-                    path = FileChooser.getSelectedFile().getAbsolutePath();
+                selectedFile = fileChooser.getSelectedFile();
+                lastExportDirectory = selectedFile.getParentFile();
 
-                    if (FileChooser.getFileFilter().getDescription()
-                            .contains("MGF")) {
+                String path = selectedFile.getAbsolutePath();
+
+                FileFilter selectedFilter = fileChooser.getFileFilter();
+
+                if (selectedFilter == null) {
+                    extension = "mgf";
+                } else {
+                    if (selectedFilter.getDescription().contains("MGF")) {
                         extension = "mgf";
-                    } else if (FileChooser.getFileFilter().getDescription()
+                    } else if (selectedFilter.getDescription()
                             .contains("TXT")) {
                         extension = "txt";
-                    } else if (FileChooser.getFileFilter().getDescription()
+                    } else if (selectedFilter.getDescription()
                             .contains("MSP")) {
                         extension = "msp";
-                    } else if (FileChooser.getFileFilter().getDescription()
+                    } else if (selectedFilter.getDescription()
                             .contains("mzML")) {
                         extension = "mzML";
                     }
-
-                    if (!path.substring(path.length() - 3, path.length())
-                            .toLowerCase().contains(extension)) {
-                        path = path + "." + extension;
-                    }
-
-                    f = new File(path);
-
-                    if (f.exists() && !extension.equals("mzML")) {
-                        int result = JOptionPane.showConfirmDialog(this,
-                                "The file already exists. Do you want to append the spectra to the file?",
-                                "Existing file",
-                                JOptionPane.YES_NO_CANCEL_OPTION);
-                        if (result == JOptionPane.YES_OPTION) {
-                            acceptable = true;
-                        } else if (result == JOptionPane.CANCEL_OPTION) {
-                            path = null;
-                            break;
-                        }
-                    } else {
-                        acceptable = true;
-                    }
-                } else {
-                    acceptable = true;
                 }
-            } while (!acceptable);
 
-            if (path != null) {
-                MZmineCore.getTaskController().addTask(new ExportSpectraTask(
-                        currentScan, new File(path), extension));
-            }
+                if (!path.toLowerCase().endsWith(extension.toLowerCase())) {
+                    path += "." + extension;
+                    selectedFile = new File(path);
+                }
+
+                if (selectedFile.exists()) {
+
+                    String msg;
+                    if (extension.equals("mzML"))
+                        msg = "The file already exists. Do you want to overwrite the file?";
+                    else
+                        msg = "The file already exists. Do you want to append the spectra to the file?";
+
+                    int confirmResult = JOptionPane.showConfirmDialog(this, msg,
+                            "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
+
+                    if (confirmResult == JOptionPane.NO_OPTION)
+                        selectedFile = null;
+
+                    if (confirmResult == JOptionPane.CANCEL_OPTION)
+                        return;
+
+                }
+            } while (selectedFile == null);
+
+            MZmineCore.getTaskController().addTask(new ExportSpectraTask(
+                    currentScan, selectedFile, extension));
         }
 
         if (command.equals("ADD_ISOTOPE_PATTERN")) {

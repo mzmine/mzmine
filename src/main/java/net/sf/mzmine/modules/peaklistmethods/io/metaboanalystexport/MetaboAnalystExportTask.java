@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -40,7 +42,8 @@ class MetaboAnalystExportTask extends AbstractTask {
     private static final String fieldSeparator = ",";
 
     private final MZmineProject project;
-    private final PeakList peakList;
+    private final PeakList[] peakLists;
+    private String plNamePattern = "{}";
     private int processedRows = 0, totalRows = 0;
 
     // parameter values
@@ -50,9 +53,9 @@ class MetaboAnalystExportTask extends AbstractTask {
     MetaboAnalystExportTask(MZmineProject project, ParameterSet parameters) {
 
         this.project = project;
-        this.peakList = parameters
-                .getParameter(MetaboAnalystExportParameters.peakList)
-                .getValue().getMatchingPeakLists()[0];
+        this.peakLists = parameters
+                .getParameter(MetaboAnalystExportParameters.peakLists)
+                .getValue().getMatchingPeakLists();
 
         fileName = parameters.getParameter(
                 MetaboAnalystExportParameters.filename).getValue();
@@ -69,42 +72,68 @@ class MetaboAnalystExportTask extends AbstractTask {
     }
 
     public String getTaskDescription() {
-        return "Exporting peak list " + peakList + " to " + fileName;
+        return "Exporting peak list(s) " + Arrays.toString(peakLists)
+                + " to MetaboAnalyst CSV file(s)";
     }
 
     public void run() {
 
         setStatus(TaskStatus.PROCESSING);
 
-        // Check the peak list for MetaboAnalyst requirements
-        boolean checkResult = checkPeakList(peakList);
-        if (checkResult == false) {
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("Peak list "
-                    + peakList.getName()
-                    + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group");
-            return;
+
+        // Shall export several files?
+        boolean substitute = fileName.getPath().contains(plNamePattern);
+
+        // Total number of rows
+        for (PeakList peakList : peakLists) {
+            totalRows += peakList.getNumberOfRows();
         }
 
-        try {
+        // Process peak lists
+        for (PeakList peakList : peakLists) {
 
-            // Open file
-            FileWriter writer = new FileWriter(fileName);
+            // Filename
+            File curFile = fileName;
+            if (substitute) {
+                // Cleanup from illegal filename characters
+                String cleanPlName = peakList.getName().replaceAll(
+                        "[^a-zA-Z0-9.-]", "_");
+                // Substitute
+                String newFilename = fileName.getPath().replaceAll(
+                        Pattern.quote(plNamePattern), cleanPlName);
+                curFile = new File(newFilename);
+            }
 
-            // Get number of rows
-            totalRows = peakList.getNumberOfRows();
-
-            exportPeakList(peakList, writer);
-
-            // Close file
-            writer.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            setStatus(TaskStatus.ERROR);
-            setErrorMessage("Could not export peak list to file " + fileName
-                    + ": " + e.getMessage());
-            return;
+            // Check the peak list for MetaboAnalyst requirements
+            boolean checkResult = checkPeakList(peakList);
+            if (checkResult == false) {
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Peak list "
+                        + peakList.getName()
+                        + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group");
+                return;
+            }
+    
+            try {
+    
+                // Open file
+                FileWriter writer = new FileWriter(curFile);
+    
+                // Get number of rows
+                totalRows = peakList.getNumberOfRows();
+    
+                exportPeakList(peakList, writer);
+    
+                // Close file
+                writer.close();
+    
+            } catch (Exception e) {
+                e.printStackTrace();
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("Could not export peak list to file " + curFile
+                        + ": " + e.getMessage());
+                return;
+            }
         }
 
         if (getStatus() == TaskStatus.PROCESSING)

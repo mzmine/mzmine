@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -29,9 +29,9 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 /**
- * IDA visualizer parameter set
+ * MS/MS visualizer parameter set
  */
-public class IDAParameters extends SimpleParameterSet {
+public class MsMsParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
 	    1, 1);
@@ -61,7 +61,7 @@ public class IDAParameters extends SimpleParameterSet {
      */
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
-    public IDAParameters() {
+    public MsMsParameters() {
 	super(new Parameter[] { dataFiles, retentionTimeRange, mzRange,
 		intensityType, normalizationType, minPeakInt,
 		peakThresholdSettings, windowSettings });

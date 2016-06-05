@@ -12,7 +12,6 @@
 #pragma once
 
 #include <vector>
-
 #include "MassLynxRawDefs.h"
 
 namespace micromass_co_uk_mlraw_version_1
@@ -75,8 +74,9 @@ namespace MassLynxRaw
 
 		// The internal representation of the data file.
 		const micromass_co_uk_mlraw_version_1::MLRawAccessInterface * m_pImp;
-		
+
 	};
+
 }   // MassLynxRaw
 }   // Lib
 }   // Waters

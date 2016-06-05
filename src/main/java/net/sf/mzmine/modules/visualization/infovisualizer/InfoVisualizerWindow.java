@@ -113,8 +113,9 @@ class InfoVisualizerWindow extends JFrame {
 	GridBagConstraints c = new GridBagConstraints();
 
 	c.fill = GridBagConstraints.HORIZONTAL;
-	c.insets = new Insets(5, 5, 5, 5);
+	c.insets = new Insets(10, 10, 10, 10);
 	c.gridwidth = 1;
+	c.weightx = 1.0; // Use all horizontal space
 
 	c.gridx = 0;
 	c.gridy = 0;

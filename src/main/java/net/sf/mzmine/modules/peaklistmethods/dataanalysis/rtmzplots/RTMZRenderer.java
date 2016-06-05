@@ -46,6 +46,8 @@ public class RTMZRenderer extends XYLineAndShapeRenderer {
 	this.dataset = dataset;
 	this.paintScale = paintScale;
 	this.setSeriesShape(0, dataPointsShape);
+	
+	setDrawSeriesLineAsPath(true);
     }
 
     @Override

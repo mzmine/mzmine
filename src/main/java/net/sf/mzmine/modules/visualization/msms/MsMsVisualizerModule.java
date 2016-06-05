@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.util.Collection;
 
@@ -36,9 +36,9 @@ import net.sf.mzmine.util.ExitCode;
 import com.google.common.collect.Range;
 
 /**
- * IDA visualizer using JFreeChart library
+ * MS/MS visualizer using JFreeChart library
  */
-public class IDAVisualizerModule implements MZmineRunnableModule {
+public class MsMsVisualizerModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "MS/MS visualizer";
     private static final String MODULE_DESCRIPTION = "MS/MS visualizer."; // TODO
@@ -58,19 +58,19 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
     public ExitCode runModule(@Nonnull MZmineProject project,
 	    @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 	RawDataFile dataFiles[] = parameters
-		.getParameter(IDAParameters.dataFiles).getValue()
+		.getParameter(MsMsParameters.dataFiles).getValue()
 		.getMatchingRawDataFiles();
 	Range<Double> rtRange = parameters.getParameter(
-		IDAParameters.retentionTimeRange).getValue();
-	Range<Double> mzRange = parameters.getParameter(IDAParameters.mzRange)
+		MsMsParameters.retentionTimeRange).getValue();
+	Range<Double> mzRange = parameters.getParameter(MsMsParameters.mzRange)
 		.getValue();
 	final IntensityType intensityType = parameters.getParameter(
-		IDAParameters.intensityType).getValue();
+		MsMsParameters.intensityType).getValue();
 	final NormalizationType normalizationType = parameters.getParameter(
-		IDAParameters.normalizationType).getValue();
-	Double minPeakInt = parameters.getParameter(IDAParameters.minPeakInt)
+		MsMsParameters.normalizationType).getValue();
+	Double minPeakInt = parameters.getParameter(MsMsParameters.minPeakInt)
 		.getValue();
-	IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFiles[0],
+	MsMsVisualizerWindow newWindow = new MsMsVisualizerWindow(dataFiles[0],
 		rtRange, mzRange, intensityType, normalizationType, minPeakInt,
 		parameters);
 
@@ -88,23 +88,23 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
 	    IntensityType intensityType, NormalizationType normalizationType,
 	    Double minPeakInt) {
 	ParameterSet parameters = MZmineCore.getConfiguration()
-		.getModuleParameters(IDAVisualizerModule.class);
+		.getModuleParameters(MsMsVisualizerModule.class);
 
-	parameters.getParameter(IDAParameters.dataFiles).setValue(
+	parameters.getParameter(MsMsParameters.dataFiles).setValue(
 		RawDataFilesSelectionType.SPECIFIC_FILES,
 		new RawDataFile[] { dataFile });
 
 	if (rtRange != null)
-	    parameters.getParameter(IDAParameters.retentionTimeRange).setValue(
+	    parameters.getParameter(MsMsParameters.retentionTimeRange).setValue(
 		    rtRange);
 	if (mzRange != null)
-	    parameters.getParameter(IDAParameters.mzRange).setValue(mzRange);
+	    parameters.getParameter(MsMsParameters.mzRange).setValue(mzRange);
 	if (intensityType != null)
-	    parameters.getParameter(IDAParameters.intensityType).setValue(intensityType);
+	    parameters.getParameter(MsMsParameters.intensityType).setValue(intensityType);
 	if (normalizationType != null)
-	    parameters.getParameter(IDAParameters.normalizationType).setValue(normalizationType);
+	    parameters.getParameter(MsMsParameters.normalizationType).setValue(normalizationType);
 	if (!Double.isNaN(minPeakInt))
-	    parameters.getParameter(IDAParameters.minPeakInt).setValue(minPeakInt);
+	    parameters.getParameter(MsMsParameters.minPeakInt).setValue(minPeakInt);
 
 	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
 		.getMainWindow(), true);
@@ -112,14 +112,14 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
 	if (exitCode != ExitCode.OK)
 	    return;
 
-	rtRange = parameters.getParameter(IDAParameters.retentionTimeRange)
+	rtRange = parameters.getParameter(MsMsParameters.retentionTimeRange)
 		.getValue();
-	mzRange = parameters.getParameter(IDAParameters.mzRange).getValue();
-	intensityType = parameters.getParameter(IDAParameters.intensityType).getValue();
-	normalizationType = parameters.getParameter(IDAParameters.normalizationType).getValue();
-	minPeakInt = parameters.getParameter(IDAParameters.minPeakInt).getValue();
+	mzRange = parameters.getParameter(MsMsParameters.mzRange).getValue();
+	intensityType = parameters.getParameter(MsMsParameters.intensityType).getValue();
+	normalizationType = parameters.getParameter(MsMsParameters.normalizationType).getValue();
+	minPeakInt = parameters.getParameter(MsMsParameters.minPeakInt).getValue();
 
-	IDAVisualizerWindow newWindow = new IDAVisualizerWindow(dataFile,
+	MsMsVisualizerWindow newWindow = new MsMsVisualizerWindow(dataFile,
 		rtRange, mzRange, intensityType, normalizationType, minPeakInt,
 		parameters);
 
@@ -134,7 +134,7 @@ public class IDAVisualizerModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return IDAParameters.class;
+	return MsMsParameters.class;
     }
 
 }

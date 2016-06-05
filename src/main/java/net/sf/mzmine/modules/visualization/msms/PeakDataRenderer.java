@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.ida;
+package net.sf.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
 import java.awt.Paint;
@@ -52,6 +52,7 @@ class PeakDataRenderer extends XYLineAndShapeRenderer {
 	PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
 	setBaseToolTipGenerator(toolTipGenerator);
 
+	setDrawSeriesLineAsPath(true);
     }
 
     public Paint getItemPaint(int row, int column) {

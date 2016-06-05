@@ -21,11 +21,14 @@ package net.sf.mzmine.modules.peaklistmethods.io.xmlexport;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -39,8 +42,9 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 public class XMLExportTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    private PeakList peakList;
-    private PeakListSaveHandler peakListSaveHandler;
+    private PeakList[] peakLists;
+    private String plNamePattern = "{}";
+    private PeakListSaveHandler[] peakListSaveHandlers;
     public static DateFormat dateFormat = new SimpleDateFormat(
             "yyyy/MM/dd HH:mm:ss");
 
@@ -59,31 +63,38 @@ public class XMLExportTask extends AbstractTask {
         compression = parameters.getParameter(XMLExportParameters.compression)
                 .getValue();
 
-        this.peakList = parameters.getParameter(XMLExportParameters.peakList)
-                .getValue().getMatchingPeakLists()[0];
-
+        this.peakLists = parameters.getParameter(XMLExportParameters.peakLists)
+                .getValue().getMatchingPeakLists();
+        
+        this.peakListSaveHandlers = new PeakListSaveHandler[this.peakLists.length];
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-        if (peakListSaveHandler == null)
-            return 0;
-        return peakListSaveHandler.getProgress();
+        double percentage = 0.0;
+        for (PeakListSaveHandler peakListSaveHandler : peakListSaveHandlers) {
+            if (peakListSaveHandler != null)
+                percentage += peakListSaveHandler.getProgress();
+        }
+        return percentage / (double) peakListSaveHandlers.length;
     }
 
     public void cancel() {
         super.cancel();
-        if (peakListSaveHandler != null)
-            peakListSaveHandler.cancel();
+        for (PeakListSaveHandler peakListSaveHandler : peakListSaveHandlers) {
+            if (peakListSaveHandler != null)
+                peakListSaveHandler.cancel();
+        }
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Saving peak list " + peakList + " to " + fileName;
+        return "Exporting peak list(s) " + Arrays.toString(peakLists)
+                + " to MPL file(s)";
     }
 
     /**
@@ -91,47 +102,82 @@ public class XMLExportTask extends AbstractTask {
      */
     public void run() {
 
-        try {
+        setStatus(TaskStatus.PROCESSING);
 
-            setStatus(TaskStatus.PROCESSING);
-            logger.info("Started saving peak list " + peakList.getName());
+        // Shall export several files?
+        boolean substitute = fileName.getPath().contains(plNamePattern);
 
-            // write the saving file
-            FileOutputStream fos = new FileOutputStream(fileName);
-            OutputStream finalStream = fos;
+        // Process peak lists
+        for (int i = 0; i < peakLists.length; i++) {
 
-            if (compression) {
-                @SuppressWarnings("resource")
-                ZipOutputStream zos = new ZipOutputStream(fos);
-                zos.setLevel(9);
-                zos.putNextEntry(new ZipEntry(fileName.getName()));
-                finalStream = zos;
+            PeakList peakList = peakLists[i];
+            
+            File curFile = fileName;
+            try {
+
+                // Filename
+                if (substitute) {
+                    // Cleanup from illegal filename characters
+                    String cleanPlName = peakList.getName().replaceAll(
+                            "[^a-zA-Z0-9.-]", "_");
+                    // Substitute
+                    String newFilename = fileName.getPath().replaceAll(
+                            Pattern.quote(plNamePattern), cleanPlName);
+                    curFile = new File(newFilename);
+                }
+
+                // Open file
+                FileWriter writer;
+                try {
+                    writer = new FileWriter(curFile);
+                } catch (Exception e) {
+                    setStatus(TaskStatus.ERROR);
+                    setErrorMessage("Could not open file " + curFile 
+                            + " for writing.");
+                    return;
+                }
+
+                logger.info("Started saving peak list " + peakList.getName());
+
+                // write the saving file
+                FileOutputStream fos = new FileOutputStream(curFile);
+                OutputStream finalStream = fos;
+
+                if (compression) {
+                    @SuppressWarnings("resource")
+                    ZipOutputStream zos = new ZipOutputStream(fos);
+                    zos.setLevel(9);
+                    zos.putNextEntry(new ZipEntry(fileName.getName()));
+                    finalStream = zos;
+                }
+
+                Hashtable<RawDataFile, String> dataFilesIDMap = new Hashtable<RawDataFile, String>();
+                for (RawDataFile file : peakList.getRawDataFiles()) {
+                    dataFilesIDMap.put(file, file.getName());
+                }
+
+                PeakListSaveHandler peakListSaveHandler = new PeakListSaveHandler(finalStream,
+                        dataFilesIDMap);                
+                peakListSaveHandlers[i] = peakListSaveHandler;
+
+                peakListSaveHandler.savePeakList(peakList);
+
+                finalStream.close();
+
+            } catch (Exception e) {
+                /* we may already have set the status to CANCELED */
+                if (getStatus() == TaskStatus.PROCESSING) {
+                    setStatus(TaskStatus.ERROR);
+                }
+                setErrorMessage(e.toString());
+                e.printStackTrace();
+                return;
             }
 
-            Hashtable<RawDataFile, String> dataFilesIDMap = new Hashtable<RawDataFile, String>();
-            for (RawDataFile file : peakList.getRawDataFiles()) {
-                dataFilesIDMap.put(file, file.getName());
-            }
+            logger.info("Finished saving " + peakList.getName());
+            setStatus(TaskStatus.FINISHED);
 
-            peakListSaveHandler = new PeakListSaveHandler(finalStream,
-                    dataFilesIDMap);
-
-            peakListSaveHandler.savePeakList(peakList);
-
-            finalStream.close();
-
-        } catch (Exception e) {
-            /* we may already have set the status to CANCELED */
-            if (getStatus() == TaskStatus.PROCESSING) {
-                setStatus(TaskStatus.ERROR);
-            }
-            setErrorMessage(e.toString());
-            e.printStackTrace();
-            return;
         }
-
-        logger.info("Finished saving " + peakList.getName());
-        setStatus(TaskStatus.FINISHED);
     }
-
+    
 }
