@@ -22,9 +22,13 @@ package net.sf.mzmine.modules.peaklistmethods.identification.ms2search;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
@@ -46,7 +50,8 @@ public class Ms2SearchTask extends AbstractTask {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private int finishedRows, totalRows;
-    private PeakList peakList;
+    private PeakList peakList1;
+    private PeakList peakList2;
 
     private RTTolerance rtTolerance;
     private MZTolerance mzTolerance;
@@ -60,7 +65,8 @@ public class Ms2SearchTask extends AbstractTask {
      */
     public Ms2SearchTask(ParameterSet parameters, PeakList peakList1, PeakList peakList2) {
 
-	this.peakList = peakList;
+	this.peakList1 = peakList1;
+	this.peakList2 = peakList2;
 	this.parameters = parameters;
 
 	ionType = parameters.getParameter(
@@ -71,6 +77,10 @@ public class Ms2SearchTask extends AbstractTask {
 		Ms2SearchParameters.mzTolerance).getValue();
 	maxComplexHeight = parameters.getParameter(
 		Ms2SearchParameters.maxComplexHeight).getValue();
+	
+	
+	
+	
 
     }
 
@@ -87,7 +97,7 @@ public class Ms2SearchTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-	return "Identification of complexes in " + peakList;
+	return "MS2 similarity comparison between " + peakList1 + "and" + peakList2;
     }
 
     /**
@@ -97,50 +107,23 @@ public class Ms2SearchTask extends AbstractTask {
 
 	setStatus(TaskStatus.PROCESSING);
 
-	logger.info("Starting MS2 similarity search in " + peakList);
+	logger.info("Starting MS2 similarity search in " + peakList1 + "and" + peakList2);
 
-	PeakListRow rows[] = peakList.getRows();
-	totalRows = rows.length;
-
-	// Sort the array by m/z so we start with biggest peak (possible
-	// complex)
-	Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
-		SortingDirection.Descending));
-
-	// Compare each three rows against each other
-	for (int i = 0; i < totalRows; i++) {
-
-	    Range<Double> testRTRange = rtTolerance.getToleranceRange(rows[i]
-		    .getAverageRT());
-	    PeakListRow testRows[] = peakList
-		    .getRowsInsideScanRange(testRTRange);
-
-	    for (int j = 0; j < testRows.length; j++) {
-
-		for (int k = j; k < testRows.length; k++) {
-
-		    // Task canceled?
-		    if (isCanceled())
-			return;
-
-		    // To avoid finding a complex of the peak itself and another
-		    // very small m/z peak
-		    if ((rows[i] == testRows[j]) || (rows[i] == testRows[k]))
-			continue;
-
-		    if (checkComplex(rows[i], testRows[j], testRows[k]))
-			addComplexInfo(rows[i], testRows[j], testRows[k]);
-
-		}
-
+	double result;
+	PeakListRow rows1[] = peakList1.getRows();
+	PeakListRow rows2[] = peakList2.getRows();
+	int rows1Length = rows1.length;
+	int rows2Length = rows2.length;
+	for (int i = 0; i < rows1Length; i++){
+	    for (int j = 0; j < rows2Length; j++)
+	    {
+	        result = simpleMS2similarity(rows1[i].getBestPeak(),rows2[j].getBestPeak(), 1E3, 5);
 	    }
-
-	    finishedRows++;
-
+	    
 	}
 
 	// Add task description to peakList
-	((SimplePeakList) peakList)
+	((SimplePeakList) peakList1)
 		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 			"Identification of complexes", parameters));
 
@@ -151,7 +134,7 @@ public class Ms2SearchTask extends AbstractTask {
 
 	setStatus(TaskStatus.FINISHED);
 
-	logger.info("Finished complexes search in " + peakList);
+	logger.info("Finished MS2 similarity search in " + peakList1 + "and" + peakList2);
 
     }
 
@@ -159,34 +142,43 @@ public class Ms2SearchTask extends AbstractTask {
      * Check if candidate peak may be a possible complex of given two peaks
      * 
      */
-    private boolean checkComplex(PeakListRow complexRow, PeakListRow row1,
-	    PeakListRow row2) {
+    private double simpleMS2similarity(Feature peak1, Feature peak2,double intensityThreshold, double mzRangePPM) {
+        //This could probably return some sort of key:value dictionary (say scanHash:similarity) for the similarity scores, 
+        //instead of the current double[] return
+        double runningScoreTotal = 0.0;
 
-	// Check retention time condition
-	Range<Double> rtRange = rtTolerance.getToleranceRange(complexRow
-		.getAverageRT());
-	if (!rtRange.contains(row1.getAverageRT()))
-	    return false;
-	if (!rtRange.contains(row2.getAverageRT()))
-	    return false;
+        //Fetch 1st peak MS2 scan.
+        int ms2ScanNumberA = peak1.getMostIntenseFragmentScanNumber();
+        Scan peakMS2A = peak1.getDataFile().getScan(ms2ScanNumberA);
+        RawDataFile peak1DataFile = peak1.getDataFile();
+        int peak1ID = peak1.hashCode(); //Use this for the key:value dictionary?
+        
+        //Fetch 2nd peak MS2 scan.
+        int ms2ScanNumberB = peak2.getMostIntenseFragmentScanNumber();
+        Scan peakMS2B = peak2.getDataFile().getScan(ms2ScanNumberB);
+        RawDataFile peak2DataFile = peak2.getDataFile();
+        int peak2ID = peak2.hashCode(); //Use this for the key:value dictionary?
 
-	// Check mass condition
-	double expectedMass = row1.getAverageMZ() + row2.getAverageMZ()
-		- (2 * ionType.getAddedMass());
-	double detectedMass = complexRow.getAverageMZ()
-		- ionType.getAddedMass();
-	Range<Double> mzRange = mzTolerance.getToleranceRange(detectedMass);
-	if (!mzRange.contains(expectedMass))
-	    return false;
-
-	// Check height condition
-	if ((complexRow.getAverageHeight() > row1.getAverageHeight()
-		* maxComplexHeight)
-		|| (complexRow.getAverageHeight() > row2.getAverageHeight()
-			* maxComplexHeight))
-	    return false;
-
-	return true;
+        DataPoint[] peaksA = null;
+        DataPoint[] peaksB = null;
+        
+        peaksA = peakMS2A.getDataPointsOverIntensity(intensityThreshold);
+        peaksB = peakMS2B.getDataPointsOverIntensity(intensityThreshold); 
+        
+        //Compare every peak in MS2 scan A, to MS2 scan B.
+        for ( int i = 0; i < peaksA.length; i++)
+        {
+            for ( int j = 0; j < peaksB.length; j++)
+            {
+                if (Math.abs( peaksA[i].getMZ() - peaksB[j].getMZ() ) < peaksA[i].getMZ()*1e-6*mzRangePPM)
+                { 
+                    runningScoreTotal += peaksA[i].getIntensity()*peaksB[j].getIntensity();  
+                }
+            }
+        }
+        
+       
+       return runningScoreTotal;
 
     }
 

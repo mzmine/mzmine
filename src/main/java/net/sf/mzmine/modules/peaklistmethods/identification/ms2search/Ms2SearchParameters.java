@@ -23,6 +23,7 @@ import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
@@ -46,6 +47,9 @@ public class Ms2SearchParameters extends SimpleParameterSet {
     
     public static final IntegerParameter minimumPeaksMatchedParameter = new IntegerParameter(            
             "Minimum peaks matched per MS2 comparison", "Minimum number of peaks between two MS2s that must match");
+    
+    public static final DoubleParameter intensityThreshold = new DoubleParameter(
+            "Minimum ion intensity to consider in MS2 comparison","Minimum ion intensity to consider in MS2 comparison");
     
 
     /*
