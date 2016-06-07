@@ -19,21 +19,20 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.ms2search;
 
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 
 public class Ms2Identity extends SimplePeakIdentity {
 
-    public Ms2Identity(final PeakListRow peak1, final PeakListRow peak2) {
+    public Ms2Identity(final Feature featureA, final Feature featureB, double score) {
 
-	super("Complex of "
-		+ MZmineCore.getConfiguration().getMZFormat()
-			.format(peak1.getAverageMZ())
-		+ " and "
-		+ MZmineCore.getConfiguration().getMZFormat()
-			.format(peak2.getAverageMZ()) + " m/z");
-
+        super(MZmineCore.getConfiguration().getMZFormat()
+                .format(featureB.getMZ()) + " " + MZmineCore.getConfiguration().getRTFormat()
+                .format(featureB.getRT()) + " " + Double.toString(score));
+        
+        
 	setPropertyValue(PROPERTY_METHOD, "MS2 search");
     }
 }

@@ -63,24 +63,15 @@ public class Ms2SearchTask extends AbstractTask {
      * @param parameters
      * @param peakList
      */
-    public Ms2SearchTask(ParameterSet parameters, PeakList peakList1, PeakList peakList2) {
+    public Ms2SearchTask(ParameterSet parameters, PeakList peakList1,
+            PeakList peakList2) {
 
-	this.peakList1 = peakList1;
-	this.peakList2 = peakList2;
-	this.parameters = parameters;
+        this.peakList1 = peakList1;
+        this.peakList2 = peakList2;
+        this.parameters = parameters;
 
-	ionType = parameters.getParameter(
-		Ms2SearchParameters.ionizationMethod).getValue();
-	rtTolerance = parameters.getParameter(
-		Ms2SearchParameters.rtTolerance).getValue();
-	mzTolerance = parameters.getParameter(
-		Ms2SearchParameters.mzTolerance).getValue();
-	maxComplexHeight = parameters.getParameter(
-		Ms2SearchParameters.maxComplexHeight).getValue();
-	
-	
-	
-	
+        mzTolerance = parameters.getParameter(Ms2SearchParameters.mzTolerance)
+                .getValue();
 
     }
 
@@ -88,16 +79,17 @@ public class Ms2SearchTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-	if (totalRows == 0)
-	    return 0;
-	return ((double) finishedRows) / totalRows;
+        if (totalRows == 0)
+            return 0;
+        return ((double) finishedRows) / totalRows;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-	return "MS2 similarity comparison between " + peakList1 + "and" + peakList2;
+        return "MS2 similarity comparison between " + peakList1 + "and"
+                + peakList2;
     }
 
     /**
@@ -105,97 +97,118 @@ public class Ms2SearchTask extends AbstractTask {
      */
     public void run() {
 
-	setStatus(TaskStatus.PROCESSING);
+        setStatus(TaskStatus.PROCESSING);
 
-	logger.info("Starting MS2 similarity search in " + peakList1 + "and" + peakList2);
+        logger.info("Starting MS2 similarity search in " + peakList1 + "and"
+                + peakList2);
 
-	double result;
-	PeakListRow rows1[] = peakList1.getRows();
-	PeakListRow rows2[] = peakList2.getRows();
-	int rows1Length = rows1.length;
-	int rows2Length = rows2.length;
-	for (int i = 0; i < rows1Length; i++){
-	    for (int j = 0; j < rows2Length; j++)
-	    {
-	        result = simpleMS2similarity(rows1[i].getBestPeak(),rows2[j].getBestPeak(), 1E3, 5);
-	    }
-	    
-	}
+        double result;
+        PeakListRow rows1[] = peakList1.getRows();
+        PeakListRow rows2[] = peakList2.getRows();
+        
+        int rows1Length = rows1.length;
+        int rows2Length = rows2.length;
+        
+        
+        for (int i = 0; i < rows1Length; i++) {
+            for (int j = 0; j < rows2Length; j++) {
+                Feature featureA = rows1[i].getBestPeak();
+                Feature featureB = rows2[j].getBestPeak();
+                
+                int featureAID = featureA.hashCode();
+                int featureBID = featureB.hashCode();
+                
+                result = simpleMS2similarity(featureA,
+                        featureB, 1E3, mzTolerance.getPpmTolerance());
+                
+                if (result > 1E10)
+                    addFragmentClusterIdentity(rows1[i],featureA,featureB,result);
+                //featureA.appendFragmentSimilarityScore(featureBID,result);
+              
+                if (isCanceled())
+                    return;
+            }
 
-	// Add task description to peakList
-	((SimplePeakList) peakList1)
-		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-			"Identification of complexes", parameters));
+        }
+
+        // Add task description to peakList
+        ((SimplePeakList) peakList1).addDescriptionOfAppliedTask(
+                new SimplePeakListAppliedMethod("Identification of complexes",
+                        parameters));
 
         // Repaint the window to reflect the change in the peak list
         Desktop desktop = MZmineCore.getDesktop();
         if (!(desktop instanceof HeadLessDesktop))
             desktop.getMainWindow().repaint();
 
-	setStatus(TaskStatus.FINISHED);
+        setStatus(TaskStatus.FINISHED);
 
-	logger.info("Finished MS2 similarity search in " + peakList1 + "and" + peakList2);
+        logger.info("Finished MS2 similarity search for " + peakList1 + "against"
+                + peakList2);
 
     }
 
     /**
-     * Check if candidate peak may be a possible complex of given two peaks
+     * Simple cosine like calculation of similarity between ions of two fragmentation scans.
      * 
      */
-    private double simpleMS2similarity(Feature peak1, Feature peak2,double intensityThreshold, double mzRangePPM) {
-        //This could probably return some sort of key:value dictionary (say scanHash:similarity) for the similarity scores, 
-        //instead of the current double[] return
+    private double simpleMS2similarity(Feature featureA, Feature featureB,
+            double intensityThreshold, double mzRangePPM) {
+        // This could probably return some sort of key:value dictionary (say
+        // scanHash:similarity) for the similarity scores,
+        // instead of the current double[] return
         double runningScoreTotal = 0.0;
 
-        //Fetch 1st peak MS2 scan.
-        int ms2ScanNumberA = peak1.getMostIntenseFragmentScanNumber();
-        Scan peakMS2A = peak1.getDataFile().getScan(ms2ScanNumberA);
-        RawDataFile peak1DataFile = peak1.getDataFile();
-        int peak1ID = peak1.hashCode(); //Use this for the key:value dictionary?
-        
-        //Fetch 2nd peak MS2 scan.
-        int ms2ScanNumberB = peak2.getMostIntenseFragmentScanNumber();
-        Scan peakMS2B = peak2.getDataFile().getScan(ms2ScanNumberB);
-        RawDataFile peak2DataFile = peak2.getDataFile();
-        int peak2ID = peak2.hashCode(); //Use this for the key:value dictionary?
+        // Fetch 1st peak MS2 scan.
+        int ms2ScanNumberA = featureA.getMostIntenseFragmentScanNumber();
+        Scan scanMS2A = featureA.getDataFile().getScan(ms2ScanNumberA);
+        RawDataFile featureADataFile = featureA.getDataFile();
 
-        DataPoint[] peaksA = null;
-        DataPoint[] peaksB = null;
+        // Fetch 2nd peak MS2 scan.
+        int ms2ScanNumberB = featureB.getMostIntenseFragmentScanNumber();
+        Scan scanMS2B = featureB.getDataFile().getScan(ms2ScanNumberB);
+        RawDataFile peak2DataFile = featureB.getDataFile();
         
-        peaksA = peakMS2A.getDataPointsOverIntensity(intensityThreshold);
-        peaksB = peakMS2B.getDataPointsOverIntensity(intensityThreshold); 
-        
-        //Compare every peak in MS2 scan A, to MS2 scan B.
-        for ( int i = 0; i < peaksA.length; i++)
+        if (scanMS2A == null || scanMS2B == null)
         {
-            for ( int j = 0; j < peaksB.length; j++)
-            {
-                if (Math.abs( peaksA[i].getMZ() - peaksB[j].getMZ() ) < peaksA[i].getMZ()*1e-6*mzRangePPM)
-                { 
-                    runningScoreTotal += peaksA[i].getIntensity()*peaksB[j].getIntensity();  
+            return 0.0;
+        }
+
+        DataPoint[] ionsA = null;
+        DataPoint[] ionsB = null;
+
+        ionsA = scanMS2A.getDataPointsOverIntensity(intensityThreshold);
+        ionsB = scanMS2B.getDataPointsOverIntensity(intensityThreshold);
+
+        // Compare every ion peak in MS2 scan A, to MS2 scan B.
+        for (int i = 0; i < ionsA.length; i++) {
+            for (int j = 0; j < ionsB.length; j++) {
+                if (Math.abs(ionsA[i].getMZ() - ionsB[j].getMZ()) < ionsA[i]
+                        .getMZ() * 1e-6 * mzRangePPM) {
+                    runningScoreTotal += ionsA[i].getIntensity()
+                            * ionsB[j].getIntensity();
                 }
             }
         }
-        
-       
-       return runningScoreTotal;
+
+        return runningScoreTotal;
 
     }
 
     /**
-     * Add new identity to the complex row
+     * Add new identity based on fragmentation similarity to the row
      * 
      * @param mainRow
      * @param fragmentRow
      */
-    private void addComplexInfo(PeakListRow complexRow, PeakListRow row1,
-	    PeakListRow row2) {
-	Ms2Identity newIdentity = new Ms2Identity(row1, row2);
-	complexRow.addPeakIdentity(newIdentity, false);
+    private void addFragmentClusterIdentity(PeakListRow complexRow, Feature peakA,
+            Feature peakB, double score) {
+        Ms2Identity newIdentity = new Ms2Identity(peakA, peakB, score);
+        complexRow.addPeakIdentity(newIdentity, false);
 
-	// Notify the GUI about the change in the project
-	MZmineCore.getProjectManager().getCurrentProject()
-		.notifyObjectChanged(complexRow, false);
+        // Notify the GUI about the change in the project
+        MZmineCore.getProjectManager().getCurrentProject()
+                .notifyObjectChanged(complexRow, false);
     }
-
 }
+    
