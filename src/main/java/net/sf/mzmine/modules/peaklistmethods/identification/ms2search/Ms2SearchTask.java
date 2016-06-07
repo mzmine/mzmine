@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -225,11 +226,23 @@ public class Ms2SearchTask extends AbstractTask {
         DataPoint[] ionsA = null;
         DataPoint[] ionsB = null;
 
-        //Is this the centroided data? Doesn't look like it.
-        ionsA = scanMS2A.getDataPointsOverIntensity(intensityThreshold);
-        ionsB = scanMS2B.getDataPointsOverIntensity(intensityThreshold);
+        MassList massListA = scanMS2A.getMassLists()[0];
+        MassList massListB = scanMS2B.getMassLists()[0];
+        
+        //Centroided data.
+        ionsA = massListA.getDataPoints();
+        ionsB = massListB.getDataPoints();
 
         int numIonsMatched = 0;
+        
+        if (ionsA == null || ionsB == null)
+        {
+            //Fall back to profile data?
+             //Profile / raw data.
+            //ionsA = scanMS2A.getDataPointsOverIntensity(intensityThreshold);
+            //ionsB = scanMS2B.getDataPointsOverIntensity(intensityThreshold);
+         return null;   
+        }
         
         // Compare every ion peak in MS2 scan A, to MS2 scan B.  Possible heuristics to speed this up based on sorted mz values etc.
         for (int i = 0; i < ionsA.length; i++) {
@@ -254,14 +267,14 @@ public class Ms2SearchTask extends AbstractTask {
      * @param mainRow
      * @param fragmentRow
      */
-    private void addFragmentClusterIdentity(PeakListRow complexRow, Feature peakA,
+    private void addFragmentClusterIdentity(PeakListRow row1, Feature peakA,
             Feature peakB, Ms2SearchResult searchResult) {
         Ms2Identity newIdentity = new Ms2Identity(peakA, peakB, searchResult);
-        complexRow.addPeakIdentity(newIdentity, false);
+        row1.addPeakIdentity(newIdentity, false);
 
         // Notify the GUI about the change in the project
         MZmineCore.getProjectManager().getCurrentProject()
-                .notifyObjectChanged(complexRow, false);
+                .notifyObjectChanged(row1, false);
     }
 }
     
