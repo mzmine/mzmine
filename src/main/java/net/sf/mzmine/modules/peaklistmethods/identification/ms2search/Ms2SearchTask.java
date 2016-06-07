@@ -58,6 +58,8 @@ public class Ms2SearchTask extends AbstractTask {
     private double maxComplexHeight;
     private IonizationType ionType;
     private ParameterSet parameters;
+    private double scoreThreshold;
+    private double intensityThreshold;
 
     /**
      * @param parameters
@@ -71,6 +73,12 @@ public class Ms2SearchTask extends AbstractTask {
         this.parameters = parameters;
 
         mzTolerance = parameters.getParameter(Ms2SearchParameters.mzTolerance)
+                .getValue();
+        
+        scoreThreshold = parameters.getParameter(Ms2SearchParameters.scoreThreshold)
+                .getValue();
+        
+        intensityThreshold = parameters.getParameter(Ms2SearchParameters.intensityThreshold)
                 .getValue();
 
     }
@@ -99,10 +107,11 @@ public class Ms2SearchTask extends AbstractTask {
 
         setStatus(TaskStatus.PROCESSING);
 
-        logger.info("Starting MS2 similarity search in " + peakList1 + "and"
-                + peakList2);
+        logger.info("Starting MS2 similarity search between " + peakList1 + "and"
+                + peakList2 + "with mz tolerance:"+mzTolerance.getPpmTolerance());
 
-        double result;
+        double score;
+        int numIonsMatched;
         PeakListRow rows1[] = peakList1.getRows();
         PeakListRow rows2[] = peakList2.getRows();
         
@@ -118,11 +127,12 @@ public class Ms2SearchTask extends AbstractTask {
                 int featureAID = featureA.hashCode();
                 int featureBID = featureB.hashCode();
                 
-                result = simpleMS2similarity(featureA,
-                        featureB, 1E3, mzTolerance.getPpmTolerance());
+                score = simpleMS2similarity(featureA,
+                        featureB, intensityThreshold, mzTolerance.getPpmTolerance());
                 
-                if (result > 1E10)
-                    addFragmentClusterIdentity(rows1[i],featureA,featureB,result);
+                if (score > scoreThreshold)
+                    addFragmentClusterIdentity(rows1[i],featureA,featureB,score);
+                
                 //featureA.appendFragmentSimilarityScore(featureBID,result);
               
                 if (isCanceled())
@@ -180,6 +190,7 @@ public class Ms2SearchTask extends AbstractTask {
         ionsA = scanMS2A.getDataPointsOverIntensity(intensityThreshold);
         ionsB = scanMS2B.getDataPointsOverIntensity(intensityThreshold);
 
+        int numIonsMatched = 0;
         // Compare every ion peak in MS2 scan A, to MS2 scan B.
         for (int i = 0; i < ionsA.length; i++) {
             for (int j = 0; j < ionsB.length; j++) {
@@ -187,6 +198,7 @@ public class Ms2SearchTask extends AbstractTask {
                         .getMZ() * 1e-6 * mzRangePPM) {
                     runningScoreTotal += ionsA[i].getIntensity()
                             * ionsB[j].getIntensity();
+                    numIonsMatched++;
                 }
             }
         }

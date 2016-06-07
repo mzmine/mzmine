@@ -35,34 +35,20 @@ public class Ms2SearchParameters extends SimpleParameterSet {
     public static final PeakListsParameter peakLists1 = new PeakListsParameter();
     
     public static final PeakListsParameter peakLists2 = new PeakListsParameter();
-
-    public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
-            "Ionization method",
-            "Type of ion used to calculate the neutral mass",
-            IonizationType.values());
-
-    public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
-
+    
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+        
+    public static final DoubleParameter intensityThreshold = new DoubleParameter(
+            "Minimum ion intensity to consider in MS2 comparison","Minimum ion intensity to consider in MS2 comparison");
     
     public static final IntegerParameter minimumPeaksMatchedParameter = new IntegerParameter(            
             "Minimum peaks matched per MS2 comparison", "Minimum number of peaks between two MS2s that must match");
     
-    public static final DoubleParameter intensityThreshold = new DoubleParameter(
-            "Minimum ion intensity to consider in MS2 comparison","Minimum ion intensity to consider in MS2 comparison");
+    public static final DoubleParameter scoreThreshold = new DoubleParameter(
+            "Minimum score to report","Minimum MS2 comparison score to report");
     
-
-    /*
-     * Max value 10000% so even high-intensity complexes can be searched for.
-     */
-    public static final PercentParameter maxComplexHeight = new PercentParameter(
-            "Max complex peak height",
-            "Maximum height of the recognized complex peak, relative to the highest of component peaks",
-            0.5, 0, 100);
-
     public Ms2SearchParameters() {
-        super(new Parameter[] { peakLists1, peakLists2, mzTolerance, minimumPeaksMatchedParameter,
-                maxComplexHeight });
+        super(new Parameter[] { peakLists1, peakLists2, mzTolerance,intensityThreshold, minimumPeaksMatchedParameter,scoreThreshold});
     }
 
 }
