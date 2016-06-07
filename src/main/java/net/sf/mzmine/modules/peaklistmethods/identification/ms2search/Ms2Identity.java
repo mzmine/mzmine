@@ -26,10 +26,12 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class Ms2Identity extends SimplePeakIdentity {
 
-    public Ms2Identity(final Feature featureA, final Feature featureB, double score) {
+    public Ms2Identity(final Feature featureA, final Feature featureB, Ms2SearchResult searchResult) {
 
         super("MS2 similarity m/z:" + MZmineCore.getConfiguration().getMZFormat().format(featureB.getMZ()) + 
-                        " RT:" + MZmineCore.getConfiguration().getRTFormat().format(featureB.getRT()) + " Score:" + String.format("%3.1e",score));
+                        " RT:" + MZmineCore.getConfiguration().getRTFormat().format(featureB.getRT()) + 
+                        " Score:" + String.format("%3.1e",searchResult.getScore()) +
+                        " NumIonsMatched:" + searchResult.getNumIonsMatched());
         
         
 	setPropertyValue(PROPERTY_METHOD, "MS2 search");

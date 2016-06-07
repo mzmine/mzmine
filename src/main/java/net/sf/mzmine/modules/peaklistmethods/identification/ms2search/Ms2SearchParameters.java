@@ -41,14 +41,14 @@ public class Ms2SearchParameters extends SimpleParameterSet {
     public static final DoubleParameter intensityThreshold = new DoubleParameter(
             "Minimum ion intensity to consider in MS2 comparison","Minimum ion intensity to consider in MS2 comparison");
     
-    public static final IntegerParameter minimumPeaksMatchedParameter = new IntegerParameter(            
+    public static final IntegerParameter minimumIonsMatched = new IntegerParameter(            
             "Minimum peaks matched per MS2 comparison", "Minimum number of peaks between two MS2s that must match");
     
     public static final DoubleParameter scoreThreshold = new DoubleParameter(
             "Minimum score to report","Minimum MS2 comparison score to report");
     
     public Ms2SearchParameters() {
-        super(new Parameter[] { peakLists1, peakLists2, mzTolerance,intensityThreshold, minimumPeaksMatchedParameter,scoreThreshold});
+        super(new Parameter[] { peakLists1, peakLists2, mzTolerance,intensityThreshold, minimumIonsMatched,scoreThreshold});
     }
 
 }

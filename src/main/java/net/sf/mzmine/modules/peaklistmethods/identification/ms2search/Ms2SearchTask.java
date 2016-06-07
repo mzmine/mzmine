@@ -45,6 +45,37 @@ import net.sf.mzmine.util.SortingProperty;
 
 import com.google.common.collect.Range;
 
+class Ms2SearchResult {
+   private double score;
+   private int numIonsMatched;
+   private String searchType;
+   
+   public Ms2SearchResult(double score, int numIonsMatched, String searchType)
+   {
+   this.score = score;
+   this.numIonsMatched = numIonsMatched;
+   this.searchType = searchType;
+   }
+   
+   public double getScore()
+   {
+       return this.score;
+   }
+   
+   public int getNumIonsMatched()
+   {
+       return this.numIonsMatched;
+   }
+   
+   public String getSearchType()
+   {
+       return this.searchType;
+   }
+   
+               
+   
+}
+
 public class Ms2SearchTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -60,6 +91,7 @@ public class Ms2SearchTask extends AbstractTask {
     private ParameterSet parameters;
     private double scoreThreshold;
     private double intensityThreshold;
+    private int minimumIonsMatched;
 
     /**
      * @param parameters
@@ -79,6 +111,9 @@ public class Ms2SearchTask extends AbstractTask {
                 .getValue();
         
         intensityThreshold = parameters.getParameter(Ms2SearchParameters.intensityThreshold)
+                .getValue();
+        
+        minimumIonsMatched = parameters.getParameter(Ms2SearchParameters.minimumIonsMatched)
                 .getValue();
 
     }
@@ -110,6 +145,7 @@ public class Ms2SearchTask extends AbstractTask {
         logger.info("Starting MS2 similarity search between " + peakList1 + "and"
                 + peakList2 + "with mz tolerance:"+mzTolerance.getPpmTolerance());
 
+        Ms2SearchResult searchResult;
         double score;
         int numIonsMatched;
         PeakListRow rows1[] = peakList1.getRows();
@@ -128,17 +164,20 @@ public class Ms2SearchTask extends AbstractTask {
                 int featureAID = featureA.hashCode();
                 int featureBID = featureB.hashCode();
                 
-                score = simpleMS2similarity(featureA,
+                searchResult = simpleMS2similarity(featureA,
                         featureB, intensityThreshold, mzTolerance.getPpmTolerance());
                 
-                if (score > scoreThreshold)
-                    addFragmentClusterIdentity(rows1[i],featureA,featureB,score);
+                //Report the final score to the peaklist identity
+                if (searchResult != null && searchResult.getScore() > scoreThreshold && searchResult.getNumIonsMatched() > minimumIonsMatched)
+                    addFragmentClusterIdentity(rows1[i],featureA,featureB,searchResult);
                 
                 //featureA.appendFragmentSimilarityScore(featureBID,result);
               
                 if (isCanceled())
                     return;
             }
+            
+        //Update progress bar
         finishedRows++;
         }
 
@@ -163,7 +202,7 @@ public class Ms2SearchTask extends AbstractTask {
      * Simple cosine like calculation of similarity between ions of two fragmentation scans.
      * 
      */
-    private double simpleMS2similarity(Feature featureA, Feature featureB,
+    private Ms2SearchResult simpleMS2similarity(Feature featureA, Feature featureB,
             double intensityThreshold, double mzRangePPM) {
         // This could probably return some sort of key:value dictionary (say
         // scanHash:similarity) for the similarity scores,
@@ -182,7 +221,7 @@ public class Ms2SearchTask extends AbstractTask {
         
         if (scanMS2A == null || scanMS2B == null)
         {
-            return 0.0;
+            return null;
         }
 
         DataPoint[] ionsA = null;
@@ -204,8 +243,8 @@ public class Ms2SearchTask extends AbstractTask {
 
             }
         }
-
-        return runningScoreTotal;
+        Ms2SearchResult result = new Ms2SearchResult(runningScoreTotal,numIonsMatched,"simple");
+        return result;
 
     }
 
@@ -216,8 +255,8 @@ public class Ms2SearchTask extends AbstractTask {
      * @param fragmentRow
      */
     private void addFragmentClusterIdentity(PeakListRow complexRow, Feature peakA,
-            Feature peakB, double score) {
-        Ms2Identity newIdentity = new Ms2Identity(peakA, peakB, score);
+            Feature peakB, Ms2SearchResult searchResult) {
+        Ms2Identity newIdentity = new Ms2Identity(peakA, peakB, searchResult);
         complexRow.addPeakIdentity(newIdentity, false);
 
         // Notify the GUI about the change in the project
