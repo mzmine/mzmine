@@ -169,7 +169,7 @@ public class Ms2SearchTask extends AbstractTask {
                         featureB, intensityThreshold, mzTolerance.getPpmTolerance());
                 
                 //Report the final score to the peaklist identity
-                if (searchResult != null && searchResult.getScore() > scoreThreshold && searchResult.getNumIonsMatched() > minimumIonsMatched)
+                if (searchResult != null && searchResult.getScore() > scoreThreshold && searchResult.getNumIonsMatched() >= minimumIonsMatched)
                     addFragmentClusterIdentity(rows1[i],featureA,featureB,searchResult);
                 
                 //featureA.appendFragmentSimilarityScore(featureBID,result);
