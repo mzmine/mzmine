@@ -204,9 +204,7 @@ public class Ms2SearchTask extends AbstractTask {
      */
     private Ms2SearchResult simpleMS2similarity(Feature featureA, Feature featureB,
             double intensityThreshold, double mzRangePPM) {
-        // This could probably return some sort of key:value dictionary (say
-        // scanHash:similarity) for the similarity scores,
-        // instead of the current double[] return
+
         double runningScoreTotal = 0.0;
 
         // Fetch 1st peak MS2 scan.
@@ -227,11 +225,13 @@ public class Ms2SearchTask extends AbstractTask {
         DataPoint[] ionsA = null;
         DataPoint[] ionsB = null;
 
+        //Is this the centroided data? Doesn't look like it.
         ionsA = scanMS2A.getDataPointsOverIntensity(intensityThreshold);
         ionsB = scanMS2B.getDataPointsOverIntensity(intensityThreshold);
 
         int numIonsMatched = 0;
-        // Compare every ion peak in MS2 scan A, to MS2 scan B.
+        
+        // Compare every ion peak in MS2 scan A, to MS2 scan B.  Possible heuristics to speed this up based on sorted mz values etc.
         for (int i = 0; i < ionsA.length; i++) {
             for (int j = 0; j < ionsB.length; j++) {
                 if (Math.abs(ionsA[i].getMZ() - ionsB[j].getMZ()) < ionsA[i]
