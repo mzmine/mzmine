@@ -118,6 +118,7 @@ public class Ms2SearchTask extends AbstractTask {
         int rows1Length = rows1.length;
         int rows2Length = rows2.length;
         
+        totalRows = rows1Length;
         
         for (int i = 0; i < rows1Length; i++) {
             for (int j = 0; j < rows2Length; j++) {
@@ -138,7 +139,7 @@ public class Ms2SearchTask extends AbstractTask {
                 if (isCanceled())
                     return;
             }
-
+        finishedRows++;
         }
 
         // Add task description to peakList
@@ -200,6 +201,7 @@ public class Ms2SearchTask extends AbstractTask {
                             * ionsB[j].getIntensity();
                     numIonsMatched++;
                 }
+
             }
         }
 
