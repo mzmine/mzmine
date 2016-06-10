@@ -211,12 +211,18 @@ class Ms2SearchTask extends AbstractTask {
         DataPoint[] ionsA = null;
         DataPoint[] ionsB = null;
 
-        MassList massListA = scanMS2A.getMassLists()[0];
-        MassList massListB = scanMS2B.getMassLists()[0];
+        //Fetch centroided data
+        MassList massListsA[] = scanMS2A.getMassLists();
+        MassList massListsB[] = scanMS2B.getMassLists();
         
-        //Centroided data.
+        if (massListsA == null || massListsB == null)
+            return null;
+        
+        MassList massListA = massListsA[0];
+        MassList massListB = massListsB[0];
         ionsA = massListA.getDataPoints();
         ionsB = massListB.getDataPoints();
+        
 
         int numIonsMatched = 0;
         
