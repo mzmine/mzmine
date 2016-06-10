@@ -86,6 +86,7 @@ class Ms2SearchTask extends AbstractTask {
     private double scoreThreshold;
     private double intensityThreshold;
     private int minimumIonsMatched;
+    private String massListName;
 
     /**
      * @param parameters
@@ -109,7 +110,11 @@ class Ms2SearchTask extends AbstractTask {
         
         minimumIonsMatched = parameters.getParameter(Ms2SearchParameters.minimumIonsMatched)
                 .getValue();
+        
+        massListName = parameters.getParameter(Ms2SearchParameters.massList)
+                .getValue();
 
+        
     }
 
     /**
@@ -154,7 +159,7 @@ class Ms2SearchTask extends AbstractTask {
                 Feature featureB = rows2[j].getBestPeak();
                 
                 searchResult = simpleMS2similarity(featureA,
-                        featureB, intensityThreshold, mzTolerance);
+                        featureB, intensityThreshold, mzTolerance, massListName);
                 
                 //Report the final score to the peaklist identity
                 if (searchResult != null 
@@ -188,7 +193,7 @@ class Ms2SearchTask extends AbstractTask {
     }
     
     private Ms2SearchResult simpleMS2similarity(Feature featureA, Feature featureB,
-            double intensityThreshold, MZTolerance mzRange) {
+            double intensityThreshold, MZTolerance mzRange, String massList) {
 
         double runningScoreTotal = 0.0;
         double mzRangePPM = mzRange.getPpmTolerance();
@@ -212,14 +217,29 @@ class Ms2SearchTask extends AbstractTask {
         DataPoint[] ionsB = null;
 
         //Fetch centroided data
-        MassList massListsA[] = scanMS2A.getMassLists();
-        MassList massListsB[] = scanMS2B.getMassLists();
+        MassList massListA = scanMS2A.getMassList(massListName);
+        MassList massListB = scanMS2B.getMassList(massListName);
         
-        if (massListsA == null || massListsB == null)
-            return null;
+        if (massListA == null)
+        {
+            //Will this work properly? As this function isn't directly the task?
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("Scan " + scanMS2A.getDataFile().getName() + " #" + scanMS2A.getScanNumber()
+                    + " does not have a mass list " + massListName);
+            return null;        
+        }
         
-        MassList massListA = massListsA[0];
-        MassList massListB = massListsB[0];
+        if (massListB == null)
+        {
+            //Will this work properly? As this function isn't directly the task?
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage("Scan " + scanMS2B.getDataFile().getName() + " #" + scanMS2B.getScanNumber()
+                    + " does not have a mass list " + massListName);
+            return null;        
+        }
+     
+
+        
         ionsA = massListA.getDataPoints();
         ionsB = massListB.getDataPoints();
         

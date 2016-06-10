@@ -25,6 +25,7 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -35,6 +36,8 @@ public class Ms2SearchParameters extends SimpleParameterSet {
     public static final PeakListsParameter peakLists1 = new PeakListsParameter();
     
     public static final PeakListsParameter peakLists2 = new PeakListsParameter();
+    
+    public static final MassListParameter massList = new MassListParameter();
     
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
         
@@ -48,7 +51,7 @@ public class Ms2SearchParameters extends SimpleParameterSet {
             "Minimum score to report","Minimum MS2 comparison score to report");
     
     public Ms2SearchParameters() {
-        super(new Parameter[] { peakLists1, peakLists2, mzTolerance,intensityThreshold, minimumIonsMatched,scoreThreshold});
+        super(new Parameter[] { peakLists1, peakLists2, massList, mzTolerance,intensityThreshold, minimumIonsMatched,scoreThreshold});
     }
 
 }
