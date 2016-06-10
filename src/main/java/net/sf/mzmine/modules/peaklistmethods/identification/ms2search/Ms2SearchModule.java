@@ -25,6 +25,8 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -51,13 +53,39 @@ public class Ms2SearchModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-        PeakList peakList1 = parameters
+        PeakList peakLists1[] = parameters
                 .getParameter(Ms2SearchParameters.peakLists1).getValue()
-                .getMatchingPeakLists()[0];
+                .getMatchingPeakLists();
         
-        PeakList peakList2 = parameters
+        PeakList peakLists2[] = parameters
                 .getParameter(Ms2SearchParameters.peakLists2).getValue()
-                .getMatchingPeakLists()[0];
+                .getMatchingPeakLists();
+        
+        //Concatenate peaklists
+        PeakList concatenatedPeakList1 = new SimplePeakList("temporary1", peakLists1[0].getRawDataFiles()[0]);
+        PeakList concatenatedPeakList2 = new SimplePeakList("temporary2", peakLists2[0].getRawDataFiles()[0]);
+        
+        for (PeakList pl : peakLists1)
+        {
+            for (PeakListRow plrow : pl.getRows())
+            {
+                concatenatedPeakList1.addRow(plrow);
+            }
+        }
+        
+        for (PeakList pl : peakLists2)
+        {
+            for (PeakListRow plrow : pl.getRows())
+            {
+                concatenatedPeakList2.addRow(plrow);
+            }
+        }
+        
+        //PeakList peakList1 = peakLists1[0];
+        //PeakList peakList2 = peakLists2[0];
+        PeakList peakList1 = concatenatedPeakList1;
+        PeakList peakList2 = concatenatedPeakList2;
+        
 
         //Previously iterated over all the peaklists & did a separate task for each.
         //Now a single task.

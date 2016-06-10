@@ -193,12 +193,12 @@ class Ms2SearchTask extends AbstractTask {
         double runningScoreTotal = 0.0;
         double mzRangePPM = mzRange.getPpmTolerance();
 
-        // Fetch 1st peak MS2 scan.
+        // Fetch 1st feature MS2 scan.
         int ms2ScanNumberA = featureA.getMostIntenseFragmentScanNumber();
         Scan scanMS2A = featureA.getDataFile().getScan(ms2ScanNumberA);
         //RawDataFile featureADataFile = featureA.getDataFile();
 
-        // Fetch 2nd peak MS2 scan.
+        // Fetch 2nd feature MS2 scan.
         int ms2ScanNumberB = featureB.getMostIntenseFragmentScanNumber();
         Scan scanMS2B = featureB.getDataFile().getScan(ms2ScanNumberB);
         //RawDataFile peak2DataFile = featureB.getDataFile();
