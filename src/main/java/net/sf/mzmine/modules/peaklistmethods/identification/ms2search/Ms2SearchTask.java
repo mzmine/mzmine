@@ -230,7 +230,7 @@ class Ms2SearchTask extends AbstractTask {
         }
                 
         // Compare every ion peak in MS2 scan A, to every ion peak in MS2 scan B.
-        double ionsBMaxMZ = ionsB[ionsB.length].getMZ();
+        double ionsBMaxMZ = ionsB[ionsB.length-1].getMZ();
         for (int i = 0; i < ionsA.length; i++) {
             
             double iMZ = ionsA[i].getMZ();

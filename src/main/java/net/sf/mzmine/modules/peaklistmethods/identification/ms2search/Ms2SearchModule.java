@@ -89,7 +89,6 @@ public class Ms2SearchModule implements MZmineProcessingModule {
 
         //Previously iterated over all the peaklists & did a separate task for each.
         //Now a single task.
-        //Current implementation only selects first peaklist.  Possible to concatenate the peaklists?
         Task newTask = new Ms2SearchTask(parameters, peakList1, peakList2);
         tasks.add(newTask);
 
