@@ -19,12 +19,10 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.ms2search;
 
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -47,37 +45,35 @@ import net.sf.mzmine.util.SortingProperty;
 import com.google.common.collect.Range;
 
 class Ms2SearchResult {
-   private double score;
-   private int numIonsMatched;
-   private String searchType;
-   
-   public Ms2SearchResult(double score, int numIonsMatched, String searchType)
-   {
-   this.score = score;
-   this.numIonsMatched = numIonsMatched;
-   this.searchType = searchType;
-   }
-   
-   public double getScore()
-   {
-       return this.score;
-   }
-   
-   public int getNumIonsMatched()
-   {
-       return this.numIonsMatched;
-   }
-   
-   public String getSearchType()
-   {
-       return this.searchType;
-   }
-   
-               
-   
-}
+    private double score;
+    private int numIonsMatched;
+    private String searchType;
+    
+    public Ms2SearchResult(double score, int numIonsMatched, String searchType)
+    {
+    this.score = score;
+    this.numIonsMatched = numIonsMatched;
+    this.searchType = searchType;
+    }
+    
+    public double getScore()
+    {
+        return this.score;
+    }
+    
+    public int getNumIonsMatched()
+    {
+        return this.numIonsMatched;
+    }
+    
+    public String getSearchType()
+    {
+        return this.searchType;
+    }
+      
+ }
 
-public class Ms2SearchTask extends AbstractTask {
+class Ms2SearchTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -85,10 +81,7 @@ public class Ms2SearchTask extends AbstractTask {
     private PeakList peakList1;
     private PeakList peakList2;
 
-    private RTTolerance rtTolerance;
     private MZTolerance mzTolerance;
-    private double maxComplexHeight;
-    private IonizationType ionType;
     private ParameterSet parameters;
     private double scoreThreshold;
     private double intensityThreshold;
@@ -147,8 +140,6 @@ public class Ms2SearchTask extends AbstractTask {
                 + peakList2 + "with mz tolerance:"+mzTolerance.getPpmTolerance());
 
         Ms2SearchResult searchResult;
-        double score;
-        int numIonsMatched;
         PeakListRow rows1[] = peakList1.getRows();
         PeakListRow rows2[] = peakList2.getRows();
         
@@ -162,17 +153,14 @@ public class Ms2SearchTask extends AbstractTask {
                 Feature featureA = rows1[i].getBestPeak();
                 Feature featureB = rows2[j].getBestPeak();
                 
-                int featureAID = featureA.hashCode();
-                int featureBID = featureB.hashCode();
-                
                 searchResult = simpleMS2similarity(featureA,
-                        featureB, intensityThreshold, mzTolerance.getPpmTolerance());
+                        featureB, intensityThreshold, mzTolerance);
                 
                 //Report the final score to the peaklist identity
-                if (searchResult != null && searchResult.getScore() > scoreThreshold && searchResult.getNumIonsMatched() >= minimumIonsMatched)
+                if (searchResult != null 
+                        && searchResult.getScore() > scoreThreshold 
+                        && searchResult.getNumIonsMatched() >= minimumIonsMatched)
                     addFragmentClusterIdentity(rows1[i],featureA,featureB,searchResult);
-                
-                //featureA.appendFragmentSimilarityScore(featureBID,result);
               
                 if (isCanceled())
                     return;
@@ -184,7 +172,7 @@ public class Ms2SearchTask extends AbstractTask {
 
         // Add task description to peakList
         ((SimplePeakList) peakList1).addDescriptionOfAppliedTask(
-                new SimplePeakListAppliedMethod("Identification of complexes",
+                new SimplePeakListAppliedMethod("Identification of similar MS2s",
                         parameters));
 
         // Repaint the window to reflect the change in the peak list
@@ -198,25 +186,22 @@ public class Ms2SearchTask extends AbstractTask {
                 + peakList2);
 
     }
-
-    /**
-     * Simple cosine like calculation of similarity between ions of two fragmentation scans.
-     * 
-     */
+    
     private Ms2SearchResult simpleMS2similarity(Feature featureA, Feature featureB,
-            double intensityThreshold, double mzRangePPM) {
+            double intensityThreshold, MZTolerance mzRange) {
 
         double runningScoreTotal = 0.0;
+        double mzRangePPM = mzRange.getPpmTolerance();
 
         // Fetch 1st peak MS2 scan.
         int ms2ScanNumberA = featureA.getMostIntenseFragmentScanNumber();
         Scan scanMS2A = featureA.getDataFile().getScan(ms2ScanNumberA);
-        RawDataFile featureADataFile = featureA.getDataFile();
+        //RawDataFile featureADataFile = featureA.getDataFile();
 
         // Fetch 2nd peak MS2 scan.
         int ms2ScanNumberB = featureB.getMostIntenseFragmentScanNumber();
         Scan scanMS2B = featureB.getDataFile().getScan(ms2ScanNumberB);
-        RawDataFile peak2DataFile = featureB.getDataFile();
+        //RawDataFile peak2DataFile = featureB.getDataFile();
         
         if (scanMS2A == null || scanMS2B == null)
         {
@@ -243,22 +228,34 @@ public class Ms2SearchTask extends AbstractTask {
             //ionsB = scanMS2B.getDataPointsOverIntensity(intensityThreshold);
          return null;   
         }
-        
-        // Compare every ion peak in MS2 scan A, to MS2 scan B.  Possible heuristics to speed this up based on sorted mz values etc.
+                
+        // Compare every ion peak in MS2 scan A, to every ion peak in MS2 scan B.
+        double ionsBMaxMZ = ionsB[ionsB.length].getMZ();
         for (int i = 0; i < ionsA.length; i++) {
+            
+            double iMZ = ionsA[i].getMZ();
+            double mzRangeAbsolute = iMZ * 1e-6 * mzRangePPM;
+            
+            if (iMZ - mzRangeAbsolute > ionsBMaxMZ)
+                break; //Potential speedup heuristic. If any i is greater than the max of j, no more matches are possible.
+            
             for (int j = 0; j < ionsB.length; j++) {
-                if (Math.abs(ionsA[i].getMZ() - ionsB[j].getMZ()) < ionsA[i]
-                        .getMZ() * 1e-6 * mzRangePPM) {
+               
+                double jMZ = ionsB[j].getMZ();
+                    
+                if (iMZ - mzRangeAbsolute > jMZ)
+                    break; //Potential speedup heuristic. Skip rest of j as MZ values are sorted in ascending value & no more matches are possible.
+              
+                if (Math.abs(iMZ - jMZ) < mzRangeAbsolute) {
                     runningScoreTotal += ionsA[i].getIntensity()
                             * ionsB[j].getIntensity();
-                    numIonsMatched++;
+                    numIonsMatched++; 
                 }
 
             }
         }
         Ms2SearchResult result = new Ms2SearchResult(runningScoreTotal,numIonsMatched,"simple");
         return result;
-
     }
 
     /**
