@@ -220,7 +220,7 @@ class Ms2SearchTask extends AbstractTask {
 
         int numIonsMatched = 0;
         
-        if (ionsA == null || ionsB == null)
+        if (ionsA == null || ionsB == null || ionsA.length == 0 || ionsB.length == 0)
         {
             //Fall back to profile data?
              //Profile / raw data.
@@ -230,7 +230,7 @@ class Ms2SearchTask extends AbstractTask {
         }
                 
         // Compare every ion peak in MS2 scan A, to every ion peak in MS2 scan B.
-        double ionsBMaxMZ = ionsB[ionsB.length-1].getMZ();
+        double ionsBMaxMZ = ionsB[ionsB.length - 1].getMZ();
         for (int i = 0; i < ionsA.length; i++) {
             
             double iMZ = ionsA[i].getMZ();
@@ -242,10 +242,10 @@ class Ms2SearchTask extends AbstractTask {
             for (int j = 0; j < ionsB.length; j++) {
                
                 double jMZ = ionsB[j].getMZ();
+                
+                if (iMZ < jMZ - mzRangeAbsolute)
+                    break; //Potential speedup heuristic. iMZ smaller than jMZ.  Skip the rest of the j's as they can only increase.
                     
-                if (iMZ - mzRangeAbsolute > jMZ)
-                    break; //Potential speedup heuristic. Skip rest of j as MZ values are sorted in ascending value & no more matches are possible.
-              
                 if (Math.abs(iMZ - jMZ) < mzRangeAbsolute) {
                     runningScoreTotal += ionsA[i].getIntensity()
                             * ionsB[j].getIntensity();

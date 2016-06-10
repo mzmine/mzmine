@@ -61,10 +61,13 @@ public class Ms2SearchModule implements MZmineProcessingModule {
                 .getParameter(Ms2SearchParameters.peakLists2).getValue()
                 .getMatchingPeakLists();
         
-        //Concatenate peaklists
-        PeakList concatenatedPeakList1 = new SimplePeakList("temporary1", peakLists1[0].getRawDataFiles()[0]);
-        PeakList concatenatedPeakList2 = new SimplePeakList("temporary2", peakLists2[0].getRawDataFiles()[0]);
+        //Setup new peaklists for concatenation
+        PeakList concatenatedPeakList1 = new SimplePeakList(peakLists1[0].getRawDataFiles()[0].getName(), 
+                peakLists1[0].getRawDataFiles()[0]);
+        PeakList concatenatedPeakList2 = new SimplePeakList(peakLists2[0].getRawDataFiles()[0].getName(), 
+                peakLists2[0].getRawDataFiles()[0]);
         
+        //Concatenate peaklists
         for (PeakList pl : peakLists1)
         {
             for (PeakListRow plrow : pl.getRows())
