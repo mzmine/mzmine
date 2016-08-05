@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>1.5.13</cdk.version>
-		<jmztab.version>3.0.2</jmztab.version>
+		<jmztab.version>3.0.3</jmztab.version>
 	</properties>
 
 	<mailingLists>
@@ -100,20 +100,16 @@
 	</build>
 	<repositories>
 		<repository>
-			<!-- jmzreader and jmzml repository -->
-			<id>ebi-repo</id>
+			<!-- jmzreader, jmzml, jmztab repository -->
+			<id>nexus-ebi-release-repo</id>
 			<name>The EBI Maven repository</name>
-			<url>http://www.ebi.ac.uk/~maven/m2repo/</url>
-			<!-- <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url> -->
+			<url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
 		</repository>
 		<repository>
 			<id>lib</id>
 			<name>MZmine local libraries</name>
 			<url>file://${project.basedir}/src/main/lib</url>
 		</repository>
-		<!-- Removed the FreeHEP repo, because the freehep-graphicsio-emf artifact 
-			is now in Maven Central <repository> <id>freehep-maven</id> <name>Maven FreeHEP</name> 
-			<url>http://java.freehep.org/maven2</url> </repository> -->
 	</repositories>
 	<dependencies>
 		<dependency>
