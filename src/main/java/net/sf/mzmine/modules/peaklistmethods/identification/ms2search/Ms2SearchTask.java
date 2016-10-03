@@ -130,7 +130,7 @@ class Ms2SearchTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "MS2 similarity comparison between " + peakList1 + "and"
+        return "MS2 similarity comparison between " + peakList1 + " and "
                 + peakList2;
     }
 
