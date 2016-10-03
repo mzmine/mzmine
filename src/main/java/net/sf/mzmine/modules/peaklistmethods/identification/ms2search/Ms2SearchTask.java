@@ -83,13 +83,13 @@ class Ms2SearchResult {
     public String getMatchedIonsAsString()
     {
         //Return the matched ions as a string with the following format:
-        //
+        //10.2312_20.4324_55.1231
         String returnString = new String();
         for (int i = 0; i < this.matchedIons.size(); i++)
         {
-        returnString = String.format("%.4f",this.matchedIons.get(i).getMZ());  
+        returnString = returnString  + String.format("%.4f",this.matchedIons.get(i).getMZ()) + "_";  
         }
-        return returnString;
+        return returnString.substring(0,returnString.length()-1); //Some hackery to remove the last "_" 
     }
       
  }
