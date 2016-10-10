@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.5.13</cdk.version>
+		<cdk.version>1.5.14</cdk.version>
 		<jmztab.version>3.0.3</jmztab.version>
 	</properties>
 
