@@ -48,14 +48,12 @@ import com.google.common.collect.Range;
 
 class Ms2SearchResult {
     private double score;
-    private int numIonsMatched;
     private String searchType;
     private List<DataPoint> matchedIons;
     
-    public Ms2SearchResult(double score, int numIonsMatched, String searchType, List<DataPoint> matchedIons)
+    public Ms2SearchResult(double score, String searchType, List<DataPoint> matchedIons)
     {
     this.score = score;
-    this.numIonsMatched = numIonsMatched;
     this.searchType = searchType;
     this.matchedIons = matchedIons;
     }
@@ -67,7 +65,7 @@ class Ms2SearchResult {
     
     public int getNumIonsMatched()
     {
-        return this.numIonsMatched;
+        return matchedIons.size();
     }
     
     public String getSearchType()
@@ -264,9 +262,6 @@ class Ms2SearchTask extends AbstractTask {
         ionsA = massListA.getDataPoints();
         ionsB = massListB.getDataPoints();
         
-
-        int numIonsMatched = 0;
-        
         if (ionsA == null || ionsB == null || ionsA.length == 0 || ionsB.length == 0)
         {
             //Fall back to profile data?
@@ -296,13 +291,12 @@ class Ms2SearchTask extends AbstractTask {
                 if (Math.abs(iMZ - jMZ) < mzRangeAbsolute) {
                     runningScoreTotal += ionsA[i].getIntensity()
                             * ionsB[j].getIntensity();
-                    numIonsMatched++;
                     matchedIons.add(ionsA[i]);
                 }
 
             }
         }
-        Ms2SearchResult result = new Ms2SearchResult(runningScoreTotal,numIonsMatched,"simple",matchedIons);
+        Ms2SearchResult result = new Ms2SearchResult(runningScoreTotal,"simple",matchedIons);
         return result;
     }
 
