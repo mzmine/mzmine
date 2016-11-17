@@ -35,7 +35,6 @@ public class Ms2Identity extends SimplePeakIdentity {
                         " NumIonsMatched:" + searchResult.getNumIonsMatched() + 
                         " MatchedIons:"+searchResult.getMatchedIonsAsString());
         
-        
 	setPropertyValue(PROPERTY_METHOD, "MS2 search");
     }
 }
