@@ -242,21 +242,18 @@ class CSVExportTask extends AbstractTask {
 
 	    if (exportAllIDs && peakIdentities.length > 1) {
 		// Export all identification results
-		for (int i = 0; i < length; i++) {
-		    String propertyValue = "";
-		    for (int x = 0; x < peakIdentities.length; x++) {
-			if (x == 0) {
-			    propertyValue = escapeStringForCSV(peakIdentities[x]
-				    .getPropertyValue(identityElements[i]));
-			} else {
-			    propertyValue = propertyValue
-				    + idSeparator
-				    + escapeStringForCSV(peakIdentities[x]
-					    .getPropertyValue(identityElements[i]));
-			}
-		    }
-		    line.append(propertyValue + fieldSeparator);
-		}
+				for (int i = 0; i < length; i++) {
+					String propertyValue = "";
+					for (int x = 0; x < peakIdentities.length; x++) {
+						if (x == 0) {
+							propertyValue = peakIdentities[x].getPropertyValue(identityElements[i]);
+						} else {
+							propertyValue += idSeparator + peakIdentities[x].getPropertyValue(identityElements[i]);
+						}
+					}
+					propertyValue = escapeStringForCSV(propertyValue);
+					line.append(propertyValue + fieldSeparator);
+				}
 	    } else if (peakIdentity != null) {
 		for (int i = 0; i < length; i++) {
 		    String propertyValue = escapeStringForCSV(peakIdentity
