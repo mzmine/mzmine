@@ -52,6 +52,11 @@ public interface PeakListRow {
     public void addPeak(RawDataFile rawData, Feature peak);
 
     /**
+     * Remove a peak
+     */
+    public void removePeak(RawDataFile file);
+
+    /**
      * Has a peak?
      */
     public boolean hasPeak(Feature peak);
@@ -77,7 +82,8 @@ public interface PeakListRow {
     public double getAverageHeight();
 
     /**
-     * Returns the charge for peak on this row. If more charges are found 0 is returned
+     * Returns the charge for peak on this row. If more charges are found 0 is
+     * returned
      */
     public int getRowCharge();
 
