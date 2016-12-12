@@ -198,10 +198,9 @@ public class RowsFilterTask extends AbstractTask {
                                                  // default.
 
         // Handle < 1 values for minPeakCount
-        if (minCount < 1)
-            minCount = peakList.getRawDataFiles().length * minCount;
+        if ((minCount == null) || (minCount < 1)) minCount = 1.0;
         // Round value down to nearest hole number
-        int intMinCount = (int) (long) (double) minCount;
+        int intMinCount = minCount.intValue();
 
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
