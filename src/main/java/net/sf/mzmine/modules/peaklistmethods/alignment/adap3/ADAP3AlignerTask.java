@@ -169,8 +169,12 @@ public class ADAP3AlignerTask extends AbstractTask {
         {
             final Peak peak = component.getBestPeak();
             
+            System.out.println(peak.getMZ());
+            
             PeakListRow refRow = findRow(peakLists, component.getSampleID(), 
                     peak.getInfo().peakID);
+            
+//            if (refRow == null) continue;
             
             SimplePeakListRow newRow = new SimplePeakListRow(++rowID);
             

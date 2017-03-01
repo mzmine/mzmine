@@ -101,6 +101,8 @@ public class ADAP3GCMSSearchTask extends AbstractTask {
                 CompoundInfo info = vector.getInfo();
                 
                 double purityScore = new PurityScore().call(userVector, vector);
+                // Convert ADAP Score (0..1) to NIST Score (0..1000)
+                purityScore = 1000 * Math.cos(Math.PI * purityScore / 2); 
                 
                 SimplePeakIdentity identity = new SimplePeakIdentity(
                         info.name + " (" + Double.toString(purityScore) + ")",

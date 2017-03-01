@@ -64,7 +64,7 @@ import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ad
  * Use XCMS findPeaks.centWave to identify peaks.
  */
 public class ADAP3NewGCPeakDetection implements PeakResolver {
-
+    
     // Logger.
     private static final Logger LOG = Logger.getLogger(ADAP3NewGCPeakDetection.class
             .getName());

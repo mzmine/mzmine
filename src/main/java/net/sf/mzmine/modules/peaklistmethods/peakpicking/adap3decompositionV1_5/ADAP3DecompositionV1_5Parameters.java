@@ -18,6 +18,7 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5;
 
 import dulab.adap.workflow.TwoStepDecompositionParameters;
+import java.awt.Window;
 
 import java.text.NumberFormat;
 
@@ -30,6 +31,7 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  *
@@ -67,7 +69,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
                     NumberFormat.getNumberInstance(), 100.0);
     
     public static final DoubleParameter MIN_MODEL_SHARPNESS =
-            new DoubleParameter("Min shapness",
+            new DoubleParameter("Min sharpness",
                     "Minimum sharpness that the model peak can have",
                     NumberFormat.getNumberInstance(), 10.0);
     
@@ -91,7 +93,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
                     false, null);
     
     public static final StringParameter SUFFIX = new StringParameter("Suffix",
-	    "This string is added to peak list name as suffix", "ADAP-3 Peak Decomposition");
+	    "This string is added to peak list name as suffix", "ADAP-GC 3 Peak Decomposition");
     
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
 	    "Remove original peak list",
@@ -102,5 +104,16 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
             MIN_CLUSTER_SIZE, MIN_CLUSTER_INTENSITY, MIN_MODEL_STN, 
             MIN_MODEL_SHARPNESS, SHAPE_SIM_THRESHOLD, MODEL_PEAK_CHOICE, 
             MZ_VALUES, SUFFIX, AUTO_REMOVE});
+    }
+    
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired)
+    {
+        final ADAP3DecompositionV1_5SetupDialog dialog = 
+                new ADAP3DecompositionV1_5SetupDialog(
+                        parent, valueCheckRequired, this);
+        
+        dialog.setVisible(true);
+        return dialog.getExitCode();
     }
 }

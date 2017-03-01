@@ -66,7 +66,7 @@ public class ADAP3PeakDetectionParameters extends SimpleParameterSet {
                     NumberFormat.getInstance(), 0.1, 0.0, 1.0);
     
     public static final StringParameter SUFFIX = new StringParameter("Suffix",
-	    "This string is added to peak list name as suffix", "ADAP-3 Peak Detection");
+	    "This string is added to peak list name as suffix", "ADAP-GC 3.0 Peak Detection");
     
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
 	    "Remove original peak list",

@@ -25,6 +25,9 @@ public interface PeakInformation extends Cloneable {
     @Nonnull
     String getPropertyValue(String property);
     
+    @Nonnull
+    String getPropertyValue(String property, String defaultValue);
+    
     /**
      * Returns all the properties in the form of a map <key, value>
      * @return 

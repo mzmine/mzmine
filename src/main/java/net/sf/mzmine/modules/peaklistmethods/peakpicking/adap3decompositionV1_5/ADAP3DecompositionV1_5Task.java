@@ -68,6 +68,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     private final MZmineProject project;
     private final PeakList originalPeakList;
     private PeakList newPeakList;
+    private final TwoStepDecomposition decomposition;
     
     // User parameters
     private final ParameterSet parameters;
@@ -87,6 +88,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
         parameters = parameterSet;
         originalPeakList = list;
         newPeakList = null;
+        decomposition = new TwoStepDecomposition();
     }
     
     @Override
@@ -96,7 +98,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     
     @Override
     public double getFinishedPercentage() {
-        return TwoStepDecomposition.getProcessedPercent();
+        return decomposition.getProcessedPercent();
     }
     
     @Override
@@ -340,11 +342,14 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 //        return result;
 //    }
     
-    private void getInfoAndRawData(final PeakList peakList,
+    public static void getInfoAndRawData(final PeakList peakList,
             List <PeakInfo> peakInfo, 
             Map <PeakInfo, NavigableMap <Double, Double>> chromatograms)
     {
         RawDataFile dataFile = peakList.getRawDataFile(0);
+     
+        peakInfo.clear();
+        chromatograms.clear();
         
         for (PeakListRow row : peakList.getRows()) {
                 
@@ -373,8 +378,10 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                 
                 info.leftApexIndex = scanNumbers[0];
                 info.rightApexIndex = scanNumbers[scanNumbers.length - 1];
+                info.retTime = peak.getRT();
                 info.mzValue = peak.getMZ();
                 info.intensity = peak.getHeight();
+                info.retTime = peak.getRT();
                 info.isShared = Boolean.parseBoolean(
                         information.getPropertyValue("isShared"));
                 info.offset = Integer.parseInt(
@@ -384,9 +391,15 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                 info.signalToNoiseRatio = Double.parseDouble(
                         information.getPropertyValue("signalToNoiseRatio"));
                 info.leftPeakIndex = Integer.parseInt(
-                        information.getPropertyValue("leftSharedBoundary"));
+                        information.getPropertyValue(
+                                "leftSharedBoundary",
+                                Integer.toString(info.leftApexIndex)));
                 info.rightPeakIndex = Integer.parseInt(
-                        information.getPropertyValue("rightSharedBoundary"));
+                        information.getPropertyValue(
+                                "rightSharedBoundary", 
+                                Integer.toString(info.rightApexIndex)));
+                info.coeffOverArea = Double.parseDouble(
+                        information.getPropertyValue("coeffOverArea"));
                 
             } catch (Exception e) {
                 LOG.info("Skipping " + row + ": " + e.getMessage());
@@ -460,13 +473,13 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                 ADAP3DecompositionV1_5Parameters.SHAPE_SIM_THRESHOLD).getValue();
         params.minModelPeakStN = this.parameters.getParameter(
                 ADAP3DecompositionV1_5Parameters.MIN_MODEL_STN).getValue();
-        params.minModelPeakShapness = this.parameters.getParameter(
+        params.minModelPeakSharpness = this.parameters.getParameter(
                 ADAP3DecompositionV1_5Parameters.MIN_MODEL_SHARPNESS).getValue();
         params.modelPeakChoice = this.parameters.getParameter(
                 ADAP3DecompositionV1_5Parameters.MODEL_PEAK_CHOICE).getValue();
         params.deprecatedMZValues = this.parameters.getParameter(
                 ADAP3DecompositionV1_5Parameters.MZ_VALUES).getValue();
         
-        return TwoStepDecomposition.run(params, peakInfo, chromatograms);
+        return decomposition.run(params, peakInfo, chromatograms);
     }
 }

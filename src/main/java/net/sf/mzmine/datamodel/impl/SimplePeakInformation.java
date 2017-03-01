@@ -69,6 +69,11 @@ public class SimplePeakInformation implements PeakInformation {
     }
     
     @Override @Nonnull
+    public String getPropertyValue(String propertyName, String defaultValue) {
+        return properties.getOrDefault(propertyName, defaultValue);
+    }
+    
+    @Override @Nonnull
     public Map <String, String> getAllProperties() {
         return properties;
     }
