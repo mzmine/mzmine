@@ -1,0 +1,95 @@
+<html>
+<head>
+    <title>Identification - Adduct search</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Adduct Search</h1>
+
+<h2>Description</h2>
+
+<h4>Definition of an adduct ion</h4>
+
+<p>
+    An ion formed by interaction of two species, usually an ion and a molecule, and often within the ion source, to form
+    an ion containing all the constituent atoms of one species as well as an additional atom or atoms.
+</p>
+
+<p>
+    This method identifies common adducts (selected by the user) in a single peak list. The adducts are identified by
+    two conditions:
+</p>
+
+<ul>
+    <li>the retention time of the original ion and the adduct ion should be same, and</li>
+    <li>the mass difference between the original ion and the adduct must be equal to one of the adducts selected by the
+        user
+    </li>
+
+</ul>
+
+<p>
+    MZmine has a built-in list of common adducts and their masses. The user can add custom adducts either individually
+    or by loading them from a file. Once custom adducts have been added or loaded they will become part of the
+    application configuration and don't have to be added/loaded again.
+</p>
+
+<p>
+    The following figure shows a spectrum with a phosphate adduct ion.<br/>
+    <img src="phosphateAdduct.png">
+</p>
+
+<p>
+    The following figure shows a peak list after identifying two "Deuterium" adducts.<br/>
+    <img src="peakList.png">
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+    <dt>RT tolerance</dt>
+    <dd>Maximum permissible difference in retention time to set a relationship between peaks</dd>
+
+    <dt>Adducts</dt>
+    <dd>List of adducts, each refers a specific m/z difference between related peaks</dd>
+
+    <dt>m/z tolerance</dt>
+    <dd>Tolerance value of the m/z difference between peaks</dd>
+
+    <dt>Max adduct peak height</dt>
+    <dd>Maximum height of the recognized adduct peak, relative to the main peak</dd>
+</dl>
+
+<h4>Adduct choices</h4>
+
+<p>The figure below shows the Adduct Search parameters dialog. Beside the list of adducts are four buttons that function
+    as follows:
+</p>
+
+<dl>
+    <dt>All</dt>
+    <dd>Selects all of the check-boxes in the list of adducts.</dd>
+    <dt>Clear</dt>
+    <dd>Clears the check-boxes in the list of adducts.</dd>
+    <dt>Add...</dt>
+    <dd>Allows the user to specify an individual custom adduct. A dialog is displayed in which the user can enter the
+        name and mass difference of the new adduct.
+    </dd>
+    <dt>Import...</dt>
+    <dd>Loads custom adducts from a comma-separated values (CSV) file. The file should be formatted with one adduct
+        defined per line, with each line having the adduct's name and mass difference values separated by a comma.
+    </dd>
+    <dt>Export...</dt>
+    <dd>Saves the adducts to a comma-separated values (CSV) file.</dd>
+    <dt>Reset</dt>
+    <dd>Restores the list of adducts to the original default set.</dd>
+</dl>
+
+<img src="parameters.png">
+
+</body>
+</html>
+
+

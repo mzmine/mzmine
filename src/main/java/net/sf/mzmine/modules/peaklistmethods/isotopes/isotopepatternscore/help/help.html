@@ -1,0 +1,58 @@
+<html>
+	<head>
+		<title>Isotopes - Isotope pattern comparison</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Isotope pattern comparison</h1>
+
+<h2>Description</h2>
+
+<p>
+Several modules in MZmine 2 offer the option the compare the isotope patterns of peaks and assign a score (percentage) of similarity to them. 
+Until MZmine version 2.2, the CDK (Chemistry Development Kit) library was used to perform this operation.
+An improved algorithm, introduced in MZmine 2.3, is described below.
+</p>
+
+<h3>Comparison algorithm</h3>
+
+<p>
+The similarity of two isotope patterns is determined as follows:
+</p>
+
+<ol>
+<li>
+   Both isotope patterns are normalized (such that highest isotope in each pattern has the intensity of 1.0) and merged into a single spectrum, where all isotopes from the first pattern have a positive intensity, while for the isotopes of the second pattern the intensity is negated.
+</li>
+<li>
+   A sliding window of user-defined width ("Isotope m/z tolerance" parameter) is moved over the whole m/z range, from the lowest m/z to the highest. Each pair of isotope peaks fitting within the window is added together, forming a single peak with the m/z value of the higher m/z of the pair.
+</li>
+<li>
+   The final similarity score is calculated from the remaining peaks as<br>
+   <img src="isotope_score_formula.png"><br>
+   where <i>I<sub>i</sub></i> is the intensity of remaining peak i.
+</li>
+</ol>
+
+<p>
+<img src="isotope_score_calculation.png">
+</p>
+
+<p>
+A trivial observation is that for two identical isotope patterns the similarity score will be 100%, 
+while for two completely different patterns 0% score is returned. 
+Only a single parameter is required for the evaluation of the algorithm, 
+defining the width of the sliding window. 
+It should be noted, though, that the optimal value of this parameter
+might be different from the commonly perceived “mass accuracy” of
+the instrument, because mass resolving power and preprocessing 
+of the data must be considered. For example, even if the mass 
+accuracy of the major isotopes may be less than 0.001 m/z, 
+the mass difference between minor isotopes may be significantly higher.
+</p>
+
+</body>
+</html>

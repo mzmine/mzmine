@@ -1,0 +1,61 @@
+<html>
+<head>
+    <title>Peak list filtering - Rows filter</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Rows filter</h1>
+
+<h2>Description</h2>
+
+<p>
+    This module deletes all rows in a selected peak list that do not meet the requirements defined by the user. These
+    requirements can be the minimum number of peaks in the row, the minimum number of peaks in an isotope pattern, peak
+    duration or a m/z vs retention time window. When an aligned peak list, i.e. multiple peaks per row, is filtered then
+    the average of each row's peak duration, m/z and retention time values are used to filter the row.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+    <dt>Name suffix</dt>
+    <dd>This is the suffix used to identify the new filtered peak list in Peak list frame of the desktop.</dd>
+
+    <dt>Minimum peaks in a row</dt>
+    <dd>Minimum number of peaks in a row required to not remove it.</dd>
+
+    <dt>Minimum peaks in an isotope pattern</dt>
+    <dd>Minimum number of peaks in a row's isotope pattern required to not remove it.</dd>
+
+    <dt>m/z range</dt>
+    <dd>Range of acceptable (average) m/z values in a row required to not remove it.</dd>
+
+    <dt>Retention time range</dt>
+    <dd>Range of acceptable (average) retention times in a row required to not remove it.</dd>
+
+    <dt>Peak duration range</dt>
+    <dd>Range of acceptable (average) peak durations in a row required not to remove it.</dd>
+
+    <dt>Filtering by groups</dt>
+    <dd>If the checkbox is selected samples will be separated by groups before filtering the peaks and the same filtering criteria will be applied for each group.</dd>
+
+    <dt>Parameter</dt>
+    <dd>Paremeter defining the group of each sample. They have to be defined by the user using "Project-> Set sample parameters.." module.</dd>
+
+    <dt>Only identified?</dt>
+    <dd>If the checkbox is selected, only identified rows will be retained.</dd>
+    
+    <dt>Text in identity</dt>
+    <dd>Only rows that contain this text in their peak identity field will be retained.</dd>
+    
+    <dt>Text in comment</dt>
+    <dd>Only rows that contain this text in their comment field will be retained.</dd>
+
+    <dt>Remove source peak list after filtering</dt>
+    <dd>If the checkbox is selected, the source peak list will be removed and the filtered version remains.</dd>
+</dl>
+
+</body>
+</html>

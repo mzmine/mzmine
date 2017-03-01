@@ -1,0 +1,99 @@
+<html>
+    <head>
+        <title>Data analysis - Projection plots</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+    <body>
+
+        <h1>Projection plots</h1>
+
+        <h2>Description</h2>
+        <p>
+            High-dimensional data, meaning data that requires more than two or three dimensions to be represented,
+            can be difficult to interpret. One approach to simplification is to assume that the data of interest
+            lies on an embedded non-linear manifold within the higher-dimensional space. If the manifold is of low
+            enough dimension then the data can be visualised in the low dimensional space.
+        </p>
+
+        <h3>Principal component analysis (PCA)</h3>
+        <p>
+            Principal component analysis (PCA) involves a mathematical procedure that transforms
+            a number of possibly correlated variables into a smaller number of uncorrelated variables
+            called principal components.
+        </p>
+
+        <p>
+            PCA is mathematically defined as an orthogonal linear transformation that transforms
+            the data to a new coordinate system such that the greatest variance by any projection of
+            the data comes to lie on the first coordinate (called the first principal component), the
+            second greatest variance on the second coordinate, and so on. PCA is theoretically the optimum
+            transform for given data in least square terms. (<a href="http://en.wikipedia.org/wiki/Principal_component_analysis">http://en.wikipedia.org/wiki/Principal_component_analysis</a>)
+        </p>
+
+        <p>
+             <img src="PCA.png" name="PCA plot">
+        </p>
+
+        <h3>Sammon's projection</h3>
+        <p>
+            The main use for the projection is visualization. Sammon's projection is useful for preliminary
+            analysis in all statistical pattern recognition, because a rough visualization of the class
+            distribution can be obtained, especially the overlap of the classes.
+        </p>
+        <p>
+         Denote the distance between ith and jth objects in the original space by d*ij,
+         and the distance between their projections by dij.
+         Sammon's projection aims to minimize the following error function, which is often referred to as Sammon's stress:
+        </p>
+        <p>
+             <img src="error function.png" name="Error function">
+        </p>
+
+        <p>
+            The minimization can be performed either by gradient descent or by other means.
+            (<a href="http://en.wikipedia.org/wiki/Sammon%27s_projection">http://en.wikipedia.org/wiki/Sammon%27s_projection</a>)
+        </p>
+        <p>
+             <img src="SP.png" name="Sammon's projection plot">
+        </p>
+
+        <h3>Curvilinear distance analysis (CDA)</h3>
+
+        <p>
+            This algorithm trains a self-organizing neural network to fit the manifold and seeks to preserve
+            geodesic distances in its embedding. It based on Curvilinear Component Analysis
+            (which extended Sammon's mapping), but uses geodesic distances instead.
+        </p>
+
+        <p>
+             <img src="CDA.png" name="CDA plot">
+        </p>
+
+        
+        <h4>Method parameters</h4>
+        <dl>
+            <dt>Data files</dt>
+            <dd>Raw data files selected for the projection plot.</dd>
+
+            <dt>Coloring style</dt>
+            <dd>The dots corresponding to every sample can be colored depending on the sample's parameter state or on the file.</dd>
+
+            <dt>Peak measuring approach</dt>
+            <dd>It can take two values: height or area. The projections will be calculated using one of this two values.</dd>
+
+            <dt>Peaks</dt>
+            <dd>Peaks that will be taken into account to create the projection plot.</dd>
+
+            <dt>Component on X-axis</dt>
+            <dd>This parameters is only enabled in PCA algorithm and it allows to the user to choose the
+            principal component on X axis.</dd>
+
+            <dt>Component on Y-axis</dt>
+            <dd>This parameters is only enabled in PCA algorithm and it allows to the user to choose the
+            principal component on Y axis</dd>
+        </dl>
+
+    </body>
+</html>

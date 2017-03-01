@@ -1,0 +1,47 @@
+<html>
+	<head>
+		<title>Identification - Fragment search</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Fragment search</h1>
+
+<h2>Description</h2>
+
+<p>
+This method identifies fragment peaks using MS/MS scan data. 
+Fragment ions are usually produced from another, bigger ion, in the ionization source.
+Such additional signals represent an undesired noise.
+</p>
+
+<p>
+Fragments are identified by 2 conditions: 1) the retention time of the original ion and the fragment ion should be same and 
+2) the MS/MS pattern of the original ion must be found in the data set and is must contain a peak with the same mass as the fragment ion.
+</p>
+
+<p>
+<img src="fragmentSearch.png">
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+
+<dt>RT tolerance</dt>
+<dd>Maximum allowed retention time difference to set a relationship between peaks</dd>
+
+<dt>m/z tolerance of MS2 data</dt>
+<dd>Tolerance value of the m/z difference between peaks in MS/MS scans</dd>
+
+<dt>Max fragment peak height</dt>
+<dd>Maximum height of the recognized fragment peak, relative to the main peak</dd>
+
+<dt>Min MS2 peak height</dt>
+<dd>Minimum absolute intensity of the MS2 fragment peak. Signals below this level will be ignored.</dd>
+
+</dl>
+
+</body>
+</html>

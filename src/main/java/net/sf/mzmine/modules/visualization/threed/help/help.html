@@ -1,0 +1,80 @@
+<html>
+	<head>
+		<title>Visualization - 3D visualizer</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>3D visualizer</h1>
+
+<h2>Description</h2>
+<p>
+This tool presents a three dimensional plot where X axis represents the retention time, Y axis the m/z value and Z axis the intensity of the signal. 
+This plot is the collection of all the information from the raw data in a graphical representation.
+</p>
+
+
+<h4>Parameters</h4>
+<dl>
+	<dt>MS level</dt>
+    	<dd>This refers to the scan level (MS<sup>1</sup>,MS<sup>2</sup>,... ,MS<sup>n</sup>) to be used to display the chromatogram.</dd>
+	<dt>Retention time</dt>
+    	<dd>Retention time (X axis) range.</dd>
+	<dt>Retention time resolution</dt>
+    	<dd>Number of data points on retention time axis.</dd>
+	<dt>m/z range</dt>
+    	<dd>Range of m/z values.</dd>
+	<dt>m/z resolution</dt>
+    	<dd>Number of data points on m/z axis.</dd>
+
+
+</dl>
+<p>
+Additionally in the parameters window, the button "Set automatically" allows the user to set all the ranges automatically. 
+MZmine will use the maximum ranges allowed by the raw data.
+<p>
+
+<h4>Functionality</h4>
+<p>
+This plot is using the third part library JfreeChart for its basic functionality. 
+To zoom in and out, use the third button functionality of the mouse. Also by click left button and dragging the mouse, 
+the user can "rotate" the plot in any direction. If right button is used instead, the user can "move" the plot to any position.
+</p>
+<p>
+<img src="3D_allpeaks.png">
+</p>
+<p>
+The toolbar contains two buttons, "Set properties" and "Toggle displaying peaks values". The first one open a pop-up window where the 
+user can define the rage color depending the intensity and other characteristics of the plot. This properties depend on the JFreeChart library.
+</p>
+<p>
+The button for displaying peaks values turn on/off the labels of the peaks. If a peak list is associated with the visualized raw data in the current project, 
+the label of each peak could be the identity of the peak or the representative mass (m/z) of the peak.
+</p>
+
+<p>
+<img src="3D_peaks_label1.png">
+</p>
+<p>
+<img src="3D_peaks_label2.png">
+</p>
+<p>
+This plot also display the region where the peak was identified. By making Shift + right click over the label of the peak the user can observe a red cube which represents 
+the space that covers the selected peak in terms of retention time, m/z, intensity.
+</p>
+<p>
+<img src="3D_single_peak.png">
+</p>
+<p>
+<img src="3D_single_peak_cover.png">
+</p>
+
+<p>
+At the bottom of the 3D window there is a combo box where the user can select any peak list associated with the displayed raw data. 
+If the user selects a different one than the current, the plot automatically changes the displayed labels of the peaks, according with the selected peak list identifications.
+</p>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+<html>
+        <head>
+                <title>Identification - Formula prediction - RDBE restrictions</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Formula prediction - RDBE restrictions</h1>
+
+                <h2>Description</h2>
+
+                <p>
+                The Ring Double Bond Equivalents (RDBE) value, which estimates the number of rings and
+                unsaturated bonds in a molecule, can be calculated from a chemical formula using
+                the following general equation:<br>
+                <img src="rdbe_equation.png"><br>
+                where n<sub>i</sub> is the number of atoms and ν<sub>i</sub> the formal valence of the element i.
+                Theoretically, each ring or a double bond increases the RDBE value by 1,
+                while each triple bond increases the value by 2.
+                This equation can only be used for formulas composed of elements with a well-defined formal valence.
+                </p>
+                
+                <p>
+                A number of exceptions to the RDBE rule are known, however the RDBE value still provides
+                a useful indicator regarding the validity of a molecular formula.
+                </p>
+
+                <h4>Method parameters</h4>
+                <dl>
+                        <dt>RDBE range</dt>
+                        <dd>Range of allowed RDBE (Range or Double Bonds Equivalents) value.
+                        Kind and Fiehn (BMC Bioinformatics, 2007) recommended the RDBE upper limit of 40 for common chemical compounds.
+                        They also stated that RDBE should not be negative, although certain exceptions may occur when formal
+                        valence states are exceeded. 
+                        </dd>
+
+                        <dt>RDBE must be an integer</dt>
+                        <dd>Only integer values are allowed for RDBE. This condition is a natural implication 
+                        of the principle of valence balance, which states that the number of atoms with odd
+                        valence must be even. Such assumption is valid for all neutral,
+                        non-radical molecules.
+                        </dd>
+                        
+                </dl>
+
+        </body>
+</html>

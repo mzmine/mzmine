@@ -1,0 +1,186 @@
+<html>
+<head>
+    <title>Visualization - Peak list table</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Peak list table</h1>
+
+<h2>Description</h2>
+
+<p>
+    This shows a list of identified peaks, after applying a series of methods to a raw data. This feature is one of the
+    most important of MZmine project, because collect the result of many other modules.
+</p>
+
+<p>
+    The table is divided in many columns, which the user can edit which columns to show in the peak list.
+</p>
+
+<h3>Columns</h3>
+
+<p>
+    The columns can be divided by two groups "Common" and "Data file". The first group shows a collective information
+    that represents the peak row. The second group displays the information of each particular peak in the row.
+</p>
+
+<h4>Common</h4>
+
+<dl>
+    <dt>ID</dt>
+    <dd>This is the number that identify the row peak. A row peak can contain one or many peaks that share the same mass
+        range and retention time range but coming from different raw data.
+    </dd>
+
+    <dt>m/z</dt>
+    <dd>This is the representative m/z value for this row peak (average of all peak's m/z value). The m/z value of each
+        peak depends on the peak identification method. Please refer to "Peak detection" section of this help
+    </dd>
+
+    <dt>Ret.time</dt>
+    <dd>This is the representative retention time value for this row peak (average of all peak's ret. time value). The
+        ret. time value of each peak depends on the used peak identification method. Please refer to "Peak detection"
+        section of this help
+    </dd>
+
+    <dt>Identity</dt>
+    <dd>This is the name, assigned from the peak's identity. This value depends on the method to identify the peak.
+        Please refer to "Identification" section of this help.
+    </dd>
+
+    <dt>Comment</dt>
+    <dd>This is an user input value. It can be edited by making double click.</dd>
+
+    <dt>Peak shape</dt>
+    <dd>This is graphic representation of the peaks in two axis (X - retention time, Y-intensity) with a different color
+        for each peak in the row. The size of this graphic can be edited.
+    </dd>
+</dl>
+
+<h4>Data file</h4>
+
+<dl>
+    <dt>Status</dt>
+    <dd>A circle of different color will appear indicating the status of the peak. The meaning of the color is as
+        follow, RED = no detected, ORANGE= manually detected by the user, YELLOW = detected by the "Gap Filler" tool and
+        GREEN = detected.
+    </dd>
+
+    <dt>Peak shape</dt>
+    <dd>This is graphic representation of the peaks in two axis (X - retention time, Y-intensity), in this case a XIC
+    </dd>
+
+    <dt>m/z</dt>
+    <dd>The m/z value of the peak and depends on the peak identification method. Please refer to "Peak detection"
+        section of this help.
+    </dd>
+
+    <dt>Ret.time</dt>
+    <dd>The ret. time value of the peak and depends on the used peak identification method. Please refer to "Peak
+        detection" section of this help
+    </dd>
+
+    <dt>Duration</dt>
+    <dd>The duration of the peak on terms of time.</dd>
+
+    <dt>Height</dt>
+    <dd>The intensity of the peak in his highest point.</dd>
+
+    <dt>Area</dt>
+    <dd>The calculated area of the peak using the intensity and the duration of the peak.</dd>
+
+    <dt>Charge</dt>
+    <dd>The value of the ion charge. This value is obtained from the raw data or by the Isotope grouper module</dd>
+
+</dl>
+
+<h4>Functionality</h4>
+
+<p>
+    This table offers the possibility to sort the rows by some of the columns by making click on the header of each
+    column.
+</p>
+
+<p>
+    <img src="Peaklist_table1.png">
+</p>
+
+<p>
+    The tool bar at the right side of the table the user can edit the columns to display on the table and to print the
+    displayed information.
+</p>
+
+<p>
+    <img src="Peaklist_table_properties.png">
+</p>
+
+<p>
+    Each column has his a tool tip that provides some extra information. The contents of the tool tip box in the column
+    identity depends on the applied method to identified the peak. Please refer to the "Identification" section of
+    this help. This tool tip appears automatically when passing over the mouse.
+</p>
+
+<p>
+    <img src="Peaklist_table_tooltip1.png">
+    <img src="Peaklist_table_tooltip2.png">
+    <img src="Peaklist_table_tooltip3.png">
+</p>
+
+<h4>Submenu</h4>
+
+<p>
+    A pop-up menu will appear if right click is done. Some of the options in this menu are active depending on the
+    position (column) where the click is done and the number of selected rows.
+</p>
+
+<dl>
+    <dt>Show</dt>
+    <dd>Under this option appear other submenu from where the user can choose the any visualization plot available for
+        this peak. Some of the options depends on the characteristics of the selected row or peak. For more information
+        about each kind of visualization refer to the "Visualization" section of this help.
+    </dd>
+
+    <dt>Search</dt>
+    <dd>This sub-menu holds items for searching on-line databases, performing a NIST MS Search and formula prediction.
+    </dd>
+
+    <dt>Plot using Intensity Plot module</dt>
+    <dd>An intensity plot will be formed using the selected peaks. Please refer to "Visualization - Intensity plot"
+        section of this help.
+    </dd>
+
+    <dt>Manually define peak</dt>
+    <dd>The user can define manually the range of m/z and retention time of a peak. MZmine will create a new one or
+        modify an existing peak.
+    </dd>
+
+    <dt>Clear selected rows’ identities</dt>
+    <dd>Removes the identities from the selected peaks.</dd>
+
+    <dt>Delete selected rows</dt>
+    <dd>The selected rows will be removed from the peak list. There is no way to recover the deleted rows.</dd>
+
+    <dt>Add new row</dt>
+    <dd>The same functionality as Manually define peak, but applied to all the raw data files in the peak list. At the
+        end, the result is a new row with peaks from all the raw data files using the input ranges by the user.
+    </dd>
+</dl>
+
+<p>
+    <img src="Peaklist_table_submenu.png">
+</p>
+
+<p>
+    For the Identity column, a specific submenu will appear with left click. This submenu has the options to choose or
+    edit the active identity from many associated to the same peak,
+</p>
+
+<p>
+    <img src="Peaklist_table_submenu_ident.png">
+</p>
+
+</body>
+</html>

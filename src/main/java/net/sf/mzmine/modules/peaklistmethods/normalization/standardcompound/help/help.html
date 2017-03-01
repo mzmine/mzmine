@@ -1,0 +1,45 @@
+<html>
+	<head>
+		<title>Normalization - Standard compound normalizer</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Standard compound normalizer</h1>
+
+<h2>Description</h2>
+
+<p>
+The purpose of this module is to reduce the deviation between samples caused by different detection efficiency. 
+Internal standard peaks must be present in the detected samples.
+Peak list must be aligned prior to normalization.
+User can select one or multiple internal standard peaks, which must be present in all raw data files. 
+Then peak height (or area) of each peak is normalized by either the nearest standard or a weighted contribution of all standards.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Suffix</dt>
+<dd>This string is added to the end of the name of each processed peak list</dd>
+
+<dt>Normalization type</dt>
+<dd>Normalize intensities using either only one (nearest) standard or using a weighted contribution of all selected standards, weighted by distance. The distance of the standard peak to the peak being normalized is calculated as <i>distance = MZvsRTBalance * (MZdifference) + (RTdifference)</i>.</dd>
+
+<dt>Peak measurement type</dt>
+<dd>Selection of either peak height or peak area, which will be used to calculate the normalization factors</dd>
+
+<dt>m/z vs RT balance</dt>
+<dd>Used in distance measuring as coefficient of m/z difference.  </dd>
+
+<dt>Remove original peak list</dt>
+<dd>If selected, the original peak list is automatically removed</dd>
+
+<dt>Standard compounds</dt>
+<dd>List of peaks for choosing the normalization standards</dd>
+
+</dl>
+
+</body>
+</html>

@@ -1,0 +1,56 @@
+<html>
+	<head>
+		<title>Visualization - Histogram plot</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Histogram plot</h1>
+
+<h2>Description</h2>
+<p>
+This plot displays a graphic representation of frequencies. Each rectangle represents an interval of frequency. 
+The height  is also equal to the frequency density in that interval. The total area of the histogram is equal to the number of data. 
+This tool can use the m/z value, height, area or retention time as frequency value (X axis) and number of peaks in each interval (Y axis).
+</p>
+
+
+<h4>Parameters</h4>
+<dl>
+	<dt>Raw data files</dt>
+    	<dd>Column of peaks to be plotted.</dd>
+	<dt>Plotted data type</dt>
+    	<dd>Peak's data to be plotted ( m/z value, height, area or retention time)</dd>
+	<dt>Plotted data range</dt>
+    	<dd>Range of data to be plotted. This range is automatically loaded with max values from the raw data.</dd>
+	<dt>Number of bins</dt>
+    	<dd>The plot is divides into this number of bins.</dd>
+
+</dl>
+
+<h4>Functionality</h4>
+<p>
+This plot is using the third part library JfreeChart for its basic functionality. 
+</p>
+<p>
+To zoom in, drag the mouse from left to right, selecting the area to zoom. To zoom out drag the zoom from right to left.
+</p>
+
+<p>
+The next figure shows a histogram using the retention time value. This data is coming from a raw data with a duration of 60 min. 
+Most of the peaks appears around 17 min.
+</p>
+<p>
+<img src="histogram_rt.png">
+</p>
+<p>
+The next figure shows a histogram using the m/z value. This data is coming from a raw data with a range from 350 to 1400 m/z. 
+</p>
+<p>
+<img src="histogram_mz.png">
+</p>
+
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!--
+  Code created was by or on behalf of Syngenta and is released under the open source license in use for the
+  pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
+  -->
+
+<html>
+<head>
+    <title>Identification - NIST MS Search</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Identification - NIST MS Search</h1>
+
+<h2>Description</h2>
+
+<p>
+    This module allows the identification of chromatographic peaks using the <a
+        href="http://chemdata.nist.gov/mass-spc/ms-search/">NIST MS Search</a> program.
+</p>
+
+<p>
+    NIST MS Search accepts spectra as input to its searches. Each spectrum is defined by a list of (mass, intensity)
+    pairs. The module forms a query spectrum for each row in the peak list. For each peak-list row <span
+        style="font-style: italic;">P</span> it finds all other peak-list rows whose (average) RTs are within a
+    specified tolerance (see <span style="font-style: italic;">Spectrum RT tolerance</span>) of <span
+        style="font-style: italic;">P</span>'s RT. The peaks' (neutral) mass and intensity value pairs are combined to
+    form a search spectrum for <span style="font-style: italic;">P</span>.
+</p>
+
+<p>
+    The number of peaks used to form a mass spectrum can be limited by setting the <span style="font-style: italic;">Max.
+    peaks per spectrum</span> parameter to a value greater than zero. If this parameter is set to <span
+        style="font-style: italic;">N</span> then the <span style="font-style: italic;">N</span> rows whose RTs are
+    closest to that of the row (and within the specified RT tolerance) are used to form the mass spectrum.
+</p>
+
+<p>
+    The module can also be run for an individual row of the peak-list table by highlighting the row and then selecting
+    <span style="font-style: italic;">NIST MS Search</span> from the pop-up menu (right mouse-button click). In such
+    cases, the mass spectrum passed to NIST MS Search is formed in the same way as described above.
+</p>
+
+<h4>Method Parameters</h4>
+
+<dl>
+    <dt>NIST MS Search directory</dt>
+    <dd>Full path of the directory containing the NIST MS Search executable (nistms$.exe).</dd>
+
+    <dt>Ionization method</dt>
+    <dd>Type of ionization that produced the peak subjected to identification. This is used to calculate the neutral
+        mass.
+    </dd>
+
+    <dt>Spectrum RT tolerance</dt>
+    <dd>When forming a search spectrum for a given peak-list row, include all other rows whose (average) RT is within
+        the specified tolerance of the given row.
+    </dd>
+
+    <dt>Max. peaks per spectrum</dt>
+    <dd>When forming a search spectrum for a given peak-list row, include at most the specified number of peaks
+        (including the current row). If a row has more than this maximum number of peaks, <span
+                style="font-style: italic;">N</span>, whose RTs are within the specified RT tolerance then it is the
+        <span style="font-style: italic;">N</span> rows whose RTs are closest to that of the row that are used to form
+        the mass spectrum. Setting this parameter to 0 will cause it to be ignored, i.e. all peak-list rows within the
+        specified RT tolerance are used to form the mass spectrum.
+    </dd>
+
+    <dt>Must have same identities</dt>
+    <dd>Two peaks will only be included in the same spectrum if they have the same identity (for use with <a
+            href="../../camera/help/help.html">CAMERA pseudo-spectra</a>)
+    </dd>
+
+    <dt>Min. match factor</dt>
+    <dd>NIST MS Search calculates a match factor (0 .. 999) between the submitted spectrum and each hit. Ignore hits
+        with a match factor below the given threshold.
+    </dd>
+
+    <dt>Min. reverse match factor</dt>
+    <dd>NIST MS Search calculates a <span style="font-style: italic;">reverse</span> match factor (0 .. 999) between the
+        submitted spectrum and each hit. Ignore hits with a reverse match factor below the given threshold.
+    </dd>
+</dl>
+
+<h3>Requirements</h3>
+
+<p>
+    This module relies on the NIST MS Search software, which is currently only available for Microsoft Windows, being
+    installed.
+</p>
+
+</body>
+</html>

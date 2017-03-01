@@ -1,0 +1,364 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>uk.ac.ebi.jmzml</groupId>
+    <artifactId>jmzml</artifactId>
+    <packaging>jar</packaging>
+    <version>1.7.5</version>
+    <name>MzML Java core API</name>
+    <url>https://github.com/PRIDE-Utilities/jmzml</url>
+
+    <description>
+        JAXB implementation of the mzML 1.1 standard as made available from the Proteomics Standards Initiative. This
+        object model can be used to serialize/deserialize properly formed mzML XML files.
+    </description>
+
+    <!-- License -->
+    <licenses>
+        <license>
+            <name>The Apache Software License 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+
+    <!-- Developers -->
+    <developers>
+        <developer>
+            <name>Richard Cote</name>
+            <id>rcote</id>
+            <email>rcote@ebi.ac.uk</email>
+            <organization>Proteomics Services Team, PANDA Group, EMBL-European Bioinformatics Institute</organization>
+        </developer>
+        <developer>
+            <name>Phil Jones</name>
+            <id>philip_jones</id>
+            <email>pjones@ebi.ac.uk</email>
+            <organization>Proteomics Services Team, PANDA Group, EMBL-European Bioinformatics Institute</organization>
+        </developer>
+        <developer>
+            <name>Lennart Martens</name>
+            <id>lennart</id>
+            <email>lennart.martens@ebi.ac.uk</email>
+            <organization>Proteomics Services Team, PANDA Group, EMBL-European Bioinformatics Institute</organization>
+        </developer>
+        <developer>
+            <name>Florian Reisinger</name>
+            <id>florian</id>
+            <email>florian@ebi.ac.uk</email>
+            <organization>Proteomics Services Team, PANDA Group, EMBL-European Bioinformatics Institute</organization>
+        </developer>
+        <developer>
+            <name>Harald Barsnes</name>
+            <id>harald</id>
+            <email>harald.barsnes@biomed.uib.no</email>
+            <organization>Proteomics Unit, University of Bergen, Norway</organization>
+        </developer>
+        <developer>
+            <name>Yasset Perez-Riverol</name>
+            <id>yperez</id>
+            <email>yperez@ebi.ac.uk</email>
+            <organization>Proteomics Services Team, PRIDE, EMBL-European Bioinformatics Institute</organization>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jboss.version>1.3.0.Final</jboss.version>
+        <slf4j.version>1.7.12</slf4j.version>
+        <junit.version>4.8.2</junit.version>
+        <jaxb.version>2.1.7</jaxb.version>
+        <xxindex.version>0.17</xxindex.version>
+        <commons.collections.version>3.2.2</commons.collections.version>
+        <commons.code.version>1.3</commons.code.version>
+        <jaxv.activation>1.1</jaxv.activation>
+        <woodstox.core.version>4.3.0</woodstox.core.version>
+        <fast.util.version>6.5.1</fast.util.version>
+    </properties>
+
+    <!-- Build -->
+    <build>
+
+        <!-- Copy the resources required during building -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>jmzML.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>jmzML.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <remoteTagging>true</remoteTagging>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
+
+            <!-- Compiler plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
+            <!-- Dependency plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/jmzml-${project.version}/lib</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Resources plugin -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/jmzml-${project.version}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>./</directory>
+                                    <includes>
+                                        <include>readMe.txt</include>
+                                        <include>LICENSE-2.0.txt</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--to run the test cases-->
+
+            <plugin>
+                <!-- you can use this plugin to generate the jaxb object model from
+                    the schema and binding files specified below. Note: this will
+                    need an explicit maven goal call, since it is not intergrated
+                    into the standard mvn lifecycle. The goal to use is:
+                    org.jvnet.jaxb2.maven2:maven-jaxb2-plugin:0.6.3:generate
+
+                    NOTE: the code generation may overwrite existing classes, so care
+                          should be taken with files that were manually modified. Such
+                          files are in the current version (0.6): CVParam, UserParam,
+                          ParamGroup, BinaryDataArray and ComponentList.
+                -->
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.6.3</version>
+                <configuration>
+                    <extension>true</extension>
+                    <schemaDirectory>src/main/resources</schemaDirectory>
+                    <schemaIncludes>
+                        <include>mzML1.1.1-idx.xsd</include>
+                    </schemaIncludes>
+                    <bindingDirectory>src/main/resources</bindingDirectory>
+                    <bindingIncludes>
+                        <include>bindings.xjb</include>
+                    </bindingIncludes>
+                    <generateDirectory>src/main/java</generateDirectory>
+                    <removeOldOutput>false</removeOldOutput>
+                    <forceRegenerate>true</forceRegenerate>
+                    <verbose>true</verbose>
+                    <args>
+                        <arg>-no-header</arg>
+                    </args>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <!-- Dependencies -->
+    <dependencies>
+        <dependency>
+            <groupId>org.jboss.jsfunit</groupId>
+            <artifactId>jboss-jsfunit-microdeployer</artifactId>
+            <version>${jboss.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-xjc</artifactId>
+            <version>${jaxb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>psidev.psi.tools</groupId>
+            <artifactId>xxindex</artifactId>
+            <version>${xxindex.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>${commons.collections.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons.code.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>${jaxv.activation}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>woodstox-core-asl</artifactId>
+            <version>${woodstox.core.version}</version>
+        </dependency>
+
+        <!-- needed for EscapingXMLStreamWriter to cope with ASCII control characters that are not properly escaped in JAXB -->
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>${fast.util.version}</version>
+        </dependency>
+    </dependencies>
+
+
+    <repositories>
+        <repository>
+            <id>nexus-ebi-repo-old</id>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
+        </repository>
+        <repository>
+            <id>nexus-ebi-release-repo</id>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
+        </repository>
+        <repository>
+            <id>nexus-ebi-snapshot-repo</id>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-snapshots/</url>
+        </repository>
+        <repository>
+            <id>springsource-repo</id>
+            <name>SpringSource Repository</name>
+            <url>http://repo.springsource.org/release</url>
+        </repository>
+
+        <repository>
+            <id>JBoss</id>
+            <name>JBoss repository</name>
+            <url>https://repository.jboss.org/nexus/content/repositories/releases/</url>
+        </repository>
+    </repositories>
+
+    <!-- PluginRepositores -->
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven2-repository.dev.java.net</id>
+            <url>http://download.java.net/maven/2</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <!-- Overwrites the previous repositories-->
+    <distributionManagement>
+        <!-- EBI repo -->
+        <repository>
+            <id>pst-release</id>
+            <name>EBI Nexus Repository</name>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-release</url>
+        </repository>
+        <!-- EBI SNAPSHOT repo -->
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>pst-snapshots</id>
+            <name>EBI Nexus Snapshots Repository</name>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <!--scm git config-->
+    <scm>
+        <connection>scm:git:github.com/PRIDE-Utilities/jmzml.git</connection>
+        <developerConnection>scm:git:git@github.com:PRIDE-Utilities/jmzml.git</developerConnection>
+        <url>https://github.com/PRIDE-Utilities/jmzml.git</url>
+        <tag>jmzml-1.7.5</tag>
+    </scm>
+
+</project>

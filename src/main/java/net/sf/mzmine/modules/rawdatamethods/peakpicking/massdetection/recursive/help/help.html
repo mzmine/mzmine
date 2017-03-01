@@ -1,0 +1,41 @@
+<html>
+	<head>
+		<title>Peak detection - Mass detection - Recursive threshold mass detector</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Recursive threshold mass detector</h1>
+
+<h2>Description</h2>
+
+<p>
+This mass detector is suitable for continuous data, which has too much noise for the Exact mass detector to be used, but which shows a consistent width of m/z peaks. 
+The algorithm works in a recursive way.
+Initially, it looks at the whole range of data points. 
+If the m/z width of this range is not within given limits, a minimum data point is found and used to split the range in two parts.
+The same algorithm is then applied recursively on each part. 
+Recursion continues until all m/z ranges which fit into the given width limits are found.
+Final m/z values are determined as local maxima of the identified m/z ranges.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Noise level</dt>
+<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
+
+<dt>Min m/z peak width</dt>
+<dd>Minimum acceptable m/z difference between the first and last data point of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search and discard peaks which are too small.</dd> 
+
+<dt>Max m/z peak width</dt>
+<dd>Maximum acceptable m/z difference between the first and last data point of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search.</dd>
+</dl>
+
+<p>
+<img src="Recursive_mass_detector_preview.jpg">
+</p>
+
+</body>
+</html>

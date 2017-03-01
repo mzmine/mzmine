@@ -1,0 +1,57 @@
+<html>
+        <head>
+                <title>Data analysis - Clustering</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Clustering</h1>
+
+                <h2>Description</h2>
+                <p>
+                        The goal of clustering is to group a set of observations into subsets (clusters) finding an intrinsic structure in them so that the members of one single cluster share more similarities than the members of distinct clusters. Clustering is the most important method of unsupervised learning, and a common technique for statistical data analysis used in many fields.
+                        There is no absolute "best" criterion which would be independent of the final aim of the clustering. Consequently, it is the user which must supply this criterion, in such a way that the result of the clustering will suit their needs.
+                        <br><br>
+                        The result of the clustering can be visualized using PCA plot of Sammon's projection, and the data can be seen in a table where in the first column are the names of the samples or variables and in the second column the cluster id (a number) for each sample or variable. Visualization of the hierarchical clustering result is implemented based on TreeViewJ software ("Peterson, M.W. and M.E. Colosimo, TreeViewJ: an application for viewing and analysing phylogenetic trees. Source Code Biol Med, 2007. 2(1): p. 7.")
+                </p>
+                <p>
+                        <img src="TreeView.png" name="Tree View">
+                </p>
+
+                <h4>Method parameters</h4>
+                <dl>
+                        <dt>Data files</dt>
+                        <dd>Raw data files correspondent to the samples selected to bi in the projection plot.</dd>
+
+                        <dt>Colouring style</dt>
+                        <dd>The dots corresponding to every sample can be colored depending on the sample's parameter state or on the file.</dd>
+
+                        <dt>Peak measuring approach</dt>
+                        <dd>It can take two values: height or area. The projections will be calculated using one of this two values.</dd>
+
+                        <dt>Peaks</dt>
+                        <dd>Peaks that will be taken into account to create the projection plot.</dd>
+
+                        <dt>Visualization</dt>
+                        <dd>The visualization of the result of non hierarchical clustering algorithms can be performed using PCA or Sammon's projection</dd>
+
+                        <dt>Type of data</dt>
+                        <dd>It can take two values: Samples or variables. The clustering will be applied to one of this types of data.</dd>
+
+                        <dt>Algorithm</dt>
+                        <dd>Algorithm that will be used to cluster the data.</dd>
+
+                        <dt>Link type</dt>
+                        <dd>This parameters is only enable when the hierarchical clustering has been chosen. The distances between clusters is determined by the chosen linkage.</dd>
+
+                        <dt>Distance fuction</dt>
+                        <dd>This parameters is only enable when the hierarchical clustering has been chosen. The distances between points is determined by the chosen distance function. </dd>
+
+                        <dt>Number of groups</dt>
+                        <dd>The number of clusters has to be defined by the user in advance for some clustering algorithms. This parameter is available only when K-means or Farthest First algorithm are chosen. </dd>
+                </dl>
+
+        </body>
+</html>

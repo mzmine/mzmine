@@ -1,0 +1,316 @@
+<!--
+  Code created was by or on behalf of Syngenta and is released under the open source license in use for the
+  pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
+  -->
+
+<html>
+<head>
+    <title>Raw data filtering - Baseline correction</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Baseline correction</h1>
+
+<h2>Description</h2>
+
+<p>
+    This module performs baseline correction on raw data files. It is designed to compensate for gradual shifts in the
+    chromatographic baseline by detecting the baseline and then subtracting it from the raw data intensity values. The
+    module proceeds as follows for each raw data file passed to it:
+</p>
+<ol>
+    <li> The full range of m/z values present in the raw data is divided into a series of bins of a specified width (see
+        <span style="font-style: italic;">m/z bin width</span>).
+    </li>
+    <li>For each bin a chromatogram is constructed from the raw data points whose m/z values fall within the bin. This
+        chromatogram (see <span style="font-style: italic;">Chromatogram type</span>) may be either the base peak
+        chromatogram or total ion count (TIC) chromatogram.
+    </li>
+    <li>The raw intensity values of each data point in a bin are corrected by subtracting the bin's baseline.
+        Subtraction of baseline intensity values proceeds according to the type of chromatogram used to determine the
+        baseline.
+        <p>If the base peak chromatogram was used then the corrected intensity values are calculated as follows:<br/>
+            <span style="font-style: italic;">I<sub>corr</sub></span> = max(0, <span style="font-style: italic;">I<sub>orig</sub></span>
+            - <span style="font-style: italic;">I<sub>base</sub></span>)</p>
+
+        <p>If the TIC chromatogram was used then the corrected intensity values are calculated as follows:<br/>
+            <span style="font-style: italic;">I<sub>corr</sub></span> = max(0, <span style="font-style: italic;">I<sub>orig</sub></span>
+            * (1 - <span style="font-style: italic;">I<sub>base</sub></span> / <span style="font-style: italic;">I<sub>max</sub></span>))
+        </p>
+
+        <p>where <span style="font-style: italic;">I<sub>orig</sub></span>, <span
+                style="font-style: italic;">I<sub>base</sub></span>, <span
+                style="font-style: italic;">I<sub>max</sub></span> and <span
+                style="font-style: italic;">I<sub>corr</sub></span> are the original, baseline, maximum and corrected
+            intensity values, respectively, for a given scan and m/z bin. If <span style="font-style: italic;">I<sub>base</sub></span>
+            is less or equal to zero then no correction is performed, i.e. <span
+                    style="font-style: italic;">I<sub>corr</sub></span>&nbsp;=&nbsp;<span
+                    style="font-style: italic;">I<sub>orig</sub></span>.
+        </p>
+    </li>
+    <li>A new raw data file is generated from the corrected intensity values.</li>
+</ol>
+
+<h4>Methods Common Parameters</h4>
+
+<dl>
+    <dt>Filename suffix</dt>
+    <dd>The text to append to the name of the baseline corrected raw data file.</dd>
+
+    <dt>Chromatogram type</dt>
+    <dd>TIC: total ion count, i.e. summed intensities per scan, or<br/>
+        Base peak intensity: maximum intensity per scan.
+    </dd>
+
+    <dt>MS-level</dt>
+    <dd>MS level to which to apply correction. Select "0" for all levels.</dd>
+
+    <dt>Use m/z bins</dt>
+    <dd>Baselines can be calculated and data points corrected per m/z bin or to the entire raw data file. If no binning
+        is performed then a single chromatogram is calculated for the entire raw data file and its baseline used to
+        correct the full data file. No binning is very quick but much less accurate and so is only suitable for
+        fine-tuning the smoothing and asymmetry parameters.
+    </dd>
+
+    <dt>m/z bin width</dt>
+    <dd>The width of the m/z bins if binning is performed (see <span style="font-style: italic;">use m/z bins</span>).
+        Smaller bin widths result in longer processing times and greater memory requirements. Avoid values below 0.01.
+    </dd>
+
+    <dt>Correction method</dt>
+    <dd>The width of the m/z bins if binning is performed (see <span style="font-style: italic;">use m/z bins</span>).
+        Smaller bin widths result in longer processing times and greater memory requirements. Avoid values below 0.01.
+    </dd>
+
+    <dt>Remove source file</dt>
+    <dd>Whether to remove the original raw data file once baseline correction is complete.</dd>
+
+</dl>
+
+
+
+
+<h2>Methods Specific Descriptions</h2>
+
+
+<!-- BEGIN CORRECTORS -->
+
+<!--
+<h3>Asymmetric Corrector</h3>
+<p>
+    The corrector estimates a trend based on asymmetric least squares, and subtracts it from the raw data intensity values.
+	<br/><a href="http://cran.r-project.org/web/packages/ptw/ptw.pdf">Read more...</a>
+</p>
+<p>Raw data file before (blue) and after (red) the corrector was applied. The trendline is shown in green.
+    <br><br><img src="asymmetric_corrector.png" name="Asymmetric Corrector">
+</p>
+<h4>Method parameters</h4>
+<dl>
+    <dt>Smoothing</dt>
+    <dd>The smoothing factor. Typically in the range 10<sup>5</sup> to 10<sup>8</sup>. Larger values produce a smoother
+        baseline.
+    </dd>
+
+    <dt>Asymmetry</dt>
+    <dd>The weight (<span style="font-style: italic;">p</span>) for points below the trendline. Conversely, 1-<span
+            style="font-style: italic;">p</span> is the weight applied to points above the trendline. For baselines use
+        a small value of <span style="font-style: italic;">p</span>.
+    </dd>
+</dl>
+-->
+
+<h3>Rolling Ball Corrector</h3>
+<p>
+    The corrector estimates a trend based on the Rolling Ball algorithm, and subtracts it from the raw data intensity values.<br/>
+	(Ideas from Rolling Ball algorithm for X-ray spectra by M.A.Kneen and H.J. Annegarn. Variable window width has been left out).
+	<br/><a href="http://cran.r-project.org/web/packages/baseline/baseline.pdf">Read more...</a>
+</p>
+<p>Raw data file before (blue) and after (red) the corrector was applied. The trendline is shown in green.
+    <br><br><img src="rollingball_corrector.png" name="Rolling Ball Corrector">
+</p>
+<h4>Method parameters</h4>
+<dl>
+    <dt>wm (number of scans)</dt>
+    <dd>Width of local window for minimization/maximization (in number of scans).
+    </dd>
+
+    <dt>ws (number of scans)</dt>
+    <dd>Width of local window for smoothing (in number of scans).
+    </dd>
+</dl>
+
+<h3>Peak Detection Corrector</h3>
+<p>
+    The corrector estimates a trend based on the Peak Detection algorithm, and subtracts it from the raw data intensity values.<br/> 
+	Peak detection is done in several steps sorting out real peaks through different criteria. Peaks are removed from 
+	spectra and minimums and medians are used to smooth the remaining parts of the spectra.
+	(A translation from Kevin R. Coombes et al.'s MATLAB code for detecting peaks and removing baselines).
+	<br/><a href="http://cran.r-project.org/web/packages/baseline/baseline.pdf">Read more...</a>
+</p>
+<p>Raw data file before (blue) and after (red) the corrector was applied. The trendline is shown in green.
+    <br><br><img src="peakdetection_corrector.png" name="Peak Detection Corrector">
+</p>
+<h4>Method parameters</h4>
+<dl>
+    <dt>left (number of scans)</dt>
+    <dd>Smallest window size for peak widths (in number of scans).
+    </dd>
+
+    <dt>right (number of scans)</dt>
+    <dd>Largest window size for peak widths (in number of scans).
+    </dd>
+
+    <dt>lwin (number of scans)</dt>
+    <dd>Smallest window size for minimums and medians in peak removed spectra (in number of scans).
+    </dd>
+
+    <dt>rwin (number of scans)</dt>
+    <dd>Largest window size for minimums and medians in peak removed spectra (in number of scans).
+    </dd>
+
+    <dt>snminimum</dt>
+    <dd>Minimum signal to noise ratio for accepting peaks.
+    </dd>
+
+    <dt>mono</dt>
+    <dd>Monotonically decreasing baseline if ‘mono’ &gt; 0.
+    </dd>
+
+    <dt>multiplier</dt>
+    <dd>Internal window size multiplier.
+    </dd>
+</dl>
+
+<h3>Rubber Band Corrector</h3>
+<p>
+    The corrector estimates a trend based on the Rubber Band algorithm (which determines a convex envelope for 
+	the spectra - underneath side), and subtracts it from the raw data intensity values.
+	<br/><a href="http://cran.r-project.org/web/packages/hyperSpec/vignettes/baseline.pdf">Read more...</a>
+</p>
+<p>Raw data file before (blue) and after (red) the corrector was applied. The trendline is shown in green.
+    <br><br><img src="rubberband_corrector.png" name="Rubber Band Corrector">
+</p>
+<h4>Method parameters</h4>
+<dl>
+    <dt>noise</dt>
+    <dd>Ignored if \"auto noise\" is checked. Noise level to be taken into account.
+    </dd>
+
+    <dt>auto noise</dt>
+    <dd>Determine noise level automatically (from lower intensity scan).
+    </dd>
+
+    <dt>df</dt>
+    <dd>Degree of freedom.
+    </dd>
+
+    <dt>spline</dt>
+    <dd>Logical indicating whether the baseline should be an interpolating spline through the support points or piecewise linear.
+    </dd>
+
+    <dt>bend factor</dt>
+    <dd>Does nothing if equals to zero. Helps fitting better with low \"df\". Try with 5^4, to start palying with...
+    </dd>
+</dl>
+
+<h3>Local Minima + LOESS Corrector</h3>
+<p>
+    The corrector estimates a trend based on Local Minima + LOESS (smoothed low-percentile intensity), and subtracts it from the raw data intensity values.<br/>
+	<a href="http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf">Read more...</a>
+</p>
+<p>Raw data file before (blue) and after (red) the corrector was applied. The trendline is shown in green.
+    <br><br><img src="locminloess_corrector.png" name="Local Minima + LOESS Corrector">
+</p>
+<h4>Method parameters</h4>
+<dl>
+    <dt>method</dt>
+    <dd>"loess" (smoothed low-percentile intensity) or "approx" (linear interpolation).
+    </dd>
+
+    <dt>bw</dt>
+    <dd>The bandwidth to be passed to loess.
+    </dd>
+
+    <dt>breaks</dt>
+    <dd>Number of breaks set to M/Z values for finding the local minima or points below a centain quantile of intensities; breaks -1 equally spaced intervals on the log M/Z scale.
+    </dd>
+
+    <dt>break width (number of scans)</dt>
+    <dd>Overrides \"breaks\" value. Width of a single break. Usually the maximum width (in number of scans) of the largest peak.
+    </dd>
+
+    <dt>qntl</dt>
+    <dd>If 0, find local minima; if &gt;0 find intensities &lt; qntl*100th quantile locally.
+    </dd>
+</dl>
+
+<!-- END CORRECTORS -->
+
+
+
+
+<h2>Requirements</h2>
+
+<p>This module relies on the <a href="http://www.r-project.org/">R statistical computing</a> software being installed
+    and a few "packages" being installed in R.<br/>
+	Note: Depending on the system configuration, this may be easier or mandatory to perform these operations under administrative privileges.
+</p>
+<ol>
+	<h4>Quick install - The whole thing can be setup as follows:<h4>
+		    <pre>	install.packages(c("Rserve", "ptw", "baseline", "hyperSpec"))
+	source("http://bioconductor.org/biocLite.R")
+	biocLite("PROcess")
+		</pre>
+	<h4>Detailed install:<h4>
+    <li><a href="https://rforge.net/Rserve/doc.html">Rserve</a> (All correctors): provides an interface between
+        MZmine and R. 
+		To install <span style="font-family: monospace;">Rserve</span> from CRAN packages run R and enter:
+        <pre>install.packages("Rserve")</pre>
+    </li>
+    <li><a href="http://cran.r-project.org/web/packages/ptw/index.html">ptw</a> (Asymmetric corrector): 
+			parametric time-warping provides the asymmetric least-squares implementation. 
+		To install <span style="font-family: monospace;">ptw</span> run R and enter:
+        <pre>install.packages("ptw")</pre>
+    </li>
+    <li><a href="http://cran.r-project.org/web/packages/baseline/index.html">baseline</a> (RollingBall and PeakDetection correctors): 
+			provides a trend based on "Rolling Ball" and "Peak Detection" algorithms implementation. 
+		To install <span style="font-family: monospace;">baseline</span> run R and enter:
+        <pre>install.packages("baseline")</pre>
+    </li>
+    <li><a href="http://cran.r-project.org/web/packages/hyperSpec/index.html">hyperSpec</a> (RubberBand corrector): 
+			provides a trend based on "Rubber Band" algorithm (which determines a convex envelope for the spectra) implementation. 
+		To install <span style="font-family: monospace;">hyperSpec</span> run R and enter:
+        <pre>install.packages("hyperSpec")</pre>
+    </li>
+    <li><a href="http://www.bioconductor.org/packages/release/bioc/html/PROcess.html">PROcess</a> (Local Minima + LOESS corrector): 
+			provides the local minima search + LOESS (smoothed low-percentile intensity) implementation. 
+		To install <span style="font-family: monospace;">PROcess</span> run R and enter:
+        <pre>
+source("http://bioconductor.org/biocLite.R")
+biocLite("PROcess")
+		</pre>
+    </li>
+</ol>
+
+
+<h3>References</h3>
+
+<table>
+    <tr valign="top">
+        <td>[1]</td>
+        <td>Boelens, H.F.M., Eilers, P.H.C., Hankemeier, T. (2005) "<a
+                href="http://pubs.acs.org/doi/abs/10.1021/ac051370e">Sign constraints improve the detection of
+            differences between complex spectral data sets: LC-IR as an example</a>", <span style="font-style: italic;">Analytical
+            Chemistry</span>, <strong>77</strong>, 7998 – 8007.
+        </td>
+        <td>[2]</td>
+        <td>Rserve "A TCP/IP server which allows other programs to use facilities of R"<a href="https://rforge.net/Rserve/">https://rforge.net/Rserve/</a>.
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

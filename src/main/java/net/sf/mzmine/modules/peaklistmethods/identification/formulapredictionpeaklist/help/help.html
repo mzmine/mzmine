@@ -1,0 +1,53 @@
+<html>
+        <head>
+                <title>Identification - Formula prediction</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Formula prediction</h1>
+
+                <h2>Description</h2>
+
+                <p>
+                        This module attempts to calculate all possible molecular formulas for every peak in the peak list, 
+                        using given elemental and heuristic constraints.  For a detailed description of the 
+                        functionality and the embedded algorithms, please see the following publication: <br>
+                        Pluskal T. et al, Highly Accurate Chemical Formula Prediction Tool Utilizing High-Resolution Mass
+                        Spectra, MS/MS Fragmentation, Heuristic Rules, and Isotope Pattern Matching. 
+                        <i>Anal Chem</i> (2012), 84(10):4396-403.
+                </p>            
+                             
+
+                <h4>Method parameters</h4>
+                <dl>
+                        <dt>Charge</dt>
+                        <dd>The neutral mass is calculated from the peak m/z value, its charge and type of ionization adduct.</dd>
+
+                        <dt>Ionization type</dt>
+                        <dd>The neutral mass is calculated from the peak m/z value, its charge and type of ionization adduct.</dd>
+                        
+                        <dt>m/z tolerance</dt>
+                        <dd>Tolerance of the neutral mass for searching the formula.</dd>
+
+                        <dt>Elements</dt>
+                        <dd>Elements allowed in the formula and their minimum and maximum counts.</dd>
+
+                        <dt>Element count heuristics</dt>
+                        <dd>Selection of heuristic restrictions on element counts.</dd>
+
+                        <dt>RDBE restrictions</dt>
+                        <dd>Selection of restrictions on RDBE (rings double bonds) values. .</dd>
+
+                        <dt>Isotope pattern filter</dt>
+                        <dd>If selected, only results which fit the required isotope pattern similarity score will be returned.</dd>
+                        
+			<dt>MS/MS filter</dt>
+                        <dd>Restrict the formulas to those that can be interpreted in the peak's MS/MS pattern.</dd>
+                        
+                </dl>
+
+        </body>
+</html>

@@ -1,0 +1,37 @@
+<html>
+	<head>
+		<title>Peak detection - Mass detection - Exact mass detector</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Exact mass detector</h1>
+
+<h2>Description</h2>
+
+<p>
+This mass detector is suitable for high-resolution MS data, such as provided by FTMS instruments.
+It first searches for all local maxima within the spectrum. These form candidate ions. 
+After that, exact mass is determined for each candidate ion using the FWHM paradigm (Full Width at Half Maximum).
+First, the method locates the nearest data points to the peak center at half of the maximum intenstiy (P1, P2, P3, P4).
+With these four points it is possible to calculate two points (cP1, cP2) that define the width of the peak and the exact mass (the center of the width is considered as exact mass).
+</p>
+
+<p>
+<img src="Exact_mass_FWHM.jpg">
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Noise level</dt>
+<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
+</dl>
+
+<p>
+<img src="ExactMassPreview.png">
+</p>
+
+</body>
+</html>

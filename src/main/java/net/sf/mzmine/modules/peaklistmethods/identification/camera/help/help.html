@@ -1,0 +1,102 @@
+<!--
+  Code created was by or on behalf of Syngenta and is released under the open source license in use for the
+  pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
+  -->
+
+<html>
+<head>
+    <title>Identification - CAMERA</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>CAMERA</h1>
+
+<h2>Description</h2>
+
+<p>
+    This module uses Bioconductor's CAMERA (Collection of Algorithms for MEtabolite pRofile Annotation) [<a
+        href="#ref1">1</a>]. The algorithm involves three steps:
+</p>
+
+<ol>
+    <li>Peaks are grouped according to their retention times.</li>
+    <li>Within each group, clusters of isotope peaks are identified.</li>
+    <li>Groups of peaks are sub-divided into smaller groups of peaks whose shapes are highly correlated. Clusters of
+        isotopes are preserved, i.e. not separated into different groups.
+    </li>
+</ol>
+
+<p>The groups of peaks produced at the end of this process are referred to as pseudo-spectra; one per group. An identity
+    is added to each peak indicating which pseudo-spectrum it is a member of. The identity also notes any peaks that
+    were identified as isotopes.</p>
+
+<img src="pseudospectra.png" alt="Peak list showing pseudo-spectra identities.">
+
+<h4>Method parameters</h4>
+
+<dl>
+    <dt>FWHM Sigma</dt>
+    <dd>A Gaussian is fitted to each peak. This parameter multiplies the width of the fitted peak when grouping by peaks
+        by their retention times.
+    </dd>
+
+    <dt>FWHM percentage</dt>
+    <dd>The percentage of a peak's full-width half-maximum used when grouping peaks by their retention times.</dd>
+
+    <dt>Isotopes max. charge</dt>
+    <dd>The maximum charge considered when identifying isotopes.</dd>
+
+    <dt>Isotopes max. per cluster</dt>
+    <dd>The maximum number of isotopes per cluster.</dd>
+
+    <dt>Isotopes mass tolerance</dt>
+    <dd>The mass tolerance used when identifying isotopes. Provide both the absolute (m/z) and relative (ppm) values.
+    </dd>
+
+    <dt>Correlation threshold</dt>
+    <dd>The minimum correlation required between two peaks' chromatograms when grouping by peak shape.</dd>
+
+    <dt>Correlation p-value</dt>
+    <dd>The required p-value when testing the significance of peak shape correlation.</dd>
+</dl>
+
+<h4>Requirements</h4>
+
+<p>
+    This module relies on Bioconductor's CAMERA package for R [<a href="#ref2">2</a>]. Therefore, you must
+    have R v2.15 or later installed. To install the CAMERA package, run R and issue the following commands:
+</p>
+
+<pre>source("http://bioconductor.org/biocLite.R")
+biocLite("CAMERA")</pre>
+
+<p>To run R from MZmine the Rserve package [<a href="#ref3">3</a>] must be installed in R, so also run the following R
+    command:</p>
+
+<pre>install.packages("Rserve")</pre>
+
+
+<h2>References</h2>
+
+<p>
+    <a name="ref1"></a>
+    [1] Ralf Tautenhahn, Christoph Böttcher, and Steffen Neumann "Annotation of LC/ESI-MS Mass Signals" <span
+        style="font-style: italic;">Proc. of BIRD     2007: First International Conference on Bioinformatics Research and Development</span>,
+    <span style="font-weight: bold;">2007</span>. <a
+        href="http://www.springerlink.com/content/473l404001787974/ and http://msbi.ipb-halle.de/~rtautenh/bird07.pdf">http://www.springerlink.com/content/473l404001787974/</a>
+</p>
+
+<p>
+    <a name="ref2"></a>
+    [2] Bioconductor CAMERA "Collection of annotation related methods for mass spectrometry data" <a
+        href="http://www.bioconductor.org/packages/release/bioc/html/CAMERA.html">http://www.bioconductor.org/packages/release/bioc/html/CAMERA.html</a>.
+</p>
+
+<p>
+    <a name="ref3"></a> [3] Rserve "A TCP/IP server which allows other programs to use facilities of R" <a href="https://rforge.net/Rserve/">https://rforge.net/Rserve/</a>.
+</p>
+</body>
+</html>

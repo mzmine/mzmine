@@ -1,0 +1,97 @@
+<html>
+    <head>
+        <title>Gap filling - Peak finder</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+    <body>
+
+        <h1>Peak finder</h1>
+
+        <h2>Description</h2>
+        <p>
+            Following alignment, the resulting peak list may contain missing
+            peaks as a product of a deficient peak detection or a mistake in the alignment of
+            different peak lists.
+		</p>
+		
+		<p>
+            The fact that one peak is missing after the alignment does not imply that the
+            peak does not exits. In most cases it is present but was undetected by the
+            previous algorithms.
+        </p>
+
+        <p>
+            This algorithm fills the gaps in the peak list when it is possible according with the parameters
+            defined by the user.
+            The most crucial parameters are "m/z tolerance" and "RT tolerance" which define the window where
+            the algorithm should find the new peak. It is centered in the m/z average and retention time average of
+            the source peak list. Once the best candidate is found inside the window, its intensity and its shape in RT direction is also
+            checked.
+		</p>
+		
+		<p>
+            It can also add a previous correction of the retention time in the case it is needed. It will
+            change the position of the defined window depending on the prediction of a RT model created
+            using all the already aligned peaks in each pair.
+        </p>
+
+        <h4>RT correction</h4>
+        <p>
+            When RT correction is applied, the algorithm is divided in two main steps. In the first step,
+            one random sample is taken from the multiple peak list and is used as a master list. All the gaps of this master list are filled using all the others samples.
+            For each pair of samples the algorithm creates a model of the retention time.
+            In the second step the master list is used to fill the gaps of the rest of the samples,
+            creating also a retention time model for each pair (as is is showed in the figure below).
+
+        </p>
+
+        <p>
+            <img src="gapfilling.png" name="scheme">
+        </p>
+
+
+
+        <h4>Method parameters</h4>
+
+        <dl>
+            <dt>Name suffix</dt>
+            <dd>Suffix to be added to the peak list name.</dd>
+
+            <dt>Intensity tolerance</dt>
+            <dd>This value sets the maximum allowed deviation from expected shape of a peak
+                in chromatographic direction.</dd>
+
+            <dt>M/Z tolerance</dt>
+            <dd>This value sets the range, in terms of m/z, to search for possible peak in the raw
+                data. Maximum allowed m/z difference.</dd>
+
+            <dt>Retention time tolerance type</dt>
+            <dd>Its value can be relative or absolute. The next parameters should be fill depending
+                on the value chosen in this parameter. </dd>
+
+            <dt>Absolute RT tolerance</dt>
+            <dd>This value sets the range, in terms of retention time, to search for possible peak in the raw
+                data. Maximum allowed absolute RT difference.</dd>
+
+            <dt>Relative RT tolerance</dt>
+            <dd>This value sets the range, in terms of retention time, to search for possible peak in the raw
+                data. Maximum allowed relative RT difference.</dd>
+
+            <dt>RT Correction</dt>
+            <dd>When it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation
+                of the retention time between the samples.</dd>
+
+        </dl>
+        
+        
+        <p>
+        New peak list showing the filled peaks with a yellow mark.<br>
+        <img src="gapfillingResult.png" name="gap filling result">
+        </p>
+
+    </body>
+</html>
+
+

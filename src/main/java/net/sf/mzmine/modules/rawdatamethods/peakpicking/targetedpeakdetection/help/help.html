@@ -1,0 +1,61 @@
+<html>
+        <head>
+                <title>Peak detection - Targeted peak detection</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Targeted peak detection</h1>
+
+                <h2>Description</h2>
+
+                <p>
+                        This algorithm opens a csv file with a list of peaks and search each peak in the selected raw data file.
+                        The most crucial parameters are "m/z tolerance" and "RT tolerance" which define the window where
+                        the algorithm should find the new peak. It is centered in the m/z average and retention time average of
+                        the source peak list. Once the best candidate is found inside the window, its shape in RT direction is also
+                        checked.
+                </p>
+
+                <p>
+                        The csv file should have three columns. The first column should contain the expected M/Z,
+                        the second column the expected RT and the third the peak name.
+                        Each peak should be in a different row.
+                </p>
+
+                <h4>Method parameters</h4>
+
+                <dl>
+                        <dt>Name suffix</dt>
+                        <dd>Suffix to be added to the peak list name.</dd>
+
+                        <dt>Peak list file</dt>
+                        <dd>Path of the csv file containing the list of peaks to be detected.</dd>
+
+                        <dt>Field separator</dt>
+                        <dd>Character(s) used to separate fields in the peak list file.</dd>
+
+                        <dt>Ignore first line</dt>
+                        <dd>Check to ignore the first line of  peak list file.</dd>
+
+                        <dt>Intensity tolerance</dt>
+                        <dd>This value sets the maximum allowed deviation from expected shape of a peak in chromatographic direction.</dd>
+                        
+                        <dt>Noise level</dt>
+                        <dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
+
+                        <dt>MZ Tolerance </dt>
+                        <dd>Maximum allowed m/z difference to find the peak</dd>
+
+                        <dt>RT tolerance</dt>
+                        <dd>Maximum allowed retention time difference to find the peak</dd>
+
+                </dl>
+
+
+        </body>
+</html>
+
+

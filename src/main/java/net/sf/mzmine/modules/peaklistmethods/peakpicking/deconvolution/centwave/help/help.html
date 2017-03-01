@@ -1,0 +1,89 @@
+<!--
+  Code created was by or on behalf of Syngenta and is released under the open source license in use for the
+  pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
+  -->
+
+<html>
+<head>
+    <title>Peak detection - Deconvolution - Wavelets (XCMS)</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Chromatogram deconvolution</h1>
+
+<h2>Wavelets (XCMS)</h2>
+
+<p>
+    This method uses wavelets to detect peaks within a chromatogram. A series of wavelets of different scales
+    is convolved with the chromatogram. Local maxima in the convolution results determine the locations of possible
+    peaks. When these candidate peak locations co-occur at multiple scales then the scale with the strongest response
+    indicates peak width. Given the candidate peak locations and scales, peaks can then be reconstructed from the
+    original chromatogram. Full details of the algorithm are published in Tautenhahn et al. [<a href="#ref1">1</a>].
+</p>
+
+<h4>Method parameters</h4>
+
+<dl>
+    <dt>S/N Threshold</dt>
+    <dd>Peaks with a signal-to-noise ratio less than the threshold will be rejected. The S:N ratio is defined as
+        (<span style="font-style: italic;">max</span>&nbsp;-&nbsp;<span style="font-style: italic;">baseline</span>)&nbsp;/&nbsp;<span
+                style="font-style: italic;">sd</span>, where <span style="font-style: italic;">max</span> is the maximum
+        peak intensity, <span style="font-style: italic;">baseline</span>
+        is the estimated baseline value, and <span
+                style="font-style: italic;">sd</span> is the standard deviation of local chromatographic noise.
+    </dd>
+
+    <dt>Peak scales</dt>
+    <dd>The range of peak scales to search for. Scales are expressed as RT values (minutes) and correspond to the range
+        of wavelet scales that will be applied to the chromatogram. If the minimum scale is too small then noise may be
+        detected as peaks. If the maximum scale is to low then broad peaks may be ignored.
+    </dd>
+
+    <dt>Peak duration range</dt>
+    <dd>The acceptable range of peak widths. Peaks with widths outside this range will be rejected.</dd>
+
+    <dt>Integration method</dt>
+    <dd>When reconstructing a peak from the chromatogram, gradient descent is used. This can be performed on the raw
+        peak data or a smoothed version of it. The former is more accurate but can be susceptible to noise. The latter
+        is less exact but more robust in the presence of noise.
+    </dd>
+</dl>
+
+<h4>Requirements</h4>
+
+<p>
+    The Wavelets detector relies on Bioconductor's XCMS package for R [<a href="#ref2">2</a>]. Therefore, you must
+    have R v2.15 or later installed. To install the XCMS package, run R and issue the following commands:
+</p>
+
+<pre>source("http://bioconductor.org/biocLite.R")
+biocLite("xcms")</pre>
+
+<p>To run R from MZmine the Rserve package [<a href="#ref3">3</a>] must be installed in R, so also run the following R
+    command:</p>
+
+<pre>install.packages("Rserve")</pre>
+
+<h2>References</h2>
+
+<p>
+    <a name="ref1"></a>
+    [1] Ralf Tautenhahn, Christoph Böttcher, and Steffen Neumann "Highly sensitive feature detection for high resolution
+    LC/MS" <span style="font-style: italic;">BMC Bioinformatics</span> <span style="font-weight: bold;">2008</span>,
+    9:504
+</p>
+
+<p>
+    <a name="ref2"></a>
+    [2] Bioconductor XCMS "LC/MS and GC/MS Data Analysis" <a
+        href="http://www.bioconductor.org/packages/release/bioc/html/xcms.html">http://www.bioconductor.org/packages/release/bioc/html/xcms.html</a>.
+</p>
+
+<p>
+    <a name="ref3"></a> [3] Rserve "A TCP/IP server which allows other programs to use facilities of R" <a href="https://rforge.net/Rserve/">https://rforge.net/Rserve/</a>.
+</p>
+</body>
+</html>

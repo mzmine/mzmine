@@ -1,0 +1,98 @@
+<html>
+	<head>
+		<title>Peak detection - Mass list filtering - FTMS shoulder peaks filter</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>FTMS shoulder peaks filter</h1>
+
+<h2>Description</h2>
+
+<p>
+Raw data obtained from FTMS (Fourier Transform Mass Spectrometer) instruments often contains false signals around high-intensity m/z peaks, called "shoulder peaks".
+These signals are residues of the Fourier Transform function and their intensity is usually below 5% of the main (true) m/z peak.
+The FTMS shoulder peaks filter attempts to remove these false signals. 
+Ions in the mass lists (generated previously by the Mass detector module) are processed in the order of decreasing intensity.
+A peak model (shape) is built around each ion peak using given function and resolution, and those m/z peaks which fall below the model are considered to be shoulder peaks and therefore are removed.
+The method offers three theoretical peak models.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+
+<dt>Mass list name</dt>
+<dd>Choose a name of the mass lists to be filtered. The mass lists must be previously generated for each scan by the Mass detector module.</dd>
+
+<dt>Mass resolution of the data</dt>
+<dd>Defines the width of the model, which should be equal to the estimated resolution of the peaks in the raw data. 
+Mass resolution is the dimensionless ratio of the mass of the peak divided by its width.
+Peak width is taken as the full width at half maximum intensity (FWHM).<br>
+<img src="resolving-power.png"></dd>
+
+<dt>Peak model function</dt>
+<dd>Defines the shape of the model function, as described below. Peaks under the curve of this peak model will be removed.</dd> 
+
+<dt>Suffix</dt>
+<dd>This string is added to mass list name as a suffix</dd> 
+
+<dt>Remove original mass list</dt>
+<dd>If checked, original mass list will be removed and only filtered version remains</dd> 
+
+</dl>
+
+<h4>Gaussian peak model</h4>
+
+<p>
+The Gaussian peak model is a characteristic symmetric "bell shape curve" that quickly
+ falls off towards plus/minus infinity, described by the following formula.
+ <img src="GaussFormula.png">
+</p>
+
+<p>
+The parameter "a" is the height of the curve's peak, "b" is the position of the center of the peak,
+ and "c" controls the width of the "bell".
+</p>
+
+<p>
+<img src="GaussPeak.jpg">
+</p>
+
+<h4>Lorentzian peak model</h4>
+
+<p>
+The Lorentzian function (Cauchy-Lorentz distribution) is used for this model.<br>
+<img src="Cauchy_distribution.png">
+</p>
+
+<p>
+The Lorentzian peak model is described by the following formula:<br>
+<img src="LorentzianFormula.png"><br>
+Where "x0" is the location parameter, specifying the location of the peak of the distribution,
+ and "y" is the scale parameter which specifies the width of the peak.
+</p>
+
+<p>
+<img src="LorentzianPeak.jpg">
+</p>
+
+<h4>Lorentzian extended peak model</h4>
+
+<p>
+This model uses the same mathematical formula as the Lorentzian peak model, but the lower part of the model (below 5% of the intensity)
+is extended. The width of the peak below 5% intensity is calculated from another Lorentzian peak with 5% of the resolution of the main peak.
+</p>
+
+<p>
+<img src="LorentzianExtended.jpg">
+</p>
+
+<p>
+Example of running the shoulder peaks filter on LTQ Orbitrap data:
+<img src="shoulderpeaks_screenshot.png" border="1">
+</p>
+
+</body>
+</html>

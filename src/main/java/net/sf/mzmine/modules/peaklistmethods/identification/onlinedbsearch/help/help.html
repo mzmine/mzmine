@@ -1,0 +1,137 @@
+<html>
+<head>
+    <title>Identification - Online database search</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Online database search</h1>
+
+<h2>Description</h2>
+
+<p>
+    This module allows identification of peaks or whole peak lists using an on-line compound database.
+    Databases are queried for the calculated neutral mass of the peak and matching compounds are returned.
+</p>
+
+<p>
+    Selection of peak for identification:<br>
+    <img src="OnlineDBSearch_choose.png">
+</p>
+
+<p>
+    Results of database query:<br>
+    <img src="OnlineDBSearch_results.png">
+</p>
+
+<p>
+    Displaying the structure of the database compound:<br>
+    <img src="OnlineDBSearch_structure.png">
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+    <dt>Database</dt>
+    <dd>On-line database to search (see below)</dd>
+
+    <dt>Peak m/z</dt>
+    <dd>Detected m/z value of the peak. This is set automatically according to the peak subjected to identification.
+    </dd>
+
+    <dt>Charge</dt>
+    <dd>Charge of the peak being identified. This value is used to calculate the neutral mass.</dd>
+
+    <dt>Ionization method</dt>
+    <dd>Type of ionization that produced the peak subjected to identification. This is used to calculate the neutral
+        mass.
+    </dd>
+
+    <dt>Neutral mass</dt>
+    <dd>This value is automatically calculated from the parameters above. The neutral mass represents the final search
+        term for querying the on-line database.
+    </dd>
+
+    <dt>Number of results</dt>
+    <dd>Limit for the number of results to be retrieved from the on-line database.</dd>
+
+    <dt>Mass tolerance</dt>
+    <dd>Tolerance of the neutral mass for searching the database.</dd>
+
+    <dt>Isotope pattern filter</dt>
+    <dd>If selected, only results which fit the required isotope pattern similarity score will be returned.</dd>
+
+    <dt>Isotope pattern score threshold</dt>
+    <dd>The score required for the isotope pattern filter.</dd>
+
+</dl>
+
+
+<h2>On-line databases</h2>
+
+<p>
+    Currently supported databases are listed below.
+    Support for other databases may be implemented as addititonal plugins.
+</p>
+
+<h3>PubChem</h3>
+
+<p>
+    PubChem database (<a href="http://pubchem.ncbi.nlm.nih.gov/">http://pubchem.ncbi.nlm.nih.gov/</a>) contains millions
+    of chemical compound structures.
+</p>
+
+<h3>KEGG</h3>
+
+<p>
+    KEGG database (<a href="http://www.genome.jp/kegg/">http://www.genome.jp/kegg/</a>) contains metabolites and other
+    biomolecules present in natural metabolic pathways.
+</p>
+
+
+<h3>HMDB</h3>
+
+<p>
+    The Human Metabolome Database (HMDB) (<a href="http://www.hmdb.ca/">http://www.hmdb.ca/</a>) contains over 7,000
+    known metabolites found in human body.
+</p>
+
+<h3>YMDB</h3>
+
+<p>
+    The Yeast Metabolome Database (YMDB) (<a href="http://www.ymdb.ca">http://www.ymdb.ca</a>) is a manually curated
+    database of small molecule metabolites found in or produced by <i>Saccharomyces cerevisiae</i>
+    (also known as Baker’s yeast and Brewer’s yeast).
+</p>
+
+
+<h3>METLIN</h3>
+
+<p>
+    The METLIN database (<a href="http://metlin.scripps.edu/">http://metlin.scripps.edu/</a>) contains over 20,000
+    metabolites. To use METLIN, you need to obtain a security token by on-line 
+    <a href="https://metlin.scripps.edu/soap/">registration</a>.
+    
+</p>
+
+<h3>ChemSpider</h3>
+
+<p>
+    The ChemSpider database (<a href="http://www.chemspider.com/">http://www.chemspider.com/</a>) contains over 25
+    million compounds. To search ChemSpider you must provide the "Security Token" from your ChemSpider account. If you
+    don't have an account, please <a href="http://www.chemspider.com">register on-line</a>.
+    Log into your account and visit your user profile to obtain your token.
+</p>
+
+<h3>PlantCyc</h3>
+
+<p>
+    The Plant metabolic pathway database (<a href="http://plantcyc.org">http://plantcyc.org</a>) provides access
+    to manually curated or reviewed information about shared and unique metabolic pathways present 
+    in over 350 plant species.
+</p>
+
+
+</body>
+</html>

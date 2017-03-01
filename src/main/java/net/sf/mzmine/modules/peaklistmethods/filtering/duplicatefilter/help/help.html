@@ -1,0 +1,40 @@
+<html>
+	<head>
+		<title>Peak list filtering - Duplicate filter</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Duplicate filter</h1>
+
+<h2>Description</h2>
+
+<p>
+Two peaks are considered duplicates when their m/z and retention time differences are lower than
+the tolerances set by the user. When two duplicates are found, the row with the smaller median 
+of all peak areas will be deleted.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Name sufix</dt>
+<dd>This is the suffix to identify the new aligned peak list in Peak list frame of desktop.</dd>
+
+<dt>M/Z tolerance</dt>
+<dd>Maximum m/z difference between duplicate peaks.</dd>
+
+<dt>RT tolerance</dt>
+<dd>Maximum retention time difference between duplicate peaks.</dd>
+
+<dt>Require same identification</dt>
+<dd>If the checkbox is selected duplicate peaks must have the same identification.</dd>
+
+<dt>Remove source peak list after fitering</dt>
+<dd>It the checkbox is selected the source peak list will be remove and the filtered version remains.</dd>
+
+</dl>
+
+</body>
+</html>

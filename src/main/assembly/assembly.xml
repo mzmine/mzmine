@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	<id>MZmine 2 distribution package</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<includeBaseDirectory>true</includeBaseDirectory>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+		</dependencySet>
+	</dependencySets>
+	<fileSets>
+		<fileSet>
+			<directory>src/main/scripts</directory>
+			<outputDirectory>/</outputDirectory>
+			<fileMode>0755</fileMode>
+			<directoryMode>0755</directoryMode>
+			<filtered>false</filtered>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/conf</directory>
+			<outputDirectory>conf</outputDirectory>
+			<excludes>
+				<!-- Exclude the current configuration file, if it exists - initial MZmine 
+					distribution should be provided with empty configuration -->
+				<exclude>*</exclude>
+			</excludes>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/icons</directory>
+			<outputDirectory>icons</outputDirectory>
+			<fileMode>0644</fileMode>
+			<directoryMode>0755</directoryMode>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/lib/vendor_lib</directory>
+			<outputDirectory>lib/vendor_lib</outputDirectory>
+			<fileMode>0644</fileMode>
+			<directoryMode>0755</directoryMode>
+		</fileSet>
+		<fileSet>
+			<directory>.</directory>
+			<includes>
+				<!-- Include the manual.pdf, if present -->
+				<include>manual.pdf</include>
+			</includes>
+			<outputDirectory>/</outputDirectory>
+			<fileMode>0644</fileMode>
+			<directoryMode>0755</directoryMode>
+		</fileSet>
+	</fileSets>
+</assembly>

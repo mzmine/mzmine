@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<title>Peak detection - Peak extender</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Peak extender</h1>
+
+<h2>Description</h2>
+
+<p>
+This module extends the peaks in a peak list in both directions of the retention time. 
+The purpose is mainly to add missing data to peak lists produced by the MS/MS Peak List Builder, which only detects a single data point per peak. 
+The extending is performed scan-by-scan in both directions by searching for data points within given m/z tolerance and above given minimal height.
+When no data point is found, extending is stopped. 
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Suffix</dt>
+<dd>This string is added to the end of the name of each processed peak list</dd>
+
+<dt>m/z tolerance</dt>
+<dd>Maximum allowed distance in M/Z between data points in successive scans</dd>
+
+<dt>Min height</dt>
+<dd>Minimum allowed intensity for succesive scans. When intensity drops below this level, extending is stopped.</dd>
+
+<dt>Remove original peak list</dt>
+<dd>If selected, the original peak list is automatically removed</dd>
+
+</dl>
+
+<p>
+<img src="peak_extender_before.png"><br>
+Peak list obtained from MS/MS peak detector
+<br><br>
+<img src="peak_extender_after.png"><br>
+The same peak list after running peak extender
+</p>
+
+</body>
+</html>
