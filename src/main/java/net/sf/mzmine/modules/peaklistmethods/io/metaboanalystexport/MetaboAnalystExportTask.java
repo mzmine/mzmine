@@ -172,11 +172,11 @@ class MetaboAnalystExportTask extends AbstractTask {
         // Write sample (raw data file) names
         line.append("\"Sample\"");
         for (RawDataFile file : rawDataFiles) {
-
             // Cancel?
             if (isCanceled()) {
                 return;
             }
+
 
             line.append(fieldSeparator);
             final String value = file.getName().replace('"', '\'');
@@ -256,7 +256,6 @@ class MetaboAnalystExportTask extends AbstractTask {
                 + MZmineCore.getConfiguration().getMZFormat().format(mz) + "mz/"
                 + MZmineCore.getConfiguration().getRTFormat().format(rt)
                 + "min";
-
         PeakIdentity peakIdentity = row.getPreferredPeakIdentity();
 
         if (peakIdentity == null)

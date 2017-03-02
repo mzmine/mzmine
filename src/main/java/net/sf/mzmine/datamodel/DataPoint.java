@@ -28,5 +28,4 @@ public interface DataPoint {
     public double getMZ();
 
     public double getIntensity();
-
 }

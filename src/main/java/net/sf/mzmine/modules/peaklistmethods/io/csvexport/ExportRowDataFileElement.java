@@ -33,7 +33,9 @@ public enum ExportRowDataFileElement {
     PEAK_DATAPOINTS("Peak # data points", false),
     PEAK_FWHM("Peak FWHM", false),
     PEAK_TAILINGFACTOR("Peak tailing factor", false),
-    PEAK_ASYMMETRYFACTOR("Peak asymmetry factor", false);
+    PEAK_ASYMMETRYFACTOR("Peak asymmetry factor", false),
+    PEAK_MZMIN("Peak m/z min", false),
+    PEAK_MZMAX("Peak m/z max", false);
 
     private final String name;
     private final boolean common;

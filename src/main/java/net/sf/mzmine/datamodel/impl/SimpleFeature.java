@@ -36,6 +36,7 @@ import com.google.common.collect.Range;
  */
 public class SimpleFeature implements Feature {
 
+    private SimplePeakInformation peakInfo;
     private FeatureStatus peakStatus;
     private RawDataFile dataFile;
 
@@ -111,6 +112,7 @@ public class SimpleFeature implements Feature {
 	this.tf = p.getTailingFactor();
 	this.af = p.getAsymmetryFactor();
 
+
 	this.rtRange = p.getRawDataPointsRTRange();
 	this.mzRange = p.getRawDataPointsMZRange();
 	this.intensityRange = p.getRawDataPointsIntensityRange();
@@ -121,6 +123,7 @@ public class SimpleFeature implements Feature {
 
 	for (int i = 0; i < scanNumbers.length; i++) {
 	    dataPointsPerScan[i] = p.getDataPoint(scanNumbers[i]);
+
 	}
 
 	this.peakStatus = p.getFeatureStatus();
@@ -172,6 +175,8 @@ public class SimpleFeature implements Feature {
      */
     public void setHeight(double height) {
 	this.height = height;
+
+        intensityRange = Range.closed(0.0, height);
     }
 
     /**
@@ -321,5 +326,17 @@ public class SimpleFeature implements Feature {
     public void setAsymmetryFactor(Double af) {
         this.af = af;
     }
+
+    //dulab Edit
+    public void outputChromToFile(){
+        int nothing = -1;
+    }
+    public void setPeakInformation(SimplePeakInformation peakInfoIn){
+        this.peakInfo = peakInfoIn;
+    }
+    public SimplePeakInformation getPeakInformation(){
+        return peakInfo;
+    }
+    //End dulab Edit
 
 }

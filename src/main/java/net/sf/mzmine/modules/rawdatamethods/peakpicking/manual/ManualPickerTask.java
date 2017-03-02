@@ -69,6 +69,7 @@ class ManualPickerTask extends AbstractTask {
         mzRange = parameters.getParameter(ManualPickerParameters.mzRange)
                 .getValue();
 
+
     }
 
     public double getFinishedPercentage() {

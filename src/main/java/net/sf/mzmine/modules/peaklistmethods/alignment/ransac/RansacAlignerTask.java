@@ -48,6 +48,10 @@ import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 import com.google.common.collect.Range;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
 
 class RansacAlignerTask extends AbstractTask {
 
@@ -180,6 +184,27 @@ class RansacAlignerTask extends AbstractTask {
 	// Add new aligned peak list to the project
 	project.addPeakList(alignedPeakList);
 
+        // Edit by Aleksandr Smirnov
+        PeakListRow row = alignedPeakList.getRow(1);
+        double alignedRetTime = row.getAverageRT();
+        
+        for (Feature peak : row.getPeaks()) {
+            double retTimeDelta = alignedRetTime - peak.getRT();
+            RawDataFile dataFile = peak.getDataFile();
+            
+            SortedMap <Double, Double> chromatogram = new TreeMap <> ();
+            
+            for (int scan : peak.getScanNumbers()) {
+                DataPoint dataPoint = peak.getDataPoint(scan);
+                double retTime = dataFile.getScan(scan).getRetentionTime()
+                        + retTimeDelta;
+                if (dataPoint != null)
+                    chromatogram.put(retTime, dataPoint.getIntensity());
+            }
+        }
+        
+        // End of Edit
+        
 	// Add task description to peakList
 	alignedPeakList
 		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(

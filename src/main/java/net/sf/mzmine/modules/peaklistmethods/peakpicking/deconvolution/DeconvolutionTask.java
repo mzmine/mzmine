@@ -257,6 +257,7 @@ public class DeconvolutionTask extends AbstractTask {
 
                 final PeakListRow newRow = new SimplePeakListRow(peakId++);
                 newRow.addPeak(dataFile, peak);
+                newRow.setPeakInformation(peak.getPeakInformation());
                 resolvedPeaks.addRow(newRow);
             }
 

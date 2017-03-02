@@ -293,5 +293,4 @@ class TwoDPlot extends ChartPanel {
 	    plot.setLogScale(logscale);
 	}
     }
-
 }

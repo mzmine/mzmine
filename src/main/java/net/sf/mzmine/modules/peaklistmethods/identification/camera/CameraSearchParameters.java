@@ -27,9 +27,12 @@ import java.text.NumberFormat;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -81,10 +84,50 @@ public class CameraSearchParameters extends SimpleParameterSet {
             "Required p-value when testing the significance of peak shape correlation",
             NumberFormat.getNumberInstance(), 0.05, 0.0, 1.0);
 
+    // Ionization Polarity
+    public static final ComboParameter POLARITY = 
+            new ComboParameter("Ionization Polarity", "Ionization Polarity",
+            new Object[] {"positive", "negative"}, "positive");
+    
+    public static final BooleanParameter DONT_SPLIT_ISOTOPES =
+            new BooleanParameter("Do not split isotopes", 
+                    "If checked, isotopes will not be split even if shape-similarity is low",
+                    true);
+    
+    public static final String FIND_ISOTOPES_FIRST = "Perform Isotope search before Shape correlation";
+    public static final String GROUP_CORR_FIRST = "Perform Shape correlation before Isotope search";
+    
+    public static final ComboParameter <String> ORDER = 
+            new ComboParameter <> ("Order", 
+                    "Order of Isotope search and Shape correlation steps",
+                    new String[] {FIND_ISOTOPES_FIRST, GROUP_CORR_FIRST},
+                    FIND_ISOTOPES_FIRST);
+    
+    public static final BooleanParameter CREATE_NEW_LIST = new BooleanParameter(
+            "Create new list", "If checked, a new list will be created", true);
+    
+    public static final String GROUP_BY_ISOTOPE = "Isotope ID";
+    public static final String GROUP_BY_PCGROUP = "PCGroup ID";
+    
+    public static final ComboParameter <String> GROUP_BY = 
+            new ComboParameter <> ("Group peaks by", 
+                    "Order of Isotope search and Shape correlation steps",
+                    new String[] {GROUP_BY_ISOTOPE, GROUP_BY_PCGROUP},
+                    GROUP_BY_ISOTOPE);
+    
+    public static final BooleanParameter INCLUDE_SINGLETONS =
+            new BooleanParameter("Include singletons", "If checked, features with no found isotope pattern will be included", 
+                    false);
+    
+    public static final StringParameter SUFFIX = new StringParameter("Suffix",
+	    "This string is added to peak list name as suffix", "CAMERA");
+    
     public CameraSearchParameters() {
 
         super(new Parameter[] { PEAK_LISTS, FWHM_SIGMA, FWHM_PERCENTAGE,
                 ISOTOPES_MAX_CHARGE, ISOTOPES_MAXIMUM, ISOTOPES_MZ_TOLERANCE,
-                CORRELATION_THRESHOLD, CORRELATION_P_VALUE });
+                CORRELATION_THRESHOLD, CORRELATION_P_VALUE, POLARITY, 
+                DONT_SPLIT_ISOTOPES, ORDER, CREATE_NEW_LIST, GROUP_BY, 
+                INCLUDE_SINGLETONS, SUFFIX});
     }
 }

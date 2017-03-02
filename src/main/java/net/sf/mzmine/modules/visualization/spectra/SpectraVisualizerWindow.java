@@ -263,8 +263,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
     }
 
-    public void loadIsotopes(IsotopePattern newPattern) {
-
+    public void loadIsotopes(IsotopePattern newPattern) 
+    {
         // We need to find a normalization factor for the new isotope
         // pattern, to show meaningful intensity range
         double mz = newPattern.getHighestDataPoint().getMZ();
@@ -294,6 +294,16 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
     }
 
+    public void loadSpectrum(IsotopePattern newPattern) {
+        Color newColor;
+        if (newPattern.getStatus() == IsotopePatternStatus.DETECTED)
+            newColor = detectedIsotopesColor;
+        else
+            newColor = predictedIsotopesColor;
+        IsotopesDataSet newDataSet = new IsotopesDataSet(newPattern);
+        spectrumPlot.addDataSet(newDataSet, newColor, true);
+    }
+    
     public void setAxesRange(double xMin, double xMax, double xTickSize,
             double yMin, double yMax, double yTickSize) {
         NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot()

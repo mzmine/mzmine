@@ -58,13 +58,17 @@ public class CSVExportParameters extends SimpleParameterSet {
 	     "Export all IDs for peak", "If checked, all identification results for a peak will be exported. ",
 	    false);
 
+    public static final BooleanParameter exportAllPeakInfo = new BooleanParameter(
+	     "Export quantitation results and other information", "If checked, all peak-information results for a peak will be exported. ",
+	    false);
+    
     public static final StringParameter idSeparator = new StringParameter(
 	    "Identification separator",
 	    "Character(s) used to separate identification results in the exported file", ";");
 
     public CSVExportParameters() {
 	super(new Parameter[] { peakLists, filename, fieldSeparator,
-		exportCommonItems, exportIdentityItems, exportDataFileItems, exportAllIDs, idSeparator });
+		exportCommonItems, exportIdentityItems, exportDataFileItems, exportAllIDs,exportAllPeakInfo, idSeparator });
     }
 
 }

@@ -53,7 +53,10 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.Ostermiller.util.Base64;
 import com.google.common.collect.Range;
-
+import java.util.HashMap;
+import java.util.Map;
+import net.sf.mzmine.datamodel.PeakInformation;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 public class PeakListOpenHandler_2_5 extends DefaultHandler
         implements PeakListOpenHandler {
 
@@ -74,6 +77,9 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler
     private boolean preferred;
     private String dateCreated;
 
+    private Map <String, String> informationProperties;
+    private String infoPropertyName;
+    
     private StringBuffer charBuffer;
 
     private Vector<String> appliedMethods, appliedMethodParameters;
@@ -181,6 +187,21 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler
                     .getValue(PeakListElementName_2_5.NAME.getElementName());
         }
 
+        // <PEAK_INFORMATION>
+        if (qName.equals(
+                PeakListElementName_2_5.PEAK_INFORMATION.getElementName()))
+        {
+            informationProperties = new HashMap <> ();
+        }
+        
+        // <INFO_PROPERTY>
+        if (qName.equals(
+                PeakListElementName_2_5.INFO_PROPERTY.getElementName()))
+        {
+            infoPropertyName = attrs.getValue(
+                    PeakListElementName_2_5.NAME.getElementName());
+        }
+        
         // <PEAK>
         if (qName.equals(PeakListElementName_2_5.PEAK.getElementName())) {
 
@@ -402,6 +423,13 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler
             identityProperties.put(identityPropertyName, getTextOfElement());
         }
 
+        // <INFO_PROPERTY>
+        if (qName.equals(
+                PeakListElementName_2_5.INFO_PROPERTY.getElementName()))
+        {
+            informationProperties.put(infoPropertyName, getTextOfElement());
+        }
+        
         // <PEAK_IDENTITY>
         if (qName.equals(
                 PeakListElementName_2_5.PEAK_IDENTITY.getElementName())) {
@@ -410,6 +438,15 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler
             buildingRow.addPeakIdentity(identity, preferred);
         }
 
+        if (qName.equals(
+                PeakListElementName_2_5.PEAK_INFORMATION.getElementName()))
+        {
+            PeakInformation information = 
+                    new SimplePeakInformation(informationProperties);
+            
+            buildingRow.setPeakInformation(information);
+        }
+        
         // <ROW>
         if (qName.equals(PeakListElementName_2_5.ROW.getElementName())) {
             buildingPeakList.addRow(buildingRow);

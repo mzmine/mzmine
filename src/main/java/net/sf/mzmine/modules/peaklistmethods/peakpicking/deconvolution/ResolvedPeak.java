@@ -34,12 +34,15 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 import com.google.common.collect.Range;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 /**
  * ResolvedPeak
  * 
  */
 public class ResolvedPeak implements Feature {
+    
+    private SimplePeakInformation peakInfo;
 
     // Data file of this chromatogram
     private RawDataFile dataFile;
@@ -67,7 +70,6 @@ public class ResolvedPeak implements Feature {
     // method.
     private IsotopePattern isotopePattern = null;
     private int charge = 0;
-
     /**
      * Initializes this peak using data points from a given chromatogram -
      * regionStart marks the index of the first data point (inclusive),
@@ -94,19 +96,26 @@ public class ResolvedPeak implements Feature {
 
         // Set raw data point ranges, height, rt and representative scan
         height = Double.MIN_VALUE;
+
+        double mzValue = chromatogram.getMZ();
         for (int i = 0; i < scanNumbers.length; i++) {
 
+            dataPointMZValues[i] = mzValue;
+            
             DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
             if (dp == null) {
+                continue;
+                        /*
                 String error = "Cannot create a resolved peak in a region with missing data points: chromatogram "
                         + chromatogram + " scans "
                         + chromatogramScanNumbers[regionStart] + "-"
                         + chromatogramScanNumbers[regionEnd]
                         + ", missing data point in scan " + scanNumbers[i];
-                throw new IllegalArgumentException(error);
+
+                throw new IllegalArgumentException(error);*/
             }
 
-            dataPointMZValues[i] = dp.getMZ();
+            //dataPointMZValues[i] = dp.getMZ();
             dataPointIntensityValues[i] = dp.getIntensity();
 
             if (rawDataPointsIntensityRange == null) {
@@ -129,9 +138,10 @@ public class ResolvedPeak implements Feature {
                 height = dp.getIntensity();
                 rt = dataFile.getScan(scanNumbers[i]).getRetentionTime();
                 representativeScan = scanNumbers[i];
+                
             }
         }
-
+        
         // Calculate median m/z
         mz = MathUtils.calcQuantile(dataPointMZValues, 0.5f);
 
@@ -278,4 +288,15 @@ public class ResolvedPeak implements Feature {
         this.af = af;
     }
 
+    //dulab Edit
+    public void outputChromToFile(){
+        int nothing = -1;
+    }
+    public void setPeakInformation(SimplePeakInformation peakInfoIn){
+        this.peakInfo = peakInfoIn;
+    }
+    public SimplePeakInformation getPeakInformation(){
+        return peakInfo;
+    }
+    //End dulab Edit
 }

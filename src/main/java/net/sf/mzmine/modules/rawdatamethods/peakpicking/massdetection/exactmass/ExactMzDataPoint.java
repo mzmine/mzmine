@@ -30,6 +30,7 @@ import net.sf.mzmine.main.MZmineCore;
 public class ExactMzDataPoint implements DataPoint {
 
     private double mz, intensity;
+    // dulab Edit
     private DataPoint[] rawDataPoints;
 
     /**
@@ -117,5 +118,4 @@ public class ExactMzDataPoint implements DataPoint {
 		+ intensityFormat.format(intensity);
 	return str;
     }
-
 }

@@ -51,7 +51,7 @@ public interface PeakListRow {
      */
     public void addPeak(RawDataFile rawData, Feature peak);
 
-    /**
+    /**D
      * Remove a peak
      */
     public void removePeak(RawDataFile file);
@@ -152,6 +152,26 @@ public interface PeakListRow {
      */
     public void setPreferredPeakIdentity(PeakIdentity identity);
 
+    
+    /**
+     * Adds a new PeakInformation object. 
+     * 
+     * PeakInformation is used to keep extra information about peaks in the 
+     * form of a map <propertyName, propertyValue>
+     * 
+     * @param information object
+     */
+    
+    public void setPeakInformation(PeakInformation information);
+    
+    
+    /**
+     * Returns PeakInformation
+     * @return 
+     */
+    
+    public PeakInformation getPeakInformation();
+    
     /**
      * Returns maximum raw data point intensity among all peaks in this row
      * 

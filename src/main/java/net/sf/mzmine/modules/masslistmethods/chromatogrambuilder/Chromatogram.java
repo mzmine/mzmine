@@ -34,6 +34,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.ScanUtils;
@@ -42,7 +43,9 @@ import net.sf.mzmine.util.ScanUtils;
  * Chromatogram implementing ChromatographicPeak.
  */
 public class Chromatogram implements Feature {
-
+    
+    private SimplePeakInformation peakInfo;
+    
     // Data file of this chromatogram
     private RawDataFile dataFile;
 
@@ -80,6 +83,10 @@ public class Chromatogram implements Feature {
     private int mzN = 0;
 
     private final int scanNumbers[];
+
+    public void outputChromToFile(){
+        System.out.println("does nothing");
+    }
 
     /**
      * Initializes this Chromatogram
@@ -344,6 +351,12 @@ public class Chromatogram implements Feature {
 
     public void setAsymmetryFactor(Double af) {
         this.af = af;
+    }
+    public void setPeakInformation(SimplePeakInformation peakInfoIn){
+        this.peakInfo = peakInfoIn;
+    }
+    public SimplePeakInformation getPeakInformation(){
+        return peakInfo;
     }
 
 }

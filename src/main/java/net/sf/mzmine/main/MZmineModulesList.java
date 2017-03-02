@@ -21,7 +21,9 @@ package net.sf.mzmine.main;
 
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
+import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
+import net.sf.mzmine.modules.peaklistmethods.alignment.adap3.ADAP3AlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringModule;
@@ -37,6 +39,8 @@ import net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter.PeakFilterModu
 import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.PeakFinderModule;
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange.SameRangeGapFillerModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.adap3LCMSsearch.ADAP3LCMSSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.adap3GCMSsearch.ADAP3GCMSSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.camera.CameraSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.complexsearch.ComplexSearchModule;
@@ -46,11 +50,15 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpea
 import net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.FragmentSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch.GPLipidSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.ms2search.Ms2SearchModule;
+
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
+
+import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
@@ -62,6 +70,8 @@ import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormaliz
 import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5.ADAP3DecompositionV1_5Module;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3peakdetection.ADAP3PeakDetectionModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender.PeakExtenderModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.ShapeModelerModule;
@@ -97,6 +107,7 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import net.sf.mzmine.modules.visualization.pointtwod.PointTwoDVisualizerModule;
 
 /**
  * List of modules included in MZmine 2
@@ -106,6 +117,7 @@ public class MZmineModulesList {
     public static final Class<?> MODULES[] = new Class<?>[] {
 
             // Project methods
+
             ProjectLoadModule.class, ProjectSaveModule.class,
             ProjectSaveAsModule.class, ProjectCloseModule.class,
 
@@ -115,6 +127,9 @@ public class MZmineModulesList {
             // Raw data methods
             RawDataImportModule.class, MassDetectionModule.class,
             ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
+            ADAPChromatogramBuilderModule.class,
+
+
             GridMassModule.class, ManualPeakPickerModule.class,
             MsMsPeakPickerModule.class, ScanFiltersModule.class,
             CropFilterModule.class, BaselineCorrectionModule.class,
@@ -123,7 +138,8 @@ public class MZmineModulesList {
 
             // Alignment
             OrderPeakListsModule.class, JoinAlignerModule.class,
-            RansacAlignerModule.class,
+
+            RansacAlignerModule.class, ADAP3AlignerModule.class,
             // PathAlignerModule.class,
 
             // I/O
@@ -131,6 +147,7 @@ public class MZmineModulesList {
             MzTabExportModule.class, SQLExportModule.class,
             XMLExportModule.class, CasmiImportModule.class,
             MzTabImportModule.class, XMLImportModule.class,
+            MSPExportModule.class, MGFExportModule.class,
 
             // Gap filling
             PeakFinderModule.class, SameRangeGapFillerModule.class,
@@ -141,11 +158,14 @@ public class MZmineModulesList {
             // Peak detection
             SmoothingModule.class, DeconvolutionModule.class,
             ShapeModelerModule.class, PeakExtenderModule.class,
-            TargetedPeakDetectionModule.class,
+            TargetedPeakDetectionModule.class, ADAP3PeakDetectionModule.class,
+            //ADAP3DecompositionModule.class, 
+            ADAP3DecompositionV1_5Module.class,
+            //ADAP3DecompositionV2Module.class,
 
             // Peak list filtering
             DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-            PeakFilterModule.class, 
+            PeakFilterModule.class,
 
             // Normalization
             RTNormalizerModule.class, LinearNormalizerModule.class,
@@ -161,11 +181,13 @@ public class MZmineModulesList {
             FragmentSearchModule.class, AdductSearchModule.class,
             ComplexSearchModule.class, OnlineDBSearchModule.class,
             GPLipidSearchModule.class, CameraSearchModule.class,
-            NistMsSearchModule.class, FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
+            NistMsSearchModule.class, FormulaPredictionPeakListModule.class,
+            ADAP3GCMSSearchModule.class, ADAP3LCMSSearchModule.class,
 
             // Visualizers
             TICVisualizerModule.class, SpectraVisualizerModule.class,
-            TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
+            TwoDVisualizerModule.class, PointTwoDVisualizerModule.class, 
+            ThreeDVisualizerModule.class,
             MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
             PeakListTableModule.class, IsotopePatternExportModule.class,
             MSMSExportModule.class, ScatterPlotVisualizerModule.class,
