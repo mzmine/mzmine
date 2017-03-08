@@ -42,9 +42,9 @@ public class MSPExportParameters extends SimpleParameterSet
 	    "Filename",
 	    "Name of the output MSP file. " +
 	    "Use pattern \"{}\" in the file name to substitute with peak list name. " +
-	    "(i.e. \"blah{}blah.txt\" would become \"blahSourcePeakListNameblah.txt\"). " +
+	    "(i.e. \"blah{}blah.msp\" would become \"blahSourcePeakListNameblah.msp\"). " +
 	    "If the file already exists, it will be overwritten.",
-	    "txt");
+	    "msp");
     
     public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter(
             "Fractional m/z values", "If checked, write fractional m/z values", 
