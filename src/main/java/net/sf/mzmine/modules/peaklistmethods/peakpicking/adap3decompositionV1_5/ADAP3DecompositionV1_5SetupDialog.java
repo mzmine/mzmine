@@ -544,11 +544,15 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         
         Set <Integer> changedIndices = new HashSet <> ();
         
-        for (int i = 0; i < size; ++i) {
+        for (int i = 0; i < size; ++i) 
+        {
             Object oldValue = currentValues[i];
             Object newValue = newValues[i].getValue();
+            
             if (newValue != null && oldValue != null 
-                    && !oldValue.equals(newValue)) changedIndices.add(i);
+                    && oldValue.equals(newValue)) continue;
+            
+            changedIndices.add(i);
         }
         
         byte result = NO_CHANGE;
