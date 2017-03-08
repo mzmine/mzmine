@@ -139,7 +139,7 @@ public class MZmineModulesList {
             // Alignment
             OrderPeakListsModule.class, JoinAlignerModule.class,
 
-            RansacAlignerModule.class, ADAP3AlignerModule.class,
+            RansacAlignerModule.class, // ADAP3AlignerModule.class,
             // PathAlignerModule.class,
 
             // I/O
@@ -158,9 +158,9 @@ public class MZmineModulesList {
             // Peak detection
             SmoothingModule.class, DeconvolutionModule.class,
             ShapeModelerModule.class, PeakExtenderModule.class,
-            TargetedPeakDetectionModule.class, ADAP3PeakDetectionModule.class,
+            TargetedPeakDetectionModule.class, // ADAP3PeakDetectionModule.class,
             //ADAP3DecompositionModule.class, 
-            ADAP3DecompositionV1_5Module.class,
+            // ADAP3DecompositionV1_5Module.class,
             //ADAP3DecompositionV2Module.class,
 
             // Peak list filtering
@@ -182,7 +182,7 @@ public class MZmineModulesList {
             ComplexSearchModule.class, OnlineDBSearchModule.class,
             GPLipidSearchModule.class, CameraSearchModule.class,
             NistMsSearchModule.class, FormulaPredictionPeakListModule.class,
-            ADAP3GCMSSearchModule.class, ADAP3LCMSSearchModule.class,
+            // ADAP3GCMSSearchModule.class, ADAP3LCMSSearchModule.class,
 
             // Visualizers
             TICVisualizerModule.class, SpectraVisualizerModule.class,
