@@ -59,10 +59,6 @@ public class SimpleDataPoint implements DataPoint {
 	return mz;
     }
 
-    public void setIntensity(final double intensity) {
-        this.intensity = intensity;
-    }
-
     @Override
     public boolean equals(Object obj) {
 	if (!(obj instanceof DataPoint))
