@@ -205,7 +205,8 @@ public class MSPExportTask extends AbstractTask
         {
             double mz = (double) Math.round(dataPoints[i].getMZ());
             double intensity = dataPoints[i].getIntensity();
-            double prevIntensity = integerDataPoints.getOrDefault(mz, 0.0);
+            Double prevIntensity = integerDataPoints.get(mz);
+            if (prevIntensity == null) prevIntensity = 0.0;
             
             switch (mode) 
             {

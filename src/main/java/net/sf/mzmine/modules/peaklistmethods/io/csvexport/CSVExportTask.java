@@ -275,8 +275,11 @@ class CSVExportTask extends AbstractTask {
                         peakListRow.getPeakInformation().getAllProperties();
                 
                 
-                    for (String key : peakInformationFields)
-                        line.append(allPropertiesMap.getOrDefault(key, "") + fieldSeparator);
+                    for (String key : peakInformationFields) {
+                        String value = allPropertiesMap.get(key);
+                        if (value == null) value = "";
+                        line.append(value + fieldSeparator);
+                    }
                 }
             }
 
