@@ -224,7 +224,6 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
             double foldChange = 0.0;
             double ppmDiff = 0.0;
             double rtDiff = 0.0;
-
             final PeakListRow row = rows[processedRows];
             rawDataFile1 = rawDataFiles[columnIndex1];
             rawDataFile2 = rawDataFiles[columnIndex2];
@@ -249,6 +248,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
                 foldChange = Math.log(peak1Area / peak2Area) / Math.log(2);
                 if (!foldChangeRange.contains(foldChange))
                     allCriteriaMatched = false;
+
 
                 // PPM difference evaluation
                 if (evalutatePPMdiff) {

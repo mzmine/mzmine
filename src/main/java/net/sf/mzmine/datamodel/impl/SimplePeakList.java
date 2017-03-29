@@ -179,6 +179,7 @@ public class SimplePeakList implements PeakList {
 		throw (new IllegalArgumentException("Data file " + testFile
 			+ " is not in this peak list"));
 	}
+
 	peakListRows.add(row);
 	if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
 	    maxDataPointIntensity = row.getDataPointMaxIntensity();

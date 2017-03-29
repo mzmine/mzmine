@@ -33,9 +33,10 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
 
 import com.google.common.collect.Range;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 public class GaussianPeakModel implements Feature {
-
+    private SimplePeakInformation peakInfo;
     private double FWHM, partC, part2C2;
 
     // Peak information
@@ -118,6 +119,18 @@ public class GaussianPeakModel implements Feature {
 	this.scanNumbers = newScanNumbers;
 
     }
+
+    //dulab Edit
+    public void outputChromToFile(){
+        int nothing = -1;
+    }
+    public void setPeakInformation(SimplePeakInformation peakInfoIn){
+        this.peakInfo = peakInfoIn;
+    }
+    public SimplePeakInformation getPeakInformation(){
+        return peakInfo;
+    }
+    //End dulab Edit
 
     public double getArea() {
 	return area;

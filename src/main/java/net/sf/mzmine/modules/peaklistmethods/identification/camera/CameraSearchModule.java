@@ -65,7 +65,7 @@ public class CameraSearchModule implements MZmineProcessingModule {
                 .getMatchingPeakLists();
 
         for (PeakList peakList : peakLists) {
-            Task newTask = new CameraSearchTask(parameters, peakList);
+            Task newTask = new CameraSearchTask(project, parameters, peakList);
             tasks.add(newTask);
         }
 

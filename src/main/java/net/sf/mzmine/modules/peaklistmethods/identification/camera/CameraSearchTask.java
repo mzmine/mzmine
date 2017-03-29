@@ -54,6 +54,20 @@ import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
 import com.google.common.collect.Range;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 
 /**
  * A task to perform a CAMERA search.
@@ -90,13 +104,16 @@ public class CameraSearchTask extends AbstractTask {
 
 	// Task progress.
 	private double progress;
-
+        // Project
+        MZmineProject project;
+        
 	// R session.
 	private RSessionWrapper rSession;
 	private String errorMsg;
 	private boolean userCanceled;
 
 	// Parameters.
+        private final ParameterSet parameters;
 	private final Double fwhmSigma;
 	private final Double fwhmPercentage;
 	private final Integer isoMaxCharge;
@@ -104,14 +121,24 @@ public class CameraSearchTask extends AbstractTask {
 	private final MZTolerance isoMassTolerance;
 	private final Double corrThreshold;
 	private final Double corrPValue;
+        private final String polarity;
+        private final Boolean calcIso;
+        private final String groupBy;
+        private final Boolean includeSingletons;
 
-	public CameraSearchTask(final ParameterSet parameters, final PeakList list) {
+	public CameraSearchTask(final MZmineProject project, 
+                final ParameterSet parameters, final PeakList list) 
+        {
 
 		// Initialize.
 		peakList = list;
 		progress = 0.0;
 
+                this.project = project;
+                
 		// Parameters.
+                this.parameters = parameters;
+                
 		fwhmSigma = parameters.getParameter(CameraSearchParameters.FWHM_SIGMA)
 				.getValue();
 		fwhmPercentage = parameters.getParameter(
@@ -126,6 +153,15 @@ public class CameraSearchTask extends AbstractTask {
 				CameraSearchParameters.CORRELATION_THRESHOLD).getValue();
 		corrPValue = parameters.getParameter(
 				CameraSearchParameters.CORRELATION_P_VALUE).getValue();
+                polarity = parameters.getParameter(
+                                CameraSearchParameters.POLARITY).getValue().toString();
+                calcIso = parameters.getParameter(
+                        CameraSearchParameters.DONT_SPLIT_ISOTOPES).getValue();
+                groupBy = parameters.getParameter(
+                        CameraSearchParameters.GROUP_BY).getValue();
+                includeSingletons = parameters.getParameter(
+                        CameraSearchParameters.INCLUDE_SINGLETONS).getValue();
+                
 		this.userCanceled = false;
 	}
 
@@ -157,12 +193,37 @@ public class CameraSearchTask extends AbstractTask {
 
 			// Run the search.
 			cameraSearch(peakList.getRawDataFile(0));
+                        
+                        // Create new list with IsotopePattern information
+                        PeakList newPeakList = null;
+                                
+                        if (parameters.getParameter(CameraSearchParameters.CREATE_NEW_LIST).getValue())
+                        {
+                            switch (groupBy) {
+                                case CameraSearchParameters.GROUP_BY_PCGROUP:
+                                    newPeakList = groupPeaksByPCGroup(peakList);
+                                    break;
+                                default:
+                                    newPeakList = groupPeaksByIsotope(peakList);
+                            }
+                        }
+                            
+                            
+                        
+                        
 
 			if (!isCanceled()) {
 
-				// Finished.
-				setStatus(TaskStatus.FINISHED);
-				LOG.info("CAMERA Search completed");
+                            if (newPeakList != null)
+                            {
+                                project.addPeakList(newPeakList);
+
+                                QualityParameters.calculateQualityParameters(newPeakList);
+                            }
+                            
+                            // Finished.
+                            setStatus(TaskStatus.FINISHED);
+                            LOG.info("CAMERA Search completed");
 			}
 
 	                // Repaint the window to reflect the change in the peak list
@@ -357,21 +418,51 @@ public class CameraSearchTask extends AbstractTask {
 					+ ", perfwhm=" + fwhmPercentage + ')');
 			progress += progressInc;
 
-			// Identify isotopes.
-			this.rSession.eval(
+                        
+                        // this.rSession.eval("write.csv(getPeaklist(an), file='/Users/aleksandrsmirnov/table.csv', row.names=FALSE)");
+                        
+                        switch (parameters.getParameter(CameraSearchParameters.ORDER).getValue())
+                        {   
+                            case CameraSearchParameters.GROUP_CORR_FIRST:
+                                // Split groups by correlating peak shape (need to set xraw to raw
+                                // data).
+                                this.rSession.eval(
+                                                "an <- groupCorr(an, calcIso=FALSE, xraw=xRaw, cor_eic_th="
+                                                                + corrThreshold + ", pval=" + corrPValue + ')');
+                                progress += progressInc;
+                                
+                                // Identify isotopes.
+                                this.rSession.eval( 
 					"an <- findIsotopes(an, maxcharge=" + isoMaxCharge
 					+ ", maxiso=" + isoMaxCount + ", ppm="
 					+ isoMassTolerance.getPpmTolerance() + ", mzabs="
 					+ isoMassTolerance.getMzTolerance() + ')');
-			progress += progressInc;
 
-			// Split groups by correlating peak shape (need to set xraw to raw
-			// data).
-			this.rSession.eval(
-					"an <- groupCorr(an, calcIso=TRUE, xraw=xRaw, cor_eic_th="
-							+ corrThreshold + ", pval=" + corrPValue + ')');
-			progress += progressInc;
-
+                                progress += progressInc;
+                                break;
+                            
+                            default: // case CameraSearchParameters.FIND_ISOTOPES_FIRST
+                                // Identify isotopes.
+                                this.rSession.eval( 
+					"an <- findIsotopes(an, maxcharge=" + isoMaxCharge
+					+ ", maxiso=" + isoMaxCount + ", ppm="
+					+ isoMassTolerance.getPpmTolerance() + ", mzabs="
+					+ isoMassTolerance.getMzTolerance() + ')');
+                                //this.rSession.eval("write.csv(getPeaklist(an), file='/Users/aleksandrsmirnov/test_camera.csv')");
+                                progress += progressInc;
+                                
+                                // Split groups by correlating peak shape (need to set xraw to raw
+                                // data).
+                                this.rSession.eval(
+                                        "an <- groupCorr(an, calcIso=" 
+                                                + String.valueOf(calcIso).toUpperCase() 
+                                                + ", xraw=xRaw, cor_eic_th="
+                                                + corrThreshold + ", pval=" + corrPValue + ')');
+                                progress += progressInc;
+                        }
+                        
+                        this.rSession.eval("an <- findAdducts(an, polarity='" + polarity + "')");
+                        
 			// Get the peak list.
 			this.rSession.eval("peakList <- getPeaklist(an)");
 
@@ -379,13 +470,16 @@ public class CameraSearchTask extends AbstractTask {
 			// list.
 			rSession.eval("pcgroup <- as.integer(peakList$pcgroup)");
 			rSession.eval("isotopes <- peakList$isotopes");
+
+                        rSession.eval("adducts <- peakList$adduct");
 			final int[] spectra = (int[]) rSession.collect("pcgroup");
 			final String[] isotopes = (String[]) rSession.collect("isotopes");
+                        final String[] adducts = (String[]) rSession.collect("adducts");
 
 			// Add identities.
 			if (spectra != null) {
 
-				addPseudoSpectraIdentities(peaks, spectra, isotopes);
+				addPseudoSpectraIdentities(peaks, spectra, isotopes, adducts);
 			}
 			progress += progressInc;
 			// Turn off R instance, once task ended gracefully.
@@ -439,8 +533,9 @@ public class CameraSearchTask extends AbstractTask {
 	 *            the isotopes vector.
 	 */
 	private void addPseudoSpectraIdentities(final Feature[] peaks,
-			final int[] spectra, final String[] isotopes) {
-
+			final int[] spectra, final String[] isotopes,
+                        final String[] adducts) {
+                
 		// Add identities for each peak.
 		int peakIndex = 0;
 		for (final Feature peak : peaks) {
@@ -462,7 +557,8 @@ public class CameraSearchTask extends AbstractTask {
 					final Matcher matcher = ISOTOPE_PATTERN.matcher(isotope);
 					if (matcher.matches()) {
 
-						identity.setPropertyValue("Isotope", matcher.group(1));
+						//identity.setPropertyValue("Isotope", matcher.group(1));
+                                                identity.setPropertyValue("Isotope", isotope);
 
 					} else {
 
@@ -470,8 +566,18 @@ public class CameraSearchTask extends AbstractTask {
 					}
 				}
 			}
+                        
+                        if (adducts != null)
+                        {
+                            final String adduct = adducts[peakIndex].trim();
+                            if (adduct.length() > 0)
+                                identity.setPropertyValue("Adduct", adduct);
+                        }
 
 			// Add identity to peak's row.
+                        PeakListRow row = peakList.getPeakRow(peak);
+                        for (PeakIdentity peakIdentity : row.getPeakIdentities())
+                            row.removePeakIdentity(peakIdentity);
 			peakList.getPeakRow(peak).addPeakIdentity(identity, true);
 			peakIndex++;
 		}
@@ -493,4 +599,300 @@ public class CameraSearchTask extends AbstractTask {
 			// Silent, always...
 		}
 	}
+
+    /**
+     * Uses Isotope-field in PeakIdentity to group isotopes and build spectrum
+     * @param peakList PeakList object
+     * @return new PeakList object
+     */
+        
+    private PeakList groupPeaksByIsotope(PeakList peakList) 
+    {   
+        // Create new peak list.
+        final PeakList combinedPeakList = new SimplePeakList(
+                peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(), 
+                peakList.getRawDataFiles());
+        
+        // Load previous applied methods.
+        for (final PeakList.PeakListAppliedMethod method : 
+                peakList.getAppliedMethods()) 
+        {
+            combinedPeakList.addDescriptionOfAppliedTask(method);
+        }
+
+        // Add task description to peak list.
+        combinedPeakList
+                .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                        "Bioconductor CAMERA", parameters));
+        
+        // ------------------------------------------------
+        // Find unique isotopes belonging to the same group
+        // ------------------------------------------------
+        
+        Set <String> isotopeGroups = new HashSet <> ();
+        
+        for (PeakListRow row : peakList.getRows())
+        {
+            PeakIdentity identity = row.getPreferredPeakIdentity();
+            if (identity == null) continue;
+            
+            String isotope = identity.getPropertyValue("Isotope");
+            if (isotope == null) continue;
+            
+            String isotopeGroup = isotope.substring(1, isotope.indexOf("]"));
+            if (isotopeGroup == null || isotopeGroup.length() == 0) continue;
+            
+            isotopeGroups.add(isotopeGroup);
+        }
+        
+        List <PeakListRow> groupRows = new ArrayList <> ();
+        Set <String> groupNames = new HashSet <> ();
+        Map <Double, Double> spectrum = new HashMap <> ();
+        List <PeakListRow> newPeakListRows = new ArrayList <> ();
+        
+        for (String isotopeGroup : isotopeGroups)
+        {
+            // -----------------------------------------
+            // Find all peaks belonging to isotopeGroups
+            // -----------------------------------------
+            
+            groupRows.clear();
+            groupNames.clear();
+            spectrum.clear();
+            
+            int minLength = Integer.MAX_VALUE;
+            PeakListRow groupRow = null;
+            
+            for (PeakListRow row : peakList.getRows())
+            {
+                PeakIdentity identity = row.getPreferredPeakIdentity();
+                if (identity == null) continue;
+                
+                String isotope = identity.getPropertyValue("Isotope");
+                if (isotope == null) continue;
+                
+                String isoGroup = isotope.substring(1, isotope.indexOf("]"));
+                if (isoGroup == null) continue;
+                
+                if (isoGroup.equals(isotopeGroup))
+                {
+                    groupRows.add(row);
+                    groupNames.add(identity.getName());
+                    spectrum.put(row.getAverageMZ(), row.getAverageHeight());
+                    
+                    if (isoGroup.length() < minLength) {
+                        minLength = isoGroup.length();
+                        groupRow = row;
+                    }
+                }
+            }
+            
+            // Skip peaks that have different identity names (belong to different pcgroup)
+            if (groupRow == null || groupNames.size() != 1) continue;
+            
+            // -------------------------------------------------
+            // Save the row and the spectrum to combinedPeakList
+            // -------------------------------------------------
+            
+            if (groupRow == null) continue;
+            
+            PeakIdentity identity = groupRow.getPreferredPeakIdentity();
+            if (identity == null) continue;
+            
+            DataPoint[] dataPoints = new DataPoint[spectrum.size()];
+            int count = 0;
+            for (Entry <Double, Double> e : spectrum.entrySet())
+                dataPoints[count++] = 
+                        new SimpleDataPoint(e.getKey(), e.getValue());
+            
+            IsotopePattern pattern = new SimpleIsotopePattern(
+                    dataPoints,
+                    IsotopePatternStatus.PREDICTED,
+                    "Spectrum");
+            
+            groupRow.getBestPeak().setIsotopePattern(pattern);
+            
+            //combinedPeakList.addRow(groupRow);
+            newPeakListRows.add(groupRow);
+        }
+        
+        // -----------------------------------
+        // Add peaks with no isotope annotated
+        // -----------------------------------
+        
+        if (includeSingletons)
+        {
+            for (PeakListRow row : peakList.getRows())
+            {
+                 PeakIdentity identity = row.getPreferredPeakIdentity();
+                if (identity == null) continue;
+
+                String isotope = identity.getPropertyValue("Isotope");
+                if (isotope == null || isotope.length() == 0)
+                {
+                    DataPoint[] dataPoints = new DataPoint[1];
+                    dataPoints[0] = new SimpleDataPoint(
+                            row.getAverageMZ(), row.getAverageHeight());
+
+                    IsotopePattern pattern = new SimpleIsotopePattern(
+                            dataPoints,
+                            IsotopePatternStatus.PREDICTED,
+                            "Spectrum");
+
+                    row.getBestPeak().setIsotopePattern(pattern);
+                    
+                    newPeakListRows.add(row);
+                }
+            }
+        }
+        
+        // ------------------------------------
+        // Sort new peak rows by retention time
+        // ------------------------------------
+        
+        Collections.sort(newPeakListRows, new Comparator <PeakListRow> () {
+            @Override
+            public int compare(PeakListRow row1, PeakListRow row2) 
+            {
+                double retTime1 = row1.getAverageRT();
+                double retTime2 = row2.getAverageRT();
+                
+                return Double.compare(retTime1, retTime2);
+            }
+        });
+        
+        for (PeakListRow row : newPeakListRows)
+            combinedPeakList.addRow(row);
+        
+        return combinedPeakList;
+    }
+    
+    /**
+     * Uses PCGroup-field in PeakIdentity to group peaks and build spectrum
+     * @param peakList a PeakList object
+     * @return a new PeakList object
+     */
+    
+    private PeakList groupPeaksByPCGroup(PeakList peakList) 
+    { 
+        // Create new peak list.
+        final PeakList combinedPeakList = new SimplePeakList(
+                peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(), 
+                peakList.getRawDataFiles());
+        
+        // Load previous applied methods.
+        for (final PeakList.PeakListAppliedMethod method : 
+                peakList.getAppliedMethods()) 
+        {
+            combinedPeakList.addDescriptionOfAppliedTask(method);
+        }
+
+        // Add task description to peak list.
+        combinedPeakList
+                .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                        "Bioconductor CAMERA", parameters));
+        
+        // --------------------
+        // Find unique PCGroups
+        // --------------------
+        
+        Set <String> pcGroups = new HashSet <> ();
+        
+        for (PeakListRow row : peakList.getRows())
+        {
+            PeakIdentity identity = row.getPreferredPeakIdentity();
+            if (identity == null) continue;
+            
+            String groupName = identity.getName();
+            if (groupName == null || groupName.length() == 0) continue;
+            
+            pcGroups.add(groupName);
+        }
+        
+        List <PeakListRow> groupRows = new ArrayList <> ();
+        //Set <String> groupNames = new HashSet <> ();
+        Map <Double, Double> spectrum = new HashMap <> ();
+        List <PeakListRow> newPeakListRows = new ArrayList <> ();
+        
+        for (String groupName : pcGroups)
+        {
+            // -----------------------------------------
+            // Find all peaks belonging to isotopeGroups
+            // -----------------------------------------
+            
+            groupRows.clear();
+            //groupNames.clear();
+            spectrum.clear();
+            
+            double maxIntensity = 0.0;
+            PeakListRow groupRow = null;
+            
+            for (PeakListRow row : peakList.getRows())
+            {
+                PeakIdentity identity = row.getPreferredPeakIdentity();
+                if (identity == null) continue;
+                
+                String name = identity.getName();
+                
+                if (name.equals(groupName))
+                {
+                    double intensity = row.getAverageHeight();
+                    
+                    groupRows.add(row);
+                    //groupNames.add(name);
+                    spectrum.put(row.getAverageMZ(), intensity);
+                    
+                    if (intensity > maxIntensity) {
+                        maxIntensity = intensity;
+                        groupRow = row;
+                    }
+                }
+            }
+            
+            // -------------------------------------------------
+            // Save the row and the spectrum to combinedPeakList
+            // -------------------------------------------------
+            
+            if (groupRow == null || spectrum.size() <= 1) continue;
+            
+            PeakIdentity identity = groupRow.getPreferredPeakIdentity();
+            if (identity == null) continue;
+            
+            DataPoint[] dataPoints = new DataPoint[spectrum.size()];
+            int count = 0;
+            for (Entry <Double, Double> e : spectrum.entrySet())
+                dataPoints[count++] = 
+                        new SimpleDataPoint(e.getKey(), e.getValue());
+            
+            IsotopePattern pattern = new SimpleIsotopePattern(
+                    dataPoints,
+                    IsotopePatternStatus.PREDICTED,
+                    "Spectrum");
+            
+            groupRow.getBestPeak().setIsotopePattern(pattern);
+            
+            //combinedPeakList.addRow(groupRow);
+            newPeakListRows.add(groupRow);
+        }
+        
+        // ------------------------------------
+        // Sort new peak rows by retention time
+        // ------------------------------------
+        
+        Collections.sort(newPeakListRows, new Comparator <PeakListRow> () {
+            @Override
+            public int compare(PeakListRow row1, PeakListRow row2) 
+            {
+                double retTime1 = row1.getAverageRT();
+                double retTime2 = row2.getAverageRT();
+                
+                return Double.compare(retTime1, retTime2);
+            }
+        });
+        
+        for (PeakListRow row : newPeakListRows)
+            combinedPeakList.addRow(row);
+        
+        return combinedPeakList;
+    }
 }

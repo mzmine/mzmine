@@ -38,6 +38,7 @@ public interface PeakIdentity extends Cloneable {
     String PROPERTY_METHOD = "Identification method";
     String PROPERTY_ID = "ID";
     String PROPERTY_URL = "URL";
+    String PROPERTY_SPECTRUM = "SPECTRUM";
 
     /**
      * Returns the value of the PROPERTY_NAME property. This value must always

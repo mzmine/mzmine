@@ -98,6 +98,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     }
 
+    @Override
+    public RawDataFile clone() throws CloneNotSupportedException {
+        return (RawDataFile) super.clone();
+    }
+    
     /**
      * Create a new temporary data points file
      */

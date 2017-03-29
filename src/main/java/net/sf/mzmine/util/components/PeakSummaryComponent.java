@@ -64,6 +64,17 @@ import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 import com.google.common.collect.Range;
+import dulab.adap.datamodel.IsotopicDistribution;
+import dulab.adap.datamodel.IsotopicDistributionParser;
+import java.util.ArrayList;
+import java.util.List;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.PeakInformation;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 
 public class PeakSummaryComponent extends JPanel implements ActionListener {
 
@@ -383,8 +394,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
                 // Label best peak with preferred identity.
                 final Feature bestPeak = row.getBestPeak();
-                final PeakIdentity peakIdentity = row
-                        .getPreferredPeakIdentity();
+                final PeakIdentity peakIdentity = row.getPreferredPeakIdentity();
                 final Map<Feature, String> labelMap = new HashMap<Feature, String>(
                         1);
                 if (bestPeak != null && peakIdentity != null) {
@@ -400,10 +410,89 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
                 return;
 
             } else if (visualizerType.equals("Mass spectrum")) {
-                for (int i = 0; i < selectedPeaks.length; i++) {
-                    SpectraVisualizerModule.showNewSpectrumWindow(dataFiles[i],
-                            selectedPeaks[i].getRepresentativeScanNumber());
+                
+                for (int i = 0; i < selectedPeaks.length; ++i) {
+                    final Feature peak = selectedPeaks[i];
+                    final IsotopePattern ip = peak.getIsotopePattern();
+                    
+                    if (ip != null)
+                    {
+                        // ------------------------------
+                        // Multiply isotope pattern by -1
+                        // ------------------------------
+                        
+                        DataPoint[] newDataPoints = 
+                                new DataPoint[ip.getDataPoints().length];
+                        
+                        int count = 0;
+                        for (DataPoint dataPoint : ip.getDataPoints())
+                            newDataPoints[count++] = 
+                                    new SimpleDataPoint(
+                                            dataPoint.getMZ(),
+                                            -dataPoint.getIntensity()
+                                    );
+                        
+                        // ---------------------------
+                        // Construct identity spectrum
+                        // ---------------------------
+                        
+                        List <DataPoint> identityDataPoints = new ArrayList <> ();
+                        PeakIdentity identity = row.getPreferredPeakIdentity();
+                        
+                        if (identity != null) 
+                        {
+                            String spectrum = identity.getPropertyValue(PeakIdentity.PROPERTY_SPECTRUM);
+                            
+                            if (spectrum != null && spectrum.length() > 2) 
+                            {
+                                spectrum = spectrum.substring(1, spectrum.length() - 1);
+                                
+                                for (String strPair : spectrum.split(",")) 
+                                {
+                                    String[] pair = strPair.split("=", 2);
+                                    if (pair.length == 2)
+                                        identityDataPoints.add(new SimpleDataPoint(
+                                                Double.parseDouble(pair[0]),
+                                                Double.parseDouble(pair[1])));
+                                }
+                            }
+                        }
+                        
+                        // -------------
+                        // Plot spectrum
+                        // -------------
+                        
+                        if (identityDataPoints.isEmpty()) // Plot raw spectrm and isotope pattern
+                            SpectraVisualizerModule.showNewSpectrumWindow(
+                                    dataFiles[i],
+                                    peak.getRepresentativeScanNumber(),
+                                    null, null, null, 
+                                    new SimpleIsotopePattern(
+                                            newDataPoints,
+                                            ip.getStatus(),
+                                            ip.getDescription()
+                                    ));
+                        else // Plot raw spectrum, isotope pattern, and identity spectrum
+                            SpectraVisualizerModule.showNewSpectrumWindow(
+                                    dataFiles[i],
+                                    peak.getRepresentativeScanNumber(),
+                                    null,
+                                    new SimpleIsotopePattern(
+                                            identityDataPoints.toArray(new DataPoint[identityDataPoints.size()]),
+                                            IsotopePatternStatus.DETECTED,
+                                            identity.getPropertyValue(PeakIdentity.PROPERTY_FORMULA)
+                                    ), null,
+                                    new SimpleIsotopePattern(
+                                            newDataPoints,
+                                            ip.getStatus(),
+                                            ip.getDescription()
+                                    ));
+                    } else // Plot raw spectrum without isotope pattern
+                        SpectraVisualizerModule.showNewSpectrumWindow(
+                                dataFiles[i],
+                                peak.getRepresentativeScanNumber());
                 }
+                
             } else if (visualizerType.equals("Peak in 2D")) {
                 for (int i = 0; i < selectedPeaks.length; i++) {
                     Range<Double> peakRTRange = selectedPeaks[i]

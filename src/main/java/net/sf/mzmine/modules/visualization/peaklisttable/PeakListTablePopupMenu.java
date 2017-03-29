@@ -59,6 +59,7 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import net.sf.mzmine.modules.visualization.pointtwod.PointTwoDVisualizerModule;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -89,6 +90,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private final JMenuItem showMSMSItem;
     private final JMenuItem showIsotopePatternItem;
     private final JMenuItem show2DItem;
+    private final JMenuItem showPoint2DItem;
     private final JMenuItem show3DItem;
     private final JMenuItem exportIsotopesItem;
     private final JMenuItem exportMSMSItem;
@@ -133,6 +135,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         showSpectrumItem = GUIUtils
                 .addMenuItem(showMenu, "Mass spectrum", this);
         show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
+        showPoint2DItem = GUIUtils.addMenuItem(showMenu, "Point peak in 2D", this);
         show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
         showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
         showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
@@ -185,6 +188,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         // First, disable all the Show... items
         show2DItem.setEnabled(false);
+        showPoint2DItem.setEnabled(false);
         show3DItem.setEnabled(false);
         manuallyDefineItem.setEnabled(false);
         showMSMSItem.setEnabled(false);
@@ -226,6 +230,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
             // Enable items.
             show2DItem.setEnabled(oneRowSelected);
+            showPoint2DItem.setEnabled(oneRowSelected);
             show3DItem.setEnabled(oneRowSelected);
             showPeakRowSummaryItem.setEnabled(oneRowSelected);
 
@@ -431,6 +436,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             if (showPeak != null) {
 
                 TwoDVisualizerModule.show2DVisualizerSetupDialog(
+                        showPeak.getDataFile(), getPeakMZRange(showPeak),
+                        getPeakRTRange(showPeak));
+            }
+        }
+        if (showPoint2DItem.equals(src)) {
+
+            final Feature showPeak = getSelectedPeak();
+            if (showPeak != null) {
+
+                PointTwoDVisualizerModule.showPoint2DVisualizerSetupDialog(
                         showPeak.getDataFile(), getPeakMZRange(showPeak),
                         getPeakRTRange(showPeak));
             }

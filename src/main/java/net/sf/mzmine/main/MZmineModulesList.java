@@ -21,6 +21,7 @@ package net.sf.mzmine.main;
 
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
+import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
@@ -51,6 +52,9 @@ import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.Onlin
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
+
+import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
@@ -97,6 +101,7 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import net.sf.mzmine.modules.visualization.pointtwod.PointTwoDVisualizerModule;
 
 /**
  * List of modules included in MZmine 2
@@ -106,6 +111,7 @@ public class MZmineModulesList {
     public static final Class<?> MODULES[] = new Class<?>[] {
 
             // Project methods
+
             ProjectLoadModule.class, ProjectSaveModule.class,
             ProjectSaveAsModule.class, ProjectCloseModule.class,
 
@@ -115,6 +121,9 @@ public class MZmineModulesList {
             // Raw data methods
             RawDataImportModule.class, MassDetectionModule.class,
             ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
+            ADAPChromatogramBuilderModule.class,
+
+
             GridMassModule.class, ManualPeakPickerModule.class,
             MsMsPeakPickerModule.class, ScanFiltersModule.class,
             CropFilterModule.class, BaselineCorrectionModule.class,
@@ -123,6 +132,7 @@ public class MZmineModulesList {
 
             // Alignment
             OrderPeakListsModule.class, JoinAlignerModule.class,
+
             RansacAlignerModule.class,
             // PathAlignerModule.class,
 
@@ -131,6 +141,7 @@ public class MZmineModulesList {
             MzTabExportModule.class, SQLExportModule.class,
             XMLExportModule.class, CasmiImportModule.class,
             MzTabImportModule.class, XMLImportModule.class,
+            MSPExportModule.class, MGFExportModule.class,
 
             // Gap filling
             PeakFinderModule.class, SameRangeGapFillerModule.class,
@@ -145,7 +156,7 @@ public class MZmineModulesList {
 
             // Peak list filtering
             DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-            PeakFilterModule.class, 
+            PeakFilterModule.class,
 
             // Normalization
             RTNormalizerModule.class, LinearNormalizerModule.class,
@@ -165,7 +176,8 @@ public class MZmineModulesList {
 
             // Visualizers
             TICVisualizerModule.class, SpectraVisualizerModule.class,
-            TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
+            TwoDVisualizerModule.class, PointTwoDVisualizerModule.class, 
+            ThreeDVisualizerModule.class,
             MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
             PeakListTableModule.class, IsotopePatternExportModule.class,
             MSMSExportModule.class, ScatterPlotVisualizerModule.class,

@@ -396,7 +396,16 @@
 			<artifactId>msdk-io-mzml</artifactId>
 			<version>0.0.7</version>
 		</dependency>
-
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.8.11.2</version>
+        </dependency>
+        <dependency>
+            <groupId>dulab</groupId>
+            <artifactId>adap</artifactId>
+            <version>0.0.1</version>
+        </dependency>
 	</dependencies>
 
 </project>

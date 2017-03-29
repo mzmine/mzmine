@@ -31,8 +31,10 @@ import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.util.PeakUtils;
 
 import com.google.common.collect.Range;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 public class TrianglePeakModel implements Feature {
+    private SimplePeakInformation peakInfo;
 
     // Model information
     private double rtRight = -1, rtLeft = -1;
@@ -210,5 +212,17 @@ public class TrianglePeakModel implements Feature {
     public void setAsymmetryFactor(Double af) {
         this.af = af;
     }
+
+    //dulab Edit
+    public void outputChromToFile(){
+        int nothing = -1;
+    }
+    public void setPeakInformation(SimplePeakInformation peakInfoIn){
+        this.peakInfo = peakInfoIn;
+    }
+    public SimplePeakInformation getPeakInformation(){
+        return peakInfo;
+    }
+    //End dulab Edit
 
 }

@@ -71,23 +71,33 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
 
     public static SpectraVisualizerWindow showNewSpectrumWindow(
             RawDataFile dataFile, int scanNumber) {
-        return showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
+        return showNewSpectrumWindow(dataFile, scanNumber, 
+                null, null, null, null);
     }
 
     public static SpectraVisualizerWindow showNewSpectrumWindow(
             RawDataFile dataFile, int scanNumber, Feature peak) {
-        return showNewSpectrumWindow(dataFile, scanNumber, peak, null, null);
+        return showNewSpectrumWindow(dataFile, scanNumber, peak, 
+                null, null, null);
     }
 
     public static SpectraVisualizerWindow showNewSpectrumWindow(
             RawDataFile dataFile, int scanNumber, IsotopePattern detectedPattern) {
         return showNewSpectrumWindow(dataFile, scanNumber, null,
-                detectedPattern, null);
+                detectedPattern, null, null);
     }
 
     public static SpectraVisualizerWindow showNewSpectrumWindow(
             RawDataFile dataFile, int scanNumber, Feature peak,
             IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
+        return showNewSpectrumWindow(dataFile, scanNumber, peak,
+                detectedPattern, predictedPattern, null);
+    }
+    
+    public static SpectraVisualizerWindow showNewSpectrumWindow(
+            RawDataFile dataFile, int scanNumber, Feature peak,
+            IsotopePattern detectedPattern, IsotopePattern predictedPattern, 
+            IsotopePattern spectrum) {
 
         Scan scan = dataFile.getScan(scanNumber);
 
@@ -112,6 +122,9 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
         if (predictedPattern != null)
             newWindow.loadIsotopes(predictedPattern);
 
+        if (spectrum != null)
+            newWindow.loadSpectrum(spectrum);
+        
         newWindow.setVisible(true);
 
         return newWindow;

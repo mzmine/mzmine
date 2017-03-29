@@ -33,11 +33,14 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet.Wa
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import net.sf.mzmine.util.ExitCode;
+
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 public class MassDetectionParameters extends SimpleParameterSet {
 
@@ -61,8 +64,18 @@ public class MassDetectionParameters extends SimpleParameterSet {
             "Name of the new mass list. If the processed scans already have a mass list of that name, it will be replaced.",
             "masses");
 
+    public static final FileNameParameter outFilename = new FileNameParameter(
+	    "CDF Filename (optional)",
+	    "Name of the begining of the centroided CDF file. " +
+	    "The rest of the file name will be the current file being processed." +
+	    "If the file already exists, it will be overwritten.",
+	    "CDF");
+    
+    public static final OptionalParameter <FileNameParameter> outFilenameOption
+            = new OptionalParameter <> (outFilename);
+    
     public MassDetectionParameters() {
-        super(new Parameter[] { dataFiles, scanSelection, massDetector, name });
+        super(new Parameter[] { dataFiles, scanSelection, massDetector, name ,outFilenameOption});
     }
 
     @Override

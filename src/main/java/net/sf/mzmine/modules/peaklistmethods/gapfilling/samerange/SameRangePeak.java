@@ -34,12 +34,14 @@ import net.sf.mzmine.util.ScanUtils;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 /**
  * This class represents a manually picked chromatographic peak.
  */
 class SameRangePeak implements Feature {
-
+    private SimplePeakInformation peakInfo;
+    
     private RawDataFile dataFile;
 
     // Raw M/Z, RT, Height and Area
@@ -301,5 +303,18 @@ class SameRangePeak implements Feature {
     public void setAsymmetryFactor(Double af) {
         this.af = af;
     }
+
+    //dulab Edit
+    public void outputChromToFile(){
+        int nothing = -1;
+    }
+    public void setPeakInformation(SimplePeakInformation peakInfoIn){
+        this.peakInfo = peakInfoIn;
+    }
+    public SimplePeakInformation getPeakInformation(){
+        return peakInfo;
+    }
+    //End dulab Edit
+
 
 }

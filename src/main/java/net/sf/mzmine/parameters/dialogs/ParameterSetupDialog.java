@@ -222,7 +222,6 @@ public class ParameterSetupDialog extends JDialog
         add(mainPanel);
 
         pack();
-
     }
 
     /**

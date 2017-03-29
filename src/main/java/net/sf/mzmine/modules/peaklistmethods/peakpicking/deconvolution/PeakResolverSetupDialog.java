@@ -73,7 +73,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
             10);
 
     // Maximum peak count.
-    private static final int MAX_PEAKS = 30;
+    private static final int MAX_PEAKS = 100; // 30
 
     // TIC minimum size.
     private static final Dimension MINIMUM_TIC_DIMENSIONS = new Dimension(400,
@@ -271,9 +271,10 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
                 // Check peak count.
                 if (resolvedPeaks.length > MAX_PEAKS) {
+                    //MZmineCore.getDesktop().displayMessage(this,
+                    //        "Too many peaks detected, please adjust parameter values");
                     MZmineCore.getDesktop().displayMessage(this,
-                            "Too many peaks detected, please adjust parameter values");
-
+                            "Too many peaks detected. Not all of the peaks might be displayed");
                 }
             }
 

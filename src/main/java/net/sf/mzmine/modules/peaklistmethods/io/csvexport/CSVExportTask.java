@@ -22,6 +22,9 @@ package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.sf.mzmine.datamodel.Feature;
@@ -48,6 +51,7 @@ class CSVExportTask extends AbstractTask {
     private String[] identityElements;
     private ExportRowDataFileElement[] dataFileElements;
     private Boolean exportAllIDs;
+    private Boolean exportAllPeakInfo;
     private String idSeparator;
 
     CSVExportTask(ParameterSet parameters) {
@@ -66,6 +70,8 @@ class CSVExportTask extends AbstractTask {
                 CSVExportParameters.exportDataFileItems).getValue();
         exportAllIDs = parameters.getParameter(
                 CSVExportParameters.exportAllIDs).getValue();
+        exportAllPeakInfo = parameters.getParameter(
+                CSVExportParameters.exportAllPeakInfo).getValue();
         idSeparator = parameters.getParameter(
                 CSVExportParameters.idSeparator).getValue();
     }
@@ -156,6 +162,9 @@ class CSVExportTask extends AbstractTask {
         StringBuffer line = new StringBuffer();
 
         // Write column headers
+        // Identification Number field
+        line.append("ID" + fieldSeparator);
+        
         // Common elements
         int length = commonElements.length;
         String name;
@@ -165,6 +174,25 @@ class CSVExportTask extends AbstractTask {
             name = escapeStringForCSV(name);
             line.append(name + fieldSeparator);
         }
+        
+        //peak Information
+        Set <String> peakInformationFields = new HashSet <> ();
+       
+        for (PeakListRow row : peakList.getRows())
+        {
+            if (row.getPeakInformation()!=null)
+            {
+                for (String key : 
+                        row.getPeakInformation().getAllProperties().keySet())
+                {
+                    peakInformationFields.add(key);
+                }
+            }
+        }
+        
+        if (exportAllPeakInfo)
+            for (String field : peakInformationFields)
+                line.append(field + fieldSeparator);
 
         // Peak identity elements
         length = identityElements.length;
@@ -195,6 +223,7 @@ class CSVExportTask extends AbstractTask {
         }
 
         // Write data rows
+        int id = 1;
         for (PeakListRow peakListRow : peakList.getRows()) {
 
             // Cancel?
@@ -204,7 +233,9 @@ class CSVExportTask extends AbstractTask {
 
             // Reset the buffer
             line.setLength(0);
-
+            // Identification number
+            line.append(Integer.toString(id++) + fieldSeparator);
+            
             // Common elements
             length = commonElements.length;
             for (int i = 0; i < length; i++) {
@@ -234,6 +265,20 @@ class CSVExportTask extends AbstractTask {
                     break;
                 }
             }
+            
+            //peak Information
+            if (exportAllPeakInfo)
+            {
+                if (peakListRow.getPeakInformation()!=null)
+                {
+                    Map <String,String> allPropertiesMap = 
+                        peakListRow.getPeakInformation().getAllProperties();
+                
+                
+                    for (String key : peakInformationFields)
+                        line.append(allPropertiesMap.getOrDefault(key, "") + fieldSeparator);
+                }
+            }
 
 	    // Identity elements
 	    length = identityElements.length;
@@ -242,22 +287,29 @@ class CSVExportTask extends AbstractTask {
 
 	    if (exportAllIDs && peakIdentities.length > 1) {
 		// Export all identification results
-				for (int i = 0; i < length; i++) {
-					String propertyValue = "";
-					for (int x = 0; x < peakIdentities.length; x++) {
-						if (x == 0) {
-							propertyValue = peakIdentities[x].getPropertyValue(identityElements[i]);
-						} else {
-							propertyValue += idSeparator + peakIdentities[x].getPropertyValue(identityElements[i]);
-						}
-					}
-					propertyValue = escapeStringForCSV(propertyValue);
-					line.append(propertyValue + fieldSeparator);
-				}
+
+		for (int i = 0; i < length; i++) {
+		    String propertyValue = "";
+		    for (int x = 0; x < peakIdentities.length; x++) {
+			if (x == 0) {
+			    propertyValue = escapeStringForCSV(peakIdentities[x]
+				    .getPropertyValue(identityElements[i]));
+			} else {
+			    propertyValue = propertyValue
+				    + idSeparator
+				    + escapeStringForCSV(peakIdentities[x]
+					    .getPropertyValue(identityElements[i]));
+			}
+		    }
+                    propertyValue = escapeStringForCSV(propertyValue);
+                    if (propertyValue.length() > 32766) propertyValue = "TOO_LONG_VALUE"; // Skip too long strings (see Excel 2007 specifications)
+		    line.append(propertyValue + fieldSeparator);
+		}
 	    } else if (peakIdentity != null) {
 		for (int i = 0; i < length; i++) {
 		    String propertyValue = escapeStringForCSV(peakIdentity
 			    .getPropertyValue(identityElements[i]));
+                    if (propertyValue.length() > 32766) propertyValue = "TOO_LONG_VALUE"; // Skip too long strings (see Excel 2007 specifications)
 		    line.append(propertyValue + fieldSeparator);
 		}
 	    } else {
@@ -320,6 +372,16 @@ class CSVExportTask extends AbstractTask {
                             line.append(peak.getAsymmetryFactor()
                                     + fieldSeparator);
                             break;
+                        case PEAK_MZMIN:
+                            line.append(peak.getRawDataPointsMZRange().lowerEndpoint()
+                                    + fieldSeparator);
+                            break;
+                        case PEAK_MZMAX:
+                            line.append(peak.getRawDataPointsMZRange().upperEndpoint()
+                                + fieldSeparator);
+                        
+                        break;
+
 
                         }
                     } else {
@@ -360,7 +422,7 @@ class CSVExportTask extends AbstractTask {
 
         // If the text contains fieldSeparator, we will add
         // parenthesis
-        if (result.contains(fieldSeparator)) {
+        if (result.contains(fieldSeparator) || result.contains("\"")) {
             result = "\"" + result.replaceAll("\"", "'") + "\"";
         }
 

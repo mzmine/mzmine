@@ -35,9 +35,10 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
 
 import com.google.common.collect.Range;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 public class EMGPeakModel implements Feature {
-
+    private SimplePeakInformation peakInfo;
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     // EMG parameters
@@ -125,6 +126,18 @@ public class EMGPeakModel implements Feature {
 	this.scanNumbers = newScanNumbers;
 
     }
+
+    //dulab  Edit
+    public void outputChromToFile(){
+        int nothing = -1;
+    }
+    public void setPeakInformation(SimplePeakInformation peakInfoIn){
+        this.peakInfo = peakInfoIn;
+    }
+    public SimplePeakInformation getPeakInformation(){
+        return peakInfo;
+    }
+    //End dulab Edit
 
     public double getArea() {
 	return area;

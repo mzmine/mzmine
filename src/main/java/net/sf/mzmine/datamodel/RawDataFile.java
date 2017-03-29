@@ -25,6 +25,10 @@ import com.google.common.collect.Range;
 
 public interface RawDataFile {
 
+
+    @Nonnull
+    public RawDataFile clone() throws CloneNotSupportedException;
+    
     /**
      * Returns the name of this data file (can be a descriptive name, not
      * necessarily the original file name)

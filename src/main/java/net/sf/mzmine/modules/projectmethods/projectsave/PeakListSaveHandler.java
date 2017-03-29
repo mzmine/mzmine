@@ -51,6 +51,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
 import com.Ostermiller.util.Base64;
+import net.sf.mzmine.datamodel.PeakInformation;
 
 public class PeakListSaveHandler {
 
@@ -236,7 +237,21 @@ public class PeakListSaveHandler {
 		    PeakListElementName.PEAK_IDENTITY.getElementName());
 	}
 
-	// <PEAK>
+        // <PEAK_INFORMATION>
+        
+        //atts.clear();
+        
+        if (canceled) return;
+        
+        //atts.addAttribute("", "", PeakListElementName.ID.getElementName(), 
+        //        "CDATA", "INFORMATION");
+        hd.startElement("", "", 
+                PeakListElementName.PEAK_INFORMATION.getElementName(), atts);
+        fillInformationElement(row.getPeakInformation(), hd);
+        hd.endElement("", "", 
+                PeakListElementName.PEAK_INFORMATION.getElementName());
+        
+        	// <PEAK>
 	Feature[] peaks = row.getPeaks();
 	for (Feature p : peaks) {
 	    if (canceled)
@@ -304,6 +319,30 @@ public class PeakListSaveHandler {
 
     }
 
+    private void fillInformationElement(PeakInformation information,
+            TransformerHandler hd) throws SAXException 
+    {
+        if (information == null) return;
+        
+        AttributesImpl atts = new AttributesImpl();
+        
+        for (Entry <String, String> property : 
+                information.getAllProperties().entrySet())
+        {
+            String value = property.getValue();
+            
+            atts.clear();
+            atts.addAttribute("", "", PeakListElementName.NAME.getElementName(), 
+                    "CDATA", property.getKey());
+            
+            hd.startElement("", "", 
+                    PeakListElementName.INFO_PROPERTY.getElementName(), atts);
+            hd.characters(property.getValue().toCharArray(), 0, value.length());
+            hd.endElement("", "", 
+                    PeakListElementName.INFO_PROPERTY.getElementName());
+        }
+    }
+    
     /**
      * Add the peaks information into the XML document
      * 

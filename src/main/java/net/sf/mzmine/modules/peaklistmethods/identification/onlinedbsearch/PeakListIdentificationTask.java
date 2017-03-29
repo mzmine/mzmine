@@ -181,8 +181,8 @@ public class PeakListIdentificationTask extends AbstractTask {
 	}
 
 	// Calculate mass value.
-	final double massValue = (row.getAverageMZ() - ionType.getAddedMass())
-		* (double) charge;
+
+	final double massValue = row.getAverageMZ()* (double) charge - ionType.getAddedMass();
 
 	// Isotope pattern.
 	final IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();

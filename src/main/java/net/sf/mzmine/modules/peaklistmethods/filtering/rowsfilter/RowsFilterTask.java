@@ -88,6 +88,7 @@ public class RowsFilterTask extends AbstractTask {
 
         return totalRows == 0 ? 0.0
                 : (double) processedRows / (double) totalRows;
+
     }
 
     @Override
@@ -117,9 +118,9 @@ public class RowsFilterTask extends AbstractTask {
                     if (parameters
                             .getParameter(RowsFilterParameters.AUTO_REMOVE)
                             .getValue()) {
+
                         project.removePeakList(origPeakList);
                     }
-
                     setStatus(TaskStatus.FINISHED);
                     LOG.info("Finished peak list rows filter");
                 }
@@ -143,6 +144,7 @@ public class RowsFilterTask extends AbstractTask {
     private PeakList filterPeakListRows(final PeakList peakList) {
 
         // Create new peak list.
+
         final PeakList newPeakList = new SimplePeakList(
                 peakList.getName() + ' ' + parameters
                         .getParameter(RowsFilterParameters.SUFFIX).getValue(),
@@ -186,6 +188,7 @@ public class RowsFilterTask extends AbstractTask {
                 .getEmbeddedParameter().getValue();
 
         boolean removeRow = false;
+
         if (removeRowString
                 .equalsIgnoreCase("Keep rows that match all criteria"))
             removeRow = false;
@@ -201,6 +204,7 @@ public class RowsFilterTask extends AbstractTask {
         if ((minCount == null) || (minCount < 1)) minCount = 1.0;
         // Round value down to nearest hole number
         int intMinCount = minCount.intValue();
+
 
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
