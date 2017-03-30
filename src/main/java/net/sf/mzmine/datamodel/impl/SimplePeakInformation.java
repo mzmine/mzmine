@@ -70,7 +70,9 @@ public class SimplePeakInformation implements PeakInformation {
     
     @Override @Nonnull
     public String getPropertyValue(String propertyName, String defaultValue) {
-        return properties.getOrDefault(propertyName, defaultValue);
+        String value = properties.get(propertyName);
+        if (value == null) value = defaultValue;
+        return value;
     }
     
     @Override @Nonnull

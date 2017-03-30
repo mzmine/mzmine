@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetector;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.adapnewpeakpickingGC.ADAP3NewGCPeakDetection;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector;
@@ -38,7 +37,7 @@ public class DeconvolutionParameters extends SimpleParameterSet {
     private static final PeakResolver[] RESOLVERS = {
 	    new BaselinePeakDetector(), new NoiseAmplitudePeakDetector(),
 	    new SavitzkyGolayPeakDetector(), new MinimumSearchPeakDetector(),
-	    new CentWaveDetector(), new ADAPDetector(), new ADAP3NewGCPeakDetection() };
+	    new CentWaveDetector(), new ADAPDetector()};
 
     public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
