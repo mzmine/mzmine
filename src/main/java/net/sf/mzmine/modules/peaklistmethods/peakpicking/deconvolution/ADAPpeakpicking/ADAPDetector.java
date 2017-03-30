@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2015 The du-lab Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -16,9 +16,8 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-/* Code created was by or on behalf of Syngenta and is released under the open source license in use for the
- * pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
+ /*
+ * author Owen Myers (Oweenm@gmail.com)
  */
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking;
@@ -31,7 +30,6 @@ import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.AD
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.MIN_FEAT_HEIGHT;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -51,8 +49,7 @@ import com.google.common.collect.Range;
 
 import dulab.adap.datamodel.PeakInfo;
 import static dulab.adap.workflow.Deconvolution.DeconvoluteSignal;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.COEF_AREA_THRESHOLD;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.RT_FOR_CWT_SCALES_DURATION;
  
@@ -128,6 +125,7 @@ public class ADAPDetector implements PeakResolver {
         Range<Double> peakDuration = parameters.getParameter(
         PEAK_DURATION).getValue();
         
+        
         // get the average rt spacing
         double rtSum = 0.0;
         for (int i =0; i< retentionTimes.length-1; i++){
@@ -184,24 +182,24 @@ public class ADAPDetector implements PeakResolver {
 
                 PeakInfo curPeak = ADAPPeaks.get(i);
                 
-                SimplePeakInformation information = new SimplePeakInformation();
-                information.addProperty("index", 
-                        //Integer.toString(scans[(int) peakIndex[j] - 1])); // Substract one because r-indices start from 1
-                        Integer.toString((int) curPeak.peakIndex));
-                information.addProperty("sharpness", 
-                        Double.toString(curPeak.sharpness));
-                information.addProperty("signalToNoiseRatio", 
-                        Double.toString(curPeak.signalToNoiseRatio));
-                information.addProperty("isShared", 
-                        Boolean.toString(curPeak.isShared));
-                        //Boolean.toString(1.0 == curPeak.isShared));
-                information.addProperty("offset", 
-                        Integer.toString((int) curPeak.offset));
+//                SimplePeakInformation information = new SimplePeakInformation();
+//                information.addProperty("index", 
+//                        //Integer.toString(scans[(int) peakIndex[j] - 1])); // Substract one because r-indices start from 1
+//                        Integer.toString((int) curPeak.peakIndex));
+//                information.addProperty("sharpness", 
+//                        Double.toString(curPeak.sharpness));
+//                information.addProperty("signalToNoiseRatio", 
+//                        Double.toString(curPeak.signalToNoiseRatio));
+//                information.addProperty("isShared", 
+//                        Boolean.toString(curPeak.isShared));
+//                        //Boolean.toString(1.0 == curPeak.isShared));
+//                information.addProperty("offset", 
+//                        Integer.toString((int) curPeak.offset));
                 
 
                 
                 ResolvedPeak peak = new ResolvedPeak(chromatogram, curPeak.leftApexIndex, curPeak.rightApexIndex);
-                peak.setPeakInformation(information);
+//                peak.setPeakInformation(information);
 
                 
 

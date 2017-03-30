@@ -20,6 +20,7 @@
 package net.sf.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+import java.util.Collection;
 
 public class RTRangeParameter extends DoubleRangeParameter {
 
@@ -33,6 +34,24 @@ public class RTRangeParameter extends DoubleRangeParameter {
 
     public RTRangeParameter(String name, String description, boolean valueRequired, Range<Double> defaultValue) {
 	super(name, description, null, valueRequired, defaultValue);
+    }
+    
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	if (this.getValue() == null) {
+	    errorMessages.add(this.getName() + " is not set properly");
+	    return false;
+	}
+        else if (this.getValue().lowerEndpoint() <= 0.0) {
+	    errorMessages.add("lower end point must be greater than zero");
+	    return false;
+	}
+        else if (this.getValue().upperEndpoint() <= this.getValue().lowerEndpoint()) {
+	    errorMessages.add("lower end point must be less than upper end point");
+	    return false;
+	}
+        
+	return true;
     }
 
     @Override
