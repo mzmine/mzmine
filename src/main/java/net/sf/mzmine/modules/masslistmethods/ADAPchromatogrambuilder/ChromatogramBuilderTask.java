@@ -167,6 +167,8 @@ public class ChromatogramBuilderTask extends AbstractTask {
         // Check if the scans are properly ordered by RT
         double prevRT = Double.NEGATIVE_INFINITY;
         for (Scan s : scans) {
+            if (isCanceled()){
+                return;}
 
             if (writeChromCDF){
                 rtListForChromCDF.add(s.getRetentionTime());
@@ -258,7 +260,8 @@ public class ChromatogramBuilderTask extends AbstractTask {
         totalPoints = simpleAllMzVals.length;
 
         for (ExpandedDataPoint mzPeak : simpleAllMzVals){
-
+            if (isCanceled()){
+                return;}
 
             if (mzPeak==null){
                 //System.out.println("null Peak");
@@ -355,6 +358,8 @@ public class ChromatogramBuilderTask extends AbstractTask {
         List<Chromatogram> buildingChromatograms = new ArrayList<Chromatogram>();
 
         while (RangeIterator.hasNext()) {
+            if (isCanceled()){
+                return;}
 
             Range<Double> curRangeKey = RangeIterator.next();
 
