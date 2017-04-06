@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.twod;
 
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import net.sf.mzmine.datamodel.DataPoint;
@@ -54,6 +55,10 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
     private TaskStatus status = TaskStatus.WAITING;
 
+    public double curMaxIntensity;
+    private ArrayList<Double> rtValuesInUserRange;
+
+
     @SuppressWarnings("unchecked")
     TwoDDataSet(RawDataFile rawDataFile, Scan scans[], Range<Double> rtRange,
             Range<Double> mzRange, TwoDVisualizerWindow visualizer) {
@@ -72,6 +77,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
         basePeaks = new double[totalScans];
 
         MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+
 
     }
 
@@ -204,6 +210,86 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
         return maxIntensity;
 
+    }
+    public ArrayList getrtValuesInUserRange(){
+        return rtValuesInUserRange;
+    }
+
+    // Sets the private list to contain the rt values for each data point scan of scans that fall in the user
+    // range. returns an array of the data points but not the rt.
+    ArrayList getCentroidedDataPointsInRTMZRange(Range<Double> rtRange, Range<Double> mzRange){
+        ArrayList<DataPoint> dataPointsInRanges = new ArrayList<DataPoint>();
+        ArrayList rtInRange = new ArrayList();
+
+        curMaxIntensity = 0.0;
+
+        double searchRetentionTimes[] = retentionTimes;
+
+        if (processedScans < totalScans) {
+            searchRetentionTimes = new double[processedScans];
+            System.arraycopy(retentionTimes, 0, searchRetentionTimes, 0,
+                    searchRetentionTimes.length);
+        }
+
+        // Find the rt of the scan at the bottom of our rtRange
+        int startScanIndex = Arrays.binarySearch(searchRetentionTimes, rtRange.lowerEndpoint());
+
+
+        // a couple of checks
+        if (startScanIndex < 0){
+            startScanIndex = (startScanIndex * -1) - 1;
+        }
+
+        if (startScanIndex >= searchRetentionTimes.length) {
+            startScanIndex = 0;
+        }
+
+
+
+        // With this we can grab the data points from the scans we want using dataPointMatrix
+
+        for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtRange
+                .upperEndpoint())); scanIndex++) {
+            // get the list of data points
+            DataPoint dataPoints[] = dataPointMatrix[scanIndex].get();
+            // Binary search for the mz values in the range you want
+
+            DataPoint searchMZ = new SimpleDataPoint(mzRange.lowerEndpoint(), 0);
+            int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
+                    new DataPointSorter(SortingProperty.MZ,
+                            SortingDirection.Ascending));
+            if (startMZIndex < 0)
+                startMZIndex = (startMZIndex * -1) - 1;
+
+            if (startMZIndex >= dataPoints.length)
+                startMZIndex = 0;
+
+            for (int mzIndex = startMZIndex; ((mzIndex < dataPoints.length) && (dataPoints[mzIndex]
+                    .getMZ() <= mzRange.upperEndpoint())); mzIndex++) {
+
+                DataPoint curFoundDataPoint;
+                curFoundDataPoint = dataPoints[mzIndex];
+
+                //System.out.println("curFoundDataPoint.getMZ()");
+                //System.out.println(curFoundDataPoint.getMZ());
+
+                dataPointsInRanges.add(curFoundDataPoint);
+                Double toAddRt = new Double(searchRetentionTimes[scanIndex]);
+                rtInRange.add( toAddRt );
+
+                double curIntensity = curFoundDataPoint.getIntensity();
+
+
+                if (curIntensity > curMaxIntensity)
+                    curMaxIntensity = curIntensity ;
+
+
+            }
+
+        }
+        rtValuesInUserRange = rtInRange;
+
+        return dataPointsInRanges;
     }
 
     private double upperEndpointIntensity(int dataPointMatrixIndex,

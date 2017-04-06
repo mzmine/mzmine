@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.pointtwod;
+package net.sf.mzmine.modules.visualization.twod;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -26,7 +26,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 
 import javax.swing.JFileChooser;
@@ -72,7 +71,7 @@ class PointTwoDPlot extends ChartPanel {
 
     private PointTwoDXYPlot plot;
 
-    private PointPeakDataRenderer peakDataRenderer;
+    private PeakDataRenderer peakDataRenderer;
 
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
@@ -87,8 +86,8 @@ class PointTwoDPlot extends ChartPanel {
 
     // private TwoDItemRenderer renderer;
 
-    PointTwoDPlot(RawDataFile rawDataFile, PointTwoDVisualizerWindow visualizer,
-	    PointTwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange) {
+    PointTwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer,
+	    TwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange) {
 
 	    super(null, true);
 
@@ -148,7 +147,7 @@ class PointTwoDPlot extends ChartPanel {
 	    // set rendering order
 	    plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-	    peakDataRenderer = new PointPeakDataRenderer();
+	    peakDataRenderer = new PeakDataRenderer();
 
 	    JMenuItem plotTypeMenuItem = new JMenuItem(
 	    	"Toggle centroid/continuous mode");
@@ -218,10 +217,6 @@ class PointTwoDPlot extends ChartPanel {
 	}
     }
 
-    void outputTheseData(){
-        plot.outputTheseData();
-    }
-
     PointTwoDXYPlot getXYPlot() {
 	return plot;
     }
@@ -244,17 +239,17 @@ class PointTwoDPlot extends ChartPanel {
 	plot.setRenderer(1, null);
     }
 
-    PointPlotMode getPlotMode() {
+    PlotMode getPlotMode() {
 	return plot.getPlotMode();
     }
 
-    void setPlotMode(PointPlotMode plotMode) {
+    void setPlotMode(PlotMode plotMode) {
 	plot.setPlotMode(plotMode);
     }
 
     void loadPeakList(PeakList peakList) {
 
-	PointPeakDataSet peaksDataSet = new PointPeakDataSet(rawDataFile, peakList,
+	PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
 		rtRange, mzRange);
 
 	plot.setDataset(1, peaksDataSet);
@@ -286,7 +281,7 @@ class PointTwoDPlot extends ChartPanel {
 
     public void showPeaksTooltips(boolean mode) {
 	if (mode) {
-	    PointPeakToolTipGenerator toolTipGenerator = new PointPeakToolTipGenerator();
+	    PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
 	    this.peakDataRenderer.setBaseToolTipGenerator(toolTipGenerator);
 	} else {
 	    this.peakDataRenderer.setBaseToolTipGenerator(null);

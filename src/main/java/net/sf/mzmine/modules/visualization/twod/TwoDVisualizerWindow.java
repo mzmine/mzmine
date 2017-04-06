@@ -65,12 +65,19 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
         this.tooltipMode = true;
 
         dataset = new TwoDDataSet(dataFile, scans, rtRange, mzRange, this);
+        if (parameters.getParameter(TwoDVisualizerParameters.plotType).getValue()==PlotType.FAST2D) {
+            twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange,"default");
+            add(twoDPlot, BorderLayout.CENTER);
+        }
+
+        if (parameters.getParameter(TwoDVisualizerParameters.plotType).getValue()==PlotType.POINT2D) {
+            twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange,"point2D");
+            add(twoDPlot, BorderLayout.CENTER);
+        }
+
 
         toolBar = new TwoDToolBar(this);
         add(toolBar, BorderLayout.EAST);
-
-        twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
-        add(twoDPlot, BorderLayout.CENTER);
 
         bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
         add(bottomPanel, BorderLayout.SOUTH);

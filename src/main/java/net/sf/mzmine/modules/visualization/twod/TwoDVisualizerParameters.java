@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.twod;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -31,6 +32,11 @@ import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
  * 2D visualizer parameter set
  */
 public class TwoDVisualizerParameters extends SimpleParameterSet {
+
+    public static final ComboParameter <PlotType> plotType=new ComboParameter<>(
+            "Type of plot",
+            "Resampled data -> fast. Raw data -> slow.",
+            PlotType.values());
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
             1, 1);
@@ -48,7 +54,7 @@ public class TwoDVisualizerParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public TwoDVisualizerParameters() {
-        super(new Parameter[] { dataFiles, scanSelection, mzRange,
+        super(new Parameter[] { plotType, dataFiles, scanSelection, mzRange,
                 peakThresholdSettings, windowSettings });
     }
 

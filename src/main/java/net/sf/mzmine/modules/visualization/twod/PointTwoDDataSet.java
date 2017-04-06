@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.pointtwod;
+package net.sf.mzmine.modules.visualization.twod;
 
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
@@ -60,7 +60,7 @@ class PointTwoDDataSet extends AbstractXYDataset implements Task {
 
     @SuppressWarnings("unchecked")
     PointTwoDDataSet(RawDataFile rawDataFile, Scan scans[], Range<Double> rtRange,
-            Range<Double> mzRange, PointTwoDVisualizerWindow visualizer) {
+            Range<Double> mzRange, TwoDVisualizerWindow visualizer) {
 
         this.rawDataFile = rawDataFile;
 
@@ -231,7 +231,7 @@ class PointTwoDDataSet extends AbstractXYDataset implements Task {
 
 
     double upperEndpointIntensity(Range<Double> rtRange, Range<Double> mzRange,
-            PointPlotMode plotMode) {
+            PlotMode plotMode) {
 
         double maxIntensity = 0;
 
@@ -256,9 +256,10 @@ class PointTwoDDataSet extends AbstractXYDataset implements Task {
             if (startScanIndex == 0)
                 return 0;
 
-            if (startScanIndex == searchRetentionTimes.length - 1)
+            if (startScanIndex == searchRetentionTimes.length - 1) {
                 return upperEndpointIntensity(startScanIndex - 1, mzRange,
                         plotMode);
+            }
 
             // find which scan point is closer
             double diffNext = searchRetentionTimes[startScanIndex]
@@ -293,7 +294,7 @@ class PointTwoDDataSet extends AbstractXYDataset implements Task {
     }
 
     private double upperEndpointIntensity(int dataPointMatrixIndex,
-            Range<Double> mzRange, PointPlotMode plotMode) {
+            Range<Double> mzRange, PlotMode plotMode) {
         DataPoint dataPoints[] = dataPointMatrix[dataPointMatrixIndex].get();
         if (dataPoints == null) {
             Scan scan = scans[dataPointMatrixIndex];
@@ -305,7 +306,7 @@ class PointTwoDDataSet extends AbstractXYDataset implements Task {
     }
 
     private double upperEndpointIntensity(DataPoint dataPoints[],
-            Range<Double> mzRange, PointPlotMode plotMode) {
+            Range<Double> mzRange, PlotMode plotMode) {
 
         double maxIntensity = 0;
 
@@ -320,7 +321,7 @@ class PointTwoDDataSet extends AbstractXYDataset implements Task {
             return 0;
 
         if (dataPoints[startMZIndex].getMZ() > mzRange.upperEndpoint()) {
-            if (plotMode != PointPlotMode.CENTROID) {
+            if (plotMode != PlotMode.CENTROID) {
                 if (startMZIndex == 0)
                     return 0;
                 if (startMZIndex == dataPoints.length - 1)

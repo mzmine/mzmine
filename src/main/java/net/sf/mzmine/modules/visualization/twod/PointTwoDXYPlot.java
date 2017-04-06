@@ -17,20 +17,16 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.pointtwod;
+package net.sf.mzmine.modules.visualization.twod;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.util.Date;
-import java.util.logging.Logger;
 
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.general.DatasetChangeEvent;
 
 import com.google.common.collect.Range;
 
@@ -44,38 +40,20 @@ import net.sf.mzmine.datamodel.DataPoint;
 
 /**
  * This class is responsible for drawing the actual data points.
+ * modified by Owen Myers 2017
  */
-class PointTwoDXYPlot extends XYPlot {
+class PointTwoDXYPlot extends BaseXYPlot {
 
-    private static final long serialVersionUID = 1L;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
-    private Range<Double> totalRTRange, totalMZRange;
-    private BufferedImage zoomOutBitmap;
-
-    private PointTwoDDataSet dataset;
-
-    private PointTwoDPaletteType paletteType = PointTwoDPaletteType.PALETTE_RAINBOW;
-
-    private PointPlotMode plotMode = PointPlotMode.UNDEFINED;
-
-    private boolean logScale;
-    private double maxValue = 0;
-
-    private List<Double> currentlyPlottedMZ;
-    private List<Double> currentlyPlottedRT;
-    private List<Double> currentlyPlottedIntensity;
-
-    PointTwoDXYPlot(PointTwoDDataSet dataset, Range<Double> rtRange,
+    PointTwoDXYPlot(TwoDDataSet dataset, Range<Double> rtRange,
 	    Range<Double> mzRange, ValueAxis domainAxis, ValueAxis rangeAxis) {
 
-	super(dataset, domainAxis, rangeAxis, null);
+		super(dataset, rtRange, mzRange, domainAxis, rangeAxis);
 
-	this.dataset = dataset;
+		this.dataset = dataset;
 
-	totalRTRange = rtRange;
-	totalMZRange = mzRange;
+		totalRTRange = rtRange;
+		totalMZRange = mzRange;
 
     }
 
@@ -102,17 +80,6 @@ class PointTwoDXYPlot extends XYPlot {
 	    final double imageMZMax = (double) getRangeAxis().getRange()
 	    	.getUpperBound();
 	    final double imageMZStep = (imageMZMax - imageMZMin) / height;
-
-        //System.out.println("imageMZMin");
-        //System.out.println(imageMZMin);
-        //System.out.println("imageMZMax");
-        //System.out.println(imageMZMax);
-        //System.out.println("imageMZStep");
-        //System.out.println(imageMZStep);
-        //System.out.println("totalMZRange.lowerEndpoint()");
-        //System.out.println(totalMZRange.lowerEndpoint());
-        //System.out.println("totalMZRange.upperEndpoint()");
-        //System.out.println(totalMZRange.upperEndpoint());
 
         // This if statement below keeps the min max values at the original values when the user
         // zooms in. We need some variables that scall as the box size so that the points we show
@@ -172,25 +139,13 @@ class PointTwoDXYPlot extends XYPlot {
             //DataPoint curDataPoint = dpIt.next();
             double currentRT = listOfRTValues.get(count).doubleValue();
             double currentMZ = curDataPoint.getMZ();
-            //System.out.println("currentRT");
-            //System.out.println(currentRT);
-            //System.out.println("currentMZ");
-            //System.out.println(currentMZ);
+
             plotPoints.add(new Point2D.Double(currentRT,currentMZ));
 
             count += 1; 
 
             //currentlyPlottedMZ.add()
         }
-
-
-
-        //System.out.println("dynamicImageMZMin");
-        //System.out.println(dynamicImageMZMin);
-        //System.out.println("dynamicImageMZMax");
-        //System.out.println(dynamicImageMZMax);
-        //System.out.println("dynamicImageMZStep");
-        //System.out.println(dynamicImageMZStep);
 
 
 	    // draw image points
@@ -209,13 +164,7 @@ class PointTwoDXYPlot extends XYPlot {
             //float yPlace = (pt.y-(float)dynamicImageMZMin)/((float)dynamicImageMZStep) + y;
             double xPlace = (pt.x-dynamicImageRTMin)/(dynamicImageRTStep)+(double)x;
             double yPlace = (double)height-(pt.y-dynamicImageMZMin)/(dynamicImageMZStep)+(double)y;
-            //System.out.println("yPlace");
-            //System.out.println(yPlace);
-            //System.out.println("pt.x");
-            //System.out.println(pt.x);
-            //System.out.println("pt.y");
-            //System.out.println(pt.y);
-            
+
             //get the current intensity
             // use the R, G B for the intensity
             
@@ -253,16 +202,6 @@ class PointTwoDXYPlot extends XYPlot {
 
 	    Date renderFinishTime = new Date();
 
-
-	    //System.out.println("x");
-	    //System.out.println(x);
-	    //System.out.println("y");
-	    //System.out.println(y );
-	    //System.out.println("width");
-	    //System.out.println(width);
-	    //System.out.println("height");
-	    //System.out.println(height);
-
 	    logger.finest("Finished rendering 2D visualizer, "
 	    	+ (renderFinishTime.getTime() - renderStartTime.getTime())
 	    	+ " ms");
@@ -272,51 +211,4 @@ class PointTwoDXYPlot extends XYPlot {
 	    return true;
 
     }
-
-    void outputTheseData() {
-        System.out.println("do nothing");
-    }
-
-    Range<Double> getDomainRange() {
-	return Range.closed(getDomainAxis().getRange().getLowerBound(),
-		getDomainAxis().getRange().getUpperBound());
-    }
-
-    Range<Double> getAxisRange() {
-	return Range.closed(getRangeAxis().getRange().getLowerBound(),
-		getRangeAxis().getRange().getUpperBound());
-    }
-
-    void switchPalette() {
-	PointTwoDPaletteType types[] = PointTwoDPaletteType.values();
-	int newIndex = paletteType.ordinal() + 1;
-	if (newIndex >= types.length)
-	    newIndex = 0;
-	paletteType = types[newIndex];
-	zoomOutBitmap = null;
-	datasetChanged(new DatasetChangeEvent(dataset, dataset));
-    }
-
-    PointPlotMode getPlotMode() {
-	return plotMode;
-    }
-
-    void setPlotMode(PointPlotMode plotMode) {
-	this.plotMode = plotMode;
-
-	// clear the zoom out image cache
-	zoomOutBitmap = null;
-
-	datasetChanged(new DatasetChangeEvent(dataset, dataset));
-    }
-
-    void setLogScale(boolean logscale) {
-	logScale = logscale;
-
-	// clear the zoom out image cache
-	zoomOutBitmap = null;
-
-	datasetChanged(new DatasetChangeEvent(dataset, dataset));
-    }
-
 }

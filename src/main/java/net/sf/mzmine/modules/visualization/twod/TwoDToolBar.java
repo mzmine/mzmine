@@ -54,52 +54,52 @@ class TwoDToolBar extends JToolBar {
 
     TwoDToolBar(TwoDVisualizerWindow masterFrame) {
 
-	super(JToolBar.VERTICAL);
+		super(JToolBar.VERTICAL);
 
-	setFloatable(false);
-	setFocusable(false);
-	setMargin(new Insets(5, 5, 5, 5));
-	setBackground(Color.white);
+		setFloatable(false);
+		setFocusable(false);
+		setMargin(new Insets(5, 5, 5, 5));
+		setBackground(Color.white);
 
-	GUIUtils.addButton(this, null, paletteIcon, masterFrame,
-		"SWITCH_PALETTE", "Switch palette");
+		GUIUtils.addButton(this, null, paletteIcon, masterFrame,
+			"SWITCH_PALETTE", "Switch palette");
 
-	addSeparator();
+		addSeparator();
 
-	toggleContinuousModeButton = GUIUtils.addButton(this, null,
-		dataPointsIcon, masterFrame, "SHOW_DATA_POINTS",
-		"Toggle displaying of data points in continuous mode");
+		toggleContinuousModeButton = GUIUtils.addButton(this, null,
+			dataPointsIcon, masterFrame, "SHOW_DATA_POINTS",
+			"Toggle displaying of data points in continuous mode");
 
-	addSeparator();
+		addSeparator();
 
-	GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
-		"Setup ranges for axes");
+		GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+			"Setup ranges for axes");
 
-	addSeparator();
+		addSeparator();
 
-	centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
-		masterFrame, "SWITCH_PLOTMODE",
+		centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
+			masterFrame, "SWITCH_PLOTMODE",
 		"Switch between continuous and centroided mode");
 
-	addSeparator();
+		addSeparator();
 
-	toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon,
-		masterFrame, "SWITCH_TOOLTIPS",
-		"Toggle displaying of tool tips on the peaks");
+		toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon,
+			masterFrame, "SWITCH_TOOLTIPS",
+			"Toggle displaying of tool tips on the peaks");
 
-	addSeparator();
+		addSeparator();
 
-	GUIUtils.addButton(this, null, logScaleIcon, masterFrame,
+		GUIUtils.addButton(this, null, logScaleIcon, masterFrame,
 		"SWITCH_LOG_SCALE", "Set Log Scale");
 
     }
 
     void setCentroidButton(boolean centroid) {
-	if (centroid) {
-	    centroidContinuousButton.setIcon(centroidIcon);
-	} else {
-	    centroidContinuousButton.setIcon(continuousIcon);
-	}
+	    if (centroid) {
+	        centroidContinuousButton.setIcon(centroidIcon);
+        } else {
+	        centroidContinuousButton.setIcon(continuousIcon);
+	    }
     }
 
     void toggleContinuousModeButtonSetEnable(boolean enable) {

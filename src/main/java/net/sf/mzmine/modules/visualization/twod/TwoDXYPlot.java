@@ -36,29 +36,14 @@ import com.google.common.collect.Range;
 
 /**
  * This class is responsible for drawing the actual data points.
+ * Modified by Owen Myers 2017
  */
-class TwoDXYPlot extends XYPlot {
-
-    private static final long serialVersionUID = 1L;
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
-    private Range<Double> totalRTRange, totalMZRange;
-    private BufferedImage zoomOutBitmap;
-
-    private TwoDDataSet dataset;
-
-    private TwoDPaletteType paletteType = TwoDPaletteType.PALETTE_GRAY20;
-
-    private PlotMode plotMode = PlotMode.UNDEFINED;
-
-    private boolean logScale;
-    private double maxValue = 0;
+class TwoDXYPlot extends BaseXYPlot {
 
     TwoDXYPlot(TwoDDataSet dataset, Range<Double> rtRange,
 	    Range<Double> mzRange, ValueAxis domainAxis, ValueAxis rangeAxis) {
 
-	super(dataset, domainAxis, rangeAxis, null);
+	super(dataset, rtRange, mzRange, domainAxis, rangeAxis);
 
 	this.dataset = dataset;
 
@@ -177,47 +162,4 @@ class TwoDXYPlot extends XYPlot {
 	return true;
 
     }
-
-    Range<Double> getDomainRange() {
-	return Range.closed(getDomainAxis().getRange().getLowerBound(),
-		getDomainAxis().getRange().getUpperBound());
-    }
-
-    Range<Double> getAxisRange() {
-	return Range.closed(getRangeAxis().getRange().getLowerBound(),
-		getRangeAxis().getRange().getUpperBound());
-    }
-
-    void switchPalette() {
-	TwoDPaletteType types[] = TwoDPaletteType.values();
-	int newIndex = paletteType.ordinal() + 1;
-	if (newIndex >= types.length)
-	    newIndex = 0;
-	paletteType = types[newIndex];
-	zoomOutBitmap = null;
-	datasetChanged(new DatasetChangeEvent(dataset, dataset));
-    }
-
-    PlotMode getPlotMode() {
-	return plotMode;
-    }
-
-    void setPlotMode(PlotMode plotMode) {
-	this.plotMode = plotMode;
-
-	// clear the zoom out image cache
-	zoomOutBitmap = null;
-
-	datasetChanged(new DatasetChangeEvent(dataset, dataset));
-    }
-
-    void setLogScale(boolean logscale) {
-	logScale = logscale;
-
-	// clear the zoom out image cache
-	zoomOutBitmap = null;
-
-	datasetChanged(new DatasetChangeEvent(dataset, dataset));
-    }
-
 }
