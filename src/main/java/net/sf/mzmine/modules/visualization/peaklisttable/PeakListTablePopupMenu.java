@@ -59,7 +59,6 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
-import net.sf.mzmine.modules.visualization.pointtwod.PointTwoDVisualizerModule;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -436,16 +435,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             if (showPeak != null) {
 
                 TwoDVisualizerModule.show2DVisualizerSetupDialog(
-                        showPeak.getDataFile(), getPeakMZRange(showPeak),
-                        getPeakRTRange(showPeak));
-            }
-        }
-        if (showPoint2DItem.equals(src)) {
-
-            final Feature showPeak = getSelectedPeak();
-            if (showPeak != null) {
-
-                PointTwoDVisualizerModule.showPoint2DVisualizerSetupDialog(
                         showPeak.getDataFile(), getPeakMZRange(showPeak),
                         getPeakRTRange(showPeak));
             }
