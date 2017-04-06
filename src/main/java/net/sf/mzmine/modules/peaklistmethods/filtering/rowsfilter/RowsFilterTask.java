@@ -189,22 +189,19 @@ public class RowsFilterTask extends AbstractTask {
 
         boolean removeRow = false;
 
-        if (removeRowString
-                .equalsIgnoreCase("Keep rows that match all criteria"))
+        if (removeRowString.equals(RowsFilterParameters.removeRowChoices[0]))
             removeRow = false;
-        if (removeRowString
-                .equalsIgnoreCase("Remove rows that match all criteria"))
+        else
             removeRow = true;
 
-        boolean filterRowCriteriaFailed = false; // Keep rows that don't match
-                                                 // any criteria. Keep by
-                                                 // default.
+        // Keep rows that don't match any criteria. Keep by default.
+        boolean filterRowCriteriaFailed = false; 
 
         // Handle < 1 values for minPeakCount
-        if ((minCount == null) || (minCount < 1)) minCount = 1.0;
+        if ((minCount == null) || (minCount < 1))
+            minCount = 1.0;
         // Round value down to nearest hole number
         int intMinCount = minCount.intValue();
-
 
         // Filter rows.
         final PeakListRow[] rows = peakList.getRows();
@@ -273,8 +270,7 @@ public class RowsFilterTask extends AbstractTask {
                             numFailedIdentities += 1;
                     }
                     if (numFailedIdentities == identities.length)
-                        filterRowCriteriaFailed = true;  
-
+                        filterRowCriteriaFailed = true;
 
                 }
             }
