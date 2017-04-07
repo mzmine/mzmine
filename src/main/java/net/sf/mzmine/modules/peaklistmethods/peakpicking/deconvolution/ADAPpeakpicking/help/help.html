@@ -1,0 +1,149 @@
+
+
+<html>
+<head>
+    <title>Peak detection - Deconvolution - Wavelets (ADAP)</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>ADAP chromatogram deconvolution</h1>
+
+<h2>Wavelets (ADAP)</h2>
+
+<p>
+    ADAP detects EIC peaks by using a CWT. Wavelet
+    coefficients are first calculated as the inner product between the EIC and wavelets at different
+    scales and locations. Subsequently, peak location and boundaries are
+    determined through a ridgeline
+    detection and simple local minima search. Though the algorithm uses a CWT is differs significantly from centWave
+    primarily in the ridgline detection algorithm.
+     <!-- Tautenhahn et al. [<a href="#ref1">1</a>]. -->
+</p>
+
+<h4>Ridgeline detection</h4>
+A real peak in an EIC should create a local maxima in the wavelet coefficients at multiple scales.
+The wavelet scale for which the wavelet most closely matches the shape of the peak, the best scale,
+will create the
+largest coefficient. Scales close to the best scale should also have reasonably similar shapes to
+the peak and therefore create adjacent maxima between those scales.
+Ridgelines are the series of connected local maxima across scales which are
+indicative of a real peak.
+
+Our procedure for detecting the ridgelines is similar to that described by Du et
+al.[<a href="#ref1">1</a>] and Wee et al.[<a href="#ref2">2</a>] and is as follows:
+
+<ol>
+    <li>Begin with the coefficients corresponding to the largest wavelet scale.</li>
+
+    <li> Find the largest coefficient at this scale and initialize a ridgeline.</li>
+
+    <li> Remove all coefficients that are
+        within half the estimated compact support of the Ricker wavelet (2.5 times
+        the current scale).</li>
+
+    <li> Find the next largest coefficient discounting all removed coefficients and initialize another ridgeline.</li>
+
+    <li> Repeat steps (3)-(4) until there are no more coefficients remaining for this wavelet scale.</li>
+
+    <li> Move to the next scale (decrease by one) and repeat (1)-(6). Add new coefficients to an existing
+    ridgeline if they are close in RT. We define "close" to be a difference in their
+    indices that is less than or equal to the current scale being investigated.</li>
+
+    <li> After all scales have been processed, ridgelines must have a length, i.e., the total number of
+    scales represented in the ridgeline, greater than or equal to 7.</li>
+</ol>
+
+<h4>Method parameters</h4>
+
+<dl>
+    <dt>S/N Threshold</dt>
+    <dd>To calculate the signal (S) to noise (N) ratio,
+        S/N, we choose S to be the maximum intensity between the boundaries of the peak under investigation.
+        Noise, N, is estimated using two different steps. The final estimate of N is the
+        smaller value found from the two steps and is used to calculate S/N. Each estimation of the
+        noise attempts to avoid overestimate from the accidental inclusion of other real peaks that may be
+        close in RT.
+
+        Step 1:
+
+        <ol>
+        <li> Set two windows, one on each side of the peak in the EIC. The windows begin at
+        the left and right peak boundaries and end at the peak boundaries plus or minus 2 times PW, respectively, where
+        PW stands for peak width and is defined to be the number of scans between the two boundaries of
+        a peak.</li>
+
+            <li> Calculate the standard deviation of the intensities in the two combined windows and store it as
+        one possible value of the noise.</li>
+
+            <li> Expand both windows out from the peak by a single scan. The boundaries closest to the peak remain
+        the same. After the first expansion, each window has a length of 2 times PW+1.</li>
+
+            <li> Calculate and store the standard deviation of the intensities in the combined windows.</li>
+
+            <li> Repeat steps (3)-(4) until each window has a length of 8 times PW.</li>
+
+            <li> Incrementally shrink each window by one scan, calculating and storing the standard
+        deviations of the combined windows. The windows are shrunk by moving the boundary closest
+        to the peak toward the boundary furthest from it.</li>
+
+            <li> Repeat step (6) until the window size is 2 times PW.</li>
+
+            <li> The final noise estimate is taken to be the smallest stored standard deviation.</li>
+        </ol>
+
+        Step 2:
+
+        <ol>
+            <li> Same as (1) in step 1.</li>
+
+            <li> Same as (2) in step 1.</li>
+
+            <li> Shift each entire window away from the feature by one scan; the window lengths do not change.</li>
+
+            <li> Repeat steps (2)-(3) until each window's boundary furthest from the feature is 8 times PW
+            from the closest boundary of that feature.</li>
+
+            <li> The final noise is taken to be the smallest stored standard deviation.</li>
+        </ol>
+    </dd>
+
+    <dt>Min feature height</dt>
+    <dd>The smallest intensity a peak can have and be considered a real
+        feature.
+    </dd>
+
+    <dt>Coefficient/area threshold</dt>
+    <dd>The best coefficient (largest inner product of wavelet with peak in ridgeline) divided by the area under the curve of the feature</dd>
+
+    <dt>Peak duration range</dt>
+    <dd>The acceptable range of peak widths. Peaks with widths outside this range will be rejected.</dd>
+
+    <dt>RT wavelet range</dt>
+    <dd>The range of wavelet scales used to build matrix of coefficients. Scales are expressed as RT values (minutes) and correspond to the range
+        of wavelet scales that will be applied to the chromatogram. Choose a range that that simmilar to the range of peak widths expected to be found
+        from the data.
+    </dd>
+
+
+</dl>
+
+<h2>References</h2>
+
+<p>
+    <a name="ref1"></a>
+    [1] Du, P., Kibbe W. A., and Lin S. M.,  <span style="font-style: italic;">Bioinformatics</span> <span style="font-weight: bold;">2006</span>,
+    22:2059-65.
+</p>
+
+<p>
+    <a name="ref2"></a>
+    [2] Wee A., Grayden D. B., Zhu Y., Petkovic-Duran K., and Smith D.,  <span style="font-style: italic;">Electrophoresis</span>
+    <span style="font-weight: bold;">2008</span>, 29:4215-25.
+</p>
+
+
+</body>
+</html>
