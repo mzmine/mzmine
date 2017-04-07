@@ -29,17 +29,17 @@ We define &epsilon; to be the mass tolerance parameter m/z.
 
 	<li> Starting with the most intense data point, the first EIC is created.</li>
 
-	<li> For this EIC, establish an immutable $m/z$ range that is the data point's
+	<li> For this EIC, establish an immutable m/z range that is the data point's
 		m/z plus or minus &epsilon; where &epsilon; is specified by the user. </li>
 
 	<li> The next data point, which will be the next most intense, is added to an
-	existing EIC if its $m/z$ value falls within its m/z range.</li>
+	existing EIC if its m/z value falls within its m/z range.</li>
 
 	<li> If the next data point does not fall within an EICs m/z range, a new EIC is
 	created. New EICs are only created if the point meets the minimum start intensity
 	requirement set by the user. </li>
 
-	<li> An $m/z$ range for a new EIC is created the same way as in step (3) except the boundaries
+	<li> An m/z range for a new EIC is created the same way as in step (3) except the boundaries
 	will be adjusted to avoid overlapping with pre-existing EICs. As an example consider an
 	existing EIC with m/z range (100.000,100.020) for &epsilon;=0.01. If the new EIC is
 	initialized with a data point having an m/z value of 100.025, then this new EIC will
