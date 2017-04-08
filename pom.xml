@@ -132,7 +132,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>20.0</version>
+			<version>20.0</version> <!-- Guava 21 requires Java 8 -->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -153,27 +153,11 @@
 			<groupId>org.ostermiller</groupId>
 			<artifactId>utils</artifactId>
 			<version>1.07.00</version>
-		</dependency>
-		<dependency>
-			<groupId>xerces</groupId>
-			<artifactId>xercesImpl</artifactId>
-			<version>2.11.0</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>xml-apis</artifactId>
-					<groupId>xml-apis</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>xml-apis</groupId>
-			<artifactId>xml-apis</artifactId>
-			<version>1.4.01</version>
-		</dependency>
+		</dependency>		
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
-			<version>3.0.0</version>
+			<version>3.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
@@ -183,17 +167,17 @@
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
 			<artifactId>jmol</artifactId>
-			<version>13.0.14</version>
+			<version>14.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.14</version>
+			<version>1.7.25</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
-			<version>1.7.14</version>
+			<version>1.7.25</version>
 		</dependency>
 
 		<!-- Start of CDK dependencies -->
@@ -384,6 +368,16 @@
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>fop</artifactId>
 			<version>1.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis-ext</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.freehep</groupId>
