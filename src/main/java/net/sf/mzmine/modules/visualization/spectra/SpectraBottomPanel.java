@@ -44,9 +44,6 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class SpectraBottomPanel extends JPanel implements TreeModelListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -64,84 +61,91 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     private RawDataFile dataFile;
     private SpectraVisualizerWindow masterFrame;
 
-    SpectraBottomPanel(SpectraVisualizerWindow masterFrame, RawDataFile dataFile) {
+    // Last time the data set was redrawn.
+    private static long lastRebuildTime = System.currentTimeMillis();
 
-	super(new BorderLayout());
-	this.dataFile = dataFile;
-	this.masterFrame = masterFrame;
+    // Refresh interval (in milliseconds).
+    private static final long REDRAW_INTERVAL = 1000L;
 
-	setBackground(Color.white);
+    SpectraBottomPanel(SpectraVisualizerWindow masterFrame,
+            RawDataFile dataFile) {
 
-	topPanel = new JPanel();
-	topPanel.setBackground(Color.white);
-	topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
-	add(topPanel, BorderLayout.CENTER);
+        super(new BorderLayout());
+        this.dataFile = dataFile;
+        this.masterFrame = masterFrame;
 
-	topPanel.add(Box.createHorizontalStrut(10));
+        setBackground(Color.white);
 
-	JButton prevScanBtn = GUIUtils.addButton(topPanel, leftArrow, null,
-		masterFrame, "PREVIOUS_SCAN");
-	prevScanBtn.setBackground(Color.white);
-	prevScanBtn.setFont(smallFont);
+        topPanel = new JPanel();
+        topPanel.setBackground(Color.white);
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+        add(topPanel, BorderLayout.CENTER);
 
-	topPanel.add(Box.createHorizontalGlue());
+        topPanel.add(Box.createHorizontalStrut(10));
 
-	GUIUtils.addLabel(topPanel, "Peak list: ", SwingConstants.RIGHT);
+        JButton prevScanBtn = GUIUtils.addButton(topPanel, leftArrow, null,
+                masterFrame, "PREVIOUS_SCAN");
+        prevScanBtn.setBackground(Color.white);
+        prevScanBtn.setFont(smallFont);
 
-	peakListSelector = new JComboBox<PeakList>();
-	peakListSelector.setBackground(Color.white);
-	peakListSelector.setFont(smallFont);
-	peakListSelector.addActionListener(masterFrame);
-	peakListSelector.setActionCommand("PEAKLIST_CHANGE");
-	topPanel.add(peakListSelector);
+        topPanel.add(Box.createHorizontalGlue());
 
-	topPanel.add(Box.createHorizontalGlue());
+        GUIUtils.addLabel(topPanel, "Peak list: ", SwingConstants.RIGHT);
 
-	JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null,
-		masterFrame, "NEXT_SCAN");
-	nextScanBtn.setBackground(Color.white);
-	nextScanBtn.setFont(smallFont);
+        peakListSelector = new JComboBox<PeakList>();
+        peakListSelector.setBackground(Color.white);
+        peakListSelector.setFont(smallFont);
+        peakListSelector.addActionListener(masterFrame);
+        peakListSelector.setActionCommand("PEAKLIST_CHANGE");
+        topPanel.add(peakListSelector);
 
-	topPanel.add(Box.createHorizontalStrut(10));
+        topPanel.add(Box.createHorizontalGlue());
 
-	bottomPanel = new JPanel();
-	bottomPanel.setBackground(Color.white);
-	bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-	add(bottomPanel, BorderLayout.SOUTH);
+        JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null,
+                masterFrame, "NEXT_SCAN");
+        nextScanBtn.setBackground(Color.white);
+        nextScanBtn.setFont(smallFont);
 
-	bottomPanel.add(Box.createHorizontalGlue());
+        topPanel.add(Box.createHorizontalStrut(10));
 
-	GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
+        bottomPanel = new JPanel();
+        bottomPanel.setBackground(Color.white);
+        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
+        add(bottomPanel, BorderLayout.SOUTH);
 
-	msmsSelector = new JComboBox<String>();
-	msmsSelector.setBackground(Color.white);
-	msmsSelector.setFont(smallFont);
-	bottomPanel.add(msmsSelector);
+        bottomPanel.add(Box.createHorizontalGlue());
 
-	JButton showButton = GUIUtils.addButton(bottomPanel, "Show", null,
-		masterFrame, "SHOW_MSMS");
-	showButton.setBackground(Color.white);
-	showButton.setFont(smallFont);
+        GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
 
-	bottomPanel.add(Box.createHorizontalGlue());
+        msmsSelector = new JComboBox<String>();
+        msmsSelector.setBackground(Color.white);
+        msmsSelector.setFont(smallFont);
+        bottomPanel.add(msmsSelector);
+
+        JButton showButton = GUIUtils.addButton(bottomPanel, "Show", null,
+                masterFrame, "SHOW_MSMS");
+        showButton.setBackground(Color.white);
+        showButton.setFont(smallFont);
+
+        bottomPanel.add(Box.createHorizontalGlue());
 
     }
 
     JComboBox<String> getMSMSSelector() {
-	return msmsSelector;
+        return msmsSelector;
     }
 
     void setMSMSSelectorVisible(boolean visible) {
-	bottomPanel.setVisible(visible);
+        bottomPanel.setVisible(visible);
     }
 
     /**
      * Returns selected peak list
      */
     PeakList getSelectedPeakList() {
-	PeakList selectedPeakList = (PeakList) peakListSelector
-		.getSelectedItem();
-	return selectedPeakList;
+        PeakList selectedPeakList = (PeakList) peakListSelector
+                .getSelectedItem();
+        return selectedPeakList;
     }
 
     /**
@@ -149,63 +153,71 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
      */
     void rebuildPeakListSelector() {
 
-	logger.finest("Rebuilding the peak list selector");
+        // Refresh every REDRAW_INTERVAL ms.
+        if (System.currentTimeMillis() - lastRebuildTime < REDRAW_INTERVAL)
+            return;
 
-	PeakList selectedPeakList = (PeakList) peakListSelector
-		.getSelectedItem();
-	PeakList currentPeakLists[] = MZmineCore.getProjectManager()
-		.getCurrentProject().getPeakLists(dataFile);
-	peakListSelector.setEnabled(false);
-	peakListSelector.removeActionListener(masterFrame);
-	peakListSelector.removeAllItems();
+        logger.finest("Rebuilding the peak list selector");
 
-	// Add all peak lists in reverse order (last added peak list will be
-	// first)
-	for (int i = currentPeakLists.length - 1; i >= 0; i--) {
-	    peakListSelector.addItem(currentPeakLists[i]);
-	}
+        PeakList selectedPeakList = (PeakList) peakListSelector
+                .getSelectedItem();
+        PeakList currentPeakLists[] = MZmineCore.getProjectManager()
+                .getCurrentProject().getPeakLists(dataFile);
+        peakListSelector.setEnabled(false);
+        peakListSelector.removeActionListener(masterFrame);
+        peakListSelector.removeAllItems();
 
-	// If there is any peak list, make a selection
-	if (currentPeakLists.length > 0) {
-	    peakListSelector.setEnabled(true);
-	    peakListSelector.addActionListener(masterFrame);
-	    if (selectedPeakList != null)
-		peakListSelector.setSelectedItem(selectedPeakList);
-	    else
-		peakListSelector.setSelectedIndex(0);
-	}
+        // Add all peak lists in reverse order (last added peak list will be
+        // first)
+        for (int i = currentPeakLists.length - 1; i >= 0; i--) {
+            peakListSelector.addItem(currentPeakLists[i]);
+        }
+
+        // If there is any peak list, make a selection
+        if (currentPeakLists.length > 0) {
+            peakListSelector.setEnabled(true);
+            peakListSelector.addActionListener(masterFrame);
+            if (selectedPeakList != null)
+                peakListSelector.setSelectedItem(selectedPeakList);
+            else
+                peakListSelector.setSelectedIndex(0);
+        }
+
+        // Update last rebuild time
+        lastRebuildTime = System.currentTimeMillis();
+
     }
 
     @Override
     public void treeNodesChanged(TreeModelEvent event) {
-	DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
-		.getTreePath().getLastPathComponent();
-	if (node.getUserObject() instanceof PeakList)
-	    rebuildPeakListSelector();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+                .getTreePath().getLastPathComponent();
+        if (node.getUserObject() instanceof PeakList)
+            rebuildPeakListSelector();
     }
 
     @Override
     public void treeNodesInserted(TreeModelEvent event) {
-	DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
-		.getTreePath().getLastPathComponent();
-	if (node.getUserObject() instanceof PeakList)
-	    rebuildPeakListSelector();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+                .getTreePath().getLastPathComponent();
+        if (node.getUserObject() instanceof PeakList)
+            rebuildPeakListSelector();
     }
 
     @Override
     public void treeNodesRemoved(TreeModelEvent event) {
-	DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
-		.getTreePath().getLastPathComponent();
-	if (node.getUserObject() instanceof PeakList)
-	    rebuildPeakListSelector();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+                .getTreePath().getLastPathComponent();
+        if (node.getUserObject() instanceof PeakList)
+            rebuildPeakListSelector();
     }
 
     @Override
     public void treeStructureChanged(TreeModelEvent event) {
-	DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
-		.getTreePath().getLastPathComponent();
-	if (node.getUserObject() instanceof PeakList)
-	    rebuildPeakListSelector();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+                .getTreePath().getLastPathComponent();
+        if (node.getUserObject() instanceof PeakList)
+            rebuildPeakListSelector();
     }
 
 }
