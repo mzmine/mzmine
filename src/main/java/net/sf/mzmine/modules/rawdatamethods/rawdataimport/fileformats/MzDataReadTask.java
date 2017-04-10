@@ -141,6 +141,7 @@ public class MzDataReadTask extends AbstractTask {
 	    project.addFile(finalRawDataFile);
 
 	} catch (Throwable e) {
+	    e.printStackTrace();
 	    /* we may already have set the status to CANCELED */
 	    if (getStatus() == TaskStatus.PROCESSING) {
 		setStatus(TaskStatus.ERROR);

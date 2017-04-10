@@ -304,9 +304,10 @@ public class MzXMLReadTask extends AbstractTask {
                         try {
                             newMZmineFile.addScan(currentScan);
                         } catch (IOException e) {
+                            e.printStackTrace();
                             setStatus(TaskStatus.ERROR);
                             setErrorMessage("IO error: " + e);
-                            throw new SAXException("Parsing cancelled");
+                            throw new SAXException("Parsing error: " + e);
                         }
                         parsedScans++;
                     }

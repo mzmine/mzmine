@@ -181,6 +181,7 @@ public class MzMLReadTask extends AbstractTask {
             project.addFile(finalRawDataFile);
 
         } catch (Throwable e) {
+            e.printStackTrace();
             setStatus(TaskStatus.ERROR);
             setErrorMessage("Error parsing mzML: "
                     + ExceptionUtils.exceptionToString(e));
