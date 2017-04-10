@@ -1,0 +1,85 @@
+<html>
+	<head>
+		<title>Peak detection - ADAP Chromatogram builder</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Chromatogram builder</h1>
+
+<h2>Description</h2>
+
+<p>
+The ADAP Chromatogram builder takes mass lists generated for each MS scan (see Mass detection) and builds a chromatogram for each mass that can be detected continuously over the scans.
+Later, these chromatograms may be deconvoluted into individual peaks by the Deconvolution module.
+</p>
+
+<p>
+ADAP chromatogram construction works from the largest intensity data point in the entire data file down
+to the smallest.  The reasoning is that it is beneficial to begin EICs with
+larger intensity data points since their m/z values tend to be more accurate. The chromatogram building steps are as follows:
+</p>
+
+We define &epsilon; to be the mass tolerance parameter m/z.
+<ol>
+	<li> Take all the data points in a data file, sort them by their intensities,
+	and remove those points (mostly noise) below a certain intensity threshold.</li>
+
+	<li> Starting with the most intense data point, the first EIC is created.</li>
+
+	<li> For this EIC, establish an immutable m/z range that is the data point's
+		m/z plus or minus &epsilon; where &epsilon; is specified by the user. </li>
+
+	<li> The next data point, which will be the next most intense, is added to an
+	existing EIC if its m/z value falls within its m/z range.</li>
+
+	<li> If the next data point does not fall within an EICs m/z range, a new EIC is
+	created. New EICs are only created if the point meets the minimum start intensity
+	requirement set by the user. </li>
+
+	<li> An m/z range for a new EIC is created the same way as in step (3) except the boundaries
+	will be adjusted to avoid overlapping with pre-existing EICs. As an example consider an
+	existing EIC with m/z range (100.000,100.020) for &epsilon;=0.01. If the new EIC is
+	initialized with a data point having an m/z value of 100.025, then this new EIC will
+	have a m/z range set to be (100.020,100.035) rather than (100.015, 100.035).</li>
+
+	<li> Repeat steps (4)-(6) until all the data has been processed.</li>
+
+	<li>Finally, a post processing step is implemented. Only EICs with a user defined number of continuous points above a user defined intensity threshold
+		are kept.</li>
+
+</ol>
+
+<h4>Method parameters</h4>
+<dl>
+
+<dt>Mass list name</dt>
+<dd>Choose a name of the mass lists to be used for building chromatograms. The mass lists must be previously generated for each MS scan by the Mass detector module.</dd>
+
+<dt>Min group size in number of scans</dt>
+<dd>In the entire chromatogram there must be at least this number of sequential scans having points above the\textit{Intensity thresh 2} set by the user.</dd>
+
+<dt>Group intensity threshold</dt>
+<dd>See above</dd>
+
+<dt> Min highest intensity</dt>
+<dd>There must be at least one point in the chromatogram that has an intensity greater than or equal to this value.</dd>
+
+
+<dt>m/z tolerance</dt>
+<dd>Maximum m/z difference of data points in consecutive scans in order to be connected to the same chromatogram.</dd> 
+
+<dt>Suffix</dt>
+<dd>The resulting chromatogram will be named <i>file name + suffix</i></dd> 
+
+</dl>
+
+<p>
+The resulting chromatograms can be opened in the peak list table visualizer using a double-click:<br>
+<img src="chromatograms.png" border="1">
+</p>
+
+</body>
+</html>
