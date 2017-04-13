@@ -25,13 +25,7 @@ import dulab.adap.workflow.TwoStepDecomposition;
 import dulab.adap.workflow.TwoStepDecompositionParameters;
         
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,17 +36,14 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.*;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.R.RSessionWrapper;
+
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -72,16 +63,9 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     // User parameters
     private final ParameterSet parameters;
     
-    private RSessionWrapper rSession;
-    
-    class WindowIndices {
-        int[] left;
-        int[] right;
-    }
-    
-    public ADAP3DecompositionV1_5Task(final MZmineProject project, final PeakList list,
-            final ParameterSet parameterSet) {
-
+    ADAP3DecompositionV1_5Task(final MZmineProject project, final PeakList list,
+            final ParameterSet parameterSet)
+    {
         // Initialize.
         this.project = project;
         parameters = parameterSet;
@@ -139,9 +123,6 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                         LOG.info("Finished peak decomposition on "
                                 + originalPeakList);
                     }
-                    // Turn off R instance.
-                    if (this.rSession != null)
-                        this.rSession.close(false);
                     
                 } catch (IllegalArgumentException e) {
                     errorMsg = "Incorrect Peak List selected:\n"
@@ -196,16 +177,17 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                         .EDGE_TO_HEIGHT_RATIO).getValue(),
                 this.parameters.getParameter(ADAP3DecompositionV1_5Parameters
                         .DELTA_TO_HEIGHT_RATIO).getValue());
-        
+
+        // Find components (a.k.a. clusters of peaks with fragmentation spectra)
         List <Component> components = getComponents(peaks);
+
+        // Create PeakListRow for each components
         List <PeakListRow> newPeakListRows = new ArrayList <> ();
 
         int rowID = 0;
 
         for (final Component component : components) 
         {
-            System.out.println(Double.toString(component.getMZ()));
-            
             if (component.getSpectrum().isEmpty()) continue;
             
             PeakListRow row = new SimplePeakListRow(++rowID);
@@ -215,7 +197,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                     .getRow(component.getBestPeak().getInfo().peakID);
             Feature refPeak = new SimpleFeature(refPeakRow.getBestPeak());
 
-            // Construct spectrum
+            // Add spectrum
             List <DataPoint> dataPoints = new ArrayList <> ();
             for (Map.Entry <Double, Double> entry : 
                     component.getSpectrum().entrySet()) 
@@ -230,21 +212,11 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                     "Spectrum"));
             
             row.addPeak(dataFile, refPeak);
-            
-            // Construct PeakInformation
-            
-//            SimplePeakInformation information = new SimplePeakInformation(
-//                    new HashMap <> (refPeakRow.getPeakInformation()
-//                            .getAllProperties()));
-//            
-//            // Save ID if the peak list
-//            information.addProperty("FROM_PEAKLIST_HASHCODE", 
-//                    Integer.toString(peakList.hashCode()));
-//            
-//            row.setPeakInformation(information);
-            
-            // Make a comment
-            //row.setComment(information.getAllProperties().toString());
+
+            // Add PeakInformation
+            SimplePeakInformation information = new SimplePeakInformation(
+                    new HashMap<>(refPeakRow.getPeakInformation().getAllProperties()));
+            row.setPeakInformation(information);
             
             // Set row properties
             row.setAverageMZ(refPeakRow.getAverageMZ());
@@ -276,14 +248,15 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     }
     
     /**
-     * Construct ADAP Peak objects and calculate sharpness and isShared
+     * Convert MZmine PeakList to a list of ADAP Peaks
      * 
-     * @param peakList
-     * @param edgeToHeightThreshold
-     * @param deltaToHeightThreshold
-     * @return 
+     * @param peakList MZmine PeakList object
+     * @param edgeToHeightThreshold edge-to-height threshold to determine peaks that can be merged
+     * @param deltaToHeightThreshold delta-to-height threshold to determine peaks that can be merged
+     * @return list of ADAP Peaks
      */
-    
+
+    @Nonnull
     public static List <Peak> getPeaks(final PeakList peakList,
             final double edgeToHeightThreshold,
             final double deltaToHeightThreshold)
@@ -332,22 +305,8 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                 info.retTime = peak.getRT();
                 info.mzValue = peak.getMZ();
                 info.intensity = peak.getHeight();
-                
-//                info.isShared = FeatureTools.isShared(
-//                        new ArrayList <> (chromatogram.values()),
-//                        edgeToHeightThreshold, deltaToHeightThreshold);
-                
-//                info.offset = Integer.parseInt(
-//                        information.getPropertyValue("offset"));
-
-//                info.sharpness = FeatureTools.sharpnessYang(chromatogram);
-                
-//                info.signalToNoiseRatio = Double.parseDouble(
-//                        information.getPropertyValue("signalToNoiseRatio"));
                 info.leftPeakIndex = info.leftApexIndex;
                 info.rightPeakIndex = info.rightApexIndex;
-//                info.coeffOverArea = Double.parseDouble(
-//                        information.getPropertyValue("coeffOverArea"));
                 
             } catch (Exception e) {
                 LOG.info("Skipping " + row + ": " + e.getMessage());
