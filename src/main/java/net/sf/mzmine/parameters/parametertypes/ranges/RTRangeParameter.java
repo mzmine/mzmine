@@ -20,6 +20,8 @@
 package net.sf.mzmine.parameters.parametertypes.ranges;
 
 import com.google.common.collect.Range;
+
+import java.text.NumberFormat;
 import java.util.Collection;
 
 public class RTRangeParameter extends DoubleRangeParameter {
@@ -33,7 +35,14 @@ public class RTRangeParameter extends DoubleRangeParameter {
     }
 
     public RTRangeParameter(String name, String description, boolean valueRequired, Range<Double> defaultValue) {
-	super(name, description, null, valueRequired, defaultValue);
+	    super(name, description, null, valueRequired, defaultValue);
+    }
+
+    public RTRangeParameter(String name, String description,
+                            NumberFormat format, boolean valueRequired,
+                            Range<Double> defaultValue)
+    {
+        super(name, description, format, valueRequired, defaultValue);
     }
     
     @Override
