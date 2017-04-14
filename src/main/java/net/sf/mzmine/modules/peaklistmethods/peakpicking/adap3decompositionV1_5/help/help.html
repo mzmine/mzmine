@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+
+    <title>Peak detection - Spectral deconvolution</title>
+
+    <style>
+        em {color: blue;}
+    </style>
+</head>
+<body>
+
+
+
+<h1>Spectral deconvolution</h1>
+
+<p>
+    This method finds analytes by combining similar peaks into clusters and using their intensities to construct
+    fragmentation mass spectra. The following steps are performed:
+</p>
+
+<ol>
+    <li>All EIC peaks in a deconvolution window are clustered based on proximity of their retention times. The user can
+        specify
+        <em>minimum distance between clusters</em>,
+        <em>minimum number of peaks forming a cluster</em>, and
+        <em>minimum cluster intensity</em>.
+        If <em>preview</em> is selected, the top right plot displays the result of
+        the clustering with dots corresponding to EIC peaks and colors corresponding to different clusters.
+    </li>
+    <li>
+        In each cluster, EIC peaks are filtered based on their sharpness and on their elution profiles. All EIC
+        peaks with shaprness below <em>minimum shaprness</em> are filtered out. If <em>Find shared peaks</em> is selected,
+        than shared peaks are filtered out as well. he user can specify <em>minimum edge-to-height ratio</em> and
+        <em>minimum delta-to-height ratio</em> that are used in determining shared peaks.
+    </li>
+    <li>
+        EIC peaks that have passed the filtering step, are clustered based on their elution profiles. The user can
+        specify <em>shape-similarity tolerance</em>: small tolerance corresponds to large number of clusters, while
+        large tolerance corresponds to a small number of clusters. If <em>preview</em> is selected, the result of the
+        clustering is shown on the bottom-right plot.
+    </li>
+    <li>
+        Each cluster corresponds to one analyte. Among all EIC peaks in the cluster, a model peak is chosen to represent
+        the elution profile of the analyte. If <em>Choise of Model Peak based on Sharpness</em> is selected, than
+        the EIC peak with the highest sharpness in the cluster is selected to be a model peak. If <em>Choice of Model
+        Peak based on M/z value</em> is selected, than the EIC peak with the highest m/z value in the cluster is
+        selected to be a model peak.
+    </li>
+    <li>
+        In order to build fragmentation spectra for analytes, each EIC peak is decomposed into a linear combination of
+        the model peaks with the weighting coefficients obtained by solving an optimization problem. These coefficients and
+        m/z value of the EIC peak contribute to the fragmentation spectra of the corresponding analytes.
+    </li>
+</ol>
+
+<h4>Method definitions</h4>
+
+
+<p>
+    <img src="peak.png" alt="EIC Peak"/>
+</p>
+
+
+<dl>
+    <dt>Sharpness</dt>
+    <dd>
+        In order to find sharpness, the medians of the slopes of the lines connecting the
+        peak apex to its other data points are calculated on each side of the peak apex. The sharpness is defined
+        as the average of the two medians.
+    </dd>
+
+    <dt>Shared peak</dt>
+    <dd>
+        EIC peak is considered to be shared (i.e. produced by two co-eluting analytes) if at least one of the following
+        conditions is satisfied:
+        <ul>
+            <li>
+                its elution profile has several local maxima
+            </li>
+            <li>
+                its left boundary intensity divided by the apex intensity exceeds <em>minimum edge-to-height ratio</em>
+            </li>
+            <li>
+                its right boundary intensity divided by the apex intensity exceeds <em>minimum edge-to-height ratio</em>
+            </li>
+            <li>
+                the absolute difference between its boundary intensities divided by the apex intensity exceeds
+                by <em>minimum edge-to-height ratio</em>
+            </li>
+        </ul>
+
+    </dd>
+</dl>
+
+<h4>Method parameters</h4>
+
+<dl>
+    <dt><em>Min cluster distance (min)</em></dt>
+    <dd>Minimum distance between any two retention-time clusters</dd>
+
+    <dt><em>Min cluster size</em></dt>
+    <dd>Minimum number of peaks in a cluster</dd>
+
+    <dt><em>Min cluster intensity</em></dt>
+    <dd>Minimum intensity of the highest peak in a cluster</dd>
+
+    <dt><em>Find shared peaks</em></dt>
+    <dd>If selected, shared peaks are determined and do not participate in the second clustering</dd>
+
+    <dt><em>Min edge-to-height ratio</em></dt>
+    <dd>Minimum value of a boundary intensity divided by the apex intensity of EIC peak that is considered to be
+        shared</dd>
+
+    <dt><em>Min delta-to-height ratio</em></dt>
+    <dd>Minimum value of the absolute difference of the boundary intensities divided by the apex intensity of EIC peak
+        that is considered to be shared</dd>
+
+    <dt><em>Min sharpness</em></dt>
+    <dd>Minimum sharpness of EIC peak that can participate in the second clustering</dd>
+
+    <dt><em>Shape-similarity tolerance (0..90)</em></dt>
+    <dd>Tolerance is used in the second clustering based on the similarity of peaks' elution profiles: small tolerance
+        corresponds to large number of clusters; large tolerance corresponds to a small number of clusters</dd>
+
+    <dt><em>Choice of Model Peak based on</em></dt>
+    <dd>In each cluster, a model peak is chosen. If Sharpness is used, than EIC peak with the highest sharpness in the
+    cluster is chosen to be a model peak. If M/z value is used, than EIC peak with the highest m/z value in the
+    cluster is chosen to be a model peak.</dd>
+
+    <dt><em>Exclude m/z-values</em></dt>
+    <dd>Optionally, the user can specify a list of deprecated m/z values such that EIC peaks with those m/z value could
+        not be chosen as model peaks. It is possible to specify single m/z values as well as ranges of m/z values. For example:
+        <a style="font-family:Trebuchet MS">1-50, 73, 100</a></dd>
+</dl>
+
+</body>
+</html>
