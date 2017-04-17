@@ -207,8 +207,8 @@ public class ADAPDetector implements PeakResolver {
                 PeakInfo curPeak = ADAPPeaks.get(i);
                 
                 SimplePeakInformation information = new SimplePeakInformation();
-                information.addProperty("Signal-to-Noise",
-                        Double.toString(curPeak.signalToNoiseRatio));
+                information.addProperty("Signal-to-Noise", Double.toString(curPeak.signalToNoiseRatio));
+                information.addProperty("Coefficient-over-area", Double.toString(curPeak.coeffOverArea));
 //                information.addProperty("index", 
 //                        //Integer.toString(scans[(int) peakIndex[j] - 1])); // Substract one because r-indices start from 1
 //                        Integer.toString((int) curPeak.peakIndex));

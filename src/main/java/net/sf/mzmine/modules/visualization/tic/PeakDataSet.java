@@ -131,6 +131,8 @@ public class PeakDataSet extends AbstractXYDataset {
 	return mzValues[item];
     }
 
+    public Feature getFeature() {return peak;}
+
     public String getName() {
 	return name;
     }
