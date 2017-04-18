@@ -102,10 +102,6 @@ public class CombinedXICComponent extends JComponent {
         Dimension size = getSize();
 
         int colorIndex = 0;
-
-        //Edit by Aleksandr Smirnov
-        //int count = 0;
-        //rtRange = Range.open(0.8, 1.1);
         
         for (Feature peak : peaks) {
 
@@ -124,11 +120,6 @@ public class CombinedXICComponent extends JComponent {
             // painted image
             int xValues[] = new int[scanNumbers.length + 2];
             int yValues[] = new int[scanNumbers.length + 2];
-
-            //Edit by Aleksandr Smirnov
-            //try {
-            //    PrintWriter writer = new PrintWriter(++count + ".txt", "UTF-8");
-            //double retTimeDelta = 0.9219387878787881 - peak.getRT();
             
             // find one datapoint with maximum intensity in each scan
             for (int i = 0; i < scanNumbers.length; i++) {
@@ -142,8 +133,6 @@ public class CombinedXICComponent extends JComponent {
                 // get retention time (X value)
                 double retentionTime = peak.getDataFile()
                         .getScan(scanNumbers[i]).getRetentionTime();
-                // Edit by Aleksandr Smirnov
-                        //+ retTimeDelta;
 
                 // calculate [X:Y] coordinates
                 xValues[i + 1] = (int) Math
@@ -153,17 +142,7 @@ public class CombinedXICComponent extends JComponent {
                         * (size.width - 1));
                 yValues[i + 1] = size.height - (int) Math.floor(
                         dataPointIntensity / maxIntensity * (size.height - 1));
-                
-                
-                // Edit by Aleksandr Smirnov
-                //writer.println(retentionTime + " " + dataPointIntensity);
-                // End of Edit
-
             }
-
-            // Edit by Aleksandr Smirnov
-            //writer.close();
-            //} catch (Exception e) {e.printStackTrace();}
             
             // add first point
             xValues[0] = xValues[1];
