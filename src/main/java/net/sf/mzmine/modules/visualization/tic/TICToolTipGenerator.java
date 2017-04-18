@@ -20,7 +20,10 @@
 package net.sf.mzmine.modules.visualization.tic;
 
 import java.text.NumberFormat;
+import java.util.Map;
 
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakInformation;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -60,13 +63,30 @@ public class TICToolTipGenerator implements XYToolTipGenerator {
 	} else if (dataSet instanceof PeakDataSet) {
 
 	    final PeakDataSet peakDataSet = (PeakDataSet) dataSet;
+	    final Feature feature  = peakDataSet.getFeature();
+		PeakInformation peakInfo = null;
+		if (feature != null) peakInfo = feature.getPeakInformation();
 
 	    final String label = peakDataSet.getName();
 	    String text = label == null || label.length() == 0 ? ""
 		    : label + '\n';
-	    text += "Retention time: " + rtFormat.format(rtValue) + "\nm/z: "
-		    + mzFormat.format(peakDataSet.getMZ(item))
-		    + "\nIntensity: " + intensityFormat.format(intValue);
+	    text += "Retention time: " + rtFormat.format(rtValue)
+				+ "\nm/z: " + mzFormat.format(peakDataSet.getMZ(item))
+				+ "\nIntensity: " + intensityFormat.format(intValue);
+
+	    NumberFormat numberFormat = NumberFormat.getInstance();
+
+	    if (peakInfo != null)
+			for (Map.Entry<String, String> e : peakInfo.getAllProperties().entrySet()) {
+	    	    try {
+	    	        double value = Double.parseDouble(e.getValue());
+                    text += "\n" + e.getKey() + ": " + numberFormat.format(value);
+                }
+                catch (NullPointerException | NumberFormatException exception) {
+	    	        continue;
+                }
+			}
+
 	    toolTip = text;
 
 	} else {

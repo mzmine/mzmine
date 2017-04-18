@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 //import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
@@ -49,9 +50,14 @@ import com.google.common.collect.Range;
 
 import dulab.adap.datamodel.PeakInfo;
 import static dulab.adap.workflow.Deconvolution.DeconvoluteSignal;
+import java.util.HashMap;
+import java.util.Map;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.COEF_AREA_THRESHOLD;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.RT_FOR_CWT_SCALES_DURATION;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.SN_ESTIMATORS;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.ABS_WAV_COEFFS;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.HALF_WAVELET_WINDOW;
  
 
 /**
@@ -125,7 +131,24 @@ public class ADAPDetector implements PeakResolver {
         Range<Double> peakDuration = parameters.getParameter(
         PEAK_DURATION).getValue();
         
+        final MZmineProcessingStep<SNEstimatorChoice> signalNoiseEstimator 
+                        = parameters.getParameter(SN_ESTIMATORS).getValue();
+        String SNCode = signalNoiseEstimator.getModule().getSNCode();
         
+        double  signalNoiseWindowMult =-1.0;
+        boolean absWavCoeffs = false;
+        Map <String,Object> informationSN = new HashMap <String,Object>();
+        if (SNCode == "Wavelet Coefficient Estimator"){
+            informationSN.put("code","Wavelet Coefficient Estimator");
+            signalNoiseWindowMult = signalNoiseEstimator.getParameterSet().getParameter(HALF_WAVELET_WINDOW).getValue();
+            absWavCoeffs = signalNoiseEstimator.getParameterSet().getParameter(ABS_WAV_COEFFS).getValue();
+            informationSN.put("multiplier",signalNoiseWindowMult);
+            informationSN.put("absolutewavecoeffs",absWavCoeffs);
+        }
+        if (SNCode == "Intensity Window Estimator") {
+            informationSN.put("code","Intensity Window Estimator");
+        }
+
         // get the average rt spacing
         double rtSum = 0.0;
         for (int i =0; i< retentionTimes.length-1; i++){
@@ -153,7 +176,8 @@ public class ADAPDetector implements PeakResolver {
                         peakDuration,
                 parameters.getParameter(COEF_AREA_THRESHOLD).getValue(),
                 numScansRTLow,
-                numScansRTHigh);
+                numScansRTHigh,
+                informationSN);
 
         final List<ResolvedPeak> resolvedPeaks;
 
@@ -182,7 +206,9 @@ public class ADAPDetector implements PeakResolver {
 
                 PeakInfo curPeak = ADAPPeaks.get(i);
                 
-//                SimplePeakInformation information = new SimplePeakInformation();
+                SimplePeakInformation information = new SimplePeakInformation();
+                information.addProperty("Signal-to-Noise", Double.toString(curPeak.signalToNoiseRatio));
+                information.addProperty("Coefficient-over-area", Double.toString(curPeak.coeffOverArea));
 //                information.addProperty("index", 
 //                        //Integer.toString(scans[(int) peakIndex[j] - 1])); // Substract one because r-indices start from 1
 //                        Integer.toString((int) curPeak.peakIndex));
@@ -199,15 +225,11 @@ public class ADAPDetector implements PeakResolver {
 
                 
                 ResolvedPeak peak = new ResolvedPeak(chromatogram, curPeak.leftApexIndex, curPeak.rightApexIndex);
-//                peak.setPeakInformation(information);
-
-                
+                peak.setPeakInformation(information);
 
 
                 resolvedPeaks.add(peak);
                 //resolvedPeaks.add(new ResolvedPeak(chromatogram,curPeak.leftApexIndex, curPeak.rightApexIndex));
-
-
             }
         }
 
