@@ -21,17 +21,20 @@ package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 public enum ExportRowCommonElement {
 
-    ROW_ID("Export row ID"), ROW_MZ("Export row m/z"), ROW_RT(
-	    "Export row retention time"), ROW_COMMENT("Export row comment"), ROW_PEAK_NUMBER(
-	    "Export row number of detected peaks");
+    ROW_ID("Export row ID"), //
+    ROW_MZ("Export row m/z"), //
+    ROW_RT("Export row retention time"), //
+    ROW_IDENTITY("Export row identity"),
+    ROW_COMMENT("Export row comment"), //
+    ROW_PEAK_NUMBER("Export row number of detected peaks");
 
     private final String name;
 
     ExportRowCommonElement(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     public String toString() {
-	return this.name;
+        return this.name;
     }
 }

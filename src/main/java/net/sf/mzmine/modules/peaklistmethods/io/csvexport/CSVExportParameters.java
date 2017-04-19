@@ -29,46 +29,49 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class CSVExportParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakLists = new PeakListsParameter(1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(
+            1);
 
     public static final FileNameParameter filename = new FileNameParameter(
-	    "Filename",
-	    "Name of the output CSV file. " +
-	    "Use pattern \"{}\" in the file name to substitute with peak list name. " +
-	    "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). " +
-	    "If the file already exists, it will be overwritten.",
-	    "csv");
+            "Filename",
+            "Name of the output CSV file. "
+                    + "Use pattern \"{}\" in the file name to substitute with peak list name. "
+                    + "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). "
+                    + "If the file already exists, it will be overwritten.",
+            "csv");
 
     public static final StringParameter fieldSeparator = new StringParameter(
-	    "Field separator",
-	    "Character(s) used to separate fields in the exported file", ",");
+            "Field separator",
+            "Character(s) used to separate fields in the exported file", ",");
 
     public static final MultiChoiceParameter<ExportRowCommonElement> exportCommonItems = new MultiChoiceParameter<ExportRowCommonElement>(
-	    "Export common elements", "Selection of row's elements to export",
-	    ExportRowCommonElement.values());
-
-    public static final IdentityItemsParameter exportIdentityItems = new IdentityItemsParameter();
+            "Export common elements", "Selection of row's elements to export",
+            ExportRowCommonElement.values());
 
     public static final MultiChoiceParameter<ExportRowDataFileElement> exportDataFileItems = new MultiChoiceParameter<ExportRowDataFileElement>(
-	    "Export data file elements",
-	    "Selection of peak's elements to export",
-	    ExportRowDataFileElement.values());
+            "Export data file elements",
+            "Selection of peak's elements to export",
+            ExportRowDataFileElement.values());
 
     public static final BooleanParameter exportAllIDs = new BooleanParameter(
-	     "Export all IDs for peak", "If checked, all identification results for a peak will be exported. ",
-	    false);
+            "Export all IDs for peak",
+            "If checked, all identification results for a peak will be exported. ",
+            false);
 
     public static final BooleanParameter exportAllPeakInfo = new BooleanParameter(
-	     "Export quantitation results and other information", "If checked, all peak-information results for a peak will be exported. ",
-	    false);
-    
+            "Export quantitation results and other information",
+            "If checked, all peak-information results for a peak will be exported. ",
+            false);
+
     public static final StringParameter idSeparator = new StringParameter(
-	    "Identification separator",
-	    "Character(s) used to separate identification results in the exported file", ";");
+            "Identification separator",
+            "Character(s) used to separate identification results in the exported file",
+            ";");
 
     public CSVExportParameters() {
-	super(new Parameter[] { peakLists, filename, fieldSeparator,
-		exportCommonItems, exportIdentityItems, exportDataFileItems, exportAllIDs,exportAllPeakInfo, idSeparator });
+        super(new Parameter[] { peakLists, filename, fieldSeparator,
+                exportCommonItems, exportDataFileItems, exportAllIDs,
+                exportAllPeakInfo, idSeparator });
     }
 
 }
