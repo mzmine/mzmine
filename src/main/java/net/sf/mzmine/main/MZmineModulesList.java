@@ -66,6 +66,7 @@ import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormaliz
 import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5.ADAP3DecompositionV1_5Module;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender.PeakExtenderModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.ShapeModelerModule;
@@ -151,7 +152,7 @@ public class MZmineModulesList {
             // Peak detection
             SmoothingModule.class, DeconvolutionModule.class,
             ShapeModelerModule.class, PeakExtenderModule.class,
-            TargetedPeakDetectionModule.class,
+            TargetedPeakDetectionModule.class, ADAP3DecompositionV1_5Module.class,
 
             // Peak list filtering
             DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
