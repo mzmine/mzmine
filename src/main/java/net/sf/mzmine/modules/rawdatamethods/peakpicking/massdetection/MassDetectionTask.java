@@ -123,9 +123,6 @@ public class MassDetectionTask extends AbstractTask {
         //String massOutLocation = outFilename.getPath()+dataFile.getName().substring(0,indexOfPeriod)+".CDF";
         String massOutLocation = outFilename != null ? outFilename.getPath() : "";
 
-        //System.out.println("out file name");
-        //System.out.println(outFilename.getPath());
-
         boolean writeMasses = true;
         // make arrays to contain everything you need
         ArrayList<Integer> pointsInScans = new ArrayList<Integer>();
@@ -179,10 +176,6 @@ public class MassDetectionTask extends AbstractTask {
                     curTotalIntensity += curMzPeak.getIntensity();
                 }
 
-
-                //System.out.println("scan.getRetentionTime()");
-                //System.out.println(scan.getRetentionTime());
-
                 scanAcquisitionTime.add(scan.getRetentionTime());
                 pointsInScans.add(0);
                 startIndex.add(mzPeaks.length+lastPointCount);
@@ -200,7 +193,7 @@ public class MassDetectionTask extends AbstractTask {
 
             if (this.saveToCDF)
             {
-                // ************** Trying to write mass list *******************************
+                // ************** write mass list *******************************
                 writer = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, massOutLocation , null);
 
                 Dimension dim_massValues = writer.addDimension(null, "mass_values", allMZ.size());
@@ -251,30 +244,18 @@ public class MassDetectionTask extends AbstractTask {
                 ArrayDouble.D1  arr_totalIntensity      = new ArrayDouble.D1(dim_totalIntensity     .getLength()); 
                 ArrayDouble.D1  arr_pointsInScans       = new ArrayDouble.D1(dim_pointsInScans      .getLength()); 
 
-                //System.out.println("pre MZ loop");
                 for (int i = 0; i < allMZ.size(); i++ ){
-                    //System.out.println("i");
-                    //System.out.println(i);
-
-                    arr_massValues.set(i,allMZ.get(i));       
+                    arr_massValues.set(i,allMZ.get(i));
                     arr_intensityValues.set(i,allIntensities.get(i));
                 }
-                //System.out.println("post MZ loop");
-                //System.out.println("pre scan ac time loop");
                 int i = 0;
                 for (; i < scanAcquisitionTime.size(); i++ ){
-                    //System.out.println("i1");
-                    //System.out.println("getting Aq time");
-                    //System.out.println(scanAcquisitionTime.get(i));
                     arr_scanAcquisitionTime.set(i,scanAcquisitionTime.get(i)*60);
                     arr_pointsInScans.set(i,pointsInScans.get(i));
                     arr_scanIndex.set(i,startIndex.get(i));
                     arr_totalIntensity.set(i,totalIntensity.get(i));
                 }
-                    //System.out.println("i2");
-                    //System.out.println(i);
                 //arr_scanIndex.set(i,startIndex.get(i));
-                //System.out.println("post scan ac time loop");
 
                 // For tiny test file
                 //arr_intensityValues     .set(0,200);
