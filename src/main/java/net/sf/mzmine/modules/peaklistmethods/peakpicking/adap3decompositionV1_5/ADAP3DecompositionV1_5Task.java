@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import dulab.adap.workflow.TwoStepDecompositionV2;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -58,7 +59,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     private final MZmineProject project;
     private final PeakList originalPeakList;
     private PeakList newPeakList;
-    private final TwoStepDecomposition decomposition;
+    private final TwoStepDecompositionV2 decomposition;
     
     // User parameters
     private final ParameterSet parameters;
@@ -71,7 +72,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
         parameters = parameterSet;
         originalPeakList = list;
         newPeakList = null;
-        decomposition = new TwoStepDecomposition();
+        decomposition = new TwoStepDecompositionV2();
     }
     
     @Override

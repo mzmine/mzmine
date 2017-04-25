@@ -49,6 +49,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
+
+import dulab.adap.workflow.TwoStepDecompositionV2;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -343,9 +345,9 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         if (minDistance == null || minSize == null || minIntensity == null)
             return;
 
-        List<List<Peak>> retTimeClusters = TwoStepDecomposition
+        List<List<Peak>> retTimeClusters = TwoStepDecompositionV2
                 .getRetTimeClusters(peaks, minDistance, minSize, minIntensity);
-        
+
         int colorIndex = 0;
         final int numColors = 7;
         final double[] colors = new double[numColors];
@@ -425,14 +427,19 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
                 || deprecatedMZValues == null) return;
         
         List <Peak> modelPeakCandidates = 
-                TwoStepDecomposition.filterPeaks(peaks, useIsShared,
+                TwoStepDecompositionV2.filterPeaks(peaks, useIsShared,
                         edgeToHeightRatio, deltaToHeightRatio,
                         minModelPeakSharpness, deprecatedMZValues);
         
         if (modelPeakCandidates.isEmpty()) return;
-        
-        List <List <Peak>> clusters = TwoStepDecomposition.getShapeClusters(
+
+        List<List<Peak>> clusters = null;
+        try {
+            clusters = TwoStepDecompositionV2.getShapeClusters(
                     modelPeakCandidates, shapeSimThreshold);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         
         outClusters.clear();
         outText.clear();
