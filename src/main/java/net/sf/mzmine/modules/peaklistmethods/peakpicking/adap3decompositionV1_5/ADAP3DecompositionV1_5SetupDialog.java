@@ -132,8 +132,6 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         
         PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
         
-        if (peakLists == null || peakLists.length == 0) return;
-        
         // -----------------------------
         // Panel with preview parameters
         // -----------------------------
@@ -141,7 +139,11 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         preview = new JCheckBox("Show preview");
         preview.addActionListener(this);
         preview.setHorizontalAlignment(SwingConstants.CENTER);
-        preview.setEnabled(true);
+
+        if (peakLists == null || peakLists.length == 0)
+            preview.setEnabled(false);
+        else
+            preview.setEnabled(true);
         
         final JPanel previewPanel = new JPanel(new BorderLayout());
         previewPanel.add(new JSeparator(), BorderLayout.NORTH);
