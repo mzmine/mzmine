@@ -26,10 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
+
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -79,11 +77,6 @@ public class MGFExportTask extends AbstractTask
 
         // Shall export several files?
         boolean substitute = fileName.getPath().contains(plNamePattern);
-
-        /*// Total number of rows
-        for (PeakList peakList: peakLists) {
-            totalRows += peakList.getNumberOfRows();
-        }*/
 
         // Process peak lists
         for (PeakList peakList: peakLists) {
@@ -158,8 +151,18 @@ public class MGFExportTask extends AbstractTask
             
             String rowID = Integer.toString(row.getID());
             if (rowID != null) writer.write("FEATURE_ID=" + rowID + newLine);
-            
-            String mass = Double.toString(row.getAverageMZ());
+
+            // Find mass of the highest peak
+            double maxHeight = 0.0;
+            Double mass = null;
+            for (Feature peak : row.getPeaks()) {
+                double height = peak.getHeight();
+                if (height > maxHeight) {
+                    maxHeight = height;
+                    mass = peak.getMZ();
+                }
+            }
+
             if (mass != null) writer.write("PEPMASS=" + mass + newLine);
             
             String retTimeInSeconds = Double.toString(row.getAverageRT() * 60);
