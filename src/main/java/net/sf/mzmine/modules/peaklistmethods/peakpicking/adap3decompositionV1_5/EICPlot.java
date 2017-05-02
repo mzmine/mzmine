@@ -17,10 +17,7 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.Paint;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -35,6 +32,8 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author Du-Lab Team <dulab.binf@gmail.com>
@@ -46,6 +45,7 @@ public class EICPlot extends ChartPanel
     private final XYSeriesCollection xyDataset;
     private final List <Double> colorDataset;
     private final List <String> toolTips;
+    private final List <Float> widths;
     
     public EICPlot()
     {
@@ -78,6 +78,7 @@ public class EICPlot extends ChartPanel
         xyDataset = new XYSeriesCollection();
         colorDataset = new ArrayList <> ();
         toolTips = new ArrayList <> ();
+        widths = new ArrayList<>();
         
         int seriesID = 0;
         
@@ -104,6 +105,11 @@ public class EICPlot extends ChartPanel
             public Paint getItemPaint(int row, int col) {
                 double c = colorDataset.get(row);
                 return Color.getHSBColor((float) c, 1.0f, 1.0f);
+            }
+
+            @Override
+            public Stroke getSeriesStroke(int series) {
+                return new BasicStroke(widths.get(series));
             }
         };
         
@@ -136,16 +142,21 @@ public class EICPlot extends ChartPanel
     
     
     
-    public void updateData(List <List <NavigableMap <Double, Double>>> clusters,
-            List <Double> colors,
-            List <List <String>> info,
-            List <NavigableMap <Double, Double>> modelPeaks)
+    public void updateData(@Nonnull List <List <NavigableMap <Double, Double>>> clusters,
+            @Nonnull List <Double> colors,
+            @Nonnull List <List <String>> info,
+            @Nonnull List <List<Boolean>> models)
     {
+        final float DEFAULT_LINE_WIDTH = 1.0f;
+        final float THICK_LINE_WIDTH = 2.0f;
+
+
 //        for (int i = 0; i < xyDataset.getSeriesCount(); ++i)
 //            xyDataset.removeSeries(i);
         xyDataset.removeAllSeries();
         colorDataset.clear();
         toolTips.clear();
+        widths.clear();
         
         int seriesID = 0;
         
@@ -160,10 +171,14 @@ public class EICPlot extends ChartPanel
                 
                 for (Entry <Double, Double> e : cluster.get(j).entrySet())
                     series.add(e.getKey(), e.getValue());
-                
+
+                float width = DEFAULT_LINE_WIDTH;
+                if (models.get(i).get(j)) width = THICK_LINE_WIDTH;
+
                 xyDataset.addSeries(series);
                 colorDataset.add(color);
                 toolTips.add(info.get(i).get(j));
+                widths.add(width);
             }
         }
     }

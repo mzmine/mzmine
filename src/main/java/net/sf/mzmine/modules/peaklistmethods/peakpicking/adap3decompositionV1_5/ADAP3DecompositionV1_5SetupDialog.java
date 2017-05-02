@@ -20,6 +20,8 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import dulab.adap.common.algorithms.FeatureTools;
+import dulab.adap.common.algorithms.Math;
+import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
 import dulab.adap.workflow.TwoStepDecomposition;
 import java.awt.BorderLayout;
@@ -58,6 +60,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.xpath.operations.Bool;
 
 /**
  *
@@ -268,14 +271,14 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
 
             if (item != null)
             {
-                final List <List <NavigableMap <Double, Double>>> shapeClusters = 
-                        new ArrayList <> ();
+                final List <List <NavigableMap <Double, Double>>> shapeClusters = new ArrayList <> ();
+                final List <List<Boolean>> models = new ArrayList<>();
                 final List <List <String>> texts = new ArrayList <> ();
                 final List <Double> colors = new ArrayList <> ();
 
-                shapeCluster(item.cluster, shapeClusters, texts, colors);
+                shapeCluster(item.cluster, shapeClusters, models, texts, colors);
 
-                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, null);
+                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, models);
             }
         }
 
@@ -290,14 +293,14 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
 
             if (item != null)
             {
-                final List <List <NavigableMap <Double, Double>>> shapeClusters = 
-                        new ArrayList <> ();
+                final List <List <NavigableMap <Double, Double>>> shapeClusters = new ArrayList <> ();
+                final List <List<Boolean>> models = new ArrayList<>();
                 final List <List <String>> texts = new ArrayList <> ();
                 final List <Double> colors = new ArrayList <> ();
 
-                shapeCluster(item.cluster, shapeClusters, texts, colors);
+                shapeCluster(item.cluster, shapeClusters, models, texts, colors);
 
-                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, null);
+                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, models);
             }
         }
     }
@@ -403,6 +406,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
     
     private void shapeCluster(List <Peak> peaks,
             List <List <NavigableMap <Double, Double>>> outClusters,
+            List <List <Boolean>> outModels,
             List <List <String>> outText,
             List <Double> outColors)
     {
@@ -433,7 +437,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         
         if (modelPeakCandidates.isEmpty()) return;
 
-        List<List<Peak>> clusters = null;
+        List<Component> clusters = null;
         try {
             clusters = TwoStepDecompositionV2.getShapeClusters(
                     modelPeakCandidates, shapeSimThreshold);
@@ -442,6 +446,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         }
         
         outClusters.clear();
+        outModels.clear();
         outText.clear();
         outColors.clear();
         
@@ -454,19 +459,35 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         
         for (int i = 0; i < numColors; ++i) colors[i] = rand.nextDouble();
         
-        for (List <Peak> cluster : clusters) 
+        for (Component component : clusters)
         {
-            List <NavigableMap <Double, Double>> c = 
-                    new ArrayList <> (cluster.size());
+            final int numPeaks = component.size();
+            List <NavigableMap <Double, Double>> c = new ArrayList <> (numPeaks);
+            List <Boolean> models = new ArrayList<>(numPeaks);
+            List <String> texts = new ArrayList <> (numPeaks);
             
-            List <String> texts = new ArrayList <> (cluster.size());
-            
-            for (Peak peak : cluster) {
+            for (Peak peak : component.getPeaks())
+            {
                 c.add(peak.getChromatogram());
-                texts.add(peak.getInfo() + "\nSharpness: " +
-                        numberFormat.format(FeatureTools.sharpnessYang(peak.getChromatogram())));
+
+                boolean isModel = peak == component.getBestPeak();
+                models.add(isModel);
+
+//                double error = 0.0;
+//                try {
+//                    error = TwoStepDecompositionV2.getGaussianFitError(peak) / peak.getIntensity();
+//                }
+//                catch (IllegalArgumentException e) {}
+
+                String text = "";
+                if (isModel) text += "Model Peak\n";
+                text += peak.getInfo();
+//                text += "\nSharpness: " + numberFormat.format(FeatureTools.sharpnessYang(peak.getChromatogram()));
+                text += "\nGFE: " + peak.getInfo().gaussianFitError;
+                texts.add(text);
             }
             outClusters.add(c);
+            outModels.add(models);
             outText.add(texts);
             
             outColors.add(colors[colorIndex % numColors]);
@@ -492,7 +513,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         final Set <Integer> secondPhaseIndices = 
                 new HashSet <> (Arrays.asList(new Integer[] {4, 5, 6, 7, 8, 10}));
         
-        int size = Math.min(currentValues.length, newValues.length);
+        int size = java.lang.Math.min(currentValues.length, newValues.length);
         
         Set <Integer> changedIndices = new HashSet <> ();
         
