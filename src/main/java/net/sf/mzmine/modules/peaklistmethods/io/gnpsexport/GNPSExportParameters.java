@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2016 Dorrestein Lab
+ * 
+ * For any questions or concerns, please refer to:
+ * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
+ */
+
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
 
 import net.sf.mzmine.parameters.Parameter;
@@ -6,11 +13,6 @@ import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
-/**
- *  
- * @author Dorrestein Lab
- *
- */
 
 public class GNPSExportParameters extends SimpleParameterSet {
     

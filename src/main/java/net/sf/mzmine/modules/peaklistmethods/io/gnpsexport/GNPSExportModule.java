@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2016 Dorrestein Lab
+ * 
+ * For any questions or concerns, please refer to:
+ * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
+ */
+
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
 
 import java.util.Collection;

@@ -1,20 +1,8 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright (C) 2016 Dorrestein Lab
  * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * For any questions or concerns, please refer to:
+ * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
  */
 
 package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
@@ -41,7 +29,7 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 
-public class ExportForSiriusTask extends AbstractTask 
+public class SiriusExportTask extends AbstractTask 
 {
     private final PeakList[] peakLists;
     private final File fileName;
@@ -50,20 +38,20 @@ public class ExportForSiriusTask extends AbstractTask
     private final String roundMode;
     private final String massListName;
     
-    ExportForSiriusTask(ParameterSet parameters) 
+    SiriusExportTask(ParameterSet parameters) 
     {
-        this.peakLists = parameters.getParameter(ExportForSiriusParameters.PEAK_LISTS)
+        this.peakLists = parameters.getParameter(SiriusExportParameters.PEAK_LISTS)
                 .getValue().getMatchingPeakLists();
         
-        this.fileName = parameters.getParameter(ExportForSiriusParameters.FILENAME)
+        this.fileName = parameters.getParameter(SiriusExportParameters.FILENAME)
                 .getValue();
         
-        this.fractionalMZ = parameters.getParameter(ExportForSiriusParameters.FRACTIONAL_MZ)
+        this.fractionalMZ = parameters.getParameter(SiriusExportParameters.FRACTIONAL_MZ)
                 .getValue();
         
-        this.roundMode = parameters.getParameter(ExportForSiriusParameters.ROUND_MODE)
+        this.roundMode = parameters.getParameter(SiriusExportParameters.ROUND_MODE)
                 .getValue();
-        this.massListName = parameters.getParameter(ExportForSiriusParameters.MASS_LIST)
+        this.massListName = parameters.getParameter(SiriusExportParameters.MASS_LIST)
         		.getValue(); 
     }
     
@@ -242,11 +230,11 @@ public class ExportForSiriusTask extends AbstractTask
             
             switch (mode) 
             {
-                case ExportForSiriusParameters.ROUND_MODE_SUM:
+                case SiriusExportParameters.ROUND_MODE_SUM:
                     integerDataPoints.put(mz, prevIntensity + intensity);
                     break;
                     
-                case ExportForSiriusParameters.ROUND_MODE_MAX:
+                case SiriusExportParameters.ROUND_MODE_MAX:
                     integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
                     break;
             }
