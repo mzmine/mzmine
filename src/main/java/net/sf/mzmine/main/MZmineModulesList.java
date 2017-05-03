@@ -144,11 +144,7 @@ public class MZmineModulesList {
             XMLExportModule.class, CasmiImportModule.class,            
             MzTabImportModule.class, XMLImportModule.class,
             MSPExportModule.class, MGFExportModule.class,
-<<<<<<< HEAD
-            GNPSExportModule.class,
-=======
-            ExportForSiriusModule.class,
->>>>>>> origin/master
+            GNPSExportModule.class, ExportForSiriusModule.class,
 
             // Gap filling
             PeakFinderModule.class, SameRangeGapFillerModule.class,
