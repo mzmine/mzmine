@@ -1,8 +1,13 @@
 /*
- * Copyright (C) 2016 Dorrestein Lab
+ * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang 
+ * at the Dorrestein Lab (University of California, San Diego). 
+ * 
+ * It is freely available under the GNU GPL licence of MZmine2.
  * 
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
+ * 
+ * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
