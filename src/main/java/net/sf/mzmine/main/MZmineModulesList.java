@@ -158,7 +158,7 @@ public class MZmineModulesList {
 
             // Peak list filtering
             DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-            PeakFilterModule.class,
+            PeakFilterModule.class, PeakFilterMS2Module.class,
 
             // Normalization
             RTNormalizerModule.class, LinearNormalizerModule.class,
