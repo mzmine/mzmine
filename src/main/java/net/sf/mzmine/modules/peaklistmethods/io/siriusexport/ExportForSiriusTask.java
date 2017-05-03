@@ -202,8 +202,8 @@ public class ExportForSiriusTask extends AbstractTask
 	            	"There is no mass list called " + massListName
 	            		+ " for MS/MS scan #" + msmsScanNumber + " ("
 	            		+ bestPeak.getDataFile() + ")");
-	            	    return;
-	            	}
+	            	return;
+	            }
 	            	
 	            	writer.write("BEGIN IONS"+newLine);                		                		                                                
 	                
@@ -217,14 +217,13 @@ public class ExportForSiriusTask extends AbstractTask
 	                writer.write("MSLEVEL=2" + newLine);                                                                                                
 	                
 	            	DataPoint peaks[] = massList.getDataPoints();
-	        	    for (DataPoint peak : peaks) {
-	        		    writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);                		    
-	        	    }
-	        	    writer.write("END IONS"+newLine);
-	        	    writer.write(newLine);
+	        	for (DataPoint peak : peaks) {
+	        		writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);                		    
+	        	}
+	        	writer.write("END IONS"+newLine);
+	        	writer.write(newLine);
             	}
             }
-        
     }
     
     private DataPoint[] integerDataPoints(final DataPoint[] dataPoints, 
