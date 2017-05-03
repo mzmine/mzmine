@@ -37,7 +37,7 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class PeakFilterMS2Module implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "MS2 scans filter";
+    private static final String MODULE_NAME =  "Keep only features with MS/MS scan (GNPS)";
     private static final String MODULE_DESCRIPTION = "This method removes certain peak entries that do not have MS scans";
 
     @Override
