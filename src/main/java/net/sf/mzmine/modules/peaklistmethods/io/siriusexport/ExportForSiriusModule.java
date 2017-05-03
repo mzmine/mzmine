@@ -13,7 +13,7 @@ import net.sf.mzmine.util.ExitCode;
 
 public class ExportForSiriusModule implements MZmineProcessingModule {
     private static final String MODULE_NAME = "Export for SIRIUS";
-    private static final String MODULE_DESCRIPTION = "This method exports MS1 and MS/MS peak list spectra into a MGF file.";
+    private static final String MODULE_DESCRIPTION = "This method exports a MGF file that contains for each feature, (1) the deconvoluted MS1 isotopic pattern, and (2) the MS/MS spectrum (highest precursor ion intensity). This file can be open and processed with Sirius, https://bio.informatik.uni-jena.de/software/sirius/.";
 
     @Override
     public @Nonnull String getName() {
