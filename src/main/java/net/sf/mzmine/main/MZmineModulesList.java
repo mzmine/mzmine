@@ -58,6 +58,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.ExportForSiriusModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
@@ -143,7 +144,11 @@ public class MZmineModulesList {
             XMLExportModule.class, CasmiImportModule.class,            
             MzTabImportModule.class, XMLImportModule.class,
             MSPExportModule.class, MGFExportModule.class,
+<<<<<<< HEAD
             GNPSExportModule.class,
+=======
+            ExportForSiriusModule.class,
+>>>>>>> origin/master
 
             // Gap filling
             PeakFinderModule.class, SameRangeGapFillerModule.class,
