@@ -35,7 +35,6 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot
 import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.peakcomparisonrowfilter.PeakComparisonRowFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter.PeakFilterModule;
-import net.sf.mzmine.modules.peaklistmethods.filtering.peakfilterMS2Scan.PeakFilterMS2Module;
 import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.PeakFinderModule;
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange.SameRangeGapFillerModule;
@@ -160,7 +159,7 @@ public class MZmineModulesList {
 
             // Peak list filtering
             DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-            PeakFilterModule.class, PeakFilterMS2Module.class,
+            PeakFilterModule.class,
 
             // Normalization
             RTNormalizerModule.class, LinearNormalizerModule.class,
