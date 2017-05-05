@@ -39,7 +39,7 @@ public class SiriusExportTask extends AbstractTask
     private final PeakList[] peakLists;
     private final File fileName;
     private final String plNamePattern = "{}";
-    private final boolean fractionalMZ;
+//    private final boolean fractionalMZ;
     private final String roundMode;
     private final String massListName;
     
@@ -51,8 +51,8 @@ public class SiriusExportTask extends AbstractTask
         this.fileName = parameters.getParameter(SiriusExportParameters.FILENAME)
                 .getValue();
         
-        this.fractionalMZ = parameters.getParameter(SiriusExportParameters.FRACTIONAL_MZ)
-                .getValue();
+//        this.fractionalMZ = parameters.getParameter(SiriusExportParameters.FRACTIONAL_MZ)
+//                .getValue();
         
         this.roundMode = parameters.getParameter(SiriusExportParameters.ROUND_MODE)
                 .getValue();
@@ -163,8 +163,8 @@ public class SiriusExportTask extends AbstractTask
             
             DataPoint[] dataPoints = ip.getDataPoints();
             
-            if (!fractionalMZ)
-                dataPoints = integerDataPoints(dataPoints, roundMode);
+//            if (!fractionalMZ)
+//                dataPoints = integerDataPoints(dataPoints, roundMode);
             
             for (DataPoint point : dataPoints)
             {
@@ -219,38 +219,38 @@ public class SiriusExportTask extends AbstractTask
             }
     }
     
-    private DataPoint[] integerDataPoints(final DataPoint[] dataPoints, 
-            final String mode)
-    {
-        int size = dataPoints.length;
-        
-        Map <Double, Double> integerDataPoints = new HashMap <> ();
-        
-        for (int i = 0; i < size; ++i)
-        {
-            double mz = (double) Math.round(dataPoints[i].getMZ());
-            double intensity = dataPoints[i].getIntensity();
-            Double prevIntensity = integerDataPoints.get(mz);
-            if (prevIntensity == null) prevIntensity = 0.0;
-            
-            switch (mode) 
-            {
-                case SiriusExportParameters.ROUND_MODE_SUM:
-                    integerDataPoints.put(mz, prevIntensity + intensity);
-                    break;
-                    
-                case SiriusExportParameters.ROUND_MODE_MAX:
-                    integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
-                    break;
-            }
-        }
-        
-        DataPoint[] result = new DataPoint[integerDataPoints.size()];
-        int count = 0;
-        for (Entry <Double, Double> e : integerDataPoints.entrySet())
-            result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
-        
-        return result;
-    }
+//    private DataPoint[] integerDataPoints(final DataPoint[] dataPoints, 
+//            final String mode)
+//    {
+//        int size = dataPoints.length;
+//        
+//        Map <Double, Double> integerDataPoints = new HashMap <> ();
+//        
+//        for (int i = 0; i < size; ++i)
+//        {
+//            double mz = (double) Math.round(dataPoints[i].getMZ());
+//            double intensity = dataPoints[i].getIntensity();
+//            Double prevIntensity = integerDataPoints.get(mz);
+//            if (prevIntensity == null) prevIntensity = 0.0;
+//            
+//            switch (mode) 
+//            {
+//                case SiriusExportParameters.ROUND_MODE_SUM:
+//                    integerDataPoints.put(mz, prevIntensity + intensity);
+//                    break;
+//                    
+//                case SiriusExportParameters.ROUND_MODE_MAX:
+//                    integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
+//                    break;
+//            }
+//        }
+//        
+//        DataPoint[] result = new DataPoint[integerDataPoints.size()];
+//        int count = 0;
+//        for (Entry <Double, Double> e : integerDataPoints.entrySet())
+//            result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
+//        
+//        return result;
+//    }
     
 }

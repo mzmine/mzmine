@@ -35,9 +35,9 @@ public class SiriusExportParameters extends SimpleParameterSet
 	    "If the file already exists, it will be overwritten.",
 	    "mgf");
     
-    public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter(
-            "Fractional m/z values", "If checked, write fractional m/z values", 
-            true);
+//    public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter(
+//            "Fractional m/z values", "If checked, write fractional m/z values", 
+//            true);
    
     public static final ComboParameter <String> ROUND_MODE = 
             new ComboParameter <> (
@@ -49,6 +49,6 @@ public class SiriusExportParameters extends SimpleParameterSet
     public static final MassListParameter MASS_LIST = new MassListParameter();
     
     public SiriusExportParameters() {
-	super(new Parameter[] {PEAK_LISTS, FILENAME, FRACTIONAL_MZ, ROUND_MODE, MASS_LIST});
+	super(new Parameter[] {PEAK_LISTS, FILENAME, /*FRACTIONAL_MZ,*/ ROUND_MODE, MASS_LIST});
     }
 }
