@@ -91,7 +91,7 @@ public class PeakFilterParameters extends SimpleParameterSet {
             "If checked, the original peak list will be removed leaving only the filtered version");
     
     public static final BooleanParameter MS2_Filter = new BooleanParameter(
-            "Keep only features with MS/MS scan (GNPS)",
+            "Keep only features with MS/MS scan",
             "If checked, the feature that don't contain MS2 scan will be removed.");
     public PeakFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA,
