@@ -181,6 +181,8 @@ public class RowsFilterTask extends AbstractTask {
                 .getParameter(RowsFilterParameters.RT_RANGE).getValue();
         final boolean filterByDuration = parameters
                 .getParameter(RowsFilterParameters.PEAK_DURATION).getValue();
+        final boolean filterByMS2 = parameters
+                .getParameter(RowsFilterParameters.MS2_Filter).getValue();
         final String removeRowString = (String) parameters
                 .getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
         Double minCount = parameters
@@ -332,6 +334,16 @@ public class RowsFilterTask extends AbstractTask {
                 if (!durationRange.contains(avgDuration))
                     filterRowCriteriaFailed = true;
 
+            }
+            // Check ms2 filter .
+            if (filterByMS2) {
+            	// iterates the peaks
+            	for (int i = 0; i<peakCount; i++ ) {
+            		if(row.getPeaks()[i].getMostIntenseFragmentScanNumber() <1) {
+            			 filterRowCriteriaFailed = true;
+            			 break;
+            		}
+            	}     
             }
 
             if (!filterRowCriteriaFailed && !removeRow)
