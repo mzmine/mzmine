@@ -184,39 +184,39 @@ public class SiriusExportTask extends AbstractTask
             // Get the MS/MS scan number
             int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
             if (msmsScanNumber >= 1) {
-	            // MS/MS scan must exist, because msmsScanNumber was > 0
-	            Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
+	    	// MS/MS scan must exist, because msmsScanNumber was > 0
+	        Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
 
-	            MassList massList = msmsScan.getMassList(massListName);
+	        MassList massList = msmsScan.getMassList(massListName);
 
-	            if (massList == null) {
-	            	MZmineCore.getDesktop().displayErrorMessage(
-	            	MZmineCore.getDesktop().getMainWindow(),
-	            	"There is no mass list called " + massListName
-	            		+ " for MS/MS scan #" + msmsScanNumber + " ("
-	            		+ bestPeak.getDataFile() + ")");
-	            	return;
-	            }
+	        if (massList == null) {
+	            MZmineCore.getDesktop().displayErrorMessage(
+	            MZmineCore.getDesktop().getMainWindow(),
+	            "There is no mass list called " + massListName
+	            	+ " for MS/MS scan #" + msmsScanNumber + " ("
+	            	+ bestPeak.getDataFile() + ")");
+	            return;
+	        }
+		    
+	        writer.write("BEGIN IONS"+newLine);
 
-	            	writer.write("BEGIN IONS"+newLine);
+	        if (mass != null) writer.write("PEPMASS=" + mass + newLine);
+                if (rowID != null) writer.write("FEATURE_ID=" + rowID + newLine);
+	        writer.write("CHARGE=1"+newLine);
+	        if(rowID != null) {
+	            writer.write("SCANS=" + rowID + newLine);
+	            writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
+	        }
+	        writer.write("MSLEVEL=2" + newLine);
 
-	                if (mass != null) writer.write("PEPMASS=" + mass + newLine);
-                    if (rowID != null) writer.write("FEATURE_ID=" + rowID + newLine);
-	                writer.write("CHARGE=1"+newLine);
-	                if(rowID != null) {
-	                	writer.write("SCANS=" + rowID + newLine);
-	                	writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
-	                }
-	                writer.write("MSLEVEL=2" + newLine);
-
-	            	DataPoint peaks[] = massList.getDataPoints();
-	        	for (DataPoint peak : peaks) {
-	        		writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
-	        	}
-	        	writer.write("END IONS"+newLine);
-	        	writer.write(newLine);
-            	}
+	        DataPoint peaks[] = massList.getDataPoints();
+	        for (DataPoint peak : peaks) {
+	            writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
+	        }
+	   	writer.write("END IONS"+newLine);
+	        writer.write(newLine);
             }
+        }
     }
 
 //    private DataPoint[] integerDataPoints(final DataPoint[] dataPoints,
