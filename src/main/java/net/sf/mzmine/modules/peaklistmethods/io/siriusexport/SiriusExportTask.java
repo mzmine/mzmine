@@ -199,8 +199,9 @@ public class SiriusExportTask extends AbstractTask
 	            }
 
 	            	writer.write("BEGIN IONS"+newLine);
-	                
+
 	                if (mass != null) writer.write("PEPMASS=" + mass + newLine);
+                    if (rowID != null) writer.write("FEATURE_ID=" + rowID + newLine);
 	                writer.write("CHARGE=1"+newLine);
 	                if(rowID != null) {
 	                	writer.write("SCANS=" + rowID + newLine);
