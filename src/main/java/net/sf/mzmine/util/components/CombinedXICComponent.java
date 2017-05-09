@@ -113,10 +113,10 @@ public class CombinedXICComponent extends JComponent {
             if ((peak == null) || (peak.getScanNumbers().length == 0))
                 continue;
 
-            // get scan numbers, one data point per each scan
+            // get scan numbers, one data item per each scan
             int scanNumbers[] = peak.getScanNumbers();
 
-            // for each datapoint, find [X:Y] coordinates of its point in
+            // for each datapoint, find [X:Y] coordinates of its item in
             // painted image
             int xValues[] = new int[scanNumbers.length + 2];
             int yValues[] = new int[scanNumbers.length + 2];
@@ -144,11 +144,11 @@ public class CombinedXICComponent extends JComponent {
                         dataPointIntensity / maxIntensity * (size.height - 1));
             }
             
-            // add first point
+            // add first item
             xValues[0] = xValues[1];
             yValues[0] = size.height - 1;
 
-            // add terminal point
+            // add terminal item
             xValues[xValues.length - 1] = xValues[xValues.length - 2];
             yValues[yValues.length - 1] = size.height - 1;
 

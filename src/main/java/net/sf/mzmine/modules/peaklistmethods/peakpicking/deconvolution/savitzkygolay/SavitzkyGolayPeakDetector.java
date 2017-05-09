@@ -249,7 +249,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
             }
 
             // If the peak starts in a region with no data points, move the
-            // start to the first available data point.
+            // start to the first available data item.
             while (currentPeakStart < scanNumbers.length - 1) {
 
                 if (chromatogram.getDataPoint(scanNumbers[currentPeakStart]) == null) {
@@ -263,7 +263,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
             }
 
             // Scan the peak from the beginning and if we find a missing data
-            // point inside, we have to finish the
+            // item inside, we have to finish the
             // peak there.
             for (int newEnd = currentPeakStart; newEnd <= currentPeakEnd; newEnd++) {
 

@@ -46,7 +46,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
     public static final PercentParameter MIN_RELATIVE_HEIGHT = new PercentParameter(
 	    "Minimum relative height",
-	    "Minimum height of a peak relative to the chromatogram top data point");
+	    "Minimum height of a peak relative to the chromatogram top data item");
 
     public static final DoubleParameter MIN_ABSOLUTE_HEIGHT = new DoubleParameter(
 	    "Minimum absolute height",

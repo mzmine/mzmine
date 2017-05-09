@@ -54,7 +54,7 @@ public class ThreeDPeakCells extends CellImpl {
      * @param display3D
      *            the parent display.
      * @param pointType
-     *            the point tuple type.
+     *            the item tuple type.
      * @param pickRenderer
      *            pick renderer.
      */

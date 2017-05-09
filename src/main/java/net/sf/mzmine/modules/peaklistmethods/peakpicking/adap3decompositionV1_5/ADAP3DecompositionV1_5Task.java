@@ -21,7 +21,6 @@ import dulab.adap.common.algorithms.FeatureTools;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
 import dulab.adap.datamodel.PeakInfo;
-import dulab.adap.workflow.TwoStepDecomposition;
 import dulab.adap.workflow.TwoStepDecompositionParameters;
         
 import java.io.IOException;
@@ -29,7 +28,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import dulab.adap.workflow.TwoStepDecompositionV2;
+import dulab.adap.workflow.decomposition.Decomposition;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -42,7 +41,6 @@ import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.R.RSessionWrapper;
 
 import javax.annotation.Nonnull;
 
@@ -59,7 +57,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
     private final MZmineProject project;
     private final PeakList originalPeakList;
     private PeakList newPeakList;
-    private final TwoStepDecompositionV2 decomposition;
+    private final Decomposition decomposition;
     
     // User parameters
     private final ParameterSet parameters;
@@ -72,7 +70,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
         parameters = parameterSet;
         originalPeakList = list;
         newPeakList = null;
-        decomposition = new TwoStepDecompositionV2();
+        decomposition = new Decomposition();
     }
     
     @Override

@@ -52,11 +52,11 @@ public class RTRangeParameter extends DoubleRangeParameter {
 	    return false;
 	}
         else if (this.getValue().lowerEndpoint() <= 0.0) {
-	    errorMessages.add("lower end point must be greater than zero");
+	    errorMessages.add("lower end item must be greater than zero");
 	    return false;
 	}
         else if (this.getValue().upperEndpoint() <= this.getValue().lowerEndpoint()) {
-	    errorMessages.add("lower end point must be less than upper end point");
+	    errorMessages.add("lower end item must be less than upper end item");
 	    return false;
 	}
         

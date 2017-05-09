@@ -19,11 +19,9 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5
 
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
-import dulab.adap.common.algorithms.FeatureTools;
-import dulab.adap.common.algorithms.Math;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
-import dulab.adap.workflow.TwoStepDecomposition;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -34,13 +32,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -52,7 +44,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
-import dulab.adap.workflow.TwoStepDecompositionV2;
+import dulab.adap.workflow.decomposition.Decomposition;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -60,7 +52,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.xpath.operations.Bool;
 
 /**
  *
@@ -348,7 +339,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         if (minDistance == null || minSize == null || minIntensity == null)
             return;
 
-        List<List<Peak>> retTimeClusters = TwoStepDecompositionV2
+        List<List<Peak>> retTimeClusters = Decomposition
                 .getRetTimeClusters(peaks, minDistance, minSize, minIntensity);
 
         int colorIndex = 0;
@@ -431,7 +422,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
                 || deprecatedMZValues == null) return;
         
         List <Peak> modelPeakCandidates = 
-                TwoStepDecompositionV2.filterPeaks(peaks, useIsShared,
+                Decomposition.filterPeaks(peaks, useIsShared,
                         edgeToHeightRatio, deltaToHeightRatio,
                         minModelPeakSharpness, deprecatedMZValues);
         
@@ -439,11 +430,14 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
 
         List<Component> clusters = null;
         try {
-            clusters = TwoStepDecompositionV2.getShapeClusters(
+            clusters = Decomposition.getShapeClusters(
                     modelPeakCandidates, shapeSimThreshold);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+//        clusters = new ArrayList<>();
+//        clusters.add(new Component(peaks, peaks.get(0), new TreeMap<Double, Double>(), null));
         
         outClusters.clear();
         outModels.clear();
@@ -475,7 +469,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
 
 //                double error = 0.0;
 //                try {
-//                    error = TwoStepDecompositionV2.getGaussianFitError(peak) / peak.getIntensity();
+//                    error = Decomposition.getGaussianFitError(peak) / peak.getIntensity();
 //                }
 //                catch (IllegalArgumentException e) {}
 

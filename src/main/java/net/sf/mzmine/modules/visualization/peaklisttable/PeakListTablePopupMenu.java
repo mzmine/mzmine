@@ -134,7 +134,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         showSpectrumItem = GUIUtils
                 .addMenuItem(showMenu, "Mass spectrum", this);
         show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
-        showPoint2DItem = GUIUtils.addMenuItem(showMenu, "Point peak in 2D", this);
+        showPoint2DItem = GUIUtils.addMenuItem(showMenu, "Item peak in 2D", this);
         show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
         showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
         showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,

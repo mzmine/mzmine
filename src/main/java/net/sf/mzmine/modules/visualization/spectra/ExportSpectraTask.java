@@ -165,7 +165,7 @@ public class ExportSpectraTask extends AbstractTask {
 
             for (int i = 0; i < itemCount; i++) {
 
-                // Write data point row
+                // Write data item row
                 writer.write(dataPoints[i].getMZ() + " "
                         + dataPoints[i].getIntensity());
                 writer.newLine();

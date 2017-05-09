@@ -103,8 +103,12 @@ public class EICPlot extends ChartPanel
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer() {
             @Override
             public Paint getItemPaint(int row, int col) {
-                double c = colorDataset.get(row);
-                return Color.getHSBColor((float) c, 1.0f, 1.0f);
+                if (widths.get(row) == 1.0)
+                    return new Color(0,0,0,50);
+                else {
+                    double c = colorDataset.get(row);
+                    return Color.getHSBColor((float) c, 1.0f, 1.0f);
+                }
             }
 
             @Override
