@@ -188,7 +188,10 @@ public class RowsFilterTask extends AbstractTask {
         Double minCount = parameters
                 .getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
                 .getEmbeddedParameter().getValue();
+        final boolean renumber = parameters 
+                .getParameter(RowsFilterParameters.Reset_ID).getValue();
 
+        int rowsCount =0;
         boolean removeRow = false;
 
         if (removeRowString.equals(RowsFilterParameters.removeRowChoices[0]))
@@ -346,13 +349,26 @@ public class RowsFilterTask extends AbstractTask {
             	}     
             }
 
-            if (!filterRowCriteriaFailed && !removeRow)
+             if (!filterRowCriteriaFailed && !removeRow){
                 // Only add the row if none of the criteria have failed.
-                newPeakList.addRow(copyPeakRow(row));
-            if (filterRowCriteriaFailed && removeRow)
+            	rowsCount ++;
+            	PeakListRow resetRow = copyPeakRow(row);
+            	if(renumber){
+                	resetRow.setID(rowsCount);
+                }
+            	newPeakList.addRow(resetRow);
+            }
+
+            if (filterRowCriteriaFailed && removeRow){
                 // Only remove rows that match *all* of the criteria, so add
                 // rows that fail any of the criteria.
-                newPeakList.addRow(copyPeakRow(row));
+            	rowsCount ++;
+            	PeakListRow resetRow = copyPeakRow(row);
+            	if(renumber){
+                	resetRow.setID(rowsCount);
+                }
+            	newPeakList.addRow(resetRow);
+            }
 
         }
 
