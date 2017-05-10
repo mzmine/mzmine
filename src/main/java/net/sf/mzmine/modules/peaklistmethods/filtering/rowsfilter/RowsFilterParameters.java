@@ -96,10 +96,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
             "If checked, the original peak list will be removed leaving only the filtered version");
     public static final BooleanParameter MS2_Filter = new BooleanParameter(
             "Keep only peaks with MS2 scan (GNPS)",
-            "If checked, the rows that don't contain MS2 scan will be removed.);
+            "If checked, the rows that don't contain MS2 scan will be removed.");
     public static final BooleanParameter Reset_ID = new BooleanParameter(
              "Reset the peak number ID",
-             "If checked, the row number of original peak list will be reset");
+             "If checked, the row number of original peak list will be reset.");
 
     public RowsFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT,
