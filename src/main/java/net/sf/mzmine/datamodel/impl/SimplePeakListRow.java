@@ -334,5 +334,6 @@ public class SimplePeakListRow implements PeakListRow {
     public void setID (int id){
     	myID =id;
     	return;
+    }
 }
     //End DorresteinLab edit
