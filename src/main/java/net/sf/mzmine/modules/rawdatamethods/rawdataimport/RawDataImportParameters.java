@@ -60,9 +60,9 @@ public class RawDataImportParameters extends SimpleParameterSet {
         // We need to allow directories, because Waters raw data come in
         // directories, not files
         chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-
+        
         for (FileFilter filter : filters)
-            chooser.setFileFilter(filter);
+            chooser.addChoosableFileFilter(filter);
         chooser.setFileFilter(filters[0]);
 
         File lastFiles[] = getParameter(fileNames).getValue();
