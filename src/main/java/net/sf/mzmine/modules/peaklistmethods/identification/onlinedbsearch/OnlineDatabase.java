@@ -27,10 +27,8 @@ import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.datab
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.HMDBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.KEGGGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.LipidMapsGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MassBankJapanGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MassBankEuropeGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MetLinGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MetLinParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MassBankJapanGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.PlantCycGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.PubChemGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.YMDBGateway;
@@ -43,10 +41,10 @@ public enum OnlineDatabase implements MZmineModule {
     PubChem("PubChem Compound Database", PubChemGateway.class), //
     HMDB("Human Metabolome Database (HMDB)", HMDBGateway.class), //
     YMDB("Yeast Metabolome Database (YMDB)", YMDBGateway.class), //
-    METLIN("METLIN Database", MetLinGateway.class, MetLinParameters.class), //
+    // METLIN("METLIN Database", MetLinGateway.class, MetLinParameters.class), 
     LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class), //
-    MASSBANKJapan("Japanese MassBank (Metabolomics, Environmental)", MassBankJapanGateway.class), //
-	MASSBANKEurope("European MassBank (Metabolomics, Environmental, Literature, Tentatives, Unknowns)", MassBankEuropeGateway.class), //
+    MASSBANKJapan("Japanese MassBank", MassBankJapanGateway.class), //
+	MASSBANKEurope("European MassBank", MassBankEuropeGateway.class), //
     CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class,
 	    ChemSpiderParameters.class), //
     PLANTCYC("PlantCyc Database", PlantCycGateway.class);
