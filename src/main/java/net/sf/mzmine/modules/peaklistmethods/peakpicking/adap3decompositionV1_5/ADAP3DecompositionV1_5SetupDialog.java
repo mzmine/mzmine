@@ -33,6 +33,7 @@ import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import javax.annotation.Nonnull;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -267,9 +268,10 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
                 final List <List <String>> texts = new ArrayList <> ();
                 final List <Double> colors = new ArrayList <> ();
 
-                shapeCluster(item.cluster, shapeClusters, models, texts, colors);
+                List<Peak> modelPeaks = shapeCluster(item.cluster, shapeClusters, models, texts, colors);
 
-                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, models);
+//                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, models);
+                retTimeIntensityPlot.updateData(item.cluster, modelPeaks);
             }
         }
 
@@ -289,9 +291,10 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
                 final List <List <String>> texts = new ArrayList <> ();
                 final List <Double> colors = new ArrayList <> ();
 
-                shapeCluster(item.cluster, shapeClusters, models, texts, colors);
+                List<Peak> modelPeaks = shapeCluster(item.cluster, shapeClusters, models, texts, colors);
 
-                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, models);
+//                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, models);
+                retTimeIntensityPlot.updateData(item.cluster, modelPeaks);
             }
         }
     }
@@ -394,8 +397,9 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
      * @param outText output of tooltip text
      * @param outColors output of colors
      */
-    
-    private void shapeCluster(List <Peak> peaks,
+
+    @Nonnull
+    private List<Peak> shapeCluster(List <Peak> peaks,
             List <List <NavigableMap <Double, Double>>> outClusters,
             List <List <Boolean>> outModels,
             List <List <String>> outText,
@@ -419,14 +423,14 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         if (edgeToHeightRatio == null || deltaToHeightRatio == null 
                 || useIsShared == null || shapeSimThreshold == null 
                 || minModelPeakSharpness == null 
-                || deprecatedMZValues == null) return;
+                || deprecatedMZValues == null) return new ArrayList<>(0);
         
         List <Peak> modelPeakCandidates = 
                 Decomposition.filterPeaks(peaks, useIsShared,
                         edgeToHeightRatio, deltaToHeightRatio,
                         minModelPeakSharpness, deprecatedMZValues);
         
-        if (modelPeakCandidates.isEmpty()) return;
+        if (modelPeakCandidates.isEmpty()) return new ArrayList<>(0);
 
         List<Component> clusters = null;
         try {
@@ -435,6 +439,11 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        List <Peak> modelPeaks = new ArrayList<>(clusters.size());
+        for (Component c : clusters)
+            modelPeaks.add(c.getBestPeak());
+
 
 //        clusters = new ArrayList<>();
 //        clusters.add(new Component(peaks, peaks.get(0), new TreeMap<Double, Double>(), null));
@@ -487,6 +496,8 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
             outColors.add(colors[colorIndex % numColors]);
             ++colorIndex;
         }
+
+        return modelPeaks;
     }
     
     private byte compareParameters(Parameter[] newValues)

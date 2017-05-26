@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
+
+import dulab.adap.datamodel.Peak;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -42,6 +44,14 @@ import javax.annotation.Nonnull;
 
 public class EICPlot extends ChartPanel 
 {
+    private enum PeakType {SIMPLE, MODEL};
+
+    private static final Color[] COLORS = new Color[] {
+            Color.BLUE, Color.CYAN, Color.GRAY,
+            Color.GREEN, Color.MAGENTA, Color.ORANGE,
+            Color.PINK, Color.RED, Color.YELLOW
+    };
+
     private final XYSeriesCollection xyDataset;
     private final List <Double> colorDataset;
     private final List <String> toolTips;
@@ -102,18 +112,33 @@ public class EICPlot extends ChartPanel
         
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer() {
             @Override
-            public Paint getItemPaint(int row, int col) {
-                if (widths.get(row) == 1.0)
-                    return new Color(0,0,0,50);
-                else {
-                    double c = colorDataset.get(row);
-                    return Color.getHSBColor((float) c, 1.0f, 1.0f);
-                }
+            public Paint getItemPaint(int row, int col)
+            {
+                String type = xyDataset.getSeries(row).getDescription();
+
+                Paint color;
+
+                if (type.equals(PeakType.MODEL.name()))
+                    color = COLORS[row % COLORS.length];
+                else
+                    color = new Color(0,0,0,50);
+
+                return color;
             }
 
             @Override
-            public Stroke getSeriesStroke(int series) {
-                return new BasicStroke(widths.get(series));
+            public Stroke getSeriesStroke(int series)
+            {
+                XYSeries s = xyDataset.getSeries(series);
+                String type = s.getDescription();
+
+                float width;
+                if (type.equals((PeakType.MODEL.name())))
+                    width = 2.0f;
+                else
+                    width = 1.0f;
+
+                return new BasicStroke(width);
             }
         };
         
@@ -184,6 +209,34 @@ public class EICPlot extends ChartPanel
                 toolTips.add(info.get(i).get(j));
                 widths.add(width);
             }
+        }
+    }
+
+    void updateData(@Nonnull List<Peak> peaks, @Nonnull List<Peak> modelPeaks)
+    {
+        xyDataset.removeAllSeries();
+
+        int seriesID = 0;
+        for (Peak peak : peaks)
+        {
+            XYSeries series = new XYSeries(seriesID++);
+            series.setDescription(PeakType.SIMPLE.name());
+
+            for (Entry<Double, Double> e : peak.getChromatogram().entrySet())
+                series.add(e.getKey(), e.getValue());
+
+            xyDataset.addSeries(series);
+        }
+
+        for (Peak peak : modelPeaks)
+        {
+            XYSeries series = new XYSeries((seriesID++));
+            series.setDescription(PeakType.MODEL.name());
+
+            for (Entry<Double, Double> e : peak.getChromatogram().entrySet())
+                series.add(e.getKey(), e.getValue());
+
+            xyDataset.addSeries(series);
         }
     }
 }
