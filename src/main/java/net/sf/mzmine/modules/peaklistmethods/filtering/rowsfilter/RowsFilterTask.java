@@ -181,12 +181,17 @@ public class RowsFilterTask extends AbstractTask {
                 .getParameter(RowsFilterParameters.RT_RANGE).getValue();
         final boolean filterByDuration = parameters
                 .getParameter(RowsFilterParameters.PEAK_DURATION).getValue();
+        final boolean filterByMS2 = parameters
+                .getParameter(RowsFilterParameters.MS2_Filter).getValue();
         final String removeRowString = (String) parameters
                 .getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
         Double minCount = parameters
                 .getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
                 .getEmbeddedParameter().getValue();
+        final boolean renumber = parameters 
+                .getParameter(RowsFilterParameters.Reset_ID).getValue();
 
+        int rowsCount =0;
         boolean removeRow = false;
 
         if (removeRowString.equals(RowsFilterParameters.removeRowChoices[0]))
@@ -333,14 +338,37 @@ public class RowsFilterTask extends AbstractTask {
                     filterRowCriteriaFailed = true;
 
             }
+            // Check ms2 filter .
+            if (filterByMS2) {
+            	// iterates the peaks
+            	for (int i = 0; i<peakCount; i++ ) {
+            		if(row.getPeaks()[i].getMostIntenseFragmentScanNumber() <1) {
+            			 filterRowCriteriaFailed = true;
+            			 break;
+            		}
+            	}     
+            }
 
-            if (!filterRowCriteriaFailed && !removeRow)
+             if (!filterRowCriteriaFailed && !removeRow){
                 // Only add the row if none of the criteria have failed.
-                newPeakList.addRow(copyPeakRow(row));
-            if (filterRowCriteriaFailed && removeRow)
+            	rowsCount ++;
+            	PeakListRow resetRow = copyPeakRow(row);
+            	if(renumber){
+                	resetRow.setID(rowsCount);
+                }
+            	newPeakList.addRow(resetRow);
+            }
+
+            if (filterRowCriteriaFailed && removeRow){
                 // Only remove rows that match *all* of the criteria, so add
                 // rows that fail any of the criteria.
-                newPeakList.addRow(copyPeakRow(row));
+            	rowsCount ++;
+            	PeakListRow resetRow = copyPeakRow(row);
+            	if(renumber){
+                	resetRow.setID(rowsCount);
+                }
+            	newPeakList.addRow(resetRow);
+            }
 
         }
 

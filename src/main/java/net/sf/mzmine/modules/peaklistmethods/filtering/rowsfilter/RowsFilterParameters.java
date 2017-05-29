@@ -94,12 +94,18 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",
             "If checked, the original peak list will be removed leaving only the filtered version");
+    public static final BooleanParameter MS2_Filter = new BooleanParameter(
+            "Keep only peaks with MS2 scan (GNPS)",
+            "If checked, the rows that don't contain MS2 scan will be removed.");
+    public static final BooleanParameter Reset_ID = new BooleanParameter(
+             "Reset the peak number ID",
+             "If checked, the row number of original peak list will be reset.");
 
     public RowsFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT,
                 MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
                 GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-                REMOVE_ROW, AUTO_REMOVE });
+                REMOVE_ROW, MS2_Filter,Reset_ID,AUTO_REMOVE });
     }
 
     @Override

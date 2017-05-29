@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -136,9 +137,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 	// Locks the temporary file so it is not removed when another instance
 	// of MZmine is starting. Lock will be automatically released when this
-	// instance of MZmine exits.
-	FileChannel fileChannel = dataPointsFile.getChannel();
-	fileChannel.lock();
+	// instance of MZmine exits. Locking may fail on network-mounted filesystems.
+	try {
+	    FileChannel fileChannel = dataPointsFile.getChannel();
+	    fileChannel.lock();
+	} catch (IOException e) {
+	    logger.log(Level.WARNING, "Failed to lock the file " + dataPointsFileName, e);
+	}
 
 	// Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
 	// bug #4171239. We will try to remove the temporary files in a

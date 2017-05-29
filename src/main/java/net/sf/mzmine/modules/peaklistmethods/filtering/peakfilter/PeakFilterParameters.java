@@ -89,11 +89,14 @@ public class PeakFilterParameters extends SimpleParameterSet {
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
             "Remove source peak list after filtering",
             "If checked, the original peak list will be removed leaving only the filtered version");
-
+    
+    public static final BooleanParameter MS2_Filter = new BooleanParameter(
+            "Keep only features with MS/MS scan",
+            "If checked, the feature that don't contain MS2 scan will be removed.");
     public PeakFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA,
                 PEAK_HEIGHT, PEAK_DATAPOINTS, PEAK_FWHM, PEAK_TAILINGFACTOR,
-                PEAK_ASYMMETRYFACTOR, AUTO_REMOVE });
+                PEAK_ASYMMETRYFACTOR, MS2_Filter, AUTO_REMOVE });
     }
 
     @Override

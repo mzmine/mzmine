@@ -132,11 +132,15 @@ public class MetLinGateway implements DBGateway {
 
 	URL structure3DURL = null;
 
+	/*
 	DBCompound newCompound = new DBCompound(OnlineDatabase.METLIN, ID,
 		compoundName, compoundFormula, entryURL, structure2DURL,
 		structure3DURL);
 
 	return newCompound;
+	
+	*/
+	return null;
 
     }
 }

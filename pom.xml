@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.mzmine</groupId>
 	<artifactId>mzmine2</artifactId>
-	<version>2.24</version>
+	<version>2.26</version>
 	<name>MZmine</name>
 	<description>MZmine is an open-source project delivering a software for mass spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>https://mzmine.github.io</url>
@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.5.14</cdk.version>
+		<cdk.version>1.5.15</cdk.version>
 		<jmztab.version>3.0.6</jmztab.version>
 	</properties>
 
@@ -185,41 +185,89 @@
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-core</artifactId>
 			<version>${cdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.vecmath</groupId>
+					<artifactId>vecmath</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-io</artifactId>
 			<version>${cdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.vecmath</groupId>
+					<artifactId>vecmath</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-standard</artifactId>
 			<version>${cdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.vecmath</groupId>
+					<artifactId>vecmath</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-silent</artifactId>
 			<version>${cdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.vecmath</groupId>
+					<artifactId>vecmath</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-formula</artifactId>
 			<version>${cdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.vecmath</groupId>
+					<artifactId>vecmath</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-sdg</artifactId>
 			<version>${cdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.vecmath</groupId>
+					<artifactId>vecmath</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-renderbasic</artifactId>
 			<version>${cdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.vecmath</groupId>
+					<artifactId>vecmath</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-renderawt</artifactId>
 			<version>${cdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.vecmath</groupId>
+					<artifactId>vecmath</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- End of CDK dependencies -->
