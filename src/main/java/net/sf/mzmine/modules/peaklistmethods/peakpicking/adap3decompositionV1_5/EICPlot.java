@@ -47,7 +47,7 @@ public class EICPlot extends ChartPanel
     private enum PeakType {SIMPLE, MODEL};
 
     private static final Color[] COLORS = new Color[] {
-            Color.BLUE, Color.CYAN, Color.GRAY,
+            Color.BLUE, Color.CYAN,
             Color.GREEN, Color.MAGENTA, Color.ORANGE,
             Color.PINK, Color.RED, Color.YELLOW
     };
