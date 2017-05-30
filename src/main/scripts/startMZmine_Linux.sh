@@ -31,7 +31,7 @@ JAVA_COMMAND=java
 # By default we set the maximum HEAP_SIZE to 1024 MB on 32-bit systems. On 64-bit systems we 
 # either set it to half of the total memory or 2048 MB less than the total memory.
 echo "Checking physical memory size..."
-TOTAL_MEMORY=`free -b | awk '/Mem:/ { print int($2 / 1024^2) }'`
+TOTAL_MEMORY=`LC_ALL=C free -b | awk '/Mem:/ { print int($2 / 1024^2) }'`
 echo "Found $TOTAL_MEMORY MB memory"
 
 if [ "$HEAP_SIZE" = "AUTO" ]; then
