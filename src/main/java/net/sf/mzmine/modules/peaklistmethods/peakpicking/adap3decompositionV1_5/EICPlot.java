@@ -49,7 +49,7 @@ public class EICPlot extends ChartPanel
     private static final Color[] COLORS = new Color[] {
             Color.BLUE, Color.CYAN,
             Color.GREEN, Color.MAGENTA, Color.ORANGE,
-            Color.PINK, Color.RED, Color.YELLOW
+            Color.PINK, Color.RED
     };
 
     private final XYSeriesCollection xyDataset;
