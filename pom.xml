@@ -167,7 +167,7 @@
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
 			<artifactId>jmol</artifactId>
-			<version>14.8.0</version>
+			<version>14.15.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
