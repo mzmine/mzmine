@@ -148,7 +148,7 @@ public class GNPSExportTask extends AbstractTask {
                 // Get the MS/MS scan number
                 
                  msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-               	if (msmsScanNumber <1) {
+               	if (msmsScanNumber < 1) {
                		copyRow.removePeak(bestPeak.getDataFile());
                		if(copyRow.getPeaks().length !=0){
                			// row is not empty  		
@@ -157,14 +157,7 @@ public class GNPSExportTask extends AbstractTask {
                		}
             	}
             }
-
-        	if (msmsScanNumber >= 1) {            	             	
-        
-        	// Best peak always exists, because peak list row has at least one peak
-        	Feature bestPeak = row.getBestPeak();
         	
-        	// Get the MS/MS scan number
-        	int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
         	if (msmsScanNumber >= 1) {            	             	
             	// MS/MS scan must exist, because msmsScanNumber was > 0
             	Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
