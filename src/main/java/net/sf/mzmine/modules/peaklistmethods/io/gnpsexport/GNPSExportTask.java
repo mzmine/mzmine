@@ -1,5 +1,5 @@
-
-/* This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang 
+/*
+ * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang 
  * at the Dorrestein Lab (University of California, San Diego). 
  * 
  * It is freely available under the GNU GPL licence of MZmine2.
