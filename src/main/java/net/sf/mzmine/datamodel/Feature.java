@@ -181,5 +181,10 @@ public interface Feature {
     public void setPeakInformation(SimplePeakInformation peakInfoIn);
     public SimplePeakInformation getPeakInformation();
     //End dulab Edit
+    
+    //Dorrestian Edit
+    public double getMZrangeMSMS ();
+    public double getRTrangeMSMS ();
+    
 
 }

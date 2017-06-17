@@ -39,24 +39,28 @@ public class HighestDataPointConnector {
     private final double minimumTimeSpan, minimumHeight;
     private final RawDataFile dataFile;
     private final int allScanNumbers[];
+    private final double mzRangeMSMS,RTRangeMSMS;
 
     // Mapping of last data point m/z --> chromatogram
     private Set<Chromatogram> buildingChromatograms;
 
     public HighestDataPointConnector(RawDataFile dataFile, int allScanNumbers[],
             double minimumTimeSpan, double minimumHeight,
-            MZTolerance mzTolerance) {
+            MZTolerance mzTolerance,double mzRangeMSMS,double RTRangeMSMS) {
 
         this.mzTolerance = mzTolerance;
         this.minimumHeight = minimumHeight;
         this.minimumTimeSpan = minimumTimeSpan;
         this.dataFile = dataFile;
         this.allScanNumbers = allScanNumbers;
+        this.mzRangeMSMS=mzRangeMSMS;
+        this.RTRangeMSMS = RTRangeMSMS;
 
         // We use LinkedHashSet to maintain a reproducible ordering. If we use
         // plain HashSet, the resulting peak list row IDs will have different
         // order every time the method is invoked.
         buildingChromatograms = new LinkedHashSet<Chromatogram>();
+        
 
     }
 
@@ -98,7 +102,7 @@ public class HighestDataPointConnector {
                     continue;
                 }
             } else {
-                bestChromatogram = new Chromatogram(dataFile, allScanNumbers);
+                bestChromatogram = new Chromatogram(dataFile, allScanNumbers,mzRangeMSMS,RTRangeMSMS);
             }
 
             // Add this mzPeak to the chromatogram

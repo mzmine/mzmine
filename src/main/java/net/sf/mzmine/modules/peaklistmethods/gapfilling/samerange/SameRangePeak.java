@@ -315,6 +315,13 @@ class SameRangePeak implements Feature {
         return peakInfo;
     }
     //End dulab Edit
+    // added for new update in feature interface
+    public double getMZrangeMSMS (){
+    	return 0;
+    }
+    public double getRTrangeMSMS (){
+    	return 0;
+    }
 
 
 }

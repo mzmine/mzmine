@@ -24,7 +24,9 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
@@ -52,13 +54,24 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
             MZmineCore.getConfiguration().getIntensityFormat());
 
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final OptionalParameter<DoubleParameter> mzRangeMSMS = new OptionalParameter<>(new DoubleParameter(
+    		"m/z range for MS2 scan pairing (Da)",
+    		"M/z range: Will work only if ticked.\n"
+    			+ "Maximum allowed difference between the m/z value of MS1 scan and the m/z value of precursor ion of MS2 scan (in Daltons) to be\n"
+    			+ "considered belonging to the same feature. If not activated, the m/z tolerance set above will be used.\n"));
+    public static final OptionalParameter<DoubleParameter> RetentionTimeMSMS = new OptionalParameter<>(new DoubleParameter(
+    		"RT range for MS2 scan pairing (min)",
+    		"RT range: Will work only if ticked.\n"+
+    		"Maximum allowed difference between the retention time value of MS1 scan and the retention time value of the MS2 scan (in min) to be\n"
+    			+ "considered belonging to the same feature. If not activated, the pairing of MS1 scan with the corresponding MS2 scan\n"
+    			+ "will be done on the full retention time range of the chromatogram."));
 
     public static final StringParameter suffix = new StringParameter("Suffix",
             "This string is added to filename as suffix", "chromatograms");
 
     public ChromatogramBuilderParameters() {
         super(new Parameter[] { dataFiles, scanSelection, massList,
-                minimumTimeSpan, minimumHeight, mzTolerance, suffix });
+                minimumTimeSpan, minimumHeight, mzTolerance, mzRangeMSMS,RetentionTimeMSMS,suffix });
     }
 
 }

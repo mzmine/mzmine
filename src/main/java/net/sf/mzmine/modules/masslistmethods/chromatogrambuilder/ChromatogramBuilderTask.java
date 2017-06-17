@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -30,6 +32,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter.PeakFilterParameters;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -59,6 +62,9 @@ public class ChromatogramBuilderTask extends AbstractTask {
     private double minimumTimeSpan, minimumHeight;
 
     private SimplePeakList newPeakList;
+    private  boolean setMSMSRange;
+    private boolean setMSMSRT;
+    private double msmsRange,RTRangeMSMS;
 
     /**
      * @param dataFile
@@ -85,6 +91,20 @@ public class ChromatogramBuilderTask extends AbstractTask {
         this.minimumHeight = parameters
                 .getParameter(ChromatogramBuilderParameters.minimumHeight)
                 .getValue();
+        this.setMSMSRange = parameters.getParameter(
+        		ChromatogramBuilderParameters.mzRangeMSMS).getValue();
+        if (setMSMSRange)
+        	this.msmsRange =parameters.getParameter(ChromatogramBuilderParameters.
+        			mzRangeMSMS).getEmbeddedParameter().getValue();
+        else 
+        	this.msmsRange = 0;
+        this.setMSMSRT = parameters.getParameter(
+        		ChromatogramBuilderParameters.RetentionTimeMSMS).getValue();
+        if (setMSMSRT)
+        	this.RTRangeMSMS =parameters.getParameter(ChromatogramBuilderParameters.
+        			RetentionTimeMSMS).getEmbeddedParameter().getValue();
+        else 
+        	this.RTRangeMSMS = 0;
 
         this.suffix = parameters
                 .getParameter(ChromatogramBuilderParameters.suffix).getValue();
@@ -147,7 +167,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         Chromatogram[] chromatograms;
         HighestDataPointConnector massConnector = new HighestDataPointConnector(
                 dataFile, allScanNumbers, minimumTimeSpan, minimumHeight,
-                mzTolerance);
+                mzTolerance,msmsRange,RTRangeMSMS);
 
         for (Scan scan : scans) {
 
@@ -191,6 +211,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         }
 
         // Add new peaklist to the project
+        System.out.print(this.RTRangeMSMS);
         project.addPeakList(newPeakList);
 
         // Add quality parameters to peaks
