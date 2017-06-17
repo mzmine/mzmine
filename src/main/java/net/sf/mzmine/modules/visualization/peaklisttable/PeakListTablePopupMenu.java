@@ -89,7 +89,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private final JMenuItem showMSMSItem;
     private final JMenuItem showIsotopePatternItem;
     private final JMenuItem show2DItem;
-    private final JMenuItem showPoint2DItem;
     private final JMenuItem show3DItem;
     private final JMenuItem exportIsotopesItem;
     private final JMenuItem exportMSMSItem;
@@ -134,7 +133,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         showSpectrumItem = GUIUtils
                 .addMenuItem(showMenu, "Mass spectrum", this);
         show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
-        showPoint2DItem = GUIUtils.addMenuItem(showMenu, "Point peak in 2D", this);
         show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
         showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
         showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
@@ -187,7 +185,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         // First, disable all the Show... items
         show2DItem.setEnabled(false);
-        showPoint2DItem.setEnabled(false);
         show3DItem.setEnabled(false);
         manuallyDefineItem.setEnabled(false);
         showMSMSItem.setEnabled(false);
@@ -229,7 +226,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
             // Enable items.
             show2DItem.setEnabled(oneRowSelected);
-            showPoint2DItem.setEnabled(oneRowSelected);
             show3DItem.setEnabled(oneRowSelected);
             showPeakRowSummaryItem.setEnabled(oneRowSelected);
 
