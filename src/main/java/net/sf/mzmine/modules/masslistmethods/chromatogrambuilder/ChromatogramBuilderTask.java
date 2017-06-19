@@ -211,7 +211,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         }
 
         // Add new peaklist to the project
-        logger.info("TRTangeMSMS: "+this.RTRangeMSMS);
+        logger.info("RTRangeMSMS: "+this.RTRangeMSMS);
         project.addPeakList(newPeakList);
 
         // Add quality parameters to peaks
