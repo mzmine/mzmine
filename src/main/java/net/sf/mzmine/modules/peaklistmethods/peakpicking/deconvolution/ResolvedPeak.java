@@ -77,7 +77,7 @@ public class ResolvedPeak implements Feature {
      * selected region MUST NOT contain any zero-intensity data points,
      * otherwise exception is thrown.
      */
-    public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd) {
+    public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd, double msmsRange, double RTRangeMSMS) {
 
         assert regionEnd > regionStart;
 
@@ -160,21 +160,18 @@ public class ResolvedPeak implements Feature {
             area += (currentRT - previousRT) * (currentHeight + previousHeight)
                     / 2;
         }
-        double mzRangeMSMS = chromatogram.getMZrangeMSMS();
-        double RTRangeMSMS = chromatogram.getRTrangeMSMS();
-        
+
+        // Update fragment scan
         double lowerBound = rawDataPointsMZRange.lowerEndpoint();
         double upperBound = rawDataPointsMZRange.upperEndpoint();
-        
         double mid = (upperBound+lowerBound)/2;
-        lowerBound = mid - mzRangeMSMS/2;
-        upperBound = mid + mzRangeMSMS/2;
+        lowerBound = mid - msmsRange/2;
+        upperBound = mid + msmsRange/2;
         if(lowerBound <0){
         	lowerBound =0;
         }
-        
         Range<Double> searchingRange = Range
-                .closed(lowerBound,upperBound);
+        		.closed(lowerBound,upperBound);
         double lowerBoundRT = rawDataPointsRTRange.lowerEndpoint();
         double upperBoundRT = rawDataPointsRTRange.upperEndpoint();
         double midRT = (upperBoundRT+lowerBoundRT)/2;
@@ -184,15 +181,13 @@ public class ResolvedPeak implements Feature {
         	lowerBound =0;
         }
         Range<Double> searchingRangeRT = Range
-                .closed(lowerBoundRT,upperBoundRT);
+        		.closed(lowerBoundRT,upperBoundRT);
         
-        if (mzRangeMSMS == 0)
+        if (msmsRange == 0)
         	searchingRange = rawDataPointsMZRange;
         if (RTRangeMSMS == 0)
         	searchingRangeRT = dataFile.getDataRTRange(1);
         
-     // Update fragment scan
-
         fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
         		searchingRangeRT, searchingRange);
 
@@ -330,11 +325,4 @@ public class ResolvedPeak implements Feature {
         return peakInfo;
     }
     //End dulab Edit
-    // added for new update in feature interface
-    public double getMZrangeMSMS (){
-    	return 0;
-    }
-    public double getRTrangeMSMS (){
-    	return 0;
-    }
 }

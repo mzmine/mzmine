@@ -343,12 +343,5 @@ public class GaussianPeakModel implements Feature {
     public void setAsymmetryFactor(Double af) {
         this.af = af;
     }
-    // added for new update in feature interface
-    public double getMZrangeMSMS (){
-    	return 0;
-    }
-    public double getRTrangeMSMS (){
-    	return 0;
-    }
 
 }

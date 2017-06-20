@@ -62,8 +62,6 @@ public class SimpleFeature implements Feature {
     // method.
     private IsotopePattern isotopePattern;
     private int charge = 0;
-    // for msms pairing
-    private Double RTRangeMSMS,MZRangeMSMS;
 
     /**
      * Initializes a new peak using given values
@@ -340,14 +338,5 @@ public class SimpleFeature implements Feature {
         return peakInfo;
     }
     //End dulab Edit
-    
-    //Dorrestian Edit
-    public double getMZrangeMSMS () {
-    	return MZRangeMSMS;
-    }
-    public double getRTrangeMSMS () {
-    	return RTRangeMSMS;
-    }
-    //End Dorrestian Edit
 
 }

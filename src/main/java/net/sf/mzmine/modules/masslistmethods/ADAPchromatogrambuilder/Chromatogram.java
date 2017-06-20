@@ -547,11 +547,4 @@ public class Chromatogram implements Feature {
     public SimplePeakInformation getPeakInformation(){
         return peakInfo;
     }
-    // added for new update in feature interface
-    public double getMZrangeMSMS (){
-    	return 0;
-    }
-    public double getRTrangeMSMS (){
-    	return 0;
-    }
 }

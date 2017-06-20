@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
@@ -38,7 +38,6 @@ import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.ScanUtils;
-import java.util.logging.Logger;
 
 /**
  * Chromatogram implementing ChromatographicPeak.
@@ -62,7 +61,7 @@ public class Chromatogram implements Feature {
 
     // Ranges of raw data points
     private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange,
-            rawDataPointsRTRange,searchingRangeRT, searchingRange;
+            rawDataPointsRTRange;
 
     // A set of scan numbers of a segment which is currently being connected
     private Vector<Integer> buildingSegment;
@@ -84,11 +83,9 @@ public class Chromatogram implements Feature {
     private int mzN = 0;
 
     private final int scanNumbers[];
-    private double mzRangeMSMS,RTRangeMSMS;
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     public void outputChromToFile(){
-    	 logger.info("does nothing");
+        System.out.println("does nothing");
     }
 
     /**
@@ -102,17 +99,6 @@ public class Chromatogram implements Feature {
 
         dataPointsMap = new Hashtable<Integer, DataPoint>();
         buildingSegment = new Vector<Integer>(128);
-    }
-    public Chromatogram(RawDataFile dataFile, int scanNumbers[], double mzRangeMSMS,double RTRangeMSMS) {
-        this.dataFile = dataFile;
-        this.scanNumbers = scanNumbers;
-
-        rawDataPointsRTRange = dataFile.getDataRTRange(1);
-
-        dataPointsMap = new Hashtable<Integer, DataPoint>();
-        buildingSegment = new Vector<Integer>(128);
-        this.mzRangeMSMS = mzRangeMSMS;
-        this.RTRangeMSMS=RTRangeMSMS;
     }
 
     /**
@@ -248,8 +234,6 @@ public class Chromatogram implements Feature {
                         .span(Range.singleton(mzPeak.getMZ()));
             }
 
-
-
             if (height < mzPeak.getIntensity()) {
                 height = mzPeak.getIntensity();
                 rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
@@ -274,8 +258,16 @@ public class Chromatogram implements Feature {
         }
 
         // Update fragment scan
+        fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
+                dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
-       
+        if (fragmentScan > 0) {
+            Scan fragmentScanObject = dataFile.getScan(fragmentScan);
+            int precursorCharge = fragmentScanObject.getPrecursorCharge();
+            if (precursorCharge > 0)
+                this.charge = precursorCharge;
+        }
+
         rawDataPointsRTRange = null;
 
         for (int scanNum : allScanNumbers) {
@@ -291,47 +283,6 @@ public class Chromatogram implements Feature {
                 rawDataPointsRTRange = rawDataPointsRTRange
                         .span(Range.singleton(scanRt));
         }
-        
-        double lowerBound = rawDataPointsMZRange.lowerEndpoint();
-        double upperBound = rawDataPointsMZRange.upperEndpoint();
-        
-        double mid = (upperBound+lowerBound)/2;
-        lowerBound = mid - mzRangeMSMS/2;
-        upperBound = mid + mzRangeMSMS/2;
-        if(lowerBound <0){
-        	lowerBound =0;
-        }
-        
-        this.searchingRange = Range
-                .closed(lowerBound,upperBound);
-        double lowerBoundRT = rawDataPointsRTRange.lowerEndpoint();
-        double upperBoundRT = rawDataPointsRTRange.upperEndpoint();
-        double midRT = (upperBoundRT+lowerBoundRT)/2;
-        lowerBoundRT = midRT - RTRangeMSMS/2;
-        upperBoundRT = midRT + RTRangeMSMS/2;
-        if(lowerBound <0){
-        	lowerBound =0;
-        }
-        this.searchingRangeRT = Range
-                .closed(lowerBoundRT,upperBoundRT);
-        
-        if (mzRangeMSMS == 0)
-        	searchingRange = rawDataPointsMZRange;
-        if (RTRangeMSMS == 0)
-        	searchingRangeRT = dataFile.getDataRTRange(1);
-        
-        fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
-        		searchingRangeRT, searchingRange);
-        
-
-        if (fragmentScan > 0) {
-            Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-            int precursorCharge = fragmentScanObject.getPrecursorCharge();
-            if (precursorCharge > 0)
-                this.charge = precursorCharge;
-        }
-
-
 
         // Discard the fields we don't need anymore
         buildingSegment = null;
@@ -406,12 +357,6 @@ public class Chromatogram implements Feature {
     }
     public SimplePeakInformation getPeakInformation(){
         return peakInfo;
-    }
-    public double getMZrangeMSMS () {
-    	return mzRangeMSMS;
-    }
-    public double getRTrangeMSMS () {
-    	return RTRangeMSMS;
     }
 
 }

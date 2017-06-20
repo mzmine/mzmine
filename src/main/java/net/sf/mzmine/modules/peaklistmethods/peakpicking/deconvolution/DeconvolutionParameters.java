@@ -26,11 +26,13 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumse
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 
 public class DeconvolutionParameters extends SimpleParameterSet {
 
@@ -50,10 +52,21 @@ public class DeconvolutionParameters extends SimpleParameterSet {
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
 	    "Remove original peak list",
 	    "If checked, original chromatogram will be removed and only the deconvolved version remains");
-
+    public static final OptionalParameter<DoubleParameter> mzRangeMSMS = new OptionalParameter<>(new DoubleParameter(
+    	 		"m/z range for MS2 scan pairing (Da)",
+    	  		"M/z range: Will work only if ticked.\n"
+    	  					+ "Maximum allowed difference between the m/z value of MS1 scan and the m/z value of precursor ion of MS2 scan (in Daltons) to be\n"
+    	  					+ "considered belonging to the same feature. If not activated, the m/z tolerance set above will be used.\n"));
+     public static final OptionalParameter<DoubleParameter> RetentionTimeMSMS = new OptionalParameter<>(new DoubleParameter(
+    		  		"RT range for MS2 scan pairing (min)",
+    		   		"RT range: Will work only if ticked.\n"+
+    	    		"Maximum allowed difference between the retention time value of MS1 scan and the retention time value of the MS2 scan (in min) to be\n"
+    		  		+ "considered belonging to the same feature. If not activated, the pairing of MS1 scan with the corresponding MS2 scan\n"
+    	  			+ "will be done on the full retention time range of the chromatogram."));
+    		 
     public DeconvolutionParameters() {
 	super(
-		new Parameter[] { PEAK_LISTS, SUFFIX, PEAK_RESOLVER,
+		new Parameter[] { PEAK_LISTS, SUFFIX, PEAK_RESOLVER,mzRangeMSMS,RetentionTimeMSMS,
 			AUTO_REMOVE });
     }
 }

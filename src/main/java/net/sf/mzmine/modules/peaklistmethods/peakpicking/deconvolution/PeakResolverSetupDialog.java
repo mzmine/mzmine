@@ -242,9 +242,10 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
                     } else {
                         rSession = null;
                     }
-
+                    // preview doesn't show msms scans
+                    // set it to be default searching range
                     resolvedPeaks = peakResolver.resolvePeaks(previewPeak,
-                            parameters, rSession);
+                            parameters, rSession,0,0);
 
                     // Turn off R instance.
                     if (rSession != null)
