@@ -56,7 +56,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
-            ParameterSet parameters, RSessionWrapper rSession) {
+            ParameterSet parameters, RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
         int scanNumbers[] = chromatogram.getScanNumbers();
         final int scanCount = scanNumbers.length;
         double retentionTimes[] = new double[scanCount];
@@ -137,7 +137,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
                                             - retentionTimes[currentRegionStart])) {
 
                         resolvedPeaks.add(new ResolvedPeak(chromatogram,
-                                currentRegionStart, currentRegionEnd));
+                                currentRegionStart, currentRegionEnd,  msmsRange,  rTRangeMSMS));
                     }
 
                     // Set the next region start to current region end - 1
@@ -200,7 +200,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
                                                 - retentionTimes[currentRegionStart])) {
 
                             resolvedPeaks.add(new ResolvedPeak(chromatogram,
-                                    currentRegionStart, currentRegionEnd));
+                                    currentRegionStart, currentRegionEnd, msmsRange,rTRangeMSMS));
                         }
 
                         // Set the next region start to current region end-1

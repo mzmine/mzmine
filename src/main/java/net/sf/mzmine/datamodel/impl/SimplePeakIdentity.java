@@ -133,7 +133,7 @@ public class SimplePeakIdentity implements PeakIdentity {
     @Override
     // Removed @Nonnull in front because the function may return null
     public String getPropertyValue(final String property) {
-		return properties.get(property);
+	return properties.get(property);
     }
 
     public void setPropertyValue(final String property, final String value) {

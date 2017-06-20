@@ -52,7 +52,7 @@ public class BaselinePeakDetector implements PeakResolver {
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
             ParameterSet parameters,
-            RSessionWrapper rSession) {
+            RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
 
         int scanNumbers[] = chromatogram.getScanNumbers();
         final int scanCount = scanNumbers.length;
@@ -117,7 +117,7 @@ public class BaselinePeakDetector implements PeakResolver {
 
                     // Create a new ResolvedPeak and add it.
                     resolvedPeaks.add(new ResolvedPeak(chromatogram,
-                            currentRegionStart, currentRegionEnd));
+                            currentRegionStart, currentRegionEnd, msmsRange, rTRangeMSMS));
                 }
 
                 // Find next peak region, starting from next data point.
