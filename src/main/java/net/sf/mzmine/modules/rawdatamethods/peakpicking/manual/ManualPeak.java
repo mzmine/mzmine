@@ -309,16 +309,4 @@ class ManualPeak implements Feature {
     }
     //End dulab Edit
 
-	@Override
-	public double getMZrangeMSMS() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public double getRTrangeMSMS() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 }
