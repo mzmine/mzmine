@@ -333,9 +333,13 @@
 
 		<!-- rosuda: REngine/Rserve -->
 		<dependency>
-			<groupId>org.rosuda.REngine</groupId>
+			<groupId>org.nuiton.thirdparty</groupId>
+			<artifactId>REngine</artifactId>
+			<version>1.8-5</version>
+		</dependency>		<dependency>
+			<groupId>org.nuiton.thirdparty</groupId>
 			<artifactId>Rserve</artifactId>
-			<version>1.8.1</version>
+			<version>1.8-5</version>
 		</dependency>
 		<!-- rosuda: END -->
 
