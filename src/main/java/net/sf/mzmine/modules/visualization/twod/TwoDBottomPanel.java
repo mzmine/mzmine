@@ -113,7 +113,7 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 	peakListSelector = new JComboBox<PeakList>();
 	peakListSelector.setBackground(Color.white);
 	peakListSelector.setFont(smallFont);
-	peakListSelector.addActionListener(masterFrame);
+	peakListSelector.addActionListener(this);
 	peakListSelector.setActionCommand("PEAKLIST_CHANGE");
 	add(peakListSelector);
 
@@ -303,7 +303,6 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 	PeakList selectedPeakList = getPeaksInThreshold();
 	if (selectedPeakList != null)
 	    masterFrame.getPlot().loadPeakList(selectedPeakList);
-
     }
 
     @Override

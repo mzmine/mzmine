@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
+import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
@@ -44,6 +45,8 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleEdge;
 
@@ -53,6 +56,8 @@ import com.google.common.collect.Range;
  * 
  */
 class TwoDPlot extends ChartPanel {
+
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private static final long serialVersionUID = 1L;
 
@@ -83,8 +88,6 @@ class TwoDPlot extends ChartPanel {
 
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-
-    // private TwoDItemRenderer renderer;
 
     TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer,
 	    TwoDDataSet dataset, Range<Double> rtRange, Range<Double> mzRange,String whichPlotTypeStr) {
@@ -253,6 +256,8 @@ class TwoDPlot extends ChartPanel {
     }
 
     void loadPeakList(PeakList peakList) {
+      
+      logger.finest("Loading peaklist " + peakList);
 
 	PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
 		rtRange, mzRange);
