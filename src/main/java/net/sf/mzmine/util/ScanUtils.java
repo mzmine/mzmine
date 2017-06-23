@@ -102,7 +102,7 @@ public class ScanUtils {
      *            m/z range maximum
      * @return double[2] containing base peak m/z and intensity
      */
-    public static @Nonnull DataPoint findBasePeak(@Nonnull Scan scan,
+    public static DataPoint findBasePeak(@Nonnull Scan scan,
 	    @Nonnull Range<Double> mzRange) {
 
 	DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);

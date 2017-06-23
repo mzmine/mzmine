@@ -17,6 +17,7 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5;
 
+import com.google.common.collect.Range;
 import dulab.adap.common.algorithms.FeatureTools;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
@@ -29,13 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dulab.adap.workflow.decomposition.Decomposition;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.*;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -190,11 +185,13 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
             if (component.getSpectrum().isEmpty()) continue;
             
             PeakListRow row = new SimplePeakListRow(++rowID);
-            
-            // Add the reference peak
-            PeakListRow refPeakRow = originalPeakList
-                    .getRow(component.getBestPeak().getInfo().peakID);
-            Feature refPeak = new SimpleFeature(refPeakRow.getBestPeak());
+
+            // Create a reference peal
+            Feature refPeak = getFeature(dataFile, component.getBestPeak());
+//            // Add the reference peak
+//            PeakListRow refPeakRow = originalPeakList
+//                    .getRow(component.getBestPeak().getInfo().peakID);
+//            Feature refPeak = new SimpleFeature(refPeakRow.getBestPeak());
 
             // Add spectrum
             List <DataPoint> dataPoints = new ArrayList <> ();
@@ -213,13 +210,17 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
             row.addPeak(dataFile, refPeak);
 
             // Add PeakInformation
-            SimplePeakInformation information = new SimplePeakInformation(
-                    new HashMap<>(refPeakRow.getPeakInformation().getAllProperties()));
-            row.setPeakInformation(information);
+//            SimplePeakInformation information = new SimplePeakInformation(
+//                    new HashMap<>(refPeakRow.getPeakInformation().getAllProperties()));
+//            row.setPeakInformation(information);
             
+//            // Set row properties
+//            row.setAverageMZ(refPeakRow.getAverageMZ());
+//            row.setAverageRT(refPeakRow.getAverageRT());
+
             // Set row properties
-            row.setAverageMZ(refPeakRow.getAverageMZ());
-            row.setAverageRT(refPeakRow.getAverageRT());
+            row.setAverageMZ(refPeak.getMZ());
+            row.setAverageRT(refPeak.getRT());
              
             // resolvedPeakList.addRow(row);
             newPeakListRows.add(row);
@@ -359,5 +360,60 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
                 ADAP3DecompositionV1_5Parameters.MZ_VALUES).getValue();
         
         return decomposition.run(params, peaks);
+    }
+
+    @Nonnull
+    private Feature getFeature(@Nonnull RawDataFile file, @Nonnull Peak peak)
+    {
+        NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
+
+        // Retrieve scan numbers
+        int representativeScan = 0;
+        int[] scanNumbers = new int[chromatogram.size()];
+        int count = 0;
+        for (int num : file.getScanNumbers())
+        {
+            double retTime = file.getScan(num).getRetentionTime();
+            if (chromatogram.keySet().contains(retTime))
+                scanNumbers[count++] = num;
+            if (retTime == peak.getRetTime())
+                representativeScan = num;
+        }
+
+        // Calculate peak area
+        double area = 0.0;
+        Iterator<Map.Entry<Double, Double>> it = chromatogram.entrySet().iterator();
+        if (it.hasNext())
+        {
+            Map.Entry<Double, Double> e1 = it.next();
+            Map.Entry<Double, Double> e2;
+            while (it.hasNext()) {
+                e2 = it.next();
+                double base = e2.getKey() - e1.getKey();
+                double height = 0.5 * (e1.getValue() + e2.getValue());
+                area += base * height;
+            }
+        }
+
+        // Create array of DataPoints
+        DataPoint[] dataPoints = new DataPoint[chromatogram.size()];
+        count = 0;
+        for (double intensity : chromatogram.values())
+            dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
+
+        // Find retention time range
+        double minRetTime = Double.MAX_VALUE;
+        double maxRetTime = -Double.MAX_VALUE;
+        for (double retTime : chromatogram.keySet()) {
+            if (retTime > maxRetTime) maxRetTime = retTime;
+            if (retTime < minRetTime) minRetTime = retTime;
+        }
+
+        return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(),
+                area, scanNumbers, dataPoints,
+                Feature.FeatureStatus.MANUAL, representativeScan, representativeScan,
+                Range.closed(peak.getStartRetTime(), peak.getEndRetTime()),
+                Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
+                Range.closed(0.0, peak.getIntensity()));
     }
 }
