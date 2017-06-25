@@ -13,7 +13,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>2.0</cdk.version>
-		<jmztab.version>3.0.6</jmztab.version>
+		<jmztab.version>3.0.7</jmztab.version>
 	</properties>
 
 	<mailingLists>
