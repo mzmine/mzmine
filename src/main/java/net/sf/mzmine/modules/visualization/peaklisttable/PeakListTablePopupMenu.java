@@ -33,6 +33,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.datamodel.Feature;
@@ -317,9 +318,14 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                         .convertRowIndexToModel(selectedTableRows[i]));
             }
 
-            IntensityPlotModule.showIntensityPlot(MZmineCore
-                    .getProjectManager().getCurrentProject(), peakList,
-                    selectedRows);
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    IntensityPlotModule.showIntensityPlot(MZmineCore
+                            .getProjectManager().getCurrentProject(), peakList,
+                            selectedRows);
+                }
+            });
         }
 
         if (showXICItem.equals(src) && allClickedPeakListRows.length != 0) {
@@ -491,23 +497,39 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             final Feature showPeak = getSelectedPeak();
             if (showPeak != null && showPeak.getIsotopePattern() != null) {
 
-                SpectraVisualizerModule.showNewSpectrumWindow(
-                        showPeak.getDataFile(),
-                        showPeak.getRepresentativeScanNumber(),
-                        showPeak.getIsotopePattern());
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        SpectraVisualizerModule.showNewSpectrumWindow(
+                                showPeak.getDataFile(),
+                                showPeak.getRepresentativeScanNumber(),
+                                showPeak.getIsotopePattern());
+                    }
+                    });
             }
         }
 
         if (formulaItem != null && formulaItem.equals(src)) {
 
-            FormulaPredictionModule
-                    .showSingleRowIdentificationDialog(clickedPeakListRow);
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    FormulaPredictionModule
+                    .showSingleRowIdentificationDialog(clickedPeakListRow);                }
+            });
+
         }
 
         if (dbSearchItem != null && dbSearchItem.equals(src)) {
 
-            OnlineDBSearchModule
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    OnlineDBSearchModule
                     .showSingleRowIdentificationDialog(clickedPeakListRow);
+                }
+            });
+
         }
 
         if (nistSearchItem != null && nistSearchItem.equals(src)) {
