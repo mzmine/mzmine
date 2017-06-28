@@ -56,3 +56,10 @@ public class SiriusExportModule implements MZmineProcessingModule {
     }
 
 }
+
+/*
+ * "If you use the SIRIUS export module, cite MZmine2 and the following articles: Dührkop et al., 
+ * 		Proc Natl Acad Sci USA 112(41):12580-12585 and Boecker et al., Journal of Cheminformatics (2016) 8:5
+ * 	
+ * [Link](http://www.pnas.org/content/112/41/12580.abstract), and [Link](https://jcheminf.springeropen.com/articles/10.1186/s13321-016-0116-8)
+ */

@@ -129,8 +129,7 @@ public class GNPSExportTask extends AbstractTask {
         
     	for (PeakListRow row : peakList.getRows()) {
             
-    		IsotopePattern ip = row.getBestIsotopePattern();
-            if (ip == null) continue;
+ 
             
             String rowID = Integer.toString(row.getID());
             
