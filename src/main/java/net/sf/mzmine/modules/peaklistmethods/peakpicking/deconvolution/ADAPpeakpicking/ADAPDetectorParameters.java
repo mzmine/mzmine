@@ -25,17 +25,16 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeak
 import java.awt.Window;
 import java.text.NumberFormat;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import com.google.common.collect.Range;
-import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 
 /**
  * Parameters used by CentWaveDetector.
@@ -52,9 +51,9 @@ public class ADAPDetectorParameters extends SimpleParameterSet {
 	    MZmineCore.getConfiguration().getRTFormat(),
 	    Range.closed(0.0, 10.0));
     
-    public static final RTRangeParameter RT_FOR_CWT_SCALES_DURATION = new RTRangeParameter(
+    public static final DoubleRangeParameter RT_FOR_CWT_SCALES_DURATION = new DoubleRangeParameter(
 	        "RT wavelet range",
-            "Upper and lower bounds of retention times to be used for setting the wavelet scales.",
+            "Upper and lower bounds of retention times to be used for setting the wavelet scales. Choose a range that that simmilar to the range of peak widths expected to be found from the data.",
             MZmineCore.getConfiguration().getRTFormat(),
             true,
             Range.closed(0.001, 0.1));
