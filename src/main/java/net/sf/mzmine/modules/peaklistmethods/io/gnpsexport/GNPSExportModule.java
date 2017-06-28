@@ -65,5 +65,5 @@ public class GNPSExportModule implements MZmineProcessingModule {
  * [LINK] (https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.htm)
  * 
  * See documentation about MZmine2 data pre-processing 
- * [https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS] with GNPS (http://gnps.ucsd.edu)
+ * [https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS] for GNPS (http://gnps.ucsd.edu)
  */
