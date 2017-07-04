@@ -37,6 +37,8 @@ import net.sf.mzmine.util.R.RSessionWrapperException;
  */
 public class LocMinLoessCorrector extends BaselineCorrector {
 
+    private static final double BW_MIN_VAL = 0.001d;
+    
     @Override
     public String[] getRequiredRPackages() {
         return new String[] { /* "rJava", "Rserve", */"PROcess" };
@@ -75,7 +77,7 @@ public class LocMinLoessCorrector extends BaselineCorrector {
                         / (double) breaks_width) : breaks));
         // Calculate baseline.
         rSession.eval("bseoff <- bslnoff(mat, method=\"" + method + "\", bw="
-                + bw + ", breaks=breaks, qntl=" + qntl + ")");
+                + ((method.equals("approx") || bw >= BW_MIN_VAL) ? bw : BW_MIN_VAL) + ", breaks=breaks, qntl=" + qntl + ")");
         rSession.eval("baseline <- mat[,2] - bseoff[,2]");
         baseline = (double[]) rSession.collect("baseline");
 
