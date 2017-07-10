@@ -74,7 +74,7 @@ public class LocMinLoessCorrectorParameters extends SimpleParameterSet {
     public static final DoubleParameter QNTL = new DoubleParameter(
             "qntl",
             "If 0, find local minima; if >0 find intensities < qntl*100th quantile locally.",
-            DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
+            DecimalFormat.getNumberInstance(), 0.0d, 0.0d, 1.0d);
 
     public LocMinLoessCorrectorParameters() {
         super(new UserParameter[] { METHOD, BW, BREAKS, BREAK_WIDTH, QNTL });
