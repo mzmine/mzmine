@@ -27,6 +27,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,8 +69,8 @@ public class BaselineCorrectorSetupDialog extends
         ParameterSetupDialogWithChromatogramPreview {
 
     /**
-	 * 
-	 */
+     * 
+     */
     private static final long serialVersionUID = 1L;
 
     // Logger.
@@ -206,80 +207,98 @@ public class BaselineCorrectorSetupDialog extends
 
             errorMsg = null;
 
-            // Update the status of this task
-            updateStatus(TaskStatus.PROCESSING);
+            // Check if the parameter settings are valid
+            ArrayList<String> messages = new ArrayList<String>();
+            boolean paramsCheck = correctorParameters
+                    .checkParameterValues(messages);
+            //
+            if (!paramsCheck) {
 
-            // Get parent module parameters
-            baselineCorrector.collectCommonParameters(null);
+                errorMsg = "Invalid parameter settings for module "
+                        + baselineCorrector.getName() + ": "
+                        + Arrays.toString(messages.toArray());
+            } else {
 
-            // Check R availability, by trying to open the connection
-            try {
-                String[] reqPackages = baselineCorrector.getRequiredRPackages();
-                this.rSession = new RSessionWrapper(
-                        baselineCorrector.getName(), reqPackages, null);
-                this.rSession.open();
-            } catch (RSessionWrapperException e) {
-                errorMsg = e.getMessage();
-                updateStatus(TaskStatus.ERROR);
-                return;
-            }
+                // Update the status of this task
+                updateStatus(TaskStatus.PROCESSING);
 
-            // Set VK_ESCAPE KeyEvent listeners
-            set_VK_ESCAPE_KeyListener();
+                // Get parent module parameters
+                baselineCorrector.collectCommonParameters(null);
 
-            // Reset TIC plot
-            ticPlot.removeAllTICDataSets();
-            ticPlot.setPlotType(getPlotType());
-
-            // Add the original raw data file
-            final ScanSelection sel = new ScanSelection(rtRange, 1);
-            Scan scans[] = sel.getMatchingScans(dataFile);
-
-            TICDataSet ticDataset = new TICDataSet(dataFile, scans, mzRange,
-                    null, getPlotType());
-            ticPlot.addTICDataset(ticDataset);
-
-            try {
-
-                // Start progress bar
-                baselineCorrector.initProgress(dataFile);
-                progressThread = new ProgressThread(this.dialog, this, dataFile);
-                progressThread.start();
-
-                // Create a new corrected raw data file
-                RawDataFile newDataFile = baselineCorrector.correctDatafile(
-                        this.rSession, dataFile, correctorParameters, null);
-
-                // If successful, add the new data file
-                if (newDataFile != null) {
-                    scans = sel.getMatchingScans(newDataFile);
-                    final TICDataSet newDataset = new TICDataSet(newDataFile,
-                            scans, mzRange, null, getPlotType());
-                    ticPlot.addTICDataset(newDataset);
-
-                    // Show the trend line as well
-                    XYDataset tlDataset = createBaselineDataset(dataFile,
-                            newDataFile, getPlotType());
-                    ticPlot.addTICDataset(tlDataset);
+                // Check R availability, by trying to open the connection
+                try {
+                    String[] reqPackages = baselineCorrector
+                            .getRequiredRPackages();
+                    this.rSession = new RSessionWrapper(
+                            baselineCorrector.getName(), reqPackages, null);
+                    this.rSession.open();
+                } catch (RSessionWrapperException e) {
+                    errorMsg = e.getMessage();
+                    updateStatus(TaskStatus.ERROR);
+                    return;
                 }
-            } catch (IOException | RSessionWrapperException e) {
-                if (!this.userCanceled) {
-                    errorMsg = "'R computing error' during baseline correction. \n"
-                            + e.getMessage();
-                }
-            }
 
-            // Turn off R instance.
-            try {
-                if (!this.userCanceled)
-                    this.rSession.close(false);
-            } catch (RSessionWrapperException e) {
-                if (!this.userCanceled) {
-                    if (errorMsg == null)
-                        errorMsg = e.getMessage();
-                } else {
-                    // User canceled: Silent.
+                // Set VK_ESCAPE KeyEvent listeners
+                set_VK_ESCAPE_KeyListener();
+
+                // Reset TIC plot
+                ticPlot.removeAllTICDataSets();
+                ticPlot.setPlotType(getPlotType());
+
+                // Add the original raw data file
+                final ScanSelection sel = new ScanSelection(rtRange, 1);
+                Scan scans[] = sel.getMatchingScans(dataFile);
+
+                TICDataSet ticDataset = new TICDataSet(dataFile, scans,
+                        mzRange, null, getPlotType());
+                ticPlot.addTICDataset(ticDataset);
+
+                try {
+
+                    // Start progress bar
+                    baselineCorrector.initProgress(dataFile);
+                    progressThread = new ProgressThread(this.dialog, this,
+                            dataFile);
+                    progressThread.start();
+
+                    // Create a new corrected raw data file
+                    RawDataFile newDataFile = baselineCorrector
+                            .correctDatafile(this.rSession, dataFile,
+                                    correctorParameters, null);
+
+                    // If successful, add the new data file
+                    if (newDataFile != null) {
+                        scans = sel.getMatchingScans(newDataFile);
+                        final TICDataSet newDataset = new TICDataSet(
+                                newDataFile, scans, mzRange, null,
+                                getPlotType());
+                        ticPlot.addTICDataset(newDataset);
+
+                        // Show the trend line as well
+                        XYDataset tlDataset = createBaselineDataset(dataFile,
+                                newDataFile, getPlotType());
+                        ticPlot.addTICDataset(tlDataset);
+                    }
+                } catch (IOException | RSessionWrapperException e) {
+                    if (!this.userCanceled) {
+                        errorMsg = "'R computing error' during baseline correction. \n"
+                                + e.getMessage();
+                    }
                 }
+
+                // Turn off R instance.
+                try {
+                    if (!this.userCanceled)
+                        this.rSession.close(false);
+                } catch (RSessionWrapperException e) {
+                    if (!this.userCanceled) {
+                        if (errorMsg == null)
+                            errorMsg = e.getMessage();
+                    } else {
+                        // User canceled: Silent.
+                    }
+                }
+
             }
 
             // Task is over: Restore "parametersChanged" listeners
