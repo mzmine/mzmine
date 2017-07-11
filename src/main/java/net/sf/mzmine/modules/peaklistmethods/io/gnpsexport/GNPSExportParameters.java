@@ -12,11 +12,19 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
 
+import java.awt.Window;
+
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusSetupDialog;
+import net.sf.mzmine.modules.visualization.histogram.HistogramParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.util.ExitCode;
 
 
 public class GNPSExportParameters extends SimpleParameterSet {
@@ -35,5 +43,11 @@ public class GNPSExportParameters extends SimpleParameterSet {
     
     public GNPSExportParameters() {
     	super(new Parameter[] {PEAK_LISTS, FILENAME, MASS_LIST});
+    }
+    
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) { 
+    	GNPSSetupDialog dialog = new GNPSSetupDialog(parent, valueCheckRequired, this);
+    	dialog.setVisible(true);
+    	return dialog.getExitCode();
     }
 }
