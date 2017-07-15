@@ -47,7 +47,7 @@ public class SiriusExportParameters extends SimpleParameterSet
     public static final ComboParameter <String> ROUND_MODE = 
             new ComboParameter <> (
                     "Merging Mode", 
-                    "Detexrmines how to merge intensities with the same m/z values",
+                    "Determines how to merge intensities with the same m/z values",
                     new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM},
                     ROUND_MODE_MAX);
     
