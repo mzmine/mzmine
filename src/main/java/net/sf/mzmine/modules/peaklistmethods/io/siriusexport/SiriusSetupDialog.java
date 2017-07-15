@@ -139,8 +139,6 @@ implements ActionListener, DocumentListener {
             // Multiple selection will be expandable, other components not
             int verticalWeight = comph > 2 * comboh ? 1 : 0;
             vertWeightSum += verticalWeight;
-
-            System.out.println(verticalWeight);
             
             mainPanel.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight,
                     GridBagConstraints.VERTICAL);
