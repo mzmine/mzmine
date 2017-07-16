@@ -15,6 +15,7 @@ package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 import java.awt.Window;
 
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.FooterSetupDialog;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 //import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -58,8 +59,14 @@ public class SiriusExportParameters extends SimpleParameterSet
     }
     
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) { 
-    	SiriusSetupDialog dialog = new SiriusSetupDialog(parent, valueCheckRequired, this);
+    	String message = "<html>SIRIUS Module Disclaimer:" +
+        		"<br>    - If you use the SIRIUS export module, cite MZmine2 paper and the following articles: Dührkop et al.," +
+        		"<br>     Proc Natl Acad Sci USA 112(41):12580-12585 and Boecker et al., Journal of Cheminformatics (2016) 8:5" + 
+        		"<br>    - Sirius can be downloaded at the following address: <a href\"\">https://bio.informatik.uni-jena.de/software/sirius/</a>" +
+        		"<br>    - Sirius results can be mapped into GNPS molecular networks. See the documentation: "+
+        		"<br>     <a href=\"\">https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0</a>.</html>";
+    	FooterSetupDialog dialog = new FooterSetupDialog(parent, valueCheckRequired, this, message);
     	dialog.setVisible(true);
-    	return dialog.getExitCode();
+    	return dialog.getExitCode();    
     }
 }

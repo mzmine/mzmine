@@ -67,11 +67,11 @@ public class ParameterSetupDialog extends JDialog
 
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
-    private String helpID;
+    protected String helpID;
 
     // Parameters and their representation in the dialog
     protected ParameterSet parameterSet;
-    private final Map<String, JComponent> parametersAndComponents;
+    protected Map<String, JComponent> parametersAndComponents;
 
     // If true, the dialog won't allow the OK button to proceed, unless all
     // parameters pass the value check. This is undesirable in the BatchMode
@@ -80,7 +80,11 @@ public class ParameterSetupDialog extends JDialog
     private final boolean valueCheckRequired;
 
     // Buttons
-    private JButton btnOK, btnCancel, btnHelp;
+    protected JButton btnOK;
+
+	protected JButton btnCancel;
+
+	protected JButton btnHelp;
 
     /**
      * This single panel contains a grid of all the components of this dialog
@@ -91,7 +95,16 @@ public class ParameterSetupDialog extends JDialog
      * to the unused cells of the grid.
      */
     protected GridBagPanel mainPanel;
+    
+    public ParameterSetupDialog(Window parent, boolean valueCheckRequired) {
+    	super(null, "Please set the parameters",
+    			Dialog.ModalityType.DOCUMENT_MODAL);
+    	
+    	this.valueCheckRequired = valueCheckRequired;
 
+        parametersAndComponents = new Hashtable<String, JComponent>();        
+    }
+    
     /**
      * Constructor
      */
@@ -312,7 +325,7 @@ public class ParameterSetupDialog extends JDialog
 
     }
 
-    private void addListenersToComponent(JComponent comp) {
+    protected void addListenersToComponent(JComponent comp) {
         if (comp instanceof JTextComponent) {
             JTextComponent textComp = (JTextComponent) comp;
             textComp.getDocument().addDocumentListener(this);
