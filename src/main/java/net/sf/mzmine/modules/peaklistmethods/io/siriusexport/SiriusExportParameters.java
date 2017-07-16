@@ -15,10 +15,8 @@ package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 import java.awt.Window;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.dialogs.FooterSetupDialog;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-//import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -65,7 +63,7 @@ public class SiriusExportParameters extends SimpleParameterSet
         		"<br>    - Sirius can be downloaded at the following address: <a href\"\">https://bio.informatik.uni-jena.de/software/sirius/</a>" +
         		"<br>    - Sirius results can be mapped into GNPS molecular networks. See the documentation: "+
         		"<br>     <a href=\"\">https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0</a>.</html>";
-    	FooterSetupDialog dialog = new FooterSetupDialog(parent, valueCheckRequired, this, message);
+    	ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this, message);
     	dialog.setVisible(true);
     	return dialog.getExitCode();    
     }

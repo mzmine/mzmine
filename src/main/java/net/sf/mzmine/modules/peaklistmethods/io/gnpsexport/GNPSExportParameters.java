@@ -16,7 +16,7 @@ import java.awt.Window;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.dialogs.FooterSetupDialog;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -48,7 +48,7 @@ public class GNPSExportParameters extends SimpleParameterSet {
         		"<br>     Wang et al., Nature Biotechnology 34.8 (2016): 828-837." +
         		"<br>    - See the documentation about MZmine2 data pre-processing for GNPS (<a href=\"\">http://gnps.ucsd.edu/</a>) molecular " +
         		"<br>     networking and MS/MS spectral library search. <a href=\"\">https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0</a></html>";
-    	FooterSetupDialog dialog = new FooterSetupDialog(parent, valueCheckRequired, this, message);
+    	ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this, message);
     	dialog.setVisible(true);
     	return dialog.getExitCode();    	
     }

@@ -85,6 +85,9 @@ public class ParameterSetupDialog extends JDialog
 	protected JButton btnCancel;
 
 	protected JButton btnHelp;
+	
+	// Footer message
+	protected String footerMessage;
 
     /**
      * This single panel contains a grid of all the components of this dialog
@@ -95,15 +98,6 @@ public class ParameterSetupDialog extends JDialog
      * to the unused cells of the grid.
      */
     protected GridBagPanel mainPanel;
-    
-    public ParameterSetupDialog(Window parent, boolean valueCheckRequired) {
-    	super(null, "Please set the parameters",
-    			Dialog.ModalityType.DOCUMENT_MODAL);
-    	
-    	this.valueCheckRequired = valueCheckRequired;
-
-        parametersAndComponents = new Hashtable<String, JComponent>();        
-    }
     
     /**
      * Constructor
@@ -121,6 +115,36 @@ public class ParameterSetupDialog extends JDialog
         this.helpID = GUIUtils.generateHelpID(parameters);
 
         parametersAndComponents = new Hashtable<String, JComponent>();
+
+        addDialogComponents();
+
+        updateMinimumSize();
+        pack();
+
+        setLocationRelativeTo(parent);
+
+    }
+    
+    /**
+     * Method to display setup dialog with a html-formatted footer message at the bottom.
+     * 
+     * @param message: html-formatted text
+     */
+    public ParameterSetupDialog(Window parent, boolean valueCheckRequired,
+            ParameterSet parameters, String message) {
+
+        // 2015/12/15 Setting the parent to null, so the dialog always appears
+        // in front (Tomas)
+        super(null, "Please set the parameters",
+                Dialog.ModalityType.DOCUMENT_MODAL);
+
+        this.valueCheckRequired = valueCheckRequired;
+        this.parameterSet = parameters;
+        this.helpID = GUIUtils.generateHelpID(parameters);
+
+        parametersAndComponents = new Hashtable<String, JComponent>();
+        
+        footerMessage = message;
 
         addDialogComponents();
 
@@ -226,7 +250,17 @@ public class ParameterSetupDialog extends JDialog
         if (vertWeightSum == 0) {
             mainPanel.add(Box.createGlue(), 0, 99, 3, 1, 1, 1);
         }
-        mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
+        
+        if(footerMessage == null) {
+        	mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
+        } else {
+        	// Footer
+            JPanel pnlFoot = new JPanel();        
+            GUIUtils.addLabel(pnlFoot, footerMessage);
+            mainPanel.add(pnlFoot, 0, 90, 3, 1);
+            
+            mainPanel.addCenter(pnlButtons, 0, 150, 3, 1);
+        }
 
         // Add some space around the widgets
         GUIUtils.addMargin(mainPanel, 10);
