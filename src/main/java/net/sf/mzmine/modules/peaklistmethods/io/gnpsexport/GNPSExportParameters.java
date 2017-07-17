@@ -14,7 +14,6 @@ package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
 
 import java.awt.Window;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -44,9 +43,9 @@ public class GNPSExportParameters extends SimpleParameterSet {
     
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) { 
     	String message = "<html>GNPS Module Disclaimer:" + 
-        		"<br>    - If you use the GNPS export module for GNPS web-platform, cite MZmine2 paper and the following article:"+
-        		"<br>     Wang et al., Nature Biotechnology 34.8 (2016): 828-837." +
-        		"<br>    - See the documentation about MZmine2 data pre-processing for GNPS (<a href=\"\">http://gnps.ucsd.edu/</a>) molecular " +
+        		"<br>    - If you use the GNPS export module for <a href=\"http://gnps.ucsd.edu/\">GNPS web-platform</a>, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"+
+        		"<br>     <a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.htm\">Wang et al., Nature Biotechnology 34.8 (2016): 828-837</a>." +
+        		"<br>    - <a href=\"https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS\">See the documentation</a> about MZmine2 data pre-processing for <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular " +
         		"<br>     networking and MS/MS spectral library search. <a href=\"\">https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0</a></html>";
     	ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this, message);
     	dialog.setVisible(true);
