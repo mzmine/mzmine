@@ -20,12 +20,16 @@
 package net.sf.mzmine.parameters.dialogs;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
@@ -36,10 +40,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
 
 import net.sf.mzmine.main.MZmineCore;
@@ -239,8 +246,19 @@ public class ParameterSetupDialog extends JDialog
         	mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
         } else {
         	// Footer
-            JPanel pnlFoot = new JPanel();        
-            GUIUtils.addLabel(pnlFoot, footerMessage);
+            JPanel pnlFoot = new JPanel();
+            JEditorPane editorPane = GUIUtils.addEditorPane(footerMessage);
+            editorPane.addHyperlinkListener(new HyperlinkListener() {
+				@Override
+				public void hyperlinkUpdate(HyperlinkEvent e) {
+					if(HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
+						try { Desktop.getDesktop().browse(e.getURL().toURI()); } 
+						catch (IOException e1) {} 
+						catch (URISyntaxException e1) {}
+					}
+				}
+            });
+            pnlFoot.add(editorPane);
             mainPanel.add(pnlFoot, 0, 90, 3, 1);
             
             mainPanel.addCenter(pnlButtons, 0, 150, 3, 1);

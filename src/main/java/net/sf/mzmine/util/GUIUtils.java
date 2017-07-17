@@ -34,6 +34,7 @@ import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -344,6 +345,21 @@ public class GUIUtils {
 	if (component != null)
 	    component.add(panel);
 	return button;
+    }
+    
+    /**
+     * Add a new editorpane to a given component
+     * 
+     * @param component
+     *            Component to add the label to
+     * @param text
+     *            Label's text
+     * @return Created EditorPane
+     */
+    public static JEditorPane addEditorPane(String text) {
+	JEditorPane result = new JEditorPane("text/html", text);
+	result.setEditable(false);
+	return result;
     }
 
     /**
