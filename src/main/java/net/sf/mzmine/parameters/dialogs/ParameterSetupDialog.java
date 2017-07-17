@@ -105,23 +105,7 @@ public class ParameterSetupDialog extends JDialog
     public ParameterSetupDialog(Window parent, boolean valueCheckRequired,
             ParameterSet parameters) {
 
-        // 2015/12/15 Setting the parent to null, so the dialog always appears
-        // in front (Tomas)
-        super(null, "Please set the parameters",
-                Dialog.ModalityType.DOCUMENT_MODAL);
-
-        this.valueCheckRequired = valueCheckRequired;
-        this.parameterSet = parameters;
-        this.helpID = GUIUtils.generateHelpID(parameters);
-
-        parametersAndComponents = new Hashtable<String, JComponent>();
-
-        addDialogComponents();
-
-        updateMinimumSize();
-        pack();
-
-        setLocationRelativeTo(parent);
+        this(parent, valueCheckRequired, parameters, null);
 
     }
     
