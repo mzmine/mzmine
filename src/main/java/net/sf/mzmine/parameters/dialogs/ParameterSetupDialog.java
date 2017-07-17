@@ -36,6 +36,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -239,8 +240,9 @@ public class ParameterSetupDialog extends JDialog
         	mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
         } else {
         	// Footer
-            JPanel pnlFoot = new JPanel();        
-            GUIUtils.addLabel(pnlFoot, footerMessage);
+            JPanel pnlFoot = new JPanel();
+            JEditorPane editorPane = GUIUtils.addEditorPane(footerMessage);            
+            pnlFoot.add(editorPane);
             mainPanel.add(pnlFoot, 0, 90, 3, 1);
             
             mainPanel.addCenter(pnlButtons, 0, 150, 3, 1);
