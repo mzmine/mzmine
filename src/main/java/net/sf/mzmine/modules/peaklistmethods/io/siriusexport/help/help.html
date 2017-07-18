@@ -1,0 +1,45 @@
+<html>
+<head>
+    <title>Export - Sirius Export</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+<body>
+
+<h1>Sirius Export</h1>
+
+<h2>Description</h2>
+
+<p>
+    This module exports fragmentation spectra of peaks in the peak list into MGF (Mascot Generic Format) format file.
+    This module is specifically formatted for use with the Sirius web-platform. 
+    Sirius can be downloaded at the <a href="https://bio.informatik.uni-jena.de/software/sirius/">following address</a>.
+    Sirius results can be mapped into GNPS molecular networks. See the documentation here.
+    In addition to the spectra, the following peak characteristics are saved into the file:
+</p>
+
+<dl>
+    <dt>FEATURE_ID</dt>
+    <dd>Row number in the peak list</dd>
+
+    <dt>PEPMASS</dt>
+    <dd>Mass of the peak. If each row in the peak list contains several peaks (e.g. after performing alignment), the
+        mass of the highest peak is chosen
+    </dd>
+
+    <dt>RTINSECONDS</dt>
+    <dd>Retention time of the peak. If each row in the peak list contains several peaks, the average retention time
+    is chosen</dd>
+
+    <dt>SCANS</dt>
+    <dd>The same as FEATURE_ID</dd>    
+
+    <dt>CHARGE</dt>
+    <dd>The charge for the specified row</dd>
+
+    <dt>MSLEVEL</dt>
+    <dd>Either equals 1 (MS) or 2 (MS/MS)</dd>
+</dl>
+
+</body>
+</html>
