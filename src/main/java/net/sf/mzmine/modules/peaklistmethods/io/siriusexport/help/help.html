@@ -9,15 +9,48 @@
 <h1>Sirius Export</h1>
 
 <h2>Description</h2>
-
 <p>
-    This module exports fragmentation spectra of peaks in the peak list into MGF (Mascot Generic Format) format file.
-    This module is specifically formatted for use with the Sirius web-platform. 
-    Sirius can be downloaded at the <a href="https://bio.informatik.uni-jena.de/software/sirius/">following address</a>.
-    Sirius results can be mapped into GNPS molecular networks. See the documentation here.
-    In addition to the spectra, the following peak characteristics are saved into the file:
+    The module Export for Sirius exports spectral features for a selected peaklist or an aligned peaklist as .MGF format. 
+    This .MGF file can be directly processed with Sirius (version 3.4 minimum). 
+    Sirius uses both the deconvoluted isotopic pattern for each peak and the corresponding MS2 spectrum to rank molecular formula candidates. 
+    Spectral features exported consist of a pair of MS1 and MS2 spectrum for each row. 
+    Note that the MS1 spectrum can contain the deconvoluted isotopic peaks. 
+    A masslist with mass detection performs on MS level 2 has to be generated first and selected.    
 </p>
 
+<h2>Instructions</h2>
+<p>
+    Before using the module, perform the following:
+    <ol>        
+        <li> Deconvolute isotopic peaks: 
+            <br>- MZmine2 Menu: Peak list methods / Isotopes / Isotopic peaks grouper
+        <li> Filter out peak without MS/MS spectrum associated. 
+            <br>- MZmine2 Menu: Peak list methods / Filtering / Peak list row filter / Keep only peaks with MS2 scan (GNPS)
+        <li> Reset the peak number ID.  
+            <br>- MZmine2 Menu: Peak list methods / Filtering / Peak list row filter / Reset the peak number ID
+        <li> Perform mass detection on MS level 2 and select. 
+            <br>- MZmine2 Menu: Raw data methods / Mass detection 
+            <br>[Make sure to use a noise threshold consistent with the MS level 2]
+    </ol>
+</p>
+
+<h2>Documentation</h2>
+<p>
+    This module can be used in combination with the Export for GNPS module and imported back into GNPS molecular networks.
+    Please refer to the following documentation for a detailed tutorial:
+    <br>
+
+    <ul>
+        <li> Information about <a href="../../gnpsexport/help/help.html" target="_blank">GNPS export</a>
+        <li> If you use the SIRIUS export module, cite <a href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395">MZmine2 paper</a>
+             and the following articles: <a href="http://www.pnas.org/content/112/41/12580.abstract">Dührkop et al., Proc Natl Acad Sci USA 112(41):12580-12585</a> and 
+             <a href="https://jcheminf.springeropen.com/articles/10.1186/s13321-016-0116-8">Boecker et al., Journal of Cheminformatics (2016) 8:5</a>
+        <li> Sirius can be downloaded at the following address: <a href="https://bio.informatik.uni-jena.de/software/sirius/">https://bio.informatik.uni-jena.de/software/sirius/</a>
+        <li> Sirius results can be mapped into <a href="http://gnps.ucsd.edu/">GNPS</a> molecular networks. <a href="https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS">See the documentation</a> here.
+    </ul>
+</p>
+<!--
+<h2>Parameters</h2>
 <dl>
     <dt>FEATURE_ID</dt>
     <dd>Row number in the peak list</dd>
@@ -40,6 +73,6 @@
     <dt>MSLEVEL</dt>
     <dd>Either equals 1 (MS) or 2 (MS/MS)</dd>
 </dl>
-
+-->
 </body>
 </html>

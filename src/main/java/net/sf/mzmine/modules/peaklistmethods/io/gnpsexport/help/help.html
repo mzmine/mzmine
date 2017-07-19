@@ -9,13 +9,43 @@
 <h1>GNPS Export</h1>
 
 <h2>Description</h2>
-
 <p>
-    This module exports fragmentation spectra of peaks in the peak list into MGF (Mascot Generic Format) format file.
-    This module is specifically formatted for use with the <a href="http://gnps.ucsd.edu">GNPS web-platform</a>.
-    In addition to the spectra, the following peak characteristics are saved into the file:
+    The module Export for GNPS exports a list of MS/MS spectra (one per row) for
+     a selected peaklist or an aligned peaklist as .MGF format.    
 </p>
 
+<h2>Instructions</h2>
+<p>
+    Before using the module, perform the following:
+    <ol>
+        <li> Filter out peak without associated MS/MS spectrum. 
+            <br>- MZmine2 Menu: Peak list methods / Filtering / Peak list row filter / Keep only 
+            peaks with MS2 scan (GNPS)
+        <li> Reset the peak number ID:  
+            <br>- MZmine2 Menu : Peak list methods / 
+            Filtering / Peak list row filter / Reset the peak number ID
+        <li> Perform mass detection on MS level 2. 
+            <br>- MZmine2 Menu: Raw data methods / Mass detection 
+            <br>[Make sure to use a noise threshold consistent with the MS level 2]
+    </ol>
+</p>
+
+<h2>Documentation</h2>
+<p>
+    Please refer to the following documentation for detailed tutorial:
+    <ul>   
+        <li> If you use the GNPS export module for 
+            <a href="http://gnps.ucsd.edu/">GNPS web-platform<a/>, cite 
+                <a href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395">MZmine2 
+                paper</a> and the following article: <a href="https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html">Wang et al., Nature 
+                Biotechnology 34.8 (2016): 828-837</a>.
+        <li> <a href="https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0">See the documentation</a> about 
+            MZmine2 data pre-processing for <a href="http://gnps.ucsd.edu/">GNPS</a> 
+            molecular networking and MS/MS spectral library search.
+    </ul>
+</p>
+<!--
+<h2>Parameters</h2>
 <dl>
     <dt>FEATURE_ID</dt>
     <dd>Row number in the peak list</dd>
@@ -38,6 +68,6 @@
     <dt>MSLEVEL</dt>
     <dd>Always equals 2</dd>
 </dl>
-
+-->
 </body>
 </html>
