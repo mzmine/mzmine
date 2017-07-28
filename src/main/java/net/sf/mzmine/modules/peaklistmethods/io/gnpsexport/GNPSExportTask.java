@@ -134,10 +134,74 @@ public class GNPSExportTask extends AbstractTask {
             String rowID = Integer.toString(row.getID());
             
             String retTimeInSeconds = Double.toString(row.getAverageRT() * 60);
+            String mass = Double.toString(row.getAverageMZ());
+            Feature peaks[] = row.getPeaks();
+			int ms2scanNumber;
+			double ms2Peak =0.0;
+			int toPrintScanNumber = 0;
+			Feature PeaktoPrint = peaks[0];
+			for (Feature peak:peaks){
+				ms2scanNumber = peak.getMostIntenseFragmentScanNumber();
+				if(ms2scanNumber >0 ){
+					 double topPeak = peak.getDataFile().getScan(ms2scanNumber).getHighestDataPoint().getIntensity();
+					 if (topPeak > ms2Peak){
+						 ms2Peak = topPeak;
+						 toPrintScanNumber = ms2scanNumber; 
+						 PeaktoPrint = peak;
+					 }			 
+				}
+			}
+			// if there exists msmsscans
+			if(ms2Peak != 0) {
+				// if there exists masslist
+				Scan msmsScan = PeaktoPrint.getDataFile().getScan(toPrintScanNumber);
+				MassList massList = msmsScan.getMassList(massListName);
+
+				if (massList == null) {
+					MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+							"There is no mass list called " + massListName + " for MS/MS scan #" + toPrintScanNumber + " ("
+									+ PeaktoPrint.getDataFile() + ")");
+					return;
+				}
+				writer.write("BEGIN IONS" + newLine);
+
+				if (rowID != null)
+					writer.write("FEATURE_ID=" + rowID + newLine);	
+				if (mass != null)
+					writer.write("PEPMASS=" + mass + newLine);
+				
+				if (rowID != null) {
+					writer.write("SCANS=" + rowID + newLine);
+					writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
+				}
+									
+				int msmsCharge = msmsScan.getPrecursorCharge();
+				String msmsPolarity = msmsScan.getPolarity().asSingleChar();								
+				if(msmsPolarity.equals("0"))
+					msmsPolarity = "";
+				if(msmsCharge == 0) {
+					msmsCharge = 1;
+					msmsPolarity = "";
+				}
+				writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
+				
+				
+				writer.write("MSLEVEL=2" + newLine);
+
+				DataPoint peaks2[] = massList.getDataPoints();
+				for (DataPoint peak : peaks2) {
+					writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
+				}
+				writer.write("END IONS" + newLine);
+				writer.write(newLine);
+				
+				
+			}
+    	}
   
 
             // Get the MS/MS scan number
-            Feature bestPeak =row.getBestPeak();
+           /* Feature bestPeak =row.getBestPeak();
             int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
             if (rowID != null){
                 PeakListRow copyRow = copyPeakRow(row);
@@ -206,8 +270,9 @@ public class GNPSExportTask extends AbstractTask {
         	    writer.write(newLine);
         	}
     	}          
-	}
+	}*/
 
+    }
 	public String getTaskDescription() {
 		return "Exporting GNPS of peak list(s) " 
         + Arrays.toString(peakLists) + " to MGF file(s)";
@@ -216,7 +281,7 @@ public class GNPSExportTask extends AbstractTask {
     /**
      * Create a copy of a peak list row.
      */
-    private static PeakListRow copyPeakRow(final PeakListRow row) {
+   /* private static PeakListRow copyPeakRow(final PeakListRow row) {
 
         // Copy the peak list row.
         final PeakListRow newRow = new SimplePeakListRow(row.getID());
@@ -233,5 +298,6 @@ public class GNPSExportTask extends AbstractTask {
         }
 
         return newRow;
-    }
+    }*/
+
 }
