@@ -130,10 +130,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         PeakList[] peakLists = parameters.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
                 .getValue().getMatchingPeakLists();
-        if (peakLists.length != 1)
-            throw new IllegalArgumentException("One peak list has to be chosen");
+        if (peakLists.length == 0)
+            throw new IllegalArgumentException("At least one peak list has to be chosen");
 
-        peaks = ADAP3DecompositionV2Task.getPeaks(peakLists[0]);
+        peaks = new ADAP3DecompositionV2Utils().getPeaks(peakLists[0]);
     }
 
     /** Creates the interface elements */
@@ -279,7 +279,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         
         if (minDistance == null || minSize == null) return;
 
-        List<List<Peak>> retTimeClusters = Decomposition
+        List<List<Peak>> retTimeClusters = new Decomposition()
                 .getRetTimeClusters(peaks, minDistance, minSize);
 
         int colorIndex = 0;
@@ -365,7 +365,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         List<Component> clusters = null;
         try {
-            clusters = Decomposition.getShapeClusters(peaks, fwhmTolerance, shapeTolerance);
+            clusters = new Decomposition().getShapeClusters(peaks, fwhmTolerance, shapeTolerance);
         } catch (Exception e) {
             e.printStackTrace();
         }
