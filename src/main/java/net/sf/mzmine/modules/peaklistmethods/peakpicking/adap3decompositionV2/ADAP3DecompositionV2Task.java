@@ -264,7 +264,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
         params.fwhmTolerance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
-        params.shapeTolerance = this.parameters.getParameter(
+        params.peakTolerance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.SHAPE_TOLERANCE).getValue();
         
         return decomposition.run(params, peaks);
