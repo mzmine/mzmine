@@ -171,50 +171,51 @@ public class EICPlot extends ChartPanel
     
     
     
-    public void updateData(@Nonnull List <List <NavigableMap <Double, Double>>> clusters,
-            @Nonnull List <Double> colors,
-            @Nonnull List <List <String>> info,
-            @Nonnull List <List<Boolean>> models)
-    {
-        final float DEFAULT_LINE_WIDTH = 1.0f;
-        final float THICK_LINE_WIDTH = 2.0f;
-
-
-//        for (int i = 0; i < xyDataset.getSeriesCount(); ++i)
-//            xyDataset.removeSeries(i);
-        xyDataset.removeAllSeries();
-        colorDataset.clear();
-        toolTips.clear();
-        widths.clear();
-        
-        int seriesID = 0;
-        
-        for (int i = 0; i < clusters.size(); ++i)
-        {
-            List <NavigableMap <Double, Double>> cluster = clusters.get(i);
-            double color = colors.get(i);
-            
-            for (int j = 0; j < cluster.size(); ++j) 
-            {                
-                XYSeries series = new XYSeries(seriesID++);
-                
-                for (Entry <Double, Double> e : cluster.get(j).entrySet())
-                    series.add(e.getKey(), e.getValue());
-
-                float width = DEFAULT_LINE_WIDTH;
-                if (models.get(i).get(j)) width = THICK_LINE_WIDTH;
-
-                xyDataset.addSeries(series);
-                colorDataset.add(color);
-                toolTips.add(info.get(i).get(j));
-                widths.add(width);
-            }
-        }
-    }
+//    public void updateData(@Nonnull List <List <NavigableMap <Double, Double>>> clusters,
+//            @Nonnull List <Double> colors,
+//            @Nonnull List <List <String>> info,
+//            @Nonnull List <List<Boolean>> models)
+//    {
+//        final float DEFAULT_LINE_WIDTH = 1.0f;
+//        final float THICK_LINE_WIDTH = 2.0f;
+//
+//
+////        for (int i = 0; i < xyDataset.getSeriesCount(); ++i)
+////            xyDataset.removeSeries(i);
+//        xyDataset.removeAllSeries();
+//        colorDataset.clear();
+//        toolTips.clear();
+//        widths.clear();
+//
+//        int seriesID = 0;
+//
+//        for (int i = 0; i < clusters.size(); ++i)
+//        {
+//            List <NavigableMap <Double, Double>> cluster = clusters.get(i);
+//            double color = colors.get(i);
+//
+//            for (int j = 0; j < cluster.size(); ++j)
+//            {
+//                XYSeries series = new XYSeries(seriesID++);
+//
+//                for (Entry <Double, Double> e : cluster.get(j).entrySet())
+//                    series.add(e.getKey(), e.getValue());
+//
+//                float width = DEFAULT_LINE_WIDTH;
+//                if (models.get(i).get(j)) width = THICK_LINE_WIDTH;
+//
+//                xyDataset.addSeries(series);
+//                colorDataset.add(color);
+//                toolTips.add(info.get(i).get(j));
+//                widths.add(width);
+//            }
+//        }
+//    }
 
     void updateData(@Nonnull List<Peak> peaks, @Nonnull List<Peak> modelPeaks)
     {
         xyDataset.removeAllSeries();
+        toolTips.clear();
 
         int seriesID = 0;
         for (Peak peak : peaks)
@@ -226,6 +227,8 @@ public class EICPlot extends ChartPanel
                 series.add(e.getKey(), e.getValue());
 
             xyDataset.addSeries(series);
+            toolTips.add(String.format("M/z: %.2f\nIntensity: %.0f",
+                    peak.getMZ(), peak.getIntensity()));
         }
 
         for (Peak peak : modelPeaks)
@@ -237,6 +240,8 @@ public class EICPlot extends ChartPanel
                 series.add(e.getKey(), e.getValue());
 
             xyDataset.addSeries(series);
+            toolTips.add(String.format("Model peak\nM/z: %.2f\nIntensity: %.0f",
+                    peak.getMZ(), peak.getIntensity()));
         }
     }
 }
