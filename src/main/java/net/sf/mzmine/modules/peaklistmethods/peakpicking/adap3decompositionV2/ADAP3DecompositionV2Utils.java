@@ -6,11 +6,12 @@ import net.sf.mzmine.datamodel.*;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -19,9 +20,12 @@ import java.util.logging.Logger;
 public class ADAP3DecompositionV2Utils
 {
     private final Logger log;
+    
+    private final Map<Integer, Double> retTimes;
 
     public ADAP3DecompositionV2Utils() {
         this.log = Logger.getLogger(ADAP3DecompositionV2Task.class.getName());
+        this.retTimes = new HashMap<>();
     }
 
     /**
@@ -36,7 +40,7 @@ public class ADAP3DecompositionV2Utils
         RawDataFile dataFile = peakList.getRawDataFile(0);
 
         List <Peak> peaks = new ArrayList<>();
-
+        
         for (PeakListRow row : peakList.getRows())
         {
             Feature peak = row.getBestPeak();
@@ -48,7 +52,7 @@ public class ADAP3DecompositionV2Utils
                 DataPoint dataPoint = peak.getDataPoint(scanNumber);
                 if (dataPoint != null)
                     chromatogram.put(
-                            dataFile.getScan(scanNumber).getRetentionTime(),
+                            getRetTime(dataFile, scanNumber),
                             dataPoint.getIntensity());
             }
 
@@ -90,5 +94,14 @@ public class ADAP3DecompositionV2Utils
 
 //        return FeatureTools.mergePeaks(peaks);
         return peaks;
+    }
+    
+    private double getRetTime(RawDataFile dataFile, int scan) {
+        Double retTime = retTimes.get(scan);
+        if (retTime == null) {
+            retTime = dataFile.getScan(scan).getRetentionTime();
+            retTimes.put(scan, retTime);
+        }
+        return retTime;
     }
 }
