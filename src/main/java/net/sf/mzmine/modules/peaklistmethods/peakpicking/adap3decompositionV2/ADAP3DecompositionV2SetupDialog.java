@@ -18,6 +18,8 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import com.google.common.collect.Sets;
+import dulab.adap.datamodel.BetterComponent;
+import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
 
@@ -45,6 +47,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import dulab.adap.workflow.decomposition.Decomposition;
+import dulab.adap.workflow.decomposition.FirstPhaseClustering;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -78,24 +81,24 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 //    private static final byte FIRST_PHASE_CHANGE = 1;
 //    private static final byte SECOND_PHASE_CHANGE = 2;
     
-    private static class ComboClustersItem {
-        private static final DecimalFormat DECIMAL = new DecimalFormat("#.00");
-        private final List <Peak> cluster;
-        private final double aveRetTime;
-        
-        ComboClustersItem(List <Peak> cluster) {
-            this.cluster = cluster;
-            
-            double sumRetTime = 0.0;
-            for (Peak peak : cluster) sumRetTime += peak.getRetTime();
-            aveRetTime = sumRetTime / cluster.size();
-        }
-        
-        @Override
-        public String toString() {
-            return  "Cluster at " + DECIMAL.format(aveRetTime) + " min";
-        }
-    }
+//    private static class ComboClustersItem {
+//        private static final DecimalFormat DECIMAL = new DecimalFormat("#.00");
+//        private final List<BetterPeak> cluster;
+//        private final double aveRetTime;
+//
+//        ComboClustersItem(List<BetterPeak> cluster) {
+//            this.cluster = cluster;
+//
+//            double sumRetTime = 0.0;
+//            for (BetterPeak peak : cluster) sumRetTime += peak.getRetTime();
+//            aveRetTime = sumRetTime / cluster.size();
+//        }
+//
+//        @Override
+//        public String toString() {
+//            return  "Cluster at " + DECIMAL.format(aveRetTime) + " min";
+//        }
+//    }
 
     /**
      * Elements of the interface
@@ -105,12 +108,12 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
     private JPanel pnlPlots;
     private JCheckBox chkPreview;
 //    private JComboBox <PeakList> cboPeakLists;
-    private DefaultComboBoxModel <ComboClustersItem> comboClustersModel;
-    private JComboBox <ComboClustersItem> cboClusters;
+    private DefaultComboBoxModel<FirstPhaseClustering.Cluster> comboClustersModel;
+    private JComboBox<FirstPhaseClustering.Cluster> cboClusters;
     private SimpleScatterPlot retTimeMZPlot;
     private EICPlot retTimeIntensityPlot;
 
-    private final List<Peak> peaks;
+    private final List<BetterPeak> peaks;
 
     /** Current values of the parameters */
     private Object[] currentParameters;
@@ -279,7 +282,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         
         if (minDistance == null || minSize == null) return;
 
-        List<List<Peak>> retTimeClusters = new Decomposition()
+        List<FirstPhaseClustering.Cluster> retTimeClusters = new Decomposition()
                 .getRetTimeClusters(peaks, minDistance, minSize);
 
         int colorIndex = 0;
@@ -294,9 +297,9 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         for (ActionListener l : comboListeners) 
             cboClusters.removeActionListener(l);
         
-        for (List <Peak> cluster : retTimeClusters)
+        for (FirstPhaseClustering.Cluster cluster : retTimeClusters)
         {
-            for (Peak peak : cluster) {
+            for (BetterPeak peak : cluster.peaks) {
                 retTimeValues.add(peak.getRetTime());
                 mzValues.add(peak.getMZ());
                 colorValues.add(colors[colorIndex % numColors]);
@@ -304,21 +307,21 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             
             ++colorIndex;
             
-            ComboClustersItem newItem = new ComboClustersItem(cluster);
+//            ComboClustersItem newItem = new ComboClustersItem(cluster.peaks);
             
             int i;
             
             for (i = 0; i < comboClustersModel.getSize(); ++i)
             {
-                double retTime = comboClustersModel.getElementAt(i).aveRetTime;
-                if (newItem.aveRetTime < retTime) {
-                    comboClustersModel.insertElementAt(newItem, i);
+                double retTime = comboClustersModel.getElementAt(i).retTime;
+                if (cluster.retTime < retTime) {
+                    comboClustersModel.insertElementAt(cluster, i);
                     break;
                 }
             }
             
             if (i == comboClustersModel.getSize())
-                comboClustersModel.addElement(newItem);
+                comboClustersModel.addElement(cluster);
         }
         
         // Enable action listeners
@@ -340,11 +343,11 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
      */
     private void shapeCluster()
     {
-        final ComboClustersItem item = (ComboClustersItem) cboClusters.getSelectedItem();
+        final FirstPhaseClustering.Cluster cluster = (FirstPhaseClustering.Cluster) cboClusters.getSelectedItem();
 
-        if (item == null) return;
+        if (cluster == null) return;
 
-        List<Peak> peaks = item.cluster;
+        List<BetterPeak> peaks = cluster.peaks;
 
         final List <List <NavigableMap <Double, Double>>> outClusters = new ArrayList <> ();
         final List <List<Boolean>> outModels = new ArrayList<>();
@@ -363,16 +366,16 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         Double shapeTolerance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.SHAPE_TOLERANCE).getValue();
 
-        List<Component> clusters = null;
+        List<BetterComponent> components = null;
         try {
-            clusters = new Decomposition().getShapeClusters(peaks, fwhmTolerance, shapeTolerance);
+            components = new Decomposition().getShapeClusters(peaks, fwhmTolerance, shapeTolerance);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        List <Peak> modelPeaks = new ArrayList<>(clusters.size());
-        for (Component c : clusters)
-            modelPeaks.add(c.getBestPeak());
+//        List<BetterPeak> modelPeaks = new ArrayList<>(components.size());
+//        for (BetterComponent c : components)
+//            modelPeaks.add(c);
 
         
         outClusters.clear();
@@ -380,51 +383,51 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         outTexts.clear();
         outColors.clear();
         
-        Random rand = new Random();
-        rand.setSeed(0);
-        
-        int colorIndex = 0;
-        final int numColors = 10;
-        final double[] colors = new double[numColors];
-        
-        for (int i = 0; i < numColors; ++i) colors[i] = rand.nextDouble();
-        
-        for (Component component : clusters)
-        {
-            final int numPeaks = component.size();
-            List <NavigableMap <Double, Double>> c = new ArrayList <> (numPeaks);
-            List <Boolean> models = new ArrayList<>(numPeaks);
-            List <String> texts = new ArrayList <> (numPeaks);
-            
-            for (Peak peak : component.getPeaks())
-            {
-                c.add(peak.getChromatogram());
+//        Random rand = new Random();
+//        rand.setSeed(0);
+//
+//        int colorIndex = 0;
+//        final int numColors = 10;
+//        final double[] colors = new double[numColors];
+//
+//        for (int i = 0; i < numColors; ++i) colors[i] = rand.nextDouble();
+//
+//        for (BetterComponent component : components)
+//        {
+//            final int numPeaks = component.size();
+//            List <NavigableMap <Double, Double>> c = new ArrayList <> (numPeaks);
+//            List <Boolean> models = new ArrayList<>(numPeaks);
+//            List <String> texts = new ArrayList <> (numPeaks);
+//
+//            for (Peak peak : component.getPeaks())
+//            {
+//                c.add(peak.getChromatogram());
+//
+//                boolean isModel = peak == component.getBestPeak();
+//                models.add(isModel);
+//
+////                double error = 0.0;
+////                try {
+////                    error = Decomposition.getGaussianFitError(peak) / peak.getIntensity();
+////                }
+////                catch (IllegalArgumentException e) {}
+//
+//                String text = "";
+//                if (isModel) text += "Model Peak\n";
+//                text += peak.getInfo();
+////                text += "\nSharpness: " + numberFormat.format(FeatureTools.sharpnessYang(peak.getChromatogram()));
+//                text += "\nGFE: " + peak.getInfo().gaussianFitError;
+//                texts.add(text);
+//            }
+//            outClusters.add(c);
+//            outModels.add(models);
+//            outTexts.add(texts);
+//
+//            outColors.add(colors[colorIndex % numColors]);
+//            ++colorIndex;
+//        }
 
-                boolean isModel = peak == component.getBestPeak();
-                models.add(isModel);
-
-//                double error = 0.0;
-//                try {
-//                    error = Decomposition.getGaussianFitError(peak) / peak.getIntensity();
-//                }
-//                catch (IllegalArgumentException e) {}
-
-                String text = "";
-                if (isModel) text += "Model Peak\n";
-                text += peak.getInfo();
-//                text += "\nSharpness: " + numberFormat.format(FeatureTools.sharpnessYang(peak.getChromatogram()));
-                text += "\nGFE: " + peak.getInfo().gaussianFitError;
-                texts.add(text);
-            }
-            outClusters.add(c);
-            outModels.add(models);
-            outTexts.add(texts);
-            
-            outColors.add(colors[colorIndex % numColors]);
-            ++colorIndex;
-        }
-
-        retTimeIntensityPlot.updateData(item.cluster, modelPeaks);
+        retTimeIntensityPlot.updateData(cluster.peaks, components);
 
 //        return modelPeaks;
     }

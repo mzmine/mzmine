@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 
+import dulab.adap.datamodel.BetterComponent;
+import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Peak;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -212,32 +214,32 @@ public class EICPlot extends ChartPanel
 //        }
 //    }
 
-    void updateData(@Nonnull List<Peak> peaks, @Nonnull List<Peak> modelPeaks)
+    void updateData(@Nonnull List<BetterPeak> peaks, @Nonnull List<BetterComponent> modelPeaks)
     {
         xyDataset.removeAllSeries();
         toolTips.clear();
 
         int seriesID = 0;
-        for (Peak peak : peaks)
+        for (BetterPeak peak : peaks)
         {
             XYSeries series = new XYSeries(seriesID++);
             series.setDescription(PeakType.SIMPLE.name());
 
-            for (Entry<Double, Double> e : peak.getChromatogram().entrySet())
-                series.add(e.getKey(), e.getValue());
+            for (int i = 0; i < peak.chromatogram.length; ++i)
+                series.add(peak.chromatogram.getRetTime(i), peak.chromatogram.getIntensity(i));
 
             xyDataset.addSeries(series);
             toolTips.add(String.format("M/z: %.2f\nIntensity: %.0f",
                     peak.getMZ(), peak.getIntensity()));
         }
 
-        for (Peak peak : modelPeaks)
+        for (BetterPeak peak : modelPeaks)
         {
             XYSeries series = new XYSeries((seriesID++));
             series.setDescription(PeakType.MODEL.name());
 
-            for (Entry<Double, Double> e : peak.getChromatogram().entrySet())
-                series.add(e.getKey(), e.getValue());
+            for (int i = 0; i < peak.chromatogram.length; ++i)
+                series.add(peak.chromatogram.getRetTime(i), peak.chromatogram.getIntensity(i));
 
             xyDataset.addSeries(series);
             toolTips.add(String.format("Model peak\nM/z: %.2f\nIntensity: %.0f",

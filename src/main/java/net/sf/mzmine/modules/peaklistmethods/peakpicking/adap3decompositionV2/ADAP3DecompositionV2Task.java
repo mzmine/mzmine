@@ -18,9 +18,8 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import com.google.common.collect.Range;
-import dulab.adap.datamodel.Component;
-import dulab.adap.datamodel.Peak;
-        
+import dulab.adap.datamodel.*;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
@@ -164,37 +163,35 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                         "Peak deconvolution by ADAP-3", parameters));
         
         // Collect peak information
-        List <Peak> peaks = new ADAP3DecompositionV2Utils().getPeaks(peakList);
+        List<BetterPeak> peaks = new ADAP3DecompositionV2Utils().getPeaks(peakList);
 
         // Find components (a.k.a. clusters of peaks with fragmentation spectra)
-        List <Component> components = getComponents(peaks);
+        List<BetterComponent> components = getComponents(peaks);
 
         // Create PeakListRow for each components
         List <PeakListRow> newPeakListRows = new ArrayList <> ();
 
         int rowID = 0;
 
-        for (final Component component : components) 
+        for (final BetterComponent component : components)
         {
-            if (component.getSpectrum().isEmpty()) continue;
+            if (component.spectrum.length == 0) continue;
             
             PeakListRow row = new SimplePeakListRow(++rowID);
 
             // Create a reference peal
-            Feature refPeak = getFeature(dataFile, component.getBestPeak());
+            Feature refPeak = getFeature(dataFile, component);
 //            // Add the reference peak
 //            PeakListRow refPeakRow = originalPeakList
 //                    .getRow(component.getBestPeak().getInfo().peakID);
 //            Feature refPeak = new SimpleFeature(refPeakRow.getBestPeak());
 
             // Add spectrum
-            List <DataPoint> dataPoints = new ArrayList <> ();
-            for (Map.Entry <Double, Double> entry : 
-                    component.getSpectrum().entrySet()) 
-            {
+            List<DataPoint> dataPoints = new ArrayList <> ();
+            for (int i = 0; i < component.spectrum.length; ++i)
                 dataPoints.add(new SimpleDataPoint(
-                        entry.getKey(), entry.getValue()));
-            }
+                        component.spectrum.getMZ(i),
+                        component.spectrum.getIntensity(i)));
             
             refPeak.setIsotopePattern(new SimpleIsotopePattern(
                     dataPoints.toArray(new DataPoint[dataPoints.size()]),
@@ -250,7 +247,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
      * @return Collection of dulab.adap.Component objects
      */
     
-    private List <Component> getComponents(List <Peak> peaks)
+    private List<BetterComponent> getComponents(List<BetterPeak> peaks)
     {
         // -----------------------------
         // ADAP Decomposition Parameters
@@ -271,56 +268,62 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     }
 
     @Nonnull
-    private Feature getFeature(@Nonnull RawDataFile file, @Nonnull Peak peak)
+    private Feature getFeature(@Nonnull RawDataFile file, @Nonnull BetterPeak peak)
     {
-        NavigableMap<Double, Double> chromatogram = peak.getChromatogram();
+        Chromatogram chromatogram = peak.chromatogram;
 
         // Retrieve scan numbers
         int representativeScan = 0;
-        int[] scanNumbers = new int[chromatogram.size()];
+        int[] scanNumbers = new int[chromatogram.length];
         int count = 0;
         for (int num : file.getScanNumbers())
         {
             double retTime = file.getScan(num).getRetentionTime();
-            if (chromatogram.keySet().contains(retTime))
+            if (chromatogram.contains(retTime))
                 scanNumbers[count++] = num;
             if (retTime == peak.getRetTime())
                 representativeScan = num;
         }
 
         // Calculate peak area
+//        double area = 0.0;
+//        Iterator<Map.Entry<Double, Double>> it = chromatogram.entrySet().iterator();
+//        if (it.hasNext())
+//        {
+//            Map.Entry<Double, Double> e1 = it.next();
+//            Map.Entry<Double, Double> e2;
+//            while (it.hasNext()) {
+//                e2 = it.next();
+//                double base = e2.getKey() - e1.getKey();
+//                double height = 0.5 * (e1.getValue() + e2.getValue());
+//                area += base * height;
+//            }
+//        }
         double area = 0.0;
-        Iterator<Map.Entry<Double, Double>> it = chromatogram.entrySet().iterator();
-        if (it.hasNext())
-        {
-            Map.Entry<Double, Double> e1 = it.next();
-            Map.Entry<Double, Double> e2;
-            while (it.hasNext()) {
-                e2 = it.next();
-                double base = e2.getKey() - e1.getKey();
-                double height = 0.5 * (e1.getValue() + e2.getValue());
-                area += base * height;
-            }
+        for (int i = 1; i < chromatogram.length; ++i) {
+            double base = chromatogram.xs[i] - chromatogram.xs[i - 1];
+            double height = 0.5 * (chromatogram.ys[i] + chromatogram.ys[i - 1]);
+            area += base * height;
         }
 
         // Create array of DataPoints
-        DataPoint[] dataPoints = new DataPoint[chromatogram.size()];
+        DataPoint[] dataPoints = new DataPoint[chromatogram.length];
         count = 0;
-        for (double intensity : chromatogram.values())
+        for (double intensity : chromatogram.ys)
             dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
-        // Find retention time range
-        double minRetTime = Double.MAX_VALUE;
-        double maxRetTime = -Double.MAX_VALUE;
-        for (double retTime : chromatogram.keySet()) {
-            if (retTime > maxRetTime) maxRetTime = retTime;
-            if (retTime < minRetTime) minRetTime = retTime;
-        }
+//        // Find retention time range
+//        double minRetTime = Double.MAX_VALUE;
+//        double maxRetTime = -Double.MAX_VALUE;
+//        for (double retTime : chromatogram.keySet()) {
+//            if (retTime > maxRetTime) maxRetTime = retTime;
+//            if (retTime < minRetTime) minRetTime = retTime;
+//        }
 
         return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(),
                 area, scanNumbers, dataPoints,
                 Feature.FeatureStatus.MANUAL, representativeScan, representativeScan,
-                Range.closed(peak.getStartRetTime(), peak.getEndRetTime()),
+                Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
                 Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
                 Range.closed(0.0, peak.getIntensity()));
     }

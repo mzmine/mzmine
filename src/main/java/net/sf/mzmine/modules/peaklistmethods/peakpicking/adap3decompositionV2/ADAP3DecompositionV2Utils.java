@@ -1,5 +1,7 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
+import dulab.adap.datamodel.BetterPeak;
+import dulab.adap.datamodel.Chromatogram;
 import dulab.adap.datamodel.Peak;
 import dulab.adap.datamodel.PeakInfo;
 import net.sf.mzmine.datamodel.*;
@@ -35,28 +37,41 @@ public class ADAP3DecompositionV2Utils
      * @return list of ADAP Peaks
      */
     @Nonnull
-    public List<Peak> getPeaks(@Nonnull final PeakList peakList)
+    public List<BetterPeak> getPeaks(@Nonnull final PeakList peakList)
     {
         RawDataFile dataFile = peakList.getRawDataFile(0);
 
-        List <Peak> peaks = new ArrayList<>();
+        List<BetterPeak> peaks = new ArrayList<>();
         
         for (PeakListRow row : peakList.getRows())
         {
             Feature peak = row.getBestPeak();
             int[] scanNumbers = peak.getScanNumbers();
 
-            // Build chromatogram
-            NavigableMap<Double, Double> chromatogram = new TreeMap<>();
-            for (int scanNumber : scanNumbers) {
-                DataPoint dataPoint = peak.getDataPoint(scanNumber);
-                if (dataPoint != null)
-                    chromatogram.put(
-                            getRetTime(dataFile, scanNumber),
-                            dataPoint.getIntensity());
-            }
 
-            if (chromatogram.size() <= 1) continue;
+            // Build chromatogram
+            double[] retTimes = new double[scanNumbers.length];
+            double[] intensities = new double[scanNumbers.length];
+            for (int i = 0; i < scanNumbers.length; ++i) {
+                int scan = scanNumbers[i];
+                retTimes[i] = getRetTime(dataFile, scan);
+                DataPoint dataPoint = peak.getDataPoint(scan);
+                if (dataPoint != null)
+                    intensities[i] = dataPoint.getIntensity();
+            }
+            Chromatogram chromatogram = new Chromatogram(retTimes, intensities);
+
+//            // Build chromatogram
+//            NavigableMap<Double, Double> chromatogram = new TreeMap<>();
+//            for (int scanNumber : scanNumbers) {
+//                DataPoint dataPoint = peak.getDataPoint(scanNumber);
+//                if (dataPoint != null)
+//                    chromatogram.put(
+//                            getRetTime(dataFile, scanNumber),
+//                            dataPoint.getIntensity());
+//            }
+
+            if (chromatogram.length <= 1) continue;
 
             // Fill out PeakInfo
             PeakInfo info = new PeakInfo();
@@ -89,7 +104,7 @@ public class ADAP3DecompositionV2Utils
                 continue;
             }
 
-            peaks.add(new Peak(chromatogram, info));
+            peaks.add(new BetterPeak(chromatogram, info));
         }
 
 //        return FeatureTools.mergePeaks(peaks);
