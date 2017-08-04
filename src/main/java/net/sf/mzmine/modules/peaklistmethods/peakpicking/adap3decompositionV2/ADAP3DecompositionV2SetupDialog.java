@@ -234,10 +234,6 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             case SECOND_PHASE:
                 shapeCluster();
                 break;
-
-            default:
-                retTimeCluster();
-                break;
         }
     }
     
@@ -283,8 +279,6 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             }
             
             ++colorIndex;
-            
-//            ComboClustersItem newItem = new ComboClustersItem(cluster.peaks);
             
             int i;
             
