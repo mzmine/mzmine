@@ -181,10 +181,6 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
             // Create a reference peal
             Feature refPeak = getFeature(dataFile, component);
-//            // Add the reference peak
-//            PeakListRow refPeakRow = originalPeakList
-//                    .getRow(component.getBestPeak().getInfo().peakID);
-//            Feature refPeak = new SimpleFeature(refPeakRow.getBestPeak());
 
             // Add spectrum
             List<DataPoint> dataPoints = new ArrayList <> ();
@@ -199,15 +195,6 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                     "Spectrum"));
             
             row.addPeak(dataFile, refPeak);
-
-            // Add PeakInformation
-//            SimplePeakInformation information = new SimplePeakInformation(
-//                    new HashMap<>(refPeakRow.getPeakInformation().getAllProperties()));
-//            row.setPeakInformation(information);
-            
-//            // Set row properties
-//            row.setAverageMZ(refPeakRow.getAverageMZ());
-//            row.setAverageRT(refPeakRow.getAverageRT());
 
             // Set row properties
             row.setAverageMZ(refPeak.getMZ());
@@ -259,9 +246,9 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
         params.minClusterSize = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-        params.fwhmTolerance = this.parameters.getParameter(
+        params.hwhmTolerance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
-        params.peakTolerance = this.parameters.getParameter(
+        params.similarityTolerance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.SHAPE_TOLERANCE).getValue();
         
         return decomposition.run(params, peaks);
@@ -286,19 +273,6 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         }
 
         // Calculate peak area
-//        double area = 0.0;
-//        Iterator<Map.Entry<Double, Double>> it = chromatogram.entrySet().iterator();
-//        if (it.hasNext())
-//        {
-//            Map.Entry<Double, Double> e1 = it.next();
-//            Map.Entry<Double, Double> e2;
-//            while (it.hasNext()) {
-//                e2 = it.next();
-//                double base = e2.getKey() - e1.getKey();
-//                double height = 0.5 * (e1.getValue() + e2.getValue());
-//                area += base * height;
-//            }
-//        }
         double area = 0.0;
         for (int i = 1; i < chromatogram.length; ++i) {
             double base = chromatogram.xs[i] - chromatogram.xs[i - 1];
@@ -311,14 +285,6 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         count = 0;
         for (double intensity : chromatogram.ys)
             dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
-
-//        // Find retention time range
-//        double minRetTime = Double.MAX_VALUE;
-//        double maxRetTime = -Double.MAX_VALUE;
-//        for (double retTime : chromatogram.keySet()) {
-//            if (retTime > maxRetTime) maxRetTime = retTime;
-//            if (retTime < minRetTime) minRetTime = retTime;
-//        }
 
         return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(),
                 area, scanNumbers, dataPoints,

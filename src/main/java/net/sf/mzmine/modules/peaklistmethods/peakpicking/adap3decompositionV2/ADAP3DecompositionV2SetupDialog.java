@@ -20,8 +20,6 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 import com.google.common.collect.Sets;
 import dulab.adap.datamodel.BetterComponent;
 import dulab.adap.datamodel.BetterPeak;
-import dulab.adap.datamodel.Component;
-import dulab.adap.datamodel.Peak;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -31,7 +29,6 @@ import java.awt.GridBagConstraints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import javax.annotation.Nonnull;
@@ -47,7 +44,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import dulab.adap.workflow.decomposition.Decomposition;
-import dulab.adap.workflow.decomposition.FirstPhaseClustering;
+import dulab.adap.workflow.decomposition.RetTimeClustering;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -77,29 +74,6 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
      */
     private enum CHANGE_STATE {NONE, FIRST_PHASE, SECOND_PHASE};
 
-//    private static final byte NO_CHANGE = 0;
-//    private static final byte FIRST_PHASE_CHANGE = 1;
-//    private static final byte SECOND_PHASE_CHANGE = 2;
-    
-//    private static class ComboClustersItem {
-//        private static final DecimalFormat DECIMAL = new DecimalFormat("#.00");
-//        private final List<BetterPeak> cluster;
-//        private final double aveRetTime;
-//
-//        ComboClustersItem(List<BetterPeak> cluster) {
-//            this.cluster = cluster;
-//
-//            double sumRetTime = 0.0;
-//            for (BetterPeak peak : cluster) sumRetTime += peak.getRetTime();
-//            aveRetTime = sumRetTime / cluster.size();
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return  "Cluster at " + DECIMAL.format(aveRetTime) + " min";
-//        }
-//    }
-
     /**
      * Elements of the interface
      */
@@ -107,9 +81,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
     private JPanel pnlComboBoxes;
     private JPanel pnlPlots;
     private JCheckBox chkPreview;
-//    private JComboBox <PeakList> cboPeakLists;
-    private DefaultComboBoxModel<FirstPhaseClustering.Cluster> comboClustersModel;
-    private JComboBox<FirstPhaseClustering.Cluster> cboClusters;
+    private DefaultComboBoxModel<RetTimeClustering.Cluster> comboClustersModel;
+    private JComboBox<RetTimeClustering.Cluster> cboClusters;
     private SimpleScatterPlot retTimeMZPlot;
     private EICPlot retTimeIntensityPlot;
 
@@ -261,6 +234,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             case SECOND_PHASE:
                 shapeCluster();
                 break;
+
+            default:
+                retTimeCluster();
+                break;
         }
     }
     
@@ -282,7 +259,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         
         if (minDistance == null || minSize == null) return;
 
-        List<FirstPhaseClustering.Cluster> retTimeClusters = new Decomposition()
+        List<RetTimeClustering.Cluster> retTimeClusters = new Decomposition()
                 .getRetTimeClusters(peaks, minDistance, minSize);
 
         int colorIndex = 0;
@@ -297,7 +274,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         for (ActionListener l : comboListeners) 
             cboClusters.removeActionListener(l);
         
-        for (FirstPhaseClustering.Cluster cluster : retTimeClusters)
+        for (RetTimeClustering.Cluster cluster : retTimeClusters)
         {
             for (BetterPeak peak : cluster.peaks) {
                 retTimeValues.add(peak.getRetTime());
@@ -343,23 +320,11 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
      */
     private void shapeCluster()
     {
-        final FirstPhaseClustering.Cluster cluster = (FirstPhaseClustering.Cluster) cboClusters.getSelectedItem();
+        final RetTimeClustering.Cluster cluster = (RetTimeClustering.Cluster) cboClusters.getSelectedItem();
 
         if (cluster == null) return;
 
         List<BetterPeak> peaks = cluster.peaks;
-
-        final List <List <NavigableMap <Double, Double>>> outClusters = new ArrayList <> ();
-        final List <List<Boolean>> outModels = new ArrayList<>();
-        final List <List <String>> outTexts = new ArrayList <> ();
-        final List <Double> outColors = new ArrayList <> ();
-
-//        List<Peak> modelPeaks = shapeCluster(item.cluster, shapeClusters, models, texts, colors);
-
-//                retTimeIntensityPlot.updateData(shapeClusters, colors, texts, models);
-
-
-        NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
         Double fwhmTolerance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
@@ -368,68 +333,13 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         List<BetterComponent> components = null;
         try {
-            components = new Decomposition().getShapeClusters(peaks, fwhmTolerance, shapeTolerance);
+            components = new Decomposition().getComponents(peaks, fwhmTolerance, shapeTolerance);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-//        List<BetterPeak> modelPeaks = new ArrayList<>(components.size());
-//        for (BetterComponent c : components)
-//            modelPeaks.add(c);
-
-        
-        outClusters.clear();
-        outModels.clear();
-        outTexts.clear();
-        outColors.clear();
-        
-//        Random rand = new Random();
-//        rand.setSeed(0);
-//
-//        int colorIndex = 0;
-//        final int numColors = 10;
-//        final double[] colors = new double[numColors];
-//
-//        for (int i = 0; i < numColors; ++i) colors[i] = rand.nextDouble();
-//
-//        for (BetterComponent component : components)
-//        {
-//            final int numPeaks = component.size();
-//            List <NavigableMap <Double, Double>> c = new ArrayList <> (numPeaks);
-//            List <Boolean> models = new ArrayList<>(numPeaks);
-//            List <String> texts = new ArrayList <> (numPeaks);
-//
-//            for (Peak peak : component.getPeaks())
-//            {
-//                c.add(peak.getChromatogram());
-//
-//                boolean isModel = peak == component.getBestPeak();
-//                models.add(isModel);
-//
-////                double error = 0.0;
-////                try {
-////                    error = Decomposition.getGaussianFitError(peak) / peak.getIntensity();
-////                }
-////                catch (IllegalArgumentException e) {}
-//
-//                String text = "";
-//                if (isModel) text += "Model Peak\n";
-//                text += peak.getInfo();
-////                text += "\nSharpness: " + numberFormat.format(FeatureTools.sharpnessYang(peak.getChromatogram()));
-//                text += "\nGFE: " + peak.getInfo().gaussianFitError;
-//                texts.add(text);
-//            }
-//            outClusters.add(c);
-//            outModels.add(models);
-//            outTexts.add(texts);
-//
-//            outColors.add(colors[colorIndex % numColors]);
-//            ++colorIndex;
-//        }
-
-        retTimeIntensityPlot.updateData(cluster.peaks, components);
-
-//        return modelPeaks;
+        if (components != null)
+            retTimeIntensityPlot.updateData(cluster.peaks, components);
     }
     
     private CHANGE_STATE compareParameters(Parameter[] newValues)
@@ -445,10 +355,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         }
         
         final Set <Integer> firstPhaseIndices = 
-                new HashSet <> (Arrays.asList(new Integer[] {1, 2}));
+                new HashSet <> (Arrays.asList(1, 2));
         
         final Set <Integer> secondPhaseIndices = 
-                new HashSet <> (Arrays.asList(new Integer[] {3, 4}));
+                new HashSet <> (Arrays.asList(3, 4));
         
         int size = Math.min(currentParameters.length, newValues.length);
         
