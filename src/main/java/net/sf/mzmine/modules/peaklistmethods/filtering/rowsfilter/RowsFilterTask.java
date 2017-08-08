@@ -181,6 +181,8 @@ public class RowsFilterTask extends AbstractTask {
                 .getParameter(RowsFilterParameters.RT_RANGE).getValue();
         final boolean filterByDuration = parameters
                 .getParameter(RowsFilterParameters.PEAK_DURATION).getValue();
+        final boolean filterByFWHM = parameters
+                .getParameter(RowsFilterParameters.FWHM).getValue();
         final boolean filterByMS2 = parameters
                 .getParameter(RowsFilterParameters.MS2_Filter).getValue();
         final String removeRowString = (String) parameters
@@ -338,6 +340,22 @@ public class RowsFilterTask extends AbstractTask {
                     filterRowCriteriaFailed = true;
 
             }
+            
+            // Filter by FWHM range
+            if (filterByFWHM)
+            {
+                
+                final Range<Double> FWHMRange = parameters
+                        .getParameter(RowsFilterParameters.FWHM)
+                        .getEmbeddedParameter().getValue();
+                //If any of the peaks fail the FWHM criteria, t
+
+                    if (!FWHMRange.contains(row.getBestPeak().getFWHM()))
+                        filterRowCriteriaFailed = true;  
+
+             
+            }
+            
             // Check ms2 filter .
             if (filterByMS2) {
             	// iterates the peaks
