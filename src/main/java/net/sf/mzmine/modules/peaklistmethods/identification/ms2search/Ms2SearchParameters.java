@@ -33,9 +33,9 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class Ms2SearchParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakLists1 = new PeakListsParameter();
+    public static final PeakListsParameter peakList1 = new PeakListsParameter(1,1);
     
-    public static final PeakListsParameter peakLists2 = new PeakListsParameter();
+    public static final PeakListsParameter peakList2 = new PeakListsParameter(1,1);
     
     public static final MassListParameter massList = new MassListParameter();
     
@@ -51,7 +51,7 @@ public class Ms2SearchParameters extends SimpleParameterSet {
             "Minimum score to report","Minimum MS2 comparison score to report");
     
     public Ms2SearchParameters() {
-        super(new Parameter[] { peakLists1, peakLists2, massList, mzTolerance,intensityThreshold, minimumIonsMatched,scoreThreshold});
+        super(new Parameter[] { peakList1, peakList2, massList, mzTolerance,intensityThreshold, minimumIonsMatched,scoreThreshold});
     }
 
 }
