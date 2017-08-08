@@ -96,6 +96,7 @@ public class PeaklistClearAnnotationsTask extends AbstractTask {
             setStatus(TaskStatus.PROCESSING);
             LOG.info("Filtering peak list rows");
 
+            totalRows = origPeakList.getRows().length;
             // Filter the peak list.
             for (PeakListRow row : origPeakList.getRows())
             {
@@ -110,6 +111,7 @@ public class PeaklistClearAnnotationsTask extends AbstractTask {
                 {
                     row.setComment("");
                 }
+                processedRows += 1;
                 
             }
 
