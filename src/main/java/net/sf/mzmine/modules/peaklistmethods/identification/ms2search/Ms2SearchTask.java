@@ -182,8 +182,7 @@ class Ms2SearchTask extends AbstractTask {
                 
                 
                 
-                searchResult = simpleMS2similarity(featureA,
-                        featureB,scanA,scanB, intensityThreshold, mzTolerance, massListName);
+                searchResult = simpleMS2similarity(scanA,scanB, intensityThreshold, mzTolerance, massListName);
                 
                 //Report the final score to the peaklist identity
                 if (searchResult != null 
@@ -216,7 +215,7 @@ class Ms2SearchTask extends AbstractTask {
 
     }
     
-    private Ms2SearchResult simpleMS2similarity(Feature featureA, Feature featureB, Scan scanA, Scan scanB,
+    private Ms2SearchResult simpleMS2similarity(Scan scanA, Scan scanB,
             double intensityThreshold, MZTolerance mzRange, String massList) {
 
         double runningScoreTotal = 0.0;
