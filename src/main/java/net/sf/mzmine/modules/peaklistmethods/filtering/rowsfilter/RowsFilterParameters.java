@@ -70,6 +70,12 @@ public class RowsFilterParameters extends SimpleParameterSet {
                     "Permissible range of (average) peak durations per row",
                     MZmineCore.getConfiguration().getRTFormat(),
                     Range.closed(0.0, 10.0)));
+   
+    public static final OptionalParameter<DoubleRangeParameter> FWHM = new OptionalParameter<>(
+            new DoubleRangeParameter("Chromatographic FWHM",
+                    "Permissible range of chromatographic FWHM per row",
+                    MZmineCore.getConfiguration().getRTFormat(),
+                    Range.closed(0.0, 1.0)));
 
     public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
             "Parameter", "Paremeter defining the group of each sample.",
@@ -103,7 +109,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
     public RowsFilterParameters() {
         super(new Parameter[] { PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT,
-                MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
+                MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION, FWHM,
                 GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
                 REMOVE_ROW, MS2_Filter,Reset_ID,AUTO_REMOVE });
     }
