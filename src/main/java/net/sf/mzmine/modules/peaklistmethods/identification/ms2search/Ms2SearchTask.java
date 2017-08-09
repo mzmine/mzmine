@@ -215,7 +215,7 @@ class Ms2SearchTask extends AbstractTask {
 
     }
     
-    private Ms2SearchResult simpleMS2similarity(Scan scanA, Scan scanB,
+    private Ms2SearchResult simpleMS2similarity(Scan scanMS2A, Scan scanMS2B,
             double intensityThreshold, MZTolerance mzRange, String massList) {
 
         double runningScoreTotal = 0.0;
@@ -226,12 +226,11 @@ class Ms2SearchTask extends AbstractTask {
         // Fetch 1st feature MS2 scan.
         //int ms2ScanNumberA = featureA.getMostIntenseFragmentScanNumber();
         //Scan scanMS2A = featureA.getDataFile().getScan(ms2ScanNumberA);
-        Scan scanMS2A = scanA;
+
 
         // Fetch 2nd feature MS2 scan.
         //int ms2ScanNumberB = featureB.getMostIntenseFragmentScanNumber();
         //Scan scanMS2B = featureB.getDataFile().getScan(ms2ScanNumberB);
-        Scan scanMS2B = scanB;
         
         if (scanMS2A == null || scanMS2B == null)
         {
