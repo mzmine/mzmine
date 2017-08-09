@@ -348,9 +348,12 @@ public class RowsFilterTask extends AbstractTask {
                 final Range<Double> FWHMRange = parameters
                         .getParameter(RowsFilterParameters.FWHM)
                         .getEmbeddedParameter().getValue();
-                //If any of the peaks fail the FWHM criteria, t
+                //If any of the peaks fail the FWHM criteria,
+                Double FWHM_value = row.getBestPeak().getFWHM();
+                
+                
 
-                    if (!FWHMRange.contains(row.getBestPeak().getFWHM()))
+                    if (FWHM_value != null && !FWHMRange.contains(FWHM_value))
                         filterRowCriteriaFailed = true;  
 
              
