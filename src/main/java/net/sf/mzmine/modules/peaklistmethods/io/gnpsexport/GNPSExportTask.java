@@ -32,272 +32,240 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
+import weka.core.logging.Logger;
+import weka.core.logging.Logger.Level;
 
 public class GNPSExportTask extends AbstractTask {
-	private final PeakList[] peakLists;
-    private final File fileName;
-    private final String plNamePattern = "{}";
-    
-    private final String massListName;
-    
-    GNPSExportTask(ParameterSet parameters) {
-        this.peakLists = parameters.getParameter(GNPSExportParameters.PEAK_LISTS)
-                .getValue().getMatchingPeakLists();
-        
-        this.fileName = parameters.getParameter(GNPSExportParameters.FILENAME)
-                .getValue();        
-        
-        this.massListName = parameters.getParameter(GNPSExportParameters.MASS_LIST)
-        		.getValue();
+  private final PeakList[] peakLists;
+  private final File fileName;
+  private final String plNamePattern = "{}";
+
+  private final String massListName;
+
+  GNPSExportTask(ParameterSet parameters) {
+    this.peakLists = parameters.getParameter(GNPSExportParameters.PEAK_LISTS)
+        .getValue().getMatchingPeakLists();
+
+    this.fileName = parameters.getParameter(GNPSExportParameters.FILENAME)
+        .getValue();        
+
+    this.massListName = parameters.getParameter(GNPSExportParameters.MASS_LIST)
+        .getValue();
+  }
+
+  @Override
+  public double getFinishedPercentage() {
+    return 0;
+  }
+
+  @Override
+  public void run() {
+    setStatus(TaskStatus.PROCESSING);
+
+    // Shall export several files?
+    boolean substitute = fileName.getPath().contains(plNamePattern);
+
+    // Process peak lists
+    for (PeakList peakList: peakLists) {
+
+      // Filename
+      File curFile = fileName;
+      if (substitute) {
+        // Cleanup from illegal filename characters
+        String cleanPlName = peakList.getName().replaceAll(
+            "[^a-zA-Z0-9.-]", "_");
+        // Substitute
+        String newFilename = fileName.getPath().replaceAll(
+            Pattern.quote(plNamePattern), cleanPlName);
+        curFile = new File(newFilename);
+      }
+
+      // Open file
+      FileWriter writer;
+      try {
+        writer = new FileWriter(curFile);
+      } catch (Exception e) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Could not open file " + curFile 
+            + " for writing.");
+        return;
+      }
+
+      try {
+        export(peakList, writer, curFile);
+      } catch (IOException e) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Error while writing into file " + curFile +
+            ": " + e.getMessage());
+        return;
+      }
+
+      // Cancel?
+      if (isCanceled()) {
+        return;
+      }
+
+      // Close file
+      try {
+        writer.close();
+      } catch (Exception e) {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Could not close file " + curFile);
+        return;
+      }
+
+      // If peak list substitution pattern wasn't found, 
+      // treat one peak list only
+      if (!substitute)
+        break;
     }
 
-	@Override
-	public double getFinishedPercentage() {
-		return 0;
-	}
+    if (getStatus() == TaskStatus.PROCESSING)
+      setStatus(TaskStatus.FINISHED);
+  }
 
-	@Override
-	public void run() {
-		setStatus(TaskStatus.PROCESSING);
+  private void export(PeakList peakList, FileWriter writer, File curFile)
+      throws IOException
+  {
+    final String newLine = System.lineSeparator();
 
-        // Shall export several files?
-        boolean substitute = fileName.getPath().contains(plNamePattern);
+    int currentID = 1;
+    for (int i = 0; i < peakList.getRows().length; i++) {
+      PeakListRow row = peakList.getRows()[i];
+      String rowID = Integer.toString(row.getID());
+      if (currentID != row.getID()) {
+        writer.write("BEGIN IONS"+newLine);                		                		                                                
 
-        // Process peak lists
-        for (PeakList peakList: peakLists) {
+        if (rowID != null)
+          writer.write("FEATURE_ID=" + currentID + newLine);
 
-            // Filename
-            File curFile = fileName;
-            if (substitute) {
-                // Cleanup from illegal filename characters
-                String cleanPlName = peakList.getName().replaceAll(
-                        "[^a-zA-Z0-9.-]", "_");
-                // Substitute
-                String newFilename = fileName.getPath().replaceAll(
-                        Pattern.quote(plNamePattern), cleanPlName);
-                curFile = new File(newFilename);
-            }
-
-            // Open file
-            FileWriter writer;
-            try {
-                writer = new FileWriter(curFile);
-            } catch (Exception e) {
-                setStatus(TaskStatus.ERROR);
-                setErrorMessage("Could not open file " + curFile 
-                        + " for writing.");
-                return;
-            }
-
-            try {
-            	export(peakList, writer, curFile);
-            } catch (IOException e) {
-                setStatus(TaskStatus.ERROR);
-                setErrorMessage("Error while writing into file " + curFile +
-                        ": " + e.getMessage());
-                return;
-            }
-
-            // Cancel?
-            if (isCanceled()) {
-                return;
-            }
-
-            // Close file
-            try {
-                writer.close();
-            } catch (Exception e) {
-                setStatus(TaskStatus.ERROR);
-                setErrorMessage("Could not close file " + curFile);
-                return;
-            }
-
-            // If peak list substitution pattern wasn't found, 
-            // treat one peak list only
-            if (!substitute)
-                break;
+        if(rowID != null) {
+          writer.write("SCANS=" + currentID + newLine);
         }
 
-        if (getStatus() == TaskStatus.PROCESSING)
-            setStatus(TaskStatus.FINISHED);
-	}
-	
-	private void export(PeakList peakList, FileWriter writer, File curFile)
-            throws IOException
-    {
-		final String newLine = System.lineSeparator();
-        
-    	for (PeakListRow row : peakList.getRows()) {
-            
- 
-            
-            String rowID = Integer.toString(row.getID());
-            
-            String retTimeInSeconds = Double.toString(row.getAverageRT() * 60);
-            String mass = Double.toString(row.getAverageMZ());
-            Feature peaks[] = row.getPeaks();
-			int ms2scanNumber;
-			double ms2Peak =0.0;
-			int toPrintScanNumber = 0;
-			Feature PeaktoPrint = peaks[0];
-			for (Feature peak:peaks){
-				ms2scanNumber = peak.getMostIntenseFragmentScanNumber();
-				if(ms2scanNumber >0 ){
-					 double topPeak = peak.getDataFile().getScan(ms2scanNumber).getHighestDataPoint().getIntensity();
-					 if (topPeak > ms2Peak){
-						 ms2Peak = topPeak;
-						 toPrintScanNumber = ms2scanNumber; 
-						 PeaktoPrint = peak;
-					 }			 
-				}
-			}
-			// if there exists msmsscans
-			if(ms2Peak != 0) {
-				// if there exists masslist
-				Scan msmsScan = PeaktoPrint.getDataFile().getScan(toPrintScanNumber);
-				MassList massList = msmsScan.getMassList(massListName);
+        writer.write("MSLEVEL=2" + newLine);                                                                                                
 
-				if (massList == null) {
-					MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-							"There is no mass list called " + massListName + " for MS/MS scan #" + toPrintScanNumber + " ("
-									+ PeaktoPrint.getDataFile() + ")");
-					return;
-				}
-				writer.write("BEGIN IONS" + newLine);
+        writer.write("END IONS"+newLine);
+        writer.write(newLine);        	            	    
+        i--;
+      }
+      else {
+        String retTimeInSeconds = Double.toString(row.getAverageRT() * 60);
+        // Get the MS/MS scan number
+        Feature bestPeak = row.getBestPeak();
+        int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+        if (rowID != null) {
+          PeakListRow copyRow = copyPeakRow(row);
+          // Best peak always exists, because peak list row has at least one peak
+          bestPeak = copyRow.getBestPeak();
 
-				if (rowID != null)
-					writer.write("FEATURE_ID=" + rowID + newLine);	
-				if (mass != null)
-					writer.write("PEPMASS=" + mass + newLine);
-				
-				if (rowID != null) {
-					writer.write("SCANS=" + rowID + newLine);
-					writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
-				}
-									
-				int msmsCharge = msmsScan.getPrecursorCharge();
-				String msmsPolarity = msmsScan.getPolarity().asSingleChar();								
-				if(msmsPolarity.equals("0"))
-					msmsPolarity = "";
-				if(msmsCharge == 0) {
-					msmsCharge = 1;
-					msmsPolarity = "";
-				}
-				writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
-				
-				
-				writer.write("MSLEVEL=2" + newLine);
+          // Get the MS/MS scan number
 
-				DataPoint peaks2[] = massList.getDataPoints();
-				for (DataPoint peak : peaks2) {
-					writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
-				}
-				writer.write("END IONS" + newLine);
-				writer.write(newLine);
-				
-				
-			}
-    	}
-  
-
-            // Get the MS/MS scan number
-           /* Feature bestPeak =row.getBestPeak();
-            int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-            if (rowID != null){
-                PeakListRow copyRow = copyPeakRow(row);
-                // Best peak always exists, because peak list row has at least one peak
-                bestPeak =copyRow.getBestPeak();
-
-                // Get the MS/MS scan number
-                
-                 msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-               	if (msmsScanNumber < 1) {
-               		copyRow.removePeak(bestPeak.getDataFile());
-               		if(copyRow.getPeaks().length !=0){
-               			// row is not empty  		
-            		bestPeak = copyRow.getBestPeak();
-            		msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-               		}
-            	}
+          msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+          if (msmsScanNumber < 1) {
+            copyRow.removePeak(bestPeak.getDataFile());
+            if (copyRow.getPeaks().length != 0) {
+              // row is not empty  		
+              bestPeak = copyRow.getBestPeak();
+              msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
             }
-        	
-        	if (msmsScanNumber >= 1) {            	             	
-            	// MS/MS scan must exist, because msmsScanNumber was > 0
-            	Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
+          }
+        }
+        if (msmsScanNumber >= 1) {
+          // MS/MS scan must exist, because msmsScanNumber was > 0
+          Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
 
-            	MassList massList = msmsScan.getMassList(massListName);
-            	
-            	if (massList == null) {
-            	    MZmineCore.getDesktop().displayErrorMessage(
-            		    MZmineCore.getDesktop().getMainWindow(),
-            		    "There is no mass list called " + massListName
-            			    + " for MS/MS scan #" + msmsScanNumber + " ("
-            			    + bestPeak.getDataFile() + ")");
-            	    return;
-            	}
-            	
-            	writer.write("BEGIN IONS"+newLine);                		                		                                                
+          MassList massList = msmsScan.getMassList(massListName);
 
-            	if (rowID != null)
-            		writer.write("FEATURE_ID=" + rowID + newLine);
+          if (massList == null) {
+            MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+                "There is no mass list called " + massListName + " for MS/MS scan #" + msmsScanNumber
+                + " (" + bestPeak.getDataFile() + ")");
+            return;
+          }
 
-                String mass = Double.toString(row.getAverageMZ());
-                if (mass != null) writer.write("PEPMASS=" + mass + newLine);                                                                      
-               
-                if(rowID != null) {
-                	writer.write("SCANS=" + rowID + newLine);
-                	writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
-                }
-                
-                int msmsCharge = msmsScan.getPrecursorCharge();
-				String msmsPolarity = msmsScan.getPolarity().asSingleChar();								
-				if(msmsPolarity.equals("0"))
-					msmsPolarity = "";
-				if(msmsCharge == 0) {
-					msmsCharge = 1;
-					msmsPolarity = "";
-				}
-				writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
+          writer.write("BEGIN IONS" + newLine);
 
-                writer.write("MSLEVEL=2" + newLine);                                                                                                
-                
-            	DataPoint peaks[] = massList.getDataPoints();
-        	    for (DataPoint peak : peaks) {
-        		    writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
-        	    }
+          if (rowID != null)
+            writer.write("FEATURE_ID=" + rowID + newLine);
 
-        	    writer.write("END IONS"+newLine);
-        	    writer.write(newLine);
-        	}
-    	}          
-	}*/
+          String mass = Double.toString(row.getAverageMZ());
+          if (mass != null)
+            writer.write("PEPMASS=" + mass + newLine);
 
+          if (rowID != null) {
+            writer.write("SCANS=" + rowID + newLine);
+            writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
+          }
+
+          int msmsCharge = msmsScan.getPrecursorCharge();
+          String msmsPolarity = msmsScan.getPolarity().asSingleChar();
+          if (msmsPolarity.equals("0"))
+            msmsPolarity = "";
+          if (msmsCharge == 0) {
+            msmsCharge = 1;
+            msmsPolarity = "";
+          }
+          writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
+
+          writer.write("MSLEVEL=2" + newLine);
+
+          DataPoint peaks[] = massList.getDataPoints();
+          for (DataPoint peak : peaks) {
+            writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
+          }
+
+          writer.write("END IONS" + newLine);
+          writer.write(newLine);
+        } else { 
+          writer.write("BEGIN IONS"+newLine);                		                		                                                
+
+          if (rowID != null)
+            writer.write("FEATURE_ID=" + currentID + newLine);
+
+          String mass = Double.toString(row.getAverageMZ());
+          if (mass != null) writer.write("PEPMASS=" + mass + newLine);                                                                      
+
+          if(rowID != null) {
+            writer.write("SCANS=" + currentID + newLine);
+          }
+
+          writer.write("MSLEVEL=2" + newLine);                                                                                                
+
+          writer.write("END IONS"+newLine);
+          writer.write(newLine);        	            	    	        	    
+        }
+      }
+
+      // Increment Row ID counter
+      currentID++;
     }
-	public String getTaskDescription() {
-		return "Exporting GNPS of peak list(s) " 
+
+  }
+  public String getTaskDescription() {
+    return "Exporting GNPS of peak list(s) " 
         + Arrays.toString(peakLists) + " to MGF file(s)";
-	}
+  }
 
-    /**
-     * Create a copy of a peak list row.
-     */
-   /* private static PeakListRow copyPeakRow(final PeakListRow row) {
+  /**
+   * Create a copy of a peak list row.
+   */
+  private static PeakListRow copyPeakRow(final PeakListRow row) {
+    // Copy the peak list row.
+    final PeakListRow newRow = new SimplePeakListRow(row.getID());
+    PeakUtils.copyPeakListRowProperties(row, newRow);
 
-        // Copy the peak list row.
-        final PeakListRow newRow = new SimplePeakListRow(row.getID());
-        PeakUtils.copyPeakListRowProperties(row, newRow);
+    // Copy the peaks.
+    for (final Feature peak : row.getPeaks()) {
 
-        // Copy the peaks.
-        for (final Feature peak : row.getPeaks()) {
 
- 
-                final Feature newPeak = new SimpleFeature(peak);
-                PeakUtils.copyPeakProperties(peak, newPeak);
-                newRow.addPeak(peak.getDataFile(), newPeak);
+      final Feature newPeak = new SimpleFeature(peak);
+      PeakUtils.copyPeakProperties(peak, newPeak);
+      newRow.addPeak(peak.getDataFile(), newPeak);
 
-        }
+    }
 
-        return newRow;
-    }*/
+    return newRow;
+  }
 
 }
