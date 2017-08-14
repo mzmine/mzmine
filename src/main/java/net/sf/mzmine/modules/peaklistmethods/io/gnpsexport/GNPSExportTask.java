@@ -127,7 +127,7 @@ public class GNPSExportTask extends AbstractTask {
   {
     final String newLine = System.lineSeparator();
 
-    int currentID = 1;
+    int currentID = peakList.getRows()[0].getID();
     for (int i = 0; i < peakList.getRows().length; i++) {
       PeakListRow row = peakList.getRows()[i];
       String rowID = Integer.toString(row.getID());
