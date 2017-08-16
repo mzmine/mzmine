@@ -1,0 +1,50 @@
+<html>
+<head>
+    <title>Export - MSP export</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+<body>
+
+<h1>MSP Export</h1>
+
+<h2>Description</h2>
+
+<p>
+    This module exports fragmentation spectra of peaks in the peak list into MSP format file.
+    In addition to the spectra, the following peak characteristics are saved into the file:
+</p>
+
+<dl>
+    <dt>Name</dt>
+    <dd>Name of the peak as displayed in the peak list</dd>
+
+    <dt>DB#</dt>
+    <dd>Row number in the peak list</dd>
+
+    <dt>Num Peaks</dt>
+    <dd>Number of peaks in the spectrum</dd>
+</dl>
+
+<h4>Method Parameters</h4>
+
+<dl>
+    <dt>Fractional m/z values</dt>
+    <dd>If not selected, all fractional m/z values are rounded to the closest integer and the corresponding peaks are merged</dd>
+
+    <dt>Merging Mode</dt>
+    <dd>
+        When peaks are merged, the resulting elution profile is calculated by one of the following rules:
+        <ol>
+            <li><b>Maximum.</b> In the resulting elution profile, the intensity at retention time <i>t</i> is the maximum
+                of the intensities at <i>t</i> across the merging elution profiles</li>
+            <li><b>Sum.</b> In the resulting elution profile, the intensity at retention time <i>t</i> is the sum of the
+            intensities at <i>t</i> for all merging elution profiles</li>
+        </ol>
+    </dd>
+
+
+</dl>
+
+</body>
+</html>

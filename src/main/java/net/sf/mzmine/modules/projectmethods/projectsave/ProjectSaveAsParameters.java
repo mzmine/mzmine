@@ -51,7 +51,8 @@ public class ProjectSaveAsParameters extends SimpleParameterSet {
 	JFileChooser chooser = new JFileChooser();
 
 	for (FileFilter filter : filters)
-	    chooser.setFileFilter(filter);
+	    chooser.addChoosableFileFilter(filter);
+	chooser.setFileFilter(filters[0]);
 
 	File currentFile = getParameter(projectFile).getValue();
 	if (currentFile != null) {

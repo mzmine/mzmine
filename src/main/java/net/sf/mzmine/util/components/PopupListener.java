@@ -40,12 +40,14 @@ public class PopupListener extends MouseAdapter {
     public void mousePressed(MouseEvent e) {
 	if (e.isPopupTrigger()) {
 	    popup.show(e.getComponent(), e.getX(), e.getY());
+	    e.consume();
 	}
     }
 
     public void mouseReleased(MouseEvent e) {
 	if (e.isPopupTrigger()) {
 	    popup.show(e.getComponent(), e.getX(), e.getY());
+	    e.consume();
 	}
     }
 

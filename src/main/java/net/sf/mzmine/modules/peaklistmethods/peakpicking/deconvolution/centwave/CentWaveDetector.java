@@ -97,7 +97,7 @@ public class CentWaveDetector implements PeakResolver {
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
             final ParameterSet parameters,
-            RSessionWrapper rSession) throws RSessionWrapperException {
+            RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) throws RSessionWrapperException {
         
         int scanNumbers[] = chromatogram.getScanNumbers();
         final int scanCount = scanNumbers.length;
@@ -163,7 +163,7 @@ public class CentWaveDetector implements PeakResolver {
                                 - retentionTimes[start]))) {
 
                             resolvedPeaks.add(new ResolvedPeak(chromatogram,
-                                    start, end));
+                                    start, end,msmsRange,rTRangeMSMS));
                         }
 
                         start = end;
@@ -222,7 +222,7 @@ public class CentWaveDetector implements PeakResolver {
         rSession.eval("xRaw <- new(\"xcmsRaw\")");
         rSession.eval("xRaw@tic <- intensity");
         rSession.eval("xRaw@scantime <- scantime * " + SECONDS_PER_MINUTE);
-        rSession.eval("xRaw@scanindex <- 1:numPoints");
+        rSession.eval("xRaw@scanindex <- 0:(numPoints-1)");
         rSession.eval("xRaw@env$mz <- rep(mz, numPoints)");
         rSession.eval("xRaw@env$intensity <- intensity");
 

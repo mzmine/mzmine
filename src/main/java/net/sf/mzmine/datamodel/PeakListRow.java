@@ -189,5 +189,13 @@ public interface PeakListRow {
      * isotope patterns present in the row, returns null.
      */
     public IsotopePattern getBestIsotopePattern();
+    
+    // DorresteinLaB edit
+    /**
+     * reset the rowID
+     */
+    public void setID(int id);
+    
+    // End DorresteinLab edit
 
 }

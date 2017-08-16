@@ -33,6 +33,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.datamodel.Feature;
@@ -89,7 +90,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private final JMenuItem showMSMSItem;
     private final JMenuItem showIsotopePatternItem;
     private final JMenuItem show2DItem;
-    private final JMenuItem showPoint2DItem;
     private final JMenuItem show3DItem;
     private final JMenuItem exportIsotopesItem;
     private final JMenuItem exportMSMSItem;
@@ -134,7 +134,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         showSpectrumItem = GUIUtils
                 .addMenuItem(showMenu, "Mass spectrum", this);
         show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
+<<<<<<< HEAD
         showPoint2DItem = GUIUtils.addMenuItem(showMenu, "Item peak in 2D", this);
+=======
+>>>>>>> master
         show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
         showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
         showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
@@ -187,7 +190,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         // First, disable all the Show... items
         show2DItem.setEnabled(false);
-        showPoint2DItem.setEnabled(false);
         show3DItem.setEnabled(false);
         manuallyDefineItem.setEnabled(false);
         showMSMSItem.setEnabled(false);
@@ -229,7 +231,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
             // Enable items.
             show2DItem.setEnabled(oneRowSelected);
-            showPoint2DItem.setEnabled(oneRowSelected);
             show3DItem.setEnabled(oneRowSelected);
             showPeakRowSummaryItem.setEnabled(oneRowSelected);
 
@@ -321,9 +322,14 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                         .convertRowIndexToModel(selectedTableRows[i]));
             }
 
-            IntensityPlotModule.showIntensityPlot(MZmineCore
-                    .getProjectManager().getCurrentProject(), peakList,
-                    selectedRows);
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    IntensityPlotModule.showIntensityPlot(MZmineCore
+                            .getProjectManager().getCurrentProject(), peakList,
+                            selectedRows);
+                }
+            });
         }
 
         if (showXICItem.equals(src) && allClickedPeakListRows.length != 0) {
@@ -495,23 +501,39 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             final Feature showPeak = getSelectedPeak();
             if (showPeak != null && showPeak.getIsotopePattern() != null) {
 
-                SpectraVisualizerModule.showNewSpectrumWindow(
-                        showPeak.getDataFile(),
-                        showPeak.getRepresentativeScanNumber(),
-                        showPeak.getIsotopePattern());
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        SpectraVisualizerModule.showNewSpectrumWindow(
+                                showPeak.getDataFile(),
+                                showPeak.getRepresentativeScanNumber(),
+                                showPeak.getIsotopePattern());
+                    }
+                    });
             }
         }
 
         if (formulaItem != null && formulaItem.equals(src)) {
 
-            FormulaPredictionModule
-                    .showSingleRowIdentificationDialog(clickedPeakListRow);
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    FormulaPredictionModule
+                    .showSingleRowIdentificationDialog(clickedPeakListRow);                }
+            });
+
         }
 
         if (dbSearchItem != null && dbSearchItem.equals(src)) {
 
-            OnlineDBSearchModule
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    OnlineDBSearchModule
                     .showSingleRowIdentificationDialog(clickedPeakListRow);
+                }
+            });
+
         }
 
         if (nistSearchItem != null && nistSearchItem.equals(src)) {

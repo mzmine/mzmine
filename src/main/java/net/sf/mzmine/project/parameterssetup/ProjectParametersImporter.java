@@ -163,7 +163,11 @@ public class ProjectParametersImporter {
 	    int rowNumber = 2;
 	    while (nextRow != null) {
 		st = new StringTokenizer(nextRow, ",");
-		st.nextToken(); // Skip first column (File name)
+		
+		// Skip first column (File name)
+		if (st.hasMoreTokens()) 
+		  st.nextToken(); 
+		
 		Iterator<String> parameterNameIterator = parameterNames
 			.iterator();
 		while (st.hasMoreTokens()) {
@@ -302,6 +306,8 @@ public class ProjectParametersImporter {
 
 		nextRow = parameterFileReader.readLine();
 
+		if (! st.hasMoreTokens()) continue;
+		
 		// Get raw data file for this row
 		String fileName = st.nextToken();
 

@@ -22,7 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.AUTO_REMOVE;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.PEAK_RESOLVER;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.SUFFIX;
-
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.mzRangeMSMS;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.RetentionTimeMSMS;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,6 +64,8 @@ public class DeconvolutionTask extends AbstractTask {
 
     private RSessionWrapper rSession;
     private String errorMsg;
+    private  boolean setMSMSRange,setMSMSRT;
+    private double msmsRange,RTRangeMSMS;
 
     /**
      * Create the task.
@@ -216,6 +219,19 @@ public class DeconvolutionTask extends AbstractTask {
 
         final MZmineProcessingStep<PeakResolver> resolver = parameters
                 .getParameter(PEAK_RESOLVER).getValue();
+        // set msms pairing range
+        this.setMSMSRange = parameters.getParameter(mzRangeMSMS).getValue();
+        if (setMSMSRange)
+        	this.msmsRange = parameters.getParameter(mzRangeMSMS).getEmbeddedParameter().getValue();
+        else 
+        	this.msmsRange = 0;
+       
+        this.setMSMSRT = parameters.getParameter(RetentionTimeMSMS).getValue();      
+        if (setMSMSRT)
+        	this.RTRangeMSMS =parameters.getParameter(RetentionTimeMSMS).getEmbeddedParameter().getValue();
+        else 
+        	this.RTRangeMSMS = 0;
+        
 
         // Create new peak list.
         final PeakList resolvedPeaks = new SimplePeakList(peakList + " "
@@ -249,8 +265,7 @@ public class DeconvolutionTask extends AbstractTask {
             final PeakResolver resolverModule = resolver.getModule();
             final ParameterSet resolverParams = resolver.getParameterSet();
             final Feature[] peaks = resolverModule.resolvePeaks(chromatogram,
-                    resolverParams,
-                    rSession);
+                    resolverParams,rSession,msmsRange,RTRangeMSMS);
 
             // Add peaks to the new peak list.
             for (final Feature peak : peaks) {

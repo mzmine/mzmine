@@ -49,11 +49,17 @@ public interface PeakResolver extends MZmineModule {
      * although the contents of these arrays can also be obtained from the
      * chromatogram itself. The size of these arrays must be same, and must be
      * equal to the number of scans covered by given chromatogram.
+     * @param rTRangeMSMS 
+     * @param msmsRange 
+     * @param rTRangeMSMS 
+     * @param msmsRange 
+     * @param rTRangeMSMS 
+     * @param msmsRange 
      * 
      * @throws RSessionWrapperException
      */
     public Feature[] resolvePeaks(Feature chromatogram,
-            ParameterSet parameters, RSessionWrapper rSession)
+            ParameterSet parameters, RSessionWrapper rSession, double msmsRange, double rTRangeMSMS)
             throws RSessionWrapperException;
 
 }

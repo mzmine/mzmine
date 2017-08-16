@@ -113,7 +113,6 @@ public class PeakFilterTask extends AbstractTask {
                         .getValue()) {
                     project.removePeakList(origPeakList);
                 }
-
                 setStatus(TaskStatus.FINISHED);
                 LOG.info("Finished peak list filter");
             }
@@ -157,6 +156,8 @@ public class PeakFilterTask extends AbstractTask {
                 PeakFilterParameters.PEAK_TAILINGFACTOR).getValue();
         final boolean filterByAsymmetryFactor = parameters.getParameter(
                 PeakFilterParameters.PEAK_ASYMMETRYFACTOR).getValue();
+        final boolean filterByMS2 = parameters.getParameter(
+        		PeakFilterParameters.MS2_Filter).getValue();
 
         // Loop through all rows in peak list
         final PeakListRow[] rows = peakList.getRows();
@@ -177,6 +178,7 @@ public class PeakFilterTask extends AbstractTask {
                 final double peakArea = peak.getArea();
                 final double peakHeight = peak.getHeight();
                 final int peakDatapoints = peak.getScanNumbers().length;
+                final int msmsScanNumber = peak.getMostIntenseFragmentScanNumber();
 
                 Double peakFWHM = peak.getFWHM();
                 Double peakTailingFactor = peak.getTailingFactor();
@@ -270,8 +272,13 @@ public class PeakFilterTask extends AbstractTask {
                     }
                 }
 
+            
+            //Check MS/MS filter 
+            if(filterByMS2){
+            	if(msmsScanNumber < 1)
+            		keepPeak[i] = false;	
             }
-
+            }
             newPeakList.addRow(copyPeakRow(row, keepPeak));
 
         }

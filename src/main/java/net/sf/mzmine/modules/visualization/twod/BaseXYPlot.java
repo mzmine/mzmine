@@ -19,24 +19,18 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
-import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.DataPoint;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.logging.Logger;
+
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.general.DatasetChangeEvent;
 
-import java.awt.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Logger;
+import com.google.common.collect.Range;
 
 /**
  * Created by owen myers (oweenm@gmail.com) on 4/5/17.
@@ -74,7 +68,7 @@ public class BaseXYPlot extends XYPlot{
 
     public boolean render(final Graphics2D g2, final Rectangle2D dataArea,
                           int index, PlotRenderingInfo info, CrosshairState crosshairState) {
-        return true;
+        return super.render(g2, dataArea, index, info, crosshairState);
 
     }
 

@@ -34,7 +34,7 @@ public class DoubleRangeParameter
         implements UserParameter<Range<Double>, DoubleRangeComponent> {
 
     private final String name, description;
-    private final boolean valueRequired;
+    protected final boolean valueRequired;
     private NumberFormat format;
     private Range<Double> value;
 

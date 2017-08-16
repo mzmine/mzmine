@@ -62,7 +62,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
             ParameterSet parameters,
-            RSessionWrapper rSession) {
+            RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
 
         int scanNumbers[] = chromatogram.getScanNumbers();
         final int scanCount = scanNumbers.length;
@@ -109,7 +109,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
             // Search for peaks.
             Arrays.sort(scanNumbers);
             final Feature[] resolvedOriginalPeaks = peaksSearch(chromatogram,
-                    scanNumbers, secondDerivative, noiseThreshold);
+                    scanNumbers, secondDerivative, noiseThreshold,msmsRange,rTRangeMSMS);
 
             final Range<Double> peakDuration = parameters.getParameter(
                     PEAK_DURATION).getValue();
@@ -147,7 +147,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
      */
     private static Feature[] peaksSearch(final Feature chromatogram,
             final int[] scanNumbers, final double[] derivativeOfIntensities,
-            final double noiseThreshold) {
+            final double noiseThreshold,final double msmsRange, final double rTRangeMSMS) {
 
         // Flag to identify the current and next overlapped peak.
         boolean activeFirstPeak = false;
@@ -280,7 +280,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
             if (currentPeakEnd - currentPeakStart > 0 && !activeFirstPeak) {
 
                 resolvedPeaks.add(new ResolvedPeak(chromatogram,
-                        currentPeakStart, currentPeakEnd));
+                        currentPeakStart, currentPeakEnd,  msmsRange, rTRangeMSMS));
 
                 // If exists next overlapped peak, swap the indexes between next
                 // and current, and clean ending index

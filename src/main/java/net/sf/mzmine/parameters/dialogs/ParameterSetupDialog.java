@@ -20,12 +20,16 @@
 package net.sf.mzmine.parameters.dialogs;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
@@ -36,10 +40,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
 
 import net.sf.mzmine.main.MZmineCore;
@@ -67,11 +74,11 @@ public class ParameterSetupDialog extends JDialog
 
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
-    private String helpID;
+    protected String helpID;
 
     // Parameters and their representation in the dialog
     protected ParameterSet parameterSet;
-    private final Map<String, JComponent> parametersAndComponents;
+    protected Map<String, JComponent> parametersAndComponents;
 
     // If true, the dialog won't allow the OK button to proceed, unless all
     // parameters pass the value check. This is undesirable in the BatchMode
@@ -80,7 +87,14 @@ public class ParameterSetupDialog extends JDialog
     private final boolean valueCheckRequired;
 
     // Buttons
-    private JButton btnOK, btnCancel, btnHelp;
+    protected JButton btnOK;
+
+	protected JButton btnCancel;
+
+	protected JButton btnHelp;
+	
+	// Footer message
+	protected String footerMessage;
 
     /**
      * This single panel contains a grid of all the components of this dialog
@@ -91,12 +105,24 @@ public class ParameterSetupDialog extends JDialog
      * to the unused cells of the grid.
      */
     protected GridBagPanel mainPanel;
-
+    
     /**
      * Constructor
      */
     public ParameterSetupDialog(Window parent, boolean valueCheckRequired,
             ParameterSet parameters) {
+
+        this(parent, valueCheckRequired, parameters, null);
+
+    }
+    
+    /**
+     * Method to display setup dialog with a html-formatted footer message at the bottom.
+     * 
+     * @param message: html-formatted text
+     */
+    public ParameterSetupDialog(Window parent, boolean valueCheckRequired,
+            ParameterSet parameters, String message) {
 
         // 2015/12/15 Setting the parent to null, so the dialog always appears
         // in front (Tomas)
@@ -108,6 +134,8 @@ public class ParameterSetupDialog extends JDialog
         this.helpID = GUIUtils.generateHelpID(parameters);
 
         parametersAndComponents = new Hashtable<String, JComponent>();
+        
+        footerMessage = message;
 
         addDialogComponents();
 
@@ -213,7 +241,28 @@ public class ParameterSetupDialog extends JDialog
         if (vertWeightSum == 0) {
             mainPanel.add(Box.createGlue(), 0, 99, 3, 1, 1, 1);
         }
-        mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
+        
+        if(footerMessage == null) {
+        	mainPanel.addCenter(pnlButtons, 0, 100, 3, 1);
+        } else {
+        	// Footer
+            JPanel pnlFoot = new JPanel();
+            JEditorPane editorPane = GUIUtils.addEditorPane(footerMessage);
+            editorPane.addHyperlinkListener(new HyperlinkListener() {
+				@Override
+				public void hyperlinkUpdate(HyperlinkEvent e) {
+					if(HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
+						try { Desktop.getDesktop().browse(e.getURL().toURI()); } 
+						catch (IOException e1) {} 
+						catch (URISyntaxException e1) {}
+					}
+				}
+            });
+            pnlFoot.add(editorPane);
+            mainPanel.add(pnlFoot, 0, 90, 3, 1);
+            
+            mainPanel.addCenter(pnlButtons, 0, 150, 3, 1);
+        }
 
         // Add some space around the widgets
         GUIUtils.addMargin(mainPanel, 10);
@@ -312,7 +361,7 @@ public class ParameterSetupDialog extends JDialog
 
     }
 
-    private void addListenersToComponent(JComponent comp) {
+    protected void addListenersToComponent(JComponent comp) {
         if (comp instanceof JTextComponent) {
             JTextComponent textComp = (JTextComponent) comp;
             textComp.getDocument().addDocumentListener(this);

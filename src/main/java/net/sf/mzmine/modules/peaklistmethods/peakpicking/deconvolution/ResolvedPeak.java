@@ -77,7 +77,7 @@ public class ResolvedPeak implements Feature {
      * selected region MUST NOT contain any zero-intensity data points,
      * otherwise exception is thrown.
      */
-    public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd) {
+    public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd, double msmsRange, double RTRangeMSMS) {
 
         assert regionEnd > regionStart;
 
@@ -162,8 +162,34 @@ public class ResolvedPeak implements Feature {
         }
 
         // Update fragment scan
+        double lowerBound = rawDataPointsMZRange.lowerEndpoint();
+        double upperBound = rawDataPointsMZRange.upperEndpoint();
+        double mid = (upperBound+lowerBound)/2;
+        lowerBound = mid - msmsRange/2;
+        upperBound = mid + msmsRange/2;
+        if(lowerBound <0){
+        	lowerBound =0;
+        }
+        Range<Double> searchingRange = Range
+        		.closed(lowerBound,upperBound);
+        double lowerBoundRT = rawDataPointsRTRange.lowerEndpoint();
+        double upperBoundRT = rawDataPointsRTRange.upperEndpoint();
+        double midRT = (upperBoundRT+lowerBoundRT)/2;
+        lowerBoundRT = midRT - RTRangeMSMS/2;
+        upperBoundRT = midRT + RTRangeMSMS/2;
+        if(lowerBound <0){
+        	lowerBound =0;
+        }
+        Range<Double> searchingRangeRT = Range
+        		.closed(lowerBoundRT,upperBoundRT);
+        
+        if (msmsRange == 0)
+        	searchingRange = rawDataPointsMZRange;
+        if (RTRangeMSMS == 0)
+        	searchingRangeRT = dataFile.getDataRTRange(1);
+        
         fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
-                rawDataPointsRTRange, rawDataPointsMZRange);
+        		searchingRangeRT, searchingRange);
 
         if (fragmentScan > 0) {
             Scan fragmentScanObject = dataFile.getScan(fragmentScan);

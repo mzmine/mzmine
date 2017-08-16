@@ -201,7 +201,7 @@ public class SmoothingTask extends AbstractTask {
 					final double lastRT = dataFile.getScan(
 						scanNumbers[i - 1])
 						.getRetentionTime();
-					area += (rt - lastRT)
+					area += (rt - lastRT ) * 60d
 						* (intensity + lastIntensity)
 						/ 2.0;
 				    }

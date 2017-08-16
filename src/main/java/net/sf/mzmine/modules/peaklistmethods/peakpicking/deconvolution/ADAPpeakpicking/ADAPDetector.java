@@ -107,7 +107,7 @@ public class ADAPDetector implements PeakResolver {
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
             final ParameterSet parameters,
-            RSessionWrapper rSession) throws RSessionWrapperException {
+            RSessionWrapper rSession,  double msmsRange, double rTRangeMSMS) throws RSessionWrapperException {
         
         int scanNumbers[] = chromatogram.getScanNumbers();
         final int scanCount = scanNumbers.length;
@@ -224,7 +224,7 @@ public class ADAPDetector implements PeakResolver {
                 
 
                 
-                ResolvedPeak peak = new ResolvedPeak(chromatogram, curPeak.leftApexIndex, curPeak.rightApexIndex);
+                ResolvedPeak peak = new ResolvedPeak(chromatogram, curPeak.leftApexIndex, curPeak.rightApexIndex, msmsRange, rTRangeMSMS);
                 peak.setPeakInformation(information);
 
 

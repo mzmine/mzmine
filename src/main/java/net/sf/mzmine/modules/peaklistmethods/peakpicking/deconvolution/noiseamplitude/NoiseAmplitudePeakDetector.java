@@ -56,7 +56,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
     @Override
     public Feature[] resolvePeaks(final Feature chromatogram,
             ParameterSet parameters,
-            RSessionWrapper rSession) {
+            RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
 
         int scanNumbers[] = chromatogram.getScanNumbers();
         final int scanCount = scanNumbers.length;
@@ -128,7 +128,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
                     if (currentPeakEnd - currentPeakStart > 0) {
 
                         final ResolvedPeak peak = new ResolvedPeak(
-                                chromatogram, currentPeakStart, currentPeakEnd);
+                                chromatogram, currentPeakStart, currentPeakEnd, msmsRange, rTRangeMSMS);
                         if (peakDuration.contains(RangeUtils.rangeLength(peak
                                 .getRawDataPointsRTRange()))
                                 && peak.getHeight() >= minimumPeakHeight) {

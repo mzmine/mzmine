@@ -49,7 +49,7 @@ public class BatchTask extends AbstractTask {
 
     private int totalSteps, processedSteps;
 
-    private final MZmineProject project;
+    private MZmineProject project;
     private final BatchQueue queue;
 
     private final List<RawDataFile> createdDataFiles, previousCreatedDataFiles;
@@ -90,6 +90,13 @@ public class BatchTask extends AbstractTask {
 
             processQueueStep(i);
             processedSteps++;
+            
+            // Update the project reference in case new project was loaded
+            if (project != MZmineCore.getProjectManager().getCurrentProject()) {
+              project.removeProjectListener(listener);
+              project = MZmineCore.getProjectManager().getCurrentProject();
+              project.addProjectListener(listener);
+            }
 
             // If we are canceled or ran into error, stop here
             if (isCanceled() || (getStatus() == TaskStatus.ERROR)) {

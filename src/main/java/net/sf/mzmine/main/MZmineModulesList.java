@@ -51,12 +51,14 @@ import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchMod
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
 
 import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
@@ -140,9 +142,10 @@ public class MZmineModulesList {
             // I/O
             CSVExportModule.class, MetaboAnalystExportModule.class,
             MzTabExportModule.class, SQLExportModule.class,
-            XMLExportModule.class, CasmiImportModule.class,
+            XMLExportModule.class, CasmiImportModule.class,            
             MzTabImportModule.class, XMLImportModule.class,
             MSPExportModule.class, MGFExportModule.class,
+            GNPSExportModule.class, SiriusExportModule.class,
 
             // Gap filling
             PeakFinderModule.class, SameRangeGapFillerModule.class,
