@@ -17,7 +17,6 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
-import dulab.adap.workflow.TwoStepDecompositionParameters;
 import java.awt.Window;
 
 import java.text.NumberFormat;
@@ -25,11 +24,8 @@ import java.text.NumberFormat;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.ListDoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
 
@@ -49,16 +45,16 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ------------------------------------------------------------------------
     
     public static final DoubleParameter MIN_CLUSTER_DISTANCE =
-            new DoubleParameter("Min cluster distance (min)",
-                    "Minimum distance between any two clusters",
+            new DoubleParameter("Min distance between analytes (min)",
+                    "Minimum distance between any two analytes",
                     NumberFormat.getNumberInstance(), 0.01
             );
     
-    public static final IntegerParameter MIN_CLUSTER_SIZE =
-            new IntegerParameter("Min cluster size",
-                    "Minimum size of a cluster",
-                    2
-            );
+//    public static final IntegerParameter MIN_CLUSTER_SIZE =
+//            new IntegerParameter("Min cluster size",
+//                    "Minimum size of a cluster",
+//                    2
+//            );
     
     // ------------------------------------------------------------------------
     // ----- End of First-phase parameters ------------------------------------
@@ -68,12 +64,12 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ----- Second-phase parameters ------------------------------------------
     // ------------------------------------------------------------------------
 
-    public static final DoubleParameter FWHM_TOLERANCE = new DoubleParameter("Full-Width at Half-Max tolerance",
-            "Model peaks found by the algorithm must have FWHM within certain range estimated from the real peaks plus/minus the specified tolerance",
-            NumberFormat.getNumberInstance(), 0.07, 0.0, 1.0);
+//    public static final DoubleParameter FWHM_TOLERANCE = new DoubleParameter("Full-Width at Half-Max tolerance",
+//            "Model peaks found by the algorithm must have FWHM within certain range estimated from the real peaks plus/minus the specified tolerance",
+//            NumberFormat.getNumberInstance(), 1.0, 0.0, 49.0);
 
-    public static final DoubleParameter SHAPE_TOLERANCE = new DoubleParameter("Shape-Similarity tolerance",
-            "Each model peak must have a real peak such that their difference does not exceed the specified tolerance",
+    public static final DoubleParameter PEAK_SIMILARITY = new DoubleParameter("Peak-Similarity tolerance",
+            "Each model peak must have a real peak similar to it with the specified tolerance",
             NumberFormat.getNumberInstance(), 0.17, 0.0, 1.0);
     
     // ------------------------------------------------------------------------
@@ -89,7 +85,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     
     public ADAP3DecompositionV2Parameters() {
 	    super(new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE,
-            MIN_CLUSTER_SIZE, FWHM_TOLERANCE, SHAPE_TOLERANCE, SUFFIX, AUTO_REMOVE});
+                PEAK_SIMILARITY, SUFFIX, AUTO_REMOVE});
     }
     
     @Override

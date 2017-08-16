@@ -41,7 +41,8 @@ import javax.annotation.Nonnull;
  * @author aleksandrsmirnov
  */
 public class ADAP3DecompositionV2Task extends AbstractTask {
-    
+
+    static final int DEFAULT_MIN_CLUSTER_SIZE = 5;
      // Logger.
     private static final Logger LOG = Logger.getLogger(ADAP3DecompositionV2Task.class.getName());
     
@@ -244,12 +245,13 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
         params.minClusterDistance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-        params.minClusterSize = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-        params.hwhmTolerance = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
+//        params.minClusterSize = this.parameters.getParameter(
+//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+        params.minClusterSize = DEFAULT_MIN_CLUSTER_SIZE;
+//        params.hwhmTolerance = this.parameters.getParameter(
+//                ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
         params.similarityTolerance = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.SHAPE_TOLERANCE).getValue();
+                ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
         
         return decomposition.run(params, peaks);
     }

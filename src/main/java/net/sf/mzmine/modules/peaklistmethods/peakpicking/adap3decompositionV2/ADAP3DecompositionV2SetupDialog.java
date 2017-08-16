@@ -29,7 +29,6 @@ import java.awt.GridBagConstraints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.NumberFormat;
 import java.util.*;
 import javax.annotation.Nonnull;
 import javax.swing.Box;
@@ -106,10 +105,14 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         PeakList[] peakLists = parameters.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
                 .getValue().getMatchingPeakLists();
-        if (peakLists.length == 0)
-            throw new IllegalArgumentException("At least one peak list has to be chosen");
 
-        peaks = new ADAP3DecompositionV2Utils().getPeaks(peakLists[0]);
+//        if (peakLists.length == 0)
+//            throw new IllegalArgumentException("At least one peak list has to be chosen");
+
+        if (peakLists.length > 0)
+            peaks = new ADAP3DecompositionV2Utils().getPeaks(peakLists[0]);
+        else
+            peaks = new ArrayList<>(0);
     }
 
     /** Creates the interface elements */
@@ -250,13 +253,13 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         Double minDistance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-        Integer minSize = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+//        Integer minSize = parameterSet.getParameter(
+//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
         
-        if (minDistance == null || minSize == null) return;
+        if (minDistance == null) return;
 
         List<RetTimeClustering.Cluster> retTimeClusters = new Decomposition()
-                .getRetTimeClusters(peaks, minDistance, minSize);
+                .getRetTimeClusters(peaks, minDistance, ADAP3DecompositionV2Task.DEFAULT_MIN_CLUSTER_SIZE);
 
         int colorIndex = 0;
         final int numColors = 7;
@@ -320,14 +323,19 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         List<BetterPeak> peaks = cluster.peaks;
 
-        Double fwhmTolerance = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
+        Double minClusterDistance = parameterSet.getParameter(
+                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
+//        Double fwhmTolerance = parameterSet.getParameter(
+//                ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
         Double shapeTolerance = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.SHAPE_TOLERANCE).getValue();
+                ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
+
+        if (minClusterDistance == null || shapeTolerance == null)
+            return;
 
         List<BetterComponent> components = null;
         try {
-            components = new Decomposition().getComponents(peaks, fwhmTolerance, shapeTolerance);
+            components = new Decomposition().getComponents(peaks, minClusterDistance, shapeTolerance);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -348,11 +356,13 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             return CHANGE_STATE.FIRST_PHASE;
         }
         
-        final Set <Integer> firstPhaseIndices = 
-                new HashSet <> (Arrays.asList(1, 2));
+//        final Set <Integer> firstPhaseIndices =
+//                new HashSet <> (Arrays.asList(1));
+        final Set <Integer> firstPhaseIndices = new HashSet<>(Collections.singletonList(1));
         
-        final Set <Integer> secondPhaseIndices = 
-                new HashSet <> (Arrays.asList(3, 4));
+//        final Set <Integer> secondPhaseIndices =
+//                new HashSet <> (Arrays.asList(2));
+        final Set <Integer> secondPhaseIndices = new HashSet<>(Collections.singletonList(2));
         
         int size = Math.min(currentParameters.length, newValues.length);
         
