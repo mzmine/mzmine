@@ -17,13 +17,14 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
-
-import dulab.adap.datamodel.Peak;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -34,8 +35,6 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import javax.annotation.Nonnull;
-
 /**
  *
  * @author Du-Lab Team <dulab.binf@gmail.com>
@@ -44,18 +43,9 @@ import javax.annotation.Nonnull;
 
 public class EICPlot extends ChartPanel 
 {
-    private enum PeakType {SIMPLE, MODEL};
-
-    private static final Color[] COLORS = new Color[] {
-            Color.BLUE, Color.CYAN,
-            Color.GREEN, Color.MAGENTA, Color.ORANGE,
-            Color.PINK, Color.RED
-    };
-
     private final XYSeriesCollection xyDataset;
     private final List <Double> colorDataset;
     private final List <String> toolTips;
-    private final List <Float> widths;
     
     public EICPlot()
     {
@@ -88,7 +78,6 @@ public class EICPlot extends ChartPanel
         xyDataset = new XYSeriesCollection();
         colorDataset = new ArrayList <> ();
         toolTips = new ArrayList <> ();
-        widths = new ArrayList<>();
         
         int seriesID = 0;
         
@@ -112,33 +101,9 @@ public class EICPlot extends ChartPanel
         
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer() {
             @Override
-            public Paint getItemPaint(int row, int col)
-            {
-                String type = xyDataset.getSeries(row).getDescription();
-
-                Paint color;
-
-                if (type.equals(PeakType.MODEL.name()))
-                    color = COLORS[row % COLORS.length];
-                else
-                    color = new Color(0,0,0,50);
-
-                return color;
-            }
-
-            @Override
-            public Stroke getSeriesStroke(int series)
-            {
-                XYSeries s = xyDataset.getSeries(series);
-                String type = s.getDescription();
-
-                float width;
-                if (type.equals((PeakType.MODEL.name())))
-                    width = 2.0f;
-                else
-                    width = 1.0f;
-
-                return new BasicStroke(width);
+            public Paint getItemPaint(int row, int col) {
+                double c = colorDataset.get(row);
+                return Color.getHSBColor((float) c, 1.0f, 1.0f);
             }
         };
         
@@ -171,21 +136,16 @@ public class EICPlot extends ChartPanel
     
     
     
-    public void updateData(@Nonnull List <List <NavigableMap <Double, Double>>> clusters,
-            @Nonnull List <Double> colors,
-            @Nonnull List <List <String>> info,
-            @Nonnull List <List<Boolean>> models)
+    public void updateData(List <List <NavigableMap <Double, Double>>> clusters,
+            List <Double> colors,
+            List <List <String>> info,
+            List <NavigableMap <Double, Double>> modelPeaks)
     {
-        final float DEFAULT_LINE_WIDTH = 1.0f;
-        final float THICK_LINE_WIDTH = 2.0f;
-
-
 //        for (int i = 0; i < xyDataset.getSeriesCount(); ++i)
 //            xyDataset.removeSeries(i);
         xyDataset.removeAllSeries();
         colorDataset.clear();
         toolTips.clear();
-        widths.clear();
         
         int seriesID = 0;
         
@@ -200,43 +160,11 @@ public class EICPlot extends ChartPanel
                 
                 for (Entry <Double, Double> e : cluster.get(j).entrySet())
                     series.add(e.getKey(), e.getValue());
-
-                float width = DEFAULT_LINE_WIDTH;
-                if (models.get(i).get(j)) width = THICK_LINE_WIDTH;
-
+                
                 xyDataset.addSeries(series);
                 colorDataset.add(color);
                 toolTips.add(info.get(i).get(j));
-                widths.add(width);
             }
-        }
-    }
-
-    void updateData(@Nonnull List<Peak> peaks, @Nonnull List<Peak> modelPeaks)
-    {
-        xyDataset.removeAllSeries();
-
-        int seriesID = 0;
-        for (Peak peak : peaks)
-        {
-            XYSeries series = new XYSeries(seriesID++);
-            series.setDescription(PeakType.SIMPLE.name());
-
-            for (Entry<Double, Double> e : peak.getChromatogram().entrySet())
-                series.add(e.getKey(), e.getValue());
-
-            xyDataset.addSeries(series);
-        }
-
-        for (Peak peak : modelPeaks)
-        {
-            XYSeries series = new XYSeries((seriesID++));
-            series.setDescription(PeakType.MODEL.name());
-
-            for (Entry<Double, Double> e : peak.getChromatogram().entrySet())
-                series.add(e.getKey(), e.getValue());
-
-            xyDataset.addSeries(series);
         }
     }
 }
