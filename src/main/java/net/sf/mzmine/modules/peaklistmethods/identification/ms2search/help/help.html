@@ -1,0 +1,81 @@
+<html>
+<head>
+    <title>Identification - MS2 Similarity Search</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>MS2 Similarity Search</h1>
+
+<h2>Description</h2>
+
+<p>
+    Ions arising from compounds with similar chemical structures often give similar fragmentation patterns (MS2 spectra), therefore calculating the similarity between MS2 spectra and annotating which spectra are similar is a useful approach for the discovery of structurally similar compounds. 
+    This module calculates the similarity between centroided MS2 spectra associated with two peaklists.  
+    These peaklists can be the same peaklist, or different peaklists. 
+    The module outputs the result of the search  into the "Identity" column of Peaklist (1).  
+</p>
+
+<p>
+    <b>Example output of the MS2 similarity module:</b>
+    <br/>
+    <img src="ms2_similarity.png" height="250">
+    <br>
+     In this example, the presumed precursor ion of m/z 360.9615 at RT 10.53 has a high degree of MS2 spectral similarity to the MS2 of the precursor ion with m/z 281.0047 & RT 12.55.  
+     In actuality, precursor ion 360.9615 is the [M+H] of the sulfonated version (sulfoluciferin) of the 281.0047 compound (firefly luciferin).  Sulfoluciferin was discovered by a MS2 similarity approach.
+     See here for more information: <a href="http://pubs.acs.org/doi/abs/10.1021/acs.biochem.6b00402">(Fallon et al., 2016)</a>
+</p>
+
+<h2>Calculation of MS2 similarity</h2>
+<p>
+The similarity metric used is as follows: For all MS2 spectra in Peaklist (1) <i>"MS2 spectra A"</i>, and Peaklist (2) <i>"MS2 spectra B"</i>, iterate over all ions in MS2 spectra A <i>(ion "i")</i>, and over all ions in MS2 spectra B <i>(ion "j")</i>.
+Compare the m/z values of ions "i" and "j", and if these m/z values are within the range specified by the m/z tolerance parameter, consider these ions identical, and therefore "matched".  If two ions match, roughly score the match by multiplying the intensity of ions "i" and "j" and save that as the "ion match subscore".  
+Repeat this for every ion i and j in MS2 spectra A and MS2 spectra B, and report the sum of the ion match subscores as the total score.  Annotate the <i>"Identity"</i> column of Peaklist (1) with the matched ions, and the total score of the MS2 similarity calculation.
+</p>
+
+<h2>Intepreting the data</h2>
+<p>
+The score from of a MS2 similarity match should not be taken as an absolute measure, as it depends on the instrument reported intensity value, which is uncalibrated and relative measure.  
+That being said, as the reported score increases when the intensity of the matched ion is higher, it is useful as a quick metric to find the most reliable matches and possibly interesting compounds.
+It is worth mentioning that the link between the MS2 spectra, and the presumed precursor ion in the peaklist is somewhat tentative.  As the isolation window for fragmentation is typically around ~1 m/z value,
+ions from the MS2 fragmentation spectra from an abundant compound with a long chromatographic tail will often show up in the MS2 values of unrelated compounds, but whose precursor isolation window picks up ions from the original compound.
+<br>
+<br>
+An experimental module which converts the MS2 similarity relationships exported from MZmine2 in CSV format into GraphML format suitable for viewing in the freely available graph manipulation software <a href="http://www.cytoscape.org">Cytoscape</a> is available on Github (<a href="https://github.com/photocyte/ms2_graph">https://github.com/photocyte/ms2_graph</a>).
+</p>
+
+<h3>Method parameters</h3>
+<dl>
+    <dt>Peaklist (1)</dt>
+    <dd>A single peaklist with peaks that have associated centroided MS2 spectra (in the masslist).  
+    Results from the module are output into the indentifications column of Peaklist (1)</dd>
+    
+    <dt>Peaklist (2)</dt>
+    <dd>A single peaklist which has centroided MS2 spectra (in the masslist).  
+    This can be the same as Peaklist (1), or a different peaklist / experiment.
+    For best results should represent MS data with the same polarity as Peaklist (1), and with m/z values close to Peaklist (1) (e.g. LC/MS data obtained on the same day, or m/z calibrated between samples)</dd>
+
+    <dt>Masslist</dt>
+    <dd>Masslist which has centrioded MS2 spectra that are linked to Peaklist (1) and or Peaklist (2)</dd>
+
+    <dt>m/z tolerance</dt>
+    <dd>Allowable m/z difference for two ions to be considered identical, and therefore "matched". 
+    Depends on the mass accuracy, precision, and resolution of the MS data.  For data obtained HRAM instruments, and when comparing within the same peaklist
+    (aka the same experiment or LC/MS run), can be set to the mass precision of the instrument during that experiment (4e-4 m/z or ~1 PPM for Q-Exactive).</dd>
+
+    <dt>Minimum ion intensity to consider in MS2 comparison</dt>
+    <dd>Intensity threshold below which ions will be ignored</dd>
+    
+    <dt>Minimum ions matched per MS2 comparison</dt>
+    <dd>Matched ion threshold below which matches will not be reported</dd>
+    
+    <dt>Minimum score to report</dt>
+    <dd>Score threshold below which matches will not be reported</dd>
+</dl>
+
+</body>
+</html>
+
+
