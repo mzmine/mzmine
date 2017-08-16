@@ -53,7 +53,7 @@ public class GNPSExportTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return 0;
+    return 1;
   }
 
   @Override
@@ -127,7 +127,7 @@ public class GNPSExportTask extends AbstractTask {
   {
     final String newLine = System.lineSeparator();
 
-    int currentID = peakList.getRows()[0].getID();
+    int currentID = 1;
     for (int i = 0; i < peakList.getRows().length; i++) {
       PeakListRow row = peakList.getRows()[i];
       String rowID = Integer.toString(row.getID());
@@ -151,6 +151,7 @@ public class GNPSExportTask extends AbstractTask {
         String retTimeInSeconds = Double.toString(row.getAverageRT() * 60);
         // Get the MS/MS scan number
         Feature bestPeak = row.getBestPeak();
+        if(bestPeak == null) continue;
         int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
         if (rowID != null) {
           PeakListRow copyRow = copyPeakRow(row);
