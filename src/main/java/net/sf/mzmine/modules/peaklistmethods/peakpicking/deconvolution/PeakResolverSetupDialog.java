@@ -107,7 +107,20 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
             final ParameterSet resolverParameters,
             final Class<? extends PeakResolver> resolverClass) {
 
-        super(parent, valueCheckRequired, resolverParameters);
+        this(parent, valueCheckRequired, resolverParameters, resolverClass, null);
+    }
+
+    /**
+     * Method to display setup dialog with a html-formatted footer message at the bottom.
+     *
+     * @param message: html-formatted text
+     */
+    public PeakResolverSetupDialog(Window parent, boolean valueCheckRequired,
+                                   final ParameterSet resolverParameters,
+                                   final Class<? extends PeakResolver> resolverClass,
+                                   String message) {
+
+        super(parent, valueCheckRequired, resolverParameters, message);
 
         // Instantiate resolver.
         try {
@@ -121,6 +134,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         }
 
         parameters = resolverParameters;
+
     }
 
     @Override
