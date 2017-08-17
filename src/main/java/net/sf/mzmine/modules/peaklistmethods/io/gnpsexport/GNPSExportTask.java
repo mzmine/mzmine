@@ -127,118 +127,79 @@ public class GNPSExportTask extends AbstractTask {
   {
     final String newLine = System.lineSeparator();
 
-    int currentID = 1;
-    for (int i = 0; i < peakList.getRows().length; i++) {
-      PeakListRow row = peakList.getRows()[i];
-      String rowID = Integer.toString(row.getID());
-      if (currentID != row.getID()) {
-        writer.write("BEGIN IONS"+newLine);                		                		                                                
-
-        if (rowID != null)
-          writer.write("FEATURE_ID=" + currentID + newLine);
-
-        if(rowID != null) {
-          writer.write("SCANS=" + currentID + newLine);
-        }
-
-        writer.write("MSLEVEL=2" + newLine);                                                                                                
-
-        writer.write("END IONS"+newLine);
-        writer.write(newLine);        	            	    
-        i--;
-      }
-      else {
-        String retTimeInSeconds = Double.toString(row.getAverageRT() * 60);
-        // Get the MS/MS scan number
-        Feature bestPeak = row.getBestPeak();
-        if(bestPeak == null) continue;
-        int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-        if (rowID != null) {
-          PeakListRow copyRow = copyPeakRow(row);
-          // Best peak always exists, because peak list row has at least one peak
-          bestPeak = copyRow.getBestPeak();
-
-          // Get the MS/MS scan number
-
-          msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-          if (msmsScanNumber < 1) {
-            copyRow.removePeak(bestPeak.getDataFile());
-            if (copyRow.getPeaks().length != 0) {
-              // row is not empty  		
-              bestPeak = copyRow.getBestPeak();
-              msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-            }
-          }
-        }
-        if (msmsScanNumber >= 1) {
-          // MS/MS scan must exist, because msmsScanNumber was > 0
-          Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
-
-          MassList massList = msmsScan.getMassList(massListName);
-
-          if (massList == null) {
-            MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-                "There is no mass list called " + massListName + " for MS/MS scan #" + msmsScanNumber
-                + " (" + bestPeak.getDataFile() + ")");
-            return;
-          }
-
-          writer.write("BEGIN IONS" + newLine);
-
-          if (rowID != null)
-            writer.write("FEATURE_ID=" + rowID + newLine);
-
-          String mass = Double.toString(row.getAverageMZ());
-          if (mass != null)
-            writer.write("PEPMASS=" + mass + newLine);
-
-          if (rowID != null) {
-            writer.write("SCANS=" + rowID + newLine);
-            writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
-          }
-
-          int msmsCharge = msmsScan.getPrecursorCharge();
-          String msmsPolarity = msmsScan.getPolarity().asSingleChar();
-          if (msmsPolarity.equals("0"))
-            msmsPolarity = "";
-          if (msmsCharge == 0) {
-            msmsCharge = 1;
-            msmsPolarity = "";
-          }
-          writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
-
-          writer.write("MSLEVEL=2" + newLine);
-
-          DataPoint peaks[] = massList.getDataPoints();
-          for (DataPoint peak : peaks) {
-            writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
-          }
-
-          writer.write("END IONS" + newLine);
-          writer.write(newLine);
-        } else { 
-          writer.write("BEGIN IONS"+newLine);                		                		                                                
-
-          if (rowID != null)
-            writer.write("FEATURE_ID=" + currentID + newLine);
-
-          String mass = Double.toString(row.getAverageMZ());
-          if (mass != null) writer.write("PEPMASS=" + mass + newLine);                                                                      
-
-          if(rowID != null) {
-            writer.write("SCANS=" + currentID + newLine);
-          }
-
-          writer.write("MSLEVEL=2" + newLine);                                                                                                
-
-          writer.write("END IONS"+newLine);
-          writer.write(newLine);        	            	    	        	    
-        }
-      }
-
-      // Increment Row ID counter
-      currentID++;
-    }
+    for (PeakListRow row : peakList.getRows()) {
+    	String rowID = Integer.toString(row.getID());
+      
+	    String retTimeInSeconds = Double.toString(row.getAverageRT() * 60);
+	    // Get the MS/MS scan number
+	    Feature bestPeak = row.getBestPeak();
+	    if(bestPeak == null) continue;
+	    int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+	    if (rowID != null) {
+	      PeakListRow copyRow = copyPeakRow(row);
+	      // Best peak always exists, because peak list row has at least one peak
+	      bestPeak = copyRow.getBestPeak();
+	
+	      // Get the MS/MS scan number
+	
+	      msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+	      if (msmsScanNumber < 1) {
+	        copyRow.removePeak(bestPeak.getDataFile());
+	        if (copyRow.getPeaks().length != 0) {
+	          // row is not empty  		
+	          bestPeak = copyRow.getBestPeak();
+	          msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+	        }
+	      }
+	    }
+	    if (msmsScanNumber >= 1) {
+	      // MS/MS scan must exist, because msmsScanNumber was > 0
+	      Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
+	
+	      MassList massList = msmsScan.getMassList(massListName);
+	
+	      if (massList == null) {
+	        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+	            "There is no mass list called " + massListName + " for MS/MS scan #" + msmsScanNumber
+	            + " (" + bestPeak.getDataFile() + ")");
+	        return;
+	      }
+	
+	      writer.write("BEGIN IONS" + newLine);
+	
+	      if (rowID != null)
+	        writer.write("FEATURE_ID=" + rowID + newLine);
+	
+	      String mass = Double.toString(row.getAverageMZ());
+	      if (mass != null)
+	        writer.write("PEPMASS=" + mass + newLine);
+	
+	      if (rowID != null) {
+	        writer.write("SCANS=" + rowID + newLine);
+	        writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
+	      }
+	
+	      int msmsCharge = msmsScan.getPrecursorCharge();
+	      String msmsPolarity = msmsScan.getPolarity().asSingleChar();
+	      if (msmsPolarity.equals("0"))
+	        msmsPolarity = "";
+	      if (msmsCharge == 0) {
+	        msmsCharge = 1;
+	        msmsPolarity = "";
+	      }
+	      writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
+	
+	      writer.write("MSLEVEL=2" + newLine);
+	
+	      DataPoint peaks[] = massList.getDataPoints();
+	      for (DataPoint peak : peaks) {
+	        writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
+	      }
+	
+	      writer.write("END IONS" + newLine);
+	      writer.write(newLine);
+	    }
+	  }      
 
   }
   public String getTaskDescription() {
