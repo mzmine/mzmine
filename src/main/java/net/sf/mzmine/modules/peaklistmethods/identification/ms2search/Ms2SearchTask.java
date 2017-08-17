@@ -37,14 +37,8 @@ import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.PeakListRowSorter;
-import net.sf.mzmine.util.SortingDirection;
-import net.sf.mzmine.util.SortingProperty;
-
-import com.google.common.collect.Range;
 
 class Ms2SearchResult {
     private double score;
@@ -182,8 +176,7 @@ class Ms2SearchTask extends AbstractTask {
                 
                 
                 
-                searchResult = simpleMS2similarity(featureA,
-                        featureB,scanA,scanB, intensityThreshold, mzTolerance, massListName);
+                searchResult = simpleMS2similarity(scanA,scanB, intensityThreshold, mzTolerance, massListName);
                 
                 //Report the final score to the peaklist identity
                 if (searchResult != null 
@@ -216,7 +209,7 @@ class Ms2SearchTask extends AbstractTask {
 
     }
     
-    private Ms2SearchResult simpleMS2similarity(Feature featureA, Feature featureB, Scan scanA, Scan scanB,
+    private Ms2SearchResult simpleMS2similarity(Scan scanMS2A, Scan scanMS2B,
             double intensityThreshold, MZTolerance mzRange, String massList) {
 
         double runningScoreTotal = 0.0;
@@ -227,12 +220,11 @@ class Ms2SearchTask extends AbstractTask {
         // Fetch 1st feature MS2 scan.
         //int ms2ScanNumberA = featureA.getMostIntenseFragmentScanNumber();
         //Scan scanMS2A = featureA.getDataFile().getScan(ms2ScanNumberA);
-        Scan scanMS2A = scanA;
+
 
         // Fetch 2nd feature MS2 scan.
         //int ms2ScanNumberB = featureB.getMostIntenseFragmentScanNumber();
         //Scan scanMS2B = featureB.getDataFile().getScan(ms2ScanNumberB);
-        Scan scanMS2B = scanB;
         
         if (scanMS2A == null || scanMS2B == null)
         {
