@@ -37,7 +37,7 @@ public class GNPSExportTask extends AbstractTask {
 	private final PeakList[] peakLists;
 	private final File fileName;
 	private final String plNamePattern = "{}";
-	private int counter = 0;
+	private int currentIndex = 0;
 
 	private final String massListName;
 
@@ -54,7 +54,10 @@ public class GNPSExportTask extends AbstractTask {
 
 	@Override
 	public double getFinishedPercentage() {
-		return peakLists.length == 0 ? 0 : counter/peakLists.length;
+		if (peakLists.length == 0)
+			return 1;
+		else
+			return currentIndex / peakLists.length;
 	}
 
 	@Override
@@ -66,7 +69,7 @@ public class GNPSExportTask extends AbstractTask {
 
 		// Process peak lists
 		for (PeakList peakList: peakLists) {
-			counter++;
+			currentIndex++;
 
 			// Filename
 			File curFile = fileName;
