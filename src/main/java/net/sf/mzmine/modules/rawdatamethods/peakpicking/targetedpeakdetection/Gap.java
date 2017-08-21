@@ -169,7 +169,7 @@ class Gap {
 			    .getScanNumber();
 		}
 
-		// Skip last data point
+		// Skip last data item
 		if (i == bestPeakDataPoints.size() - 1) {
 		    break;
 		}

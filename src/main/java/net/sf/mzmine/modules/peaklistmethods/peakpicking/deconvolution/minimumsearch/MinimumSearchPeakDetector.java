@@ -156,7 +156,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
                             retentionTimes[currentRegionEnd] - searchRTRange,
                             retentionTimes[currentRegionEnd] + searchRTRange);
 
-                    // Search if there is lower data point on the left from
+                    // Search if there is lower data item on the left from
                     // current peak i.
                     for (int i = currentRegionEnd - 1; i > 0; i--) {
 

@@ -107,7 +107,7 @@ public class BaselinePeakDetector implements PeakResolver {
                 }
 
                 // Subtract one index, so the end index points at the last data
-                // point of current region.
+                // item of current region.
                 currentRegionEnd--;
 
                 // Check current region, if it makes a good peak.
@@ -120,7 +120,7 @@ public class BaselinePeakDetector implements PeakResolver {
                             currentRegionStart, currentRegionEnd, msmsRange, rTRangeMSMS));
                 }
 
-                // Find next peak region, starting from next data point.
+                // Find next peak region, starting from next data item.
                 currentRegionStart = currentRegionEnd;
 
             }

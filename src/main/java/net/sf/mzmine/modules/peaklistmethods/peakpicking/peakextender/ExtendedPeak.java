@@ -40,7 +40,7 @@ public class ExtendedPeak implements Feature {
     private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange,
 	    rawDataPointsRTRange;
 
-    // Keep track of last added data point
+    // Keep track of last added data item
     private DataPoint lastMzPeak;
 
     // Isotope pattern. Null by default but can be set later by deisotoping
@@ -76,7 +76,7 @@ public class ExtendedPeak implements Feature {
     }
 
     /**
-     * Returns m/z value of last added data point
+     * Returns m/z value of last added data item
      */
     public DataPoint getLastMzPeak() {
 	return lastMzPeak;
@@ -176,7 +176,7 @@ public class ExtendedPeak implements Feature {
 	}
 	mz = MathUtils.calcQuantile(allMzValues, 0.5f);
 
-	// Update raw data point ranges, height, rt and representative scan
+	// Update raw data item ranges, height, rt and representative scan
 	height = Double.MIN_VALUE;
 	for (int i = 0; i < allScanNumbers.length; i++) {
 

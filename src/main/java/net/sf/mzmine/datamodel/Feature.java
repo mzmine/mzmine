@@ -96,8 +96,8 @@ public interface Feature {
 
     /**
      * This method returns m/z and intensity of this peak in a given scan. This
-     * m/z and intensity does not need to match any actual raw data point. May
-     * return null, if there is no data point in given scan.
+     * m/z and intensity does not need to match any actual raw data item. May
+     * return null, if there is no data item in given scan.
      */
     public @Nullable DataPoint getDataPoint(int scanNumber);
 

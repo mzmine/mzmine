@@ -157,7 +157,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 
     /**
      * Indicates whether we have a request to show spectra visualizer for
-     * selected data point. Since the selection (cross-hair) is updated with
+     * selected data item. Since the selection (cross-hair) is updated with
      * some delay after clicking with mouse, we cannot open the new visualizer
      * immediately. Therefore we place a request and open the visualizer later
      * in chartProgress()

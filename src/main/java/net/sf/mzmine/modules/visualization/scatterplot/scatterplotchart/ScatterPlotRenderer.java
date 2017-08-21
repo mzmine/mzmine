@@ -141,7 +141,7 @@ public class ScatterPlotRenderer extends XYLineAndShapeRenderer {
 	    position = getNegativeItemLabelPosition(series, item);
 	}
 
-	// work out the label anchor point...
+	// work out the label anchor item...
 	Point2D anchorPoint = calculateLabelAnchorPoint(
 		position.getItemLabelAnchor(), x, y, orientation);
 
