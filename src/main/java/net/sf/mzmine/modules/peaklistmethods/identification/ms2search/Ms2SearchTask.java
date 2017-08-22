@@ -37,14 +37,8 @@ import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.PeakListRowSorter;
-import net.sf.mzmine.util.SortingDirection;
-import net.sf.mzmine.util.SortingProperty;
-
-import com.google.common.collect.Range;
 
 class Ms2SearchResult {
     private double score;
@@ -160,8 +154,8 @@ class Ms2SearchTask extends AbstractTask {
 
         setStatus(TaskStatus.PROCESSING);
 
-        logger.info("Starting MS2 similarity search between " + peakList1 + "and"
-                + peakList2 + "with mz tolerance:"+mzTolerance.getPpmTolerance());
+        logger.info("Starting MS2 similarity search between " + peakList1 + " and "
+                + peakList2 + " with mz tolerance:"+mzTolerance.getPpmTolerance());
 
         Ms2SearchResult searchResult;
         PeakListRow rows1[] = peakList1.getRows();
@@ -176,15 +170,19 @@ class Ms2SearchTask extends AbstractTask {
             for (int j = 0; j < rows2Length; j++) {
                 Feature featureA = rows1[i].getBestPeak();
                 Feature featureB = rows2[j].getBestPeak();
+                //Complication. The "best" peak, may not have the "best" fragmentation
+                Scan scanA = rows1[i].getBestFragmentation();
+                Scan scanB = rows2[j].getBestFragmentation();
                 
-                searchResult = simpleMS2similarity(featureA,
-                        featureB, intensityThreshold, mzTolerance, massListName);
+                
+                
+                searchResult = simpleMS2similarity(scanA,scanB, intensityThreshold, mzTolerance, massListName);
                 
                 //Report the final score to the peaklist identity
                 if (searchResult != null 
                         && searchResult.getScore() > scoreThreshold 
                         && searchResult.getNumIonsMatched() >= minimumIonsMatched)
-                    addFragmentClusterIdentity(rows1[i],featureA,featureB,searchResult);
+                    this.addMS2Identity(rows1[i],featureA,featureB,searchResult);
               
                 if (isCanceled())
                     return;
@@ -211,7 +209,7 @@ class Ms2SearchTask extends AbstractTask {
 
     }
     
-    private Ms2SearchResult simpleMS2similarity(Feature featureA, Feature featureB,
+    private Ms2SearchResult simpleMS2similarity(Scan scanMS2A, Scan scanMS2B,
             double intensityThreshold, MZTolerance mzRange, String massList) {
 
         double runningScoreTotal = 0.0;
@@ -220,14 +218,13 @@ class Ms2SearchTask extends AbstractTask {
         List<DataPoint> matchedIons = new ArrayList<DataPoint>();
 
         // Fetch 1st feature MS2 scan.
-        int ms2ScanNumberA = featureA.getMostIntenseFragmentScanNumber();
-        Scan scanMS2A = featureA.getDataFile().getScan(ms2ScanNumberA);
-        //RawDataFile featureADataFile = featureA.getDataFile();
+        //int ms2ScanNumberA = featureA.getMostIntenseFragmentScanNumber();
+        //Scan scanMS2A = featureA.getDataFile().getScan(ms2ScanNumberA);
+
 
         // Fetch 2nd feature MS2 scan.
-        int ms2ScanNumberB = featureB.getMostIntenseFragmentScanNumber();
-        Scan scanMS2B = featureB.getDataFile().getScan(ms2ScanNumberB);
-        //RawDataFile peak2DataFile = featureB.getDataFile();
+        //int ms2ScanNumberB = featureB.getMostIntenseFragmentScanNumber();
+        //Scan scanMS2B = featureB.getDataFile().getScan(ms2ScanNumberB);
         
         if (scanMS2A == null || scanMS2B == null)
         {
@@ -306,9 +303,9 @@ class Ms2SearchTask extends AbstractTask {
      * @param mainRow
      * @param fragmentRow
      */
-    private void addFragmentClusterIdentity(PeakListRow row1, Feature peakA,
-            Feature peakB, Ms2SearchResult searchResult) {
-        Ms2Identity newIdentity = new Ms2Identity(peakA, peakB, searchResult);
+    private void addMS2Identity(PeakListRow row1, Feature featureA,
+            Feature featureB, Ms2SearchResult searchResult) {
+        Ms2Identity newIdentity = new Ms2Identity(featureA, featureB, searchResult);
         row1.addPeakIdentity(newIdentity, false);
 
         // Notify the GUI about the change in the project

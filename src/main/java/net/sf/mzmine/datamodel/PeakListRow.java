@@ -183,6 +183,11 @@ public interface PeakListRow {
      * Returns the most intense peak in this row
      */
     public Feature getBestPeak();
+    
+    /**
+     * Returns the most intense fragmentation scan in this row
+     */
+    public Scan getBestFragmentation();
 
     /**
      * Returns the most intense isotope pattern in this row. If there are no
