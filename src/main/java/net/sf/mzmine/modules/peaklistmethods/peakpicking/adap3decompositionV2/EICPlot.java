@@ -246,4 +246,9 @@ public class EICPlot extends ChartPanel
                     peak.getMZ(), peak.getIntensity()));
         }
     }
+
+    void removeData() {
+        xyDataset.removeAllSeries();
+        toolTips.clear();
+    }
 }

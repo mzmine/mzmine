@@ -21,26 +21,13 @@ import com.google.common.collect.Sets;
 import dulab.adap.datamodel.BetterComponent;
 import dulab.adap.datamodel.BetterPeak;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
+import java.util.List;
 import javax.annotation.Nonnull;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 
 import dulab.adap.workflow.decomposition.Decomposition;
 import dulab.adap.workflow.decomposition.RetTimeClustering;
@@ -51,6 +38,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.fop.fonts.base14.Courier;
 
 /**
  *
@@ -60,11 +48,15 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 {
+    private static final int MAX_NUMBER_OF_CLUSTER_PEAKS = 700;
+
     /** Minimum dimensions of plots */
     private static final Dimension MIN_DIMENSIONS = new Dimension(400, 300);
 
     /** Font for the preview combo elements */
     private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN,10);
+
+    private static final Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
 
     /** One of three states:
      *  > no changes made,
@@ -216,8 +208,14 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             retTimeCluster();
         }
 
-        else if (source.equals(cboClusters))
+        else if (source.equals(cboClusters)) {
+            Cursor cursor = this.getCursor();
+            this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+
             shapeCluster();
+
+            this.setCursor(cursor);
+        }
     }
     
     
@@ -227,7 +225,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         super.updateParameterSetFromComponents();
 
         if (!chkPreview.isSelected()) return;
-        
+
+        Cursor cursor = this.getCursor();
+        this.setCursor(WAIT_CURSOR);
+
         switch (compareParameters(parameterSet.getParameters()))
         {
             case FIRST_PHASE:
@@ -238,6 +239,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
                 shapeCluster();
                 break;
         }
+
+        this.setCursor(cursor);
     }
     
     /**
@@ -322,6 +325,12 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         if (cluster == null) return;
 
         List<BetterPeak> peaks = cluster.peaks;
+
+        if (peaks.size() > MAX_NUMBER_OF_CLUSTER_PEAKS) {
+            JOptionPane.showMessageDialog(this, "Large number of peaks in a cluster. Model peak selection is not displayed.");
+            retTimeIntensityPlot.removeData();
+            return;
+        }
 
         Double minClusterDistance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
