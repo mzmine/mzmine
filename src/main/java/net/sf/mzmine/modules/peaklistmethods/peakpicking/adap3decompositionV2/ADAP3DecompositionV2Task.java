@@ -245,9 +245,9 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
         params.minClusterDistance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-//        params.minClusterSize = this.parameters.getParameter(
-//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-        params.minClusterSize = DEFAULT_MIN_CLUSTER_SIZE;
+        params.minClusterSize = this.parameters.getParameter(
+                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+//        params.minClusterSize = DEFAULT_MIN_CLUSTER_SIZE;
 //        params.hwhmTolerance = this.parameters.getParameter(
 //                ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
         params.similarityTolerance = this.parameters.getParameter(

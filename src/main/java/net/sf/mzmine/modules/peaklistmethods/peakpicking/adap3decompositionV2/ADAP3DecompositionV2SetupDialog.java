@@ -256,13 +256,13 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         Double minDistance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-//        Integer minSize = parameterSet.getParameter(
-//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+        Integer minSize = parameterSet.getParameter(
+                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
         
         if (minDistance == null) return;
 
         List<RetTimeClustering.Cluster> retTimeClusters = new Decomposition()
-                .getRetTimeClusters(peaks, minDistance, ADAP3DecompositionV2Task.DEFAULT_MIN_CLUSTER_SIZE);
+                .getRetTimeClusters(peaks, minDistance, minSize);
 
         int colorIndex = 0;
         final int numColors = 7;
@@ -365,13 +365,12 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             return CHANGE_STATE.FIRST_PHASE;
         }
         
-//        final Set <Integer> firstPhaseIndices =
-//                new HashSet <> (Arrays.asList(1));
-        final Set <Integer> firstPhaseIndices = new HashSet<>(Collections.singletonList(1));
+        final Set <Integer> firstPhaseIndices = new HashSet <> (Arrays.asList(1, 2));
+//        final Set <Integer> firstPhaseIndices = new HashSet<>(Collections.singletonList(1));
         
 //        final Set <Integer> secondPhaseIndices =
 //                new HashSet <> (Arrays.asList(2));
-        final Set <Integer> secondPhaseIndices = new HashSet<>(Collections.singletonList(2));
+        final Set <Integer> secondPhaseIndices = new HashSet<>(Collections.singletonList(3));
         
         int size = Math.min(currentParameters.length, newValues.length);
         

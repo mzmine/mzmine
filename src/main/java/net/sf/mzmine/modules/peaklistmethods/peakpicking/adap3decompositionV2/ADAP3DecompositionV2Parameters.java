@@ -25,6 +25,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
@@ -50,11 +51,11 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
                     NumberFormat.getNumberInstance(), 0.01
             );
     
-//    public static final IntegerParameter MIN_CLUSTER_SIZE =
-//            new IntegerParameter("Min cluster size",
-//                    "Minimum size of a cluster",
-//                    2
-//            );
+    public static final IntegerParameter MIN_CLUSTER_SIZE =
+            new IntegerParameter("Min cluster size",
+                    "Minimum size of a cluster",
+                    5
+            );
     
     // ------------------------------------------------------------------------
     // ----- End of First-phase parameters ------------------------------------
@@ -84,7 +85,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 	    "If checked, original chromatogram will be removed and only the deconvolved version remains");
     
     public ADAP3DecompositionV2Parameters() {
-	    super(new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE,
+	    super(new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE,
                 PEAK_SIMILARITY, SUFFIX, AUTO_REMOVE});
     }
     
