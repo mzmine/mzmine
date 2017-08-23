@@ -324,9 +324,9 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         if (cluster == null) return;
 
-        List<BetterPeak> peaks = cluster.peaks;
+//        List<BetterPeak> peaks = cluster.peaks;
 
-        if (peaks.size() > MAX_NUMBER_OF_CLUSTER_PEAKS) {
+        if (cluster.peaks.size() > MAX_NUMBER_OF_CLUSTER_PEAKS) {
             JOptionPane.showMessageDialog(this, "Large number of peaks in a cluster. Model peak selection is not displayed.");
             retTimeIntensityPlot.removeData();
             return;
@@ -344,7 +344,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         List<BetterComponent> components = null;
         try {
-            components = new Decomposition().getComponents(peaks, minClusterDistance, shapeTolerance);
+            components = new Decomposition().getComponents(cluster, minClusterDistance, shapeTolerance);
         } catch (Exception e) {
             e.printStackTrace();
         }
