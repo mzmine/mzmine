@@ -186,7 +186,7 @@ public class ResolvedPeak implements Feature {
         if (msmsRange == 0)
         	searchingRange = rawDataPointsMZRange;
         if (RTRangeMSMS == 0)
-        	searchingRangeRT = dataFile.getDataRTRange(1);
+        	searchingRangeRT =  rawDataPointsRTRange;
         
         fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
         		searchingRangeRT, searchingRange);

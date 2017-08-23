@@ -53,47 +53,20 @@ public class Ms2SearchModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-        PeakList peakLists1[] = parameters
-                .getParameter(Ms2SearchParameters.peakLists1).getValue()
+        PeakList peakList1[] = parameters
+                .getParameter(Ms2SearchParameters.peakList1).getValue()
                 .getMatchingPeakLists();
         
-        PeakList peakLists2[] = parameters
-                .getParameter(Ms2SearchParameters.peakLists2).getValue()
+        PeakList peakList2[] = parameters
+                .getParameter(Ms2SearchParameters.peakList2).getValue()
                 .getMatchingPeakLists();
 
-        
-        //Setup new peaklists for concatenation
-        PeakList concatenatedPeakList1 = new SimplePeakList(peakLists1[0].getRawDataFiles()[0].getName(), 
-                peakLists1[0].getRawDataFiles()[0]);
-        PeakList concatenatedPeakList2 = new SimplePeakList(peakLists2[0].getRawDataFiles()[0].getName(), 
-                peakLists2[0].getRawDataFiles()[0]);
-        
-        //Concatenate peaklists
-        for (PeakList pl : peakLists1)
-        {
-            for (PeakListRow plrow : pl.getRows())
-            {
-                concatenatedPeakList1.addRow(plrow);
-            }
-        }
-        
-        for (PeakList pl : peakLists2)
-        {
-            for (PeakListRow plrow : pl.getRows())
-            {
-                concatenatedPeakList2.addRow(plrow);
-            }
-        }
-        
-        //PeakList peakList1 = peakLists1[0];
-        //PeakList peakList2 = peakLists2[0];
-        PeakList peakList1 = concatenatedPeakList1;
-        PeakList peakList2 = concatenatedPeakList2;
+
         
 
         //Previously iterated over all the peaklists & did a separate task for each.
         //Now a single task.
-        Task newTask = new Ms2SearchTask(parameters, peakList1, peakList2);
+        Task newTask = new Ms2SearchTask(parameters, peakList1[0], peakList2[0]);
         tasks.add(newTask);
 
 

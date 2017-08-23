@@ -32,6 +32,7 @@ import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakInformation;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.PeakSorter;
 import net.sf.mzmine.util.SortingDirection;
@@ -326,6 +327,31 @@ public class SimplePeakListRow implements PeakListRow {
 	return peaks[0];
     }
     
+    @Override
+    public Scan getBestFragmentation() {
+
+        Double bestTIC = 0.0;
+        Scan bestScan = null;
+        for (Feature peak : this.getPeaks())
+        {
+            Double theTIC = 0.0;
+            RawDataFile rawData = peak.getDataFile();
+            int bestScanNumber = peak.getMostIntenseFragmentScanNumber();
+            Scan theScan = rawData.getScan(bestScanNumber);
+            if (theScan != null)
+            {
+                theTIC = theScan.getTIC();
+            }
+            
+            if (theTIC > bestTIC)
+            {
+               bestTIC = theTIC;
+               bestScan = theScan;
+            }
+        }
+        return bestScan;
+    }  
+    
     //DorresteinLab edit
     /**
      * set the ID number
@@ -335,5 +361,7 @@ public class SimplePeakListRow implements PeakListRow {
     	myID =id;
     	return;
     }
+
+
 }
     //End DorresteinLab edit
