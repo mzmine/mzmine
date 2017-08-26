@@ -14,6 +14,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>2.0</cdk.version>
 		<jmztab.version>3.0.7</jmztab.version>
+		<msdk.version>0.0.9</msdk.version>
 	</properties>
 
 	<mailingLists>
@@ -39,8 +40,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.3</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
@@ -132,7 +133,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>20.0</version> <!-- Guava 21 requires Java 8 -->
+			<version>21.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -440,8 +441,14 @@
 		<dependency>
 			<groupId>io.github.msdk</groupId>
 			<artifactId>msdk-io-mzml</artifactId>
-			<version>0.0.7</version>
+			<version>${msdk.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.github.msdk</groupId>
+			<artifactId>msdk-featdet-ADAP-3D</artifactId>
+			<version>${msdk.version}</version>
+		</dependency>
+		
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
