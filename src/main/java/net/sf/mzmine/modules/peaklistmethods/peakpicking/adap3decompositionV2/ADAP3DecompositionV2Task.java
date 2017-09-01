@@ -106,7 +106,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
                         // Remove the original peaklist if requested.
                         if (parameters.getParameter(
-                                ADAP3DecompositionV1_5Parameters.AUTO_REMOVE).getValue())
+                                ADAP3DecompositionV2Parameters.AUTO_REMOVE).getValue())
                         {
                             project.removePeakList(originalPeakList);
                         }
@@ -148,7 +148,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         
         // Create new peak list.
         final PeakList resolvedPeakList = new SimplePeakList(peakList + " "
-                + parameters.getParameter(ADAP3DecompositionV1_5Parameters.SUFFIX)
+                + parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX)
                         .getValue(), dataFile);
         
         // Load previous applied methods.
@@ -177,24 +177,28 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         for (final BetterComponent component : components)
         {
             if (component.spectrum.length == 0) continue;
-            
-            PeakListRow row = new SimplePeakListRow(++rowID);
 
             // Create a reference peal
             Feature refPeak = getFeature(dataFile, component);
 
             // Add spectrum
             List<DataPoint> dataPoints = new ArrayList <> ();
-            for (int i = 0; i < component.spectrum.length; ++i)
-                dataPoints.add(new SimpleDataPoint(
-                        component.spectrum.getMZ(i),
-                        component.spectrum.getIntensity(i)));
-            
+            for (int i = 0; i < component.spectrum.length; ++i) {
+                double mz = component.spectrum.getMZ(i);
+                double intensity = component.spectrum.getIntensity(i);
+                if (intensity > 1e-3 * component.getIntensity())
+                    dataPoints.add(new SimpleDataPoint(mz, intensity));
+            }
+
+            if (dataPoints.size() < 5) continue;
+
             refPeak.setIsotopePattern(new SimpleIsotopePattern(
                     dataPoints.toArray(new DataPoint[dataPoints.size()]),
                     IsotopePattern.IsotopePatternStatus.PREDICTED,
                     "Spectrum"));
-            
+
+            PeakListRow row = new SimplePeakListRow(++rowID);
+
             row.addPeak(dataFile, refPeak);
 
             // Set row properties
