@@ -48,14 +48,17 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     public static final DoubleParameter MIN_CLUSTER_DISTANCE =
             new DoubleParameter("Min distance between analytes (min)",
                     "Minimum distance between any two analytes",
-                    NumberFormat.getNumberInstance(), 0.01
-            );
+                    NumberFormat.getNumberInstance(), 0.01);
     
     public static final IntegerParameter MIN_CLUSTER_SIZE =
             new IntegerParameter("Min cluster size",
                     "Minimum size of a cluster",
-                    5
-            );
+                    5);
+
+    public static final DoubleParameter MIN_PEAK_HEIGHT =
+            new DoubleParameter("Min peak height",
+                    "Minimum height of peaks to be clustered",
+                    NumberFormat.getNumberInstance(), 1000.0);
     
     // ------------------------------------------------------------------------
     // ----- End of First-phase parameters ------------------------------------
@@ -85,7 +88,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 	    "If checked, original chromatogram will be removed and only the deconvolved version remains");
     
     public ADAP3DecompositionV2Parameters() {
-	    super(new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE,
+	    super(new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE, MIN_PEAK_HEIGHT,
                 PEAK_SIMILARITY, SUFFIX, AUTO_REMOVE});
     }
     
