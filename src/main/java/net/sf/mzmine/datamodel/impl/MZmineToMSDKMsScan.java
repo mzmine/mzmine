@@ -153,5 +153,9 @@ public class MZmineToMSDKMsScan implements MsScan {
   public PolarityType getPolarity() {
     return PolarityType.valueOf(mzmineScan.getPolarity().name());
   }
+  
+  public Scan getMzmineScan() {
+    return mzmineScan;
+  }
 
 }

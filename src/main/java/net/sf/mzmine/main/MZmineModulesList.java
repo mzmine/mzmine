@@ -84,6 +84,7 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.cropper.CropFilterModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFiltersModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scansmoothing.ScanSmoothingModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.adap3d.ADAP3DModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass.GridMassModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectionModule;
@@ -125,8 +126,7 @@ public class MZmineModulesList {
             RawDataImportModule.class, MassDetectionModule.class,
             ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
             ADAPChromatogramBuilderModule.class,
-
-
+            ADAP3DModule.class,
             GridMassModule.class, ManualPeakPickerModule.class,
             MsMsPeakPickerModule.class, ScanFiltersModule.class,
             CropFilterModule.class, BaselineCorrectionModule.class,
