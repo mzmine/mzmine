@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.msdial;
 
 import java.awt.Window;
+import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
@@ -26,6 +27,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkyg
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.util.ExitCode;
@@ -34,23 +36,40 @@ import com.google.common.collect.Range;
 
 public class MsDialPeakDetectorParameters extends SimpleParameterSet {
 
+    public static final IntegerParameter NUM_SMOOTHING_POINTS = new IntegerParameter(
+            "Number of smoothing points",
+            "", 5);
+
     public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter(
 	    "Min peak height",
 	    "Minimum acceptable peak height (absolute intensity)", MZmineCore
-		    .getConfiguration().getIntensityFormat());
+		    .getConfiguration().getIntensityFormat(), 100.0);
+
+    public static final IntegerParameter MIN_POINTS = new IntegerParameter(
+            "Min number of scans",
+            "Minimum number of data points of a peak",
+            5);
+
+//    public static final DoubleParameter AMPLITUDE_NOISE_FOLD = new DoubleParameter(
+//            "Amplitude noise fold",
+//            "", NumberFormat.getNumberInstance(),4.0);
+//
+//    public static final DoubleParameter SLOPE_NOISE_FOLD = new DoubleParameter(
+//            "Slope noise fold",
+//            "", NumberFormat.getNumberInstance(), 2.0);
+//
+//    public static final DoubleParameter PEAKTOP_NOISE_FOLD = new DoubleParameter(
+//            "Peak top noise fold",
+//            "", NumberFormat.getNumberInstance(), 2.0);
 
     public static final DoubleRangeParameter PEAK_DURATION = new DoubleRangeParameter(
 	    "Peak duration range (min)", "Range of acceptable peak lengths",
 	    MZmineCore.getConfiguration().getRTFormat(),
 	    Range.closed(0.0, 10.0));
 
-    public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL = new PercentParameter(
-	    "Derivative threshold level",
-	    "Minimum acceptable intensity in the 2nd derivative for peak recognition");
-
     public MsDialPeakDetectorParameters() {
-	super(new Parameter[] { MIN_PEAK_HEIGHT, PEAK_DURATION,
-		DERIVATIVE_THRESHOLD_LEVEL });
+	    super(new Parameter[] { NUM_SMOOTHING_POINTS, MIN_PEAK_HEIGHT, MIN_POINTS,
+                PEAK_DURATION});
     }
 
     @Override

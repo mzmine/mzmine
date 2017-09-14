@@ -89,8 +89,6 @@ public class PeakDetector {
 
         for (int i = 0; i < numPoints; ++i)
         {
-            System.out.println(i);
-
             if (i >= numPoints - 1 - minDataPoints) break;
 
             int peakStart;
