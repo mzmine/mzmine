@@ -258,13 +258,11 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
         Integer minSize = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-        Double minPeakHeight = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_PEAK_HEIGHT).getValue();
         
-        if (minDistance == null || minSize == null || minPeakHeight == null) return;
+        if (minDistance == null || minSize == null) return;
 
         List<RetTimeClustering.Cluster> retTimeClusters = new Decomposition()
-                .getRetTimeClusters(peaks, minDistance, minSize, minPeakHeight);
+                .getRetTimeClusters(peaks, minDistance, minSize);
 
         int colorIndex = 0;
         final int numColors = 7;
