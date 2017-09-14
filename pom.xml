@@ -14,7 +14,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>2.0</cdk.version>
 		<jmztab.version>3.0.7</jmztab.version>
-		<msdk.version>0.0.9</msdk.version>
+		<msdk.version>0.0.10</msdk.version>
 	</properties>
 
 	<mailingLists>
@@ -445,7 +445,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.github.msdk</groupId>
-			<artifactId>msdk-featdet-ADAP-3D</artifactId>
+			<artifactId>msdk-featuredetection-adap3d</artifactId>
 			<version>${msdk.version}</version>
 		</dependency>
 		
