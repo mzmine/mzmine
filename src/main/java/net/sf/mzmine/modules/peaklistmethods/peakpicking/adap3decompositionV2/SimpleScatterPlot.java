@@ -22,13 +22,19 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Paint;
+import java.awt.event.ActionListener;
+import java.util.List;
 
+import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.DefaultXYZDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  *
@@ -37,13 +43,19 @@ import org.jfree.data.xy.DefaultXYZDataset;
 
 
 public class SimpleScatterPlot extends ChartPanel
-{   
+{
+    private static final Color[] COLORS = new Color[] {
+            Color.BLUE, Color.CYAN,
+            Color.GREEN, Color.MAGENTA, Color.ORANGE,
+            Color.PINK, Color.RED
+    };
+
     private static final int SERIES_ID = 0;
     
     private final JFreeChart chart;
     private final XYPlot plot;
     private final NumberAxis xAxis, yAxis;
-    private final DefaultXYZDataset xyDataset;
+    private final XYSeriesCollection xyDataset;
     
     public SimpleScatterPlot(String xLabel, String yLabel)
     {
@@ -68,24 +80,25 @@ public class SimpleScatterPlot extends ChartPanel
         yAxis.setUpperMargin(0);
         yAxis.setLowerMargin(0);
         
-        xyDataset = new DefaultXYZDataset();
-        int length = Math.min(xValues.length, yValues.length);
-        double[][] data = new double[3][length];
-        System.arraycopy(xValues, 0, data[0], 0, length);
-        System.arraycopy(yValues, 0, data[1], 0, length);
-        System.arraycopy(colors, 0, data[2], 0, length);
-        xyDataset.addSeries(SERIES_ID, data);
-        
-        XYDotRenderer renderer = new XYDotRenderer() {
+        xyDataset = new XYSeriesCollection();
+//        int length = Math.min(xValues.length, yValues.length);
+//        double[][] data = new double[3][length];
+//        System.arraycopy(xValues, 0, data[0], 0, length);
+//        System.arraycopy(yValues, 0, data[1], 0, length);
+//        System.arraycopy(colors, 0, data[2], 0, length);
+//        xyDataset.addSeries(SERIES_ID, data);
+
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer() {
             @Override
             public Paint getItemPaint(int row, int col) {
-                double c = xyDataset.getZ(row, col).doubleValue();
-                return Color.getHSBColor((float) c, 1.0f, 1.0f);
+                String description = xyDataset.getSeries(row).getDescription();
+                return COLORS[Integer.parseInt(description) % COLORS.length];
             }
         };
         
-        renderer.setDotHeight(3);
-        renderer.setDotWidth(3);
+//        renderer.setDotHeight(3);
+//        renderer.setDotWidth(3);
+        renderer.setBaseShapesVisible(false);
         
         plot = new XYPlot(xyDataset, xAxis, yAxis, renderer);
         plot.setBackgroundPaint(Color.white);
@@ -101,16 +114,40 @@ public class SimpleScatterPlot extends ChartPanel
         super.setChart(chart);
     }
     
-    public void updateData(double[] xValues, double[] yValues, double[] colors)
+//    public void updateData(double[] xValues, double[] yValues, double[] colors)
+//    {
+//        xyDataset.removeSeries(SERIES_ID);
+//
+//        int length = Math.min(xValues.length, yValues.length);
+//
+//        double[][] data = new double[3][length];
+//        System.arraycopy(xValues, 0, data[0], 0, length);
+//        System.arraycopy(yValues, 0, data[1], 0, length);
+//        System.arraycopy(colors, 0, data[2], 0, length);
+//        xyDataset.addSeries(SERIES_ID, data);
+//    }
+
+    public void updateData(List<RetTimeClusterer.Cluster> clusters)
     {
-        xyDataset.removeSeries(SERIES_ID);
-        
-        int length = Math.min(xValues.length, yValues.length);
-        
-        double[][] data = new double[3][length];
-        System.arraycopy(xValues, 0, data[0], 0, length);
-        System.arraycopy(yValues, 0, data[1], 0, length);
-        System.arraycopy(colors, 0, data[2], 0, length);
-        xyDataset.addSeries(SERIES_ID, data);
+        xyDataset.removeAllSeries();
+        xyDataset.setNotify(false);
+
+        int seriesID = 0;
+        int colorID = 0;
+        for (RetTimeClusterer.Cluster c : clusters)
+        {
+            for (RetTimeClusterer.Item range : c.ranges) {
+                XYSeries series = new XYSeries(seriesID++);
+                series.setDescription(Integer.toString(colorID));
+                series.add(range.getInterval().lowerEndpoint().doubleValue(), range.getMZ());
+                series.add(range.getInterval().upperEndpoint().doubleValue(), range.getMZ());
+                xyDataset.addSeries(series);
+            }
+            ++colorID;
+//            toolTips.add(String.format("M/z: %.2f\nIntensity: %.0f",
+//                    peak.getMZ(), peak.getIntensity()));
+        }
+
+        xyDataset.setNotify(true);
     }
 }

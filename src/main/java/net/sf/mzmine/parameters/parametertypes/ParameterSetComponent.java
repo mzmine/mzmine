@@ -17,13 +17,11 @@
  */
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
+
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
@@ -33,29 +31,68 @@ import net.sf.mzmine.util.ExitCode;
  * @author aleksandrsmirnov
  */
 public class ParameterSetComponent extends JPanel implements ActionListener {
-    
+
     private final JLabel lblParameters;
     private final JButton btnChange;
+    private final JProgressBar progressBar;
     
     private ParameterSet parameters;
     
-    public ParameterSetComponent(final ParameterSet parameters) {
-        
+    public ParameterSetComponent(final ParameterSet parameters)
+    {
+        super(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         this.parameters = parameters;
-        
+
         this.setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
         
         lblParameters = new JLabel();
-        //lblParameters.getFont().getSize()
         lblParameters.setEnabled(false);
-        this.add(lblParameters, BorderLayout.WEST);
-        
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        this.add(lblParameters, gbc);
+
         btnChange = new JButton("Change");
         btnChange.addActionListener(this);
         btnChange.setEnabled(true);
-        
-        //this.add(btnChange, 1, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
-        this.add(btnChange, BorderLayout.EAST);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        this.add(btnChange, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        progressBar = new JProgressBar();
+        progressBar.setValue(0);
+        progressBar.setVisible(false);
+        progressBar.setStringPainted(true);
+        this.add(progressBar, gbc);
+
+//        if (process != null) {
+//            SwingUtilities.invokeLater(new Runnable() {
+//                public void run() {
+//                    int value = (int) Math.round(process.getFinishedPercentage());
+//                    if (0 < value && value < 100) {
+//                        progressBar.setValue(value);
+//                        progressBar.setVisible(true);
+//                    } else {
+//                        progressBar.setValue(0);
+//                        progressBar.setVisible(false);
+//                    }
+//
+//                    try {
+//                        Thread.sleep(5);
+//                    }
+//                    catch (InterruptedException e) {
+//                        progressBar.setValue(0);
+//                        progressBar.setVisible(false);
+//                    }
+//                }
+//            });
+//        }
     }
     
     @Override
@@ -86,12 +123,15 @@ public class ParameterSetComponent extends JPanel implements ActionListener {
     
     private void updateLabel() {
         // Update text for lblParameters
-        String text = "<html>";
-        for (final Parameter p : parameters.getParameters())
-            text += p.getName() + " = " + p.getValue() + "<br>";
-        
-        text += "</html>";
-        
-        lblParameters.setText(text);
+        StringBuilder builder = new StringBuilder().append("<html>");
+        Parameter[] params = parameters.getParameters();
+        for (int i = 0; i < params.length; ++i) {
+            builder.append(params[i].getName()).append(" = ").append(params[i].getValue());
+            if (i < params.length - 1)
+                builder.append("<br>");
+        }
+        builder.append("</html>");
+
+        lblParameters.setText(builder.toString());
     }
 }

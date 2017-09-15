@@ -23,10 +23,7 @@ import java.text.NumberFormat;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.*;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
 
@@ -44,7 +41,11 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ------------------------------------------------------------------------
     // ----- First-phase parameters -------------------------------------------
     // ------------------------------------------------------------------------
-    
+
+    public static final ParameterSetParameter PEAK_DETECTOR_PARAMETERS =
+            new ParameterSetParameter("Peak detector", "", new MsDialPeakDetectorParameters());
+
+
     public static final DoubleParameter MIN_CLUSTER_DISTANCE =
             new DoubleParameter("Min distance between analytes (min)",
                     "Minimum distance between any two analytes",
@@ -54,11 +55,6 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
             new IntegerParameter("Min cluster size",
                     "Minimum size of a cluster",
                     5);
-
-    public static final DoubleParameter MIN_PEAK_HEIGHT =
-            new DoubleParameter("Min peak height",
-                    "Minimum height of peaks to be clustered",
-                    NumberFormat.getNumberInstance(), 1000.0);
     
     // ------------------------------------------------------------------------
     // ----- End of First-phase parameters ------------------------------------
@@ -88,7 +84,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 	    "If checked, original chromatogram will be removed and only the deconvolved version remains");
     
     public ADAP3DecompositionV2Parameters() {
-	    super(new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE, MIN_PEAK_HEIGHT,
+	    super(new Parameter[] {PEAK_LISTS, PEAK_DETECTOR_PARAMETERS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE,
                 PEAK_SIMILARITY, SUFFIX, AUTO_REMOVE});
     }
     

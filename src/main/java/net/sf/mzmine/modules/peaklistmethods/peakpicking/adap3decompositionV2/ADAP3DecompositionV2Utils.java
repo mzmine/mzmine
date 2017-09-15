@@ -83,7 +83,11 @@ public class ADAP3DecompositionV2Utils
 
                 double height = -Double.MIN_VALUE;
                 for (int scan : scanNumbers) {
-                    double intensity = peak.getDataPoint(scan).getIntensity();
+                    DataPoint dataPoint = peak.getDataPoint(scan);
+
+                    if (dataPoint == null) continue;
+
+                    double intensity = dataPoint.getIntensity();
 
                     if (intensity > height) {
                         height = intensity;
