@@ -142,30 +142,25 @@ public class SimpleFeature implements Feature {
     this.dataFile = dataFile;
 
     this.mz = msdkFeature.getMz();
-    this.rt = msdkFeature.getRetentionTime() * 60.0;
+    this.rt = msdkFeature.getRetentionTime() / 60.0;
     this.height = msdkFeature.getHeight();
     this.area = msdkFeature.getArea();
 
     Chromatogram msdkFeatureChromatogram = msdkFeature.getChromatogram();
+    final double mzValues[] = msdkFeatureChromatogram.getMzValues();
+    final float rtValues[] = msdkFeatureChromatogram.getRetentionTimes();
+    final float intensityValues[] = msdkFeatureChromatogram.getIntensityValues();
 
     this.rtRange = Range.closed(
-        msdkFeatureChromatogram.getRtRange().lowerEndpoint().doubleValue() * 60.0,
-        msdkFeatureChromatogram.getRtRange().upperEndpoint().doubleValue() * 60.0);
-    
-    double mzValues[] = msdkFeatureChromatogram.getMzValues();
-    float rtValues[] = msdkFeatureChromatogram.getRetentionTimes();
-    float intensityValues[] = msdkFeatureChromatogram.getIntensityValues();
-    
-    this.mzRange = Range.encloseAll(Doubles.asList(mzValues));
-    
+        msdkFeatureChromatogram.getRtRange().lowerEndpoint().doubleValue() / 60.0,
+        msdkFeatureChromatogram.getRtRange().upperEndpoint().doubleValue() / 60.0);
+    this.mzRange = Range.encloseAll(Doubles.asList(mzValues));    
     this.intensityRange = Range.closed(0.0, msdkFeature.getHeight().doubleValue());
-
     
     this.scanNumbers = new int[rtValues.length];
-
     this.dataPointsPerScan = new DataPoint[scanNumbers.length];
-
     for (int i = 0; i < scanNumbers.length; i++) {
+      scanNumbers[i] = RawDataFileUtils.getClosestScanNumber(dataFile, rtValues[i] / 60.0);
       dataPointsPerScan[i] = new SimpleDataPoint(mzValues[i], intensityValues[i]);
     }
 
