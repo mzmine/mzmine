@@ -128,7 +128,11 @@ public class ADAP3DTask extends AbstractTask {
     msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate);
     List<Feature> features = null;
     try {
+      if (isCanceled())
+        return;
       features = msdkADAP3DMethod.execute();
+      if (isCanceled())
+        return;
     } catch (Exception e) {
       e.printStackTrace();
       setStatus(TaskStatus.ERROR);
@@ -142,6 +146,8 @@ public class ADAP3DTask extends AbstractTask {
 
     int rowId = 1;
     for (Feature msdkFeature : features) {
+      if (isCanceled())
+        return;
       SimpleFeature mzmineFeature =
           new SimpleFeature(dataFile, FeatureStatus.DETECTED, msdkFeature);
       PeakListRow row = new SimplePeakListRow(rowId);
@@ -160,6 +166,13 @@ public class ADAP3DTask extends AbstractTask {
 
     logger.info("Finished ADAP3D feature detection on " + dataFile);
 
+  }
+
+  @Override
+  public void cancel() {
+    super.cancel();
+    if (msdkADAP3DMethod != null)
+      msdkADAP3DMethod.cancel();
   }
 
 }
