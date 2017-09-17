@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.adap3d;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -138,6 +139,10 @@ public class ADAP3DTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       setErrorMessage("Error in ADAP3D: " + e.getMessage());
     }
+
+    if (features == null)
+      features = new ArrayList<>(0);
+
     logger.info("ADAP3D detected " + features.size() + " features in " + dataFile
         + ", converting to MZmine peaklist");
 
