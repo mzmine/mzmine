@@ -24,7 +24,9 @@ public enum ExportRowCommonElement {
     ROW_ID("Export row ID"), //
     ROW_MZ("Export row m/z"), //
     ROW_RT("Export row retention time"), //
-    ROW_IDENTITY("Export row identity"),
+    ROW_IDENTITY("Export row identity (main ID)"), //
+    ROW_IDENTITY_ALL("Export row identity (all IDs)"), //
+    ROW_IDENTITY_DETAILS("Export row identity (main ID + details)"), //
     ROW_COMMENT("Export row comment"), //
     ROW_PEAK_NUMBER("Export row number of detected peaks");
 
