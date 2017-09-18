@@ -53,11 +53,6 @@ public class CSVExportParameters extends SimpleParameterSet {
             "Selection of peak's elements to export",
             ExportRowDataFileElement.values());
 
-    public static final BooleanParameter exportAllIDs = new BooleanParameter(
-            "Export all IDs for peak",
-            "If checked, all identification results for a peak will be exported. ",
-            false);
-
     public static final BooleanParameter exportAllPeakInfo = new BooleanParameter(
             "Export quantitation results and other information",
             "If checked, all peak-information results for a peak will be exported. ",
@@ -70,7 +65,7 @@ public class CSVExportParameters extends SimpleParameterSet {
 
     public CSVExportParameters() {
         super(new Parameter[] { peakLists, filename, fieldSeparator,
-                exportCommonItems, exportDataFileItems, exportAllIDs,
+                exportCommonItems, exportDataFileItems,
                 exportAllPeakInfo, idSeparator });
     }
 

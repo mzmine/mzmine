@@ -7,7 +7,7 @@ More information about the software can be found on the [MZmine](http://mzmine.g
 
 ## Java version
 
-MZmine requires Java runtime (JRE) version 1.7 or newer.
+MZmine requires Java runtime (JRE) version 1.8 or newer.
 
 ## License
 MZmine 2 is a free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either [version 2](http://www.gnu.org/licenses/gpl-2.0.html) of the License, or (at your option) any [later version](http://www.gnu.org/licenses/gpl.html).
