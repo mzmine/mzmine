@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+
+    <title>Peak detection - Spectral deconvolution</title>
+
+    <style>
+        em {color: blue;}
+    </style>
+</head>
+<body>
+
+
+
+<h1>Improved Spectral deconvolution</h1>
+
+<p>
+    This method finds analytes and their fragmentation mass spectra by performing the following steps: by combining
+    peaks with similar retention times into clusters and using a blind source separation method to determine model peaks
+    and construct fragmentation mass spectra.
+</p>
+
+<ol>
+    <li><p>Similar EIC peaks are combined into clusters. For each EIC peak, we define its <em>retention time</em> as the
+        time corresponding to the peak apex and <em>retention-time range</em> as the interval
+        corresponding to the peak intensity values above 5% of its apex intensity. Then the distance between two EIC
+        peaks is equal to
+        <p><ul type="square">
+            <li> zero if the retention-time range of one EIC peak is a subset of the retention-time range of the other,</li>
+            <li> infinity if the retention-time ranges of the two EIC peaks do not intersect,</li>
+            <li> absolute distance between retention times of the two EIC peaks otherwise.</li>
+        </ul>
+        <p>The EIC peaks are clustered by DBSCAN clustering algorithms and users need specify
+        <em>minimum distance between clusters</em> and <em>minimum cluster size</em>. If <em>preview</em> is selected,
+        the top right plot displays the result of the clustering with dots corresponding to EIC peaks and colors
+            corresponding to different clusters.
+    </li>
+
+    <li>
+        The number and shape of model peaks are determining by performing the non-negative matrix decomposition with
+        the unimodality constrain. The number of model peaks are determined so that the shape of each model peak would
+        be similar to the shape of at least one EIC peaks. The <em>Peak-Similarity tolerance</em> is used when the
+        similarity is estimated.
+    </li>
+</ol>
+
+</body>
+</html>
