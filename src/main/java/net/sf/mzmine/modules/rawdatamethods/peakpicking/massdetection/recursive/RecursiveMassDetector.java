@@ -78,7 +78,7 @@ public class RecursiveMassDetector implements MassDetector {
 		continue;
 	    }
 
-	    // Add initial item of the peak
+	    // Add initial point of the peak
 	    peakStartInd = ind;
 	    peakMaxInd = peakStartInd;
 
@@ -91,12 +91,12 @@ public class RecursiveMassDetector implements MassDetector {
 			&& (dataPoints[ind].getIntensity() < dataPoints[ind + 1]
 				.getIntensity());
 
-		// Check if this is the minimum item of the peak
+		// Check if this is the minimum point of the peak
 		if (isLocalMinimum
 			&& (dataPoints[ind].getIntensity() < localMinimum))
 		    localMinimum = dataPoints[ind].getIntensity();
 
-		// Check if this is the maximum item of the peak
+		// Check if this is the maximum point of the peak
 		if (dataPoints[ind].getIntensity() > dataPoints[peakMaxInd]
 			.getIntensity())
 		    peakMaxInd = ind;
@@ -106,7 +106,7 @@ public class RecursiveMassDetector implements MassDetector {
 		ind++;
 	    }
 
-	    // Add ending item of the peak
+	    // Add ending point of the peak
 	    peakStopInd = ind;
 
 	    peakWidthMZ = dataPoints[peakStopInd].getMZ()
@@ -117,7 +117,7 @@ public class RecursiveMassDetector implements MassDetector {
 		    && (peakWidthMZ <= maximumMZPeakWidth)) {
 
 		// Declare a new MzPeak with intensity equal to max intensity
-		// data item
+		// data point
 		mzPeaks.add(dataPoints[peakMaxInd]);
 
 		if (recuLevel > 0) {

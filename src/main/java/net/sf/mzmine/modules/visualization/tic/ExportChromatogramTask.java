@@ -124,7 +124,7 @@ public class ExportChromatogramTask extends AbstractTask {
 	    progressMax = itemCount;
 	    for (int i = 0; i < itemCount; i++) {
 
-		// Write (x, y) data item row.
+		// Write (x, y) data point row.
 		writer.write(dataSet.getX(0, i) + "," + dataSet.getY(0, i));
 		writer.newLine();
 

@@ -43,7 +43,7 @@ public class EMGPeakModel implements Feature {
 
     // EMG parameters
     private double H; // Height of EMG model
-    private double M; // Time of the maximum item in EMG model
+    private double M; // Time of the maximum point in EMG model
     private double Dp; // Peak width of EMG model
     private double Ap; // Asymmetry factor (skewness)
     private double C; // Excess factor of EMG model
@@ -84,7 +84,7 @@ public class EMGPeakModel implements Feature {
 	// Initialize EMG parameters base on intensities and retention times
 	initializEMGParameters(intensities, retentionTimes, rt, height);
 
-	// Calculate intensity of each item in the shape.
+	// Calculate intensity of each point in the shape.
 	double shapeHeight, currentRT, previousRT, previousHeight;
 
 	int allScanNumbers[] = rawDataFile.getScanNumbers(1);
@@ -284,12 +284,12 @@ public class EMGPeakModel implements Feature {
 	}
 
 	/*
-	 * The inflection item represents the tangent of the curve. We use the
+	 * The inflection point represents the tangent of the curve. We use the
 	 * secant function to calculate the pendient of the tangent line.
 	 * 
 	 * m = f(x+h) - f(x) / h
 	 * 
-	 * where m is the pendient, f(x) is the intensity in inflection item
+	 * where m is the pendient, f(x) is the intensity in inflection point
 	 * and h is the time between two points defined by secant line. In our
 	 * case, the identified peak's rt and height are x+h and f(x+h).
 	 */

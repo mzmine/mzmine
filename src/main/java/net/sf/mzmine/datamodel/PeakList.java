@@ -176,7 +176,7 @@ public interface PeakList {
 	    Range<Double> rtRange, Range<Double> mzRange);
 
     /**
-     * Returns maximum raw data item intensity among all peaks in this peak
+     * Returns maximum raw data point intensity among all peaks in this peak
      * list
      * 
      * @return Maximum intensity

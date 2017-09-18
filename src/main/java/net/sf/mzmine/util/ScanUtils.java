@@ -102,7 +102,7 @@ public class ScanUtils {
      *            m/z range maximum
      * @return double[2] containing base peak m/z and intensity
      */
-    public static DataPoint findBasePeak(@Nonnull Scan scan,
+    public static @Nonnull DataPoint findBasePeak(@Nonnull Scan scan,
 	    @Nonnull Range<Double> mzRange) {
 
 	DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
@@ -356,14 +356,14 @@ public class ScanUtils {
 	if (index >= 0)
 	    return index;
 
-	// Get "insertion item"
+	// Get "insertion point"
 	index = (index * -1) - 1;
 
 	// If key value is bigger than biggest m/z value in array
 	if (index == mzValues.length)
 	    index--;
 	else if (index > 0) {
-	    // Check insertion item value and previous one, see which one
+	    // Check insertion point value and previous one, see which one
 	    // is closer
 	    if (Math.abs(mzValues[index - 1] - key) < Math.abs(mzValues[index]
 		    - key))
@@ -496,7 +496,7 @@ public class ScanUtils {
     }
 
     /**
-     * Find the highest data item in array
+     * Find the highest data point in array
      * 
      */
     public static @Nonnull DataPoint findTopDataPoint(
@@ -515,7 +515,7 @@ public class ScanUtils {
 
     /**
      * Find the m/z range of the data points in the array. We assume there is at
-     * least one data item, and the data points are sorted by m/z.
+     * least one data point, and the data points are sorted by m/z.
      */
     public static @Nonnull Range<Double> findMzRange(
 	    @Nonnull DataPoint dataPoints[]) {

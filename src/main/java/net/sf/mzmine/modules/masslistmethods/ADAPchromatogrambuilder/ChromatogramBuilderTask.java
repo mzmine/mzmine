@@ -193,7 +193,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         // make a list of all the data points
         // sort data points by intensity
         // loop through list 
-        //      add data item to chromatogrm or make new one
+        //      add data point to chromatogrm or make new one
         //      update mz avg and other stuff
         // 
 
@@ -249,7 +249,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
         double maxIntensity = simpleAllMzVals[0].getIntensity();
 
-        // count starts at 1 since we already have added one with a single item.
+        // count starts at 1 since we already have added one with a single point.
 
         //Stopwatch stopwatch = Stopwatch.createUnstarted(); 
         // stopwatch2 = Stopwatch.createUnstarted(); 
@@ -297,7 +297,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
                     toBeUpperBound = toleranceRange.upperEndpoint();
                 }
                 else if ((plusRange==null)&&(minusRange!=null)){
-                    // the upper end item of the minus range will be the lower
+                    // the upper end point of the minus range will be the lower 
                     // range of the new one
                     toBeLowerBound = minusRange.upperEndpoint();
                     toBeUpperBound = toleranceRange.upperEndpoint();
@@ -370,7 +370,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
             // IntensityThresh2 level.
             double numberOfContinuousPointsAboveNoise = chromatogram.findNumberOfContinuousPointsAboveNoise(IntensityThresh2);
             if (numberOfContinuousPointsAboveNoise < minimumScanSpan) {
-                //System.out.println("skipping chromatogram because it does not meet the min item scan requirements");
+                //System.out.println("skipping chromatogram because it does not meet the min point scan requirements");
                 continue;
             }
             else{

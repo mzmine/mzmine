@@ -95,7 +95,7 @@ public class CameraSearchTask extends AbstractTask {
 	// Peak signal to noise ratio.
 	private static final double SIGNAL_TO_NOISE = 10.0;
 
-	// Data item sorter.
+	// Data point sorter.
 	private static final DataPointSorter ASCENDING_MASS_SORTER = new DataPointSorter(
 			SortingProperty.MZ, SortingDirection.Ascending);
 
@@ -277,7 +277,7 @@ public class CameraSearchTask extends AbstractTask {
 				final Set<DataPoint> dataPoints = new TreeSet<DataPoint>(
 						ASCENDING_MASS_SORTER);
 
-				// Add a dummy data item.
+				// Add a dummy data point.
 				dataPoints.add(new SimpleDataPoint(0.0, 0.0));
 				dataPointCount++;
 
@@ -307,7 +307,7 @@ public class CameraSearchTask extends AbstractTask {
 										+ MS_LEVEL);
 					}
 
-					// Copy the data item.
+					// Copy the data point.
 					final DataPoint dataPoint = peak.getDataPoint(scanNumber);
 					if (dataPoint != null) {
 

@@ -66,7 +66,7 @@ public class Chromatogram implements Feature {
     // A set of scan numbers of a segment which is currently being connected
     private Vector<Integer> buildingSegment;
 
-    // Keep track of last added data item
+    // Keep track of last added data point
     private DataPoint lastMzPeak;
 
     // Number of connected segments, which have been committed by
@@ -122,7 +122,7 @@ public class Chromatogram implements Feature {
     }
 
     /**
-     * Returns m/z value of last added data item
+     * Returns m/z value of last added data point
      */
     public DataPoint getLastMzPeak() {
         return lastMzPeak;
@@ -211,7 +211,7 @@ public class Chromatogram implements Feature {
         }
         mz = MathUtils.calcQuantile(allMzValues, 0.5f);
 
-        // Update raw data item ranges, height, rt and representative scan
+        // Update raw data point ranges, height, rt and representative scan
         height = Double.MIN_VALUE;
         for (int i = 0; i < allScanNumbers.length; i++) {
 

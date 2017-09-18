@@ -25,8 +25,8 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
- * This class represents one data item of a spectrum (m/z and intensity pair).
- * Data item is immutable once created, to make things simple.
+ * This class represents one data point of a spectrum (m/z and intensity pair).
+ * Data point is immutable once created, to make things simple.
  */
 public class SimpleDataPoint implements DataPoint {
 

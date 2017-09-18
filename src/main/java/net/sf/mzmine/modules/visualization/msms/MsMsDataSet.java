@@ -364,13 +364,13 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     }
 
     /**
-     * Returns index of data item which exactly matches given X and Y values
+     * Returns index of data point which exactly matches given X and Y values
      *
      * @param retentionTime
      *            retention time.
      * @param mz
      *            m/z.
-     * @return the nearest data item index.
+     * @return the nearest data point index.
      */
     public int getIndex(final double retentionTime, final double mz) {
 

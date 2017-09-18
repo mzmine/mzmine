@@ -80,7 +80,7 @@ public class GaussianPeakModel implements Feature {
 	partC = FWHM / CONST;
 	part2C2 = 2f * (double) Math.pow(partC, 2);
 
-	// Calculate intensity of each item in the shape.
+	// Calculate intensity of each point in the shape.
 	double shapeHeight, currentRT, previousRT, previousHeight;
 
 	int allScanNumbers[] = rawDataFile.getScanNumbers(1);
@@ -238,12 +238,12 @@ public class GaussianPeakModel implements Feature {
 		if ((intensity <= halfIntensity)
 			&& (intensityPlus >= halfIntensity)) {
 
-		    // First item with intensity just less than half of total
+		    // First point with intensity just less than half of total
 		    // intensity
 		    double leftY1 = intensity;
 		    double leftX1 = retentionTimes[i];
 
-		    // Second item with intensity just bigger than half of
+		    // Second point with intensity just bigger than half of
 		    // total
 		    // intensity
 		    double leftY2 = intensityPlus;
@@ -252,7 +252,7 @@ public class GaussianPeakModel implements Feature {
 		    // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
 		    double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
 
-		    // We calculate the desired item (at half intensity) with
+		    // We calculate the desired point (at half intensity) with
 		    // the
 		    // linear equation
 		    // X = X1 + [(Y - Y1) / m ], where Y = half of total
@@ -267,12 +267,12 @@ public class GaussianPeakModel implements Feature {
 		if ((intensity >= halfIntensity)
 			&& (intensityPlus <= halfIntensity)) {
 
-		    // First item with intensity just bigger than half of total
+		    // First point with intensity just bigger than half of total
 		    // intensity
 		    double rightY1 = intensity;
 		    double rightX1 = retentionTimes[i];
 
-		    // Second item with intensity just less than half of total
+		    // Second point with intensity just less than half of total
 		    // intensity
 		    double rightY2 = intensityPlus;
 		    double rightX2 = retentionTimes[i + 1];
@@ -280,7 +280,7 @@ public class GaussianPeakModel implements Feature {
 		    // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
 		    double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
 
-		    // We calculate the desired item (at half intensity) with
+		    // We calculate the desired point (at half intensity) with
 		    // the
 		    // linear equation
 		    // X = X1 + [(Y - Y1) / m ], where Y = half of total

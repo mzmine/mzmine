@@ -94,7 +94,7 @@ public class PeakXICComponent extends JComponent {
         // get canvas size
         Dimension size = getSize();
 
-        // get scan numbers, one data item per each scan
+        // get scan numbers, one data point per each scan
         RawDataFile dataFile = peak.getDataFile();
         int scanNumbers[] = peak.getScanNumbers();
 
@@ -102,7 +102,7 @@ public class PeakXICComponent extends JComponent {
         if (scanNumbers.length == 0)
             return;
 
-        // for each datapoint, find [X:Y] coordinates of its item in painted
+        // for each datapoint, find [X:Y] coordinates of its point in painted
         // image
         int xValues[] = new int[scanNumbers.length];
         int yValues[] = new int[scanNumbers.length];

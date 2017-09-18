@@ -119,7 +119,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
                     int currentPeakEnd = i;
 
-                    // If the last data item is zero, ignore it.
+                    // If the last data point is zero, ignore it.
                     if (intensities[currentPeakEnd] == 0.0) {
 
                         currentPeakEnd--;

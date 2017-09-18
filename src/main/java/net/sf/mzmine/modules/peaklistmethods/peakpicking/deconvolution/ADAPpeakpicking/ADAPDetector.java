@@ -196,7 +196,7 @@ public class ADAPDetector implements PeakResolver {
             
 
             // The old way could detect the same peak more than once if the wavlet scales were too large.
-            // If the left bounds were the same and there was a null item before the right bounds it would
+            // If the left bounds were the same and there was a null point before the right bounds it would
             //make the same peak twice.
             // To avoid the above see if the peak duration range is met before going into
             // the loop

@@ -34,7 +34,7 @@ public class ExactMzDataPoint implements DataPoint {
     private DataPoint[] rawDataPoints;
 
     /**
-     * This constructor takes the given raw data item to represent this m/z
+     * This constructor takes the given raw data point to represent this m/z
      * peak.
      * 
      * @param dataPoint

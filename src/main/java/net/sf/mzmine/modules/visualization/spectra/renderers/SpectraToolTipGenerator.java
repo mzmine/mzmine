@@ -63,8 +63,8 @@ class SpectraToolTipGenerator implements XYToolTipGenerator {
 
 	    String tooltip = "Peak: " + peak + "\nStatus: "
 		    + peak.getFeatureStatus() + "\nPeak list row: " + row
-		    + "\nData item m/z: " + mzFormat.format(mzValue)
-		    + "\nData item intensity: "
+		    + "\nData point m/z: " + mzFormat.format(mzValue)
+		    + "\nData point intensity: "
 		    + intensityFormat.format(intValue);
 
 	    return tooltip;
@@ -80,8 +80,8 @@ class SpectraToolTipGenerator implements XYToolTipGenerator {
 		    / pattern.getHighestDataPoint().getIntensity() * 100;
 
 	    String tooltip = "Isotope pattern: " + pattern.getDescription()
-		    + "\nStatus: " + pattern.getStatus() + "\nData item m/z: "
-		    + mzFormat.format(mzValue) + "\nData item intensity: "
+		    + "\nStatus: " + pattern.getStatus() + "\nData point m/z: "
+		    + mzFormat.format(mzValue) + "\nData point intensity: "
 		    + intensityFormat.format(intValue)
 		    + "\nRelative intensity: "
 		    + percentFormat.format(relativeIntensity) + "%";

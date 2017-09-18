@@ -111,14 +111,14 @@ public class IsotopePatternScoreCalculator {
 
 	    double newMZ = mergedDPArray[i + 1].getMZ();
 
-	    // Update the next data item and remove the current one
+	    // Update the next data point and remove the current one
 	    mergedDPArray[i + 1] = new SimpleDataPoint(newMZ, summedIntensity);
 	    mergedDPArray[i] = null;
 
 	}
 
 	// Calculate the resulting score. Ideal score is 1, in case the final
-	// data item array is empty.
+	// data point array is empty.
 	double result = 1;
 
 	for (DataPoint dp : mergedDPArray) {

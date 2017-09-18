@@ -186,7 +186,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 	boolean b = false;
 	for (int i = 0; i < dataSeries.get(RAW_LEVEL).size(); i++) {
 	    point = dataSeries.get(RAW_LEVEL).get(i);
-	    // Verify if the item is on range
+	    // Verify if the point is on range
 	    if (level == PRECURSOR_LEVEL)
 		b = prRange.contains(point.getPrecursorMass());
 	    else

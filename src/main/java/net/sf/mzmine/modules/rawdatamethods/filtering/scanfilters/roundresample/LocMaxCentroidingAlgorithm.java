@@ -93,7 +93,7 @@ public class LocMaxCentroidingAlgorithm {
                 continue;
             }
 
-            // Add current (non-zero) data item to the current m/z peak
+            // Add current (non-zero) data point to the current m/z peak
             rangeEnd = i;
 
             // Check for local maximum
@@ -111,7 +111,7 @@ public class LocMaxCentroidingAlgorithm {
                 // Add the m/z peak if it has at least 4 data points
                 if (numOfPeakDataPoints >= 4) {
 
-                    // Add the new data item
+                    // Add the new data point
                     mzBuffer[newNumOfDataPoints] = mzBuffer[localMaximumIndex];
                     intensityBuffer[newNumOfDataPoints] = intensityBuffer[localMaximumIndex];
                     newNumOfDataPoints++;

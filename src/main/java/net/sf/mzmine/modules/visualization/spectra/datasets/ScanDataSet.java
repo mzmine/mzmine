@@ -111,7 +111,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     }
 
     /**
-     * This function finds highest data item intensity in given m/z range. It
+     * This function finds highest data point intensity in given m/z range. It
      * is important for normalizing isotope patterns.
      */
     public double getHighestIntensity(Range<Double> mzRange) {

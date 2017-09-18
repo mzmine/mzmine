@@ -43,7 +43,7 @@ It is worth mentioning that the link between the MS2 spectra, and the presumed p
 ions from the MS2 fragmentation spectra from an abundant compound with a long chromatographic tail will often show up in the MS2 values of unrelated compounds, but whose precursor isolation window picks up ions from the original compound.
 <br>
 <br>
-An experimental module which converts the MS2 similarity relationships exported from MZmine2 in CSV format into GraphML format suitable for viewing in the freely available graph manipulation software <a href="http://www.cytoscape.org">Cytoscape</a> is available on Github (<a href="https://github.com/photocyte/ms2_graph">https://github.com/photocyte/ms2_graph</a>).
+An experimental Python script which converts the MS2 similarity relationships exported from MZmine2 in CSV format into GraphML format suitable for viewing in the freely available graph manipulation software <a href="http://www.cytoscape.org">Cytoscape</a> is available on Github (<a href="https://github.com/photocyte/ms2_graph">https://github.com/photocyte/ms2_graph</a>).
 </p>
 
 <h3>Method parameters</h3>
@@ -62,8 +62,9 @@ An experimental module which converts the MS2 similarity relationships exported 
 
     <dt>m/z tolerance</dt>
     <dd>Allowable m/z difference for two ions to be considered identical, and therefore "matched". 
-    Depends on the mass accuracy, precision, and resolution of the MS data.  For data obtained HRAM instruments, and when comparing within the same peaklist
-    (aka the same experiment or LC/MS run), can be set to the mass precision of the instrument during that experiment (4e-4 m/z or ~1 PPM for Q-Exactive).</dd>
+    Depends on the mass accuracy, precision, and resolution of the MS data. For data obtained on HRAM instruments, and when comparing within the same peaklist
+    (aka the same experiment or LC/MS run), can be set to the mass precision of the instrument during that experiment (4e-4 m/z or ~1 PPM for Q-Exactive). 
+    It is recommended that you set this value to the smallest range which reliably matches your ions of interest.</dd>
 
     <dt>Minimum ion intensity to consider in MS2 comparison</dt>
     <dd>Intensity threshold below which ions will be ignored</dd>

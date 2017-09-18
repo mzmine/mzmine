@@ -14,8 +14,8 @@
 <p>
 This mass detector is suitable for continuous data, which has too much noise for the Exact mass detector to be used, but which shows a consistent width of m/z peaks. 
 The algorithm works in a recursive way.
-Initially, it looks at the whole range of data items.
-If the m/z width of this range is not within given limits, a minimum data item is found and used to split the range in two parts.
+Initially, it looks at the whole range of data points. 
+If the m/z width of this range is not within given limits, a minimum data point is found and used to split the range in two parts.
 The same algorithm is then applied recursively on each part. 
 Recursion continues until all m/z ranges which fit into the given width limits are found.
 Final m/z values are determined as local maxima of the identified m/z ranges.
@@ -24,13 +24,13 @@ Final m/z values are determined as local maxima of the identified m/z ranges.
 <h4>Method parameters</h4>
 <dl>
 <dt>Noise level</dt>
-<dd>The minimum intensity level for a data item to be considered part of a chromatogram. All data items below this intensity level are ignored.</dd>
+<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
 
 <dt>Min m/z peak width</dt>
-<dd>Minimum acceptable m/z difference between the first and last data item of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search and discard peaks which are too small.</dd>
+<dd>Minimum acceptable m/z difference between the first and last data point of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search and discard peaks which are too small.</dd> 
 
 <dt>Max m/z peak width</dt>
-<dd>Maximum acceptable m/z difference between the first and last data item of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search.</dd>
+<dd>Maximum acceptable m/z difference between the first and last data point of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search.</dd>
 </dl>
 
 <p>
