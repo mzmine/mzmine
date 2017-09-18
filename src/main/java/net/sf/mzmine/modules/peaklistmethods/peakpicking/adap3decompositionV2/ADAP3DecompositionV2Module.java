@@ -33,7 +33,7 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class ADAP3DecompositionV2Module implements MZmineProcessingModule {
     
-    private static final String MODULE_NAME = "New Spectral deconvolution";
+    private static final String MODULE_NAME = "Improved Spectral deconvolution";
     private static final String MODULE_DESCRIPTION = "This method "
             + "combines peaks into analytes and constructs fragmentation spectrum for each analyte";
 
