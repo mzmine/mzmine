@@ -72,7 +72,7 @@ public class HMDBGateway implements DBGateway {
 	TreeSet<String> results = new TreeSet<String>();
 
 	// Find IDs in the HTML data
-	Pattern pat = Pattern.compile("metabolites/(HMDB[0-9]{5})");
+	Pattern pat = Pattern.compile("metabolites/(HMDB[0-9]{5,})");
 	Matcher matcher = pat.matcher(queryResult);
 	while (matcher.find()) {
 	    String hmdbID = matcher.group(1);

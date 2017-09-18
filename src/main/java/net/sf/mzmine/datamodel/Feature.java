@@ -65,7 +65,7 @@ public interface Feature {
     public double getMZ();
 
     /**
-     * This method returns raw retention time of the peak
+     * This method returns raw retention time of the peak in minutes
      */
     public double getRT();
 
