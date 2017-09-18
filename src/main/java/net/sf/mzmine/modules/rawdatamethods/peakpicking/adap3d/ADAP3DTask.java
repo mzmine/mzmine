@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.adap3d;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -126,8 +127,22 @@ public class ADAP3DTask extends AbstractTask {
     Predicate<MsScan> scanSelectionPredicate =
         scan -> selectedScans.contains(((MZmineToMSDKMsScan) scan).getMzmineScan());
     msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate);
+    List<Feature> features = null;
+    try {
+      if (isCanceled())
+        return;
+      features = msdkADAP3DMethod.execute();
+      if (isCanceled())
+        return;
+    } catch (Exception e) {
+      e.printStackTrace();
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Error in ADAP3D: " + e.getMessage());
+    }
 
-    List<Feature> features = msdkADAP3DMethod.execute();
+    if (features == null)
+      features = new ArrayList<>(0);
+
     logger.info("ADAP3D detected " + features.size() + " features in " + dataFile
         + ", converting to MZmine peaklist");
 
@@ -136,7 +151,10 @@ public class ADAP3DTask extends AbstractTask {
 
     int rowId = 1;
     for (Feature msdkFeature : features) {
-      SimpleFeature mzmineFeature = new SimpleFeature(dataFile, FeatureStatus.DETECTED, msdkFeature);
+      if (isCanceled())
+        return;
+      SimpleFeature mzmineFeature =
+          new SimpleFeature(dataFile, FeatureStatus.DETECTED, msdkFeature);
       PeakListRow row = new SimplePeakListRow(rowId);
       row.addPeak(dataFile, mzmineFeature);
       newPeakList.addRow(row);
@@ -153,6 +171,13 @@ public class ADAP3DTask extends AbstractTask {
 
     logger.info("Finished ADAP3D feature detection on " + dataFile);
 
+  }
+
+  @Override
+  public void cancel() {
+    super.cancel();
+    if (msdkADAP3DMethod != null)
+      msdkADAP3DMethod.cancel();
   }
 
 }
