@@ -24,16 +24,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import io.github.msdk.datamodel.chromatograms.Chromatogram;
-import io.github.msdk.datamodel.files.FileType;
-import io.github.msdk.datamodel.rawdata.MsScan;
+import io.github.msdk.datamodel.Chromatogram;
+import io.github.msdk.datamodel.FileType;
+import io.github.msdk.datamodel.MsScan;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 
 /**
  * Simple implementation of the Scan interface.
  */
-public class MZmineToMSDKRawDataFile implements io.github.msdk.datamodel.rawdata.RawDataFile {
+public class MZmineToMSDKRawDataFile implements io.github.msdk.datamodel.RawDataFile {
 
   private final RawDataFile mzmineRawdataFile;
   private final List<MsScan> scans = new ArrayList<>();

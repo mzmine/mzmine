@@ -24,14 +24,15 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
-import io.github.msdk.datamodel.features.Feature;
-import io.github.msdk.datamodel.rawdata.MsScan;
-import io.github.msdk.featdet.ADAP3D.ADAP3DFeatureDetectionMethod;
+import io.github.msdk.datamodel.Feature;
+import io.github.msdk.datamodel.MsScan;
+import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionMethod;
+import io.github.msdk.featuredetection.adap3d.ADAP3DFeatureDetectionParameters;
+import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import net.sf.mzmine.datamodel.impl.MZmineToMSDKRawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
@@ -126,7 +127,7 @@ public class ADAP3DTask extends AbstractTask {
     MZmineToMSDKRawDataFile msdkRawDataFile = new MZmineToMSDKRawDataFile(dataFile);
     Predicate<MsScan> scanSelectionPredicate =
         scan -> selectedScans.contains(((MZmineToMSDKMsScan) scan).getMzmineScan());
-    msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate);
+    msdkADAP3DMethod = new ADAP3DFeatureDetectionMethod(msdkRawDataFile, scanSelectionPredicate, new ADAP3DFeatureDetectionParameters());
     List<Feature> features = null;
     try {
       if (isCanceled())
