@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5;
+package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
@@ -31,9 +31,9 @@ import net.sf.mzmine.util.ExitCode;
  *
  * @author aleksandrsmirnov
  */
-public class ADAP3DecompositionV1_5Module implements MZmineProcessingModule {
+public class ADAP3DecompositionV2Module implements MZmineProcessingModule {
     
-    private static final String MODULE_NAME = "Hierarchical Clustering";
+    private static final String MODULE_NAME = "Blind Source Separation";
     private static final String MODULE_DESCRIPTION = "This method "
             + "combines peaks into analytes and constructs fragmentation spectrum for each analyte";
 
@@ -54,7 +54,7 @@ public class ADAP3DecompositionV1_5Module implements MZmineProcessingModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return ADAP3DecompositionV1_5Parameters.class;
+        return ADAP3DecompositionV2Parameters.class;
     }
     
     @Override @Nonnull
@@ -62,11 +62,11 @@ public class ADAP3DecompositionV1_5Module implements MZmineProcessingModule {
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks)
     {
         PeakList[] peakLists = parameters
-                .getParameter(ADAP3DecompositionV1_5Parameters.PEAK_LISTS).getValue()
+                .getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS).getValue()
                 .getMatchingPeakLists();
         
         for (PeakList peakList : peakLists) {
-            Task newTask = new ADAP3DecompositionV1_5Task(project, peakList,
+            Task newTask = new ADAP3DecompositionV2Task(project, peakList,
                     parameters);
             tasks.add(newTask);
         }
