@@ -30,6 +30,7 @@ public enum MZmineModuleCategory {
     ISOTOPES("Isotopes"), //
     PEAKLIST("Peak list methods"), //
     PEAKLISTPICKING("Peak list processing"), //
+    SPECTRALDECONVOLUTION("Spectral deconvolution"), //
     PEAKLISTFILTERING("Peak list filtering"), //
     ALIGNMENT("Alignment"), //
     NORMALIZATION("Normalization"), //
