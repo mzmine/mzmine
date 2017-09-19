@@ -76,11 +76,9 @@ public class CombinedXICComponent extends JComponent {
             maxIntensity = Math.max(maxIntensity,
                     peak.getRawDataPointsIntensityRange().upperEndpoint());
             if (rtRange == null)
-//                rtRange = peak.getDataFile().getDataRTRange();
-                rtRange = peak.getRawDataPointsRTRange();
+                rtRange = peak.getDataFile().getDataRTRange();
             else
-//                rtRange = rtRange.span(peak.getDataFile().getDataRTRange());
-                rtRange = rtRange.span(peak.getRawDataPointsRTRange());
+                rtRange = rtRange.span(peak.getDataFile().getDataRTRange());
         }
 
         this.maxIntensity = maxIntensity;
