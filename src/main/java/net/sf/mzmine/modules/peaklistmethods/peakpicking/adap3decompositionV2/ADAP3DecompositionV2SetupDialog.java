@@ -17,6 +17,7 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
+import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import dulab.adap.datamodel.BetterComponent;
 import dulab.adap.datamodel.BetterPeak;
@@ -64,7 +65,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
      *  > change in the first phase parameters,
      *  > change in the second phase parameters
      */
-    private enum CHANGE_STATE {NONE, FIRST_PHASE, SECOND_PHASE};
+    private enum CHANGE_STATE {NONE, FIRST_PHASE, SECOND_PHASE}
 
     /**
      * Elements of the interface
@@ -330,10 +331,6 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         final int size = retTimeValues.size();
 
         retTimeMZPlot.updateData(retTimeClusters);
-//        retTimeMZPlot.updateData(
-//                ArrayUtils.toPrimitive(retTimeValues.toArray(new Double[size])),
-//                ArrayUtils.toPrimitive(mzValues.toArray(new Double[size])),
-//                ArrayUtils.toPrimitive(colorValues.toArray(new Double[size])));
 
         shapeCluster();
     }
@@ -347,7 +344,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         if (cluster == null) return;
 
-//        List<BetterPeak> peaks = cluster.peaks;
+//        retTimeMZPlot.setDomain(cluster.clusterRange);
 
         if (cluster.ranges.size() > MAX_NUMBER_OF_CLUSTER_PEAKS) {
             JOptionPane.showMessageDialog(this, "Large number of peaks in a cluster. Model peak selection is not displayed.");
@@ -355,19 +352,24 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             return;
         }
 
+        ParameterSet peakDetectorParameters = parameterSet.getParameter(
+                ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
+
+        if (peakDetectorParameters == null) return;
+
         Double minClusterDistance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-//        Double fwhmTolerance = parameterSet.getParameter(
-//                ADAP3DecompositionV2Parameters.FWHM_TOLERANCE).getValue();
         Double shapeTolerance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
+        Range<Double> durationRange = peakDetectorParameters.getParameter(
+                MsDialPeakDetectorParameters.PEAK_DURATION).getValue();
 
-        if (minClusterDistance == null || shapeTolerance == null)
+        if (minClusterDistance == null || shapeTolerance == null || durationRange == null)
             return;
 
         List<BetterComponent> components = null;
         try {
-            components = new ComponentSelector(cluster.getClusterRange(), chromatograms, shapeTolerance).run();
+            components = new ComponentSelector(cluster.getClusterRange(), chromatograms, shapeTolerance, durationRange).run();
         } catch (Exception e) {
             e.printStackTrace();
         }

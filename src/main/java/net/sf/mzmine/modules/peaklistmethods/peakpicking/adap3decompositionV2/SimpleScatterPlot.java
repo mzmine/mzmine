@@ -25,6 +25,7 @@ import java.awt.Paint;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+import com.google.common.collect.Range;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -45,9 +46,9 @@ import org.jfree.data.xy.XYSeriesCollection;
 public class SimpleScatterPlot extends ChartPanel
 {
     private static final Color[] COLORS = new Color[] {
-            Color.BLUE, Color.CYAN,
-            Color.GREEN, Color.MAGENTA, Color.ORANGE,
-            Color.PINK, Color.RED
+            Color.BLUE, Color.PINK, Color.CYAN,
+            Color.MAGENTA, Color.ORANGE,
+            Color.GREEN, Color.RED
     };
 
     private static final int SERIES_ID = 0;
@@ -57,12 +58,12 @@ public class SimpleScatterPlot extends ChartPanel
     private final NumberAxis xAxis, yAxis;
     private final XYSeriesCollection xyDataset;
     
-    public SimpleScatterPlot(String xLabel, String yLabel)
+    SimpleScatterPlot(String xLabel, String yLabel)
     {
         this(new double[0], new double[0], new double[0], xLabel, yLabel);
     }
     
-    public SimpleScatterPlot(double[] xValues, double[] yValues, double[] colors,
+    SimpleScatterPlot(double[] xValues, double[] yValues, double[] colors,
             String xLabel, String yLabel)
     {
         super(null, true);
@@ -127,7 +128,7 @@ public class SimpleScatterPlot extends ChartPanel
 //        xyDataset.addSeries(SERIES_ID, data);
 //    }
 
-    public void updateData(List<RetTimeClusterer.Cluster> clusters)
+    void updateData(List<RetTimeClusterer.Cluster> clusters)
     {
         xyDataset.removeAllSeries();
         xyDataset.setNotify(false);
@@ -149,5 +150,9 @@ public class SimpleScatterPlot extends ChartPanel
         }
 
         xyDataset.setNotify(true);
+    }
+
+    public void setDomain(Range<Double> range) {
+        plot.getDomainAxis().setRange(range.lowerEndpoint(), range.upperEndpoint());
     }
 }
