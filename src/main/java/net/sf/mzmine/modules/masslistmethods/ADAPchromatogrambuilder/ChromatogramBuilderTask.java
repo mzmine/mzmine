@@ -256,9 +256,13 @@ public class ChromatogramBuilderTask extends AbstractTask {
         //Stopwatch stopwatch3 = Stopwatch.createUnstarted(); 
 
 
+        processedPoints = 0;
         totalPoints = simpleAllMzVals.length;
 
         for (ExpandedDataPoint mzPeak : simpleAllMzVals){
+
+            processedPoints++;
+
             if (isCanceled()){
                 return;}
 
@@ -344,8 +348,6 @@ public class ChromatogramBuilderTask extends AbstractTask {
                 
                 
             }
-            
-            processedPoints+=1;
         }
            
         //System.out.println("search chroms (ms): " +  stopwatch.elapsed(TimeUnit.MILLISECONDS));
