@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 
-import io.github.msdk.datamodel.chromatograms.Chromatogram;
+import io.github.msdk.datamodel.Chromatogram;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -137,7 +137,7 @@ public class SimpleFeature implements Feature {
    * Copy constructor
    */
   public SimpleFeature(RawDataFile dataFile, FeatureStatus status,
-      io.github.msdk.datamodel.features.Feature msdkFeature) {
+      io.github.msdk.datamodel.Feature msdkFeature) {
 
     this.dataFile = dataFile;
 

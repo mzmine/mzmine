@@ -125,7 +125,9 @@ public class MZmineModulesList {
       // Raw data methods
       RawDataImportModule.class, RawDataExportModule.class, MassDetectionModule.class,
       ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
-      ADAPChromatogramBuilderModule.class, ADAP3DModule.class, GridMassModule.class,
+      ADAPChromatogramBuilderModule.class, 
+      // Not ready for prime time: ADAP3DModule.class,  
+      GridMassModule.class,
       ManualPeakPickerModule.class, MsMsPeakPickerModule.class, ScanFiltersModule.class,
       CropFilterModule.class, BaselineCorrectionModule.class, AlignScansModule.class,
       ScanSmoothingModule.class, OrderDataFilesModule.class,
