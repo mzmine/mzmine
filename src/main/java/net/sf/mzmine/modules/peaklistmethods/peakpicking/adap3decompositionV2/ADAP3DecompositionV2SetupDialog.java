@@ -367,6 +367,9 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         if (minClusterDistance == null || shapeTolerance == null || durationRange == null)
             return;
 
+        if (minClusterDistance <= 0 || shapeTolerance <= 0.0 || shapeTolerance >= 1.0)
+            return;
+
         List<BetterComponent> components = null;
         try {
             components = new ComponentSelector(cluster.getClusterRange(), chromatograms, shapeTolerance, durationRange).run();
