@@ -88,7 +88,7 @@ public class RawDataFilesParameter
 
   @Override
   public RawDataFilesParameter cloneParameter() {
-    RawDataFilesParameter copy = new RawDataFilesParameter(minCount, maxCount);
+    RawDataFilesParameter copy = new RawDataFilesParameter(name, minCount, maxCount);
     if (value != null)
       copy.value = value.clone();
     return copy;
