@@ -82,7 +82,7 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
 
   @Override
   public PeakListsParameter cloneParameter() {
-    PeakListsParameter copy = new PeakListsParameter(minCount, maxCount);
+    PeakListsParameter copy = new PeakListsParameter(name, minCount, maxCount);
     if (value != null)
       copy.value = value.clone();
     return copy;
