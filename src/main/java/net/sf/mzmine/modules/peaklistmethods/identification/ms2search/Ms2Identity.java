@@ -28,7 +28,7 @@ public class Ms2Identity extends SimplePeakIdentity {
 
     public Ms2Identity(final Feature featureA, final Feature featureB, Ms2SearchResult searchResult) {
 
-        super("MS2 similarity"+
+        super("MS2similarity"+
                         " m/z:" + MZmineCore.getConfiguration().getMZFormat().format(featureB.getMZ()) + 
                         " RT:" + MZmineCore.getConfiguration().getRTFormat().format(featureB.getRT()) + 
                         " Score:" + String.format("%3.1e",searchResult.getScore()) +
