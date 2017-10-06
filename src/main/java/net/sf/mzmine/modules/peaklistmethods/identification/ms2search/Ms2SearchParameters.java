@@ -29,9 +29,9 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class Ms2SearchParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakList1 = new PeakListsParameter(1,1);
+    public static final PeakListsParameter peakList1 = new PeakListsParameter("Peak List 1",1,1);
     
-    public static final PeakListsParameter peakList2 = new PeakListsParameter(1,1);
+    public static final PeakListsParameter peakList2 = new PeakListsParameter("Peak List 2",1,1);
     
     public static final MassListParameter massList = new MassListParameter();
     

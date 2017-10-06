@@ -62,8 +62,6 @@ public class Ms2SearchModule implements MZmineProcessingModule {
                 .getMatchingPeakLists();
 
 
-        
-
         //Previously iterated over all the peaklists & did a separate task for each.
         //Now a single task.
         Task newTask = new Ms2SearchTask(parameters, peakList1[0], peakList2[0]);
