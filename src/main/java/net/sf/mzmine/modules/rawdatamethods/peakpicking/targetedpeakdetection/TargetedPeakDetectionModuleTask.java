@@ -119,7 +119,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
     // Fill each row of this raw data file column, create new empty
     // gaps if necessary
-    for (int row = 1; row <= peaks.size(); row++) {
+    for (int row = 0; row < peaks.size(); row++) {
       PeakListRow newRow = processedPeakList.getRow(row);
       // Create a new gap
 
