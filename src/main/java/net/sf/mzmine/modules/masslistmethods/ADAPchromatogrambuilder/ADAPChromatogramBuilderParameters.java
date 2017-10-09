@@ -36,7 +36,7 @@ import net.sf.mzmine.util.ExitCode;
 
 import java.awt.*;
 
-public class ChromatogramBuilderParameters extends SimpleParameterSet {
+public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
@@ -74,7 +74,7 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
             MZmineCore.getConfiguration().getIntensityFormat());
     // End Owen Edit
 
-    public ChromatogramBuilderParameters() {
+    public ADAPChromatogramBuilderParameters() {
         super(new Parameter[] { dataFiles, scanSelection, massList,
                 minimumScanSpan,IntensityThresh2, startIntensity, mzTolerance, suffix });
     }
