@@ -348,7 +348,6 @@
 			<groupId>com.github.jbytecode</groupId>
 			<artifactId>RCaller</artifactId>
 			<version>3.0</version>
-			<classifier>jar-with-dependencies</classifier>
 		</dependency>
 
 		<dependency>
