@@ -270,6 +270,12 @@ public class HeatMapTask extends AbstractTask {
             }
 
             rSession.eval("dev.off()", false);
+
+            // Stands for a (void) collect!
+            this.rSession.runOnlyOnline();
+            // Done: Refresh R code stack
+            this.rSession.clearCode();
+
             finishedPercentage = 1.0;
 
             // Turn off R instance, once task ended gracefully.

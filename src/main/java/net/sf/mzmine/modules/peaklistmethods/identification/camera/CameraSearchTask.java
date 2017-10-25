@@ -393,7 +393,7 @@ public class CameraSearchTask extends AbstractTask {
 			this.rSession.eval("xRaw <- new(\"xcmsRaw\")");
 			this.rSession.eval("xRaw@tic <- intensity");
 			this.rSession.eval("xRaw@scantime <- scantime * " + SECONDS_PER_MINUTE);
-			this.rSession.eval("xRaw@scanindex <- scanindex");
+			this.rSession.eval("xRaw@scanindex <- as.integer(scanindex)");
 			this.rSession.eval("xRaw@env$mz <- mass");
 			this.rSession.eval("xRaw@env$intensity <- intensity");
 
@@ -475,7 +475,10 @@ public class CameraSearchTask extends AbstractTask {
 			final int[] spectra = (int[]) rSession.collect("pcgroup");
 			final String[] isotopes = (String[]) rSession.collect("isotopes");
                         final String[] adducts = (String[]) rSession.collect("adducts");
+			// Done: Refresh R code stack
+			this.rSession.clearCode();
 
+			
 			// Add identities.
 			if (spectra != null) {
 
