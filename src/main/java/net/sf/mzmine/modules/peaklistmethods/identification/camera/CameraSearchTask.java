@@ -50,6 +50,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -126,6 +127,8 @@ public class CameraSearchTask extends AbstractTask {
         private final String groupBy;
         private final Boolean includeSingletons;
 
+        private REngineType rEngineType;
+
 	public CameraSearchTask(final MZmineProject project, 
                 final ParameterSet parameters, final PeakList list) 
         {
@@ -138,6 +141,9 @@ public class CameraSearchTask extends AbstractTask {
                 
 		// Parameters.
                 this.parameters = parameters;
+                
+                this.rEngineType = parameters.getParameter(CameraSearchParameters.RENGINE_TYPE)
+                        .getValue();
                 
 		fwhmSigma = parameters.getParameter(CameraSearchParameters.FWHM_SIGMA)
 				.getValue();
@@ -254,7 +260,8 @@ public class CameraSearchTask extends AbstractTask {
 
 			String[] reqPackages = { "CAMERA" };
 			String[] reqPackagesVersions = { CAMERA_VERSION };
-			this.rSession = new RSessionWrapper("Camera search feature", reqPackages, reqPackagesVersions);
+			this.rSession = new RSessionWrapper(this.rEngineType,
+			        "Camera search feature", reqPackages, reqPackagesVersions);
 			this.rSession.open();	
 
 

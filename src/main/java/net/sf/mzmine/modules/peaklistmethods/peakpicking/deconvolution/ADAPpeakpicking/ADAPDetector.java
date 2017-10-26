@@ -43,6 +43,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 //import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -101,6 +102,11 @@ public class ADAPDetector implements PeakResolver {
 
     @Override
     public String[] getRequiredRPackages() {
+        return null;
+    }
+
+    @Override
+    public REngineType getREngineType(ParameterSet parameters) {
         return null;
     }
 

@@ -34,6 +34,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
@@ -149,4 +150,10 @@ public class BaselinePeakDetector implements PeakResolver {
     public String[] getRequiredRPackagesVersions() {
         return null;
     }
+
+    @Override
+    public REngineType getREngineType(ParameterSet parameters) {
+        return null;
+    }
+
 }
