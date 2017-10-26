@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -43,6 +44,11 @@ public interface PeakResolver extends MZmineModule {
      */
     public String[] getRequiredRPackagesVersions();
 
+    /**
+     * Gets R engine type, if applicable
+     */
+    public REngineType getREngineType(final ParameterSet parameters);
+    
     /**
      * Resolve a peaks found within given chromatogram. For easy use, three
      * arrays (scanNumbers, retentionTimes and intensities) are provided,

@@ -36,6 +36,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RangeUtils;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
@@ -224,6 +225,11 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
     @Override
     public String[] getRequiredRPackagesVersions() {
+        return null;
+    }
+
+    @Override
+    public REngineType getREngineType(ParameterSet parameters) {
         return null;
     }
 }

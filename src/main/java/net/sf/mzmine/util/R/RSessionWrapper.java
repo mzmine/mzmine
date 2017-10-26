@@ -228,11 +228,11 @@ public class RSessionWrapper {
         this.reqPackages = reqPackages;
         this.reqPackagesVersions = reqPackagesVersions;
     }
-    public RSessionWrapper(String callerFeatureName, String[] reqPackages,
-            String[] reqPackagesVersions) {
-
-    	this(REngineType.RCALLER, callerFeatureName, reqPackages, reqPackagesVersions);
-    }
+//    public RSessionWrapper(String callerFeatureName, String[] reqPackages,
+//            String[] reqPackagesVersions) {
+//
+//    	this(REngineType.RCALLER, callerFeatureName, reqPackages, reqPackagesVersions);
+//    }
 
     private void getRengineInstance() throws RSessionWrapperException {
 
@@ -256,7 +256,7 @@ public class RSessionWrapper {
             if (this.rEngine == null) {
 
             	
-            	if (this.rEngineType == REngineType.RSESSION) {
+            	if (this.rEngineType == REngineType.RSERVE) {
             	
 	                boolean isWindows = RSessionWrapper.isWindows();
 	
@@ -455,7 +455,7 @@ public class RSessionWrapper {
                 + "the \"" + packageName
                 + "\" R package, which couldn't be loaded - is it installed in R?";
 
-        if (this.rEngineType == REngineType.RSESSION) {
+        if (this.rEngineType == REngineType.RSERVE) {
         	
 	        if (this.session != null && !this.userCanceled) {
 	            LOG.log(logLvl, "Loading package '" + packageName + "'...");
@@ -517,7 +517,7 @@ public class RSessionWrapper {
 
         LOG.log(logLvl, "Checking package version: '" + packageName
                 + "' for version '" + version + "'...");
-        if (this.rEngineType == REngineType.RSESSION) {
+        if (this.rEngineType == REngineType.RSERVE) {
 
         	if (this.session != null && !this.userCanceled) {
 	            int version_ok = 0;
@@ -697,7 +697,7 @@ public class RSessionWrapper {
     public <T> void assign(String objName, T object)
             throws RSessionWrapperException {
 
-    	if (this.rEngineType == REngineType.RSESSION) {
+    	if (this.rEngineType == REngineType.RSERVE) {
     	
 	        if (this.session != null && !this.userCanceled) {
 	            String msg = "Rserve error: couldn't assign R object '" + objName
@@ -798,7 +798,7 @@ public class RSessionWrapper {
 
         // if (TRY_MODE) rCode = "try(" + rCode + ",silent=TRUE)";
 
-    	if (this.rEngineType == REngineType.RSESSION) {
+    	if (this.rEngineType == REngineType.RSERVE) {
 
     		boolean ok = false;
     		if (this.session != null && !this.userCanceled) {
@@ -927,7 +927,7 @@ public class RSessionWrapper {
     public Object collect(String objOrExp, boolean tryEval, boolean stopOnError) throws RSessionWrapperException {
 
     	// Rsession
-    	if (this.rEngineType == REngineType.RSESSION) {
+    	if (this.rEngineType == REngineType.RSERVE) {
     		 
         	return collectRserve(objOrExp, stopOnError);
         	
@@ -1124,7 +1124,7 @@ public class RSessionWrapper {
 
         this.userCanceled = userCanceled;
 
-        if (this.rEngineType == REngineType.RSESSION) {
+        if (this.rEngineType == REngineType.RSERVE) {
         	
         	
 	        if (this.session != null) {
@@ -1325,7 +1325,7 @@ public class RSessionWrapper {
 
     public boolean isSessionRunning() {
     	
-    	if (this.rEngineType == REngineType.RSESSION)
+    	if (this.rEngineType == REngineType.RSERVE)
     		return (this.session != null && !this.userCanceled);
     	else
     		return (!this.userCanceled);

@@ -26,7 +26,6 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.Baselin
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
-import net.sf.mzmine.util.R.Rcaller.RCallerResultType;
 
 /**
  * @description Peak Detection baseline corrector. Peak detection is done in
@@ -95,7 +94,7 @@ public class PeakDetectionCorrector extends BaselineCorrector {
         // Anyway, this usually happens when "chromatogram" is fully flat and
         // zeroed.
         rSession.eval("if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }");
-        baseline = ((double[][]) rSession.collect("baseline"/*, RCallerResultType.DOUBLE_MATRIX*/))[0];
+        baseline = ((double[][]) rSession.collect("baseline"))[0];
         // Done: Refresh R code stack
         rSession.clearCode();
 

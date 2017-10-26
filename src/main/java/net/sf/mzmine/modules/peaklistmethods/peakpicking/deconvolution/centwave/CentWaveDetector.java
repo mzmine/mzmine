@@ -42,6 +42,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -92,6 +93,11 @@ public class CentWaveDetector implements PeakResolver {
     @Override
     public String[] getRequiredRPackagesVersions() {
         return new String[] { XCMS_VERSION };
+    }
+
+    @Override
+    public REngineType getREngineType(final ParameterSet parameters) {
+        return parameters.getParameter(CentWaveDetectorParameters.RENGINE_TYPE).getValue();
     }
 
     @Override
@@ -277,4 +283,5 @@ public class CentWaveDetector implements PeakResolver {
 
         return peaks;
     }
+    
 }
