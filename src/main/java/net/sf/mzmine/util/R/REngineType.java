@@ -2,7 +2,7 @@ package net.sf.mzmine.util.R;
 
 public enum REngineType {
 
-    RSESSION("RSession"),
+    RSERVE("RServe"),
     RCALLER("RCaller");
 
     private final String name;
