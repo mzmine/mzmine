@@ -63,6 +63,9 @@ public class AsymmetryCorrector extends BaselineCorrector {
                 + asymmetry + ')');
         // baseline = rSession.collectDoubleArray("baseline");
         baseline = (double[]) rSession.collect("baseline");
+        // Done: Refresh R code stack
+        rSession.clearCode();
+        
         // }
         // catch (Throwable t) {
         // //t.printStackTrace();

@@ -51,6 +51,7 @@ import net.sf.mzmine.modules.visualization.tic.TICToolBar;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -107,7 +108,20 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
             final ParameterSet resolverParameters,
             final Class<? extends PeakResolver> resolverClass) {
 
-        super(parent, valueCheckRequired, resolverParameters);
+        this(parent, valueCheckRequired, resolverParameters, resolverClass, null);
+    }
+
+    /**
+     * Method to display setup dialog with a html-formatted footer message at the bottom.
+     *
+     * @param message: html-formatted text
+     */
+    public PeakResolverSetupDialog(Window parent, boolean valueCheckRequired,
+                                   final ParameterSet resolverParameters,
+                                   final Class<? extends PeakResolver> resolverClass,
+                                   String message) {
+
+        super(parent, valueCheckRequired, resolverParameters, message);
 
         // Instantiate resolver.
         try {
@@ -121,6 +135,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
         }
 
         parameters = resolverParameters;
+
     }
 
     @Override
@@ -236,8 +251,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
                         String[] reqPackagesVersions = peakResolver
                                 .getRequiredRPackagesVersions();
                         String callerFeatureName = peakResolver.getName();
-                        rSession = new RSessionWrapper(callerFeatureName,
-                                reqPackages, reqPackagesVersions);
+                        REngineType rEngineType = peakResolver.getREngineType(parameters);
+                        rSession = new RSessionWrapper(rEngineType,
+                            	callerFeatureName, reqPackages, reqPackagesVersions);
                         rSession.open();
                     } else {
                         rSession = null;

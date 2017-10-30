@@ -23,6 +23,7 @@ package net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
@@ -31,8 +32,11 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import net.sf.mzmine.util.ExitCode;
 
-public class ChromatogramBuilderParameters extends SimpleParameterSet {
+import java.awt.*;
+
+public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
@@ -70,9 +74,21 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
             MZmineCore.getConfiguration().getIntensityFormat());
     // End Owen Edit
 
-    public ChromatogramBuilderParameters() {
+    public ADAPChromatogramBuilderParameters() {
         super(new Parameter[] { dataFiles, scanSelection, massList,
                 minimumScanSpan,IntensityThresh2, startIntensity, mzTolerance, suffix });
     }
 
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+        String message = "<html>ADAP Module Disclaimer:" +
+                "<br> If you use the ADAP Chromatogram Builder Module, please cite the " +
+                "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:" +
+                "<br><a href=\"http://pubs.acs.org/doi/abs/10.1021/acs.analchem.7b00947\"> Myers OD, Sumner SJ, Li S, Barnes S, Du X: One Step Forward for Reducing False Positive and False Negative " +
+                "<br>Compound Identifications from Mass Spectrometry Metabolomics Data: New Algorithms for Constructing Extracted " +
+                "<br>Ion Chromatograms and Detecting Chromatographic Peaks. Anal Chem 2017, DOI: 10.1021/acs.analchem.7b00947</a>" +
+                "</html>";
+        ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this, message);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 }

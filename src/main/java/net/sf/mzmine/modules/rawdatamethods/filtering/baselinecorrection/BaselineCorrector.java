@@ -33,6 +33,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RangeUtils;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -61,10 +62,12 @@ public abstract class BaselineCorrector implements BaselineProvider,
     private String suffix;
 
     // General parameters (common to all baseline correction methods).
+    private REngineType rEgineType;
     private ChromatogramType chromatogramType;
     private double binWidth;
     private boolean useBins;
     private int msLevel;
+
 
     /**
      * Initialization
@@ -96,6 +99,8 @@ public abstract class BaselineCorrector implements BaselineProvider,
                     .getBaselineCorrectionParameters();
         }
         // Get common parameters.
+        rEgineType = generalParameters.getParameter(
+                BaselineCorrectionParameters.RENGINE_TYPE).getValue();
         suffix = generalParameters.getParameter(
                 BaselineCorrectionParameters.SUFFIX).getValue();
         chromatogramType = generalParameters.getParameter(
@@ -611,6 +616,11 @@ public abstract class BaselineCorrector implements BaselineProvider,
      */
     public void clearProgress(final RawDataFile origDataFile) {
         progressMap.remove(origDataFile);
+    }
+
+    
+    public REngineType getRengineType() {
+        return this.rEgineType;
     }
 
     // Chromatogram type

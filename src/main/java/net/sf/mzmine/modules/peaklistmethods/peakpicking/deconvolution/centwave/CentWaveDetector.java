@@ -42,6 +42,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -92,6 +93,11 @@ public class CentWaveDetector implements PeakResolver {
     @Override
     public String[] getRequiredRPackagesVersions() {
         return new String[] { XCMS_VERSION };
+    }
+
+    @Override
+    public REngineType getREngineType(final ParameterSet parameters) {
+        return parameters.getParameter(CentWaveDetectorParameters.RENGINE_TYPE).getValue();
     }
 
     @Override
@@ -254,19 +260,28 @@ public class CentWaveDetector implements PeakResolver {
         }
 
         // Do peak picking.
-        final Object centWave = roi <= 1 ? null : (double[][]) rSession
-                .collect(
-                        "findPeaks.centWave(xRaw, ppm=0, mzdiff=0, verbose=TRUE"
-                                + ", peakwidth=c(" + peakWidth.lowerEndpoint()
-                                * SECONDS_PER_MINUTE + ", "
-                                + peakWidth.upperEndpoint()
-                                * SECONDS_PER_MINUTE + ')' + ", snthresh="
-                                + snrThreshold + ", integrate="
-                                + integrationMethod.getIndex()
-                                + ", ROI.list=ROIs)", false);
+        rSession.eval("mtx <- findPeaks.centWave(xRaw, ppm=0, mzdiff=0, verbose=TRUE"
+                + ", peakwidth=c(" + peakWidth.lowerEndpoint()
+                * SECONDS_PER_MINUTE + ", "
+                + peakWidth.upperEndpoint()
+                * SECONDS_PER_MINUTE + ')' + ", snthresh="
+                + snrThreshold + ", integrate="
+                + integrationMethod.getIndex()
+                + ", ROI.list=ROIs)");
 
+        // Get rid of 'NA' values potentially found in the resulting matrix
+        rSession.eval("mtx[is.na(mtx)] <- " + RSessionWrapper.NA_DOUBLE); // + "0");//
+        
+        
+        final Object centWave = roi <= 1 ? null : (double[][]) rSession
+    		  .collect("mtx", false);
+        
+        // Done: Refresh R code stack
+        rSession.clearCode();
+        
         peaks = (centWave == null) ? null : (double[][]) centWave;
 
         return peaks;
     }
+    
 }

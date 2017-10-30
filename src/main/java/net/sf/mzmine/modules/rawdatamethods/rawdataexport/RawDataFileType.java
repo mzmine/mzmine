@@ -17,24 +17,21 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
+package net.sf.mzmine.modules.rawdatamethods.rawdataexport;
 
-public class ExportRowIdentityElement {
+/**
+ * Enum of supported data file formats
+ */
+public enum RawDataFileType {
 
-    private String name;
-    private String propertyName;
-
-    public ExportRowIdentityElement(String propertyName, String name) {
-	this.name = name;
-	this.propertyName = propertyName;
-    }
-
-    public String getPropertyName() {
-	return this.propertyName;
-    }
-
-    public String toString() {
-	return this.name;
-    }
+    MZML, //
+    MZXML, //
+    MZDATA, //
+    NETCDF, //
+    AGILENT_CSV, //
+    THERMO_RAW, //
+    WATERS_RAW, //
+    ZIP, //
+    GZIP
 
 }

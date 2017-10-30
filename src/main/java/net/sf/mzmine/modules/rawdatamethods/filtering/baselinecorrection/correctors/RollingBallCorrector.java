@@ -57,8 +57,10 @@ public class RollingBallCorrector extends BaselineCorrector {
 
         final double[] baseline;
 
+
         // Set chromatogram.
         rSession.assign("chromatogram", chromatogram);
+        
         // Transform chromatogram.
         rSession.eval("mat <- matrix(chromatogram, nrow=1)");
 
@@ -82,6 +84,8 @@ public class RollingBallCorrector extends BaselineCorrector {
         // zeroed.
         rSession.eval("if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }");
         baseline = ((double[][]) rSession.collect("baseline"))[0];
+        // Done: Refresh R code stack
+        rSession.clearCode();
 
         return baseline;
     }

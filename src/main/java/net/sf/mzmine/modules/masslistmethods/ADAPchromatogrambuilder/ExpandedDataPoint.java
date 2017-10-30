@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 The du-lab Development Team
+ * Copyright (c) 2017 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *

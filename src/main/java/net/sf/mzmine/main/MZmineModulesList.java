@@ -3,25 +3,24 @@
  * 
  * This file is part of MZmine 2.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.main;
 
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
-import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromatogramBuilderModule;
+import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
@@ -54,7 +53,6 @@ import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
-
 import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
@@ -70,6 +68,7 @@ import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormal
 import net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5.ADAP3DecompositionV1_5Module;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2.ADAP3DecompositionV2Module;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender.PeakExtenderModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.ShapeModelerModule;
@@ -84,11 +83,13 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.cropper.CropFilterModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFiltersModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scansmoothing.ScanSmoothingModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.adap3d.ADAP3DModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass.GridMassModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectionModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.msms.MsMsPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection.TargetedPeakDetectionModule;
+import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
@@ -111,86 +112,76 @@ import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
  */
 public class MZmineModulesList {
 
-    public static final Class<?> MODULES[] = new Class<?>[] {
+  public static final Class<?> MODULES[] = new Class<?>[] {
 
-            // Project methods
+      // Project methods
 
-            ProjectLoadModule.class, ProjectSaveModule.class,
-            ProjectSaveAsModule.class, ProjectCloseModule.class,
+      ProjectLoadModule.class, ProjectSaveModule.class, ProjectSaveAsModule.class,
+      ProjectCloseModule.class,
 
-            // Batch mode
-            BatchModeModule.class,
+      // Batch mode
+      BatchModeModule.class,
 
-            // Raw data methods
-            RawDataImportModule.class, MassDetectionModule.class,
-            ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
-            ADAPChromatogramBuilderModule.class,
+      // Raw data methods
+      RawDataImportModule.class, RawDataExportModule.class, MassDetectionModule.class,
+      ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
+      ADAPChromatogramBuilderModule.class, 
+      // Not ready for prime time: ADAP3DModule.class,  
+      GridMassModule.class,
+      ManualPeakPickerModule.class, MsMsPeakPickerModule.class, ScanFiltersModule.class,
+      CropFilterModule.class, BaselineCorrectionModule.class, AlignScansModule.class,
+      ScanSmoothingModule.class, OrderDataFilesModule.class,
 
+      // Alignment
+      OrderPeakListsModule.class, JoinAlignerModule.class,
 
-            GridMassModule.class, ManualPeakPickerModule.class,
-            MsMsPeakPickerModule.class, ScanFiltersModule.class,
-            CropFilterModule.class, BaselineCorrectionModule.class,
-            AlignScansModule.class, ScanSmoothingModule.class,
-            OrderDataFilesModule.class,
+      RansacAlignerModule.class,
+      // PathAlignerModule.class,
 
-            // Alignment
-            OrderPeakListsModule.class, JoinAlignerModule.class,
+      // I/O
+      CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
+      SQLExportModule.class, XMLExportModule.class, CasmiImportModule.class,
+      MzTabImportModule.class, XMLImportModule.class, MSPExportModule.class, MGFExportModule.class,
+      GNPSExportModule.class, SiriusExportModule.class,
 
-            RansacAlignerModule.class,
-            // PathAlignerModule.class,
+      // Gap filling
+      PeakFinderModule.class, SameRangeGapFillerModule.class,
 
-            // I/O
-            CSVExportModule.class, MetaboAnalystExportModule.class,
-            MzTabExportModule.class, SQLExportModule.class,
-            XMLExportModule.class, CasmiImportModule.class,            
-            MzTabImportModule.class, XMLImportModule.class,
-            MSPExportModule.class, MGFExportModule.class,
-            GNPSExportModule.class, SiriusExportModule.class,
+      // Isotopes
+      IsotopeGrouperModule.class, IsotopePatternCalculator.class,
 
-            // Gap filling
-            PeakFinderModule.class, SameRangeGapFillerModule.class,
+      // Peak detection
+      SmoothingModule.class, DeconvolutionModule.class, ShapeModelerModule.class,
+      PeakExtenderModule.class, TargetedPeakDetectionModule.class,
+      ADAP3DecompositionV1_5Module.class, ADAP3DecompositionV2Module.class,
 
-            // Isotopes
-            IsotopeGrouperModule.class, IsotopePatternCalculator.class,
+      // Peak list filtering
+      DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
+      PeakFilterModule.class, PeaklistClearAnnotationsModule.class,
 
-            // Peak detection
-            SmoothingModule.class, DeconvolutionModule.class,
-            ShapeModelerModule.class, PeakExtenderModule.class,
-            TargetedPeakDetectionModule.class, ADAP3DecompositionV1_5Module.class,
+      // Normalization
+      RTNormalizerModule.class, LinearNormalizerModule.class,
+      StandardCompoundNormalizerModule.class,
 
-            // Peak list filtering
-            DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-            PeakFilterModule.class,PeaklistClearAnnotationsModule.class,
+      // Data analysis
+      CVPlotModule.class, LogratioPlotModule.class, PCAPlotModule.class, CDAPlotModule.class,
+      SammonsPlotModule.class, ClusteringModule.class, HeatMapModule.class,
 
-            // Normalization
-            RTNormalizerModule.class, LinearNormalizerModule.class,
-            StandardCompoundNormalizerModule.class,
+      // Identification
+      CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
+      AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
+      GPLipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
+      FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
 
-            // Data analysis
-            CVPlotModule.class, LogratioPlotModule.class, PCAPlotModule.class,
-            CDAPlotModule.class, SammonsPlotModule.class,
-            ClusteringModule.class, HeatMapModule.class,
+      // Visualizers
+      TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
+      ThreeDVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
+      PeakListTableModule.class, IsotopePatternExportModule.class, MSMSExportModule.class,
+      ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
+      InfoVisualizerModule.class, IntensityPlotModule.class,
 
-            // Identification
-            CustomDBSearchModule.class, FormulaPredictionModule.class,
-            FragmentSearchModule.class, AdductSearchModule.class,
-            ComplexSearchModule.class, OnlineDBSearchModule.class,
-            GPLipidSearchModule.class, CameraSearchModule.class,
-            NistMsSearchModule.class, FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
+      // Tools
+      MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class
 
-            // Visualizers
-            TICVisualizerModule.class, SpectraVisualizerModule.class,
-            TwoDVisualizerModule.class,
-            ThreeDVisualizerModule.class,
-            MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
-            PeakListTableModule.class, IsotopePatternExportModule.class,
-            MSMSExportModule.class, ScatterPlotVisualizerModule.class,
-            HistogramVisualizerModule.class, InfoVisualizerModule.class,
-            IntensityPlotModule.class,
-
-            // Tools
-            MzRangeMassCalculatorModule.class,
-            MzRangeFormulaCalculatorModule.class
-
-    };
+  };
 }

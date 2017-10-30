@@ -49,7 +49,6 @@ class CSVExportTask extends AbstractTask {
     private String fieldSeparator;
     private ExportRowCommonElement[] commonElements;
     private ExportRowDataFileElement[] dataFileElements;
-    private Boolean exportAllIDs;
     private Boolean exportAllPeakInfo;
     private String idSeparator;
 
@@ -65,8 +64,6 @@ class CSVExportTask extends AbstractTask {
                 .getParameter(CSVExportParameters.exportCommonItems).getValue();
         dataFileElements = parameters
                 .getParameter(CSVExportParameters.exportDataFileItems)
-                .getValue();
-        exportAllIDs = parameters.getParameter(CSVExportParameters.exportAllIDs)
                 .getValue();
         exportAllPeakInfo = parameters
                 .getParameter(CSVExportParameters.exportAllPeakInfo).getValue();
@@ -234,19 +231,40 @@ class CSVExportTask extends AbstractTask {
                     break;
                 case ROW_IDENTITY:
                     // Identity elements
-                    PeakIdentity[] peakIdentities = peakListRow
-                            .getPeakIdentities();
-                    String propertyValue = "";
-                    for (int x = 0; x < peakIdentities.length; x++) {
-                        if (x > 0)
-                            propertyValue += idSeparator;
-                        propertyValue += peakIdentities[x].toString();
-                        if (!exportAllIDs)
-                            break;
+                    PeakIdentity peakId = peakListRow.getPreferredPeakIdentity();
+                    if (peakId == null) {
+                      line.append(fieldSeparator);
+                      break;
                     }
+                    String propertyValue = peakId.toString();
                     propertyValue = escapeStringForCSV(propertyValue);
                     line.append(propertyValue + fieldSeparator);
                     break;
+                case ROW_IDENTITY_ALL:
+                  // Identity elements
+                  PeakIdentity[] peakIdentities = peakListRow
+                          .getPeakIdentities();
+                  propertyValue = "";
+                  for (int x = 0; x < peakIdentities.length; x++) {
+                      if (x > 0)
+                          propertyValue += idSeparator;
+                      propertyValue += peakIdentities[x].toString();
+                  }
+                  propertyValue = escapeStringForCSV(propertyValue);
+                  line.append(propertyValue + fieldSeparator);
+                  break;
+                case ROW_IDENTITY_DETAILS:
+                  peakId = peakListRow.getPreferredPeakIdentity();
+                  if (peakId == null) {
+                    line.append(fieldSeparator);
+                    break;
+                  }
+                  propertyValue = peakId.getDescription();
+                  if (propertyValue != null) 
+                    propertyValue = propertyValue.replaceAll("\\n", ";");
+                  propertyValue = escapeStringForCSV(propertyValue);
+                  line.append(propertyValue + fieldSeparator);
+                  break;
                 case ROW_COMMENT:
                     String comment = escapeStringForCSV(
                             peakListRow.getComment());

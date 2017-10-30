@@ -35,6 +35,7 @@ import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import net.sf.mzmine.util.R.REngineType;
 
 /**
  * Parameters for a <code>CameraSearchTask</code>.
@@ -43,6 +44,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 public class CameraSearchParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+
 
     // Sigma.
     public static final DoubleParameter FWHM_SIGMA = new DoubleParameter(
@@ -121,6 +123,15 @@ public class CameraSearchParameters extends SimpleParameterSet {
     
     public static final StringParameter SUFFIX = new StringParameter("Suffix",
 	    "This string is added to peak list name as suffix", "CAMERA");
+
+    /**
+     * R engine type.
+     */
+    public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
+            "R engine",
+            "The R engine to be used for communicating with R.",
+            REngineType.values(), REngineType.RCALLER);
+
     
     public CameraSearchParameters() {
 
@@ -128,6 +139,7 @@ public class CameraSearchParameters extends SimpleParameterSet {
                 ISOTOPES_MAX_CHARGE, ISOTOPES_MAXIMUM, ISOTOPES_MZ_TOLERANCE,
                 CORRELATION_THRESHOLD, CORRELATION_P_VALUE, POLARITY, 
                 DONT_SPLIT_ISOTOPES, ORDER, CREATE_NEW_LIST, GROUP_BY, 
-                INCLUDE_SINGLETONS, SUFFIX});
+                INCLUDE_SINGLETONS, SUFFIX,
+                RENGINE_TYPE});
     }
 }
