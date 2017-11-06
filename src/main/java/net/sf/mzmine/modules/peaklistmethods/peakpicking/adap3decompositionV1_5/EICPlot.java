@@ -107,8 +107,8 @@ public class EICPlot extends ChartPanel
             }
         };
         
-        renderer.setBaseShapesVisible(false);
-        renderer.setBaseToolTipGenerator(new XYToolTipGenerator() {
+        renderer.setDefaultShapesVisible(false);
+        renderer.setDefaultToolTipGenerator(new XYToolTipGenerator() {
             @Override
             public String generateToolTip(XYDataset dataset, int series, int item)
             {
