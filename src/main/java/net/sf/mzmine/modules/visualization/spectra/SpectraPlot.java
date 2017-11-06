@@ -33,6 +33,20 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.xy.XYDataset;
+
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
@@ -45,20 +59,6 @@ import net.sf.mzmine.modules.visualization.spectra.renderers.SpectraItemLabelGen
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.SaveImage;
 import net.sf.mzmine.util.SaveImage.FileType;
-
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.plot.DatasetRenderingOrder;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.title.TextTitle;
-import org.jfree.data.xy.XYDataset;
-import org.jfree.ui.RectangleInsets;
 
 /**
  * 
@@ -296,15 +296,15 @@ public class SpectraPlot extends ChartPanel {
 	    newRenderer = new ContinuousRenderer(
 		    SpectraVisualizerWindow.scanColor, false);
 	    ((ContinuousRenderer) newRenderer)
-		    .setBaseShapesVisible(dataPointsVisible);
+		    .setDefaultShapesVisible(dataPointsVisible);
 	}
 
 	// Add label generator for the dataset
 	SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
 		this);
-	newRenderer.setBaseItemLabelGenerator(labelGenerator);
-	newRenderer.setBaseItemLabelsVisible(itemLabelsVisible);
-	newRenderer.setBaseItemLabelPaint(labelsColor);
+	newRenderer.setDefaultItemLabelGenerator(labelGenerator);
+	newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
+	newRenderer.setDefaultItemLabelPaint(labelsColor);
 
 	plot.setRenderer(0, newRenderer);
 
@@ -322,7 +322,7 @@ public class SpectraPlot extends ChartPanel {
 	itemLabelsVisible = !itemLabelsVisible;
 	for (int i = 0; i < plot.getDatasetCount(); i++) {
 	    XYItemRenderer renderer = plot.getRenderer(i);
-	    renderer.setBaseItemLabelsVisible(itemLabelsVisible);
+	    renderer.setDefaultItemLabelsVisible(itemLabelsVisible);
 	}
     }
 
@@ -333,7 +333,7 @@ public class SpectraPlot extends ChartPanel {
 	    if (!(renderer instanceof ContinuousRenderer))
 		continue;
 	    ContinuousRenderer contRend = (ContinuousRenderer) renderer;
-	    contRend.setBaseShapesVisible(dataPointsVisible);
+	    contRend.setDefaultShapesVisible(dataPointsVisible);
 	}
     }
 
@@ -344,7 +344,7 @@ public class SpectraPlot extends ChartPanel {
 	    if (!(dataSet instanceof PeakListDataSet))
 		continue;
 	    XYItemRenderer renderer = plot.getRenderer(i);
-	    renderer.setBaseSeriesVisible(peaksVisible);
+	    renderer.setDefaultSeriesVisible(peaksVisible);
 	}
     }
 
@@ -355,7 +355,7 @@ public class SpectraPlot extends ChartPanel {
 	    if (!(dataSet instanceof IsotopesDataSet))
 		continue;
 	    XYItemRenderer renderer = plot.getRenderer(i);
-	    renderer.setBaseSeriesVisible(isotopesVisible);
+	    renderer.setDefaultSeriesVisible(isotopesVisible);
 	}
     }
 
@@ -398,15 +398,15 @@ public class SpectraPlot extends ChartPanel {
 	    else {
 		newRenderer = new ContinuousRenderer(color, transparency);
 		((ContinuousRenderer) newRenderer)
-			.setBaseShapesVisible(dataPointsVisible);
+			.setDefaultShapesVisible(dataPointsVisible);
 	    }
 
 	    // Add label generator for the dataset
 	    SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
 		    this);
-	    newRenderer.setBaseItemLabelGenerator(labelGenerator);
-	    newRenderer.setBaseItemLabelsVisible(itemLabelsVisible);
-	    newRenderer.setBaseItemLabelPaint(labelsColor);
+	    newRenderer.setDefaultItemLabelGenerator(labelGenerator);
+	    newRenderer.setDefaultItemLabelsVisible(itemLabelsVisible);
+	    newRenderer.setDefaultItemLabelPaint(labelsColor);
 
 	} else {
 	    newRenderer = new PeakRenderer(color, transparency);

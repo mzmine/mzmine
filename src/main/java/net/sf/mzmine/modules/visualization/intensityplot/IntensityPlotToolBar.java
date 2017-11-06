@@ -88,11 +88,11 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
 	    if (plot instanceof CategoryPlot) {
 		LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot)
 			.getRenderer();
-		linesVisible = renderer.getBaseLinesVisible();
+		linesVisible = renderer.getDefaultLinesVisible();
 	    } else {
 		XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot)
 			.getRenderer();
-		linesVisible = renderer.getBaseLinesVisible();
+		linesVisible = renderer.getDefaultLinesVisible();
 		renderer.setDrawSeriesLineAsPath(true);
 	    }
 
@@ -113,11 +113,11 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
 	    if (plot instanceof CategoryPlot) {
 		LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot)
 			.getRenderer();
-		renderer.setBaseLinesVisible(linesVisible);
+		renderer.setDefaultLinesVisible(linesVisible);
 	    } else {
 		XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot)
 			.getRenderer();
-		renderer.setBaseLinesVisible(linesVisible);
+		renderer.setDefaultLinesVisible(linesVisible);
 		renderer.setDrawSeriesLineAsPath(true);
 	    }
 

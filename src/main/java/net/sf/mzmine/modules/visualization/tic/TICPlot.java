@@ -44,12 +44,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.dialogs.AxesSetupDialog;
-import net.sf.mzmine.util.SaveImage;
-import net.sf.mzmine.util.SaveImage.FileType;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -65,9 +59,15 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.data.general.DatasetUtilities;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.ui.RectangleInsets;
+
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.SaveImage;
+import net.sf.mzmine.util.SaveImage.FileType;
+import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 /**
  * TIC plot.
@@ -262,20 +262,20 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 
 	// Set default renderer properties.
 	defaultRenderer = new TICPlotRenderer();
-	defaultRenderer.setBaseShapesFilled(true);
+	defaultRenderer.setDefaultShapesFilled(true);
 	defaultRenderer.setDrawOutlines(false);
 	defaultRenderer.setUseFillPaint(true);
-	defaultRenderer.setBaseItemLabelPaint(LABEL_COLOR);
+	defaultRenderer.setDefaultItemLabelPaint(LABEL_COLOR);
 
 	// Set label generator
 	final XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(
 		this);
-	defaultRenderer.setBaseItemLabelGenerator(labelGenerator);
-	defaultRenderer.setBaseItemLabelsVisible(true);
+	defaultRenderer.setDefaultItemLabelGenerator(labelGenerator);
+	defaultRenderer.setDefaultItemLabelsVisible(true);
 
 	// Set toolTipGenerator
 	final XYToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
-	defaultRenderer.setBaseToolTipGenerator(toolTipGenerator);
+	defaultRenderer.setDefaultToolTipGenerator(toolTipGenerator);
 
 	// Set focus state to receive key events.
 	setFocusable(true);
@@ -522,7 +522,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 		if (event.getClickCount() == 2) { // Reset zoom on Y-axis
 		    XYDataset data = ((XYPlot) getChart().getPlot())
 			    .getDataset();
-		    Number maximum = DatasetUtilities
+		    Number maximum = DatasetUtils
 			    .findMaximumRangeValue(data);
 		    getXYPlot().getRangeAxis().setRange(0,
 			    1.05 * maximum.floatValue());
@@ -580,15 +580,15 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    final XYItemRenderer renderer = plot.getRenderer(i);
 	    if (dataSet instanceof TICDataSet) {
 
-		renderer.setBaseItemLabelsVisible(labelsVisible == 1);
+		renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
 
 	    } else if (dataSet instanceof PeakDataSet) {
 
-		renderer.setBaseItemLabelsVisible(labelsVisible == 2);
+		renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
 
 	    } else {
 
-		renderer.setBaseItemLabelsVisible(false);
+		renderer.setDefaultItemLabelsVisible(false);
 
 	    }
 	}
@@ -605,9 +605,9 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 		final XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
 			.getRenderer(i);
 		if (dataPointsVisible == null) {
-		    dataPointsVisible = !renderer.getBaseShapesVisible();
+		    dataPointsVisible = !renderer.getDefaultShapesVisible();
 		}
-		renderer.setBaseShapesVisible(dataPointsVisible);
+		renderer.setDefaultShapesVisible(dataPointsVisible);
 	    }
 	}
     }
@@ -633,7 +633,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    renderer.setSeriesPaint(0, rendererColor);
 	    renderer.setSeriesFillPaint(0, rendererColor);
 	    renderer.setSeriesShape(0, DATA_POINT_SHAPE);
-	    renderer.setBaseItemLabelsVisible(labelsVisible == 1);
+	    renderer.setDefaultItemLabelsVisible(labelsVisible == 1);
 	    addDataSetRenderer(dataSet, renderer);
 	    numOfDataSets++;
 
@@ -649,7 +649,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
     public synchronized void addPeakDataset(final XYDataset dataSet) {
 
 	final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
-	renderer.setBaseToolTipGenerator(new TICToolTipGenerator());
+	renderer.setDefaultToolTipGenerator(new TICToolTipGenerator());
 	renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
 	addDataSetRenderer(dataSet, renderer);
 	numOfPeaks++;
@@ -667,11 +667,11 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 	    // Add peak label renderer and data set.
 	    final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(
 		    false, false);
-	    renderer.setBaseItemLabelsVisible(labelsVisible == 2);
-	    renderer.setBaseItemLabelPaint(LABEL_COLOR);
+	    renderer.setDefaultItemLabelsVisible(labelsVisible == 2);
+	    renderer.setDefaultItemLabelPaint(LABEL_COLOR);
 	    addDataSetRenderer(dataSet, renderer);
 	    renderer.setDrawSeriesLineAsPath(true);
-	    renderer.setBaseItemLabelGenerator(new XYItemLabelGenerator() {
+	    renderer.setDefaultItemLabelGenerator(new XYItemLabelGenerator() {
 
 		@Override
 		public String generateLabel(final XYDataset xyDataSet,
