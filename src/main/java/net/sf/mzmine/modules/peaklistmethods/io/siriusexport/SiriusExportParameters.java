@@ -15,7 +15,7 @@ package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
@@ -26,6 +26,15 @@ import java.awt.*;
 
 public class SiriusExportParameters extends SimpleParameterSet
 {
+
+    public static final ComboParameter<MERGE_MODE> MERGE = new ComboParameter<MERGE_MODE>(
+            "Merge mode", "How to merge MS/MS spectra", MERGE_MODE.values(), MERGE_MODE.MERGE_CONSECUTIVE_SCANS);
+
+    public SiriusExportParameters() {
+        super(new Parameter[]{PEAK_LISTS, FILENAME, MERGE, MASS_LIST});
+    }
+
+
     public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
     public static final FileNameParameter FILENAME = new FileNameParameter(
@@ -40,17 +49,30 @@ public class SiriusExportParameters extends SimpleParameterSet
 //            "Fractional m/z values", "If checked, write fractional m/z values",
 //            true);
 
-
+/*
     public static final BooleanParameter INCLUDE_MSSCAN = new BooleanParameter(
             "include MS1",
             "For each MS/MS scan include also the corresponding MS scan (additionally to possibly detected isotope patterns). MS1 scans might contain valuable informations that can be processed by SIRIUS. But they increase file size significantly",
             true
     );
+*/
 
     public static final MassListParameter MASS_LIST = new MassListParameter();
 
-    public SiriusExportParameters() {
-        super(new Parameter[]{PEAK_LISTS, FILENAME, INCLUDE_MSSCAN, MASS_LIST});
+    public static enum MERGE_MODE {
+        NO_MERGE("Do not merge"),
+        MERGE_CONSECUTIVE_SCANS("Merge consecutive scans"),
+        MERGE_OVER_SAMPLES("Merge all MS/MS belonging to the same feature");
+        private final String name;
+
+        private MERGE_MODE(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
