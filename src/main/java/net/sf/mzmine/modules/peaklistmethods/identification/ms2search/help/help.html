@@ -12,16 +12,16 @@
 <h2>Description</h2>
 
 <p>
-    Ions arising from compounds with similar chemical structures often give similar fragmentation patterns (MS2 spectra), therefore calculating the similarity between MS2 spectra and annotating which spectra are similar is a useful approach for the discovery of structurally similar compounds. 
+    Ions arising from compounds with similar chemical structures often give similar fragmentation patterns (MS2 spectra), therefore calculating the similarity between MS2 spectra is a useful approach for the discovery of structurally similar compounds. 
     This module calculates the similarity between centroided MS2 spectra associated with two peaklists.  
-    These peaklists can be the same peaklist, or different peaklists. 
-    The module outputs the result of the search  into the "Identity" column of Peaklist (1).  
+    These two peaklists can be the same peaklist, or different peaklists. 
+    The module outputs the result of the search, the MS2 similarity comparisons of Peaklist (1) with Peaklist (2), into the "Identity" column of Peaklist (1).
+    In practice, you can consider the peaks in Peaklist (1) "bait", which will be used to "fish" for MS2 similarity from Peaklist (2).  Peaklist (1) or Peaklist (2) can be a single peak + MS2 spectra, or an entire experiment.
 </p>
-
 <p>
     <b>Example output of the MS2 similarity module:</b>
     <br/>
-    <img src="ms2_similarity.png" height="250">
+    <img src="ms2_similarity.png">
     <br>
      In this example, the presumed precursor ion of m/z 360.9615 at RT 10.53 has a high degree of MS2 spectral similarity to the MS2 of the precursor ion with m/z 281.0047 & RT 12.55.  
      In actuality, precursor ion 360.9615 is the [M+H] of the sulfonated version (sulfoluciferin) of the 281.0047 compound (firefly luciferin).  Sulfoluciferin was discovered by a MS2 similarity approach.
@@ -30,16 +30,16 @@
 
 <h2>Calculation of MS2 similarity</h2>
 <p>
-The similarity metric used is as follows: For all MS2 spectra in Peaklist (1) <i>"MS2 spectra A"</i>, and Peaklist (2) <i>"MS2 spectra B"</i>, iterate over all ions in MS2 spectra A <i>(ion "i")</i>, and over all ions in MS2 spectra B <i>(ion "j")</i>.
-Compare the m/z values of ions "i" and "j", and if these m/z values are within the range specified by the m/z tolerance parameter, consider these ions identical, and therefore "matched".  If two ions match, roughly score the match by multiplying the intensity of ions "i" and "j" and save that as the "ion match subscore".  
-Repeat this for every ion i and j in MS2 spectra A and MS2 spectra B, and report the sum of the ion match subscores as the total score.  Annotate the <i>"Identity"</i> column of Peaklist (1) with the matched ions, and the total score of the MS2 similarity calculation.
+The similarity metric used is as follows: For all MS2 spectra in Peaklist (1) <i>"MS2 spectra A"</i>, and Peaklist (2) <i>"MS2 spectra B"</i>, iterate over all ions in MS2 spectra A <i>(ion "i")</i>, and over all ions in MS2 spectra B <i>(ion "j")</i>.  For a given ion, only include this ion in downstream calculations if its intensity is greater than the <strong>minimum ion intensity</strong> parameter. 
+Compare the m/z values of ions "i" and "j", and if these m/z values are within the range specified by the <strong>m/z tolerance parameter</strong>, consider these ions identical, and therefore "matched".  If two ions match, roughly score the match by multiplying the intensity of ions "i" and "j" and save that as the "ion match subscore".  
+Repeat this for every ion i and j in MS2 spectra A and MS2 spectra B, and report the sum of the ion match subscores as the total <strong>"spectral match score"</strong>. If this spectral match score is greater than the <strong>minimum spectral match score</strong> pareamter, annotate the <i>"Identity"</i> column of Peaklist (1) with the matched ions, and the total spectral match score of the MS2 similarity calculation.
 </p>
 
-<h2>Intepreting the data</h2>
+<h2>Intepreting the results</h2>
 <p>
-The score from of a MS2 similarity match should not be taken as an absolute measure, as it depends on the instrument reported intensity value, which is uncalibrated and relative measure.  
-That being said, as the reported score increases when the intensity of the matched ion is higher, it is useful as a quick metric to find the most reliable matches and possibly interesting compounds.
-It is worth mentioning that the link between the MS2 spectra, and the presumed precursor ion in the peaklist is somewhat tentative.  As the isolation window for fragmentation is typically around ~1 m/z value,
+The score from of a MS2 similarity match should not be taken as an absolute measure, as it depends on the instrument reported intensity value, which is an uncalibrated and relative measure.  
+That being said, as the reported score increases when the intensity of the matched ion is higher, it is useful as a quick metric to find the matches between the most intense MS2 spectra, and potentially the most reliable compounds.
+It is worth mentioning that the link between the MS2 spectra, and the presumed precursor ion in the peaklist is somewhat tentative.  As the isolation window of the quadrapoles typically used for selection of the precursor ion in MS2 fragmentation analysis is typically around ~1 m/z unit,
 ions from the MS2 fragmentation spectra from an abundant compound with a long chromatographic tail will often show up in the MS2 values of unrelated compounds, but whose precursor isolation window picks up ions from the original compound.
 <br>
 <br>
@@ -55,25 +55,25 @@ An experimental Python script which converts the MS2 similarity relationships ex
     <dt>Peaklist (2)</dt>
     <dd>A single peaklist which has centroided MS2 spectra (in the masslist).  
     This can be the same as Peaklist (1), or a different peaklist / experiment.
-    For best results should represent MS data with the same polarity as Peaklist (1), and with m/z values close to Peaklist (1) (e.g. LC/MS data obtained on the same day, or m/z calibrated between samples)</dd>
+    For best results should represent MS data with the same polarity as Peaklist (1), and with m/z values close to Peaklist (1) (e.g. LC/MS data obtained on the same day, or m/z calibrated between the two peaklists)</dd>
 
     <dt>Masslist</dt>
-    <dd>Masslist which has centrioded MS2 spectra that are linked to Peaklist (1) and or Peaklist (2)</dd>
+    <dd>Masslist which has the centrioded MS2 spectra that are linked to Peaklist (1) and or Peaklist (2)</dd>
 
     <dt>m/z tolerance</dt>
     <dd>Allowable m/z difference for two ions to be considered identical, and therefore "matched". 
     Depends on the mass accuracy, precision, and resolution of the MS data. For data obtained on HRAM instruments, and when comparing within the same peaklist
-    (aka the same experiment or LC/MS run), can be set to the mass precision of the instrument during that experiment (4e-4 m/z or ~1 PPM for Q-Exactive). 
+    (aka the same experiment or LC/MS run), this parameter can be set to the mass precision of the instrument during that experiment (4e-4 m/z or ~1 PPM for Q-Exactive).
     It is recommended that you set this value to the smallest range which reliably matches your ions of interest.</dd>
 
     <dt>Minimum ion intensity to consider in MS2 comparison</dt>
-    <dd>Intensity threshold below which ions will be ignored</dd>
+    <dd>Intensity threshold below which ions of the MS2 spectra will be ignored. This parameter depends on your instrument, but 1e5 is reasonable.  Set to 0 to use all ions.</dd>
     
     <dt>Minimum ions matched per MS2 comparison</dt>
-    <dd>Matched ion threshold below which matches will not be reported</dd>
+    <dd>Number of matched ions needed in a given MS2 similarity comparison, otherwise that spectral match will not be reported. This depends on the compounds being compared, but roughly speaking 2-5 is a reasonable number, though for complex spectra values of 10-20+ may be reasonable. Set to 0 to report all matches.</dd>
     
-    <dt>Minimum score to report</dt>
-    <dd>Score threshold below which matches will not be reported</dd>
+    <dt>Minimum spectral match score to report</dt>
+    <dd>Minimum spectral match score threshold, below which spectral matches will not be reported. A value of 1e10 is a decent cutoff on a Q-Exactive instrument with typical data. Set to 0 to report all matches.</dd>
 </dl>
 
 </body>
