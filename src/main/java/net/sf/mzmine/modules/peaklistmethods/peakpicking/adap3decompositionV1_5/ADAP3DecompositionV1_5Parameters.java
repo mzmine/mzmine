@@ -23,6 +23,7 @@ import java.awt.Window;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -135,10 +136,17 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired)
     {
-        final ADAP3DecompositionV1_5SetupDialog dialog = 
-                new ADAP3DecompositionV1_5SetupDialog(
-                        parent, valueCheckRequired, this);
-        
+        String message = "<html>Module Disclaimer:" +
+                "<br> If you use this Spectral Deconvolution Module, please cite the " +
+                "<a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:" +
+                "<br><a href=\"http://pubs.acs.org/doi/10.1021/acs.jproteome.7b00633\"> Smirnov A, Jia W, Walker D, Jones D, Du X: ADAP-GC 3.2: Graphical Software Tool for " +
+                "<br>Efficient Spectral Deconvolution of Gas Cromatography&mdash;High-Resolution Mass Spectrometry " +
+                "<br>Metabolomics Data. J. Proteome Res 2017, DOI: 10.1021/acs.jproteome.7b00633</a>" +
+                "</html>";
+
+        final ADAP3DecompositionV1_5SetupDialog dialog = new ADAP3DecompositionV1_5SetupDialog(
+                parent, valueCheckRequired, this, message);
+
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
