@@ -23,7 +23,6 @@ import java.awt.Window;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
