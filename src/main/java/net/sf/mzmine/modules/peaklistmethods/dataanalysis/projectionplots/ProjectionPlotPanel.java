@@ -23,8 +23,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.parameters.ParameterSet;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -34,7 +32,9 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.ui.RectangleInsets;
+import org.jfree.chart.ui.RectangleInsets;
+
+import net.sf.mzmine.parameters.ParameterSet;
 
 public class ProjectionPlotPanel extends ChartPanel {
 
@@ -109,10 +109,10 @@ public class ProjectionPlotPanel extends ChartPanel {
 
 	spotRenderer = new ProjectionPlotRenderer(plot, dataset);
 	itemLabelGenerator = new ProjectionPlotItemLabelGenerator(parameters);
-	spotRenderer.setBaseItemLabelGenerator(itemLabelGenerator);
-	spotRenderer.setBaseItemLabelsVisible(true);
+	spotRenderer.setDefaultItemLabelGenerator(itemLabelGenerator);
+	spotRenderer.setDefaultItemLabelsVisible(true);
 	spotRenderer
-		.setBaseToolTipGenerator(new ProjectionPlotToolTipGenerator(
+		.setDefaultToolTipGenerator(new ProjectionPlotToolTipGenerator(
 			parameters));
 	plot.setRenderer(spotRenderer);
 
@@ -152,6 +152,6 @@ public class ProjectionPlotPanel extends ChartPanel {
 
     protected void cycleItemLabelMode() {
 	itemLabelGenerator.cycleLabelMode();
-	spotRenderer.setBaseItemLabelsVisible(true);
+	spotRenderer.setDefaultItemLabelsVisible(true);
     }
 }

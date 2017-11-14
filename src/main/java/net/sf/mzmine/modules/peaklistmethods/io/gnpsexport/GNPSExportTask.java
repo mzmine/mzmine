@@ -148,14 +148,14 @@ public class GNPSExportTask extends AbstractTask {
 				// Get the MS/MS scan number
 
 				msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-				if (msmsScanNumber < 1) {
+				while (msmsScanNumber < 1) {
 					copyRow.removePeak(bestPeak.getDataFile());
-					if (copyRow.getPeaks().length != 0) {
-						// row is not empty  		
-						bestPeak = copyRow.getBestPeak();
-						msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-					}
-				}
+					if(copyRow.getPeaks().length == 0)
+						break;
+						
+					bestPeak = copyRow.getBestPeak();
+					msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+			    }
 			}
 			if (msmsScanNumber >= 1) {
 				// MS/MS scan must exist, because msmsScanNumber was > 0

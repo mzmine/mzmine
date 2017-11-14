@@ -53,7 +53,7 @@ import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 /**
  * Chromatogram implementing ChromatographicPeak.
  */
-public class Chromatogram implements Feature {
+public class ADAPChromatogram implements Feature {
     private SimplePeakInformation peakInfo;
 
     // Data file of this chromatogram
@@ -107,7 +107,7 @@ public class Chromatogram implements Feature {
     /**
      * Initializes this Chromatogram
      */
-    public Chromatogram(RawDataFile dataFile, int scanNumbers[]) {
+    public ADAPChromatogram(RawDataFile dataFile, int scanNumbers[]) {
         this.dataFile = dataFile;
         this.scanNumbers = scanNumbers;
 
@@ -503,7 +503,7 @@ public class Chromatogram implements Feature {
         numOfCommittedSegments++;
     }
 
-    public void addDataPointsFromChromatogram(Chromatogram ch) {
+    public void addDataPointsFromChromatogram(ADAPChromatogram ch) {
         for (Entry<Integer, DataPoint> dp : ch.dataPointsMap.entrySet()) {
             addMzPeak(dp.getKey(), dp.getValue());
         }

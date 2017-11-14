@@ -122,7 +122,7 @@
 		<dependency>
 			<groupId>org.jfree</groupId>
 			<artifactId>jfreechart</artifactId>
-			<version>1.0.19</version>
+			<version>1.5.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>xml-apis</artifactId>
@@ -131,9 +131,19 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>org.jfree</groupId>
+			<artifactId>jfreesvg</artifactId>
+			<version>3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.orsonpdf</groupId>
+			<artifactId>orsonpdf</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>21.0</version>
+			<version>23.3-jre</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -332,7 +342,7 @@
 			<version>1.0</version>
 		</dependency>
 
-		<!-- rosuda: REngine/Rserve -->
+		<!-- REngine/Rserve/RCaller -->
 		<dependency>
 			<groupId>org.nuiton.thirdparty</groupId>
 			<artifactId>REngine</artifactId>
@@ -343,7 +353,12 @@
 			<artifactId>Rserve</artifactId>
 			<version>1.8-5</version>
 		</dependency>
-		<!-- rosuda: END -->
+		<dependency>
+			<groupId>com.github.jbytecode</groupId>
+			<artifactId>RCaller</artifactId>
+			<version>3.0</version>
+		</dependency>
+		<!-- R: END -->
 
 		<dependency>
 			<groupId>mzmine</groupId>
@@ -454,17 +469,17 @@
 			<artifactId>msdk-featuredetection-adap3d</artifactId>
 			<version>${msdk.version}</version>
 		</dependency>
-		
-        <dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
-            <version>3.8.11.2</version>
-        </dependency>
-        <dependency>
-            <groupId>dulab</groupId>
-            <artifactId>adap</artifactId>
-            <version>3.3.0</version>
-        </dependency>
+
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.8.11.2</version>
+		</dependency>
+		<dependency>
+			<groupId>dulab</groupId>
+			<artifactId>adap</artifactId>
+			<version>3.3.0</version>
+		</dependency>
 	</dependencies>
 
 </project>

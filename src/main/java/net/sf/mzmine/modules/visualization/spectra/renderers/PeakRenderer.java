@@ -53,14 +53,14 @@ public class PeakRenderer extends XYBarRenderer {
 	this.isTransparent = isTransparent;
 
 	// Set painting color
-	setBasePaint(color);
+	setDefaultPaint(color);
 
 	// Shadow makes fake peaks
 	setShadowVisible(false);
 
 	// Set the tooltip generator
 	SpectraToolTipGenerator tooltipGenerator = new SpectraToolTipGenerator();
-	setBaseToolTipGenerator(tooltipGenerator);
+	setDefaultToolTipGenerator(tooltipGenerator);
 
 	// We want to paint the peaks using simple color without any gradient
 	// effects

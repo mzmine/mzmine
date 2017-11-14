@@ -49,6 +49,7 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithChromatogramPrev
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -183,6 +184,7 @@ public class BaselineCorrectorSetupDialog extends
         private RSessionWrapper rSession;
         private boolean userCanceled;
 
+        
         public PreviewTask(BaselineCorrectorSetupDialog dialog,
                 TICPlot ticPlot, RawDataFile dataFile, Range<Double> rtRange,
                 Range<Double> mzRange) {
@@ -194,7 +196,7 @@ public class BaselineCorrectorSetupDialog extends
             this.mzRange = mzRange;
 
             this.userCanceled = false;
-
+            
             // this.addTaskListener(dialog);
         }
 
@@ -229,7 +231,7 @@ public class BaselineCorrectorSetupDialog extends
                 try {
                     String[] reqPackages = baselineCorrector
                             .getRequiredRPackages();
-                    this.rSession = new RSessionWrapper(
+                    this.rSession = new RSessionWrapper(baselineCorrector.getRengineType(),
                             baselineCorrector.getName(), reqPackages, null);
                     this.rSession.open();
                 } catch (RSessionWrapperException e) {

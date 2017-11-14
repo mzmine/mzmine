@@ -54,11 +54,11 @@ public class ADAPChromatogramBuilderModule implements MZmineProcessingModule {
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
         RawDataFile[] dataFiles = parameters
-                .getParameter(ChromatogramBuilderParameters.dataFiles)
+                .getParameter(ADAPChromatogramBuilderParameters.dataFiles)
                 .getValue().getMatchingRawDataFiles();
 
         for (int i = 0; i < dataFiles.length; i++) {
-            Task newTask = new ChromatogramBuilderTask(project, dataFiles[i],
+            Task newTask = new ADAPChromatogramBuilderTask(project, dataFiles[i],
                     parameters.cloneParameterSet());
             tasks.add(newTask);
         }
@@ -73,7 +73,7 @@ public class ADAPChromatogramBuilderModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return ChromatogramBuilderParameters.class;
+        return ADAPChromatogramBuilderParameters.class;
     }
 
 }

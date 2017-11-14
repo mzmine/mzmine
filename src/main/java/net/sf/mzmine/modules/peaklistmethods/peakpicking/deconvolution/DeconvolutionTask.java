@@ -41,6 +41,7 @@ import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -133,8 +134,11 @@ public class DeconvolutionTask extends AbstractTask {
                                 .getRequiredRPackagesVersions();
                         String callerFeatureName = resolver.getModule()
                                 .getName();
-                        this.rSession = new RSessionWrapper(callerFeatureName,
-                                reqPackages, reqPackagesVersions);
+                        
+                        REngineType rEngineType = resolver.getModule()
+                                .getREngineType(resolver.getParameterSet());
+                        this.rSession = new RSessionWrapper(rEngineType, 
+                        		callerFeatureName, reqPackages, reqPackagesVersions);
                         this.rSession.open();
                     } else {
                         this.rSession = null;
@@ -216,7 +220,6 @@ public class DeconvolutionTask extends AbstractTask {
         final RawDataFile dataFile = peakList.getRawDataFile(0);
 
         // Peak resolver.
-
         final MZmineProcessingStep<PeakResolver> resolver = parameters
                 .getParameter(PEAK_RESOLVER).getValue();
         // set msms pairing range

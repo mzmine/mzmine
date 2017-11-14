@@ -53,7 +53,7 @@ public class DiagonalLineRenderer extends XYLineAndShapeRenderer {
 
 	super(true, true);
 
-	setBaseShapesFilled(true);
+	setDefaultShapesFilled(true);
 	setDrawOutlines(true);
 	setUseFillPaint(true);
 
@@ -63,11 +63,11 @@ public class DiagonalLineRenderer extends XYLineAndShapeRenderer {
 	    setSeriesFillPaint(i, plotDiagonalColors[i]);
 	}
 
-	setBaseShapesVisible(true);
+	setDefaultShapesVisible(true);
 
 	XYItemLabelGenerator diagonallabelGenerator = new DiagonalLineLabelGenerator();
-	setBaseItemLabelGenerator(diagonallabelGenerator);
-	setBaseItemLabelsVisible(true);
+	setDefaultItemLabelGenerator(diagonallabelGenerator);
+	setDefaultItemLabelsVisible(true);
 
 	setDrawSeriesLineAsPath(true);
     }

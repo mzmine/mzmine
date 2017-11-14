@@ -37,6 +37,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedP
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.RangeUtils;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
@@ -348,6 +349,11 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 
     @Override
     public String[] getRequiredRPackagesVersions() {
+        return null;
+    }
+
+    @Override
+    public REngineType getREngineType(ParameterSet parameters) {
         return null;
     }
 }

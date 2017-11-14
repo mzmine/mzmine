@@ -76,9 +76,14 @@ public class RubberBandCorrector extends BaselineCorrector {
         // Calculate baseline.
         rSession.eval("baseline <- spc.rubberband(spc + bend, noise = noise, df = "
                 + df + ", spline=" + (spline ? "T" : "F") + ") - bend");
+        // 'NA' might appear in 'baseline' array when 'spline' parameter set to 'FALSE',
+        // So handle them properly if necessary...
+        rSession.eval("if (is.na(baseline)) { baseline[is.na(baseline)] <- " + RSessionWrapper.NA_DOUBLE + " }");
         rSession.eval("baseline <- orderwl(baseline)[[1]]");
         baseline = ((double[][]) rSession.collect("baseline"))[0];
-
+        // Done: Refresh R code stack
+        rSession.clearCode();
+        
         return baseline;
     }
 
