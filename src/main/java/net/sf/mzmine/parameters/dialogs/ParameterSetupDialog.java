@@ -255,7 +255,7 @@ public class ParameterSetupDialog extends JDialog
 					}
 				}
             });
-            // This line is important
+            // This line is important on Windows, where resizing the dialog has unexpected consequences on some components
             editorPane.setMinimumSize(editorPane.getPreferredSize());
             mainPanel.add(editorPane, 0, 98, 3, 1);
             
