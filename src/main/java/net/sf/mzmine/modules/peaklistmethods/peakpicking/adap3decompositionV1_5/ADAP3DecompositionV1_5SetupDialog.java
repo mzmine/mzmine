@@ -107,9 +107,9 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog
     public ADAP3DecompositionV1_5SetupDialog(
             Window parent,
             boolean valueCheckRequired,
-            final ParameterSet parameters)
+            final ParameterSet parameters, String message)
     {    
-        super(parent, valueCheckRequired, parameters);
+        super(parent, valueCheckRequired, parameters, message);
         
         Parameter[] params = parameters.getParameters();
         int size = params.length;
