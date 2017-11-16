@@ -280,7 +280,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         progressBar.setValue(0);
         progressBar.setVisible(false);
 
-        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize)
+        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, 0.5)
                 .execute(ranges.toArray(new RetTimeClusterer.Item[ranges.size()]));
 
         int colorIndex = 0;
@@ -346,11 +346,11 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
 //        retTimeMZPlot.setDomain(cluster.clusterRange);
 
-        if (cluster.ranges.size() > MAX_NUMBER_OF_CLUSTER_PEAKS) {
-            JOptionPane.showMessageDialog(this, "Large number of peaks in a cluster. Model peak selection is not displayed.");
-            retTimeIntensityPlot.removeData();
-            return;
-        }
+//        if (cluster.ranges.size() > MAX_NUMBER_OF_CLUSTER_PEAKS) {
+//            JOptionPane.showMessageDialog(this, "Large number of peaks in a cluster. Model peak selection is not displayed.");
+//            retTimeIntensityPlot.removeData();
+//            return;
+//        }
 
         ParameterSet peakDetectorParameters = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
