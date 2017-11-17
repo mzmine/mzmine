@@ -43,7 +43,7 @@ public class KendrickMassPlotWindow extends JFrame {
                 .getParameter(KendrickMassPlotParameters.peakList).getValue()
                 .getMatchingPeakLists()[0];
 
-        String title = "Intensity plot [" + peakList + "]";
+        String title = "Kendrick mass plot [" + peakList + "]";
         String xAxisLabel = parameters
                 .getParameter(KendrickMassPlotParameters.xAxisValueSource)
                 .getValue().toString();
