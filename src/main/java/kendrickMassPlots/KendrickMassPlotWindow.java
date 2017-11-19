@@ -44,12 +44,7 @@ public class KendrickMassPlotWindow extends JFrame {
                 .getMatchingPeakLists()[0];
 
         String title = "Kendrick mass plot [" + peakList + "]";
-        String xAxisLabel = parameters
-                .getParameter(KendrickMassPlotParameters.xAxisValueSource)
-                .getValue().toString();
-        String yAxisLabel = parameters
-                .getParameter(KendrickMassPlotParameters.yAxisValueSource)
-                .getValue().toString();
+       
 
 	}
 }

@@ -20,20 +20,12 @@ import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 public class KendrickMassPlotParameters extends SimpleParameterSet {
-	public static final String rawDataFilesOption = "Raw data file";
 
     public static final PeakListsParameter peakList = new PeakListsParameter(1,
             1);
 
     public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
             "Raw data files", "Raw data files to display", new RawDataFile[0]);
-
-    public static final ComboParameter<Object> xAxisValueSource = new ComboParameter<Object>(
-            "X axis value", "X axis value",
-            new Object[] { rawDataFilesOption });
-
-    public static final ComboParameter<YAxisValueSource> yAxisValueSource = new ComboParameter<YAxisValueSource>(
-            "Y axis value", "Y axis value", YAxisValueSource.values());
 
     public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
 
@@ -43,8 +35,7 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public KendrickMassPlotParameters() {
-        super(new Parameter[] { peakList, dataFiles, xAxisValueSource,
-                yAxisValueSource, selectedRows, windowSettings });
+        super(new Parameter[] { peakList, });
     }
 
     @Override
