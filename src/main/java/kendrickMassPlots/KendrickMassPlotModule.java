@@ -44,7 +44,7 @@ public class KendrickMassPlotModule implements MZmineRunnableModule{
         return ExitCode.OK;
     }
 
-    public static void showKendrickMassPlot(@Nonnull MZmineProject project,
+    public static void showIntensityPlot(@Nonnull MZmineProject project,
             PeakList peakList, PeakListRow rows[]) {
 
         ParameterSet parameters = MZmineCore.getConfiguration()
@@ -53,18 +53,6 @@ public class KendrickMassPlotModule implements MZmineRunnableModule{
         parameters.getParameter(KendrickMassPlotParameters.peakList).setValue(
                 PeakListsSelectionType.SPECIFIC_PEAKLISTS,
                 new PeakList[] { peakList });
-
-        parameters.getParameter(KendrickMassPlotParameters.dataFiles)
-                .setChoices(peakList.getRawDataFiles());
-
-        parameters.getParameter(KendrickMassPlotParameters.dataFiles)
-                .setValue(peakList.getRawDataFiles());
-
-        parameters.getParameter(KendrickMassPlotParameters.selectedRows)
-                .setValue(rows);
-
-        UserParameter<?, ?> projectParams[] = project.getParameters();
-       
 
         ExitCode exitCode = parameters.showSetupDialog(null, true);
 
