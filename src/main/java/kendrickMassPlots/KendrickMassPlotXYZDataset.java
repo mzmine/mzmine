@@ -1,13 +1,13 @@
 package kendrickMassPlots;
 
-import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.AbstractXYZDataset;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.parameters.ParameterSet;
 
-class KendrickMassPlotXYDataset extends AbstractXYDataset{
+class KendrickMassPlotXYZDataset extends AbstractXYZDataset{
 
 	/**
 	 * 
@@ -23,8 +23,9 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset{
 	private String zAxis;
 	private double xAxisKMFactor;
 	private double yAxisKMFactor;
+	private double zMax;
 
-	public KendrickMassPlotXYDataset(ParameterSet parameters) {
+	public KendrickMassPlotXYZDataset(ParameterSet parameters) {
 
 		PeakList peakList = parameters
 				.getParameter(KendrickMassPlotParameters.peakList).getValue()
@@ -44,7 +45,7 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset{
 		
 		this.zAxis = parameters
 				.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
-
+		
 	}
 
 	//Calculate xAxis Kendrick mass factor (KM factor)
@@ -106,7 +107,6 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset{
 	@Override
 	public Number getY(int series, int item) {
 		double y = 0;
-
 		//plot Kendrick mass defect (KMD) as y Axis to the base of CH2
 		if(yAxisKMBase.equals("KMD (H)")) {
 			y = ((int)(selectedRows[item].getAverageMZ()*getyAxisKMFactor(yAxisKMBase))+1)-selectedRows[item].getAverageMZ()*getyAxisKMFactor(yAxisKMBase);
@@ -118,6 +118,21 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset{
 		return y;
 	}
 
+	@Override
+	public Number getZ(int series, int item) {
+		double z = 0;
+		if(zAxis.equals("Retention time")) {
+			z = selectedRows[item].getAverageRT();
+		}
+		else if(zAxis.equals("Intensity")) {
+			z = selectedRows[item].getAverageHeight();
+		}
+		else if(zAxis.equals("Area")) {
+			z = selectedRows[item].getAverageArea();
+		}
+		return z;
+	}
+	
 	@Override
 	public int getSeriesCount() {
 		return selectedRows.length;
@@ -132,4 +147,9 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset{
 		return getRowKey(series);
 	}
 
+	public double getMaxZ(int series, int item) {
+		double max = 0;
+		getZ(series, item);
+		return max;
+	}
 }

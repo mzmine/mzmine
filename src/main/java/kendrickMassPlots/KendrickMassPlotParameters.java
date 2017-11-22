@@ -40,14 +40,14 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     
     public static final ComboParameter<String> xAxisValues = new ComboParameter<>("X-Axis", "Select a second kendrick mass defect base, kendrick masse (KM) or m/z", new String[] {"m/z", "KM", "KMD (CH2)", "KMD (H)"}); 
     
-    public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis", "Select a parameter for a third dimension, displayed as a heatmap or select none", new String[] {"none", "rt", "intensity","area"});
+    public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis", "Select a parameter for a third dimension, displayed as a heatmap or select none", new String[] {"none", "Retention time", "Intensity","Area"});
     /**
      * Windows size and position
      */
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public KendrickMassPlotParameters() {
-        super(new Parameter[] { peakList, rawFile, selectedRows, yAxisValues, xAxisValues, windowSettings });
+        super(new Parameter[] { peakList, rawFile, selectedRows, yAxisValues, xAxisValues, zAxisValues, windowSettings });
     }
 
     @Override
