@@ -13,17 +13,14 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	/**
-	 * 
-	 */
+
 	private RawDataFile selectedFiles[];
 	private PeakListRow selectedRows[];
 	private String yAxisKMBase;
 	private String xAxisKMBase;
 	private String zAxis;
-	private double xAxisKMFactor;
-	private double yAxisKMFactor;
-	private double zMax;
+	private double xAxisKMFactor = -1;
+	private double yAxisKMFactor = -1;
 
 	public KendrickMassPlotXYZDataset(ParameterSet parameters) {
 
@@ -39,40 +36,45 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset{
 
 		this.yAxisKMBase = parameters
 				.getParameter(KendrickMassPlotParameters.yAxisValues).getValue();
-		
+
 		this.xAxisKMBase = parameters
 				.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
-		
+
 		this.zAxis = parameters
 				.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
-		
+
+
 	}
 
 	//Calculate xAxis Kendrick mass factor (KM factor)
 	private double getxAxisKMFactor(String xAxisKMBase) {
-		if(xAxisKMBase.equals("KMD (CH2)")) {
-			xAxisKMFactor = (14.000000/14.01565006);
-		}
-		else if(xAxisKMBase.equals("KMD (H)")) {
-			System.out.println("True");
-			xAxisKMFactor = (1/0.992235724);
-		}
-		else {
-			xAxisKMFactor = 0;
+		if(xAxisKMFactor==-1) {
+			if(xAxisKMBase.equals("KMD (CH2)")) {
+				xAxisKMFactor = (14.000000/14.01565006);
+			}
+			else if(xAxisKMBase.equals("KMD (H)")) {
+				System.out.println("True");
+				xAxisKMFactor = (1/0.992235724);
+			}
+			else {
+				xAxisKMFactor = 0;
+			}
 		}
 		return xAxisKMFactor;
 	}
 
 	//Calculate yAxis Kendrick mass factor (KM factor)
 	private double getyAxisKMFactor(String yAxisKMBase) {
-		if(yAxisKMBase.equals("KMD (CH2)")) {
-			yAxisKMFactor = (14.000000/14.01565006);
-		}
-		else if(yAxisKMBase.equals("KMD (H)")) {
-			yAxisKMFactor = (1/0.992235724);
-		}
-		else {
-			yAxisKMFactor = 0;
+		if(yAxisKMFactor==-1) {
+			if(yAxisKMBase.equals("KMD (CH2)")) {
+				yAxisKMFactor = (14.000000/14.01565006);
+			}
+			else if(yAxisKMBase.equals("KMD (H)")) {
+				yAxisKMFactor = (1/0.992235724);
+			}
+			else {
+				yAxisKMFactor = 0;
+			}
 		}
 		return yAxisKMFactor;
 	}
@@ -132,7 +134,7 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset{
 		}
 		return z;
 	}
-	
+
 	@Override
 	public int getSeriesCount() {
 		return selectedRows.length;
@@ -147,9 +149,4 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset{
 		return getRowKey(series);
 	}
 
-	public double getMaxZ(int series, int item) {
-		double max = 0;
-		getZ(series, item);
-		return max;
-	}
 }

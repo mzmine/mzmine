@@ -44,7 +44,7 @@ public class GPLipidSearchTask extends AbstractTask {
     private PeakList peakList;
 
     private GPLipidType[] selectedLipids;
-    private int minChainLength, maxChainLength, maxDoubleBonds;
+    private int minChainLength, maxChainLength, maxDoubleBonds, numberOfChains;
     private MZTolerance mzTolerance;
     private IonizationType ionizationType;
 
@@ -108,12 +108,14 @@ public class GPLipidSearchTask extends AbstractTask {
 
 	// Try all combinations of fatty acid lengths and double bonds
 	for (GPLipidType lipidType : selectedLipids) {
+		if(lipidType.getNumberOfChains() >= 1) {
 	    for (int fattyAcid1Length = 0; fattyAcid1Length <= maxChainLength; fattyAcid1Length++) {
 		for (int fattyAcid1DoubleBonds = 0; fattyAcid1DoubleBonds <= maxDoubleBonds; fattyAcid1DoubleBonds++) {
+			if(lipidType.getNumberOfChains() >= 2)
 		    for (int fattyAcid2Length = 0; fattyAcid2Length <= maxChainLength; fattyAcid2Length++) {
 			for (int fattyAcid2DoubleBonds = 0; fattyAcid2DoubleBonds <= maxDoubleBonds; fattyAcid2DoubleBonds++) {
-
-			    // Task canceled?
+				
+				 // Task canceled?
 			    if (isCanceled())
 				return;
 
@@ -143,11 +145,48 @@ public class GPLipidSearchTask extends AbstractTask {
 			    findPossibleGPL(lipid, rows);
 
 			    finishedSteps++;
+				
+				if(lipidType.getNumberOfChains() >= 3)
+			    for (int fattyAcid3Length = 0; fattyAcid2Length <= maxChainLength; fattyAcid2Length++) {
+			    for (int fattyAcid3DoubleBonds = 0; fattyAcid3DoubleBonds <= maxDoubleBonds; fattyAcid2DoubleBonds++) {
+
+					    // Task canceled?
+					    if (isCanceled())
+						return;
+		
+					    // If we have non-zero fatty acid, which is shorter
+					    // than minimal length, skip this lipid
+					    if (((fattyAcid1Length > 0) && (fattyAcid1Length < minChainLength))
+						    || ((fattyAcid2Length > 0) && (fattyAcid2Length < minChainLength))) {
+						finishedSteps++;
+						continue;
+					    }
+		
+					    // If we have more double bonds than carbons, it
+					    // doesn't make sense, so let's skip such lipids
+					    if (((fattyAcid1DoubleBonds > 0) && (fattyAcid1DoubleBonds > fattyAcid1Length - 1))
+						    || ((fattyAcid2DoubleBonds > 0) && (fattyAcid2DoubleBonds > fattyAcid2Length - 1))) {
+						finishedSteps++;
+						continue;
+					    }
+		
+					    // Prepare a lipid instance
+					    lipid = new GPLipidIdentity(
+						    lipidType, fattyAcid1Length,
+						    fattyAcid1DoubleBonds, fattyAcid2Length,
+						    fattyAcid2DoubleBonds);
+		
+					    // Find all rows that match this lipid
+					    findPossibleGPL(lipid, rows);
+		
+					    finishedSteps++;
 
 			}
 		    }
+			}
 		}
 	    }
+		}
 	}
 
 	// Add task description to peakList
@@ -163,6 +202,7 @@ public class GPLipidSearchTask extends AbstractTask {
 	setStatus(TaskStatus.FINISHED);
 
 	logger.info("Finished glycerophospholipid search in " + peakList);
+	}
 
     }
 
