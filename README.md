@@ -23,6 +23,5 @@ Please read our brief [tutorial](http://mzmine.github.io/development.html) on ho
 ### Code style
 
 Since this is a collaborative project, please adhere to the following code formatting conventions:
-* All Java sources should be formatted according to the official [Java Code Conventions](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html) with only one adjustment: use spaces for indentation instead of tabs
-* You can use the `mzmine-eclipse-code-formater.xml` file to automatically format your code in the Eclipse IDE
+* We use the Google Java Style Guide (https://github.com/google/styleguide)
 * Please write JavaDoc comments as full sentences, starting with a capital letter and ending with a period. Brevity is preferred (e.g., "Calculates standard deviation" is preferred over "This method calculates and returns a standard deviation of given set of numbers").
