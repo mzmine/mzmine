@@ -1,19 +1,32 @@
-package net.sf.mzmine.modules.visualization.kendrickMassPlot;
+/*
+ * Copyright 2006-2015 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+package net.sf.mzmine.modules.visualization.kendrickmassplot;
 
 import java.awt.Window;
 import java.util.Arrays;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.intensityplot.YAxisValueSource;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
@@ -24,49 +37,44 @@ import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 public class KendrickMassPlotParameters extends SimpleParameterSet {
-	public static final String rawDataFilesOption = "Raw data file";
+    public static final String rawDataFilesOption = "Raw data file";
 
     public static final PeakListsParameter peakList = new PeakListsParameter(1,
             1);
-    
+
     public static final RawDataFilesParameter rawFile = new RawDataFilesParameter(); 
-    
-   // public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
-   //         "Raw data files", "Raw data files to display", new RawDataFile[0]);
-    
+
     public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
-    
+
     public static final ComboParameter<String> yAxisValues = new ComboParameter<>("Y-Axis", 
-    																				"Select the kendrick mass defect base", 
-    																				new String[] {"KMD (CH2)",
-    																								"KMD (H)",
-    																								"KMD (O)"}); 
-    
+            "Select the kendrick mass defect base", 
+            new String[] {"KMD (CH2)",
+                    "KMD (H)",
+                    "KMD (O)"}); 
+
     public static final ComboParameter<String> xAxisValues = new ComboParameter<>("X-Axis",
-    																				"Select a second kendrick mass defect base, kendrick masse (KM) or m/z",
-    																				new String[] {"m/z",
-    																								"KM",
-    																								"KMD (CH2)",
-    																								"KMD (H)",
-    																								"KMD (O)"}); 
-    
+            "Select a second kendrick mass defect base, kendrick masse (KM) or m/z",
+            new String[] {"m/z",
+                    "KM",
+                    "KMD (CH2)",
+                    "KMD (H)",
+                    "KMD (O)"}); 
+
     public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis",
-    																				"Select a parameter for a third dimension, displayed as a heatmap or select none",
-    																				new String[] {"none",
-    																								"Retention time",
-    																								"Intensity",
-    																								"Area",
-    																								"Tailing factor",
-    																								"Asymmetry factor",
-    																								"FWHM",
-    																								"KMD (CH2)",
-    																								"KMD (H)",
-    																								"KMD (O)",
-    																								"m/z",
-    																								"KM"});
-    /**
-     * Windows size and position
-     */
+            "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
+            new String[] {"none",
+                    "Retention time",
+                    "Intensity",
+                    "Area",
+                    "Tailing factor",
+                    "Asymmetry factor",
+                    "FWHM",
+                    "KMD (CH2)",
+                    "KMD (H)",
+                    "KMD (O)",
+                    "m/z"});
+
+
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public KendrickMassPlotParameters() {

@@ -21,34 +21,46 @@ package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipid
 
 public enum GPLipidType {
 
-    PC("Phosphatidylcholine", "PC", "C8H18NO6P"), //
-    PE("Phosphatidylethanolamine", "PE", "C5H12NO6P"), //
-    PI("Phosphatidylinositol", "PI", "C9H17O11P"), //
-    PS("Phosphatidylserine", "PS", "C6H12NO8P");
+	PC("Phosphatidylcholine", "PC", "C8H18NO6P", 2), //
+	PE("Phosphatidylethanolamine", "PE", "C5H12NO6P", 2), //
+	PI("Phosphatidylinositol", "PI", "C9H17O11P", 2), //
+	PS("Phosphatidylserine", "PS", "C6H12NO8P", 2),
+	CL("Cardiolipin", "CL", "C9H15O16P2", 4),//
+	DAG("Diacyglycerol", "DAG", "C5H6O5", 2),//
+	TAG("Triacyglycerol", "TAG", "C3H5O6", 3),//
+	MGDG("Monogalactosyldiacylglycerol", "MGDG", "C10H16O7",2),//
+	DGDG("Digalactosyldiacylglycerol", "DGDG", "C15H26O12", 2),//
+	MEL("MEL A", "4MEL-A", "???",2);
 
-    private final String name, abbr, formula;
+	private final String name, abbr, formula;
+	private final int numberOfChains;
 
-    GPLipidType(String name, String abbr, String formula) {
-	this.name = name;
-	this.abbr = abbr;
-	this.formula = formula;
-    }
+	GPLipidType(String name, String abbr, String formula, int numberOfChains) {
+		this.name = name;
+		this.abbr = abbr;
+		this.formula = formula;
+		this.numberOfChains = numberOfChains;
+	}
 
-    public String getAbbr() {
-	return abbr;
-    }
+	public String getAbbr() {
+		return abbr;
+	}
 
-    public String getFormula() {
-	return formula;
-    }
+	public String getFormula() {
+		return formula;
+	}
 
-    public String getName() {
-	return this.name;
-    }
+	public String getName() {
+		return this.name;
+	}
 
-    @Override
-    public String toString() {
-	return this.name;
-    }
+	public int getNumberOfChains() {
+		return numberOfChains;
+	}
+
+	@Override
+	public String toString() {
+		return this.name;
+	}
 
 }
