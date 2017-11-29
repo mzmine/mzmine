@@ -17,24 +17,26 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
+package net.sf.mzmine.modules.visualization.kendrickmassplot;
 
 import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class GPLipidSearchModule implements MZmineProcessingModule {
+/**
+ * Kendrick mass plot module
+ */
+public class KendrickMassPlotModule implements MZmineProcessingModule{
 
-    private static final String MODULE_NAME = "Glycerophospholipid prediction";
-    private static final String MODULE_DESCRIPTION = "This method searches for peaks whose m/z value matches a predicted mass of glycerophospholipids.";
+    private static final String MODULE_NAME = "Kendrick mass plot";
+    private static final String MODULE_DESCRIPTION = "Kendrick mass plot."; 
 
     @Override
     public @Nonnull String getName() {
@@ -51,26 +53,21 @@ public class GPLipidSearchModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-        PeakList peakLists[] = parameters
-                .getParameter(GPLipidSearchParameters.peakLists).getValue()
-                .getMatchingPeakLists();
+        Task newTask = new KendrickMassPlotTask(parameters);
+        tasks.add(newTask);
 
-        for (PeakList peakList : peakLists) {
-            Task newTask = new GPLipidSearchTask(parameters, peakList);
-            tasks.add(newTask);
-        }
-
-        return ExitCode.OK;
+        return ExitCode.OK;  
     }
+
+
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.IDENTIFICATION;
+        return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return GPLipidSearchParameters.class;
+        return KendrickMassPlotParameters.class;
     }
-
 }
