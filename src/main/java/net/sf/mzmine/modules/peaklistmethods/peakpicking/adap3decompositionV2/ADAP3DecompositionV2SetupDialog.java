@@ -280,7 +280,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         progressBar.setValue(0);
         progressBar.setVisible(false);
 
-        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, 0.5)
+        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize)
                 .execute(ranges.toArray(new RetTimeClusterer.Item[ranges.size()]));
 
         int colorIndex = 0;
