@@ -97,7 +97,7 @@ public class MassBankJapanGateway implements DBGateway {
 
     URL entryURL = new URL(massBankEntryAddress + ID);
 
-    // Retrieve dara
+    // Retrieve data
     logger.finest("Querying URL " + entryURL);
     String massBankEntry = InetUtils.retrieveData(entryURL);
 
