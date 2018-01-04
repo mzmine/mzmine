@@ -21,6 +21,7 @@ package net.sf.mzmine.chartbasics.graphicsexport;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -36,6 +37,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -89,6 +92,7 @@ public class GraphicsExportDialog extends JFrame {
   protected final JPanel contentPanel = new JPanel();
   private JButton btnPath;
   private JButton btnRenewPreview;
+  private JButton btnApply;
   private boolean listenersEnabled = true;
 
   // ###################################################################
@@ -162,11 +166,8 @@ public class GraphicsExportDialog extends JFrame {
       contentPanel.add(pnSettingsLeft, "cell 0 3,grow");
       pnSettingsLeft.setLayout(new BorderLayout(0, 0));
       {
-        JScrollPane scrollPane = new JScrollPane();
-        pnSettingsLeft.add(scrollPane, BorderLayout.NORTH);
 
         GridBagPanel pn = new GridBagPanel();
-        scrollPane.setViewportView(pn);
         {
           // add unit
           UserParameter p;
@@ -194,7 +195,9 @@ public class GraphicsExportDialog extends JFrame {
             i++;
           }
 
-
+          // add separator
+          pn.add(new JSeparator(), 0, i, 5, 1, 1, 1, GridBagConstraints.BOTH);
+          i++;
           // add chart settings
           param = chartParam.getParameters();
           for (int pi = 0; pi < param.length; pi++) {
@@ -217,6 +220,13 @@ public class GraphicsExportDialog extends JFrame {
               handleMasterFontChanged(fspec);
           });
         }
+
+        JScrollPane scrollPane = new JScrollPane(pn);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        pnSettingsLeft.add(scrollPane, BorderLayout.CENTER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(18);
+        scrollPane.revalidate();
+        scrollPane.repaint();
       }
     }
     {
@@ -252,6 +262,15 @@ public class GraphicsExportDialog extends JFrame {
         buttonPane.add(btnRenewPreview);
       }
       {
+        btnApply = new JButton("Apply theme");
+        btnApply.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            applyTheme();
+          }
+        });
+        buttonPane.add(btnApply);
+      }
+      {
         JButton cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
@@ -265,6 +284,7 @@ public class GraphicsExportDialog extends JFrame {
     // set all to components
     updateComponentsFromParameters();
   }
+
 
   // ###################################################################
   // create instance in window and imageeditor
@@ -314,6 +334,16 @@ public class GraphicsExportDialog extends JFrame {
 
 
   /**
+   * Applies the theme defined as ChartParameters
+   */
+  protected void applyTheme() {
+    // apply settings
+    chartParam.applyToChartTheme(theme);
+    chartParam.applyToChart(chartPanel.getChart());
+    theme.apply(chartPanel.getChart());
+  }
+
+  /**
    * renew chart preview with specified size
    */
   protected void renewPreview() {
@@ -321,11 +351,6 @@ public class GraphicsExportDialog extends JFrame {
     try {
       // update param
       updateParameterSetFromComponents();
-
-      // apply settings
-      chartParam.applyToChartTheme(theme);
-      chartParam.applyToChart(chartPanel.getChart());
-      theme.apply(chartPanel.getChart());
 
       //
       if (parameters.isUseOnlyWidth()) {
