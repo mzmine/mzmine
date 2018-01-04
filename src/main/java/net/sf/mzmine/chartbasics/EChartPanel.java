@@ -64,7 +64,18 @@ public class EChartPanel extends ChartPanel {
    * @param chart
    */
   public EChartPanel(JFreeChart chart) {
-    this(chart, true, true, true, false);
+    this(chart, true, true, true, true, false);
+  }
+
+  /**
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
+   * stickyZeroForRangeAxis = false <br>
+   * Graphics and data export menu are added
+   * 
+   * @param chart
+   */
+  public EChartPanel(JFreeChart chart, boolean useBuffer) {
+    this(chart, useBuffer, true, true, true, false);
   }
 
   /**
@@ -82,6 +93,20 @@ public class EChartPanel extends ChartPanel {
   }
 
   /**
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export<br>
+   * stickyZeroForRangeAxis = false
+   * 
+   * @param chart
+   * @param graphicsExportMenu adds graphics export menu
+   * @param standardGestures adds the standard ChartGestureHandlers
+   * @param dataExportMenu adds data export menu
+   */
+  public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
+      boolean dataExportMenu, boolean standardGestures) {
+    this(chart, useBuffer, graphicsExportMenu, dataExportMenu, standardGestures, false);
+  }
+
+  /**
    * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
    * 
    * @param chart
@@ -90,9 +115,12 @@ public class EChartPanel extends ChartPanel {
    * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
-  public EChartPanel(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
-      boolean standardGestures, boolean stickyZeroForRangeAxis) {
-    super(chart, true, false, true, true, true);
+  public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
+      boolean dataExportMenu, boolean standardGestures, boolean stickyZeroForRangeAxis) {
+    super(chart, useBuffer);
+    // super(chart, true, false, true, true, true);
+    // setDoubleBuffered(useBuffer);
+    // setRefreshBuffer(useBuffer);
     initChartPanel(stickyZeroForRangeAxis);
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu)
