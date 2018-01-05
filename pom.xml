@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>2.0</cdk.version>
+		<cdk.version>2.1.1</cdk.version>
 		<jmztab.version>3.0.7</jmztab.version>
 		<msdk.version>0.0.11</msdk.version>
 	</properties>
@@ -137,7 +137,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>23.3-jre</version>
+			<version>23.6-jre</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -167,7 +167,7 @@
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
 			<artifactId>weka-stable</artifactId>
-			<version>3.8.1</version>
+			<version>3.8.2</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
