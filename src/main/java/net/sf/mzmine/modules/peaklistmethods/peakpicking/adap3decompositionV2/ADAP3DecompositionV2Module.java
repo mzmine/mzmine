@@ -65,11 +65,11 @@ public class ADAP3DecompositionV2Module implements MZmineProcessingModule {
                 .getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS).getValue()
                 .getMatchingPeakLists();
         
-        for (PeakList peakList : peakLists) {
-            Task newTask = new ADAP3DecompositionV2Task(project, peakList,
-                    parameters);
-            tasks.add(newTask);
-        }
+//        for (PeakList peakList : peakLists) {
+//            Task newTask = new ADAP3DecompositionV2Task(project, peakList,
+//                    parameters);
+//            tasks.add(newTask);
+//        }
         
         return ExitCode.OK;
     }
