@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import dulab.adap.workflow.decomposition.Decomposition;
 import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.*;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5.ADAP3DecompositionV1_5Parameters;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -256,11 +255,11 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                 MsDialPeakDetectorParameters.MIN_PEAK_HEIGHT).getValue();
         params.durationRange = peakDetectorParameters.getParameter(
                 MsDialPeakDetectorParameters.PEAK_DURATION).getValue();
-        params.minClusterDistance = this.parameters.getParameter(
+        params.prefWindowWidth = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
         params.minClusterSize = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-        params.similarityTolerance = this.parameters.getParameter(
+        params.retTimeTolerance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
         
         return decomposition.run(params, peaks);
