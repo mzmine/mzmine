@@ -43,6 +43,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 //import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -101,6 +102,11 @@ public class ADAPDetector implements PeakResolver {
 
     @Override
     public String[] getRequiredRPackages() {
+        return null;
+    }
+
+    @Override
+    public REngineType getREngineType(ParameterSet parameters) {
         return null;
     }
 
@@ -196,7 +202,7 @@ public class ADAPDetector implements PeakResolver {
             
 
             // The old way could detect the same peak more than once if the wavlet scales were too large.
-            // If the left bounds were the same and there was a null item before the right bounds it would
+            // If the left bounds were the same and there was a null point before the right bounds it would
             //make the same peak twice.
             // To avoid the above see if the peak duration range is met before going into
             // the loop

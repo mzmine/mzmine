@@ -72,8 +72,8 @@ public class ResolvedPeak implements Feature {
     private int charge = 0;
     /**
      * Initializes this peak using data points from a given chromatogram -
-     * regionStart marks the index of the first data item (inclusive),
-     * regionEnd marks the index of the last data item (inclusive). The
+     * regionStart marks the index of the first data point (inclusive),
+     * regionEnd marks the index of the last data point (inclusive). The
      * selected region MUST NOT contain any zero-intensity data points,
      * otherwise exception is thrown.
      */
@@ -94,7 +94,7 @@ public class ResolvedPeak implements Feature {
         dataPointMZValues = new double[regionEnd - regionStart + 1];
         dataPointIntensityValues = new double[regionEnd - regionStart + 1];
 
-        // Set raw data item ranges, height, rt and representative scan
+        // Set raw data point ranges, height, rt and representative scan
         height = Double.MIN_VALUE;
 
         double mzValue = chromatogram.getMZ();
@@ -110,7 +110,7 @@ public class ResolvedPeak implements Feature {
                         + chromatogram + " scans "
                         + chromatogramScanNumbers[regionStart] + "-"
                         + chromatogramScanNumbers[regionEnd]
-                        + ", missing data item in scan " + scanNumbers[i];
+                        + ", missing data point in scan " + scanNumbers[i];
 
                 throw new IllegalArgumentException(error);*/
             }

@@ -29,8 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
 
-import net.sf.mzmine.main.MZmineCore;
-
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
@@ -47,9 +45,11 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.ui.RectangleInsets;
+
+import net.sf.mzmine.main.MZmineCore;
 
 public class AlignmentRansacPlot extends ChartPanel {
 
@@ -123,8 +123,8 @@ public class AlignmentRansacPlot extends ChartPanel {
 
 	// set default renderer properties
 	XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-	renderer.setBaseLinesVisible(false);
-	renderer.setBaseShapesVisible(true);
+	renderer.setDefaultLinesVisible(false);
+	renderer.setDefaultShapesVisible(true);
 	renderer.setSeriesShape(0, dataPointsShape);
 	renderer.setSeriesShape(1, dataPointsShape);
 	renderer.setSeriesLinesVisible(2, true);
@@ -132,7 +132,7 @@ public class AlignmentRansacPlot extends ChartPanel {
 	renderer.setSeriesPaint(0, Color.RED);
 	renderer.setSeriesPaint(1, Color.GRAY);
 	renderer.setSeriesPaint(2, Color.BLUE);
-	renderer.setBaseItemLabelPaint(labelsColor);
+	renderer.setDefaultItemLabelPaint(labelsColor);
 	renderer.setDrawSeriesLineAsPath(true);
 
 	plot.setRenderer(renderer);
@@ -256,7 +256,7 @@ public class AlignmentRansacPlot extends ChartPanel {
 	try {
 	    toolTipGenerator = new AlignmentPreviewTooltipGenerator(axisTitleX,
 		    axisTitleY);
-	    plot.getRenderer().setBaseToolTipGenerator(toolTipGenerator);
+	    plot.getRenderer().setDefaultToolTipGenerator(toolTipGenerator);
 	    NumberAxis xAxis = new NumberAxis(axisTitleX);
 	    xAxis.setNumberFormatOverride(rtFormat);
 	    xAxis.setAutoRangeIncludesZero(false);

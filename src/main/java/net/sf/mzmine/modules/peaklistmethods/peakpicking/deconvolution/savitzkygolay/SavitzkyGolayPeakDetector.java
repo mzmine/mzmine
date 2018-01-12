@@ -37,6 +37,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedP
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.RangeUtils;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 
 import com.google.common.collect.Range;
@@ -249,7 +250,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
             }
 
             // If the peak starts in a region with no data points, move the
-            // start to the first available data item.
+            // start to the first available data point.
             while (currentPeakStart < scanNumbers.length - 1) {
 
                 if (chromatogram.getDataPoint(scanNumbers[currentPeakStart]) == null) {
@@ -263,7 +264,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
             }
 
             // Scan the peak from the beginning and if we find a missing data
-            // item inside, we have to finish the
+            // point inside, we have to finish the
             // peak there.
             for (int newEnd = currentPeakStart; newEnd <= currentPeakEnd; newEnd++) {
 
@@ -348,6 +349,11 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 
     @Override
     public String[] getRequiredRPackagesVersions() {
+        return null;
+    }
+
+    @Override
+    public REngineType getREngineType(ParameterSet parameters) {
         return null;
     }
 }

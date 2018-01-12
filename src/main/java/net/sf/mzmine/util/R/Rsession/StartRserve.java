@@ -262,7 +262,7 @@ public class StartRserve {
             return false;
         }
 
-        int attempts = 5; /* try up to 5 times before giving up. We can be conservative here, because at this item the process execution itself was successful and the start up is usually asynchronous */
+        int attempts = 5; /* try up to 5 times before giving up. We can be conservative here, because at this point the process execution itself was successful and the start up is usually asynchronous */
         while (attempts > 0) {
             try {
                 RConnection c = null;

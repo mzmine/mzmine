@@ -38,7 +38,7 @@ public interface MassSpectrum {
     public Range<Double> getDataPointMZRange();
 
     /**
-     * Returns the top intensity data item. May return null if there are no
+     * Returns the top intensity data point. May return null if there are no
      * data points in this Scan.
      * 
      * @return Base peak

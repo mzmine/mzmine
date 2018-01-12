@@ -174,7 +174,7 @@ public class WaveletMassDetector implements MassDetector {
 	    // While peak is on
 	    while ((ind <= stopInd)
 		    && (waveletDataPoints[ind].getIntensity() > 0)) {
-		// Check if this is the maximum item of the peak
+		// Check if this is the maximum point of the peak
 		if (waveletDataPoints[ind].getIntensity() > waveletDataPoints[peakMaxInd]
 			.getIntensity()) {
 		    peakMaxInd = ind;

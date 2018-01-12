@@ -39,6 +39,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 import net.sf.mzmine.util.R.Rsession.Rsession;
@@ -51,6 +52,7 @@ public class HeatMapTask extends AbstractTask {
     private String errorMsg;
 
     private final MZmineProject project;
+    private final REngineType rEngineType;
     private final String outputType;
     private final boolean log, rcontrol, scale, plegend, area, onlyIdentified;
     private final int height, width, columnMargin, rowMargin, starSize;
@@ -63,6 +65,7 @@ public class HeatMapTask extends AbstractTask {
     private final Object referenceGroup;
     private final PeakList peakList;
 
+
     public HeatMapTask(MZmineProject project, PeakList peakList,
             ParameterSet parameters) {
 
@@ -70,6 +73,8 @@ public class HeatMapTask extends AbstractTask {
         this.peakList = peakList;
 
         // Parameters
+        rEngineType = parameters.getParameter(HeatMapParameters.RENGINE_TYPE)
+                .getValue();
         outputFile = parameters.getParameter(HeatMapParameters.fileName)
                 .getValue();
         outputType = parameters
@@ -146,7 +151,8 @@ public class HeatMapTask extends AbstractTask {
 
             // Load gplots library
             String[] reqPackages = { "gplots" };
-            rSession = new RSessionWrapper("HeatMap analysis module",
+            rSession = new RSessionWrapper( this.rEngineType,
+                    "HeatMap analysis module",
                     reqPackages, null);
             rSession.open();
 
@@ -270,6 +276,12 @@ public class HeatMapTask extends AbstractTask {
             }
 
             rSession.eval("dev.off()", false);
+
+            // Stands for a (void) collect!
+            this.rSession.runOnlyOnline();
+            // Done: Refresh R code stack
+            this.rSession.clearCode();
+
             finishedPercentage = 1.0;
 
             // Turn off R instance, once task ended gracefully.

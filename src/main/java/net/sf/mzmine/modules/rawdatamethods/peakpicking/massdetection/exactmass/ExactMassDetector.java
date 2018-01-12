@@ -112,7 +112,7 @@ public class ExactMassDetector implements MassDetector {
 		continue;
 	    }
 
-	    // Add current (non-zero) data item to the current m/z peak
+	    // Add current (non-zero) data point to the current m/z peak
 	    rangeDataPoints.add(scanDataPoints[i]);
 
 	    // Check for local maximum
@@ -154,14 +154,14 @@ public class ExactMassDetector implements MassDetector {
 
 	/*
 	 * According with the FWHM concept, the exact mass of this peak is the
-	 * half item of FWHM. In order to get the points in the curve that
+	 * half point of FWHM. In order to get the points in the curve that
 	 * define the FWHM, we use the linear equation.
 	 * 
 	 * First we look for, in left side of the peak, 2 data points together
-	 * that have an intensity less (first data item) and bigger (second
-	 * data item) than half of total intensity. Then we calculate the slope
+	 * that have an intensity less (first data point) and bigger (second
+	 * data point) than half of total intensity. Then we calculate the slope
 	 * of the line defined by this two data points. At least, we calculate
-	 * the item in this line that has an intensity equal to the half of
+	 * the point in this line that has an intensity equal to the half of
 	 * total intensity
 	 * 
 	 * We repeat the same process in the right side.
@@ -178,12 +178,12 @@ public class ExactMassDetector implements MassDetector {
 		    && (rangeDataPoints[i].getMZ() < currentCandidate.getMZ())
 		    && (rangeDataPoints[i + 1].getIntensity() >= halfIntensity)) {
 
-		// First item with intensity just less than half of total
+		// First point with intensity just less than half of total
 		// intensity
 		double leftY1 = rangeDataPoints[i].getIntensity();
 		double leftX1 = rangeDataPoints[i].getMZ();
 
-		// Second item with intensity just bigger than half of total
+		// Second point with intensity just bigger than half of total
 		// intensity
 		double leftY2 = rangeDataPoints[i + 1].getIntensity();
 		double leftX2 = rangeDataPoints[i + 1].getMZ();
@@ -191,7 +191,7 @@ public class ExactMassDetector implements MassDetector {
 		// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
 		double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
 
-		// We calculate the desired item (at half intensity) with the
+		// We calculate the desired point (at half intensity) with the
 		// linear equation
 		// X = X1 + [(Y - Y1) / m ], where Y = half of total intensity
 		xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
@@ -203,12 +203,12 @@ public class ExactMassDetector implements MassDetector {
 		    && (rangeDataPoints[i].getMZ() > currentCandidate.getMZ())
 		    && (rangeDataPoints[i + 1].getIntensity() <= halfIntensity)) {
 
-		// First item with intensity just bigger than half of total
+		// First point with intensity just bigger than half of total
 		// intensity
 		double rightY1 = rangeDataPoints[i].getIntensity();
 		double rightX1 = rangeDataPoints[i].getMZ();
 
-		// Second item with intensity just less than half of total
+		// Second point with intensity just less than half of total
 		// intensity
 		double rightY2 = rangeDataPoints[i + 1].getIntensity();
 		double rightX2 = rangeDataPoints[i + 1].getMZ();
@@ -216,7 +216,7 @@ public class ExactMassDetector implements MassDetector {
 		// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
 		double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
 
-		// We calculate the desired item (at half intensity) with the
+		// We calculate the desired point (at half intensity) with the
 		// linear equation
 		// X = X1 + [(Y - Y1) / m ], where Y = half of total intensity
 		xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);

@@ -54,7 +54,7 @@ public class ScanSmoothingParameters extends SimpleParameterSet {
 
     public static final DoubleParameter minimumHeight = new DoubleParameter(
 	    "Min height",
-	    "Minimum intensity of the highest data item in the chromatogram.\nIf chromatogram height is below this level, it is not used in the average calculation.",
+	    "Minimum intensity of the highest data point in the chromatogram.\nIf chromatogram height is below this level, it is not used in the average calculation.",
 	    MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
 
     public static final BooleanParameter removeOld = new BooleanParameter(

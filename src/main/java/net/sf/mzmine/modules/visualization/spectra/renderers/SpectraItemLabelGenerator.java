@@ -54,7 +54,7 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
      */
     public String generateLabel(XYDataset dataset, int series, int item) {
 
-	// X and Y values of current data item
+	// X and Y values of current data point
 	double originalX = dataset.getX(series, item).doubleValue();
 	double originalY = dataset.getY(series, item).doubleValue();
 
@@ -86,7 +86,7 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 		    && ((item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft)))
 		break;
 
-	    // If we find higher data item, bail out
+	    // If we find higher data point, bail out
 	    if ((item - i > 0)
 		    && (originalY <= dataset.getYValue(series, item - i)))
 		return null;

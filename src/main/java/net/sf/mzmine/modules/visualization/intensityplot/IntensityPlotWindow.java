@@ -104,13 +104,13 @@ public class IntensityPlotWindow extends JFrame {
             // set renderer
             StatisticalLineAndShapeRenderer renderer = new StatisticalLineAndShapeRenderer(
                     false, true);
-            renderer.setBaseStroke(new BasicStroke(2));
+            renderer.setDefaultStroke(new BasicStroke(2));
             plot.setRenderer(renderer);
             plot.setBackgroundPaint(Color.white);
 
             // set tooltip generator
             CategoryToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
-            renderer.setBaseToolTipGenerator(toolTipGenerator);
+            renderer.setDefaultToolTipGenerator(toolTipGenerator);
 
             CategoryAxis xAxis = (CategoryAxis) plot.getDomainAxis();
             xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
@@ -124,13 +124,13 @@ public class IntensityPlotWindow extends JFrame {
             XYPlot plot = (XYPlot) chart.getPlot();
 
             XYErrorRenderer renderer = new XYErrorRenderer();
-            renderer.setBaseStroke(new BasicStroke(2));
+            renderer.setDefaultStroke(new BasicStroke(2));
             plot.setRenderer(renderer);
             plot.setBackgroundPaint(Color.white);
 
             // set tooltip generator
             XYToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
-            renderer.setBaseToolTipGenerator(toolTipGenerator);
+            renderer.setDefaultToolTipGenerator(toolTipGenerator);
 
         }
 

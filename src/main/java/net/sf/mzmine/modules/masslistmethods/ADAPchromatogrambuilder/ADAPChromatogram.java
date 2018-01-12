@@ -53,7 +53,7 @@ import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 /**
  * Chromatogram implementing ChromatographicPeak.
  */
-public class Chromatogram implements Feature {
+public class ADAPChromatogram implements Feature {
     private SimplePeakInformation peakInfo;
 
     // Data file of this chromatogram
@@ -79,7 +79,7 @@ public class Chromatogram implements Feature {
     // A full list of all the scan numbers as points get added
     private List<Integer> chromScanList;
 
-    // Keep track of last added data item
+    // Keep track of last added data point
     private DataPoint lastMzPeak;
 
     // Number of connected segments, which have been committed by
@@ -107,7 +107,7 @@ public class Chromatogram implements Feature {
     /**
      * Initializes this Chromatogram
      */
-    public Chromatogram(RawDataFile dataFile, int scanNumbers[]) {
+    public ADAPChromatogram(RawDataFile dataFile, int scanNumbers[]) {
         this.dataFile = dataFile;
         this.scanNumbers = scanNumbers;
 
@@ -143,11 +143,11 @@ public class Chromatogram implements Feature {
 
     
     public int findNumberOfContinuousPointsAboveNoise(double noise){
-        // sort the array containing all of the scan numbers of the item added
+        // sort the array containing all of the scan numbers of the point added
         // loop over the sorted array now.
-        // if you find a item with intensity higher than noise start the count
-        // if the next scan contains a item higher than the noise update the count
-        // otherwise start it oer when you hit a sufficiently high item.
+        // if you find a point with intensity higher than noise start the count
+        // if the next scan contains a point higher than the noise update the count
+        // otherwise start it oer when you hit a sufficiently high point.
         // keep track of the largest count which will be returned.
         Collections.sort(chromScanList);
 
@@ -197,7 +197,7 @@ public class Chromatogram implements Feature {
         //System.out.println("bestCount");
         //System.out.println(bestCount);
         
-        // plus one because first item considered in advancing curcount is actualy going to be the second item/
+        // plus one because first point considered in advancing curcount is actualy going to be the second point/
         return bestCount+1;
         
 
@@ -215,9 +215,9 @@ public class Chromatogram implements Feature {
 
         // If we already have a mzvalue for the scan number then we need to add the intensities
         // together before putting it into the dataPointsMap, otherwise the chromatogram is only
-        // representing the intesities of the llast added item for that scan.
+        // representing the intesities of the llast added point for that scan.
         //
-        // For now just don't add the item if we have it already. The highest item will be the
+        // For now just don't add the point if we have it already. The highest point will be the
         // first one added
         if (dataPointsMap.containsKey(scanNumber)){
             tmp_see_same_scan_count += 1;
@@ -250,7 +250,7 @@ public class Chromatogram implements Feature {
     }
 
     /**
-     * Returns m/z value of last added data item
+     * Returns m/z value of last added data point
      */
     public DataPoint getLastMzPeak() {
         return lastMzPeak;
@@ -399,7 +399,7 @@ public class Chromatogram implements Feature {
 
         mz = highPointMZ;
 
-        // Update raw data item ranges, height, rt and representative scan
+        // Update raw data point ranges, height, rt and representative scan
         height = Double.MIN_VALUE;
         for (int i = 0; i < allScanNumbers.length; i++) {
 
@@ -503,7 +503,7 @@ public class Chromatogram implements Feature {
         numOfCommittedSegments++;
     }
 
-    public void addDataPointsFromChromatogram(Chromatogram ch) {
+    public void addDataPointsFromChromatogram(ADAPChromatogram ch) {
         for (Entry<Integer, DataPoint> dp : ch.dataPointsMap.entrySet()) {
             addMzPeak(dp.getKey(), dp.getValue());
         }

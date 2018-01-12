@@ -25,11 +25,11 @@
     <li> The full range of m/z values present in the raw data is divided into a series of bins of a specified width (see
         <span style="font-style: italic;">m/z bin width</span>).
     </li>
-    <li>For each bin a chromatogram is constructed from the raw data items whose m/z values fall within the bin. This
+    <li>For each bin a chromatogram is constructed from the raw data points whose m/z values fall within the bin. This
         chromatogram (see <span style="font-style: italic;">Chromatogram type</span>) may be either the base peak
         chromatogram or total ion count (TIC) chromatogram.
     </li>
-    <li>The raw intensity values of each data item in a bin are corrected by subtracting the bin's baseline.
+    <li>The raw intensity values of each data point in a bin are corrected by subtracting the bin's baseline.
         Subtraction of baseline intensity values proceeds according to the type of chromatogram used to determine the
         baseline.
         <p>If the base peak chromatogram was used then the corrected intensity values are calculated as follows:<br/>
@@ -69,7 +69,7 @@
     <dd>MS level to which to apply correction. Select "0" for all levels.</dd>
 
     <dt>Use m/z bins</dt>
-    <dd>Baselines can be calculated and data items corrected per m/z bin or to the entire raw data file. If no binning
+    <dd>Baselines can be calculated and data points corrected per m/z bin or to the entire raw data file. If no binning
         is performed then a single chromatogram is calculated for the entire raw data file and its baseline used to
         correct the full data file. No binning is very quick but much less accurate and so is only suitable for
         fine-tuning the smoothing and asymmetry parameters.
@@ -115,8 +115,8 @@
     </dd>
 
     <dt>Asymmetry</dt>
-    <dd>The weight (<span style="font-style: italic;">p</span>) itemsints below the trendline. Conversely, 1-<span
-            style="font-style: italic;">p</span> is the weight applieditemsints above the trendline. For baselines use
+    <dd>The weight (<span style="font-style: italic;">p</span>) for points below the trendline. Conversely, 1-<span
+            style="font-style: italic;">p</span> is the weight applied to points above the trendline. For baselines use
         a small value of <span style="font-style: italic;">p</span>.
     </dd>
 </dl>
@@ -208,7 +208,7 @@
     </dd>
 
     <dt>spline</dt>
-    <dd>Logical indicating whether the baseline should be an interpolating spline through the support items or piecewise linear.
+    <dd>Logical indicating whether the baseline should be an interpolating spline through the support points or piecewise linear.
     </dd>
 
     <dt>bend factor</dt>
@@ -235,7 +235,7 @@
     </dd>
 
     <dt>breaks</dt>
-    <dd>Number of breaks set to M/Z values for finding the local minima or items below a centain quantile of intensities; breaks -1 equally spaced intervals on the log M/Z scale.
+    <dd>Number of breaks set to M/Z values for finding the local minima or points below a centain quantile of intensities; breaks -1 equally spaced intervals on the log M/Z scale.
     </dd>
 
     <dt>break width (number of scans)</dt>
@@ -259,12 +259,12 @@
 	Note: Depending on the system configuration, this may be easier or mandatory to perform these operations under administrative privileges.
 </p>
 <ol>
-	<h4>Quick install - The whole thing can be setup as follows:<h4>
+	<h4>Quick install - The whole thing can be setup as follows:</h4>
 		    <pre>	install.packages(c("Rserve", "ptw", "baseline", "hyperSpec"))
 	source("http://bioconductor.org/biocLite.R")
 	biocLite("PROcess")
 		</pre>
-	<h4>Detailed install:<h4>
+	<h4>Detailed install:</h4>
     <li><a href="https://rforge.net/Rserve/doc.html">Rserve</a> (All correctors): provides an interface between
         MZmine and R. 
 		To install <span style="font-family: monospace;">Rserve</span> from CRAN packages run R and enter:

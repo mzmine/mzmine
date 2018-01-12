@@ -290,7 +290,7 @@ public class MzXMLReadTask extends AbstractTask {
                 msLevelTree--;
 
                 /*
-                 * At this item we verify if the scan and his fragments are
+                 * At this point we verify if the scan and his fragments are
                  * closed, so we include the present scan/fragment into the
                  * stack and start to take elements from them (FIFO) for the
                  * RawDataFile.

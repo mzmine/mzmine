@@ -22,8 +22,8 @@
 
         <h3>Mean filter</h3>
         <p>
-            For each data item, the filter assigns to it the intensity average of all the datapoints inside the
-            user defined window, which is centered in the mass value of this data item.
+            For each data point, the filter assigns to it the intensity average of all the datapoints inside the
+            user defined window, which is centered in the mass value of this data point.
         </p>
         <p>Raw data file before and after the filter was applied.
             <br><br><img src="meanFilter.png" name="Mean filter">
@@ -40,8 +40,8 @@
             in 1964 by Abraham Savitzky and Marcel J. E. Golay.[1]</p>
         <p>
             The Savitzky–Golay method essentially performs a local polynomial regression (of degree k)
-            on a series of values (of at least k+1 items which are treated as being equally spaced in the series)
-            to determine the smoothed value for each item. <a href="http://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_smoothing_filter">
+            on a series of values (of at least k+1 points which are treated as being equally spaced in the series)
+            to determine the smoothed value for each point. <a href="http://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_smoothing_filter">
                 http://en.wikipedia.org/wiki/Savitzky-Golay_smoothing_filter</a>
         </p>
 
@@ -57,7 +57,7 @@
         <h3>Crop filter</h3>
         <p>
             The scans out of the retention time range defined by the user are deleted
-            by using this filter. Also, the data items of the remaining scans that are
+            by using this filter. Also, the data points of the remaining scans that are
             out of the m/z window defined by the user are deleted.
         </p>
 
@@ -73,9 +73,9 @@
         <h3>m/z resample filter</h3>
         <p>
             Each scan is divide in m/z bins whose length is defined by the user in the
-            parameters. The mass of the new data item will be in the middle of each
+            parameters. The mass of the new data point will be in the middle of each
             m/z bin's space. Its intensity is the average of the intensity of all the
-            data items inside the bin.
+            data points inside the bin.
         </p>
 
         <p>Raw data file before and after the filter was applied.
@@ -90,21 +90,21 @@
 
         <h3>m/z round resample filter</h3>
         <p>
-            All data items in each scan is shifted to the nearest rounded integer
-            (ion number). The mass of the new data item will be on the rounded value.
-            If several data items are competing for the same rounded
-            value / mass, the new data item's intensity is the average of all the
-            competing data items.
+            All data points in each scan is shifted to the nearest rounded integer 
+            (ion number). The mass of the new data point will be on the rounded value. 
+            If several data points are competing for the same rounded 
+            value / mass, the new data point's intensity is the average of all the 
+            competing data points. 
             <!-- the highest (most intensive) only is kept. --> 
             Unless "Sum duplicate intensities" is checked, leading to a single new data 
-            item with intensity equal to the sum of the intensities of all the
-            competing data items.
+            point with intensity equal to the sum of the intensities of all the 
+            competing data points. 
             If the scan is not centroided, its spectrum is first turned into centroid 
             using a default "local maxima" algorithm, then the same algorithm as 
             described above is applied.
         </p>
 
-        <p>Spectrum data items before (blue) and after (green) the filter was applied.
+        <p>Spectrum data points before (blue) and after (green) the filter was applied.
             <br><br>Centroid spectrum<br><img src="rndSamplingFilter.png" name="Round filter (centroid spectrum)">
             <br><br>Profile spectrum<br><img src="rndSamplingFilterProfile.png" name="Round filter (profile spectrum)">
         </p>

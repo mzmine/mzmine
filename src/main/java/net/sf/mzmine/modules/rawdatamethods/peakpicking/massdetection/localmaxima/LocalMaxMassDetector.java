@@ -45,7 +45,7 @@ public class LocalMaxMassDetector implements MassDetector {
 
 	// All data points of current m/z peak
 
-	// Top data item of current m/z peak
+	// Top data point of current m/z peak
 	DataPoint currentMzPeakTop = null;
 
 	// True if we haven't reached the current local maximum yet

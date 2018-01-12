@@ -50,6 +50,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
@@ -95,7 +96,7 @@ public class CameraSearchTask extends AbstractTask {
 	// Peak signal to noise ratio.
 	private static final double SIGNAL_TO_NOISE = 10.0;
 
-	// Data item sorter.
+	// Data point sorter.
 	private static final DataPointSorter ASCENDING_MASS_SORTER = new DataPointSorter(
 			SortingProperty.MZ, SortingDirection.Ascending);
 
@@ -126,6 +127,8 @@ public class CameraSearchTask extends AbstractTask {
         private final String groupBy;
         private final Boolean includeSingletons;
 
+        private REngineType rEngineType;
+
 	public CameraSearchTask(final MZmineProject project, 
                 final ParameterSet parameters, final PeakList list) 
         {
@@ -138,6 +141,9 @@ public class CameraSearchTask extends AbstractTask {
                 
 		// Parameters.
                 this.parameters = parameters;
+                
+                this.rEngineType = parameters.getParameter(CameraSearchParameters.RENGINE_TYPE)
+                        .getValue();
                 
 		fwhmSigma = parameters.getParameter(CameraSearchParameters.FWHM_SIGMA)
 				.getValue();
@@ -254,7 +260,8 @@ public class CameraSearchTask extends AbstractTask {
 
 			String[] reqPackages = { "CAMERA" };
 			String[] reqPackagesVersions = { CAMERA_VERSION };
-			this.rSession = new RSessionWrapper("Camera search feature", reqPackages, reqPackagesVersions);
+			this.rSession = new RSessionWrapper(this.rEngineType,
+			        "Camera search feature", reqPackages, reqPackagesVersions);
 			this.rSession.open();	
 
 
@@ -277,7 +284,7 @@ public class CameraSearchTask extends AbstractTask {
 				final Set<DataPoint> dataPoints = new TreeSet<DataPoint>(
 						ASCENDING_MASS_SORTER);
 
-				// Add a dummy data item.
+				// Add a dummy data point.
 				dataPoints.add(new SimpleDataPoint(0.0, 0.0));
 				dataPointCount++;
 
@@ -307,7 +314,7 @@ public class CameraSearchTask extends AbstractTask {
 										+ MS_LEVEL);
 					}
 
-					// Copy the data item.
+					// Copy the data point.
 					final DataPoint dataPoint = peak.getDataPoint(scanNumber);
 					if (dataPoint != null) {
 
@@ -393,7 +400,7 @@ public class CameraSearchTask extends AbstractTask {
 			this.rSession.eval("xRaw <- new(\"xcmsRaw\")");
 			this.rSession.eval("xRaw@tic <- intensity");
 			this.rSession.eval("xRaw@scantime <- scantime * " + SECONDS_PER_MINUTE);
-			this.rSession.eval("xRaw@scanindex <- scanindex");
+			this.rSession.eval("xRaw@scanindex <- as.integer(scanindex)");
 			this.rSession.eval("xRaw@env$mz <- mass");
 			this.rSession.eval("xRaw@env$intensity <- intensity");
 
@@ -475,7 +482,10 @@ public class CameraSearchTask extends AbstractTask {
 			final int[] spectra = (int[]) rSession.collect("pcgroup");
 			final String[] isotopes = (String[]) rSession.collect("isotopes");
                         final String[] adducts = (String[]) rSession.collect("adducts");
+			// Done: Refresh R code stack
+			this.rSession.clearCode();
 
+			
 			// Add identities.
 			if (spectra != null) {
 

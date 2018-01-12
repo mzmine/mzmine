@@ -55,12 +55,12 @@ import java.lang.*;
 
 
 
-public class ChromatogramBuilderTask extends AbstractTask {
+public class ADAPChromatogramBuilderTask extends AbstractTask {
 
     RangeSet<Double> rangeSet = TreeRangeSet.create();
     // After each range is created it does not change so we can map the ranges (which will be uniqe)
     // to the chromatograms
-    HashMap<Range,Chromatogram> rangeToChromMap = new HashMap<Range,Chromatogram>();
+    HashMap<Range,ADAPChromatogram> rangeToChromMap = new HashMap<Range,ADAPChromatogram>();
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -89,7 +89,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
      * @param dataFile
      * @param parameters
      */
-    public ChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
+    public ADAPChromatogramBuilderTask(MZmineProject project, RawDataFile dataFile,
             ParameterSet parameters) {
 
 
@@ -97,31 +97,31 @@ public class ChromatogramBuilderTask extends AbstractTask {
         this.project = project;
         this.dataFile = dataFile;
         this.scanSelection = parameters
-                .getParameter(ChromatogramBuilderParameters.scanSelection)
+                .getParameter(ADAPChromatogramBuilderParameters.scanSelection)
                 .getValue();
         this.massListName = parameters
-                .getParameter(ChromatogramBuilderParameters.massList)
+                .getParameter(ADAPChromatogramBuilderParameters.massList)
                 .getValue();
 
         this.mzTolerance = parameters
-                .getParameter(ChromatogramBuilderParameters.mzTolerance)
+                .getParameter(ADAPChromatogramBuilderParameters.mzTolerance)
                 .getValue();
         this.minimumScanSpan = parameters
-                .getParameter(ChromatogramBuilderParameters.minimumScanSpan)
+                .getParameter(ADAPChromatogramBuilderParameters.minimumScanSpan)
                 .getValue().intValue();
         //this.minimumHeight = parameters
         //        .getParameter(ChromatogramBuilderParameters.minimumHeight)
         //        .getValue();
 
         this.suffix = parameters
-                .getParameter(ChromatogramBuilderParameters.suffix).getValue();
+                .getParameter(ADAPChromatogramBuilderParameters.suffix).getValue();
 
         // Owen added parameters
         this.IntensityThresh2 = parameters
-                .getParameter(ChromatogramBuilderParameters.IntensityThresh2)
+                .getParameter(ADAPChromatogramBuilderParameters.IntensityThresh2)
                 .getValue();
         this.minIntensityForStartChrom = parameters
-                .getParameter(ChromatogramBuilderParameters.startIntensity)
+                .getParameter(ADAPChromatogramBuilderParameters.startIntensity)
                 .getValue();
 
 
@@ -193,7 +193,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         // make a list of all the data points
         // sort data points by intensity
         // loop through list 
-        //      add data item to chromatogrm or make new one
+        //      add data point to chromatogrm or make new one
         //      update mz avg and other stuff
         // 
 
@@ -249,16 +249,20 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
         double maxIntensity = simpleAllMzVals[0].getIntensity();
 
-        // count starts at 1 since we already have added one with a single item.
+        // count starts at 1 since we already have added one with a single point.
 
         //Stopwatch stopwatch = Stopwatch.createUnstarted(); 
         // stopwatch2 = Stopwatch.createUnstarted(); 
         //Stopwatch stopwatch3 = Stopwatch.createUnstarted(); 
 
 
+        processedPoints = 0;
         totalPoints = simpleAllMzVals.length;
 
         for (ExpandedDataPoint mzPeak : simpleAllMzVals){
+
+            processedPoints++;
+
             if (isCanceled()){
                 return;}
 
@@ -297,7 +301,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
                     toBeUpperBound = toleranceRange.upperEndpoint();
                 }
                 else if ((plusRange==null)&&(minusRange!=null)){
-                    // the upper end item of the minus range will be the lower
+                    // the upper end point of the minus range will be the lower 
                     // range of the new one
                     toBeLowerBound = minusRange.upperEndpoint();
                     toBeUpperBound = toleranceRange.upperEndpoint();
@@ -318,7 +322,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
                     toBeUpperBound = 0.0; 
                 }
                 Range<Double> newRange = Range.open(toBeLowerBound,toBeUpperBound);
-                Chromatogram newChrom = new Chromatogram(dataFile, allScanNumbers);
+                ADAPChromatogram newChrom = new ADAPChromatogram(dataFile, allScanNumbers);
 
                 newChrom.addMzPeak(mzPeak.getScanNumber(),mzPeak);
 
@@ -335,7 +339,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
                 // In this case we do not need to update the rangeSet
                 
                 
-                Chromatogram curChrom = rangeToChromMap.get(containsPointRange);
+                ADAPChromatogram curChrom = rangeToChromMap.get(containsPointRange);
                 
                 curChrom.addMzPeak(mzPeak.getScanNumber(),mzPeak);
                 
@@ -344,8 +348,6 @@ public class ChromatogramBuilderTask extends AbstractTask {
                 
                 
             }
-            
-            processedPoints+=1;
         }
            
         //System.out.println("search chroms (ms): " +  stopwatch.elapsed(TimeUnit.MILLISECONDS));
@@ -354,7 +356,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
         // finish chromatograms
         Iterator<Range<Double>> RangeIterator = rangeSet.asRanges().iterator();
 
-        List<Chromatogram> buildingChromatograms = new ArrayList<Chromatogram>();
+        List<ADAPChromatogram> buildingChromatograms = new ArrayList<ADAPChromatogram>();
 
         while (RangeIterator.hasNext()) {
             if (isCanceled()){
@@ -362,7 +364,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
             Range<Double> curRangeKey = RangeIterator.next();
 
-            Chromatogram chromatogram = rangeToChromMap.get(curRangeKey);
+            ADAPChromatogram chromatogram = rangeToChromMap.get(curRangeKey);
 
             chromatogram.finishChromatogram();
 
@@ -370,7 +372,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
             // IntensityThresh2 level.
             double numberOfContinuousPointsAboveNoise = chromatogram.findNumberOfContinuousPointsAboveNoise(IntensityThresh2);
             if (numberOfContinuousPointsAboveNoise < minimumScanSpan) {
-                //System.out.println("skipping chromatogram because it does not meet the min item scan requirements");
+                //System.out.println("skipping chromatogram because it does not meet the min point scan requirements");
                 continue;
             }
             else{
@@ -379,7 +381,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
         }
 
-        Chromatogram[] chromatograms = buildingChromatograms.toArray(new Chromatogram[0]);
+        ADAPChromatogram[] chromatograms = buildingChromatograms.toArray(new ADAPChromatogram[0]);
        
 
         // Sort the final chromatograms by m/z

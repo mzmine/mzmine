@@ -52,7 +52,7 @@ public class SmoothingParameters extends SimpleParameterSet {
      */
     public static final ComboParameter<Integer> FILTER_WIDTH = new ComboParameter<Integer>(
 	    "Filter width",
-	    "Number of data item covered by the smoothing filter",
+	    "Number of data point covered by the smoothing filter",
 	    new Integer[] { 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25 }, 5);
 
     /**

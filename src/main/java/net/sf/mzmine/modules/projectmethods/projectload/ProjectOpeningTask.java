@@ -353,7 +353,7 @@ public class ProjectOpeningTask extends AbstractTask {
                     + projectVersionString
                     + "). Opening this project in MZmine "
                     + mzmineVersionString
-                    + " may result in squaredErrors or loss of information.";
+                    + " may result in errors or loss of information.";
             MZmineCore.getDesktop().displayMessage(
                     MZmineCore.getDesktop().getMainWindow(), warning);
         }

@@ -101,19 +101,19 @@ public class TaskControllerImpl implements TaskController, Runnable {
 	if ((tasks == null) || (tasks.length == 0))
 	    return;
 
-	List<String> taskClass = new ArrayList<String>();
+	Set<String> uniqueTaskClasses = new HashSet<String>();
 	String taskClassName;
 	for (Task task : tasks) {
 	    taskClassName = task.getClass().getName();
 	    taskClassName = taskClassName.substring(taskClassName.lastIndexOf(".") + 1);
-	    taskClass.add(taskClassName);
+	    uniqueTaskClasses.add(taskClassName);
 	    WrappedTask newQueueEntry = new WrappedTask(task, priority);
 	    taskQueue.addWrappedTask(newQueueEntry);
 	}
 
 	// Track module usage
-	Set<String> uniqueClasses = new HashSet<String>(taskClass);
-	for (String value : uniqueClasses) {
+	
+	for (String value : uniqueTaskClasses) {
 	    GoogleAnalyticsTracker GAT = new GoogleAnalyticsTracker(value,
 		    "/JAVA/" + value);
 	    Thread gatThread = new Thread(GAT);

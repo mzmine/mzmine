@@ -25,7 +25,7 @@
         </p>
 
         <p>
-            The "deviation" model for the retention time is created by taking some corresponding items from the peak list of two samples using the RANSAC algorithm
+            The "deviation" model for the retention time is created by taking some corresponding points from the peak list of two samples using the RANSAC algorithm
             (<a HREF="http://en.wikipedia.org/wiki/RANSAC">http://en.wikipedia.org/wiki/RANSAC</a>) and using a non-linear regression method to fit the model.
         </p>
 
@@ -76,10 +76,10 @@
                 automatically.</dd>
 
             <dt>Minimum Number of Points</dt>
-            <dd>% of items required to consider the model valid (d).</dd>
+            <dd>% of points required to consider the model valid (d).</dd>
 
             <dt>Threshold value</dt>
-            <dd>Threshold value (seconds) for determining when a data item fits a model (t).</dd>
+            <dd>Threshold value (minutes) for determining when a data point fits a model (t).</dd>
 
             <dt>Linear model</dt>
             <dd>Sometimes the shift in the retention time between the peaks in the samples is
@@ -90,7 +90,7 @@
 
         <h4>Parameter setup dialog</h4>
 
-        <p><img src="preview.png" name="graphics3" </p>
+        <p><img src="preview.png" name="graphics3"> </p>
 
         <h4>Parameter optimization</h4>
         <p>
@@ -110,15 +110,15 @@
             RANSAC is a non-deterministic algorithm, and the probability to find a good result increases
             increasing the number of iterations. If the user sets "0 iterations" into the parameter "RANSAC
             iterations" the algorithm will automatically set the optimum number of iterations depending on
-            the number of data items. In the case that there is a big number of data items it is better
+            the number of data points. In the case that there is a big number of data points it is better
             to limit this parameter even though the result could be non-optimal. The preview module can help
             us to set this parameter.
         </p>
 
         <p>
-            The parameter "Minimum number of items" should be an estimation of the proportion of the data
-            items inside the model. It is important not to get models composed by few data items which do
-            not correspond to the real model. All the models which contain less proportion of data items
+            The parameter "Minimum number of points" should be an estimation of the proportion of the data
+            points inside the model. It is important not to get models composed by few data points which do
+            not correspond to the real model. All the models which contain less proportion of data points
             won't be taken into account by RANSAC algorithm.
         </p>
 

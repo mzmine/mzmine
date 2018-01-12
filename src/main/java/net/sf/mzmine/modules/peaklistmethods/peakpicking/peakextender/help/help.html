@@ -13,9 +13,9 @@
 
 <p>
 This module extends the peaks in a peak list in both directions of the retention time. 
-The purpose is mainly to add missing data to peak lists produced by the MS/MS Peak List Builder, which only detects a single data item per peak.
-The extending is performed scan-by-scan in both directions by searching for data items within given m/z tolerance and above given minimal height.
-When no data item is found, extending is stopped.
+The purpose is mainly to add missing data to peak lists produced by the MS/MS Peak List Builder, which only detects a single data point per peak. 
+The extending is performed scan-by-scan in both directions by searching for data points within given m/z tolerance and above given minimal height.
+When no data point is found, extending is stopped. 
 </p>
 
 <h4>Method parameters</h4>
@@ -24,7 +24,7 @@ When no data item is found, extending is stopped.
 <dd>This string is added to the end of the name of each processed peak list</dd>
 
 <dt>m/z tolerance</dt>
-<dd>Maximum allowed distance in M/Z between data items in successive scans</dd>
+<dd>Maximum allowed distance in M/Z between data points in successive scans</dd>
 
 <dt>Min height</dt>
 <dd>Minimum allowed intensity for succesive scans. When intensity drops below this level, extending is stopped.</dd>

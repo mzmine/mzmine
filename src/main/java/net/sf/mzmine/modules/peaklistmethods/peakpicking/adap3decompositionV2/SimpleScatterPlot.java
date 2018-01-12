@@ -99,7 +99,8 @@ public class SimpleScatterPlot extends ChartPanel
         
 //        renderer.setDotHeight(3);
 //        renderer.setDotWidth(3);
-        renderer.setBaseShapesVisible(false);
+//        renderer.setBaseShapesVisible(false);
+        renderer.setDefaultShapesVisible(false);
         
         plot = new XYPlot(xyDataset, xAxis, yAxis, renderer);
         plot.setBackgroundPaint(Color.white);

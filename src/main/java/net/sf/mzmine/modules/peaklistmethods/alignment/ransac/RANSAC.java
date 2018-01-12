@@ -38,7 +38,7 @@ public class RANSAC {
      * input: data - a set of observed data points n - the minimum number of
      * data values required to fit the model k - the maximum number of
      * iterations allowed in the algorithm t - a threshold value for determining
-     * when a data item fits a model d - the number of close data values
+     * when a data point fits a model d - the number of close data values
      * required to assert that a model fits well to data
      *
      * output: model which best fit the data
@@ -178,7 +178,7 @@ public class RANSAC {
     /**
      * Take the initial points ramdoly. The points are divided by the initial
      * number of points. If the fractions contain enough number of points took
-     * one item from each part.
+     * one point from each part.
      * 
      * @param data
      *            vector with the points which represent all possible

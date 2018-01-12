@@ -29,9 +29,9 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class Ms2SearchParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakList1 = new PeakListsParameter(1,1);
+    public static final PeakListsParameter peakList1 = new PeakListsParameter("Peak List 1",1,1);
     
-    public static final PeakListsParameter peakList2 = new PeakListsParameter(1,1);
+    public static final PeakListsParameter peakList2 = new PeakListsParameter("Peak List 2",1,1);
     
     public static final MassListParameter massList = new MassListParameter();
     
@@ -44,7 +44,7 @@ public class Ms2SearchParameters extends SimpleParameterSet {
             "Minimum ion(s) matched per MS2 comparison", "Minimum number of peaks between two MS2s that must match");
     
     public static final DoubleParameter scoreThreshold = new DoubleParameter(
-            "Minimum score to report","Minimum MS2 comparison score to report");
+            "Minimum spectral match score to report","Minimum MS2 comparison score to report");
     
     public Ms2SearchParameters() {
         super(new Parameter[] { peakList1, peakList2, massList, mzTolerance,intensityThreshold, minimumIonsMatched,scoreThreshold});

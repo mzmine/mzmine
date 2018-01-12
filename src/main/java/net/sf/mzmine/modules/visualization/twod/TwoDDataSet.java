@@ -180,7 +180,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
                 return upperEndpointIntensity(startScanIndex - 1, mzRange,
                         plotMode);
 
-            // find which scan item is closer
+            // find which scan point is closer
             double diffNext = searchRetentionTimes[startScanIndex]
                     - rtRange.upperEndpoint();
             double diffPrev = rtRange.lowerEndpoint()
@@ -215,7 +215,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
         return rtValuesInUserRange;
     }
 
-    // Sets the private list to contain the rt values for each data item scan of scans that fall in the user
+    // Sets the private list to contain the rt values for each data point scan of scans that fall in the user
     // range. returns an array of the data points but not the rt.
     ArrayList getCentroidedDataPointsInRTMZRange(Range<Double> rtRange, Range<Double> mzRange){
         ArrayList<DataPoint> dataPointsInRanges = new ArrayList<DataPoint>();
@@ -326,7 +326,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
                 if (startMZIndex == dataPoints.length - 1)
                     return dataPoints[startMZIndex - 1].getIntensity();
 
-                // find which data item is closer
+                // find which data point is closer
                 double diffNext = dataPoints[startMZIndex].getMZ()
                         - mzRange.upperEndpoint();
                 double diffPrev = mzRange.lowerEndpoint()

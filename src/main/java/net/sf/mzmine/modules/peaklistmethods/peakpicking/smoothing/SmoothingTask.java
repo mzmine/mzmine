@@ -166,7 +166,7 @@ public class SmoothingTask extends AbstractTask {
 				final double intensity = smoothed[i];
 				if (dataPoint != null && intensity > 0.0) {
 
-				    // Create a new data item.
+				    // Create a new data point.
 				    final double mz = dataPoint.getMZ();
 				    final double rt = dataFile.getScan(
 					    scanNumber).getRetentionTime();
@@ -174,7 +174,7 @@ public class SmoothingTask extends AbstractTask {
 					    mz, intensity);
 				    newDataPoints[i] = newDataPoint;
 
-				    // Track maximum intensity data item.
+				    // Track maximum intensity data point.
 				    if (intensity > maxIntensity) {
 
 					maxIntensity = intensity;

@@ -34,6 +34,7 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.R.REngineType;
 
 import com.google.common.collect.Range;
 
@@ -97,11 +98,20 @@ public class CentWaveDetectorParameters extends SimpleParameterSet {
 	    "Method used to determine RT extents of detected peaks",
 	    PeakIntegrationMethod.values(),
 	    PeakIntegrationMethod.UseSmoothedData);
+    
+    /**
+     * R engine type.
+     */
+    public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
+            "R engine",
+            "The R engine to be used for communicating with R.",
+            REngineType.values(), REngineType.RCALLER);
 
     public CentWaveDetectorParameters() {
 
 	super(new Parameter[] { SN_THRESHOLD, PEAK_SCALES, PEAK_DURATION,
-		INTEGRATION_METHOD });
+		INTEGRATION_METHOD, 
+		RENGINE_TYPE });
     }
 
     @Override

@@ -42,6 +42,7 @@ import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.R.REngineType;
 
 /**
  * Holds baseline correction module COMMON parameters. See
@@ -126,13 +127,22 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
             true);
 
     /**
+     * R engine type.
+     */
+    public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
+            "R engine",
+            "The R engine to be used for communicating with R.",
+            REngineType.values(), REngineType.RCALLER);
+
+    /**
      * Create the parameter set.
      */
     public BaselineCorrectionParameters() {
         super(new Parameter[] { dataFiles, SUFFIX,
-                // RENGINE_TYPE,
                 CHROMOTAGRAM_TYPE, MS_LEVEL, USE_MZ_BINS, MZ_BIN_WIDTH,
-                BASELINE_CORRECTORS, REMOVE_ORIGINAL });
+                BASELINE_CORRECTORS,
+                RENGINE_TYPE,
+                REMOVE_ORIGINAL});
         thisParameters = null;
     }
 

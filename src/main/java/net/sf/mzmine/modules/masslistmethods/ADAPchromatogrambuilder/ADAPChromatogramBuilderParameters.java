@@ -36,7 +36,7 @@ import net.sf.mzmine.util.ExitCode;
 
 import java.awt.*;
 
-public class ChromatogramBuilderParameters extends SimpleParameterSet {
+public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
@@ -55,7 +55,7 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
     public static final DoubleParameter minimumHeight = new DoubleParameter(
             "Min height",
-            "Minimum intensity of the highest data item in the chromatogram. If chromatogram height is below this level, it is discarded.",
+            "Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.",
             MZmineCore.getConfiguration().getIntensityFormat());
 
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
@@ -74,7 +74,7 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
             MZmineCore.getConfiguration().getIntensityFormat());
     // End Owen Edit
 
-    public ChromatogramBuilderParameters() {
+    public ADAPChromatogramBuilderParameters() {
         super(new Parameter[] { dataFiles, scanSelection, massList,
                 minimumScanSpan,IntensityThresh2, startIntensity, mzTolerance, suffix });
     }

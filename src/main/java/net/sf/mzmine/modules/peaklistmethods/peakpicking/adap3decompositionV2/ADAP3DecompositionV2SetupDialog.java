@@ -266,7 +266,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
         Integer minSize = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-        
+
         if (peakDetectorParameters == null || minDistance == null || minSize == null) return;
 
         List<RetTimeClusterer.Item> ranges = new ArrayList<>();
@@ -393,12 +393,12 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             return CHANGE_STATE.FIRST_PHASE;
         }
         
-        final Set <Integer> firstPhaseIndices = new HashSet <> (Arrays.asList(1, 2, 3));
+        final Set <Integer> firstPhaseIndices = new HashSet <> (Arrays.asList(1, 2));
 //        final Set <Integer> firstPhaseIndices = new HashSet<>(Collections.singletonList(1));
         
 //        final Set <Integer> secondPhaseIndices =
 //                new HashSet <> (Arrays.asList(2));
-        final Set <Integer> secondPhaseIndices = new HashSet<>(Collections.singletonList(4));
+        final Set <Integer> secondPhaseIndices = new HashSet<>(Collections.singletonList(3));
         
         int size = Math.min(currentParameters.length, newValues.length);
         

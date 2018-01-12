@@ -31,7 +31,7 @@ import org.jfree.data.xy.XYDataset;
  * 
  * Basic method for annotation is
  * 
- * 1) Check if this data item is local maximum
+ * 1) Check if this data point is local maximum
  * 
  * 2) Search neighbourhood defined by pixel range for other local maxima with
  * higher intensity
@@ -74,15 +74,15 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
 	    return null;
 	TICDataSet ticDataSet = (TICDataSet) dataSet;
 
-	// X and Y values of current data item
+	// X and Y values of current data point
 	double originalX = ticDataSet.getX(0, item).doubleValue();
 	double originalY = ticDataSet.getY(0, item).doubleValue();
 
-	// Check if the intensity of this data item is above threshold
+	// Check if the intensity of this data point is above threshold
 	if (originalY < ticDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION)
 	    return null;
 
-	// Check if this data item is local maximum
+	// Check if this data point is local maximum
 	if (!ticDataSet.isLocalMaximum(item))
 	    return null;
 
@@ -121,7 +121,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
 	    int foundLocalMaxima[] = checkedDataSet.findLocalMaxima(searchMinX,
 		    searchMaxX, searchMinY, searchMaxY);
 
-	    // If we found other maximum then this data item, bail out
+	    // If we found other maximum then this data point, bail out
 	    if (foundLocalMaxima.length > (dataSet == checkedDataSet ? 1 : 0))
 		return null;
 

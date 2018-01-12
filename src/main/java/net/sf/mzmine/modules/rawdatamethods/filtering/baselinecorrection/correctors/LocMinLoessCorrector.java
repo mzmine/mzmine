@@ -84,6 +84,8 @@ public class LocMinLoessCorrector extends BaselineCorrector {
                         : BW_MIN_VAL) + ", breaks=breaks, qntl=" + qntl + ")");
         rSession.eval("baseline <- mat[,2] - bseoff[,2]");
         baseline = (double[]) rSession.collect("baseline");
+        // Done: Refresh R code stack
+        rSession.clearCode();
 
         return baseline;
     }

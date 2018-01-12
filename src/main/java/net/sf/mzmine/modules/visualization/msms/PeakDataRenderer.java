@@ -43,14 +43,14 @@ class PeakDataRenderer extends XYLineAndShapeRenderer {
 	    5, 5);
 
     PeakDataRenderer() {
-	setBaseShapesFilled(true);
+	setDefaultShapesFilled(true);
 	setDrawOutlines(false);
 	setUseFillPaint(false);
-	setBaseShapesVisible(false);
-	setBaseShape(dataPointsShape);
+	setDefaultShapesVisible(false);
+	setDefaultShape(dataPointsShape);
 
 	PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
-	setBaseToolTipGenerator(toolTipGenerator);
+	setDefaultToolTipGenerator(toolTipGenerator);
 
 	setDrawSeriesLineAsPath(true);
     }

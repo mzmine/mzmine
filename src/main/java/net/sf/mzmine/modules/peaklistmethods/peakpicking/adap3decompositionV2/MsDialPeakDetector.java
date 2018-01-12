@@ -29,6 +29,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 
 import javax.annotation.Nonnull;
@@ -114,5 +115,10 @@ public class MsDialPeakDetector implements PeakResolver {
     @Override
     public String[] getRequiredRPackagesVersions() {
         return null;
+    }
+
+    @Override
+    public REngineType getREngineType(@Nonnull ParameterSet parameters) {
+        return REngineType.RSERVE;
     }
 }

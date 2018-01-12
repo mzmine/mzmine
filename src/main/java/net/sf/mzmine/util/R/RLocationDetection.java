@@ -98,6 +98,14 @@ public class RLocationDetection {
 
     }
 
+    public static @Nullable String getRScriptExecutablePath() {
+
+        String rExecPath = getRExecutablePath();
+        return ((rExecPath != null)
+                ? rExecPath.replaceAll("bin" + File.separator + "R", "bin" + File.separator + "Rscript") : null);
+
+    }
+
     /**
      * Auto-detects the location of R executable
      */

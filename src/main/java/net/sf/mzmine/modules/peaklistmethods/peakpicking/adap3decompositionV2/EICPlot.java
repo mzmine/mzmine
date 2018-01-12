@@ -17,15 +17,19 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.Paint;
+import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 
-import dulab.adap.datamodel.BetterComponent;
-import dulab.adap.datamodel.BetterPeak;
-import dulab.adap.datamodel.Peak;
+import javax.annotation.Nonnull;
+
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -36,7 +40,8 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import javax.annotation.Nonnull;
+import dulab.adap.datamodel.BetterComponent;
+import dulab.adap.datamodel.BetterPeak;
 
 /**
  *
@@ -144,8 +149,8 @@ public class EICPlot extends ChartPanel
             }
         };
         
-        renderer.setBaseShapesVisible(false);
-        renderer.setBaseToolTipGenerator(new XYToolTipGenerator() {
+        renderer.setDefaultShapesVisible(false);
+        renderer.setDefaultToolTipGenerator(new XYToolTipGenerator() {
             @Override
             public String generateToolTip(XYDataset dataset, int series, int item)
             {

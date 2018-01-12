@@ -94,7 +94,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
     }
 
     /**
-     * No peaks with differing mass should reach this item.
+     * No peaks with differing mass should reach this point.
      * 
      * @param col
      *            column in peak table that contains this peak

@@ -34,8 +34,10 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.R.REngineType;
 
 public class HeatMapParameters extends SimpleParameterSet {
+
 
     public static final String[] fileTypes = { "pdf", "svg", "png", "fig" };
 
@@ -102,11 +104,19 @@ public class HeatMapParameters extends SimpleParameterSet {
     public static final IntegerParameter rowMargin = new IntegerParameter(
             "Row margin", "Row margin of the heat map", 10);
 
+    /**
+     * R engine type.
+     */
+    public static final ComboParameter<REngineType> RENGINE_TYPE = new ComboParameter<REngineType>(
+            "R engine",
+            "The R engine to be used for communicating with R.",
+            REngineType.values(), REngineType.RCALLER);
+
     public HeatMapParameters() {
         super(new Parameter[] { peakLists, fileName, fileTypeSelection,
                 selectionData, referenceGroup, useIdenfiedRows, usePeakArea,
                 scale, log, showControlSamples, plegend, star, height, width,
-                columnMargin, rowMargin });
+                columnMargin, rowMargin, RENGINE_TYPE });
     }
 
     @Override

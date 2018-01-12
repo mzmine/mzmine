@@ -51,7 +51,7 @@ class SameRangePeak implements Feature {
     // Boundaries of the peak
     private Range<Double> rtRange, mzRange, intensityRange;
 
-    // Map of scan number and data item
+    // Map of scan number and data point
     private TreeMap<Integer, DataPoint> mzPeakMap;
 
     // Number of most intense fragment scan
@@ -148,7 +148,7 @@ class SameRangePeak implements Feature {
     }
 
     /**
-     * Adds a new data item to this peak
+     * Adds a new data point to this peak
      * 
      * @param scanNumber
      * @param dataPoints
@@ -198,7 +198,7 @@ class SameRangePeak implements Feature {
 	// Get all scan numbers
 	int allScanNumbers[] = Ints.toArray(mzPeakMap.keySet());
 
-	// Find the data item with top intensity and use its RT and height
+	// Find the data point with top intensity and use its RT and height
 	for (int i = 0; i < allScanNumbers.length; i++) {
 	    DataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
 	    double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();

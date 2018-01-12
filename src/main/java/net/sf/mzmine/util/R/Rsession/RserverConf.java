@@ -249,7 +249,7 @@ public class RserverConf {
     }
 
     // GLG TODO: Better not use this. See comment bellow.
-    // The item being getting a new port (Win), see new function below.
+    // The point being getting a new port (Win), see new function below.
     public static RserverConf newLocalInstance(Properties p) {
         RserverConf server = null;
         if (System.getProperty("os.name").contains("Win")

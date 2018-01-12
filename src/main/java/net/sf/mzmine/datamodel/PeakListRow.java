@@ -173,7 +173,7 @@ public interface PeakListRow {
     public PeakInformation getPeakInformation();
     
     /**
-     * Returns maximum raw data item intensity among all peaks in this row
+     * Returns maximum raw data point intensity among all peaks in this row
      * 
      * @return Maximum intensity
      */

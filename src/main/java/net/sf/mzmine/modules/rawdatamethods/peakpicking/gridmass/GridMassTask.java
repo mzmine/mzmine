@@ -862,14 +862,14 @@ public class GridMassTask extends AbstractTask {
     public double HWHM(double x0, double x1, double y0, double y1) {
 	// x0 is the "scan" or m/z estimated at the highest peak
 	// y0 is the "highest" peak intensity
-	// x1 is the "scan" or m/z estimated at the item closest to (highest
+	// x1 is the "scan" or m/z estimated at the point closest to (highest
 	// intensity / 2)
 	// y1 is the intensity closest to (highest intensity / 2)
 	// x1_2 = x0 - F * (x0-x1)
 	// F = (y0 - y0/2) / (y0 - y1) = y0/2 / (y0 - y1)
 	// x1_2 = x0(1-F) + x1*F /// this X1/2 is given a triangle, so using the
 	// same slope than between x0 and x1, this x1_2 is farther than the
-	// actual 1/2 item
+	// actual 1/2 point
 	// x3_4 = (x1_2 - x1) / 2 + x1 // aproximation to real X 1/2 by the half
 	// of the difference between the x1 and the estimated x1_2
 	double f = (y0 / 2) / (y0 - y1);

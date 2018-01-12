@@ -143,7 +143,7 @@ public class TrianglePeakModel implements Feature {
 	alpha = (double) Math.atan(height / (rt - rtLeft));
 	beta = (double) Math.atan(height / (rtRight - rt));
 
-	// Calculate intensity of each item in the shape.
+	// Calculate intensity of each point in the shape.
 	double shapeHeight, currentRT, previousRT, previousHeight;
 
 	previousHeight = calculateIntensity(retentionTimes[0]);

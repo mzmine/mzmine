@@ -189,12 +189,12 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
                     // Select or deselect dataset
                     Font font = new Font("Helvetica", Font.BOLD, 11);
                     BasicStroke stroke = new BasicStroke(4);
-                    if (renderer.getBaseLegendTextFont() != null
-                            && renderer.getBaseLegendTextFont().isBold()) {
+                    if (renderer.getDefaultLegendTextFont() != null
+                            && renderer.getDefaultLegendTextFont().isBold()) {
                         font = new Font("Helvetica", Font.PLAIN, 11);
                         stroke = new BasicStroke(1);
                     }
-                    renderer.setBaseLegendTextFont(font);
+                    renderer.setDefaultLegendTextFont(font);
                     renderer.setSeriesStroke(0, stroke);
                 }
             }

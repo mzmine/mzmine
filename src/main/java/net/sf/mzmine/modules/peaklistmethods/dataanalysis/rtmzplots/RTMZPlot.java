@@ -24,9 +24,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -37,8 +34,11 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.AbstractXYZDataset;
-import org.jfree.ui.RectangleInsets;
+
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
 public class RTMZPlot extends ChartPanel {
 
@@ -119,7 +119,7 @@ public class RTMZPlot extends ChartPanel {
 	plot.setDataset(dataset);
 	spotRenderer = new RTMZRenderer(dataset, paintScale);
 	plot.setRenderer(spotRenderer);
-	spotRenderer.setBaseToolTipGenerator(new RTMZToolTipGenerator());
+	spotRenderer.setDefaultToolTipGenerator(new RTMZToolTipGenerator());
 
 	// Add a paintScaleLegend to chart
 

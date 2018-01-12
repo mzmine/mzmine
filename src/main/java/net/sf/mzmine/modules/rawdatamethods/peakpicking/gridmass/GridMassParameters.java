@@ -48,7 +48,7 @@ public class GridMassParameters extends SimpleParameterSet {
 
     public static final DoubleParameter minimumHeight = new DoubleParameter(
             "Minimum height",
-            "Minimum GLOBAL intensity of the highest data item in the mass. A value closer to 95% of the baseline-corrected distribution is recommended.",
+            "Minimum GLOBAL intensity of the highest data point in the mass. A value closer to 95% of the baseline-corrected distribution is recommended.",
             MZmineCore.getConfiguration().getMZFormat(), 20.0);
 
     public static final DoubleParameter mzTolerance = new DoubleParameter(

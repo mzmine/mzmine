@@ -48,7 +48,7 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
     public static final DoubleParameter minimumHeight = new DoubleParameter(
             "Min height",
-            "Minimum intensity of the highest data item in the chromatogram. If chromatogram height is below this level, it is discarded.",
+            "Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.",
             MZmineCore.getConfiguration().getIntensityFormat());
 
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();

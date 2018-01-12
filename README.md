@@ -7,7 +7,7 @@ More information about the software can be found on the [MZmine](http://mzmine.g
 
 ## Java version
 
-MZmine requires Java runtime (JRE) version 1.7 or newer.
+MZmine requires Java runtime (JRE) version 1.8 or newer.
 
 ## License
 MZmine 2 is a free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either [version 2](http://www.gnu.org/licenses/gpl-2.0.html) of the License, or (at your option) any [later version](http://www.gnu.org/licenses/gpl.html).
@@ -23,6 +23,5 @@ Please read our brief [tutorial](http://mzmine.github.io/development.html) on ho
 ### Code style
 
 Since this is a collaborative project, please adhere to the following code formatting conventions:
-* All Java sources should be formatted according to the official [Java Code Conventions](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html) with only one adjustment: use spaces for indentation instead of tabs
-* You can use the `mzmine-eclipse-code-formater.xml` file to automatically format your code in the Eclipse IDE
+* We use the Google Java Style Guide (https://github.com/google/styleguide)
 * Please write JavaDoc comments as full sentences, starting with a capital letter and ending with a period. Brevity is preferred (e.g., "Calculates standard deviation" is preferred over "This method calculates and returns a standard deviation of given set of numbers").

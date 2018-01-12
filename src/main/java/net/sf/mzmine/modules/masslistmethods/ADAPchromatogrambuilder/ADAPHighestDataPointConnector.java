@@ -35,17 +35,17 @@ import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-public class HighestDataPointConnector {
+public class ADAPHighestDataPointConnector {
 
     private final MZTolerance mzTolerance;
     private final double minimumTimeSpan, minimumHeight;
     private final RawDataFile dataFile;
     private final int allScanNumbers[];
 
-    // Mapping of last data item m/z --> chromatogram
-    private Set<Chromatogram> buildingChromatograms;
+    // Mapping of last data point m/z --> chromatogram
+    private Set<ADAPChromatogram> buildingChromatograms;
 
-    public HighestDataPointConnector(RawDataFile dataFile, int allScanNumbers[],
+    public ADAPHighestDataPointConnector(RawDataFile dataFile, int allScanNumbers[],
             double minimumTimeSpan, double minimumHeight,
             MZTolerance mzTolerance) {
 
@@ -58,7 +58,7 @@ public class HighestDataPointConnector {
         // We use LinkedHashSet to maintain a reproducible ordering. If we use
         // plain HashSet, the resulting peak list row IDs will have different
         // order every time the method is invoked.
-        buildingChromatograms = new LinkedHashSet<Chromatogram>();
+        buildingChromatograms = new LinkedHashSet<ADAPChromatogram>();
 
     }
 
@@ -69,15 +69,15 @@ public class HighestDataPointConnector {
                 SortingDirection.Descending));
 
         // Set of already connected chromatograms in each iteration
-        Set<Chromatogram> connectedChromatograms = new LinkedHashSet<Chromatogram>();
+        Set<ADAPChromatogram> connectedChromatograms = new LinkedHashSet<ADAPChromatogram>();
 
         // TODO: these two nested cycles should be optimized for speed
         for (DataPoint mzPeak : mzValues) {
 
-            // Search for best chromatogram, which has highest last data item
-            Chromatogram bestChromatogram = null;
+            // Search for best chromatogram, which has highest last data point
+            ADAPChromatogram bestChromatogram = null;
 
-            for (Chromatogram testChrom : buildingChromatograms) {
+            for (ADAPChromatogram testChrom : buildingChromatograms) {
 
                 DataPoint lastMzPeak = testChrom.getLastMzPeak();
                 Range<Double> toleranceRange = mzTolerance
@@ -100,7 +100,7 @@ public class HighestDataPointConnector {
                     continue;
                 }
             } else {
-                bestChromatogram = new Chromatogram(dataFile, allScanNumbers);
+                bestChromatogram = new ADAPChromatogram(dataFile, allScanNumbers);
             }
 
             // Add this mzPeak to the chromatogram
@@ -112,7 +112,7 @@ public class HighestDataPointConnector {
         }
 
         // Process those chromatograms which were not connected to any m/z peak
-        for (Chromatogram testChrom : buildingChromatograms) {
+        for (ADAPChromatogram testChrom : buildingChromatograms) {
 
             // Skip those which were connected
             if (connectedChromatograms.contains(testChrom)) {
@@ -145,15 +145,15 @@ public class HighestDataPointConnector {
 
     }
 
-    public Chromatogram[] finishChromatograms() {
+    public ADAPChromatogram[] finishChromatograms() {
 
         // Iterate through current chromatograms and remove those which do not
         // contain any committed segment nor long-enough building segment
 
-        Iterator<Chromatogram> chromIterator = buildingChromatograms.iterator();
+        Iterator<ADAPChromatogram> chromIterator = buildingChromatograms.iterator();
         while (chromIterator.hasNext()) {
 
-            Chromatogram chromatogram = chromIterator.next();
+            ADAPChromatogram chromatogram = chromIterator.next();
 
             if (chromatogram.getBuildingSegmentLength() >= minimumTimeSpan) {
                 chromatogram.commitBuildingSegment();
@@ -175,8 +175,8 @@ public class HighestDataPointConnector {
         }
 
         // All remaining chromatograms are good, so we can return them
-        Chromatogram[] chromatograms = buildingChromatograms
-                .toArray(new Chromatogram[0]);
+        ADAPChromatogram[] chromatograms = buildingChromatograms
+                .toArray(new ADAPChromatogram[0]);
         return chromatograms;
     }
 
