@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -31,6 +32,7 @@ import java.awt.event.ActionListener;
 public abstract class AlgorithmSupplier implements ActionListener {
 
     protected ParameterSet parameters = null;
+    protected DataProvider dataProvider;
 
     public abstract String getName();
 
@@ -39,6 +41,7 @@ public abstract class AlgorithmSupplier implements ActionListener {
     public abstract JPanel getPanel();
 
     public void updateData(@Nonnull DataProvider dataProvider) {
+        this.dataProvider = dataProvider;
         this.parameters = dataProvider.getParameterSet();
     }
 }

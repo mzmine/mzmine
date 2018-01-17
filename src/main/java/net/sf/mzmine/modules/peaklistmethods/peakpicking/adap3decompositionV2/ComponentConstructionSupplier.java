@@ -96,7 +96,14 @@ public class ComponentConstructionSupplier extends AlgorithmSupplier
     public JPanel getPanel() {return pnlPlotXY;}
 
     @Override
-    public void actionPerformed(ActionEvent ae) {}
+    public void actionPerformed(ActionEvent ae)
+    {
+        Object source = ae.getSource();
+
+        if (source.equals(cboClusters)) {
+            constructComponents(cboClusters.getItemAt(cboClusters.getSelectedIndex()));
+        }
+    }
 
     @Override
     public void updateData(@Nonnull DataProvider dataProvider)
@@ -115,9 +122,9 @@ public class ComponentConstructionSupplier extends AlgorithmSupplier
             cboClusters.setSelectedIndex(0);
     }
 
-    private void constructComponents(@Nonnull RetTimeClusterer.Cluster cluster, @Nonnull DataProvider dataProvider)
+    private void constructComponents(@Nonnull RetTimeClusterer.Cluster cluster)
     {
-        if (parameters == null) return;
+        if (parameters == null || dataProvider == null) return;
 
         final Double retTimeTolerance = parameters.getParameter(RT_TOLERANCE).getValue();
 
@@ -126,7 +133,7 @@ public class ComponentConstructionSupplier extends AlgorithmSupplier
         List<BetterComponent> components =
                 new ComponentSelector(cluster, dataProvider.getChromatograms(true), retTimeTolerance).run();
 
-
+        plot.updateData(dataProvider.getChromatograms(false), components);
     }
 
 
