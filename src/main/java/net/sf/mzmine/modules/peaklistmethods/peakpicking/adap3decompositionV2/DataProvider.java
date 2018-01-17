@@ -19,25 +19,33 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import com.google.common.collect.Range;
+import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Chromatogram;
+import dulab.adap.datamodel.Peak;
+import dulab.adap.datamodel.PeakInfo;
 import dulab.adap.workflow.decomposition.PeakDetector;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.awt.event.ComponentAdapter;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Du-Lab Team dulab.binf@gmail.com
  */
 public class DataProvider
 {
+    private final Logger log = Logger.getLogger(DataProvider.class.getName());
+
     private final ParameterSet parameters;
+
+    private List<BetterPeak> chromatograms = new ArrayList<>();
 
     private RetTimeClusterer.Item[] ranges = new RetTimeClusterer.Item[0];
 
@@ -48,6 +56,61 @@ public class DataProvider
     }
 
     public ParameterSet getParameterSet() {return parameters;}
+
+    public PeakList getPeakList() {
+        return MZmineCore.getDesktop().getSelectedPeakLists()[0];
+    }
+
+    public List<BetterPeak> getChromatograms(boolean recalculate)
+    {
+        PeakList peakList = getPeakList();
+
+        if (chromatograms.isEmpty() || recalculate)
+        {
+            chromatograms.clear();
+            for (PeakListRow row : peakList.getRows())
+            {
+                Feature peak = row.getBestPeak();
+                int[] scanNumbers = peak.getScanNumbers();
+
+                double[] retTimes = Arrays.stream(scanNumbers)
+                        .mapToDouble(s -> peak.getDataFile().getScan(s).getRetentionTime()).toArray();
+                double[] intensities = Arrays.stream(scanNumbers)
+                        .mapToObj(peak::getDataPoint)
+                        .mapToDouble(p -> p != null ? p.getIntensity() : 0.0).toArray();
+                Chromatogram chromatogram = new Chromatogram(retTimes, intensities);
+
+                if (chromatogram.length <= 1) continue;
+
+                // Fill out PeakInfo
+                PeakInfo info = new PeakInfo();
+                try {
+                    // Note: info.peakID is the index of PeakListRow in PeakList.peakListRows (starts from 0)
+                    //       row.getID is row.myID (starts from 1)
+                    info.peakID = row.getID() - 1;
+                    info.peakIndex = Arrays.stream(scanNumbers)
+                            .filter(s -> peak.getDataPoint(s) != null)
+                            .boxed()
+                            .max(Comparator.comparing(s -> peak.getDataPoint(s).getIntensity()))
+                            .orElseThrow(Exception::new);
+                    info.leftApexIndex = scanNumbers[0];
+                    info.rightApexIndex = scanNumbers[scanNumbers.length - 1];
+                    info.retTime = peak.getRT();
+                    info.mzValue = peak.getMZ();
+                    info.intensity = peak.getHeight();
+                    info.leftPeakIndex = info.leftApexIndex;
+                    info.rightPeakIndex = info.rightApexIndex;
+                }
+                catch (Exception e) {
+                    log.info("Skipping " + row + ": " + e.getMessage());
+                    continue;
+                }
+
+                chromatograms.add(new BetterPeak(chromatogram, info));
+            }
+        }
+        return chromatograms;
+    }
 
     public RetTimeClusterer.Item[] getRanges(boolean recalculate)
     {
@@ -62,9 +125,9 @@ public class DataProvider
 
             PeakDetector peakDetector = new PeakDetector(numSmoothPoints, minPeakHeight, durationRange);
 
-            PeakList chromatograms = MZmineCore.getDesktop().getSelectedPeakLists()[0];
+            PeakList peakList = getPeakList();
 
-            ranges = Arrays.stream(chromatograms.getRows())
+            ranges = Arrays.stream(peakList.getRows())
                     .parallel()
                     .map(PeakListRow::getBestPeak)
                     .flatMap(c -> peakDetector.run(new Chromatogram(
@@ -83,8 +146,8 @@ public class DataProvider
     {
         if (windows.isEmpty() || recalculate)
         {
-            Double prefWindowWidth = parameters.getParameter(WindowDetectionSupplier.PREF_WINDOW_WIDTH).getValue();
-            Integer minNumPeaks = parameters.getParameter(WindowDetectionSupplier.MIN_NUM_PEAKS).getValue();
+            Double prefWindowWidth = parameters.getParameter(WindowSelectionSupplier.PREF_WINDOW_WIDTH).getValue();
+            Integer minNumPeaks = parameters.getParameter(WindowSelectionSupplier.MIN_NUM_PEAKS).getValue();
 
             if (prefWindowWidth == null || minNumPeaks == null)
                 return windows;

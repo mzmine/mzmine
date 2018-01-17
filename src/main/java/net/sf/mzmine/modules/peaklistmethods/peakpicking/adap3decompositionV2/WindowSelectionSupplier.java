@@ -20,7 +20,6 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.util.GUIUtils;
@@ -32,15 +31,17 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
+import java.util.List;
 
 /**
  * @author Du-Lab Team dulab.binf@gmail.com
  */
-public class WindowDetectionSupplier extends AlgorithmSupplier
+public class WindowSelectionSupplier extends AlgorithmSupplier
 {
     private static final String NAME = "Window Detection";
 
@@ -57,11 +58,11 @@ public class WindowDetectionSupplier extends AlgorithmSupplier
     private static final Parameter<?>[] PARAMETERS = new Parameter<?>[] {PREF_WINDOW_WIDTH, MIN_NUM_PEAKS};
 
     private final JPanel pnlPlotXY;
+    private final Plot plot;
 
-    WindowDetectionSupplier()
+    WindowSelectionSupplier()
     {
-        // TIC plot.
-        ChartPanel plot = new Plot();
+        plot = new Plot();
 //        plot.setMinimumSize(MINIMUM_TIC_DIMENSIONS);
 
         // Panel for XYPlot.
@@ -84,16 +85,12 @@ public class WindowDetectionSupplier extends AlgorithmSupplier
     public void actionPerformed(ActionEvent ae) {}
 
     @Override
-    public void updateData(DataProvider dataProvider)
+    public void updateData(@Nonnull DataProvider dataProvider)
     {
-        ParameterSet parameterSet = dataProvider.getParameterSet();
+        super.updateData(dataProvider);
 
-
-        RetTimeClusterer.Item[] ranges = dataProvider.getRanges(false);
-
-
-
-        RetTimeClusterer clusterer = new RetTimeClusterer()
+        List<RetTimeClusterer.Cluster> clusters = dataProvider.getWindows(true);
+        plot.updateData(clusters);
     }
 
 
@@ -136,9 +133,6 @@ public class WindowDetectionSupplier extends AlgorithmSupplier
                 }
             };
 
-//        renderer.setDotHeight(3);
-//        renderer.setDotWidth(3);
-//        renderer.setBaseShapesVisible(false);
             renderer.setDefaultShapesVisible(false);
 
             plot = new XYPlot(xyDataset, xAxis, yAxis, renderer);
@@ -155,7 +149,7 @@ public class WindowDetectionSupplier extends AlgorithmSupplier
             super.setChart(chart);
         }
 
-        void updateData() {
+        void updateData(@Nonnull List<RetTimeClusterer.Cluster> clusters) {
             xyDataset.removeAllSeries();
             xyDataset.setNotify(false);
 

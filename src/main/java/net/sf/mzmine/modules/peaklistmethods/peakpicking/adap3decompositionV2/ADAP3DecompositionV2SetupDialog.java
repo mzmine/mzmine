@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
+import java.util.Iterator;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 
@@ -57,6 +58,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
      */
     private enum CHANGE_STATE {NONE, FIRST_PHASE, SECOND_PHASE}
 
+    private final DataProvider dataProvider;
+
     /**
      * Elements of the interface
      */
@@ -86,6 +89,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         PeakList[] peakLists = parameters.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
                 .getValue().getMatchingPeakLists();
+
+        dataProvider = new DataProvider(parameters);
 
 //        if (peakLists.length == 0)
 //            throw new IllegalArgumentException("At least one peak list has to be chosen");
@@ -194,7 +199,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
                         GridBagConstraints.BOTH);
 
                 for (AlgorithmSupplier s : ADAP3DecompositionV2Parameters.SUPPLIERS)
-                    s.updateData(MZmineCore.getDesktop().getSelectedPeakLists()[0], parameterSet);
+                    s.updateData(dataProvider);
 //                pnlUIElements.add(pnlComboBoxes, BorderLayout.CENTER);
 //                pnlUIElements.add(progressBar, BorderLayout.SOUTH);
 
@@ -234,15 +239,13 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         Parameter parameter = getChangedParameter();
 
-        for (Parameter p : ADAP3DecompositionV2Parameters.windowDetectionSupplier.getParameters())
-            if (p == parameter)
-                ADAP3DecompositionV2Parameters.windowDetectionSupplier.updateData(data);
-
-        for (AlgorithmSupplier s : ADAP3DecompositionV2Parameters.SUPPLIERS) {
-            for (Parameter p : s.getParameters())
+        AlgorithmSupplier[] suppliers = ADAP3DecompositionV2Parameters.SUPPLIERS;
+        for (int i = 0; i < suppliers.length; ++i)
+            for (Parameter p : suppliers[i].getParameters())
                 if (p == parameter)
-                    s.updateData(MZmineCore.getDesktop().getSelectedPeakLists()[0], parameterSet);
-        }
+                    while (i < suppliers.length)
+                        suppliers[i++].updateData(dataProvider);
+
 
 //        Cursor cursor = this.getCursor();
 //        this.setCursor(WAIT_CURSOR);
@@ -440,7 +443,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
     {
         Parameter[] parameters = parameterSet.getParameters();
         for (int i = 0; i < currentParameters.length; ++i)
-            if (currentParameters[i] != parameters[i].getValue()) {
+            if (currentParameters[i] == null || !currentParameters[i].equals(parameters[i].getValue())) {
                 currentParameters[i] = parameters[i].getValue();
                 return parameters[i];
             }

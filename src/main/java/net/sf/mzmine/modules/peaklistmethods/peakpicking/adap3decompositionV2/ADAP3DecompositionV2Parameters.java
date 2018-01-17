@@ -24,6 +24,7 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jfree.chart.ChartPanel;
 
 /**
  *
@@ -81,11 +82,12 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 //	    "Remove original peak list",
 //	    "If checked, original chromatogram will be removed and only the deconvolved version remains");
 
-    static final PeakDetectionSupplier peakDetectionSupplier = new PeakDetectionSupplier();
-    static final WindowDetectionSupplier windowDetectionSupplier = new WindowDetectionSupplier();
+    private static final PeakDetectionSupplier PEAK_DETECTION_SUPPLIER = new PeakDetectionSupplier();
+    private static final WindowSelectionSupplier WINDOW_SELECTION_SUPPLIER = new WindowSelectionSupplier();
+    private static final AlgorithmSupplier COMPONENT_CONSTRUCTION_SUPPLIER = new ComponentConstructionSupplier();
 
     static final AlgorithmSupplier[] SUPPLIERS = new AlgorithmSupplier[] {
-            peakDetectionSupplier, windowDetectionSupplier};
+            PEAK_DETECTION_SUPPLIER, WINDOW_SELECTION_SUPPLIER, COMPONENT_CONSTRUCTION_SUPPLIER};
 
     public ADAP3DecompositionV2Parameters() {
 	    super(combineParameters());

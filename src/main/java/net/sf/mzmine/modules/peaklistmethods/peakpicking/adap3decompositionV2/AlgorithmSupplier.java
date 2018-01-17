@@ -38,7 +38,7 @@ public abstract class AlgorithmSupplier implements ActionListener {
 
     public abstract JPanel getPanel();
 
-    public void updateData(@Nonnull Object o, @Nonnull ParameterSet parameters) {
-        this.parameters = parameters;
+    public void updateData(@Nonnull DataProvider dataProvider) {
+        this.parameters = dataProvider.getParameterSet();
     }
 }

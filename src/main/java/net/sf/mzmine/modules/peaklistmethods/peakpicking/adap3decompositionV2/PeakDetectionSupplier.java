@@ -30,11 +30,9 @@ import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.modules.visualization.tic.TICToolBar;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
-import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import org.jfree.data.xy.XYDataset;
 
@@ -42,7 +40,6 @@ import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.List;
 
@@ -70,8 +67,6 @@ public class PeakDetectionSupplier extends AlgorithmSupplier
 
     private static final Parameter<?>[] PARAMETERS = new Parameter<?>[] {
             NUM_SMOOTH_POINTS, MIN_PEAK_HEIGHT, DURATION_RANGE};
-
-    private ParameterSet parameters = null;
 
     private final JComboBox<PeakListRow> cboChromatograms;
     private final JPanel pnlPlotXY;
@@ -129,11 +124,11 @@ public class PeakDetectionSupplier extends AlgorithmSupplier
     }
 
     @Override
-    public void updateData(@Nonnull Object o, ParameterSet parameters)
+    public void updateData(@Nonnull DataProvider dataProvider)
     {
-        this.parameters = parameters;
+        super.updateData(dataProvider);
 
-        PeakList chromatogram = (PeakList) o;
+        PeakList chromatogram = dataProvider.getPeakList();
 
         cboChromatograms.removeActionListener(this);
         cboChromatograms.removeAllItems();
