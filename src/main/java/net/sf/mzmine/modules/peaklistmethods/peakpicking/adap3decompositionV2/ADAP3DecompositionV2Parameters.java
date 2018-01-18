@@ -20,30 +20,36 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 import java.awt.Window;
 
 import java.text.NumberFormat;
+import java.util.*;
 
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.*;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
 
+import javax.annotation.Nonnull;
+
 /**
  *
  * @author aleksandrsmirnov
  */
 public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
-    
-    
-    
-    public static final PeakListsParameter PEAK_LISTS = 
-            new PeakListsParameter();
+
+    public static final PeakListsParameter CHROMATOGRAM_LISTS =
+            new PeakListsParameter("Chromatograms", 1, Integer.MAX_VALUE);
+
+    public static final PeakListsParameter PEAK_LISTS =
+            new PeakListsParameter("Peaks", 1, Integer.MAX_VALUE);
     
     // ------------------------------------------------------------------------
     // ----- First-phase parameters -------------------------------------------
     // ------------------------------------------------------------------------
 
-    public static final ParameterSetParameter PEAK_DETECTOR_PARAMETERS =
-            new ParameterSetParameter("Peak detector", "", new MsDialPeakDetectorParameters());
+//    public static final ParameterSetParameter PEAK_DETECTOR_PARAMETERS =
+//            new ParameterSetParameter("Peak detector", "", new MsDialPeakDetectorParameters());
 
 
     public static final DoubleParameter MIN_CLUSTER_DISTANCE =
@@ -84,7 +90,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 	    "If checked, original chromatogram will be removed and only the deconvolved version remains");
     
     public ADAP3DecompositionV2Parameters() {
-	    super(new Parameter[] {PEAK_LISTS, PEAK_DETECTOR_PARAMETERS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE,
+	    super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE,
                 PEAK_SIMILARITY, SUFFIX, AUTO_REMOVE});
     }
     
@@ -98,4 +104,6 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
+
+
 }

@@ -35,6 +35,7 @@ import dulab.adap.workflow.decomposition.ComponentSelector;
 import dulab.adap.workflow.decomposition.Decomposition;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -70,12 +71,16 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
     /**
      * Elements of the interface
      */
+    private final JComponent cmpChromatograms =
+            getComponentForParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS);
+
     private JPanel pnlUIElements;
     private JPanel pnlComboBoxes;
     private JPanel pnlPlots;
     private JCheckBox chkPreview;
     private DefaultComboBoxModel<RetTimeClusterer.Cluster> comboClustersModel;
     private JComboBox<RetTimeClusterer.Cluster> cboClusters;
+    private JComboBox<ChromatogramPeakPair> cboPeakLists;
     private JProgressBar progressBar;
     private SimpleScatterPlot retTimeMZPlot;
     private EICPlot retTimeIntensityPlot;
@@ -144,13 +149,21 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         progressBar.setStringPainted(true);
         progressBar.setEnabled(true);
 
+        // ComboBox for Peak lists
+        cboPeakLists = new JComboBox<>();
+        cboPeakLists.setFont(COMBO_FONT);
+        for (ChromatogramPeakPair p : getChromatogramPeakPairs().values())
+            cboPeakLists.addItem(p);
+        cboPeakLists.addActionListener(this);
+
         // ComboBox with Clusters
         cboClusters = new JComboBox <> (comboClustersModel);
         cboClusters.setFont(COMBO_FONT);
         cboClusters.addActionListener(this);
 
-        pnlComboBoxes = GUIUtils.makeTablePanel(1, 2,
-                new JComponent[] {new JLabel("Clusters"), cboClusters});
+        pnlComboBoxes = GUIUtils.makeTablePanel(2, 2, new JComponent[] {
+                new JLabel("Peak Lists"), cboPeakLists,
+                new JLabel("Clusters"), cboClusters});
         
         // --------------------------------------------------------------------
         // ----- Panel with plots --------------------------------------
@@ -203,10 +216,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
                 pnlUIElements.add(pnlComboBoxes, BorderLayout.CENTER);
                 pnlUIElements.add(progressBar, BorderLayout.SOUTH);
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {retTimeCluster();}
-                }).start();
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {retTimeCluster();}
+//                }).start();
             }
             else {
                 mainPanel.remove(pnlPlots);
@@ -223,7 +236,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             Cursor cursor = this.getCursor();
             this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 
-            shapeCluster();
+//            shapeCluster();
 
             this.setCursor(cursor);
         }
@@ -243,11 +256,11 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         switch (compareParameters(parameterSet.getParameters()))
         {
             case FIRST_PHASE:
-                retTimeCluster();
+//                retTimeCluster();
                 break;
             
             case SECOND_PHASE:
-                shapeCluster();
+//                shapeCluster();
                 break;
         }
 
@@ -258,128 +271,128 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
      * Cluster all peaks in PeakList based on retention time
      */
     
-    private void retTimeCluster()
-    {
-        ParameterSet peakDetectorParameters = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
-        Double minDistance = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-        Integer minSize = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-
-        if (peakDetectorParameters == null || minDistance == null || minSize == null) return;
-
-        List<RetTimeClusterer.Item> ranges = new ArrayList<>();
-        progressBar.setString("Performing peak detection...");
-        progressBar.setVisible(true);
-        for (int i = 0; i < chromatograms.size(); ++i) {
-            BetterPeak c = chromatograms.get(i);
-            ranges.addAll(MsDialPeakDetector.findPeakRanges(c.chromatogram, c.mzValue, peakDetectorParameters));
-            progressBar.setValue(100 * i / chromatograms.size());
-        }
-        progressBar.setValue(0);
-        progressBar.setVisible(false);
-
-        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize)
-                .execute(ranges.toArray(new RetTimeClusterer.Item[ranges.size()]));
-
-        int colorIndex = 0;
-        final int numColors = 7;
-        final double[] colors = new double[numColors];
-        for (int i = 0; i < numColors; ++i) colors[i] = (double) i / numColors;
-        
-        comboClustersModel.removeAllElements();
-        
-        // Disable action listeners
-        ActionListener[] comboListeners = cboClusters.getActionListeners();
-        for (ActionListener l : comboListeners) 
-            cboClusters.removeActionListener(l);
-
-        List <Double> retTimeValues = new ArrayList <> ();
-        List <Double> mzValues = new ArrayList <> ();
-        List <Double> colorValues = new ArrayList <> ();
-
-        for (RetTimeClusterer.Cluster cluster : retTimeClusters)
-        {
-            for (RetTimeClusterer.Item range : cluster.ranges) {
-                retTimeValues.add(range.getValue());
-                mzValues.add(range.getMZ());
-                colorValues.add(colors[colorIndex % numColors]);
-            }
-            
-            ++colorIndex;
-            
-            int i;
-            
-            for (i = 0; i < comboClustersModel.getSize(); ++i)
-            {
-                double retTime = comboClustersModel.getElementAt(i).retTime;
-                if (cluster.retTime < retTime) {
-                    comboClustersModel.insertElementAt(cluster, i);
-                    break;
-                }
-            }
-            
-            if (i == comboClustersModel.getSize())
-                comboClustersModel.addElement(cluster);
-        }
-        
-        // Enable action listeners
-        for (ActionListener l : comboListeners) 
-            cboClusters.addActionListener(l);
-
-        final int size = retTimeValues.size();
-
-        retTimeMZPlot.updateData(retTimeClusters);
-
-        shapeCluster();
-    }
+//    private void retTimeCluster()
+//    {
+////        PeakList chromatogramList = parameterSet.getParameter(
+////                ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
+//        Double minDistance = parameterSet.getParameter(
+//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
+//        Integer minSize = parameterSet.getParameter(
+//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+//
+//        if (minDistance == null || minSize == null) return;
+//
+////        List<RetTimeClusterer.Item> ranges = new ArrayList<>();
+////        progressBar.setString("Performing peak detection...");
+////        progressBar.setVisible(true);
+////        for (int i = 0; i < chromatograms.size(); ++i) {
+////            BetterPeak c = chromatograms.get(i);
+////            ranges.addAll(MsDialPeakDetector.findPeakRanges(c.chromatogram, c.mzValue, peakDetectorParameters));
+////            progressBar.setValue(100 * i / chromatograms.size());
+////        }
+////        progressBar.setValue(0);
+////        progressBar.setVisible(false);
+//
+////        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize)
+////                .execute(ranges.toArray(new RetTimeClusterer.Item[ranges.size()]));
+//
+//        int colorIndex = 0;
+//        final int numColors = 7;
+//        final double[] colors = new double[numColors];
+//        for (int i = 0; i < numColors; ++i) colors[i] = (double) i / numColors;
+//
+//        comboClustersModel.removeAllElements();
+//
+//        // Disable action listeners
+//        ActionListener[] comboListeners = cboClusters.getActionListeners();
+//        for (ActionListener l : comboListeners)
+//            cboClusters.removeActionListener(l);
+//
+//        List <Double> retTimeValues = new ArrayList <> ();
+//        List <Double> mzValues = new ArrayList <> ();
+//        List <Double> colorValues = new ArrayList <> ();
+//
+//        for (RetTimeClusterer.Cluster cluster : retTimeClusters)
+//        {
+//            for (RetTimeClusterer.Item range : cluster.ranges) {
+//                retTimeValues.add(range.getValue());
+//                mzValues.add(range.getMZ());
+//                colorValues.add(colors[colorIndex % numColors]);
+//            }
+//
+//            ++colorIndex;
+//
+//            int i;
+//
+//            for (i = 0; i < comboClustersModel.getSize(); ++i)
+//            {
+//                double retTime = comboClustersModel.getElementAt(i).retTime;
+//                if (cluster.retTime < retTime) {
+//                    comboClustersModel.insertElementAt(cluster, i);
+//                    break;
+//                }
+//            }
+//
+//            if (i == comboClustersModel.getSize())
+//                comboClustersModel.addElement(cluster);
+//        }
+//
+//        // Enable action listeners
+//        for (ActionListener l : comboListeners)
+//            cboClusters.addActionListener(l);
+//
+//        final int size = retTimeValues.size();
+//
+//        retTimeMZPlot.updateData(retTimeClusters);
+//
+//        shapeCluster();
+//    }
     
     /**
      * Cluster list of PeakInfo based on the chromatographic shapes
      */
-    private void shapeCluster()
-    {
-        final RetTimeClusterer.Cluster cluster = (RetTimeClusterer.Cluster) cboClusters.getSelectedItem();
-
-        if (cluster == null) return;
-
-//        retTimeMZPlot.setDomain(cluster.clusterRange);
-
-//        if (cluster.ranges.size() > MAX_NUMBER_OF_CLUSTER_PEAKS) {
-//            JOptionPane.showMessageDialog(this, "Large number of peaks in a cluster. Model peak selection is not displayed.");
-//            retTimeIntensityPlot.removeData();
+//    private void shapeCluster()
+//    {
+//        final RetTimeClusterer.Cluster cluster = (RetTimeClusterer.Cluster) cboClusters.getSelectedItem();
+//
+//        if (cluster == null) return;
+//
+////        retTimeMZPlot.setDomain(cluster.clusterRange);
+//
+////        if (cluster.ranges.size() > MAX_NUMBER_OF_CLUSTER_PEAKS) {
+////            JOptionPane.showMessageDialog(this, "Large number of peaks in a cluster. Model peak selection is not displayed.");
+////            retTimeIntensityPlot.removeData();
+////            return;
+////        }
+//
+//        ParameterSet peakDetectorParameters = parameterSet.getParameter(
+//                ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
+//
+//        if (peakDetectorParameters == null) return;
+//
+//        Double minClusterDistance = parameterSet.getParameter(
+//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
+//        Double shapeTolerance = parameterSet.getParameter(
+//                ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
+//        Range<Double> durationRange = peakDetectorParameters.getParameter(
+//                MsDialPeakDetectorParameters.PEAK_DURATION).getValue();
+//
+//        if (minClusterDistance == null || shapeTolerance == null || durationRange == null)
 //            return;
+//
+//        if (minClusterDistance <= 0 || shapeTolerance <= 0.0 || shapeTolerance >= 1.0)
+//            return;
+//
+//        List<BetterComponent> components = null;
+//        try {
+//            components = new ComponentSelector(cluster, chromatograms, shapeTolerance).run();
+//        } catch (Exception e) {
+//            e.printStackTrace();
 //        }
-
-        ParameterSet peakDetectorParameters = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
-
-        if (peakDetectorParameters == null) return;
-
-        Double minClusterDistance = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-        Double shapeTolerance = parameterSet.getParameter(
-                ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
-        Range<Double> durationRange = peakDetectorParameters.getParameter(
-                MsDialPeakDetectorParameters.PEAK_DURATION).getValue();
-
-        if (minClusterDistance == null || shapeTolerance == null || durationRange == null)
-            return;
-
-        if (minClusterDistance <= 0 || shapeTolerance <= 0.0 || shapeTolerance >= 1.0)
-            return;
-
-        List<BetterComponent> components = null;
-        try {
-            components = new ComponentSelector(cluster, chromatograms, shapeTolerance).run();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (components != null)
-            retTimeIntensityPlot.updateData(chromatograms, components);
-    }
+//
+//        if (components != null)
+//            retTimeIntensityPlot.updateData(chromatograms, components);
+//    }
     
     private CHANGE_STATE compareParameters(Parameter[] newValues)
     {
@@ -427,5 +440,50 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             currentParameters[i] = newValues[i].getValue();
         
         return result;
+    }
+
+    private Map<RawDataFile, ChromatogramPeakPair> getChromatogramPeakPairs()
+    {
+        Map<RawDataFile, ChromatogramPeakPair> pairs = new HashMap<>();
+
+        PeakList[] chromatograms = parameterSet.getParameter(ADAP3DecompositionV2Parameters.CHROMATOGRAM_LISTS)
+                .getValue().getMatchingPeakLists();
+        PeakList[] peaks = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
+                .getValue().getMatchingPeakLists();
+        if (chromatograms == null || chromatograms.length == 0 || peaks == null || peaks.length == 0)
+            return pairs;
+
+        Set<RawDataFile> dataFiles = new HashSet<>();
+        for (PeakList peakList : chromatograms)
+            dataFiles.add(peakList.getRawDataFile(0));
+        for (PeakList peakList : peaks)
+            dataFiles.add(peakList.getRawDataFile(0));
+
+        for (RawDataFile dataFile : dataFiles) {
+            PeakList chromatogram = Arrays.stream(chromatograms)
+                    .filter(c -> c.getRawDataFile(0) == dataFile).findFirst().orElse(null);
+            PeakList peak = Arrays.stream(peaks)
+                    .filter(c -> c.getRawDataFile(0) == dataFile).findFirst().orElse(null);
+            if (chromatogram != null && peak != null)
+                pairs.put(dataFile, new ChromatogramPeakPair(chromatogram, peak));
+        }
+
+        return pairs;
+    }
+
+
+    static class ChromatogramPeakPair {
+        public final PeakList chromatograms;
+        public final PeakList peaks;
+
+        public ChromatogramPeakPair(@Nonnull PeakList chromatograms, @Nonnull PeakList peaks) {
+            this.chromatograms = chromatograms;
+            this.peaks = peaks;
+        }
+
+        @Override
+        public String toString() {
+            return chromatograms.getName() + " / " + peaks.getName();
+        }
     }
 }

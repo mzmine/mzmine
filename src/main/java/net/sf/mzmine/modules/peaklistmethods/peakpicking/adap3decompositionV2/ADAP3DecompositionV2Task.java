@@ -244,25 +244,26 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         // ADAP Decomposition Parameters
         // -----------------------------
 
-        ParameterSet peakDetectorParameters = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
-
-        Decomposition.Parameters params = new Decomposition.Parameters();
-
-        params.numSmoothingPoints = peakDetectorParameters.getParameter(
-                MsDialPeakDetectorParameters.NUM_SMOOTHING_POINTS).getValue();
-        params.minPeakHeight = peakDetectorParameters.getParameter(
-                MsDialPeakDetectorParameters.MIN_PEAK_HEIGHT).getValue();
-        params.durationRange = peakDetectorParameters.getParameter(
-                MsDialPeakDetectorParameters.PEAK_DURATION).getValue();
-        params.prefWindowWidth = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-        params.minClusterSize = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-        params.retTimeTolerance = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
-        
-        return decomposition.run(params, peaks);
+//        ParameterSet peakDetectorParameters = this.parameters.getParameter(
+//                ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
+//
+//        Decomposition.Parameters params = new Decomposition.Parameters();
+//
+//        params.numSmoothingPoints = peakDetectorParameters.getParameter(
+//                MsDialPeakDetectorParameters.NUM_SMOOTHING_POINTS).getValue();
+//        params.minPeakHeight = peakDetectorParameters.getParameter(
+//                MsDialPeakDetectorParameters.MIN_PEAK_HEIGHT).getValue();
+//        params.durationRange = peakDetectorParameters.getParameter(
+//                MsDialPeakDetectorParameters.PEAK_DURATION).getValue();
+//        params.prefWindowWidth = this.parameters.getParameter(
+//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
+//        params.minClusterSize = this.parameters.getParameter(
+//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+//        params.retTimeTolerance = this.parameters.getParameter(
+//                ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
+//
+//        return decomposition.run(params, peaks);
+        return null;
     }
 
     @Nonnull
