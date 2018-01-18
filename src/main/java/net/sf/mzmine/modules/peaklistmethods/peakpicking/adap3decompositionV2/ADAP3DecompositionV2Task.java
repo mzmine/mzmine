@@ -256,11 +256,11 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 //        params.durationRange = peakDetectorParameters.getParameter(
 //                MsDialPeakDetectorParameters.PEAK_DURATION).getValue();
 //        params.prefWindowWidth = this.parameters.getParameter(
-//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
+//                ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
 //        params.minClusterSize = this.parameters.getParameter(
-//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+//                ADAP3DecompositionV2Parameters.MIN_NUM_PEAK).getValue();
 //        params.retTimeTolerance = this.parameters.getParameter(
-//                ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
+//                ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
 //
 //        return decomposition.run(params, peaks);
         return null;
