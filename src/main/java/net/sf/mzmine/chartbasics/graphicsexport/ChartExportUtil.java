@@ -41,6 +41,7 @@ import org.apache.batik.svggen.SVGGraphics2DIOException;
 import org.freehep.graphics2d.VectorGraphics;
 import org.freehep.graphicsio.emf.EMFGraphics2D;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.encoders.EncoderUtil;
@@ -121,7 +122,7 @@ public class ChartExportUtil {
       chart.revalidate();
       chart.repaint();
     }
-    writeChartToImage(chart.getChart(), sett);
+    writeChartToImage(chart.getChart(), sett, chart.getChartRenderingInfo());
     // reset size
     sett.setPixelSize(oldW, oldH);
   }
@@ -132,8 +133,9 @@ public class ChartExportUtil {
    * 
    * @param chart
    * @param sett
+ * @param chartRenderingInfo 
    */
-  private static void writeChartToImage(JFreeChart chart, GraphicsExportParameters sett)
+  private static void writeChartToImage(JFreeChart chart, GraphicsExportParameters sett, ChartRenderingInfo info)
       throws Exception {
     // Background color
     Paint saved = chart.getBackgroundPaint();
@@ -164,10 +166,10 @@ public class ChartExportUtil {
         writeChartToPDF(chart, size.width, size.height, f);
         break;
       case "PNG":
-        writeChartToPNG(chart, size.width, size.height, f, (int) sett.getDPI());
+        writeChartToPNG(chart, info, size.width, size.height, f, (int) sett.getDPI());
         break;
       case "JPG":
-        writeChartToJPEG(chart, size.width, size.height, f, (int) sett.getDPI());
+        writeChartToJPEG(chart, info, size.width, size.height, f, (int) sett.getDPI());
         break;
       case "EPS":
         writeChartToEPS(chart, size.width, size.height, f);
@@ -235,19 +237,19 @@ public class ChartExportUtil {
 
   // ######################################################################################
   // PIXELS: JPG PNG
-  public static void writeChartToPNG(JFreeChart chart, int width, int height, File fileName)
+  public static void writeChartToPNG(JFreeChart chart, ChartRenderingInfo info, int width, int height, File fileName)
       throws IOException {
-    ChartUtils.saveChartAsPNG(fileName, chart, width, height);
+    ChartUtils.saveChartAsPNG(fileName, chart, width, height, info);
   }
 
-  public static void writeChartToPNG(JFreeChart chart, int width, int height, File fileName,
+  public static void writeChartToPNG(JFreeChart chart, ChartRenderingInfo info, int width, int height, File fileName,
       int resolution) throws IOException {
     if (resolution == 72)
-      writeChartToPNG(chart, width, height, fileName);
+      writeChartToPNG(chart, info, width, height, fileName);
     else {
       OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName));
       try {
-        BufferedImage image = paintScaledChartToBufferedImage(chart, out, width, height, resolution,
+        BufferedImage image = paintScaledChartToBufferedImage(chart, info, out, width, height, resolution,
             BufferedImage.TYPE_INT_ARGB);
         out.write(ChartUtils.encodeAsPNG(image));
       } finally {
@@ -261,7 +263,7 @@ public class ChartExportUtil {
     ChartUtils.saveChartAsJPEG(fileName, chart, width, height);
   }
 
-  public static void writeChartToJPEG(JFreeChart chart, int width, int height, File fileName,
+  public static void writeChartToJPEG(JFreeChart chart, ChartRenderingInfo info, int width, int height, File fileName,
       int resolution) throws IOException {
     // Background color
     Paint saved = chart.getBackgroundPaint();
@@ -284,7 +286,7 @@ public class ChartExportUtil {
     else {
       OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName));
       try {
-        BufferedImage image = paintScaledChartToBufferedImage(chart, out, width, height, resolution,
+        BufferedImage image = paintScaledChartToBufferedImage(chart, info, out, width, height, resolution,
             BufferedImage.TYPE_INT_RGB);
         EncoderUtil.writeBufferedImage(image, ImageFormat.JPEG, out, 1.f);
       } finally {
@@ -298,6 +300,7 @@ public class ChartExportUtil {
    * Paints a chart with scaling options
    * 
    * @param chart
+ * @param info 
    * @param out
    * @param width
    * @param height
@@ -305,7 +308,7 @@ public class ChartExportUtil {
    * @return BufferedImage of a given chart with scaling to resolution
    * @throws IOException
    */
-  private static BufferedImage paintScaledChartToBufferedImage(JFreeChart chart, OutputStream out,
+  private static BufferedImage paintScaledChartToBufferedImage(JFreeChart chart, ChartRenderingInfo info, OutputStream out,
       int width, int height, int resolution, int bufferedIType) throws IOException {
     Args.nullNotPermitted(out, "out");
     Args.nullNotPermitted(chart, "chart");
@@ -330,11 +333,11 @@ public class ChartExportUtil {
     if (scale) {
       AffineTransform saved = g2.getTransform();
       g2.transform(AffineTransform.getScaleInstance(scaleX, scaleY));
-      chart.draw(g2, new Rectangle2D.Double(0, 0, defaultWidth, defaultHeight), null, null);
+      chart.draw(g2, new Rectangle2D.Double(0, 0, defaultWidth, defaultHeight), info);
       g2.setTransform(saved);
       g2.dispose();
     } else {
-      chart.draw(g2, new Rectangle2D.Double(0, 0, defaultWidth, defaultHeight), null, null);
+      chart.draw(g2, new Rectangle2D.Double(0, 0, defaultWidth, defaultHeight), info);
     }
     return image;
   }
