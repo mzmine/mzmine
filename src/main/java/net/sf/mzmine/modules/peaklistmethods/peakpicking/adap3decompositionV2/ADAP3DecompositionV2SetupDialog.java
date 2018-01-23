@@ -344,7 +344,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         Double retTimeTolerance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
-        if (retTimeTolerance == null || retTimeTolerance <= 0.0 || retTimeTolerance >= 1.0)
+        if (retTimeTolerance == null || retTimeTolerance <= 0.0)
             return;
 
         List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(chromatogramList);

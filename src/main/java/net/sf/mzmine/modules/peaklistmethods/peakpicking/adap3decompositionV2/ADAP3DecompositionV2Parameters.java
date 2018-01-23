@@ -74,7 +74,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     public static final DoubleParameter RET_TIME_TOLERANCE = new DoubleParameter("Retention time tolerance",
             "Retention time tolerance value (between 0 and 1) is used for determine the number of components" +
                     " in a window. The larger tolerance, the smaller components are determined.",
-            NumberFormat.getNumberInstance(), 0.5, 0.0, 1.0);
+            NumberFormat.getNumberInstance(), 0.5, 0.0, Double.MAX_VALUE);
     
     // ------------------------------------------------------------------------
     // ----- End of Second-phase parameters -----------------------------------
