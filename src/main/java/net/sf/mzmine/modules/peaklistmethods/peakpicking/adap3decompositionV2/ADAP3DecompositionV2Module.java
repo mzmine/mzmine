@@ -18,9 +18,10 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import java.util.Collection;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -61,13 +62,10 @@ public class ADAP3DecompositionV2Module implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks)
     {
-        PeakList[] peakLists = parameters
-                .getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS).getValue()
-                .getMatchingPeakLists();
+        Map<RawDataFile, ChromatogramPeakPair> lists = ChromatogramPeakPair.fromParameterSet(parameters);
         
-        for (PeakList peakList : peakLists) {
-            Task newTask = new ADAP3DecompositionV2Task(project, peakList,
-                    parameters);
+        for (ChromatogramPeakPair pair : lists.values()) {
+            Task newTask = new ADAP3DecompositionV2Task(project, pair, parameters);
             tasks.add(newTask);
         }
         
