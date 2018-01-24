@@ -90,17 +90,6 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         currentParameters = new Object[size];
         for (int i = 0; i < size; ++i)
             currentParameters[i] = params[i].getValue();
-
-//        PeakList[] peakLists = parameters.getParameter(ADAP3DecompositionV2Parameters.PEAK_LISTS)
-//                .getValue().getMatchingPeakLists();
-
-//        if (peakLists.length == 0)
-//            throw new IllegalArgumentException("At least one peak list has to be chosen");
-
-//        if (peakLists.length > 0)
-//            chromatograms = new ADAP3DecompositionV2Utils().getPeaks(peakLists[0]);
-//        else
-//            chromatograms = new ArrayList<>(0);
     }
 
     /** Creates the interface elements */
@@ -283,28 +272,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         // Form clusters of ranges
         List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize).execute(ranges);
 
-//        int colorIndex = 0;
-//        final int numColors = 7;
-//        final double[] colors = new double[numColors];
-//        for (int i = 0; i < numColors; ++i) colors[i] = (double) i / numColors;
-
         cboClusters.removeAllItems();
         cboClusters.removeActionListener(this);
-
-//        List <Double> retTimeValues = new ArrayList <> ();
-//        List <Double> mzValues = new ArrayList <> ();
-//        List <Double> colorValues = new ArrayList <> ();
-
         for (RetTimeClusterer.Cluster cluster : retTimeClusters)
         {
-//            for (RetTimeClusterer.Item range : cluster.ranges) {
-//                retTimeValues.add(range.getValue());
-//                mzValues.add(range.getMZ());
-//                colorValues.add(colors[colorIndex % numColors]);
-//            }
-
-//            ++colorIndex;
-
             int i;
 
             for (i = 0; i < cboClusters.getItemCount(); ++i)
@@ -319,7 +290,6 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             if (i == cboClusters.getItemCount())
                 cboClusters.addItem(cluster);
         }
-
         cboClusters.addActionListener(this);
 
         retTimeMZPlot.updateData(retTimeClusters);

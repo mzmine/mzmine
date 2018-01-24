@@ -103,7 +103,7 @@ public class SpectraPlot extends EChartPanel {
         true, // isotopeFlag, // create legend?
         true, // generate tooltips?
         false // generate URLs?
-    ), true, true, true, true, true);
+    ), true, true, true, true, false);
 
     setBackground(Color.white);
     setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
