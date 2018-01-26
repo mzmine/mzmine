@@ -20,12 +20,12 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.*;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dulab.adap.workflow.decomposition.Decomposition;
+import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.*;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
@@ -47,27 +47,27 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     
     // Peak lists.
     private final MZmineProject project;
-    private final PeakList originalPeakList;
+    private final ChromatogramPeakPair originalLists;
     private PeakList newPeakList;
     private final Decomposition decomposition;
     
     // User parameters
     private final ParameterSet parameters;
     
-    ADAP3DecompositionV2Task(final MZmineProject project, final PeakList list,
+    ADAP3DecompositionV2Task(final MZmineProject project, final ChromatogramPeakPair lists,
                              final ParameterSet parameterSet)
     {
         // Initialize.
         this.project = project;
         parameters = parameterSet;
-        originalPeakList = list;
+        originalLists = lists;
         newPeakList = null;
         decomposition = new Decomposition();
     }
     
     @Override
     public String getTaskDescription() {
-        return "ADAP Peak decomposition on " + originalPeakList;
+        return "ADAP Peak decomposition on " + originalLists;
     }
     
     @Override
@@ -81,39 +81,37 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
             String errorMsg = null;
 
             setStatus(TaskStatus.PROCESSING);
-            LOG.info("Started ADAP Peak Decomposition on " + originalPeakList);
+            LOG.info("Started ADAP Peak Decomposition on " + originalLists);
 
             // Check raw data files.
-            if (originalPeakList.getNumberOfRawDataFiles() > 1) {
-
+            if (originalLists.chromatograms.getNumberOfRawDataFiles() > 1
+                    && originalLists.peaks.getNumberOfRawDataFiles() > 1)
+            {
                 setStatus(TaskStatus.ERROR);
                 setErrorMessage("Peak Decomposition can only be performed on peak lists with a single raw data file");
-
             } else {
                 
                 try {
                     
-//                    newPeakList = decomposePeaks(originalPeakList);
-//
-//                    if (!isCanceled()) {
-//
-//                        // Add new peaklist to the project.
-//                        project.addPeakList(newPeakList);
-//
-//                        // Add quality parameters to peaks
-//                        QualityParameters.calculateQualityParameters(newPeakList);
-//
-//                        // Remove the original peaklist if requested.
-//                        if (parameters.getParameter(
-//                                ADAP3DecompositionV2Parameters.AUTO_REMOVE).getValue())
-//                        {
-//                            project.removePeakList(originalPeakList);
-//                        }
-//
-//                        setStatus(TaskStatus.FINISHED);
-//                        LOG.info("Finished peak decomposition on "
-//                                + originalPeakList);
-//                    }
+                    newPeakList = decomposePeaks(originalLists);
+                    
+                    if (!isCanceled()) {
+
+                        // Add new peaklist to the project.
+                        project.addPeakList(newPeakList);
+
+                        // Add quality parameters to peaks
+                        QualityParameters.calculateQualityParameters(newPeakList);
+
+                        // Remove the original peaklist if requested.
+                        if (parameters.getParameter(ADAP3DecompositionV2Parameters.AUTO_REMOVE).getValue()) {
+                            project.removePeakList(originalLists.chromatograms);
+                            project.removePeakList(originalLists.peaks);
+                        }
+
+                        setStatus(TaskStatus.FINISHED);
+                        LOG.info("Finished peak decomposition on " + originalLists);
+                    }
                     
                 } catch (IllegalArgumentException e) {
                     errorMsg = "Incorrect Peak List selected:\n"
@@ -140,130 +138,120 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         }
     }
     
-//    private PeakList decomposePeaks(PeakList peakList)
-//            throws CloneNotSupportedException, IOException
-//    {
-//        RawDataFile dataFile = peakList.getRawDataFile(0);
-//
-//        // Create new peak list.
-//        final PeakList resolvedPeakList = new SimplePeakList(peakList + " "
-//                + parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX)
-//                        .getValue(), dataFile);
-//
-//        // Load previous applied methods.
-//        for (final PeakList.PeakListAppliedMethod method :
-//                peakList.getAppliedMethods())
-//        {
-//            resolvedPeakList.addDescriptionOfAppliedTask(method);
-//        }
-//
-//        // Add task description to peak list.
-//        resolvedPeakList
-//                .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-//                        "Peak deconvolution by ADAP-3", parameters));
-//
-//        // Collect peak information
-//        List<BetterPeak> peaks = new ADAP3DecompositionV2Utils().getPeaks(peakList);
-//
-//        // Find components (a.k.a. clusters of peaks with fragmentation spectra)
-//        List<BetterComponent> components = getComponents(peaks);
-//
-//        // Create PeakListRow for each components
-//        List <PeakListRow> newPeakListRows = new ArrayList <> ();
-//
-//        int rowID = 0;
-//
-//        for (final BetterComponent component : components)
-//        {
-//            if (component.spectrum.length == 0) continue;
-//
-//            // Create a reference peal
-//            Feature refPeak = getFeature(dataFile, component);
-//
-//            // Add spectrum
-//            List<DataPoint> dataPoints = new ArrayList <> ();
-//            for (int i = 0; i < component.spectrum.length; ++i) {
-//                double mz = component.spectrum.getMZ(i);
-//                double intensity = component.spectrum.getIntensity(i);
-//                if (intensity > 1e-3 * component.getIntensity())
-//                    dataPoints.add(new SimpleDataPoint(mz, intensity));
-//            }
-//
-//            if (dataPoints.size() < 5) continue;
-//
-//            refPeak.setIsotopePattern(new SimpleIsotopePattern(
-//                    dataPoints.toArray(new DataPoint[dataPoints.size()]),
-//                    IsotopePattern.IsotopePatternStatus.PREDICTED,
-//                    "Spectrum"));
-//
-//            PeakListRow row = new SimplePeakListRow(++rowID);
-//
-//            row.addPeak(dataFile, refPeak);
-//
-//            // Set row properties
-//            row.setAverageMZ(refPeak.getMZ());
-//            row.setAverageRT(refPeak.getRT());
-//
-//            // resolvedPeakList.addRow(row);
-//            newPeakListRows.add(row);
-//        }
-//
-//        // ------------------------------------
-//        // Sort new peak rows by retention time
-//        // ------------------------------------
-//
-//        Collections.sort(newPeakListRows, new Comparator <PeakListRow> () {
-//            @Override
-//            public int compare(PeakListRow row1, PeakListRow row2)
-//            {
-//                double retTime1 = row1.getAverageRT();
-//                double retTime2 = row2.getAverageRT();
-//
-//                return Double.compare(retTime1, retTime2);
-//            }
-//        });
-//
-//        for (PeakListRow row : newPeakListRows)
-//            resolvedPeakList.addRow(row);
-//
-//        return resolvedPeakList;
-//    }
+    private PeakList decomposePeaks(@Nonnull ChromatogramPeakPair lists)
+    {
+        RawDataFile dataFile = lists.chromatograms.getRawDataFile(0);
+        
+        // Create new peak list.
+        final PeakList resolvedPeakList = new SimplePeakList(lists.peaks + " "
+                + parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX).getValue(), dataFile);
+        
+        // Load previous applied methods.
+        for (final PeakList.PeakListAppliedMethod method : lists.peaks.getAppliedMethods()) {
+            resolvedPeakList.addDescriptionOfAppliedTask(method);
+        }
+
+        // Add task description to peak list.
+        resolvedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                        "Peak deconvolution by ADAP-3", parameters));
+        
+        // Collect peak information
+        List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(lists.chromatograms);
+        RetTimeClusterer.Item[] ranges = Arrays.stream(lists.peaks.getRows())
+                .map(PeakListRow::getBestPeak)
+                .map(p -> new RetTimeClusterer.Item(p.getRT(), p.getRawDataPointsRTRange(), p.getMZ()))
+                .toArray(RetTimeClusterer.Item[]::new);
+
+        // Find components (a.k.a. clusters of peaks with fragmentation spectra)
+        List<BetterComponent> components = getComponents(chromatograms, ranges);
+
+        // Create PeakListRow for each components
+        List <PeakListRow> newPeakListRows = new ArrayList <> ();
+
+        int rowID = 0;
+
+        for (final BetterComponent component : components)
+        {
+            if (component.spectrum.length == 0) continue;
+
+            // Create a reference peal
+            Feature refPeak = getFeature(dataFile, component);
+
+            // Add spectrum
+            List<DataPoint> dataPoints = new ArrayList <> ();
+            for (int i = 0; i < component.spectrum.length; ++i) {
+                double mz = component.spectrum.getMZ(i);
+                double intensity = component.spectrum.getIntensity(i);
+                if (intensity > 1e-3 * component.getIntensity())
+                    dataPoints.add(new SimpleDataPoint(mz, intensity));
+            }
+
+            if (dataPoints.size() < 5) continue;
+
+            refPeak.setIsotopePattern(new SimpleIsotopePattern(
+                    dataPoints.toArray(new DataPoint[dataPoints.size()]),
+                    IsotopePattern.IsotopePatternStatus.PREDICTED,
+                    "Spectrum"));
+
+            PeakListRow row = new SimplePeakListRow(++rowID);
+
+            row.addPeak(dataFile, refPeak);
+
+            // Set row properties
+            row.setAverageMZ(refPeak.getMZ());
+            row.setAverageRT(refPeak.getRT());
+             
+            // resolvedPeakList.addRow(row);
+            newPeakListRows.add(row);
+        }
+        
+        // ------------------------------------
+        // Sort new peak rows by retention time
+        // ------------------------------------
+        
+        newPeakListRows.sort(new Comparator<PeakListRow>() {
+            @Override
+            public int compare(PeakListRow row1, PeakListRow row2) {
+                double retTime1 = row1.getAverageRT();
+                double retTime2 = row2.getAverageRT();
+
+                return Double.compare(retTime1, retTime2);
+            }
+        });
+        
+        for (PeakListRow row : newPeakListRows)
+            resolvedPeakList.addRow(row);
+        
+        return resolvedPeakList;
+    }
     
 
     
     /**
      * Performs ADAP Peak Decomposition
      * 
-     * @param peaks list of Peaks
+     * @param chromatograms list of {@link BetterPeak} representing chromatograms
+     * @param ranges arrays of {@link RetTimeClusterer.Item} containing ranges of detected peaks
      * @return Collection of dulab.adap.Component objects
      */
     
-//    private List<BetterComponent> getComponents(List<BetterPeak> peaks)
-//    {
-//        // -----------------------------
-//        // ADAP Decomposition Parameters
-//        // -----------------------------
-//
-//        ParameterSet peakDetectorParameters = this.parameters.getParameter(
-//                ADAP3DecompositionV2Parameters.PEAK_DETECTOR_PARAMETERS).getValue();
-//
-//        Decomposition.Parameters params = new Decomposition.Parameters();
-//
-//        params.numSmoothingPoints = peakDetectorParameters.getParameter(
-//                MsDialPeakDetectorParameters.NUM_SMOOTHING_POINTS).getValue();
-//        params.minPeakHeight = peakDetectorParameters.getParameter(
-//                MsDialPeakDetectorParameters.MIN_PEAK_HEIGHT).getValue();
-//        params.durationRange = peakDetectorParameters.getParameter(
-//                MsDialPeakDetectorParameters.PEAK_DURATION).getValue();
-//        params.prefWindowWidth = this.parameters.getParameter(
-//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_DISTANCE).getValue();
-//        params.minClusterSize = this.parameters.getParameter(
-//                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
-//        params.retTimeTolerance = this.parameters.getParameter(
-//                ADAP3DecompositionV2Parameters.PEAK_SIMILARITY).getValue();
-//
-//        return decomposition.run(params, peaks);
-//    }
+    private List<BetterComponent> getComponents(List<BetterPeak> chromatograms, RetTimeClusterer.Item[] ranges)
+    {
+        // -----------------------------
+        // ADAP Decomposition Parameters
+        // -----------------------------
+
+        Decomposition.Parameters params = new Decomposition.Parameters();
+
+        params.prefWindowWidth = this.parameters.getParameter(
+                ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
+        params.minNumPeaks = this.parameters.getParameter(
+                ADAP3DecompositionV2Parameters.MIN_NUM_PEAK).getValue();
+        params.retTimeTolerance = this.parameters.getParameter(
+                ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
+
+        return decomposition.run(params, chromatograms, ranges);
+    }
 
     @Nonnull
     private Feature getFeature(@Nonnull RawDataFile file, @Nonnull BetterPeak peak)
