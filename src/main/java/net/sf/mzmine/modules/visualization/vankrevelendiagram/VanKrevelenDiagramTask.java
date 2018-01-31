@@ -125,7 +125,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
             XYPlot plot = (XYPlot) chart.getPlot();
             plot.setBackgroundPaint(Color.WHITE);
-            appliedSteps++;
+            appliedSteps++; 
 
             // set renderer
             XYBlockRenderer renderer = new XYBlockRenderer();
