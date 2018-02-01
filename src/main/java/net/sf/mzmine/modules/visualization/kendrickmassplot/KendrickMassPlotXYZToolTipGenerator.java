@@ -26,34 +26,47 @@ import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
-public class KendrickMassPlotXYZToolTipGenerator implements XYZToolTipGenerator {
+import net.sf.mzmine.datamodel.PeakListRow;
+
+public class KendrickMassPlotXYZToolTipGenerator
+        implements XYZToolTipGenerator {
 
     private String xAxisLabel, yAxisLabel, zAxisLabel;
     private NumberFormat numberFormatX = new DecimalFormat("####0.0000");
     private NumberFormat numberFormatY = new DecimalFormat("0.000");
+    private PeakListRow rows[];
+    private String featureIdentity;
 
-    public KendrickMassPlotXYZToolTipGenerator(String xAxisLabel, String yAxisLabel, String zAxisLabel){
+    public KendrickMassPlotXYZToolTipGenerator(String xAxisLabel,
+            String yAxisLabel, String zAxisLabel, PeakListRow rows[]) {
         super();
         this.xAxisLabel = xAxisLabel;
         this.yAxisLabel = yAxisLabel;
         this.zAxisLabel = zAxisLabel;
+        this.rows = rows;
 
     }
+
     @Override
     public String generateToolTip(XYZDataset dataset, int series, int item) {
-        return String.valueOf(xAxisLabel+": "+
-                numberFormatX.format(dataset.getXValue(series, item))+
-                " "+yAxisLabel+": "+
-                numberFormatY.format(dataset.getYValue(series, item))+
-                " "+zAxisLabel+": "+
-                numberFormatY.format(dataset.getZValue(series, item)));
+        featureIdentity = rows[item].getPreferredPeakIdentity()
+                .getDescription();
+        return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
+                + numberFormatX.format(dataset.getXValue(series, item)) + " "
+                + yAxisLabel + ": "
+                + numberFormatY.format(dataset.getYValue(series, item)) + " "
+                + zAxisLabel + ": "
+                + numberFormatY.format(dataset.getZValue(series, item)));
     }
+
     @Override
     public String generateToolTip(XYDataset dataset, int series, int item) {
-        return String.valueOf(xAxisLabel+": "+
-                numberFormatX.format(dataset.getXValue(series, item))+
-                " "+yAxisLabel+": "+
-                numberFormatY.format(dataset.getYValue(series, item)));
+        featureIdentity = rows[item].getPreferredPeakIdentity()
+                .getDescription();
+        return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
+                + numberFormatX.format(dataset.getXValue(series, item)) + " "
+                + yAxisLabel + ": "
+                + numberFormatY.format(dataset.getYValue(series, item)));
     }
 
 }

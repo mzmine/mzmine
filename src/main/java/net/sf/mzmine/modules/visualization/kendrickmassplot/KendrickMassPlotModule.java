@@ -33,10 +33,10 @@ import net.sf.mzmine.util.ExitCode;
 /**
  * Kendrick mass plot module
  */
-public class KendrickMassPlotModule implements MZmineProcessingModule{
+public class KendrickMassPlotModule implements MZmineProcessingModule {
 
     private static final String MODULE_NAME = "Kendrick mass plot";
-    private static final String MODULE_DESCRIPTION = "Kendrick mass plot."; 
+    private static final String MODULE_DESCRIPTION = "Kendrick mass plot.";
 
     @Override
     public @Nonnull String getName() {
@@ -56,10 +56,8 @@ public class KendrickMassPlotModule implements MZmineProcessingModule{
         Task newTask = new KendrickMassPlotTask(parameters);
         tasks.add(newTask);
 
-        return ExitCode.OK;  
+        return ExitCode.OK;
     }
-
-
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {

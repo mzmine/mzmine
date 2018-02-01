@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.awt.Window;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 
 import net.sf.mzmine.datamodel.PeakList;
@@ -28,6 +29,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -45,22 +47,28 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
     public static final RawDataFilesParameter rawFile = new RawDataFilesParameter();
 
     public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
-    
-    public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis",
-            "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
-            new String[] {"none",
-                    "Retention time",
-                    "Intensity",
-                    "Area",
-                    "Tailing factor",
-                    "Asymmetry factor",
-                    "FWHM",
-                    "m/z"});
 
+    public static final ComboParameter<String> zAxisValues = new ComboParameter<>(
+            "Z-Axis",
+            "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
+            new String[] { "none", "Retention time", "Intensity", "Area",
+                    "Tailing factor", "Asymmetry factor", "FWHM", "m/z" });
+    public static final ComboParameter<String> zScaleType = new ComboParameter<>(
+            "Z-Axis scale", "Select Z-Axis scale",
+            new String[] { "percentile", "custom" });
+
+    public static final DoubleRangeParameter zScaleRange = new DoubleRangeParameter(
+            "Range for z-Axis scale",
+            "Set the range for z-Axis scale."
+                    + " If percentile is used for z-Axis scale type, you can remove extreme values of the scale."
+                    + " E. g. type 0.5 and 99.5 to ignore the 0.5 smallest and 0.5 highest values. "
+                    + "If you choose custom, set ranges manually "
+                    + "Features out of scale range are displayed in magenta",
+            new DecimalFormat("##0.00"));
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public VanKrevelenDiagramParameters() {
-        super(new Parameter[] { peakList, rawFile, selectedRows, zAxisValues, 
+        super(new Parameter[] { peakList, rawFile, selectedRows, zAxisValues, zScaleType, zScaleRange,
                 windowSettings, });
     }
 

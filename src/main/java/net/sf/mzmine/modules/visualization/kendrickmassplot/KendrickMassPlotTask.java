@@ -49,19 +49,22 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-public class KendrickMassPlotTask  extends AbstractTask{
+public class KendrickMassPlotTask extends AbstractTask {
     /**
-     * Task to create a Kendrick mass plot of selected features
-     * of a selected feature list
+     * Task to create a Kendrick mass plot of selected features of a selected
+     * feature list
      */
-    static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
-    static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
+    static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
+    static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -73,26 +76,34 @@ public class KendrickMassPlotTask  extends AbstractTask{
     private String xAxisLabel;
     private String yAxisLabel;
     private String zAxisLabel;
+    private String zAxisScaleType;
+    private Range<Double> zScaleRange;
+    private PeakListRow rows[];
     private ParameterSet parameterSet;
     private int totalSteps = 3, appliedSteps = 0;
 
-
     public KendrickMassPlotTask(ParameterSet parameters) {
-        peakList = parameters
-                .getParameter(KendrickMassPlotParameters.peakList).getValue()
-                .getMatchingPeakLists()[0];
+        peakList = parameters.getParameter(KendrickMassPlotParameters.peakList)
+                .getValue().getMatchingPeakLists()[0];
 
         title = "Kendrick mass plot [" + peakList + "]";
         xAxisLabel = parameters
                 .getParameter(KendrickMassPlotParameters.xAxisValues)
                 .getValue();
-        yAxisLabel = parameters 
+        yAxisLabel = parameters
                 .getParameter(KendrickMassPlotParameters.yAxisValues)
                 .getValue();
         zAxisLabel = parameters
                 .getParameter(KendrickMassPlotParameters.zAxisValues)
                 .getValue();
+        zAxisScaleType = parameters
+                .getParameter(KendrickMassPlotParameters.zScaleType)
+                .getValue();
+        zScaleRange = parameters
+                .getParameter(KendrickMassPlotParameters.zScaleRange)
+                .getValue();
 
+        rows = peakList.getRows();
         parameterSet = parameters;
     }
 
@@ -115,19 +126,19 @@ public class KendrickMassPlotTask  extends AbstractTask{
             return;
 
         /**
-         *  create dataset
-         *  2D, if no third dimension was selected
+         * create dataset 2D, if no third dimension was selected
          */
-        if(zAxisLabel.equals("none")) {
+        if (zAxisLabel.equals("none")) {
             logger.info("Creating new 2D chart instance");
             appliedSteps++;
 
-            //load dataset
+            // load dataset
             dataset2D = new KendrickMassPlotXYDataset(parameterSet);
 
-            //create chart
-            chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel,
-                    dataset2D, PlotOrientation.VERTICAL, true, true, false);
+            // create chart
+            chart = ChartFactory.createScatterPlot(title, xAxisLabel,
+                    yAxisLabel, dataset2D, PlotOrientation.VERTICAL, true, true,
+                    false);
 
             XYPlot plot = (XYPlot) chart.getPlot();
             plot.setBackgroundPaint(Color.WHITE);
@@ -140,49 +151,76 @@ public class KendrickMassPlotTask  extends AbstractTask{
             double maxX = plot.getDomainAxis().getRange().getUpperBound();
             double maxY = plot.getRangeAxis().getRange().getUpperBound();
 
-            if(xAxisLabel.contains("KMD")) {
+            if (xAxisLabel.contains("KMD")) {
                 renderer.setBlockWidth(0.001);
-                renderer.setBlockHeight(renderer.getBlockWidth()/(maxX/maxY));
-            }
-            else {
+                renderer.setBlockHeight(
+                        renderer.getBlockWidth() / (maxX / maxY));
+            } else {
                 renderer.setBlockWidth(1);
-                renderer.setBlockHeight(renderer.getBlockWidth()/(maxX/maxY));
+                renderer.setBlockHeight(
+                        renderer.getBlockWidth() / (maxX / maxY));
             }
-            //set tooltip generator
-            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel);
+            // set tooltip generator
+            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(
+
+                    xAxisLabel, yAxisLabel, zAxisLabel, rows);
             renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
             plot.setRenderer(renderer);
         }
-        //3D, if a third dimension was selected
-        else{
+        // 3D, if a third dimension was selected
+        else {
             logger.info("Creating new 3D chart instance");
             appliedSteps++;
-            //load dataseta
+            // load dataseta
             dataset3D = new KendrickMassPlotXYZDataset(parameterSet);
 
-            //copy and sort z-Values for min and max of the paint scale
+            // copy and sort z-Values for min and max of the paint scale
             double[] copyZValues = new double[dataset3D.getItemCount(0)];
             for (int i = 0; i < dataset3D.getItemCount(0); i++) {
                 copyZValues[i] = dataset3D.getZValue(0, i);
             }
             Arrays.sort(copyZValues);
-            double min = copyZValues[0];
-            double max = copyZValues[copyZValues.length-1];
+            // get index in accordance to percentile windows
+            int minScaleIndex = 0;
+            int maxScaleIndex = copyZValues.length - 1;
+            double min = 0;
+            double max = 0;
 
-            //create chart
-            chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel,
-                    dataset3D, PlotOrientation.VERTICAL, true, true, false);
-            //set renderer
+            if (zAxisScaleType.equals("percentile")) {
+                minScaleIndex = (int) Math.round(copyZValues.length
+                        * (zScaleRange.lowerEndpoint() / 100));
+                maxScaleIndex = copyZValues.length
+                        - (int) (Math.round(copyZValues.length
+                                * ((100 - zScaleRange.upperEndpoint()) / 100)));
+                if (zScaleRange.upperEndpoint() == 100) {
+                    maxScaleIndex = copyZValues.length - 1;
+                }
+                if (zScaleRange.lowerEndpoint() == 0) {
+                    minScaleIndex = 0;
+                }
+                min = copyZValues[minScaleIndex];
+                max = copyZValues[maxScaleIndex];
+            }
+            if (zAxisScaleType.equals("custom")) {
+                min = zScaleRange.lowerEndpoint();
+                max = zScaleRange.upperEndpoint();
+            }
+
+            // create chart
+            chart = ChartFactory.createScatterPlot(title, xAxisLabel,
+                    yAxisLabel, dataset3D, PlotOrientation.VERTICAL, true, true,
+                    false);
+            // set renderer
             XYBlockRenderer renderer = new XYBlockRenderer();
             Paint[] contourColors = null;
             LookupPaintScale scale = null;
-            //create paint scale for thrid dimension
+            // create paint scale for third dimension
             contourColors = KendrickMassPlotPaintScales.getFullRainBowScale();
-            scale = new LookupPaintScale(min, max, Color.white);
-            double [] scaleValues = new double[contourColors.length];
-            double delta = (max - min)/(contourColors.length -1);
+            scale = new LookupPaintScale(min, max, Color.MAGENTA);
+            double[] scaleValues = new double[contourColors.length];
+            double delta = (max - min) / (contourColors.length - 1);
             double value = min;
-            for(int i=0; i<contourColors.length; i++){
+            for (int i = 0; i < contourColors.length; i++) {
                 scale.add(value, contourColors[i]);
                 scaleValues[i] = value;
                 value = value + delta;
@@ -193,15 +231,19 @@ public class KendrickMassPlotTask  extends AbstractTask{
             double maxX = plot.getDomainAxis().getRange().getUpperBound();
             double maxY = plot.getRangeAxis().getRange().getUpperBound();
 
-            if(xAxisLabel.contains("KMD")) {
+            if (xAxisLabel.contains("KMD")) {
                 renderer.setBlockWidth(0.001);
-                renderer.setBlockHeight(renderer.getBlockWidth()/(maxX/maxY));
-            }
-            else {
+                renderer.setBlockHeight(
+                        renderer.getBlockWidth() / (maxX / maxY));
+            } else {
                 renderer.setBlockWidth(1);
-                renderer.setBlockHeight(renderer.getBlockWidth()/(maxX/maxY));
+                renderer.setBlockHeight(
+                        renderer.getBlockWidth() / (maxX / maxY));
             }
-            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel);
+            System.out.println("Width: "+renderer.getBlockWidth()+
+                    "\n"+ "Height: "+renderer.getBlockHeight());
+            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(
+                    xAxisLabel, yAxisLabel, zAxisLabel, rows);
             renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
             plot.setRenderer(renderer);
             plot.setBackgroundPaint(Color.white);
@@ -210,12 +252,14 @@ public class KendrickMassPlotTask  extends AbstractTask{
             plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
             plot.setOutlinePaint(Color.black);
             plot.setBackgroundPaint(Color.white);
-            //Legend
+
+            // Legend
             NumberAxis scaleAxis = new NumberAxis(zAxisLabel);
             scaleAxis.setRange(min, max);
             scaleAxis.setAxisLinePaint(Color.white);
             scaleAxis.setTickMarkPaint(Color.white);
-            PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);//new PaintScaleLegend(new GrayPaintScale(), scaleAxis);
+            PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
+
             legend.setStripOutlineVisible(false);
             legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
             legend.setAxisOffset(5.0);
@@ -233,7 +277,7 @@ public class KendrickMassPlotTask  extends AbstractTask{
 
         chart.setBackgroundPaint(Color.white);
 
-        //Create Frame
+        // Create Frame
         JFrame frame = new JFrame();
 
         // create chart JPanel
@@ -263,8 +307,8 @@ public class KendrickMassPlotTask  extends AbstractTask{
     }
 
     /**
-     *  Experimental, fast scatter plot for faster processing
-     *  only possible for 2D datasets
+     * Experimental, fast scatter plot for faster processing only possible for
+     * 2D datasets
      */
     private JFreeChart createFastScatterPlot(XYDataset dataset) {
         final NumberAxis domainAxis = new NumberAxis("X");
@@ -277,13 +321,14 @@ public class KendrickMassPlotTask  extends AbstractTask{
             data[0][i] = (float) dataset.getXValue(0, i);
             data[1][i] = (float) dataset.getYValue(0, i);
         }
-        final FastScatterPlot plot = new FastScatterPlot(data, domainAxis, rangeAxis);
+        final FastScatterPlot plot = new FastScatterPlot(data, domainAxis,
+                rangeAxis);
         final JFreeChart chart = new JFreeChart("Fast Scatter Plot", plot);
-        //        chart.setLegend(null);
+        // chart.setLegend(null);
 
         // force aliasing of the rendered content..
-        chart.getRenderingHints().put
-        (RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        chart.getRenderingHints().put(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
         return chart;
     }
 }

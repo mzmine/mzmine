@@ -41,18 +41,20 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
-import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYZDataset;
+
+import com.google.common.collect.Range;
 
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotPaintScales;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZToolTipGenerator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -63,15 +65,17 @@ public class VanKrevelenDiagramTask extends AbstractTask {
      * Task to create a Van Krevelen Diagram of selected features of a selected
      * feature list
      */
-    static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
-    static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
+    static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
+    static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private XYDataset dataset;
     private JFreeChart chart;
     private PeakList peakList;
     private String zAxisLabel;
+    private String zAxisScaleType;
+    private Range<Double> zScaleRange;
+    private PeakListRow rows[];
     private String title;
     private ParameterSet parameterSet;
     private int totalSteps = 3, appliedSteps = 0;
@@ -82,9 +86,15 @@ public class VanKrevelenDiagramTask extends AbstractTask {
                 .getMatchingPeakLists()[0];
 
         zAxisLabel = parameters
-                .getParameter(VanKrevelenDiagramParameters.zAxisValues).getValue()
-                .toString();
+                .getParameter(VanKrevelenDiagramParameters.zAxisValues)
+                .getValue().toString();
+        zAxisScaleType = parameters
+                .getParameter(KendrickMassPlotParameters.zScaleType).getValue();
+        zScaleRange = parameters
+                .getParameter(KendrickMassPlotParameters.zScaleRange)
+                .getValue();
 
+        rows = peakList.getRows();
         title = "Van Krevelen Diagram [" + peakList + "]";
 
         parameterSet = parameters;
@@ -109,23 +119,23 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             return;
 
         /**
-         *  create dataset
-         *  2D, if no third dimension was selected
+         * create dataset 2D, if no third dimension was selected
          */
-        if(zAxisLabel.equals("none")) {
+        if (zAxisLabel.equals("none")) {
             logger.info("Creating new 2D chart instance");
             appliedSteps++;
 
-            //load dataset
-            VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(parameterSet);
+            // load dataset
+            VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(
+                    parameterSet);
 
-            //create chart
+            // create chart
             chart = ChartFactory.createScatterPlot(title, "O/C", "H/C",
                     dataset2D, PlotOrientation.VERTICAL, true, true, false);
 
             XYPlot plot = (XYPlot) chart.getPlot();
             plot.setBackgroundPaint(Color.WHITE);
-            appliedSteps++; 
+            appliedSteps++;
 
             // set renderer
             XYBlockRenderer renderer = new XYBlockRenderer();
@@ -135,44 +145,67 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             double maxY = plot.getRangeAxis().getRange().getUpperBound();
 
             renderer.setBlockWidth(0.001);
-            renderer.setBlockHeight(renderer.getBlockWidth()/(maxX/maxY));
+            renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
 
-
-            //set tooltip generator
-            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator("O/C", "H/C", zAxisLabel);
+            // set tooltip generator
+            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(
+                    "O/C", "H/C", zAxisLabel, rows);
             renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
             plot.setRenderer(renderer);
         }
-        //3D, if a third dimension was selected
-        else{
+        // 3D, if a third dimension was selected
+        else {
             logger.info("Creating new 3D chart instance");
             appliedSteps++;
-            //load dataseta
-            VanKrevelenDiagramXYZDataset dataset3D = new VanKrevelenDiagramXYZDataset(parameterSet);
+            // load dataseta
+            VanKrevelenDiagramXYZDataset dataset3D = new VanKrevelenDiagramXYZDataset(
+                    parameterSet);
 
-            //copy and sort z-Values for min and max of the paint scale
+            // copy and sort z-Values for min and max of the paint scale
             double[] copyZValues = new double[dataset3D.getItemCount(0)];
             for (int i = 0; i < dataset3D.getItemCount(0); i++) {
                 copyZValues[i] = dataset3D.getZValue(0, i);
             }
             Arrays.sort(copyZValues);
-            double min = copyZValues[0];
-            double max = copyZValues[copyZValues.length-1];
+            // get index in accordance to percentile windows
+            int minScaleIndex = 0;
+            int maxScaleIndex = copyZValues.length - 1;
+            double min = 0;
+            double max = 0;
 
-            //create chart
+            if (zAxisScaleType.equals("percentile")) {
+                minScaleIndex = (int) Math.round(copyZValues.length
+                        * (zScaleRange.lowerEndpoint() / 100));
+                maxScaleIndex = copyZValues.length
+                        - (int) (Math.round(copyZValues.length
+                                * ((100 - zScaleRange.upperEndpoint()) / 100)));
+                if (zScaleRange.upperEndpoint() == 100) {
+                    maxScaleIndex = copyZValues.length - 1;
+                }
+                if (zScaleRange.lowerEndpoint() == 0) {
+                    minScaleIndex = 0;
+                }
+                min = copyZValues[minScaleIndex];
+                max = copyZValues[maxScaleIndex];
+            }
+            if (zAxisScaleType.equals("custom")) {
+                min = zScaleRange.lowerEndpoint();
+                max = zScaleRange.upperEndpoint();
+            }
+            // create chart
             chart = ChartFactory.createScatterPlot(title, "O/C", "H/C",
                     dataset3D, PlotOrientation.VERTICAL, true, true, false);
-            //set renderer
+            // set renderer
             XYBlockRenderer renderer = new XYBlockRenderer();
             Paint[] contourColors = null;
             LookupPaintScale scale = null;
-            //create paint scale for thrid dimension
+            // create paint scale for thrid dimension
             contourColors = KendrickMassPlotPaintScales.getFullRainBowScale();
-            scale = new LookupPaintScale(min, max, Color.white);
-            double [] scaleValues = new double[contourColors.length];
-            double delta = (max - min)/(contourColors.length -1);
+            scale = new LookupPaintScale(min, max, Color.MAGENTA);
+            double[] scaleValues = new double[contourColors.length];
+            double delta = (max - min) / (contourColors.length - 1);
             double value = min;
-            for(int i=0; i<contourColors.length; i++){
+            for (int i = 0; i < contourColors.length; i++) {
                 scale.add(value, contourColors[i]);
                 scaleValues[i] = value;
                 value = value + delta;
@@ -184,9 +217,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             double maxY = plot.getRangeAxis().getRange().getUpperBound();
 
             renderer.setBlockWidth(0.001);
-            renderer.setBlockHeight(renderer.getBlockWidth()/(maxX/maxY));
+            renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
 
-            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator("O/C", "H/C", zAxisLabel);
+            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(
+                    "O/C", "H/C", zAxisLabel, rows);
             renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
             plot.setRenderer(renderer);
             plot.setBackgroundPaint(Color.white);
@@ -195,12 +229,13 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
             plot.setOutlinePaint(Color.black);
             plot.setBackgroundPaint(Color.white);
-            //Legend
+            // Legend
             NumberAxis scaleAxis = new NumberAxis(zAxisLabel);
             scaleAxis.setRange(min, max);
             scaleAxis.setAxisLinePaint(Color.white);
             scaleAxis.setTickMarkPaint(Color.white);
-            PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);//new PaintScaleLegend(new GrayPaintScale(), scaleAxis);
+            PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
+
             legend.setStripOutlineVisible(false);
             legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
             legend.setAxisOffset(5.0);
@@ -218,7 +253,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
         chart.setBackgroundPaint(Color.white);
 
-        //Create Frame
+        // Create Frame
         JFrame frame = new JFrame();
 
         // create chart JPanel
