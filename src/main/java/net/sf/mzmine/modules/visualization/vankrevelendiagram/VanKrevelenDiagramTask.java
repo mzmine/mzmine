@@ -21,10 +21,8 @@ package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Paint;
-import java.awt.RenderingHints;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -37,27 +35,25 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.plot.FastScatterPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
-import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.xy.XYDataset;
 
 import com.google.common.collect.Range;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotPaintScales;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotRenderer;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZToolTipGenerator;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotWindow;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.KendrickMassPlotToolTipGenerator;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizePaintScales;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -77,6 +73,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     private String zAxisLabel;
     private String zAxisScaleType;
     private Range<Double> zScaleRange;
+    private String paintScaleStyle;
     private PeakListRow rows[];
     private String title;
     private ParameterSet parameterSet;
@@ -94,6 +91,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
         zScaleRange = parameters
                 .getParameter(KendrickMassPlotParameters.zScaleRange)
                 .getValue();
+        paintScaleStyle = parameters
+                .getParameter(KendrickMassPlotParameters.paintScale).getValue();
 
         rows = peakList.getRows();
         title = "Van Krevelen Diagram [" + peakList + "]";
@@ -139,7 +138,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             appliedSteps++;
 
             // set renderer
-            KendrickMassPlotRenderer renderer = new KendrickMassPlotRenderer();
+            XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
 
             // calc block sizes
             double maxX = plot.getDomainAxis().getRange().getUpperBound();
@@ -149,7 +148,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
 
             // set tooltip generator
-            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(
+            KendrickMassPlotToolTipGenerator tooltipGenerator = new KendrickMassPlotToolTipGenerator(
                     "O/C", "H/C", zAxisLabel, rows);
             renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
             plot.setRenderer(renderer);
@@ -178,7 +177,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
                 minScaleIndex = (int) Math.round(copyZValues.length
                         * (zScaleRange.lowerEndpoint() / 100));
                 maxScaleIndex = copyZValues.length
-                        - (int) (Math.round(copyZValues.length
+                        - (int) (Math.ceil(copyZValues.length
                                 * ((100 - zScaleRange.upperEndpoint()) / 100)));
                 if (zScaleRange.upperEndpoint() == 100) {
                     maxScaleIndex = copyZValues.length - 1;
@@ -193,15 +192,11 @@ public class VanKrevelenDiagramTask extends AbstractTask {
                 min = zScaleRange.lowerEndpoint();
                 max = zScaleRange.upperEndpoint();
             }
-            // create chart
-            chart = ChartFactory.createScatterPlot(title, "O/C", "H/C",
-                    dataset3D, PlotOrientation.VERTICAL, true, true, false);
-            // set renderer
-            KendrickMassPlotRenderer renderer = new KendrickMassPlotRenderer();
-            Paint[] contourColors = null;
+            
+         // create paint scale for thrid dimension
+            Paint[] contourColors = XYBlockPixelSizePaintScales.getPaintColors(
+                    zAxisScaleType, zScaleRange, paintScaleStyle);
             LookupPaintScale scale = null;
-            // create paint scale for thrid dimension
-            contourColors = KendrickMassPlotPaintScales.getFullRainBowScale();
             scale = new LookupPaintScale(min, max, Color.MAGENTA);
             double[] scaleValues = new double[contourColors.length];
             double delta = (max - min) / (contourColors.length - 1);
@@ -211,6 +206,13 @@ public class VanKrevelenDiagramTask extends AbstractTask {
                 scaleValues[i] = value;
                 value = value + delta;
             }
+            
+            // create chart
+            chart = ChartFactory.createScatterPlot(title, "O/C", "H/C",
+                    dataset3D, PlotOrientation.VERTICAL, true, true, false);
+            // set renderer
+            XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+            
             XYPlot plot = chart.getXYPlot();
             appliedSteps++;
             renderer.setPaintScale(scale);
@@ -220,12 +222,11 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             renderer.setBlockWidth(0.001);
             renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
 
-            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(
+            KendrickMassPlotToolTipGenerator tooltipGenerator = new KendrickMassPlotToolTipGenerator(
                     "O/C", "H/C", zAxisLabel, rows);
             renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
             plot.setRenderer(renderer);
             plot.setBackgroundPaint(Color.white);
-            plot.setDomainGridlinesVisible(false);
             plot.setRangeGridlinePaint(Color.white);
             plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
             plot.setOutlinePaint(Color.black);
@@ -254,9 +255,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
         chart.setBackgroundPaint(Color.white);
 
-        // Create Frame
-        JFrame frame = new JFrame();
-
+        // Create Kendrick mass plot Window
+        VanKrevelenDiagramWindow frame = new VanKrevelenDiagramWindow(chart);
         // create chart JPanel
         ChartPanel chartPanel = new ChartPanel(chart);
         frame.add(chartPanel, BorderLayout.CENTER);
@@ -272,40 +272,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
         frame.setTitle(title);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setBackground(Color.white);
-
-        // Add the Windows menu
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.add(new WindowsMenu());
-        frame.setJMenuBar(menuBar);
         frame.setVisible(true);
         frame.pack();
         setStatus(TaskStatus.FINISHED);
-        logger.info("Finished creating Kendrick mass plot of " + peakList);
+        logger.info("Finished creating van Krevelen diagram of " + peakList);
     }
 
-    /**
-     * Experimental, fast scatter plot for faster processing only possible for
-     * 2D datasets
-     */
-    private JFreeChart createFastScatterPlot(XYDataset dataset) {
-        final NumberAxis domainAxis = new NumberAxis("X");
-        domainAxis.setAutoRangeIncludesZero(false);
-        final NumberAxis rangeAxis = new NumberAxis("Y");
-        rangeAxis.setAutoRangeIncludesZero(false);
-
-        float[][] data = new float[2][dataset.getItemCount(0)];
-        for (int i = 0; i < dataset.getItemCount(0); i++) {
-            data[0][i] = (float) dataset.getXValue(0, i);
-            data[1][i] = (float) dataset.getYValue(0, i);
-        }
-        final FastScatterPlot plot = new FastScatterPlot(data, domainAxis,
-                rangeAxis);
-        final JFreeChart chart = new JFreeChart("Van Krevelen Diagram", plot);
-        // chart.setLegend(null);
-
-        // force aliasing of the rendered content..
-        chart.getRenderingHints().put(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
-        return chart;
-    }
 }

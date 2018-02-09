@@ -23,7 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -50,15 +49,21 @@ import com.google.common.collect.Range;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.KendrickMassPlotToolTipGenerator;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizePaintScales;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
+/**
+ * Task to create a Kendrick mass plot of selected features of a selected
+ * feature list
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class KendrickMassPlotTask extends AbstractTask {
-    /**
-     * Task to create a Kendrick mass plot of selected features of a selected
-     * feature list
-     */
+   
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 12);
     static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
 
@@ -67,7 +72,6 @@ public class KendrickMassPlotTask extends AbstractTask {
     private XYDataset dataset2D;
     private XYZDataset dataset3D;
     private JFreeChart chart;
-    private int paintScaleNumber;
     private PeakList peakList;
     private String title;
     private String xAxisLabel;
@@ -144,7 +148,7 @@ public class KendrickMassPlotTask extends AbstractTask {
 
             // set renderer
             // XYBlockRenderer renderer = new XYBlockRenderer();
-            KendrickMassPlotRenderer renderer = new KendrickMassPlotRenderer();
+            XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
             // calc block sizes
             double maxX = plot.getDomainAxis().getRange().getUpperBound();
             double maxY = plot.getRangeAxis().getRange().getUpperBound();
@@ -159,7 +163,7 @@ public class KendrickMassPlotTask extends AbstractTask {
                         renderer.getBlockWidth() / (maxX / maxY));
             }
             // set tooltip generator
-            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(
+            KendrickMassPlotToolTipGenerator tooltipGenerator = new KendrickMassPlotToolTipGenerator(
 
                     xAxisLabel, yAxisLabel, zAxisLabel, rows);
             renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
@@ -204,11 +208,9 @@ public class KendrickMassPlotTask extends AbstractTask {
                 max = zScaleRange.upperEndpoint();
             }
 
-            Paint[] contourColors = KendrickMassPlotPaintScales.getPaintColors(
+            Paint[] contourColors = XYBlockPixelSizePaintScales.getPaintColors(
                     zAxisScaleType, zScaleRange, paintScaleStyle);
             LookupPaintScale scale = null;
-           
-
             scale = new LookupPaintScale(min, max, new Color(244, 66, 223));
             double[] scaleValues = new double[contourColors.length];
             double delta = (max - min) / (contourColors.length - 1);
@@ -225,7 +227,7 @@ public class KendrickMassPlotTask extends AbstractTask {
                     false);
             XYPlot plot = chart.getXYPlot();
             // set renderer
-            KendrickMassPlotRenderer renderer = new KendrickMassPlotRenderer();
+            XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
             appliedSteps++;
             // calc block sizes
             double maxX = plot.getDomainAxis().getRange().getUpperBound();
@@ -242,7 +244,7 @@ public class KendrickMassPlotTask extends AbstractTask {
             }
             renderer.setPaintScale(scale);
 
-            KendrickMassPlotXYZToolTipGenerator tooltipGenerator = new KendrickMassPlotXYZToolTipGenerator(
+            KendrickMassPlotToolTipGenerator tooltipGenerator = new KendrickMassPlotToolTipGenerator(
                     xAxisLabel, yAxisLabel, zAxisLabel, rows);
             renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
             plot.setRenderer(renderer);
@@ -277,8 +279,7 @@ public class KendrickMassPlotTask extends AbstractTask {
         chart.setBackgroundPaint(Color.white);
 
         // Create Kendrick mass plot Window
-        KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart,
-                paintScaleNumber);
+        KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart);
         // create chart JPanel
         ChartPanel chartPanel = new ChartPanel(chart);
         frame.add(chartPanel, BorderLayout.CENTER);

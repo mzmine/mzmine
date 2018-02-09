@@ -65,10 +65,15 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
                     + "If you choose custom, set ranges manually "
                     + "Features out of scale range are displayed in magenta",
             new DecimalFormat("##0.00"));
+    
+    public static final ComboParameter<String> paintScale = new ComboParameter<>("Heatmap style",
+			"Select the style for the third dimension",
+			new String[] { "Rainbow", "Monochrome red", "Monochrome green", "Monochrome yellow", "Monochrome cyan" });
+    
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public VanKrevelenDiagramParameters() {
-        super(new Parameter[] { peakList, rawFile, selectedRows, zAxisValues, zScaleType, zScaleRange,
+        super(new Parameter[] { peakList, rawFile, selectedRows, zAxisValues, zScaleType, zScaleRange, paintScale,
                 windowSettings, });
     }
 

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.kendrickmassplot;
+package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -34,24 +34,24 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 
 /**
- * Window for Kendrick mass plots
+ * Window for Van Krevelen Diagrams
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotWindow extends JFrame implements ActionListener {
+public class VanKrevelenDiagramWindow extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	private KendrickMassPlotToolBar toolBar;
+	private VanKrevelenDiagramToolBar toolBar;
 	private JFreeChart chart;
 
-	public KendrickMassPlotWindow(JFreeChart chart) {
+	public VanKrevelenDiagramWindow(JFreeChart chart) {
 
 		this.chart = chart;
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
 
 		// Add toolbar
-		toolBar = new KendrickMassPlotToolBar(this);
+		toolBar = new VanKrevelenDiagramToolBar(this);
 		add(toolBar, BorderLayout.EAST);
 
 		// Add the Windows menu

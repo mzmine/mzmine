@@ -17,7 +17,8 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.kendrickmassplot;
+
+package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.awt.Color;
 import java.awt.Insets;
@@ -30,18 +31,18 @@ import javax.swing.JToolBar;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * Kendrick mass plot toolbar class
+ * Van Krevelen diagram toolbar class
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotToolBar extends JToolBar {
+public class VanKrevelenDiagramToolBar extends JToolBar {
 
 	private static final long serialVersionUID = 1L;
 	static final Icon blockSizeIcon = new ImageIcon("icons/thicknessicon.png");
 	static final Icon backColorIcon = new ImageIcon("icons/bgicon.png");
 	static final Icon gridIcon = new ImageIcon("icons/tableselectionicon");
 
-	public KendrickMassPlotToolBar(ActionListener masterFrame) {
+	public VanKrevelenDiagramToolBar(ActionListener masterFrame) {
 
 		super(JToolBar.VERTICAL);
 
@@ -64,5 +65,4 @@ public class KendrickMassPlotToolBar extends JToolBar {
 		addSeparator();
 
 	}
-
 }

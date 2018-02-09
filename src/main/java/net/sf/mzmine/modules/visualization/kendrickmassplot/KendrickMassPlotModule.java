@@ -32,40 +32,42 @@ import net.sf.mzmine.util.ExitCode;
 
 /**
  * Kendrick mass plot module
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Kendrick mass plot";
-    private static final String MODULE_DESCRIPTION = "Kendrick mass plot.";
+	private static final String MODULE_NAME = "Kendrick mass plot";
+	private static final String MODULE_DESCRIPTION = "Kendrick mass plot.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
-    }
+	@Override
+	public @Nonnull String getName() {
+		return MODULE_NAME;
+	}
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+	@Override
+	public @Nonnull String getDescription() {
+		return MODULE_DESCRIPTION;
+	}
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+	@Override
+	@Nonnull
+	public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+			@Nonnull Collection<Task> tasks) {
 
-        Task newTask = new KendrickMassPlotTask(parameters);
-        tasks.add(newTask);
+		Task newTask = new KendrickMassPlotTask(parameters);
+		tasks.add(newTask);
 
-        return ExitCode.OK;
-    }
+		return ExitCode.OK;
+	}
 
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
-    }
+	@Override
+	public @Nonnull MZmineModuleCategory getModuleCategory() {
+		return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+	}
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return KendrickMassPlotParameters.class;
-    }
+	@Override
+	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+		return KendrickMassPlotParameters.class;
+	}
 }

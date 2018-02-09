@@ -25,11 +25,13 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.parameters.ParameterSet;
 
+/**
+ * XYDataset for Kendrick mass plots
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 class KendrickMassPlotXYDataset extends AbstractXYDataset {
 
-    /**
-     * XYDataset for Kendrick mass plots
-     */
     private static final long serialVersionUID = 1L;
 
     private PeakListRow selectedRows[];
