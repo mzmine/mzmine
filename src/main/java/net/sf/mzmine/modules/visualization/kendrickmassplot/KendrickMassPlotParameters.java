@@ -74,17 +74,23 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
     public static final DoubleRangeParameter zScaleRange = new DoubleRangeParameter(
             "Range for z-Axis scale",
             "Set the range for z-Axis scale."
-            + " If percentile is used for z-Axis scale type, you can remove extreme values of the scale."
-            + " E. g. type 0.5 and 99.5 to ignore the 0.5 smallest and 0.5 highest values. "
-            + "If you choose custom, set ranges manually "
-            + "Features out of scale range are displayed in magenta",
+                    + " If percentile is used for z-Axis scale type, you can remove extreme values of the scale."
+                    + " E. g. type 0.5 and 99.5 to ignore the 0.5 smallest and 0.5 highest values. "
+                    + "If you choose custom, set ranges manually "
+                    + "Features out of scale range are displayed in magenta",
             new DecimalFormat("##0.00"));
+
+    public static final ComboParameter<String> paintScale = new ComboParameter<>(
+            "Heatmap style", "Select the style for the third dimension",
+            new String[] { "Rainbow", "Monochrome red", "Monochrome green",
+                    "Monochrome yellow", "Monochrome cyan" });
 
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public KendrickMassPlotParameters() {
         super(new Parameter[] { peakList, rawFile, selectedRows, yAxisValues,
-                xAxisValues, zAxisValues, zScaleType, zScaleRange, windowSettings });
+                xAxisValues, zAxisValues, zScaleType, zScaleRange, paintScale,
+                windowSettings });
     }
 
     @Override

@@ -49,8 +49,8 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
                 .getMatchingPeakLists()[0];
 
         zAxisLabel = parameters
-                .getParameter(VanKrevelenDiagramParameters.zAxisValues).getValue()
-                .toString();
+                .getParameter(VanKrevelenDiagramParameters.zAxisValues)
+                .getValue().toString();
 
         this.selectedRows = parameters
                 .getParameter(VanKrevelenDiagramParameters.selectedRows)
@@ -61,53 +61,48 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
         ArrayList<Double> zValuesList = new ArrayList<Double>();
         // get number of atoms
         for (int i = 0; i < selectedRows.length; i++) {
-            if(getNumberOfCAtoms(selectedRows[i]) != 0 &&
-                    getNumberOfOAtoms(selectedRows[i]) != 0 &&
-                    getNumberOfHAtoms(selectedRows[i]) != 0) {
+            if (getNumberOfCAtoms(selectedRows[i]) != 0
+                    && getNumberOfOAtoms(selectedRows[i]) != 0
+                    && getNumberOfHAtoms(selectedRows[i]) != 0) {
                 numberOfCAtoms.add(getNumberOfCAtoms(selectedRows[i]));
                 numberOfOAtoms.add(getNumberOfOAtoms(selectedRows[i]));
                 numberOfHAtoms.add(getNumberOfHAtoms(selectedRows[i]));
-                //plot selected feature characteristic as z Axis
-                if(zAxisLabel.equals("Retention time")) {
+                // plot selected feature characteristic as z Axis
+                if (zAxisLabel.equals("Retention time")) {
                     zValuesList.add(selectedRows[i].getAverageRT());
-                }
-                else if(zAxisLabel.equals("Intensity")) {
+                } else if (zAxisLabel.equals("Intensity")) {
                     zValuesList.add(selectedRows[i].getAverageHeight());
-                }
-                else if(zAxisLabel.equals("Area")) {
+                } else if (zAxisLabel.equals("Area")) {
                     zValuesList.add(selectedRows[i].getAverageArea());
-                }
-                else if(zAxisLabel.equals("Tailing factor")) {
-                    zValuesList.add(selectedRows[i].getBestPeak().getTailingFactor());
-                }
-                else if(zAxisLabel.equals("Asymmetry factor")) {
-                    zValuesList.add(selectedRows[i].getBestPeak().getAsymmetryFactor());
-                }
-                else if(zAxisLabel.equals("FWHM")) {
+                } else if (zAxisLabel.equals("Tailing factor")) {
+                    zValuesList.add(
+                            selectedRows[i].getBestPeak().getTailingFactor());
+                } else if (zAxisLabel.equals("Asymmetry factor")) {
+                    zValuesList.add(
+                            selectedRows[i].getBestPeak().getAsymmetryFactor());
+                } else if (zAxisLabel.equals("FWHM")) {
                     zValuesList.add(selectedRows[i].getBestPeak().getFWHM());
-                }
-                else if(zAxisLabel.equals("m/z")) {
+                } else if (zAxisLabel.equals("m/z")) {
                     zValuesList.add(selectedRows[i].getBestPeak().getMZ());
                 }
 
             }
         }
         numberOfDatapoints = numberOfCAtoms.size();
-        System.out.println("C: "+numberOfCAtoms.size()+" O: "+numberOfOAtoms.size()+" H: "+numberOfHAtoms.size());
         // Calc xValues
         xValues = new double[numberOfCAtoms.size()];
         for (int i = 0; i < numberOfCAtoms.size(); i++) {
-            //calc the ratio of O/C
-            xValues[i] = (double) numberOfOAtoms.get(i)/numberOfCAtoms.get(i);
+            // calc the ratio of O/C
+            xValues[i] = (double) numberOfOAtoms.get(i) / numberOfCAtoms.get(i);
         } // Calc yValues
         yValues = new double[numberOfCAtoms.size()];
         for (int i = 0; i < numberOfCAtoms.size(); i++) {
-            //calc the ratio of O/C
-            yValues[i] = (double) numberOfHAtoms.get(i)/numberOfCAtoms.get(i);
-        } 
+            // calc the ratio of O/C
+            yValues[i] = (double) numberOfHAtoms.get(i) / numberOfCAtoms.get(i);
+        }
         zValues = new double[numberOfCAtoms.size()];
         for (int i = 0; i < numberOfCAtoms.size(); i++) {
-            //get intensity
+            // get intensity
             zValues[i] = zValuesList.get(i);
         }
     }
@@ -128,30 +123,29 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
                     hasC = true;
                     indexC = i;
                     // get index of next Atom
-                    for (int j = i+1; j < rowName.length(); j++) {
-                        if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
+                    for (int j = i + 1; j < rowName.length(); j++) {
+                        if (Character.isAlphabetic(rowName.charAt(j))
+                                && nextAtomCounter == 0) {
                             indexNextAtom = j;
                             nextAtomCounter++;
-                        }                       
+                        }
                     }
                     // check if searched atom number is last atom of formula
-                    if(nextAtomCounter == 0) {
+                    if (nextAtomCounter == 0) {
                         // check how many digits for last Atom index
                         indexNextAtom = rowName.length();
                     }
                 }
 
             }
-            if(hasC == true) {
+            if (hasC == true) {
                 numberOfC = rowName.substring(indexC + 1, indexNextAtom);
-                if(numberOfC.equals("") == true) {
+                if (numberOfC.equals("") == true) {
                     numberOfCAtoms = 1;
-                }
-                else {
+                } else {
                     numberOfCAtoms = Integer.parseInt(numberOfC);
                 }
-            }
-            else {
+            } else {
                 numberOfCAtoms = 0;
             }
             return numberOfCAtoms;
@@ -159,6 +153,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
 
         return numberOfCAtoms;
     }
+
     private int getNumberOfOAtoms(PeakListRow row) {
         int numberOfOAtoms = 0;
         if (row.getPreferredPeakIdentity() != null) {
@@ -175,30 +170,29 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
                     hasO = true;
                     indexO = i;
                     // get index of next Atom
-                    for (int j = i+1; j < rowName.length(); j++) {
-                        if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
+                    for (int j = i + 1; j < rowName.length(); j++) {
+                        if (Character.isAlphabetic(rowName.charAt(j))
+                                && nextAtomCounter == 0) {
                             indexNextAtom = j;
                             nextAtomCounter++;
-                        }                       
+                        }
                     }
                     // check if searched atom number is last atom of formula
-                    if(nextAtomCounter == 0) {
+                    if (nextAtomCounter == 0) {
                         // check how many digits for last Atom index
                         indexNextAtom = rowName.length();
                     }
                 }
 
             }
-            if(hasO == true) {
+            if (hasO == true) {
                 numberOfO = rowName.substring(indexO + 1, indexNextAtom);
-                if(numberOfO.equals("") == true) {
+                if (numberOfO.equals("") == true) {
                     numberOfOAtoms = 1;
-                }
-                else {
+                } else {
                     numberOfOAtoms = Integer.parseInt(numberOfO);
                 }
-            }
-            else {
+            } else {
                 numberOfOAtoms = 0;
             }
             return numberOfOAtoms;
@@ -223,30 +217,29 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
                     hasC = true;
                     indexH = i;
                     // get index of next Atom
-                    for (int j = i+1; j < rowName.length(); j++) {
-                        if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
+                    for (int j = i + 1; j < rowName.length(); j++) {
+                        if (Character.isAlphabetic(rowName.charAt(j))
+                                && nextAtomCounter == 0) {
                             indexNextAtom = j;
                             nextAtomCounter++;
-                        }                       
+                        }
                     }
                     // check if searched atom number is last atom of formula
-                    if(nextAtomCounter == 0) {
+                    if (nextAtomCounter == 0) {
                         // check how many digits for last Atom index
                         indexNextAtom = rowName.length();
                     }
                 }
 
             }
-            if(hasC == true) {
+            if (hasC == true) {
                 numberOfH = rowName.substring(indexH + 1, indexNextAtom);
-                if(numberOfH.equals("") == true) {
+                if (numberOfH.equals("") == true) {
                     numberOfHAtoms = 1;
-                }
-                else {
+                } else {
                     numberOfHAtoms = Integer.parseInt(numberOfH);
                 }
-            }
-            else {
+            } else {
                 numberOfHAtoms = 0;
             }
             return numberOfHAtoms;

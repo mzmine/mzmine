@@ -49,24 +49,40 @@ public class KendrickMassPlotXYZToolTipGenerator
 
     @Override
     public String generateToolTip(XYZDataset dataset, int series, int item) {
-        featureIdentity = rows[item].getPreferredPeakIdentity()
-                .getDescription();
-        return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
-                + numberFormatX.format(dataset.getXValue(series, item)) + " "
-                + yAxisLabel + ": "
-                + numberFormatY.format(dataset.getYValue(series, item)) + " "
-                + zAxisLabel + ": "
-                + numberFormatY.format(dataset.getZValue(series, item)));
+        if (rows[item].getPreferredPeakIdentity() != null) {
+            featureIdentity = rows[item].getPreferredPeakIdentity()
+                    .getDescription();
+            return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
+                    + numberFormatX.format(dataset.getXValue(series, item))
+                    + " " + yAxisLabel + ": "
+                    + numberFormatY.format(dataset.getYValue(series, item))
+                    + " " + zAxisLabel + ": "
+                    + numberFormatY.format(dataset.getZValue(series, item)));
+        } else {
+            return String.valueOf(xAxisLabel + ": "
+                    + numberFormatX.format(dataset.getXValue(series, item))
+                    + " " + yAxisLabel + ": "
+                    + numberFormatY.format(dataset.getYValue(series, item))
+                    + " " + zAxisLabel + ": "
+                    + numberFormatY.format(dataset.getZValue(series, item)));
+        }
     }
 
     @Override
     public String generateToolTip(XYDataset dataset, int series, int item) {
-        featureIdentity = rows[item].getPreferredPeakIdentity()
-                .getDescription();
-        return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
-                + numberFormatX.format(dataset.getXValue(series, item)) + " "
-                + yAxisLabel + ": "
-                + numberFormatY.format(dataset.getYValue(series, item)));
+        if (rows[item].getPreferredPeakIdentity() != null) {
+            featureIdentity = rows[item].getPreferredPeakIdentity()
+                    .getDescription();
+            return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
+                    + numberFormatX.format(dataset.getXValue(series, item))
+                    + " " + yAxisLabel + ": "
+                    + numberFormatY.format(dataset.getYValue(series, item)));
+        } else {
+            return String.valueOf(xAxisLabel + ": "
+                    + numberFormatX.format(dataset.getXValue(series, item))
+                    + " " + yAxisLabel + ": "
+                    + numberFormatY.format(dataset.getYValue(series, item)));
+        }
     }
 
 }

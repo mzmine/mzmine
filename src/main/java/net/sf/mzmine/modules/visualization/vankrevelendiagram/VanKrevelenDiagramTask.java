@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.RenderingHints;
@@ -55,6 +56,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotPaintScales;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotRenderer;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotXYZToolTipGenerator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -84,7 +86,6 @@ public class VanKrevelenDiagramTask extends AbstractTask {
         peakList = parameters
                 .getParameter(VanKrevelenDiagramParameters.peakList).getValue()
                 .getMatchingPeakLists()[0];
-
         zAxisLabel = parameters
                 .getParameter(VanKrevelenDiagramParameters.zAxisValues)
                 .getValue().toString();
@@ -138,7 +139,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             appliedSteps++;
 
             // set renderer
-            XYBlockRenderer renderer = new XYBlockRenderer();
+            KendrickMassPlotRenderer renderer = new KendrickMassPlotRenderer();
 
             // calc block sizes
             double maxX = plot.getDomainAxis().getRange().getUpperBound();
@@ -196,7 +197,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
             chart = ChartFactory.createScatterPlot(title, "O/C", "H/C",
                     dataset3D, PlotOrientation.VERTICAL, true, true, false);
             // set renderer
-            XYBlockRenderer renderer = new XYBlockRenderer();
+            KendrickMassPlotRenderer renderer = new KendrickMassPlotRenderer();
             Paint[] contourColors = null;
             LookupPaintScale scale = null;
             // create paint scale for thrid dimension

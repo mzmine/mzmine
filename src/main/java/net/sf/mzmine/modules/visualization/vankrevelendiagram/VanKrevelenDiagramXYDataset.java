@@ -38,7 +38,6 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
     private int numberOfDatapoints = 0;
     private double[] xValues;
     private double[] yValues;
-    private double[] zValues;
 
     public VanKrevelenDiagramXYDataset(ParameterSet parameters) {
 
@@ -52,30 +51,28 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
         ArrayList<Integer> numberOfCAtoms = new ArrayList<Integer>();
         ArrayList<Integer> numberOfOAtoms = new ArrayList<Integer>();
         ArrayList<Integer> numberOfHAtoms = new ArrayList<Integer>();
-        ArrayList<Double> intensityList = new ArrayList<Double>();
         // get number of atoms
         for (int i = 0; i < selectedRows.length; i++) {
-            if(getNumberOfCAtoms(selectedRows[i]) != 0 &&
-                    getNumberOfOAtoms(selectedRows[i]) != 0 &&
-                    getNumberOfHAtoms(selectedRows[i]) != 0) {
+            if (getNumberOfCAtoms(selectedRows[i]) != 0
+                    && getNumberOfOAtoms(selectedRows[i]) != 0
+                    && getNumberOfHAtoms(selectedRows[i]) != 0) {
                 numberOfCAtoms.add(getNumberOfCAtoms(selectedRows[i]));
                 numberOfOAtoms.add(getNumberOfOAtoms(selectedRows[i]));
                 numberOfHAtoms.add(getNumberOfHAtoms(selectedRows[i]));
             }
         }
         numberOfDatapoints = numberOfCAtoms.size();
-        System.out.println("C: "+numberOfCAtoms.size()+" O: "+numberOfOAtoms.size()+" H: "+numberOfHAtoms.size());
         // Calc xValues
         xValues = new double[numberOfCAtoms.size()];
         for (int i = 0; i < numberOfCAtoms.size(); i++) {
-            //calc the ratio of O/C
-            xValues[i] = (double) numberOfOAtoms.get(i)/numberOfCAtoms.get(i);
+            // calc the ratio of O/C
+            xValues[i] = (double) numberOfOAtoms.get(i) / numberOfCAtoms.get(i);
         } // Calc yValues
         yValues = new double[numberOfCAtoms.size()];
         for (int i = 0; i < numberOfCAtoms.size(); i++) {
-            //calc the ratio of O/C
-            yValues[i] = (double) numberOfHAtoms.get(i)/numberOfCAtoms.get(i);
-        } 
+            // calc the ratio of O/C
+            yValues[i] = (double) numberOfHAtoms.get(i) / numberOfCAtoms.get(i);
+        }
     }
 
     private int getNumberOfCAtoms(PeakListRow row) {
@@ -94,30 +91,29 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
                     hasC = true;
                     indexC = i;
                     // get index of next Atom
-                    for (int j = i+1; j < rowName.length(); j++) {
-                        if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
+                    for (int j = i + 1; j < rowName.length(); j++) {
+                        if (Character.isAlphabetic(rowName.charAt(j))
+                                && nextAtomCounter == 0) {
                             indexNextAtom = j;
                             nextAtomCounter++;
-                        }                       
+                        }
                     }
                     // check if searched atom number is last atom of formula
-                    if(nextAtomCounter == 0) {
+                    if (nextAtomCounter == 0) {
                         // check how many digits for last Atom index
                         indexNextAtom = rowName.length();
                     }
                 }
 
             }
-            if(hasC == true) {
+            if (hasC == true) {
                 numberOfC = rowName.substring(indexC + 1, indexNextAtom);
-                if(numberOfC.equals("") == true) {
+                if (numberOfC.equals("") == true) {
                     numberOfCAtoms = 1;
-                }
-                else {
+                } else {
                     numberOfCAtoms = Integer.parseInt(numberOfC);
                 }
-            }
-            else {
+            } else {
                 numberOfCAtoms = 0;
             }
             return numberOfCAtoms;
@@ -125,6 +121,7 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
 
         return numberOfCAtoms;
     }
+
     private int getNumberOfOAtoms(PeakListRow row) {
         int numberOfOAtoms = 0;
         if (row.getPreferredPeakIdentity() != null) {
@@ -141,30 +138,29 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
                     hasO = true;
                     indexO = i;
                     // get index of next Atom
-                    for (int j = i+1; j < rowName.length(); j++) {
-                        if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
+                    for (int j = i + 1; j < rowName.length(); j++) {
+                        if (Character.isAlphabetic(rowName.charAt(j))
+                                && nextAtomCounter == 0) {
                             indexNextAtom = j;
                             nextAtomCounter++;
-                        }                       
+                        }
                     }
                     // check if searched atom number is last atom of formula
-                    if(nextAtomCounter == 0) {
+                    if (nextAtomCounter == 0) {
                         // check how many digits for last Atom index
                         indexNextAtom = rowName.length();
                     }
                 }
 
             }
-            if(hasO == true) {
+            if (hasO == true) {
                 numberOfO = rowName.substring(indexO + 1, indexNextAtom);
-                if(numberOfO.equals("") == true) {
+                if (numberOfO.equals("") == true) {
                     numberOfOAtoms = 1;
-                }
-                else {
+                } else {
                     numberOfOAtoms = Integer.parseInt(numberOfO);
                 }
-            }
-            else {
+            } else {
                 numberOfOAtoms = 0;
             }
             return numberOfOAtoms;
@@ -189,30 +185,29 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
                     hasC = true;
                     indexH = i;
                     // get index of next Atom
-                    for (int j = i+1; j < rowName.length(); j++) {
-                        if (Character.isAlphabetic(rowName.charAt(j)) && nextAtomCounter == 0) {
+                    for (int j = i + 1; j < rowName.length(); j++) {
+                        if (Character.isAlphabetic(rowName.charAt(j))
+                                && nextAtomCounter == 0) {
                             indexNextAtom = j;
                             nextAtomCounter++;
-                        }                       
+                        }
                     }
                     // check if searched atom number is last atom of formula
-                    if(nextAtomCounter == 0) {
+                    if (nextAtomCounter == 0) {
                         // check how many digits for last Atom index
                         indexNextAtom = rowName.length();
                     }
                 }
 
             }
-            if(hasC == true) {
+            if (hasC == true) {
                 numberOfH = rowName.substring(indexH + 1, indexNextAtom);
-                if(numberOfH.equals("") == true) {
+                if (numberOfH.equals("") == true) {
                     numberOfHAtoms = 1;
-                }
-                else {
+                } else {
                     numberOfHAtoms = Integer.parseInt(numberOfH);
                 }
-            }
-            else {
+            } else {
                 numberOfHAtoms = 0;
             }
             return numberOfHAtoms;
