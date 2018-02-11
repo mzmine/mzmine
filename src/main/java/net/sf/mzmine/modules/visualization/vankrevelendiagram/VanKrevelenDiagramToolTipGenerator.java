@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils;
+package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -26,11 +26,11 @@ import org.jfree.data.xy.XYZDataset;
 import net.sf.mzmine.datamodel.PeakListRow;
 
 /**
- * Tooltip generator for Kendrick mass plots
+ * Tooltip generator for Van Krevelen diagrams
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator {
+public class VanKrevelenDiagramToolTipGenerator implements XYZToolTipGenerator {
 
   private String xAxisLabel, yAxisLabel, zAxisLabel;
   private NumberFormat numberFormatX = new DecimalFormat("####0.0000");
@@ -38,7 +38,7 @@ public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator {
   private PeakListRow rows[];
   private String featureIdentity;
 
-  public KendrickMassPlotToolTipGenerator(String xAxisLabel, String yAxisLabel, String zAxisLabel,
+  public VanKrevelenDiagramToolTipGenerator(String xAxisLabel, String yAxisLabel, String zAxisLabel,
       PeakListRow rows[]) {
     super();
     this.xAxisLabel = xAxisLabel;
@@ -51,30 +51,25 @@ public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator {
   @Override
   public String generateToolTip(XYZDataset dataset, int series, int item) {
     if (rows[item].getPreferredPeakIdentity() != null) {
-      featureIdentity = rows[item].getPreferredPeakIdentity().getDescription();
+      featureIdentity = rows[item].getPreferredPeakIdentity().getName();
       return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormatX.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormatY.format(dataset.getYValue(series, item)) + " " + zAxisLabel + ": "
           + numberFormatY.format(dataset.getZValue(series, item)));
     } else {
-      return String
-          .valueOf(xAxisLabel + ": " + numberFormatX.format(dataset.getXValue(series, item)) + " "
-              + yAxisLabel + ": " + numberFormatY.format(dataset.getYValue(series, item)) + " "
-              + zAxisLabel + ": " + numberFormatY.format(dataset.getZValue(series, item)));
+      return null;
     }
   }
 
   @Override
   public String generateToolTip(XYDataset dataset, int series, int item) {
     if (rows[item].getPreferredPeakIdentity() != null) {
-      featureIdentity = rows[item].getPreferredPeakIdentity().getDescription();
+      featureIdentity = rows[item].getPreferredPeakIdentity().getName();
       return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormatX.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormatY.format(dataset.getYValue(series, item)));
     } else {
-      return String
-          .valueOf(xAxisLabel + ": " + numberFormatX.format(dataset.getXValue(series, item)) + " "
-              + yAxisLabel + ": " + numberFormatY.format(dataset.getYValue(series, item)));
+      return null;
     }
   }
 
