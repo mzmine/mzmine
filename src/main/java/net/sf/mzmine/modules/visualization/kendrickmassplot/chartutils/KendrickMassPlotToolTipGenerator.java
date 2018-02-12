@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jfree.chart.labels.XYZToolTipGenerator;
+import org.jfree.chart.util.PublicCloneable;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -30,7 +31,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator {
+public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator, PublicCloneable {
 
   private String xAxisLabel, yAxisLabel, zAxisLabel;
   private NumberFormat numberFormatX = new DecimalFormat("####0.0000");
@@ -76,6 +77,11 @@ public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator {
           .valueOf(xAxisLabel + ": " + numberFormatX.format(dataset.getXValue(series, item)) + " "
               + yAxisLabel + ": " + numberFormatY.format(dataset.getYValue(series, item)));
     }
+  }
+
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    return super.clone();
   }
 
 }

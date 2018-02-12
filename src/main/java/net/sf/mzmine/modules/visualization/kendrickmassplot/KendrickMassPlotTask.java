@@ -131,7 +131,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart);
 
     // create chart JPanel
-    EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, true);
+    EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
     frame.add(chartPanel, BorderLayout.CENTER);
 
     // set title properties
