@@ -1,0 +1,58 @@
+<html>
+	<head>
+		<title>Visualization - Van Krevelen diagramt</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Van Krevelen diagram</h1>
+
+<h2>Description</h2>
+<p>
+
+</p>
+
+<h4>Parameters</h4>
+<dl>
+	<dt>Peak list</dt>
+    	<dd>Select the targeted peak list.</dd>
+	<dt>Peaks</dt>
+    	<dd>Add peaks from the peak list.</dd>
+	<dt>Z-axis value</dt>
+		<dd>Select which parameters you want to display in the third dimension. If you select "none", a 2D Van Krevelen diagram will be generated.</dd>
+	<dt>Z-axis scale value</dt>
+		<dd>Choose the bounds for the Z-axis. "Percentile" allows to exclude values of a selected percentile bellow and/or above from the paint scale. Values below will be displayed in black, values above will be displayed in magenta. "Custom" allows to set costum ranges.</dd>
+	<dt>Range for z-axis scale</dt>
+    	<dd>Enter lower bound left and higher bound right. If you have choosen percentile for Z-axis scale the values must be between 0 and 100. If you enter 0 and 100, all values will be included in the paint scale.</dd>
+	<dt>Heatmap style</dt>
+		   <dd>Select the style of your paint scale. You can choose between rainbow and different monochrome color coded paint scales.</dd>
+</dl>
+
+<h4>Background</h4>
+<dt>Van Krevelen diagrams are graphical plots developed by Dirk Willem van Krevelen (chemist and professor of fuel technology at the TU Delft) and used to assess the origin and maturity of kerogen and petroleum. The diagram cross-plots the hydrogen:carbon (hydrogen index) as a function of the oxygen:carbon (oxygen index) atomic ratios of carbon compounds.
+(https://en.wikipedia.org/wiki/Van_Krevelen_diagram) (van Krevelen, D.W. (1950). "Graphical-statistical method for the study of structure and reaction processes of coal", Fuel, 29, 269-84)<dt>
+<p>
+
+<h4>Functionality</h4>
+<p>
+This module allows to create 2 and 3 dimensional Van Krevelen Diagrams. Prior, a sum formula must be asigned to a feature. This can be done, using the "Formula prediction" module (Peak list methods/Identification/Formula prediction). All possible feature characteristics can be plotted in a third dimension. The plot window has a toolbar on the right side.
+The first button changes the size of the blocks, the second toggle the background color between black and white, the third toggles the visibility of a grid and the fourth adds annotations for identified features.
+</p>
+<p>
+<img src="screenshotWindow.png">
+</p>
+<p>
+A rainbow or monochrome color coded paint scale can be used for the third dimension. Depending on the dataset, a black background of the plot may result in a better contrast.
+<p>
+<img src="compareScale.png">
+</p>
+<p>
+The contrast can be further improved by removing extremly high or low values from the paint scale. This can be achived using the "Range for z-axis scale" parameter. Features above the limit are displayed in magenta, features below the limit are displayed in black.
+<p>
+<img src="compareContrast.png">
+</p>
+
+</body>
+</html>

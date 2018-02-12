@@ -30,6 +30,76 @@ import com.google.common.collect.Range;
 public class XYBlockPixelSizePaintScales {
 
   /*
+   * Method to select the right scale for the applied settings in the modules kendrickmassplot and
+   * vankrevelendiagram
+   */
+  public static Paint[] getPaintColors(String zAxisScaleType, Range<Double> zScaleRange,
+      String paintScaleStyle) {
+    Paint[] scale = null;
+    // lower and upper bound
+    if (zAxisScaleType.contains("percentile") && zScaleRange.lowerEndpoint() != 0
+        && zScaleRange.upperEndpoint() != 100) {
+      if (paintScaleStyle.contains("Rainbow")) {
+        scale = getFullRainBowScaleLowerUpperBound();
+      } else if (paintScaleStyle.contains("red")) {
+        scale = getRedScaleLowerUpperBound();
+      } else if (paintScaleStyle.contains("green")) {
+        scale = getGreenScaleLowerUpperBound();
+      } else if (paintScaleStyle.contains("yellow")) {
+        scale = getYellowScaleLowerUpperBound();
+      } else if (paintScaleStyle.contains("cyan")) {
+        scale = getCyanScaleLowerUpperBound();
+      }
+
+    }
+    // lower bound
+    else if (zAxisScaleType.contains("percentile") && zScaleRange.lowerEndpoint() != 0
+        && zScaleRange.upperEndpoint() == 100) {
+      if (paintScaleStyle.contains("Rainbow")) {
+        scale = getFullRainBowScaleLowerBound();
+      } else if (paintScaleStyle.contains("red")) {
+        scale = getRedScaleLowerBound();
+      } else if (paintScaleStyle.contains("green")) {
+        scale = getGreenScaleLowerBound();
+      } else if (paintScaleStyle.contains("yellow")) {
+        scale = getYellowScaleLowerBound();
+      } else if (paintScaleStyle.contains("cyan")) {
+        scale = getCyanScaleLowerBound();
+      }
+    }
+    // upper bound
+    else if (zAxisScaleType.contains("percentile") && zScaleRange.lowerEndpoint() == 0
+        && zScaleRange.upperEndpoint() != 100) {
+      if (paintScaleStyle.contains("Rainbow")) {
+        scale = getFullRainBowScaleUpperBound();
+      } else if (paintScaleStyle.contains("red")) {
+        scale = getRedScaleUpperBound();
+      } else if (paintScaleStyle.contains("green")) {
+        scale = getGreenScaleUpperBound();
+      } else if (paintScaleStyle.contains("yellow")) {
+        scale = getYellowScaleUpperBound();
+      } else if (paintScaleStyle.contains("cyan")) {
+        scale = getCyanScaleUpperBound();
+      }
+    }
+    // no bound
+    else {
+      if (paintScaleStyle.contains("Rainbow")) {
+        scale = getFullRainBowScale();
+      } else if (paintScaleStyle.contains("red")) {
+        scale = getRedScale();
+      } else if (paintScaleStyle.contains("green")) {
+        scale = getGreenScale();
+      } else if (paintScaleStyle.contains("yellow")) {
+        scale = getYellowScale();
+      } else if (paintScaleStyle.contains("cyan")) {
+        scale = getCyanScale();
+      }
+    }
+    return scale;
+  }
+
+  /*
    * returns an array with rainbow colors
    */
   public static Paint[] getFullRainBowScale() {
@@ -388,73 +458,4 @@ public class XYBlockPixelSizePaintScales {
     return cyanScale;
   }
 
-  /*
-   * Method to select the right scale for the applied settings in the modules kendrickmassplot and
-   * vankrevelendiagram
-   */
-  public static Paint[] getPaintColors(String zAxisScaleType, Range<Double> zScaleRange,
-      String paintScaleStyle) {
-    Paint[] scale = null;
-    // lower and upper bound
-    if (zAxisScaleType.contains("percentile") && zScaleRange.lowerEndpoint() != 0
-        && zScaleRange.upperEndpoint() != 100) {
-      if (paintScaleStyle.contains("Rainbow")) {
-        scale = getFullRainBowScaleLowerUpperBound();
-      } else if (paintScaleStyle.contains("red")) {
-        scale = getRedScaleLowerUpperBound();
-      } else if (paintScaleStyle.contains("green")) {
-        scale = getGreenScaleLowerUpperBound();
-      } else if (paintScaleStyle.contains("yellow")) {
-        scale = getYellowScaleLowerUpperBound();
-      } else if (paintScaleStyle.contains("cyan")) {
-        scale = getCyanScaleLowerUpperBound();
-      }
-
-    }
-    // lower bound
-    else if (zAxisScaleType.contains("percentile") && zScaleRange.lowerEndpoint() != 0
-        && zScaleRange.upperEndpoint() == 100) {
-      if (paintScaleStyle.contains("Rainbow")) {
-        scale = getFullRainBowScaleLowerBound();
-      } else if (paintScaleStyle.contains("red")) {
-        scale = getRedScaleLowerBound();
-      } else if (paintScaleStyle.contains("green")) {
-        scale = getGreenScaleLowerBound();
-      } else if (paintScaleStyle.contains("yellow")) {
-        scale = getYellowScaleLowerBound();
-      } else if (paintScaleStyle.contains("cyan")) {
-        scale = getCyanScaleLowerBound();
-      }
-    }
-    // upper bound
-    else if (zAxisScaleType.contains("percentile") && zScaleRange.lowerEndpoint() == 0
-        && zScaleRange.upperEndpoint() != 100) {
-      if (paintScaleStyle.contains("Rainbow")) {
-        scale = getFullRainBowScaleUpperBound();
-      } else if (paintScaleStyle.contains("red")) {
-        scale = getRedScaleUpperBound();
-      } else if (paintScaleStyle.contains("green")) {
-        scale = getGreenScaleUpperBound();
-      } else if (paintScaleStyle.contains("yellow")) {
-        scale = getYellowScaleUpperBound();
-      } else if (paintScaleStyle.contains("cyan")) {
-        scale = getCyanScaleUpperBound();
-      }
-    }
-    // no bound
-    else {
-      if (paintScaleStyle.contains("Rainbow")) {
-        scale = getFullRainBowScale();
-      } else if (paintScaleStyle.contains("red")) {
-        scale = getRedScale();
-      } else if (paintScaleStyle.contains("green")) {
-        scale = getGreenScale();
-      } else if (paintScaleStyle.contains("yellow")) {
-        scale = getYellowScale();
-      } else if (paintScaleStyle.contains("cyan")) {
-        scale = getCyanScale();
-      }
-    }
-    return scale;
-  }
 }

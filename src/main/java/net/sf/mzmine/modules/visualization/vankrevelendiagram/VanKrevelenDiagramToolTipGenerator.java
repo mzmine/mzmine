@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jfree.chart.labels.XYZToolTipGenerator;
+import org.jfree.chart.util.PublicCloneable;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -30,7 +31,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class VanKrevelenDiagramToolTipGenerator implements XYZToolTipGenerator {
+public class VanKrevelenDiagramToolTipGenerator implements XYZToolTipGenerator, PublicCloneable {
 
   private String xAxisLabel, yAxisLabel, zAxisLabel;
   private NumberFormat numberFormatX = new DecimalFormat("####0.0000");
@@ -52,7 +53,7 @@ public class VanKrevelenDiagramToolTipGenerator implements XYZToolTipGenerator {
   public String generateToolTip(XYZDataset dataset, int series, int item) {
     if (rows[item].getPreferredPeakIdentity() != null) {
       featureIdentity = rows[item].getPreferredPeakIdentity().getName();
-      return String.valueOf(rows[item].getID() + " " + featureIdentity + "\n" + xAxisLabel + ": "
+      return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormatX.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormatY.format(dataset.getYValue(series, item)) + " " + zAxisLabel + ": "
           + numberFormatY.format(dataset.getZValue(series, item)));
@@ -65,12 +66,17 @@ public class VanKrevelenDiagramToolTipGenerator implements XYZToolTipGenerator {
   public String generateToolTip(XYDataset dataset, int series, int item) {
     if (rows[item].getPreferredPeakIdentity() != null) {
       featureIdentity = rows[item].getPreferredPeakIdentity().getName();
-      return String.valueOf(rows[item].getID() + " " + featureIdentity + "\n" + xAxisLabel + ": "
+      return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormatX.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormatY.format(dataset.getYValue(series, item)));
     } else {
       return null;
     }
+  }
+
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    return super.clone();
   }
 
 }

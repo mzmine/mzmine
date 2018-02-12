@@ -31,9 +31,6 @@ import net.sf.mzmine.parameters.ParameterSet;
  */
 class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
 
-  /**
-   * XYZDataset for Van Krevelen diagram
-   */
   private static final long serialVersionUID = 1L;
 
   private PeakListRow selectedRows[];

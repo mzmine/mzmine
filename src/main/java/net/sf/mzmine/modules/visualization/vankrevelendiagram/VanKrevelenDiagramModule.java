@@ -28,7 +28,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
 /**
- * Kendrick mass plot module
+ * Van Krevelen diagram module
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */

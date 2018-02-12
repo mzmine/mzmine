@@ -30,12 +30,10 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
-import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
-
 
 /**
  * parameters for Kendrick mass plots
