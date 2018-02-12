@@ -43,11 +43,7 @@ import net.sf.mzmine.util.SortingProperty;
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class KendrickMassPlotParameters extends SimpleParameterSet {
-  public static final String rawDataFilesOption = "Raw data file";
-
   public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
-
-  public static final RawDataFilesParameter rawFile = new RawDataFilesParameter();
 
   public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
 
@@ -82,7 +78,7 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public KendrickMassPlotParameters() {
-    super(new Parameter[] {peakList, rawFile, selectedRows, yAxisValues, xAxisValues, zAxisValues,
+    super(new Parameter[] {peakList, selectedRows, yAxisValues, xAxisValues, zAxisValues,
         zScaleType, zScaleRange, paintScale, windowSettings});
   }
 

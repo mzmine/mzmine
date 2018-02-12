@@ -52,7 +52,7 @@ public class VanKrevelenDiagramToolTipGenerator implements XYZToolTipGenerator {
   public String generateToolTip(XYZDataset dataset, int series, int item) {
     if (rows[item].getPreferredPeakIdentity() != null) {
       featureIdentity = rows[item].getPreferredPeakIdentity().getName();
-      return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
+      return String.valueOf(rows[item].getID() + " " + featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormatX.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormatY.format(dataset.getYValue(series, item)) + " " + zAxisLabel + ": "
           + numberFormatY.format(dataset.getZValue(series, item)));
@@ -65,7 +65,7 @@ public class VanKrevelenDiagramToolTipGenerator implements XYZToolTipGenerator {
   public String generateToolTip(XYDataset dataset, int series, int item) {
     if (rows[item].getPreferredPeakIdentity() != null) {
       featureIdentity = rows[item].getPreferredPeakIdentity().getName();
-      return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
+      return String.valueOf(rows[item].getID() + " " + featureIdentity + "\n" + xAxisLabel + ": "
           + numberFormatX.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
           + numberFormatY.format(dataset.getYValue(series, item)));
     } else {

@@ -35,7 +35,7 @@ import net.sf.mzmine.util.GUIUtils;
 public class VanKrevelenDiagramToolBar extends JToolBar {
 
   private static final long serialVersionUID = 1L;
-  static final Icon blockSizeIcon = new ImageIcon("icons/thicknessicon.png");
+  static final Icon blockSizeIcon = new ImageIcon("icons/blocksizeicon.png");
   static final Icon backColorIcon = new ImageIcon("icons/bgicon.png");
   static final Icon gridIcon = new ImageIcon("icons/gridicon.png");
   static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");

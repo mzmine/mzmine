@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
@@ -40,10 +39,9 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
+import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotParameters;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.NameItemLabelGenerator;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizePaintScales;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
@@ -79,10 +77,11 @@ public class VanKrevelenDiagramTask extends AbstractTask {
         .getMatchingPeakLists()[0];
     zAxisLabel =
         parameters.getParameter(VanKrevelenDiagramParameters.zAxisValues).getValue().toString();
-    zAxisScaleType = parameters.getParameter(KendrickMassPlotParameters.zScaleType).getValue();
-    zScaleRange = parameters.getParameter(KendrickMassPlotParameters.zScaleRange).getValue();
-    paintScaleStyle = parameters.getParameter(KendrickMassPlotParameters.paintScale).getValue();
-    rows = parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(peakList);
+    zAxisScaleType = parameters.getParameter(VanKrevelenDiagramParameters.zScaleType).getValue();
+    zScaleRange = parameters.getParameter(VanKrevelenDiagramParameters.zScaleRange).getValue();
+    paintScaleStyle = parameters.getParameter(VanKrevelenDiagramParameters.paintScale).getValue();
+    rows = parameters.getParameter(VanKrevelenDiagramParameters.selectedRows)
+        .getMatchingRows(peakList);
 
     title = "Van Krevelen Diagram [" + peakList + "]";
 
@@ -102,163 +101,26 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Create Kendrick mass plot of " + peakList);
+    logger.info("Create Van Krevelen diagram of " + peakList);
     // Task canceled?
     if (isCanceled())
       return;
-
-    /**
-     * create dataset 2D, if no third dimension was selected
-     */
+    JFreeChart chart = null;
+    // 2D, if no third dimension was selected
     if (zAxisLabel.equals("none")) {
-      logger.info("Creating new 2D chart instance");
-      appliedSteps++;
-
-      // load dataset
-      VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(parameterSet);
-
-      // create chart
-      chart = ChartFactory.createScatterPlot(title, "O/C", "H/C", dataset2D,
-          PlotOrientation.VERTICAL, true, true, false);
-
-      XYPlot plot = (XYPlot) chart.getPlot();
-      plot.setBackgroundPaint(Color.WHITE);
-      appliedSteps++;
-
-      // set renderer
-      XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
-
-      // calc block sizes
-      double maxX = plot.getDomainAxis().getRange().getUpperBound();
-      double maxY = plot.getRangeAxis().getRange().getUpperBound();
-
-      renderer.setBlockWidth(0.001);
-      renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-
-      // set tooltip generator
-      VanKrevelenDiagramToolTipGenerator tooltipGenerator =
-          new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, rows);
-      renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
-      plot.setRenderer(renderer);
-
-      // set item label generator
-      NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
-      renderer.setDefaultItemLabelGenerator(generator);
-      renderer.setDefaultItemLabelsVisible(false);
-      renderer.setDefaultItemLabelFont(legendFont);
+      chart = create2DVanKrevelenDiagram();
     }
     // 3D, if a third dimension was selected
     else {
-      logger.info("Creating new 3D chart instance");
-      appliedSteps++;
-      // load dataseta
-      VanKrevelenDiagramXYZDataset dataset3D = new VanKrevelenDiagramXYZDataset(parameterSet);
-
-      // copy and sort z-Values for min and max of the paint scale
-      double[] copyZValues = new double[dataset3D.getItemCount(0)];
-      for (int i = 0; i < dataset3D.getItemCount(0); i++) {
-        copyZValues[i] = dataset3D.getZValue(0, i);
-      }
-      Arrays.sort(copyZValues);
-      // get index in accordance to percentile windows
-      int minScaleIndex = 0;
-      int maxScaleIndex = copyZValues.length - 1;
-      double min = 0;
-      double max = 0;
-
-      if (zAxisScaleType.equals("percentile")) {
-        minScaleIndex = (int) Math.round(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
-        maxScaleIndex = copyZValues.length
-            - (int) (Math.ceil(copyZValues.length * ((100 - zScaleRange.upperEndpoint()) / 100)));
-        if (zScaleRange.upperEndpoint() == 100) {
-          maxScaleIndex = copyZValues.length - 1;
-        }
-        if (zScaleRange.lowerEndpoint() == 0) {
-          minScaleIndex = 0;
-        }
-        min = copyZValues[minScaleIndex];
-        max = copyZValues[maxScaleIndex];
-      }
-      if (zAxisScaleType.equals("custom")) {
-        min = zScaleRange.lowerEndpoint();
-        max = zScaleRange.upperEndpoint();
-      }
-
-      // create paint scale for thrid dimension
-      Paint[] contourColors =
-          XYBlockPixelSizePaintScales.getPaintColors(zAxisScaleType, zScaleRange, paintScaleStyle);
-      LookupPaintScale scale = null;
-      scale = new LookupPaintScale(min, max, Color.MAGENTA);
-      double[] scaleValues = new double[contourColors.length];
-      double delta = (max - min) / (contourColors.length - 1);
-      double value = min;
-      for (int i = 0; i < contourColors.length; i++) {
-        scale.add(value, contourColors[i]);
-        scaleValues[i] = value;
-        value = value + delta;
-      }
-
-      // create chart
-      chart = ChartFactory.createScatterPlot(title, "O/C", "H/C", dataset3D,
-          PlotOrientation.VERTICAL, true, true, false);
-      // set renderer
-      XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
-
-      XYPlot plot = chart.getXYPlot();
-      appliedSteps++;
-      renderer.setPaintScale(scale);
-      double maxX = plot.getDomainAxis().getRange().getUpperBound();
-      double maxY = plot.getRangeAxis().getRange().getUpperBound();
-
-      renderer.setBlockWidth(0.001);
-      renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-
-      // set tooltip generator
-      VanKrevelenDiagramToolTipGenerator tooltipGenerator =
-          new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, rows);
-      renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
-
-      // set item label generator
-      NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
-      renderer.setDefaultItemLabelGenerator(generator);
-      renderer.setDefaultItemLabelsVisible(false);
-      renderer.setDefaultItemLabelFont(legendFont);
-
-      plot.setRenderer(renderer);
-      plot.setBackgroundPaint(Color.white);
-      plot.setRangeGridlinePaint(Color.white);
-      plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
-      plot.setOutlinePaint(Color.black);
-      plot.setBackgroundPaint(Color.white);
-
-      // Legend
-      NumberAxis scaleAxis = new NumberAxis(zAxisLabel);
-      scaleAxis.setRange(min, max);
-      scaleAxis.setAxisLinePaint(Color.white);
-      scaleAxis.setTickMarkPaint(Color.white);
-      PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
-
-      legend.setStripOutlineVisible(false);
-      legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
-      legend.setAxisOffset(5.0);
-      legend.setMargin(new RectangleInsets(5, 5, 5, 5));
-      legend.setFrame(new BlockBorder(Color.white));
-      legend.setPadding(new RectangleInsets(10, 10, 10, 10));
-      legend.setStripWidth(10);
-      legend.setPosition(RectangleEdge.LEFT);
-      legend.getAxis().setLabelFont(legendFont);
-      legend.getAxis().setTickLabelFont(legendFont);
-      chart.addSubtitle(legend);
-      appliedSteps++;
-
+      chart = create3DVanKrevelenDiagram();
     }
 
     chart.setBackgroundPaint(Color.white);
 
-    // Create Kendrick mass plot Window
+    // Create Van Krevelen Diagram window
     VanKrevelenDiagramWindow frame = new VanKrevelenDiagramWindow(chart);
     // create chart JPanel
-    ChartPanel chartPanel = new ChartPanel(chart);
+    EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, true);
     frame.add(chartPanel, BorderLayout.CENTER);
 
     // set title properties
@@ -266,8 +128,6 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     chartTitle.setMargin(5, 0, 0, 0);
     chartTitle.setFont(titleFont);
     LegendTitle legend = chart.getLegend();
-    legend.setItemFont(legendFont);
-    legend.setBorder(0, 0, 0, 0);
     legend.setVisible(false);
     frame.setTitle(title);
     frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -276,6 +136,158 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     frame.pack();
     setStatus(TaskStatus.FINISHED);
     logger.info("Finished creating van Krevelen diagram of " + peakList);
+  }
+
+  /**
+   * create 2D Van Krevelen Diagram chart
+   */
+  private JFreeChart create2DVanKrevelenDiagram() {
+    logger.info("Creating new 2D chart instance");
+    appliedSteps++;
+
+    // load dataset
+    VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(parameterSet);
+
+    // create chart
+    chart = ChartFactory.createScatterPlot(title, "O/C", "H/C", dataset2D, PlotOrientation.VERTICAL,
+        true, true, false);
+
+    XYPlot plot = (XYPlot) chart.getPlot();
+    plot.setBackgroundPaint(Color.WHITE);
+    appliedSteps++;
+
+    // set renderer
+    XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+
+    // calc block sizes
+    double maxX = plot.getDomainAxis().getRange().getUpperBound();
+    double maxY = plot.getRangeAxis().getRange().getUpperBound();
+
+    renderer.setBlockWidth(0.001);
+    renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
+
+    // set tooltip generator
+    VanKrevelenDiagramToolTipGenerator tooltipGenerator =
+        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, rows);
+    renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
+    plot.setRenderer(renderer);
+
+    // set item label generator
+    NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
+    renderer.setDefaultItemLabelGenerator(generator);
+    renderer.setDefaultItemLabelsVisible(false);
+    renderer.setDefaultItemLabelFont(legendFont);
+
+    return chart;
+  }
+
+  /**
+   * create 3D Van Krevelen Diagram chart
+   */
+  private JFreeChart create3DVanKrevelenDiagram() {
+    logger.info("Creating new 3D chart instance");
+    appliedSteps++;
+    // load dataseta
+    VanKrevelenDiagramXYZDataset dataset3D = new VanKrevelenDiagramXYZDataset(parameterSet);
+
+    // copy and sort z-Values for min and max of the paint scale
+    double[] copyZValues = new double[dataset3D.getItemCount(0)];
+    for (int i = 0; i < dataset3D.getItemCount(0); i++) {
+      copyZValues[i] = dataset3D.getZValue(0, i);
+    }
+    Arrays.sort(copyZValues);
+    // get index in accordance to percentile windows
+    int minScaleIndex = 0;
+    int maxScaleIndex = copyZValues.length - 1;
+    double min = 0;
+    double max = 0;
+
+    if (zAxisScaleType.equals("percentile")) {
+      minScaleIndex = (int) Math.round(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
+      maxScaleIndex = copyZValues.length
+          - (int) (Math.ceil(copyZValues.length * ((100 - zScaleRange.upperEndpoint()) / 100)));
+      if (zScaleRange.upperEndpoint() == 100) {
+        maxScaleIndex = copyZValues.length - 1;
+      }
+      if (zScaleRange.lowerEndpoint() == 0) {
+        minScaleIndex = 0;
+      }
+      min = copyZValues[minScaleIndex];
+      max = copyZValues[maxScaleIndex];
+    }
+    if (zAxisScaleType.equals("custom")) {
+      min = zScaleRange.lowerEndpoint();
+      max = zScaleRange.upperEndpoint();
+    }
+
+    // create paint scale for thrid dimension
+    Paint[] contourColors =
+        XYBlockPixelSizePaintScales.getPaintColors(zAxisScaleType, zScaleRange, paintScaleStyle);
+    LookupPaintScale scale = null;
+    scale = new LookupPaintScale(min, max, Color.MAGENTA);
+    double[] scaleValues = new double[contourColors.length];
+    double delta = (max - min) / (contourColors.length - 1);
+    double value = min;
+    for (int i = 0; i < contourColors.length; i++) {
+      scale.add(value, contourColors[i]);
+      scaleValues[i] = value;
+      value = value + delta;
+    }
+
+    // create chart
+    chart = ChartFactory.createScatterPlot(title, "O/C", "H/C", dataset3D, PlotOrientation.VERTICAL,
+        true, true, false);
+    // set renderer
+    XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+
+    XYPlot plot = chart.getXYPlot();
+    appliedSteps++;
+    renderer.setPaintScale(scale);
+    double maxX = plot.getDomainAxis().getRange().getUpperBound();
+    double maxY = plot.getRangeAxis().getRange().getUpperBound();
+
+    renderer.setBlockWidth(0.001);
+    renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
+
+    // set tooltip generator
+    VanKrevelenDiagramToolTipGenerator tooltipGenerator =
+        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, rows);
+    renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
+
+    // set item label generator
+    NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
+    renderer.setDefaultItemLabelGenerator(generator);
+    renderer.setDefaultItemLabelsVisible(false);
+    renderer.setDefaultItemLabelFont(legendFont);
+
+    plot.setRenderer(renderer);
+    plot.setBackgroundPaint(Color.white);
+    plot.setRangeGridlinePaint(Color.white);
+    plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
+    plot.setOutlinePaint(Color.black);
+    plot.setBackgroundPaint(Color.white);
+
+    // Legend
+    NumberAxis scaleAxis = new NumberAxis(zAxisLabel);
+    scaleAxis.setRange(min, max);
+    scaleAxis.setAxisLinePaint(Color.white);
+    scaleAxis.setTickMarkPaint(Color.white);
+    PaintScaleLegend legend = new PaintScaleLegend(scale, scaleAxis);
+
+    legend.setStripOutlineVisible(false);
+    legend.setAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+    legend.setAxisOffset(5.0);
+    legend.setMargin(new RectangleInsets(5, 5, 5, 5));
+    legend.setFrame(new BlockBorder(Color.white));
+    legend.setPadding(new RectangleInsets(10, 10, 10, 10));
+    legend.setStripWidth(10);
+    legend.setPosition(RectangleEdge.LEFT);
+    legend.getAxis().setLabelFont(legendFont);
+    legend.getAxis().setTickLabelFont(legendFont);
+    chart.addSubtitle(legend);
+    appliedSteps++;
+
+    return chart;
   }
 
 }
