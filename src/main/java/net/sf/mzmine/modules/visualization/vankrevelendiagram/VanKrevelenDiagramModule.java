@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.kendrickmassplot;
+package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
@@ -28,14 +28,14 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
 /**
- * Kendrick mass plot module
+ * Van Krevelen diagram module
  * 
- * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-public class KendrickMassPlotModule implements MZmineProcessingModule {
+public class VanKrevelenDiagramModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Kendrick mass plot";
-  private static final String MODULE_DESCRIPTION = "Kendrick mass plot.";
+  private static final String MODULE_NAME = "Van Krevelen Diagram";
+  private static final String MODULE_DESCRIPTION = "Van Krevelen Diagram.";
 
   @Override
   public @Nonnull String getName() {
@@ -52,11 +52,13 @@ public class KendrickMassPlotModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    Task newTask = new KendrickMassPlotTask(parameters);
+    Task newTask = new VanKrevelenDiagramTask(parameters);
     tasks.add(newTask);
 
     return ExitCode.OK;
   }
+
+
 
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
@@ -65,6 +67,6 @@ public class KendrickMassPlotModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return KendrickMassPlotParameters.class;
+    return VanKrevelenDiagramParameters.class;
   }
 }
