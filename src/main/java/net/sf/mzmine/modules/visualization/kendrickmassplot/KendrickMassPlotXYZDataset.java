@@ -215,7 +215,7 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
 
   @Override
   public int getSeriesCount() {
-    return selectedRows.length;
+    return 1;
   }
 
   public Comparable<?> getRowKey(int row) {

@@ -259,7 +259,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
 
   @Override
   public int getSeriesCount() {
-    return numberOfDatapoints;
+    return 1;
   }
 
   public Comparable<?> getRowKey(int row) {
