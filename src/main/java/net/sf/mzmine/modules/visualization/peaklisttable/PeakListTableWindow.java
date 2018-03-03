@@ -26,17 +26,26 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable.PrintMode;
+import javax.swing.JTextField;
+import javax.swing.RowFilter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
+import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableColumnModel;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -54,6 +63,9 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
     private PeakListTable table;
 
     private ParameterSet parameters;
+    
+    private JTextField jtfFilter = new JTextField();
+    
 
     /**
      * Constructor: initializes an empty visualizer
@@ -78,6 +90,45 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
 
 	add(scrollPane, BorderLayout.CENTER);
 
+	TableRowSorter<PeakListTableModel> rowSorter = table.getTableRowSorter();
+	JPanel panel = new JPanel(new BorderLayout());
+	panel.add(new JLabel("Search:"),
+            BorderLayout.WEST);
+	panel.add(jtfFilter, BorderLayout.CENTER);
+	
+    add(panel, BorderLayout.SOUTH);
+    
+    jtfFilter.getDocument().addDocumentListener(new DocumentListener(){
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            String text = jtfFilter.getText();
+
+            if (text.trim().length() == 0) {
+                rowSorter.setRowFilter(null);
+            } else {
+                rowSorter.setRowFilter(RowFilter.regexFilter("(?i)"+text));
+            }
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            String text = jtfFilter.getText();
+
+            if (text.trim().length() == 0) {
+                rowSorter.setRowFilter(null);
+            } else {
+                rowSorter.setRowFilter(RowFilter.regexFilter("(?i)"+text));
+            }
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+    });
+    
 	// Add the Windows menu
 	JMenuBar menuBar = new JMenuBar();
 	menuBar.add(new WindowsMenu());
