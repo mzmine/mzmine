@@ -34,7 +34,7 @@ class PeakListTableToolBar extends JToolBar {
 	    "icons/propertiesicon.png");
     private static final Icon widthIcon = new ImageIcon("icons/widthicon.png");
     private static final Icon printIcon = new ImageIcon("icons/printicon.png");
-    
+
     PeakListTableToolBar(PeakListTableWindow masterFrame) {
 
 	super(JToolBar.VERTICAL);
@@ -48,7 +48,7 @@ class PeakListTableToolBar extends JToolBar {
 		"AUTOCOLUMNWIDTH", "Set auto column width");
 	addSeparator();
 	GUIUtils.addButton(this, null, printIcon, masterFrame, "PRINT", "Print");
-	
+
     }
 
 }
