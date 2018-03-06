@@ -74,75 +74,94 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
     private JTextField filterTextIdentity;
     private JTextField filterTextComment;
 
+    RowFilter<Object,Object > mzFilter = new RowFilter<Object, Object>() {
+        public boolean include(Entry<? extends Object, ? extends Object> entry) {
+            String mzValue = entry.getStringValue(1);
+            if (mzValue.startsWith(filterTextMz.getText())) {
+                return true;
+            }
+            return false;
+        }
+    };
+    
+    RowFilter<Object,Object > rtFilter = new RowFilter<Object, Object>() {
+        public boolean include(Entry<? extends Object, ? extends Object> entry) {
+            String rtValue = entry.getStringValue(2);
+            if (rtValue.startsWith(filterTextRt.getText())) {
+                return true;
+            }
+            return false;
+        }
+    };
 
     /**
      * Constructor: initializes an empty visualizer
      */
     PeakListTableWindow(PeakList peakList, ParameterSet parameters) {
 
-	super("Peak list: " + peakList.getName());
-
-	this.parameters = parameters;
-
-	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-	setBackground(Color.white);
-
-	// Build tool bar
-	PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
-	add(toolBar, BorderLayout.EAST);
-
-	// Build table
-	table = new PeakListTable(this, parameters, peakList);
-
-	scrollPane = new JScrollPane(table);
-
-	add(scrollPane, BorderLayout.CENTER);
-
+		super("Peak list: " + peakList.getName());
 	
-	JPanel filterPane = new JPanel(new GridLayout(1,10));
-    //filterBy = new JComboBox(new Object[]{"Nothing", "m/z", "RT","Identity","Comment"});
-    filterTextId = new JTextField(10);
-    filterTextMz = new JTextField(10);
-    filterTextRt = new JTextField(10);
-    filterTextIdentity = new JTextField(10);
-    filterTextComment = new JTextField(10);
-    //filterPane.add(filterBy);
-    filterPane.add(new JLabel("ID:",SwingConstants.CENTER));
-    filterPane.add(filterTextId);
-    filterPane.add(new JLabel("m/z:",SwingConstants.CENTER));
-    filterPane.add(filterTextMz);
-    filterPane.add(new JLabel("RT:",SwingConstants.CENTER));
-    filterPane.add(filterTextRt);
-    filterPane.add(new JLabel("Identity:",SwingConstants.CENTER));
-    filterPane.add(filterTextIdentity);
-    filterPane.add(new JLabel("Comment:",SwingConstants.CENTER));
-    filterPane.add(filterTextComment);
-
-    addListener(filterTextId);
-    addListener(filterTextMz);
-    addListener(filterTextRt);
-    addListener(filterTextIdentity);
-    addListener(filterTextComment);
+		this.parameters = parameters;
 	
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setBackground(Color.white);
 	
-    add(filterPane, BorderLayout.NORTH);
-    
-	// Add the Windows menu
-	JMenuBar menuBar = new JMenuBar();
-	menuBar.add(new WindowsMenu());
-	setJMenuBar(menuBar);
-
-	pack();
-
-	// get the window settings parameter
-	ParameterSet paramSet = MZmineCore.getConfiguration()
-		.getModuleParameters(PeakListTableModule.class);
-	WindowSettingsParameter settings = paramSet
-		.getParameter(PeakListTableParameters.windowSettings);
-
-	// update the window and listen for changes
-	settings.applySettingsToWindow(this);
-	this.addComponentListener(settings);
+		// Build tool bar
+		PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
+		add(toolBar, BorderLayout.EAST);
+	
+		// Build table
+		table = new PeakListTable(this, parameters, peakList);
+	
+		scrollPane = new JScrollPane(table);
+	
+		add(scrollPane, BorderLayout.CENTER);
+	
+		
+		JPanel filterPane = new JPanel(new GridLayout(1,10));
+	    
+	    filterTextId = new JTextField(10);
+	    filterTextMz = new JTextField(10);
+	    filterTextRt = new JTextField(10);
+	    filterTextIdentity = new JTextField(10);
+	    filterTextComment = new JTextField(10);
+	    
+	    filterPane.add(new JLabel("ID:",SwingConstants.CENTER));
+	    filterPane.add(filterTextId);
+	    filterPane.add(new JLabel("m/z:",SwingConstants.CENTER));
+	    filterPane.add(filterTextMz);
+	    filterPane.add(new JLabel("RT:",SwingConstants.CENTER));
+	    filterPane.add(filterTextRt);
+	    filterPane.add(new JLabel("Identity:",SwingConstants.CENTER));
+	    filterPane.add(filterTextIdentity);
+	    filterPane.add(new JLabel("Comment:",SwingConstants.CENTER));
+	    filterPane.add(filterTextComment);
+	
+	    addListener(filterTextId);
+	    addListener(filterTextMz);
+	    addListener(filterTextRt);
+	    addListener(filterTextIdentity);
+	    addListener(filterTextComment);
+		
+		
+	    add(filterPane, BorderLayout.NORTH);
+	    
+		// Add the Windows menu
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.add(new WindowsMenu());
+		setJMenuBar(menuBar);
+	
+		pack();
+	
+		// get the window settings parameter
+		ParameterSet paramSet = MZmineCore.getConfiguration()
+			.getModuleParameters(PeakListTableModule.class);
+		WindowSettingsParameter settings = paramSet
+			.getParameter(PeakListTableParameters.windowSettings);
+	
+		// update the window and listen for changes
+		settings.applySettingsToWindow(this);
+		this.addComponentListener(settings);
 
     }
 
@@ -175,27 +194,26 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
         });
     }
 
-    public void updateFilter() {
-        //Object selected = filterBy.getSelectedItem();
+    @SuppressWarnings("unchecked")
+	public void updateFilter() {
         
         List<RowFilter<Object,Object>> rowSorters = new ArrayList<RowFilter<Object,Object>>();
 
-        TableRowSorter<PeakListTableModel> sorter = table.getTableRowSorter();
+        
+		TableRowSorter<PeakListTableModel> sorter = (TableRowSorter<PeakListTableModel>) table.getRowSorter();
 
         String textId = "(?i)" + filterTextId.getText();
-        String textMz = "(?i)" + filterTextMz.getText();
-        String textRt = "(?i)" + filterTextRt.getText();
         String textIdentity = "(?i)" + filterTextIdentity.getText();
         String textComment = "(?i)" + filterTextComment.getText();
 
         rowSorters.add(RowFilter.regexFilter(textId,0));
-        rowSorters.add(RowFilter.regexFilter(textMz,1));
-        rowSorters.add(RowFilter.regexFilter(textRt,2));
+        rowSorters.add(mzFilter);
+        rowSorters.add(rtFilter);
         rowSorters.add(RowFilter.regexFilter(textIdentity,3));
         rowSorters.add(RowFilter.regexFilter(textComment,4));
 
-
         sorter.setRowFilter(RowFilter.andFilter(rowSorters));
+        table.setRowSorter(sorter);
 
     }
     
