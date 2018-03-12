@@ -245,12 +245,12 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
         params.prefWindowWidth = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
-        params.minNumPeaks = this.parameters.getParameter(
+        params.minClusterSize = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.MIN_NUM_PEAK).getValue();
         params.retTimeTolerance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
 
-        return decomposition.run(params, chromatograms, ranges);
+        return decomposition.run(params, chromatograms);
     }
 
     @Nonnull
