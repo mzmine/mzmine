@@ -250,7 +250,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         params.retTimeTolerance = this.parameters.getParameter(
                 ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
 
-        return decomposition.run(params, chromatograms);
+        return decomposition.run(params, chromatograms, ranges);
     }
 
     @Nonnull
