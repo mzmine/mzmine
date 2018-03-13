@@ -131,7 +131,7 @@ public class ComponentConstructionSupplier extends AlgorithmSupplier
         if (retTimeTolerance == null) return;
 
         List<BetterComponent> components =
-                new ComponentSelector(cluster, dataProvider.getChromatograms(true), retTimeTolerance).run();
+                new ComponentSelector().execute(dataProvider.getChromatograms(true), cluster, retTimeTolerance);
 
         plot.updateData(dataProvider.getChromatograms(false), components);
     }
@@ -142,7 +142,7 @@ public class ComponentConstructionSupplier extends AlgorithmSupplier
         private static final Color[] COLORS = new Color[] {
                 Color.BLUE, Color.PINK, Color.CYAN, Color.MAGENTA, Color.ORANGE, Color.GREEN, Color.RED};
 
-        private enum PeakType {SIMPLE, MODEL};
+        private enum PeakType {SIMPLE, MODEL}
 
         private final XYSeriesCollection xyDataset;
         private final List<Integer> colorDataset;
@@ -224,15 +224,11 @@ public class ComponentConstructionSupplier extends AlgorithmSupplier
             };
 
             renderer.setDefaultShapesVisible(false);
-            renderer.setDefaultToolTipGenerator(new XYToolTipGenerator() {
-                @Override
-                public String generateToolTip(XYDataset dataset, int series, int item)
-                {
-                    try {
-                        return toolTips.get(series);
-                    } catch (NullPointerException | IndexOutOfBoundsException e) {
-                        return "";
-                    }
+            renderer.setDefaultToolTipGenerator((dataset, series, item) -> {
+                try {
+                    return toolTips.get(series);
+                } catch (NullPointerException | IndexOutOfBoundsException e) {
+                    return "";
                 }
             });
 

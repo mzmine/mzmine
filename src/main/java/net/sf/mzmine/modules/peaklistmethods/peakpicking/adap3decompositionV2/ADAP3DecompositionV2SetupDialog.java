@@ -321,7 +321,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         List<BetterComponent> components = null;
         try {
-            components = new ComponentSelector(cluster, chromatograms, retTimeTolerance).run();
+            components = new ComponentSelector().execute(chromatograms, cluster, retTimeTolerance);
         } catch (Exception e) {
             e.printStackTrace();
         }
