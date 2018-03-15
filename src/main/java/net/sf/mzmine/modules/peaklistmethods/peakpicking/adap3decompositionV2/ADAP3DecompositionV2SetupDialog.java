@@ -314,14 +314,16 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         Double retTimeTolerance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
-        if (retTimeTolerance == null || retTimeTolerance <= 0.0)
+        Boolean smoothing = parameterSet.getParameter(ADAP3DecompositionV2Parameters.SMOOTHING).getValue();
+        Boolean unimodality = parameterSet.getParameter(ADAP3DecompositionV2Parameters.UNIMODALITY).getValue();
+        if (smoothing == null || unimodality == null || retTimeTolerance == null || retTimeTolerance <= 0.0)
             return;
 
         List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(chromatogramList);
 
         List<BetterComponent> components = null;
         try {
-            components = new ComponentSelector().execute(chromatograms, cluster, retTimeTolerance);
+            components = new ComponentSelector(smoothing, unimodality).execute(chromatograms, cluster, retTimeTolerance);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -349,7 +351,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         }
         
         final Set <Integer> firstPhaseIndices = new HashSet <> (Arrays.asList(2, 3));
-        final Set <Integer> secondPhaseIndices = new HashSet<>(Collections.singletonList(4));
+        final Set <Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(4, 5, 6));
         
         int size = Math.min(currentParameters.length, newValues.length);
         

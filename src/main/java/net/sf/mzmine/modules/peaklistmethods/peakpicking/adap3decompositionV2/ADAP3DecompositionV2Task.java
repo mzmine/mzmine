@@ -209,15 +209,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         // Sort new peak rows by retention time
         // ------------------------------------
         
-        newPeakListRows.sort(new Comparator<PeakListRow>() {
-            @Override
-            public int compare(PeakListRow row1, PeakListRow row2) {
-                double retTime1 = row1.getAverageRT();
-                double retTime2 = row2.getAverageRT();
-
-                return Double.compare(retTime1, retTime2);
-            }
-        });
+        newPeakListRows.sort(Comparator.comparingDouble(PeakListRow::getAverageRT));
         
         for (PeakListRow row : newPeakListRows)
             resolvedPeakList.addRow(row);
@@ -243,12 +235,11 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
         Decomposition.Parameters params = new Decomposition.Parameters();
 
-        params.prefWindowWidth = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
-        params.minClusterSize = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.MIN_NUM_PEAK).getValue();
-        params.retTimeTolerance = this.parameters.getParameter(
-                ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
+        params.prefWindowWidth = parameters.getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
+        params.minClusterSize = parameters.getParameter(ADAP3DecompositionV2Parameters.MIN_NUM_PEAK).getValue();
+        params.retTimeTolerance = parameters.getParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
+        params.smoothing = parameters.getParameter(ADAP3DecompositionV2Parameters.SMOOTHING).getValue();
+        params.unimodality = parameters.getParameter(ADAP3DecompositionV2Parameters.UNIMODALITY).getValue();
 
         return decomposition.run(params, chromatograms, ranges);
     }

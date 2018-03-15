@@ -72,7 +72,13 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
             "Retention time tolerance value (between 0 and 1) is used for determine the number of components" +
                     " in a window. The larger tolerance, the smaller components are determined.",
             NumberFormat.getNumberInstance(), 0.5, 0.0, Double.MAX_VALUE);
-    
+
+    public static final BooleanParameter SMOOTHING = new BooleanParameter("Smoothed elution profiles",
+            "If this option is checked, the elution profiles of components are smoothed", false);
+
+    public static final BooleanParameter UNIMODALITY = new BooleanParameter("Unimodal elution profiles",
+            "If this option is checked, the elution profiles have a single local maximum", false);
+
     // ------------------------------------------------------------------------
     // ----- End of Second-phase parameters -----------------------------------
     // ------------------------------------------------------------------------
@@ -86,7 +92,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     
     public ADAP3DecompositionV2Parameters() {
 	    super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH, MIN_NUM_PEAK,
-                RET_TIME_TOLERANCE, SUFFIX, AUTO_REMOVE});
+                RET_TIME_TOLERANCE, SMOOTHING, UNIMODALITY, SUFFIX, AUTO_REMOVE});
     }
     
     @Override
