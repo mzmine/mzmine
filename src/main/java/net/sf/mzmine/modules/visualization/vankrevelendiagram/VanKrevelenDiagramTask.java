@@ -100,42 +100,54 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
   @Override
   public void run() {
-    setStatus(TaskStatus.PROCESSING);
-    logger.info("Create Van Krevelen diagram of " + peakList);
-    // Task canceled?
-    if (isCanceled())
-      return;
-    JFreeChart chart = null;
-    // 2D, if no third dimension was selected
-    if (zAxisLabel.equals("none")) {
-      chart = create2DVanKrevelenDiagram();
+    try {
+      setStatus(TaskStatus.PROCESSING);
+      logger.info("Create Van Krevelen diagram of " + peakList);
+      // Task canceled?
+      if (isCanceled())
+        return;
+      // Check for identities
+      if (hasNoIdentity()) {
+        throw new IllegalArgumentException(
+            "Nothing to plot here.\n" + "Have you annotated your features with sum formulas?\n"
+                + "You can use the peak list method \"Formula prediction\" to handle the task.");
+      }
+      JFreeChart chart = null;
+      // 2D, if no third dimension was selected
+      if (zAxisLabel.equals("none")) {
+        chart = create2DVanKrevelenDiagram();
+      }
+      // 3D, if a third dimension was selected
+      else {
+        chart = create3DVanKrevelenDiagram();
+      }
+
+      chart.setBackgroundPaint(Color.white);
+
+      // Create Van Krevelen Diagram window
+      VanKrevelenDiagramWindow frame = new VanKrevelenDiagramWindow(chart);
+      // create chart JPanel
+      EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
+      frame.add(chartPanel, BorderLayout.CENTER);
+
+      // set title properties
+      TextTitle chartTitle = chart.getTitle();
+      chartTitle.setMargin(5, 0, 0, 0);
+      chartTitle.setFont(titleFont);
+      LegendTitle legend = chart.getLegend();
+      legend.setVisible(false);
+      frame.setTitle(title);
+      frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+      frame.setBackground(Color.white);
+      frame.setVisible(true);
+      frame.pack();
+      setStatus(TaskStatus.FINISHED);
+      logger.info("Finished creating van Krevelen diagram of " + peakList);
+
+    } catch (Throwable t) {
+      setErrorMessage(t.getMessage());
+      setStatus(TaskStatus.ERROR);
     }
-    // 3D, if a third dimension was selected
-    else {
-      chart = create3DVanKrevelenDiagram();
-    }
-
-    chart.setBackgroundPaint(Color.white);
-
-    // Create Van Krevelen Diagram window
-    VanKrevelenDiagramWindow frame = new VanKrevelenDiagramWindow(chart);
-    // create chart JPanel
-    EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
-    frame.add(chartPanel, BorderLayout.CENTER);
-
-    // set title properties
-    TextTitle chartTitle = chart.getTitle();
-    chartTitle.setMargin(5, 0, 0, 0);
-    chartTitle.setFont(titleFont);
-    LegendTitle legend = chart.getLegend();
-    legend.setVisible(false);
-    frame.setTitle(title);
-    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    frame.setBackground(Color.white);
-    frame.setVisible(true);
-    frame.pack();
-    setStatus(TaskStatus.FINISHED);
-    logger.info("Finished creating van Krevelen diagram of " + peakList);
   }
 
   /**
@@ -288,6 +300,22 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     appliedSteps++;
 
     return chart;
+  }
+
+  // Check for peak identities
+  private boolean hasNoIdentity() {
+    Boolean hasNoIdentity = true;
+    int countIdentities = 0;
+    for (PeakListRow row : rows) {
+      if (row.getPreferredPeakIdentity() != null) {
+        hasNoIdentity = false;
+        countIdentities++;
+      }
+      if (countIdentities > 0) {
+        break;
+      }
+    }
+    return hasNoIdentity;
   }
 
 }
