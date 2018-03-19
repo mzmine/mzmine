@@ -24,10 +24,10 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.title.Title;
 import org.jfree.chart.ui.Align;
 
-public class JFreeSquaredChart extends JFreeChart {
+public class JFreeCMPLXSquaredChart extends JFreeChart {
 
 
-	public JFreeSquaredChart(String title, XYSquaredPlot plot) {
+	public JFreeCMPLXSquaredChart(String title, XYSquaredPlot plot) {
 		super(title, plot);
 	}
 
@@ -47,7 +47,7 @@ public class JFreeSquaredChart extends JFreeChart {
 	 */
 	public void draw(Graphics2D g2, Rectangle2D chartArea, Point2D anchor,
 			ChartRenderingInfo info) {
-
+		
 		notifyListeners(new ChartProgressEvent(this, this,
 				ChartProgressEvent.DRAWING_STARTED, 0));
 
@@ -154,6 +154,7 @@ public class JFreeSquaredChart extends JFreeChart {
 			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f));
 			g2.fill(chartArea);
 			g2.setComposite(tmp);
+
 			
 			double x = chartArea.getX() + (chartArea.getWidth()-newChartArea.getWidth())/2.0;
 			double y = chartArea.getY() + (chartArea.getHeight()-newChartArea.getHeight())/2.0;
