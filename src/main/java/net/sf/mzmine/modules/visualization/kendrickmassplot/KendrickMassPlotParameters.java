@@ -19,10 +19,14 @@
 package net.sf.mzmine.modules.visualization.kendrickmassplot;
 
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.parameters.CustomKendrickMassParameter;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.parameters.KendrickComboParameter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -45,8 +49,23 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
 
   public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
 
-  public static final ComboParameter<String> yAxisValues = new ComboParameter<>("Y-Axis",
-      "Select the kendrick mass defect base", new String[] {"KMD (CH2)", "KMD (H)", "KMD (O)"});
+  public static final KendrickComboParameter<String> yAxisValues =
+      new KendrickComboParameter<>("Y-Axis", "Select the kendrick mass defect base",
+          new String[] {"KMD (CH2)", "KMD (H)", "KMD (O)", "Other custom KMD"}, "KMD (CH2)",
+          new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              if (yAxisValues.getValue().contains("custom")) {
+                System.out.println("custom");
+              }
+
+            }
+          });
+
+  public static final CustomKendrickMassParameter customYAxisKMBase =
+      new CustomKendrickMassParameter("Set custom Kendrick mass base",
+          "Enter a sum formula as Kendrick mass base for the y axis", "H2O", true);
 
   public static final ComboParameter<String> xAxisValues = new ComboParameter<>("X-Axis",
       "Select a second kendrick mass defect base, kendrick masse (KM) or m/z",
@@ -76,8 +95,8 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public KendrickMassPlotParameters() {
-    super(new Parameter[] {peakList, selectedRows, yAxisValues, xAxisValues, zAxisValues,
-        zScaleType, zScaleRange, paintScale, windowSettings});
+    super(new Parameter[] {peakList, selectedRows, yAxisValues, customYAxisKMBase, xAxisValues,
+        zAxisValues, zScaleType, zScaleRange, paintScale, windowSettings});
   }
 
   @Override
