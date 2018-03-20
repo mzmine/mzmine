@@ -19,17 +19,15 @@
 package net.sf.mzmine.modules.visualization.kendrickmassplot;
 
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.parameters.CustomKendrickMassParameter;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.parameters.KendrickComboParameter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
@@ -49,32 +47,29 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
 
   public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
 
-  public static final KendrickComboParameter<String> yAxisValues =
-      new KendrickComboParameter<>("Y-Axis", "Select the kendrick mass defect base",
-          new String[] {"KMD (CH2)", "KMD (H)", "KMD (O)", "Other custom KMD"}, "KMD (CH2)",
-          new ActionListener() {
+  public static final ComboParameter<String> yAxisValues = new ComboParameter<>("Y-Axis",
+      "Select the kendrick mass defect base", new String[] {"KMD (CH2)", "KMD (H)", "KMD (O)"});
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              if (yAxisValues.getValue().contains("custom")) {
-                System.out.println("custom");
-              }
-
-            }
-          });
-
-  public static final CustomKendrickMassParameter customYAxisKMBase =
-      new CustomKendrickMassParameter("Set custom Kendrick mass base",
-          "Enter a sum formula as Kendrick mass base for the y axis", "H2O", true);
+  public static final OptionalParameter<StringParameter> yAxisCustomKendrickMassBase =
+      new OptionalParameter<>(new StringParameter("Custom Kendrick mass base for y-Axis",
+          "Enter a sum formula for a custom Kendrick mass base"));
 
   public static final ComboParameter<String> xAxisValues = new ComboParameter<>("X-Axis",
       "Select a second kendrick mass defect base, kendrick masse (KM) or m/z",
       new String[] {"m/z", "KM", "KMD (CH2)", "KMD (H)", "KMD (O)"});
 
+  public static final OptionalParameter<StringParameter> xAxisCustomKendrickMassBase =
+      new OptionalParameter<>(new StringParameter("Custom Kendrick mass base for x-Axis",
+          "Enter a sum formula for a custom Kendrick mass base"));
+
   public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis",
       "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
       new String[] {"none", "Retention time", "Intensity", "Area", "Tailing factor",
           "Asymmetry factor", "FWHM", "KMD (CH2)", "KMD (H)", "KMD (O)", "m/z"});
+
+  public static final OptionalParameter<StringParameter> zAxisCustomKendrickMassBase =
+      new OptionalParameter<>(new StringParameter("Custom Kendrick mass base for z-Axis",
+          "Enter a sum formula for a custom Kendrick mass base"));
 
   public static final ComboParameter<String> zScaleType = new ComboParameter<>("Z-Axis scale",
       "Select Z-Axis scale", new String[] {"percentile", "custom"});
@@ -95,8 +90,9 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public KendrickMassPlotParameters() {
-    super(new Parameter[] {peakList, selectedRows, yAxisValues, customYAxisKMBase, xAxisValues,
-        zAxisValues, zScaleType, zScaleRange, paintScale, windowSettings});
+    super(new Parameter[] {peakList, selectedRows, yAxisValues, yAxisCustomKendrickMassBase,
+        xAxisValues, xAxisCustomKendrickMassBase, zAxisValues, zAxisCustomKendrickMassBase,
+        zScaleType, zScaleRange, paintScale, windowSettings});
   }
 
   @Override

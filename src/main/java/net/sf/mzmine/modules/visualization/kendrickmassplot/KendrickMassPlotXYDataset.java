@@ -22,6 +22,7 @@ import org.jfree.data.xy.AbstractXYDataset;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.FormulaUtils;
 
 /**
  * XYDataset for Kendrick mass plots
@@ -35,6 +36,8 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
   private PeakListRow selectedRows[];
   private String yAxisKMBase;
   private String xAxisKMBase;
+  private String customYAxisKMBase;
+  private String customXAxisKMBase;
   private double xAxisKMFactor = -1;
   private double yAxisKMFactor = -1;
   private double[] xValues;
@@ -48,55 +51,91 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
     this.selectedRows =
         parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(peakList);
 
-    this.yAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue();
+    if (parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase)
+        .getValue() == true) {
+      this.customYAxisKMBase =
+          parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase)
+              .getEmbeddedParameter().getValue();
+    } else {
+      this.yAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue();
+    }
 
-    this.xAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
+    if (parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
+        .getValue() == true) {
+      this.customXAxisKMBase =
+          parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
+              .getEmbeddedParameter().getValue();
+    } else {
+      this.xAxisKMBase = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
+    }
+
+    System.out.println(
+        parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue()
+            + " XAxis: " + customXAxisKMBase + " YAxis: " + customYAxisKMBase);
 
     // Calc xValues
     xValues = new double[selectedRows.length];
-    for (int i = 0; i < selectedRows.length; i++) {
-      // simply plot m/z values as x axis
-      if (xAxisKMBase.equals("m/z")) {
-        xValues[i] = selectedRows[i].getAverageMZ();
+    if (parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
+        .getValue() == true) {
+      for (int i = 0; i < selectedRows.length; i++) {
+        xValues[i] =
+            ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase)) + 1)
+                - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase);
       }
-      // plot Kendrick masses as x axis
-      else if (xAxisKMBase.equals("KM")) {
-        xValues[i] = selectedRows[i].getAverageMZ() * getxAxisKMFactor(yAxisKMBase);
-      }
-      // plot Kendrick mass defect (KMD) as x Axis to the base of H
-      else if (xAxisKMBase.equals("KMD (H)")) {
-        xValues[i] = (((int) selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase) + 1)
-            - selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase));
-      }
-      // plot Kendrick mass defect (KMD) as x Axis to the base of CH2
-      else if (xAxisKMBase.equals("KMD (CH2)")) {
-        xValues[i] = (((int) selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase) + 1)
-            - selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase));
-      }
-      // plot Kendrick mass defect (KMD) as x Axis to the base of O
-      else if (xAxisKMBase.equals("KMD (O)")) {
-        xValues[i] = (((int) selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase) + 1)
-            - selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase));
+    } else {
+      for (int i = 0; i < selectedRows.length; i++) {
+        // simply plot m/z values as x axis
+        if (xAxisKMBase.equals("m/z")) {
+          xValues[i] = selectedRows[i].getAverageMZ();
+        }
+        // plot Kendrick masses as x axis
+        else if (xAxisKMBase.equals("KM")) {
+          xValues[i] = selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase);
+        }
+        // plot Kendrick mass defect (KMD) as x Axis to the base of H
+        else if (xAxisKMBase.equals("KMD (H)")) {
+          xValues[i] = ((int) (selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase)) + 1)
+              - selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase);
+        }
+        // plot Kendrick mass defect (KMD) as x Axis to the base of CH2
+        else if (xAxisKMBase.equals("KMD (CH2)")) {
+          xValues[i] = ((int) (selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase)) + 1)
+              - selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase);
+        }
+        // plot Kendrick mass defect (KMD) as x Axis to the base of O
+        else if (xAxisKMBase.equals("KMD (O)")) {
+          xValues[i] = ((int) (selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase)) + 1)
+              - selectedRows[i].getAverageMZ() * getxAxisKMFactor(xAxisKMBase);
+        }
       }
     }
 
     // Calc yValues
     yValues = new double[selectedRows.length];
-    for (int i = 0; i < selectedRows.length; i++) {
-      // plot Kendrick mass defect (KMD) as y Axis to the base of H
-      if (yAxisKMBase.equals("KMD (H)")) {
-        yValues[i] = ((int) (selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase)) + 1)
-            - selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase);
+    if (parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase)
+        .getValue() == true) {
+      for (int i = 0; i < selectedRows.length; i++) {
+        yValues[i] =
+            ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase)) + 1)
+                - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase);
       }
-      // plot Kendrick mass defect (KMD) as y Axis to the base of CH2
-      else if (yAxisKMBase.equals("KMD (CH2)")) {
-        yValues[i] = ((int) (selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase)) + 1)
-            - selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase);
-      }
-      // plot Kendrick mass defect (KMD) as y Axis to the base of O
-      else if (yAxisKMBase.equals("KMD (O)")) {
-        yValues[i] = ((int) (selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase)) + 1)
-            - selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase);
+    } else {
+      for (int i = 0; i < selectedRows.length; i++) {
+        // plot Kendrick mass defect (KMD) as y Axis to the base of H
+        if (yAxisKMBase.equals("KMD (H)")) {
+          yValues[i] = ((int) (selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase)) + 1)
+              - selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase);
+        }
+        // plot Kendrick mass defect (KMD) as y Axis to the base of CH2
+        else if (yAxisKMBase.equals("KMD (CH2)")) {
+          yValues[i] = ((int) (selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase)) + 1)
+              - selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase);
+        }
+        // plot Kendrick mass defect (KMD) as y Axis to the base of O
+        else if (yAxisKMBase.equals("KMD (O)")) {
+          yValues[i] = ((int) (selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase)) + 1)
+              - selectedRows[i].getAverageMZ() * getyAxisKMFactor(yAxisKMBase);
+        }
       }
     }
   }
@@ -170,4 +209,12 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
     return yValues;
   }
 
+  private double getKendrickMassFactor(String formula) {
+    double exactMassFormula = FormulaUtils.calculateExactMass(formula);
+    double kendrickMassFactor = ((int) (exactMassFormula + 0.5d)) / exactMassFormula;
+    System.out.println(
+        "Formula: " + formula + " " + "exactMassFormula: " + exactMassFormula + "Kendrick mass "
+            + ((int) (exactMassFormula + 0.5d) + "\n" + "KMD-Factor: " + kendrickMassFactor));
+    return kendrickMassFactor;
+  }
 }
