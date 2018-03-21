@@ -106,12 +106,6 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       // Task canceled?
       if (isCanceled())
         return;
-      // Check for identities
-      if (hasNoIdentity()) {
-        throw new IllegalArgumentException(
-            "Nothing to plot here.\n" + "Have you annotated your features with sum formulas?\n"
-                + "You can use the peak list method \"Formula prediction\" to handle the task.");
-      }
       JFreeChart chart = null;
       // 2D, if no third dimension was selected
       if (zAxisLabel.equals("none")) {
@@ -145,7 +139,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       logger.info("Finished creating van Krevelen diagram of " + peakList);
 
     } catch (Throwable t) {
-      setErrorMessage(t.getMessage());
+      setErrorMessage(
+          "Nothing to plot here or some peaks have other identities than sum formulas.\n"
+              + "Have you annotated your features with sum formulas?\n"
+              + "You can use the peak list method \"Formula prediction\" to handle the task.");
       setStatus(TaskStatus.ERROR);
     }
   }
@@ -300,22 +297,6 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     appliedSteps++;
 
     return chart;
-  }
-
-  // Check for peak identities
-  private boolean hasNoIdentity() {
-    Boolean hasNoIdentity = true;
-    int countIdentities = 0;
-    for (PeakListRow row : rows) {
-      if (row.getPreferredPeakIdentity() != null) {
-        hasNoIdentity = false;
-        countIdentities++;
-      }
-      if (countIdentities > 0) {
-        break;
-      }
-    }
-    return hasNoIdentity;
   }
 
 }

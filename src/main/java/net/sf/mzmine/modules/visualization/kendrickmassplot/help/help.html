@@ -11,7 +11,8 @@
 
 <h2>Description</h2>
 <p>
-
+<dt>If you use this module for your analysis or visualization, please cite:</dt>
+<dd>A. Korf, C. Vosse, R. Schmid, P. O. Helmer, V. Jeck, H. Hayen, Rapid Commun. Mass Spectrom., (2018) Three-dimensional Kendrick mass plots as a tool for lipid identification</dd>
 </p>
 
 <h4>Parameters</h4>
@@ -20,12 +21,16 @@
     	<dd>Select the targeted peak list.</dd>
 	<dt>Peaks</dt>
     	<dd>Add peaks from the peak list.</dd>
-	<dt>Y-axis value</dt>
-    	<dd>Select which KMD Base you want to display on the Y-Axis (CH2, H or O).</dd>
+	<dt>Kendrick mass base for y-Axis</dt>
+    	<dd>Enter a sum formula which will be used as Kendrick mass base for the y-Axis.</dd>
 	<dt>X-axis value</dt>
-			<dd>Select which parameters you want to display on the X-Axis (KMD bases CH2, H or O, Kendrick mass or m/z).</dd>
+			<dd>Select which parameters you want to display on the X-Axis (Kendrick mass (KM) or m/z).</dd>
+	<dt>Kendrick mass base for x-Axis</dt>
+			<dd>If you want to display a Kendrick mass defect on the x-axis, check the check box and enter a sum formula as Kendrick mass base.</dd>
 	<dt>Z-axis value</dt>
 			<dd>Select which parameters you want to display in the third dimension. If you select "none", a 2D Kendrick mass plot will be generated.</dd>
+	<dt>Kendrick mass base for z-Axis</dt>
+			<dd>If you want to display a Kendrick mass defect on the z-axis in form of a heatmap, check the check box and enter a sum formula as Kendrick mass base.</dd>
 	<dt>Z-axis scale value</dt>
 			<dd>Choose the bounds for the Z-axis. "Percentile" allows to exclude values of a selected percentile bellow and/or above from the paint scale. Values below will be displayed in black, values above will be displayed in magenta. "Custom" allows to set costum ranges.</dd>
 	<dt>Range for z-axis scale</dt>

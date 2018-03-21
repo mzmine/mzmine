@@ -194,6 +194,14 @@ public class KendrickMassPlotTask extends AbstractTask {
       plot.setBackgroundPaint(Color.WHITE);
       appliedSteps++;
 
+      // set axis
+      NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+      NumberAxis range = (NumberAxis) plot.getRangeAxis();
+      range.setRange(0, 1);
+      if (xAxisLabel.contains("KMD")) {
+        domain.setRange(0, 1);
+      }
+
       // set renderer
       XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
 
@@ -269,6 +277,13 @@ public class KendrickMassPlotTask extends AbstractTask {
         PlotOrientation.VERTICAL, true, true, false);
     XYPlot plot = chart.getXYPlot();
 
+    // set axis
+    NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+    NumberAxis range = (NumberAxis) plot.getRangeAxis();
+    range.setRange(0, 1);
+    if (xAxisLabel.contains("KMD")) {
+      domain.setRange(0, 1);
+    }
     // set renderer
     XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
     appliedSteps++;
