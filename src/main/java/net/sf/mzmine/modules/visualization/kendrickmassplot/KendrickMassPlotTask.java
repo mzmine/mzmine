@@ -52,7 +52,6 @@ import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.KendrickM
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.NameItemLabelGenerator;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizePaintScales;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYKMDBubbleRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -89,13 +88,37 @@ public class KendrickMassPlotTask extends AbstractTask {
         .getMatchingPeakLists()[0];
 
     title = "Kendrick mass plot [" + peakList + "]";
-    xAxisLabel = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
-    yAxisLabel = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue();
-    zAxisLabel = parameters.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
+
+    if (parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
+        .getValue() == true) {
+      xAxisLabel =
+          "KMD (" + parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
+              .getEmbeddedParameter().getValue() + ")";
+    } else {
+      xAxisLabel = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
+    }
+
+    yAxisLabel = "KMD ("
+        + parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue()
+        + ")";
+
+    if (parameters.getParameter(KendrickMassPlotParameters.zAxisCustomKendrickMassBase)
+        .getValue() == true) {
+      zAxisLabel =
+          "KMD (" + parameters.getParameter(KendrickMassPlotParameters.zAxisCustomKendrickMassBase)
+              .getEmbeddedParameter().getValue() + ")";
+    } else {
+      zAxisLabel = parameters.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
+    }
+
     zAxisScaleType = parameters.getParameter(KendrickMassPlotParameters.zScaleType).getValue();
+
     zScaleRange = parameters.getParameter(KendrickMassPlotParameters.zScaleRange).getValue();
+
     paintScaleStyle = parameters.getParameter(KendrickMassPlotParameters.paintScale).getValue();
+
     rows = parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(peakList);
+
     parameterSet = parameters;
   }
 
@@ -172,23 +195,11 @@ public class KendrickMassPlotTask extends AbstractTask {
       appliedSteps++;
 
       // set renderer
-      // XYBlockRenderer renderer = new XYBlockRenderer();
       XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
-      // calc block sizes
-      double maxX = plot.getDomainAxis().getRange().getUpperBound();
-      double maxY = plot.getRangeAxis().getRange().getUpperBound();
 
-      if (xAxisLabel.contains("KMD")) {
-        renderer.setBlockWidth(0.001);
-        renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-      } else {
-        renderer.setBlockWidth(1);
-        renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-      }
       // set tooltip generator
-      KendrickMassPlotToolTipGenerator tooltipGenerator = new KendrickMassPlotToolTipGenerator(
-
-          xAxisLabel, yAxisLabel, zAxisLabel, rows);
+      KendrickMassPlotToolTipGenerator tooltipGenerator =
+          new KendrickMassPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
       renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
       plot.setRenderer(renderer);
       // set item label generator
@@ -257,23 +268,13 @@ public class KendrickMassPlotTask extends AbstractTask {
     chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset3D,
         PlotOrientation.VERTICAL, true, true, false);
     XYPlot plot = chart.getXYPlot();
-    // set renderer
-    // XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
-    XYKMDBubbleRenderer renderer = new XYKMDBubbleRenderer(1, max);
-    renderer.setSeriesPaint(0, Color.cyan);
-    appliedSteps++;
-    // calc block sizes
-    double maxX = plot.getDomainAxis().getRange().getUpperBound();
-    double maxY = plot.getRangeAxis().getRange().getUpperBound();
 
-    // if (xAxisLabel.contains("KMD")) {
-    // renderer.setBlockWidth(0.001);
-    // renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-    // } else {
-    // renderer.setBlockWidth(1);
-    // renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-    // }
-    // renderer.setPaintScale(scale);
+    // set renderer
+    XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+    appliedSteps++;
+
+    // Set paint scale
+    renderer.setPaintScale(scale);
 
     KendrickMassPlotToolTipGenerator tooltipGenerator =
         new KendrickMassPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
