@@ -80,14 +80,14 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
           xValues[i] = selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase);
         }
       }
-
-      // Calc yValues
-      yValues = new double[selectedRows.length];
-      for (int i = 0; i < selectedRows.length; i++) {
-        yValues[i] =
-            ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase)) + 1)
-                - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase);
-      }
+    }
+    
+    // Calc yValues
+    yValues = new double[selectedRows.length];
+    for (int i = 0; i < selectedRows.length; i++) {
+      yValues[i] =
+          ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase)) + 1)
+              - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase);
     }
   }
 
