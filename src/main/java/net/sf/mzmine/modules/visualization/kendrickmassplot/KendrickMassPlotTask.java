@@ -88,13 +88,37 @@ public class KendrickMassPlotTask extends AbstractTask {
         .getMatchingPeakLists()[0];
 
     title = "Kendrick mass plot [" + peakList + "]";
-    xAxisLabel = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
-    yAxisLabel = parameters.getParameter(KendrickMassPlotParameters.yAxisValues).getValue();
-    zAxisLabel = parameters.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
+
+    if (parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
+        .getValue() == true) {
+      xAxisLabel =
+          "KMD (" + parameters.getParameter(KendrickMassPlotParameters.xAxisCustomKendrickMassBase)
+              .getEmbeddedParameter().getValue() + ")";
+    } else {
+      xAxisLabel = parameters.getParameter(KendrickMassPlotParameters.xAxisValues).getValue();
+    }
+
+    yAxisLabel = "KMD ("
+        + parameters.getParameter(KendrickMassPlotParameters.yAxisCustomKendrickMassBase).getValue()
+        + ")";
+
+    if (parameters.getParameter(KendrickMassPlotParameters.zAxisCustomKendrickMassBase)
+        .getValue() == true) {
+      zAxisLabel =
+          "KMD (" + parameters.getParameter(KendrickMassPlotParameters.zAxisCustomKendrickMassBase)
+              .getEmbeddedParameter().getValue() + ")";
+    } else {
+      zAxisLabel = parameters.getParameter(KendrickMassPlotParameters.zAxisValues).getValue();
+    }
+
     zAxisScaleType = parameters.getParameter(KendrickMassPlotParameters.zScaleType).getValue();
+
     zScaleRange = parameters.getParameter(KendrickMassPlotParameters.zScaleRange).getValue();
+
     paintScaleStyle = parameters.getParameter(KendrickMassPlotParameters.paintScale).getValue();
+
     rows = parameters.getParameter(IntensityPlotParameters.selectedRows).getMatchingRows(peakList);
+
     parameterSet = parameters;
   }
 
@@ -170,24 +194,20 @@ public class KendrickMassPlotTask extends AbstractTask {
       plot.setBackgroundPaint(Color.WHITE);
       appliedSteps++;
 
-      // set renderer
-      // XYBlockRenderer renderer = new XYBlockRenderer();
-      XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
-      // calc block sizes
-      double maxX = plot.getDomainAxis().getRange().getUpperBound();
-      double maxY = plot.getRangeAxis().getRange().getUpperBound();
-
+      // set axis
+      NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+      NumberAxis range = (NumberAxis) plot.getRangeAxis();
+      range.setRange(0, 1);
       if (xAxisLabel.contains("KMD")) {
-        renderer.setBlockWidth(0.001);
-        renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-      } else {
-        renderer.setBlockWidth(1);
-        renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
+        domain.setRange(0, 1);
       }
-      // set tooltip generator
-      KendrickMassPlotToolTipGenerator tooltipGenerator = new KendrickMassPlotToolTipGenerator(
 
-          xAxisLabel, yAxisLabel, zAxisLabel, rows);
+      // set renderer
+      XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
+
+      // set tooltip generator
+      KendrickMassPlotToolTipGenerator tooltipGenerator =
+          new KendrickMassPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
       renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
       plot.setRenderer(renderer);
       // set item label generator
@@ -256,20 +276,19 @@ public class KendrickMassPlotTask extends AbstractTask {
     chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset3D,
         PlotOrientation.VERTICAL, true, true, false);
     XYPlot plot = chart.getXYPlot();
+
+    // set axis
+    NumberAxis domain = (NumberAxis) plot.getDomainAxis();
+    NumberAxis range = (NumberAxis) plot.getRangeAxis();
+    range.setRange(0, 1);
+    if (xAxisLabel.contains("KMD")) {
+      domain.setRange(0, 1);
+    }
     // set renderer
     XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
     appliedSteps++;
-    // calc block sizes
-    double maxX = plot.getDomainAxis().getRange().getUpperBound();
-    double maxY = plot.getRangeAxis().getRange().getUpperBound();
 
-    if (xAxisLabel.contains("KMD")) {
-      renderer.setBlockWidth(0.001);
-      renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-    } else {
-      renderer.setBlockWidth(1);
-      renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
-    }
+    // Set paint scale
     renderer.setPaintScale(scale);
 
     KendrickMassPlotToolTipGenerator tooltipGenerator =

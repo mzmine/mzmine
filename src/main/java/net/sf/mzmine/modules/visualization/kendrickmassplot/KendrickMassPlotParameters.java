@@ -26,6 +26,8 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
@@ -45,17 +47,25 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
 
   public static final PeakSelectionParameter selectedRows = new PeakSelectionParameter();
 
-  public static final ComboParameter<String> yAxisValues = new ComboParameter<>("Y-Axis",
-      "Select the kendrick mass defect base", new String[] {"KMD (CH2)", "KMD (H)", "KMD (O)"});
+  public static final StringParameter yAxisCustomKendrickMassBase =
+      new StringParameter("Kendrick mass base for y-Axis",
+          "Enter a sum formula for a Kendrick mass base, e.g. \"CH2\" ");
 
   public static final ComboParameter<String> xAxisValues = new ComboParameter<>("X-Axis",
-      "Select a second kendrick mass defect base, kendrick masse (KM) or m/z",
-      new String[] {"m/z", "KM", "KMD (CH2)", "KMD (H)", "KMD (O)"});
+      "Select Kendrick mass (KM) or m/z", new String[] {"m/z", "KM"});
+
+  public static final OptionalParameter<StringParameter> xAxisCustomKendrickMassBase =
+      new OptionalParameter<>(new StringParameter("Kendrick mass base for x-Axis",
+          "Enter a sum formula for a Kendrick mass base to display a 2D Kendrick mass defect plot"));
 
   public static final ComboParameter<String> zAxisValues = new ComboParameter<>("Z-Axis",
       "Select a parameter for a third dimension, displayed as a heatmap or select none for a 2D plot",
       new String[] {"none", "Retention time", "Intensity", "Area", "Tailing factor",
-          "Asymmetry factor", "FWHM", "KMD (CH2)", "KMD (H)", "KMD (O)", "m/z"});
+          "Asymmetry factor", "FWHM", "m/z"});
+
+  public static final OptionalParameter<StringParameter> zAxisCustomKendrickMassBase =
+      new OptionalParameter<>(new StringParameter("Kendrick mass base for z-Axis",
+          "Enter a sum formula for a Kendrick mass base to display a Kendrick mass defect in form of a heatmap"));
 
   public static final ComboParameter<String> zScaleType = new ComboParameter<>("Z-Axis scale",
       "Select Z-Axis scale", new String[] {"percentile", "custom"});
@@ -76,8 +86,9 @@ public class KendrickMassPlotParameters extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
   public KendrickMassPlotParameters() {
-    super(new Parameter[] {peakList, selectedRows, yAxisValues, xAxisValues, zAxisValues,
-        zScaleType, zScaleRange, paintScale, windowSettings});
+    super(new Parameter[] {peakList, selectedRows, yAxisCustomKendrickMassBase, xAxisValues,
+        xAxisCustomKendrickMassBase, zAxisValues, zAxisCustomKendrickMassBase, zScaleType,
+        zScaleRange, paintScale, windowSettings});
   }
 
   @Override
