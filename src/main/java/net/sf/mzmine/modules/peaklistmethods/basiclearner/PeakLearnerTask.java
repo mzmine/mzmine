@@ -19,19 +19,14 @@
 package net.sf.mzmine.modules.peaklistmethods.basiclearner;
 
 import java.util.Arrays;
-import java.util.Vector;
 import java.util.logging.Logger;
-import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
@@ -45,7 +40,7 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-class LearnerTask extends AbstractTask {
+class PeakLearnerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -71,7 +66,7 @@ class LearnerTask extends AbstractTask {
    * @param rawDataFile
    * @param parameters
    */
-  public LearnerTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  public PeakLearnerTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
     this.project = project;
     this.peakList = peakList;
     this.parameters = parameters;
@@ -113,116 +108,78 @@ class LearnerTask extends AbstractTask {
     resultPeakList = new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
 
     /**
-     * - A PeakList contains one or multiple RawDataFiles <br>
+     * - A PeakList is a list of Features (peak in retention time dimension with accurate m/z)<br>
+     * ---- contains one or multiple RawDataFiles <br>
      * ---- access mean retention time, mean m/z, maximum intensity, ...<br>
-     * - A RawDataFile contains multiple scans with full spectral data <br>
+     * - A RawDataFile holds a full chromatographic run with all ms scans<br>
      * ---- Each Scan and the underlying raw data can be accessed <br>
      * ---- Scans can be filtered by MS level, polarity, ...<br>
      */
-
-    // number of rawFiles is 1 prior to peaklist alignment
-    int rawFiles = peakList.getNumberOfRawDataFiles();
-    boolean isAlignedPeakList = rawFiles > 1;
-
     // is the data provided by peaklist enough for this task or
     // do you want to work on one raw data file or on all files?
     RawDataFile dataFile = peakList.getRawDataFile(0);
 
+    // get all peaks of a raw data file
     // Sort peaks by ascending mz
     Feature[] sortedPeaks = peakList.getPeaks(dataFile);
     Arrays.sort(sortedPeaks, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
     // Loop through all peaks
     totalPeaks = sortedPeaks.length;
-
-    for (int ind = 0; ind < totalPeaks; ind++) {
-
+    for (int i = 0; i < totalPeaks; i++) {
+      // check for cancelled state and stop
       if (isCanceled())
         return;
 
-      Feature aPeak = sortedPeaks[ind];
+      // current peak
+      Feature aPeak = sortedPeaks[i];
 
-      // Check if peak was already deleted
-      if (aPeak == null) {
-        processedPeaks++;
-        continue;
-      }
+      // do stuff
+      // ...
 
-      // Check which charge state fits best around this peak
-      int bestFitCharge = 0;
-      int bestFitScore = -1;
-      Vector<Feature> bestFitPeaks = null;
-      for (int charge : charges) {
 
-        Vector<Feature> fittedPeaks = new Vector<Feature>();
-        fittedPeaks.add(aPeak);
-        fitPattern(fittedPeaks, aPeak, charge, sortedPeaks);
-
-        int score = fittedPeaks.size();
-        if ((score > bestFitScore) || ((score == bestFitScore) && (bestFitCharge > charge))) {
-          bestFitScore = score;
-          bestFitCharge = charge;
-          bestFitPeaks = fittedPeaks;
-        }
-
-      }
-
-      PeakListRow oldRow = peakList.getPeakRow(aPeak);
-
-      assert bestFitPeaks != null;
-
-      // Verify the number of detected isotopes. If there is only one
-      // isotope, we skip this left the original peak in the peak list.
-      if (bestFitPeaks.size() == 1) {
-        resultPeakList.addRow(oldRow);
-        processedPeaks++;
-        continue;
-      }
-
-      // Convert the peak pattern to array
-      Feature originalPeaks[] = bestFitPeaks.toArray(new Feature[0]);
-
-      // Create a new SimpleIsotopePattern
-      DataPoint isotopes[] = new DataPoint[bestFitPeaks.size()];
-      for (int i = 0; i < isotopes.length; i++) {
-        Feature p = originalPeaks[i];
-        isotopes[i] = new SimpleDataPoint(p.getMZ(), p.getHeight());
-
-      }
-      SimpleIsotopePattern newPattern =
-          new SimpleIsotopePattern(isotopes, IsotopePatternStatus.DETECTED, aPeak.toString());
-
-      // Depending on user's choice, we leave either the most intenst, or
-      // the lowest m/z peak
-      if (chooseMostIntense) {
-        Arrays.sort(originalPeaks,
-            new PeakSorter(SortingProperty.Height, SortingDirection.Descending));
-      } else {
-        Arrays.sort(originalPeaks, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
-      }
-
-      Feature newPeak = new SimpleFeature(originalPeaks[0]);
-      newPeak.setIsotopePattern(newPattern);
-      newPeak.setCharge(bestFitCharge);
-
-      // Keep old ID
-      int oldID = oldRow.getID();
-      SimplePeakListRow newRow = new SimplePeakListRow(oldID);
-      PeakUtils.copyPeakListRowProperties(oldRow, newRow);
-      newRow.addPeak(dataFile, newPeak);
-      resultPeakList.addRow(newRow);
-
-      // Remove all peaks already assigned to isotope pattern
-      for (int i = 0; i < sortedPeaks.length; i++) {
-        if (bestFitPeaks.contains(sortedPeaks[i]))
-          sortedPeaks[i] = null;
-      }
+      // add row to result peak list
+      PeakListRow row = peakList.getPeakRow(aPeak);
+      row = copyPeakRow(row);
+      resultPeakList.addRow(row);
 
       // Update completion rate
       processedPeaks++;
-
     }
 
+    // add to project
+    addResultToProject();
+
+    logger.info("Finished on " + peakList);
+    setStatus(TaskStatus.FINISHED);
+  }
+
+
+  /**
+   * Create a copy of a peak list row.
+   *
+   * @param row the row to copy.
+   * @return the newly created copy.
+   */
+  private static PeakListRow copyPeakRow(final PeakListRow row) {
+    // Copy the peak list row.
+    final PeakListRow newRow = new SimplePeakListRow(row.getID());
+    PeakUtils.copyPeakListRowProperties(row, newRow);
+
+    // Copy the peaks.
+    for (final Feature peak : row.getPeaks()) {
+      final Feature newPeak = new SimpleFeature(peak);
+      PeakUtils.copyPeakProperties(peak, newPeak);
+      newRow.addPeak(peak.getDataFile(), newPeak);
+    }
+
+    return newRow;
+  }
+
+  /**
+   * Add peaklist to project, delete old if requested, add description to result
+   */
+  public void addResultToProject() {
     // Add new peakList to the project
     project.addPeakList(resultPeakList);
 
@@ -232,15 +189,12 @@ class LearnerTask extends AbstractTask {
     }
 
     // Add task description to peakList
-    resultPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Isotopic peaks grouper", parameters));
+    resultPeakList
+        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Learner task", parameters));
 
     // Remove the original peakList if requested
     if (removeOriginal)
       project.removePeakList(peakList);
-
-    logger.info("Finished on " + peakList);
-    setStatus(TaskStatus.FINISHED);
   }
 
 }

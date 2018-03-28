@@ -32,6 +32,11 @@ import net.sf.mzmine.util.ExitCode;
  * A Module creates tasks which are then added queue
  */
 public class LearnerModule implements MZmineProcessingModule {
+  // #################################################################
+  // IMPORTANT
+  // do not forget to put your module in the MZmineModulesList
+  // in the package: net.sf.mzmine.main
+  // #################################################################
 
   private static final String MODULE_NAME = "Learner module";
   private static final String MODULE_DESCRIPTION = "This module is for learners only";
@@ -48,7 +53,7 @@ public class LearnerModule implements MZmineProcessingModule {
 
     // create and start one task for each peaklist
     for (final PeakList peakList : peakLists) {
-      Task newTask = new LearnerTask(project, peakList, parameters);
+      Task newTask = new PeakListRowLearnerTask(project, peakList, parameters);
       tasks.add(newTask);
     }
 
@@ -59,7 +64,7 @@ public class LearnerModule implements MZmineProcessingModule {
   @Override
   public @Nonnull MZmineModuleCategory getModuleCategory() {
     /**
-     * Change category
+     * Change category: will automatically be added to the linked menu
      */
     return MZmineModuleCategory.PEAKLISTFILTERING;
   }
