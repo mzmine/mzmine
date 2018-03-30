@@ -71,17 +71,12 @@ public class MetaCycGateway implements DBGateway {
     BufferedReader lineReader = new BufferedReader(new StringReader(queryResult));
     String line;
     while ((line = lineReader.readLine()) != null) {
-      try {
       String split[] = line.split("\\t");
+      if (split.length < 5) continue;
       String id = split[4];
       results.add(id);
       if (results.size() == numOfResults)
         break;
-      } catch (Exception e) {
-        e.printStackTrace();
-        logger.warning("Failed to retrieve MetaCyc ID from URL " + queryURL + ", line " + line);
-      }
-
     }
 
     return results.toArray(new String[0]);
