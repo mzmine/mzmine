@@ -4,3 +4,4 @@ conf/
 .DS_Store
 .project
 .classpath
+/bin/

@@ -15,9 +15,9 @@ TMP_FILE_DIRECTORY=/tmp
 
 # It is usually not necessary to modify the JAVA_COMMAND parameter, but if you like to run
 # a specific Java Virtual Machine, you may set the path to the java command of that JVM
-JAVA_COMMAND=`/usr/libexec/java_home -v 1.7+`/bin/java
+JAVA_COMMAND=`/usr/libexec/java_home -v 1.8+`/bin/java
 if [ $? -ne 0 ]; then
-  echo "Unable to find JDK of version 1.7+. Trying to use the current JRE."
+  echo "Unable to find JDK of version 1.8+. Trying to use the current JRE."
   JAVA_PLUGIN_DIR="/Library/Internet Plug-Ins/JavaAppletPlugin.plugin"
   JAVA_COMMAND=${JAVA_PLUGIN_DIR}/Contents/Home/bin/java
 fi
@@ -64,7 +64,9 @@ mkdir $TMP_FILE_DIRECTORY
 # Java specific commands
 # **********************
 
-JAVA_PARAMETERS="-showversion -classpath lib/\* -Djava.ext.dirs= -XX:+UseG1GC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms256m -Xmx${HEAP_SIZE}m"
+# --add-modules=java.se.ee is required to use JAXB (e.g., Chemspider search) under Java 9
+# -XX:+IgnoreUnrecognizedVMOptions is required so Java 8 does not complain about --add-modules
+JAVA_PARAMETERS="-showversion -classpath lib/\* -Djava.ext.dirs= -XX:+UseG1GC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms256m -Xmx${HEAP_SIZE}m -XX:+IgnoreUnrecognizedVMOptions --add-modules=java.se.ee"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 
 # Make sure we are in the correct directory

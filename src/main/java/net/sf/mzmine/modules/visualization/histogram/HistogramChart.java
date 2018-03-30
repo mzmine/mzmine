@@ -24,8 +24,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.main.MZmineCore;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -39,7 +37,9 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.ClusteredXYBarRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.ui.RectangleInsets;
+import org.jfree.chart.ui.RectangleInsets;
+
+import net.sf.mzmine.main.MZmineCore;
 
 public class HistogramChart extends ChartPanel {
 

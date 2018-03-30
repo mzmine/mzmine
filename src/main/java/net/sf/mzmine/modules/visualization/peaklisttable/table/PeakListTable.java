@@ -151,7 +151,9 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
     public PeakList getPeakList() {
 	return peakList;
     }
-
+    public TableRowSorter<PeakListTableModel> getTableRowSorter(){
+    	return sorter;
+    }
     public TableCellEditor getCellEditor(int row, int column) {
 
 	CommonColumnType commonColumn = pkTableModel.getCommonColumn(column);

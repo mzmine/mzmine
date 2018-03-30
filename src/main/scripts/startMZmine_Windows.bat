@@ -93,7 +93,9 @@ echo.
 :: Java specific commands
 :: **********************
 
-set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseG1GC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms256m -Xmx%HEAP_SIZE%m
+:: --add-modules=java.se.ee is required to use JAXB (e.g., Chemspider search) under Java 9
+:: -XX:+IgnoreUnrecognizedVMOptions is required so Java 8 does not complain about --add-modules
+set JAVA_PARAMETERS=-showversion -classpath lib\* -Djava.ext.dirs= -XX:+UseG1GC -Djava.io.tmpdir="%TMP_FILE_DIRECTORY%" -Xms256m -Xmx%HEAP_SIZE%m -XX:+IgnoreUnrecognizedVMOptions --add-modules=java.se.ee
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 :: Make sure we are in the correct directory

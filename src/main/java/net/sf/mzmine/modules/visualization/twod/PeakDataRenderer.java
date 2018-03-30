@@ -31,9 +31,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
  */
 class PeakDataRenderer extends XYLineAndShapeRenderer {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private static final Color peakColor = Color.green;
@@ -43,14 +40,14 @@ class PeakDataRenderer extends XYLineAndShapeRenderer {
 	    5, 5);
 
     PeakDataRenderer() {
-	setBaseShapesFilled(true);
+	setDefaultShapesFilled(true);
 	setDrawOutlines(false);
 	setUseFillPaint(false);
-	setBaseShapesVisible(false);
-	setBaseShape(dataPointsShape);
+	setDefaultShapesVisible(false);
+	setDefaultShape(dataPointsShape);
 
 	PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
-	setBaseToolTipGenerator(toolTipGenerator);
+	setDefaultToolTipGenerator(toolTipGenerator);
         setDrawSeriesLineAsPath(true);
 
     }

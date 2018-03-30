@@ -134,7 +134,7 @@ class NeutralLossPlot extends ChartPanel {
 	setSeriesColorRenderer(2, searchNeutralLossColor, dataPointsShape2);
 
 	// tooltips
-	defaultRenderer.setBaseToolTipGenerator(dataset);
+	defaultRenderer.setDefaultToolTipGenerator(dataset);
 
 	// set the plot properties
 	plot = new XYPlot(dataset, xAxis, yAxis, defaultRenderer);

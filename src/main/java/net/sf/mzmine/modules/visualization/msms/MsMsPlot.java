@@ -34,13 +34,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.SaveImage;
-import net.sf.mzmine.util.SaveImage.FileType;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -50,11 +43,18 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.data.general.DatasetUtilities;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.general.DatasetUtils;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.ui.RectangleInsets;
 
 import com.google.common.collect.Range;
+
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.SaveImage;
+import net.sf.mzmine.util.SaveImage.FileType;
 
 /**
  * 
@@ -269,16 +269,16 @@ class MsMsPlot extends ChartPanel implements MouseWheelListener {
     }
 
     void switchDataPointsVisible() {
-	boolean dataPointsVisible = peakDataRenderer.getBaseShapesVisible();
-	peakDataRenderer.setBaseShapesVisible(!dataPointsVisible);
+	boolean dataPointsVisible = peakDataRenderer.getDefaultShapesVisible();
+	peakDataRenderer.setDefaultShapesVisible(!dataPointsVisible);
     }
 
     public void showPeaksTooltips(boolean mode) {
 	if (mode) {
 	    PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
-	    this.peakDataRenderer.setBaseToolTipGenerator(toolTipGenerator);
+	    this.peakDataRenderer.setDefaultToolTipGenerator(toolTipGenerator);
 	} else {
-	    this.peakDataRenderer.setBaseToolTipGenerator(null);
+	    this.peakDataRenderer.setDefaultToolTipGenerator(null);
 	}
     }
 
@@ -300,7 +300,7 @@ class MsMsPlot extends ChartPanel implements MouseWheelListener {
 	if (event.getX() < 70) { // User clicked on Y-axis
 	    if (event.getClickCount() == 2) { // Reset zoom on Y-axis
 		XYDataset data = ((XYPlot) getChart().getPlot()).getDataset();
-		Number maximum = DatasetUtilities.findMaximumRangeValue(data);
+		Number maximum = DatasetUtils.findMaximumRangeValue(data);
 		getXYPlot().getRangeAxis().setRange(0,
 			1.05 * maximum.floatValue());
 	    } else if (event.getClickCount() == 1) {

@@ -43,9 +43,9 @@ public class MsMsPlotRenderer extends XYLineAndShapeRenderer {
 	super(false, true);
 
 	MsMsPlotToolTipGenerator toolTipGenerator = new MsMsPlotToolTipGenerator();
-	setBaseToolTipGenerator(toolTipGenerator);
+	setDefaultToolTipGenerator(toolTipGenerator);
 
-	setBaseItemLabelsVisible(false);
+	setDefaultItemLabelsVisible(false);
 
 	setSeriesVisibleInLegend(0, false);
 	setSeriesItemLabelsVisible(0, false);

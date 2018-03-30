@@ -96,6 +96,7 @@ import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule
 import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import net.sf.mzmine.modules.visualization.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
@@ -106,6 +107,7 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import net.sf.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 
 /**
  * List of modules included in MZmine 2
@@ -179,6 +181,7 @@ public class MZmineModulesList {
       PeakListTableModule.class, IsotopePatternExportModule.class, MSMSExportModule.class,
       ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
       InfoVisualizerModule.class, IntensityPlotModule.class,
+      KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
 
       // Tools
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class

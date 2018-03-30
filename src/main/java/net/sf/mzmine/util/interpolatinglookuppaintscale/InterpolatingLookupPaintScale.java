@@ -27,7 +27,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.jfree.chart.renderer.PaintScale;
-import org.jfree.util.PublicCloneable;
+import org.jfree.chart.util.PublicCloneable;
 
 public class InterpolatingLookupPaintScale implements PaintScale,
 	PublicCloneable, Serializable {

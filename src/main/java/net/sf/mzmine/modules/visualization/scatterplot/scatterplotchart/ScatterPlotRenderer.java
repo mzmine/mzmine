@@ -65,13 +65,13 @@ public class ScatterPlotRenderer extends XYLineAndShapeRenderer {
 	super(false, true);
 
 	ScatterPlotToolTipGenerator toolTipGenerator = new ScatterPlotToolTipGenerator();
-	setBaseToolTipGenerator(toolTipGenerator);
+	setDefaultToolTipGenerator(toolTipGenerator);
 
 	XYItemLabelGenerator ItemlabelGenerator = new ScatterPlotItemLabelGenerator();
-	setBaseItemLabelGenerator(ItemlabelGenerator);
-	setBaseItemLabelFont(new Font("SansSerif", Font.BOLD, 11));
-	setBaseItemLabelPaint(Color.black);
-	setBaseItemLabelsVisible(false);
+	setDefaultItemLabelGenerator(ItemlabelGenerator);
+	setDefaultItemLabelFont(new Font("SansSerif", Font.BOLD, 11));
+	setDefaultItemLabelPaint(Color.black);
+	setDefaultItemLabelsVisible(false);
 
 	setSeriesItemLabelsVisible(0, false);
 	setSeriesPaint(0, pointColor);

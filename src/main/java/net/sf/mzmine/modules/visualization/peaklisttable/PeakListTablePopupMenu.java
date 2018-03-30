@@ -19,33 +19,14 @@
 
 package net.sf.mzmine.modules.visualization.peaklisttable;
 
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.table.AbstractTableModel;
-
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.PeakIdentity;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
+import com.google.common.collect.Range;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
@@ -63,7 +44,13 @@ import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.util.GUIUtils;
 
-import com.google.common.collect.Range;
+import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.*;
+import java.util.List;
 
 /**
  * Peak-list table pop-up menu.
@@ -93,6 +80,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private final JMenuItem show3DItem;
     private final JMenuItem exportIsotopesItem;
     private final JMenuItem exportMSMSItem;
+
+    ///// kaidu edit
+    private final JMenuItem exportToSirius;
+    ////
     private final JMenuItem manuallyDefineItem;
     private final JMenuItem showPeakRowSummaryItem;
     private final JMenuItem clearIdsItem;
@@ -154,6 +145,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         add(exportMenu);
         exportIsotopesItem = GUIUtils.addMenuItem(exportMenu,
                 "Isotope pattern", this);
+        // kaidu edit
+        exportToSirius = GUIUtils.addMenuItem(exportMenu, "Export to SIRIUS", this);
+        //
         exportMSMSItem = GUIUtils
                 .addMenuItem(exportMenu, "MS/MS pattern", this);
 
@@ -205,6 +199,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         showMenu.setEnabled(rowsSelected);
         idsMenu.setEnabled(rowsSelected);
         exportIsotopesItem.setEnabled(rowsSelected);
+        exportToSirius.setEnabled(rowsSelected);
         exportMenu.setEnabled(rowsSelected);
 
         final boolean oneRowSelected = selectedRows.length == 1;
@@ -562,6 +557,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         if (exportIsotopesItem.equals(src)) {
             IsotopePatternExportModule.exportIsotopePattern(clickedPeakListRow);
+        }
+        if (exportToSirius.equals(src)) {
+            SiriusExportModule.exportSinglePeakList(clickedPeakListRow);
         }
 
         if (exportMSMSItem.equals(src)) {
