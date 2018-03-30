@@ -361,6 +361,16 @@ public class SimplePeakListRow implements PeakListRow {
     	myID =id;
     	return;
     }
+    //End DorresteinLab edit
+    
+    // Gauthier edit
+    /**
+     * Update average values
+     */
+    public void update() {
+        this.calculateAverageValues();
+    }
+    // End Gauthier edit
 
 
 }
