@@ -20,8 +20,10 @@
 package net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,6 +47,7 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical.ClustererType;
 //import net.sf.mzmine.modules.peaklistmethods.normalization.rtadjuster.JDXCompound;
 //import net.sf.mzmine.modules.peaklistmethods.normalization.rtadjuster.JDXCompoundsIdentificationSingleTask;
@@ -89,6 +92,9 @@ public class HierarAlignerGCTask extends AbstractTask {
     // private boolean useDetectedMzOnly;
     // private RTTolerance rtToleranceAfter;
 
+    private boolean exportDendrogramAsTxt;
+    private File dendrogramTxtFilename;
+
     /**
      * GLG HACK: temporary removed for clarity private boolean sameIDRequired,
      * sameChargeRequired, compareIsotopePattern;
@@ -97,6 +103,9 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     // ID counter for the new peaklist
     private int newRowID = 1;
+
+    //
+    private Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
     //
     private final double maximumScore; // = 1.0d;
@@ -164,6 +173,13 @@ public class HierarAlignerGCTask extends AbstractTask {
         //// JoinAlignerGCParameters.useApex).getValue();
         // useApex = true;
         // ***
+
+        exportDendrogramAsTxt = parameters
+                .getParameter(HierarAlignerGCParameters.exportDendrogramTxt)
+                .getValue();
+        dendrogramTxtFilename = parameters
+                .getParameter(HierarAlignerGCParameters.dendrogramTxtFilename)
+                .getValue();
 
         /**
          * GLG HACK: temporarily removed for clarity sameChargeRequired =
@@ -397,7 +413,7 @@ public class HierarAlignerGCTask extends AbstractTask {
 
         boolean do_verbose = true;
         boolean do_cluster = true;
-        boolean do_print = false;
+        boolean do_print = (exportDendrogramAsTxt);
         boolean do_data = false;
 
         org.gnf.clustering.Node[] arNodes = null;
@@ -407,7 +423,15 @@ public class HierarAlignerGCTask extends AbstractTask {
         if (do_print) {
             rowNames = new String[nRowCount];
             for (int i = 0; i < nRowCount; i++) {
-                rowNames[i] = "ID_" + i + "_" + full_rows_list.get(i).getID();// full_rows_list.get(i).getAverageRT();
+                // rowNames[i] = "ID_" + i + "_" +
+                // full_rows_list.get(i).getID();
+                Feature peak = full_rows_list.get(i).getBestPeak();
+                double rt = peak.getRT();
+                int end = peak.getDataFile().getName().indexOf(" ");
+                String short_fname = peak.getDataFile().getName().substring(0,
+                        end);
+                rowNames[i] = "@" + rtFormat.format(rt) + "^[" + short_fname
+                        + "]";
             }
         }
         String outputPrefix = null;
@@ -442,8 +466,8 @@ public class HierarAlignerGCTask extends AbstractTask {
             System.out.println("Clustering...");
             if (distancesGNF_Tri != null)
                 arNodes = org.gnf.clustering.sequentialcache.SequentialCacheClustering
-                        .clusterDM(distancesGNF_Tri, linkageStartegyType,
-                                null, nRowCount);
+                        .clusterDM(distancesGNF_Tri, linkageStartegyType, null,
+                                nRowCount);
 
             distancesGNF_Tri = null;
             System.gc();
@@ -502,6 +526,9 @@ public class HierarAlignerGCTask extends AbstractTask {
 
         // File output
 
+        int ext_pos = dendrogramTxtFilename.getAbsolutePath().lastIndexOf(".");
+        outputPrefix = dendrogramTxtFilename.getAbsolutePath().substring(0,
+                ext_pos);
         String outGtr = outputPrefix + ".gtr";
         String outCdt = outputPrefix + ".cdt";
 

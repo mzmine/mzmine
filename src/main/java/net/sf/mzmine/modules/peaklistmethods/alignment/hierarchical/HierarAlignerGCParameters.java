@@ -31,6 +31,7 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -123,7 +124,17 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
             "RT tolerance post-recalibration",
             "Ignored if \"Use RT recalibration\" is unchecked. Maximum allowed difference between two RT values after RT recalibration");
     
-        
+    public static final BooleanParameter exportDendrogramTxt = new BooleanParameter(
+            "Export dendrogram as TXT/CDT",
+            "If checked, exports the clustering resulting dendrogram to the given TXT file.",
+            false);
+    public static final FileNameParameter dendrogramTxtFilename = new FileNameParameter(
+            "Dendrogram output text filename",
+            " Requires \"Export dendrogram as TXT\" checked."
+                    + " Name of the resulting TXT/CDT file to write the clustering resulting dendrogram to."
+                    + " If the file already exists, it will be overwritten.",
+            "txt");
+
     /** GLG HACK: temporarily removed for clarity
     public static final BooleanParameter SameChargeRequired = new BooleanParameter(
 	    "Require same charge state",
@@ -155,6 +166,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
 //              useKnownCompoundsAsRef, 
 //              useDetectedMzOnly,
 //              RTToleranceAfter, 
+                exportDendrogramTxt, dendrogramTxtFilename
                 /*SameChargeRequired, SameIDRequired, compareIsotopePattern*/ 
                 });
     }
