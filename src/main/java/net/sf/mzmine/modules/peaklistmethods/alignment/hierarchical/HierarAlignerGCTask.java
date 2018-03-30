@@ -397,7 +397,7 @@ public class HierarAlignerGCTask extends AbstractTask {
 
         boolean do_verbose = true;
         boolean do_cluster = true;
-        boolean do_print = true;
+        boolean do_print = false;
         boolean do_data = false;
 
         org.gnf.clustering.Node[] arNodes = null;
