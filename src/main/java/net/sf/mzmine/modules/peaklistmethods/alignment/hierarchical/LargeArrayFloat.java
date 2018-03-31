@@ -19,7 +19,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical;
 
+import java.util.logging.Logger;
+
 public class LargeArrayFloat {
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private boolean VERBOSE = false;
 
     private final long CHUNK_SIZE = 1024 * 1024 * 1024; // 1GiB
 
@@ -35,10 +40,11 @@ public class LargeArrayFloat {
             int chunks = (int) (size / CHUNK_SIZE);
             int remainder = (int) (size - ((long) chunks) * CHUNK_SIZE);
 
-            System.out.println(this.getClass().getSimpleName()
-                    + " > Created with " + chunks + " chunks (size: "
-                    + CHUNK_SIZE + " each) + a remainder of " + remainder
-                    + " => TOTAL: " + size);
+            if (VERBOSE)
+                System.out.println(this.getClass().getSimpleName()
+                        + " > Created with " + chunks + " chunks (size: "
+                        + CHUNK_SIZE + " each) + a remainder of " + remainder
+                        + " => TOTAL: " + size);
 
             data = new float[chunks + (remainder == 0 ? 0 : 1)][];
             for (int idx = chunks; --idx >= 0;) {

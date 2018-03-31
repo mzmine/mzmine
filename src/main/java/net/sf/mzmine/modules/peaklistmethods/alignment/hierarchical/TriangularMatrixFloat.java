@@ -19,7 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical;
 
+import java.util.logging.Logger;
+
 public class TriangularMatrixFloat extends TriangularMatrix {
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     // private final float[] list;
     private final LargeArrayFloat list;
@@ -48,7 +52,7 @@ public class TriangularMatrixFloat extends TriangularMatrix {
 
     @Override
     public void printVector() {
-        System.out.println(list.toString());
+        logger.info(list.toString());
     }
 
 }

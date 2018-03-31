@@ -19,9 +19,13 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical;
 
+import java.util.logging.Logger;
+
 import org.gnf.clustering.DistanceMatrix;
 
 public class DistanceMatrixTriangular1D2D implements DistanceMatrix {
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private int dimension;
 
@@ -83,7 +87,7 @@ public class DistanceMatrixTriangular1D2D implements DistanceMatrix {
 
     public void printVector() {
         // System.out.println(Arrays.toString(this.getVector()));
-        System.out.println(list.toString());
+        logger.info(list.toString());
     }
 
     // -

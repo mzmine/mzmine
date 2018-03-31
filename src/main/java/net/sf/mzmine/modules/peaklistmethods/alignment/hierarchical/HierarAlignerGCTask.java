@@ -246,8 +246,8 @@ public class HierarAlignerGCTask extends AbstractTask {
         double progress = (double) (processedRows
                 + (clustProgress.getProgress() * (double) totalRows / 3.0d))
                 / (double) totalRows;
-        // System.out.println(">> THE progress: " + progress);
-        // System.out.println("Caught progress: " +
+        // logger.info(">> THE progress: " + progress);
+        // logger.info("Caught progress: " +
         // clustProgress.getProgress());
         return progress;
     }
@@ -272,13 +272,16 @@ public class HierarAlignerGCTask extends AbstractTask {
         long startTime, endTime;
         float ms;
         //
-        startTime = System.currentTimeMillis();
+        if (DEBUG)
+            startTime = System.currentTimeMillis();
 
         // MEMORY STUFF
         Runtime run_time = Runtime.getRuntime();
         Long prevTotal = 0l;
         Long prevFree = run_time.freeMemory();
-        printMemoryUsage(run_time, prevTotal, prevFree, "START TASK...");
+        if (DEBUG)
+            printMemoryUsage(logger, run_time, prevTotal, prevFree,
+                    "START TASK...");
 
         // Remember how many rows we need to process. Each row will be processed
         // /*twice*/ three times:
@@ -311,7 +314,9 @@ public class HierarAlignerGCTask extends AbstractTask {
         alignedPeakList = new SimplePeakList(peakListName,
                 allDataFiles.toArray(new RawDataFile[0]));
 
-        printMemoryUsage(run_time, prevTotal, prevFree, "COMPOUND DETECTED");
+        if (DEBUG)
+            printMemoryUsage(logger, run_time, prevTotal, prevFree,
+                    "COMPOUND DETECTED");
 
         /** Alignment mapping **/
         // Iterate source peak lists
@@ -335,8 +340,6 @@ public class HierarAlignerGCTask extends AbstractTask {
         for (int i = 0; i < newIds.length; ++i) {
             PeakList peakList = peakLists[newIds[i]];
             nbPeaks += peakList.getNumberOfRows();
-            logger.info("> Peaklist '" + peakList.getName() + "' [" + newIds[i]
-                    + "] has '" + peakList.getNumberOfRows() + "' rows.");
         }
 
         // If 'Hybrid' or no distance matrix: no need for a matrix
@@ -391,14 +394,17 @@ public class HierarAlignerGCTask extends AbstractTask {
                 }
 
                 processedRows++;
-                logger.info("Treating lists: "
-                        + (Math.round(100 * processedRows / (double) nbPeaks))
-                        + " %");
+                if (DEBUG)
+                    logger.info("Treating lists: "
+                            + (Math.round(
+                                    100 * processedRows / (double) nbPeaks))
+                            + " %");
 
             }
         }
-
-        printMemoryUsage(run_time, prevTotal, prevFree, "DISTANCES COMPUTED");
+        if (DEBUG)
+            printMemoryUsage(logger, run_time, prevTotal, prevFree,
+                    "DISTANCES COMPUTED");
 
         //////
         double max_dist = maximumScore; // Math.abs(row.getBestPeak().getRT() -
@@ -448,7 +454,7 @@ public class HierarAlignerGCTask extends AbstractTask {
 
             // TODO: ...!
             if (DEBUG_2)
-                System.out.println(distancesGNF_Tri.toString());
+                logger.info(distancesGNF_Tri.toString());
 
             if (saveRAMratherThanCPU_2) { // Requires: distances values will be
                                           // recomputed on demand during
@@ -459,11 +465,13 @@ public class HierarAlignerGCTask extends AbstractTask {
                      // exploitable)
                 distancesGNF_Tri_Bkp = new DistanceMatrixTriangular1D2D(
                         distancesGNF_Tri);
-                printMemoryUsage(run_time, prevTotal, prevFree,
-                        "GNF CLUSTERER BACKUP MATRIX");
+                if (DEBUG)
+                    printMemoryUsage(logger, run_time, prevTotal, prevFree,
+                            "GNF CLUSTERER BACKUP MATRIX");
             }
 
-            System.out.println("Clustering...");
+            if (DEBUG)
+                logger.info("Clustering...");
             if (distancesGNF_Tri != null)
                 arNodes = org.gnf.clustering.sequentialcache.SequentialCacheClustering
                         .clusterDM(distancesGNF_Tri, linkageStartegyType, null,
@@ -472,15 +480,16 @@ public class HierarAlignerGCTask extends AbstractTask {
             distancesGNF_Tri = null;
             System.gc();
 
-            printMemoryUsage(run_time, prevTotal, prevFree,
-                    "GNF CLUSTERER DONE");
+            if (DEBUG)
+                printMemoryUsage(logger, run_time, prevTotal, prevFree,
+                        "GNF CLUSTERER DONE");
 
             if (DEBUG_2)
-                System.out.println(distancesGNF_Tri.toString());
+                logger.info(distancesGNF_Tri.toString());
 
             if (DEBUG_2)
                 for (int i = 0; i < arNodes.length; i++) {
-                    System.out.println("Node " + i + ": " + arNodes[i]);
+                    logger.info("Node " + i + ": " + arNodes[i]);
                 }
 
             // TODO: Use usual interfacing ...
@@ -501,7 +510,8 @@ public class HierarAlignerGCTask extends AbstractTask {
         // Sort Nodes by correlation score (Required in
         // 'getValidatedClusters_3')
         int[] rowOrder = new int[nRowCount];
-        System.out.println("Sorting tree nodes...");
+        if (DEBUG)
+            logger.info("Sorting tree nodes...");
         org.gnf.clustering.Utils.NodeSort(arNodes, nRowCount - 2, 0, rowOrder);
 
         if (do_cluster) {
@@ -520,7 +530,7 @@ public class HierarAlignerGCTask extends AbstractTask {
                                 + ", " + full_rows_list.get(r).getAverageRT()
                                 + ")" + " ";
                     }
-                    System.out.println(str);
+                    logger.info(str);
                 }
         }
 
@@ -532,7 +542,8 @@ public class HierarAlignerGCTask extends AbstractTask {
         String outGtr = outputPrefix + ".gtr";
         String outCdt = outputPrefix + ".cdt";
 
-        System.out.println("Writing output to file...");
+        if (DEBUG)
+            logger.info("Writing output to file...");
 
         int nColCount = 1;
         String[] colNames = new String[nColCount];
@@ -561,8 +572,9 @@ public class HierarAlignerGCTask extends AbstractTask {
             org.gnf.clustering.Utils./* JoinAlignerGCTask. */WriteTreeToFile(
                     outGtr, nRowCount - 1, arNodes, true);
 
-            printMemoryUsage(run_time, prevTotal, prevFree,
-                    "GNF CLUSTERER FILES PRINTED");
+            if (DEBUG)
+                printMemoryUsage(logger, run_time, prevTotal, prevFree,
+                        "GNF CLUSTERER FILES PRINTED");
 
         }
 
@@ -582,8 +594,9 @@ public class HierarAlignerGCTask extends AbstractTask {
             processedRows += rows_cluster.size();
         }
 
-        printMemoryUsage(run_time, prevTotal, prevFree,
-                "GNF CLUSTERER CLUSTER_LIST");
+        if (DEBUG)
+            printMemoryUsage(logger, run_time, prevTotal, prevFree,
+                    "GNF CLUSTERER CLUSTER_LIST");
 
         // DEBUG stuff: REMOVE !!!
         /** printAlignedPeakList(clustersList); */
@@ -678,18 +691,22 @@ public class HierarAlignerGCTask extends AbstractTask {
         }
 
         //
-        endTime = System.currentTimeMillis();
-        ms = (endTime - startTime);
-        logger.info("## >> Whole JoinAlignerGCTask processing took "
-                + Float.toString(ms) + " ms.");
+        if (DEBUG) {
+            endTime = System.currentTimeMillis();
+            ms = (endTime - startTime);
+            logger.info("## >> Whole JoinAlignerGCTask processing took "
+                    + Float.toString(ms) + " ms.");
+        }
 
         // ----------------------------------------------------------------------
 
         // Add new aligned peak list to the project
         this.project.addPeakList(alignedPeakList);
 
-        for (RawDataFile rdf : alignedPeakList.getRawDataFiles())
-            System.out.println("RDF: " + rdf);
+        if (DEBUG) {
+            for (RawDataFile rdf : alignedPeakList.getRawDataFiles())
+                logger.info("RDF: " + rdf);
+        }
 
         // Add task description to peakList
         alignedPeakList.addDescriptionOfAppliedTask(
@@ -718,8 +735,9 @@ public class HierarAlignerGCTask extends AbstractTask {
         List<List<Integer>> validatedClusters = new ArrayList<>();
 
         int nNodes = arNodes.length; // distMtx.getRowCount() - 1;
-        System.out.println(
-                "nNodes=" + nNodes + " | arNodes.length=" + arNodes.length);
+        if (DEBUG)
+            logger.info(
+                    "nNodes=" + nNodes + " | arNodes.length=" + arNodes.length);
 
         boolean do_compute_best = false;
 
@@ -757,13 +775,15 @@ public class HierarAlignerGCTask extends AbstractTask {
             }
         }
         if (DEBUG_2)
-            System.out.println("###BEST NODES (size:" + bestNodes.size() + "): "
+            logger.info("###BEST NODES (size:" + bestNodes.size() + "): "
                     + bestNodes.toString());
 
         // Find nodes that can be clusters (nb leaves < level)
         // for (int nBest: bestNodes) {
-        System.out.println(
-                "##START TRACING HIERARCHY... (starting from furthest node)");
+
+        if (DEBUG_2)
+            logger.info(
+                    "##START TRACING HIERARCHY... (starting from furthest node)");
 
         // TODO: ... Implement all stuff for cutoff, right now, just browsing
         // the whole tree from very worst
@@ -774,7 +794,8 @@ public class HierarAlignerGCTask extends AbstractTask {
             nBest = -nBest - 1;
         }
 
-        System.out.println("#TRACING BEST NODE '" + nBest + "' :");
+        if (DEBUG_2)
+            logger.info("#TRACING BEST NODE '" + nBest + "' :");
         // **validatedClusters.addAll(recursive_validate_clusters_3(arNodes,
         // nBest, level, max_dist, distMtx));
         validatedClusters.addAll(recursive_validate_clusters_3(arNodes, nBest,
@@ -787,8 +808,8 @@ public class HierarAlignerGCTask extends AbstractTask {
 
                 leaves.addAll(clust_leaves);
             }
-            System.out.println("Leafs are (count:" + leaves.size() + "):");
-            System.out.println(Arrays.toString(leaves.toArray()));
+            logger.info("Leafs are (count:" + leaves.size() + "):");
+            logger.info(Arrays.toString(leaves.toArray()));
         }
         // -
         if (DEBUG_2)
@@ -822,31 +843,31 @@ public class HierarAlignerGCTask extends AbstractTask {
         // Is leaf parent node => no need to go further: this is a cluster!
         boolean is_dual_leaf_node = (node.m_nLeft >= 0 && node.m_nRight >= 0);
         if (DEBUG_2)
-            System.out.println("\n# >>>>>>>>>>>>> BEGIN ITERATING NODE #"
-                    + nNode + " <<<<<<<<<<<< '" + node.toString()
-                    + "' (Is dual leaf? " + is_dual_leaf_node + ")");
+            logger.info("\n# >>>>>>>>>>>>> BEGIN ITERATING NODE #" + nNode
+                    + " <<<<<<<<<<<< '" + node.toString() + "' (Is dual leaf? "
+                    + is_dual_leaf_node + ")");
         // if (!is_dual_leaf_node) {
 
         List<Integer> leaves = getLeafIds(arNodes, nNode);
 
         if (DEBUG_2) {
 
-            System.out.println("#NB lEAVES " + leaves.size()
-                    + " (expected lvl: " + level + ")");
+            logger.info("#NB lEAVES " + leaves.size() + " (expected lvl: "
+                    + level + ")");
             // if (leaves.size() <= level) {
 
-            System.out.println("#GET INTO NODE lEAVES " + node.toString());
+            logger.info("#GET INTO NODE lEAVES " + node.toString());
 
             // If can be a cluster: Is the current node a splitting point?
             // List<Integer> left_leaves = getLeafIds(arNodes, node.m_nLeft);
             // List<Integer> right_leaves = getLeafIds(arNodes, node.m_nRight);
             // //
-            // System.out.println("getLeafIds(arNodes, " + node.m_nLeft + "): "
+            // logger.info("getLeafIds(arNodes, " + node.m_nLeft + "): "
             // + left_leaves);
-            // System.out.println("getLeafIds(arNodes, " + node.m_nRight + "): "
+            // logger.info("getLeafIds(arNodes, " + node.m_nRight + "): "
             // + right_leaves);
 
-            System.out.println("getLeafIds(arNodes, " + nNode + "): " + leaves);
+            logger.info("getLeafIds(arNodes, " + nNode + "): " + leaves);
         }
 
         // Check validity
@@ -879,7 +900,7 @@ public class HierarAlignerGCTask extends AbstractTask {
                         max_dist_2 = dist;
                     }
                     if (DEBUG_2)
-                        System.out.println("dist(" + leaves.get(i) + ","
+                        logger.info("dist(" + leaves.get(i) + ","
                                 + leaves.get(j) + ") = " + dist);
                 }
             }
@@ -888,16 +909,16 @@ public class HierarAlignerGCTask extends AbstractTask {
                 && (max_dist_2 >= 0f && max_dist_2 < max_dist + EPSILON);
 
         if (DEBUG_2)
-            System.out.println("#IS CLUSTER? " + node_is_cluster
-                    + " (nb_leaves_ok: " + nb_leaves_ok + ", max_dist: "
-                    + max_dist_2 + " < " + max_dist + ")");
+            logger.info("#IS CLUSTER? " + node_is_cluster + " (nb_leaves_ok: "
+                    + nb_leaves_ok + ", max_dist: " + max_dist_2 + " < "
+                    + max_dist + ")");
 
         // If valid, keep as is...
         if (node_is_cluster) {
 
             if (DEBUG_2)
-                System.out.println("#CLUSTER OK " + node_is_cluster + " ("
-                        + max_dist_2 + " / " + max_dist + ")");
+                logger.info("#CLUSTER OK " + node_is_cluster + " (" + max_dist_2
+                        + " / " + max_dist + ")");
 
             validatedClusters.add(leaves);
         }
@@ -927,7 +948,7 @@ public class HierarAlignerGCTask extends AbstractTask {
         }
 
         if (DEBUG_2)
-            System.out.println("# >>>>>>>>>>>>> END ITERATING NODE #" + nNode
+            logger.info("# >>>>>>>>>>>>> END ITERATING NODE #" + nNode
                     + " <<<<<<<<<<<< '" + node.toString() + "' (Is dual leaf? "
                     + is_dual_leaf_node + ")");
 
@@ -943,11 +964,11 @@ public class HierarAlignerGCTask extends AbstractTask {
 
         List<Integer> leafIds = new ArrayList<>();
 
-        // System.out.println("(0) nNode: " + nNode);
+        // logger.info("(0) nNode: " + nNode);
         if (nNode < 0) {
             nNode = -nNode - 1;
         }
-        // System.out.println("(1) nNode: " + nNode);
+        // logger.info("(1) nNode: " + nNode);
 
         // WARN: Skip the trees's super parent in any case !!
         if (nNode >= arNodes.length) {
@@ -975,7 +996,7 @@ public class HierarAlignerGCTask extends AbstractTask {
         int i = 0;
         for (List<Integer> cl : validatedClusters) {
 
-            System.out.println("CLUST#" + i + ": " + cl.toString());
+            logger.info("CLUST#" + i + ": " + cl.toString());
             i++;
         }
     }
@@ -1041,8 +1062,8 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     // -
     // Prints in MegaBytes
-    public static void printMemoryUsage(Runtime rt, Long prevTotal,
-            Long prevFree, String prefix) {
+    public static void printMemoryUsage(Logger logger, Runtime rt,
+            Long prevTotal, Long prevFree, String prefix) {
 
         long max = rt.maxMemory();
         long total = rt.totalMemory();
@@ -1050,11 +1071,10 @@ public class HierarAlignerGCTask extends AbstractTask {
         if (total != prevTotal || free != prevFree) {
             long used = total - free;
             long prevUsed = (prevTotal - prevFree);
-            System.out.println("## [" + prefix + "] MEM USAGE [max: "
-                    + toMB(max) + "] ## >>> Total: " + toMB(total) + ", Used: "
-                    + toMB(used) + ", ∆Used: " + toMB(used - prevUsed)
-                    + ", Free: " + toMB(free) + ", ∆Free: "
-                    + toMB(free - prevFree));
+            logger.info("## [" + prefix + "] MEM USAGE [max: " + toMB(max)
+                    + "] ## >>> Total: " + toMB(total) + ", Used: " + toMB(used)
+                    + ", ∆Used: " + toMB(used - prevUsed) + ", Free: "
+                    + toMB(free) + ", ∆Free: " + toMB(free - prevFree));
             prevTotal = total;
             prevFree = free;
         }

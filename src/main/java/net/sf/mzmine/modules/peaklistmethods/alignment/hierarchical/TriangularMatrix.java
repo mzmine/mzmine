@@ -19,7 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical;
 
+import java.util.logging.Logger;
+
 public abstract class TriangularMatrix {
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private int dimension;
 
@@ -60,11 +64,11 @@ public abstract class TriangularMatrix {
 
         for (int i = 0; i < getDimension(); i++) {
 
-            System.out.println("\n");
+            logger.info("\n");
 
             for (int j = 0; j < getDimension(); j++) {
 
-                System.out.println(" " + this.get(i, j));
+                logger.info(" " + this.get(i, j));
             }
 
         }

@@ -64,7 +64,7 @@ public class RowVsRowScoreGC implements Comparable<RowVsRowScoreGC> {
     ) {
 
         if (DEBUG) {
-            System.out.println("RowVsRowScoreGC = \n" + "\t" + project + "\n" +
+            LOG.info("RowVsRowScoreGC = \n" + "\t" + project + "\n" +
             // "\t" + useOldestRDFancestor + "\n" +
             // "\t" + rtAdjustementMapping + "\n" +
                     "\t" + peakListRow + "\n" + "\t" + alignedRow + "\n" + "\t"
