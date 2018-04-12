@@ -182,6 +182,7 @@ public final class MZmineCore {
 		SwingUtilities.invokeAndWait(desktopInit);
 	    } catch (Exception e) {
 		logger.log(Level.SEVERE, "Could not initialize GUI", e);
+		e.printStackTrace();
 		System.exit(1);
 	    }
 

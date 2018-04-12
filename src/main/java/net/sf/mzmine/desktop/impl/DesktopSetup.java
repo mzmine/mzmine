@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
@@ -100,10 +101,14 @@ public class DesktopSetup {
     System.setProperty("java.awt.Window.locationByPlatform", "true");
 
     // Initialize JavaFX
-    logger.finest("Initializing the JavaFX subsystem by creating a JFXPanel instance");
-    @SuppressWarnings("unused")
-    JFXPanel dummyPanel = new JFXPanel();
-
+    try {
+      logger.finest("Initializing the JavaFX subsystem by creating a JFXPanel instance");
+      @SuppressWarnings("unused")
+      JFXPanel dummyPanel = new JFXPanel();
+    } catch (Throwable e) {
+      logger.log(Level.WARNING, "Failed to initialize JavaFX", e);
+      e.printStackTrace();
+    }
   }
 
 }
