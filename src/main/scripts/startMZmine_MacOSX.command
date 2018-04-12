@@ -64,9 +64,7 @@ mkdir $TMP_FILE_DIRECTORY
 # Java specific commands
 # **********************
 
-# --add-modules=java.se.ee is required to use JAXB (e.g., Chemspider search) under Java 9
-# -XX:+IgnoreUnrecognizedVMOptions is required so Java 8 does not complain about --add-modules
-JAVA_PARAMETERS="-showversion -classpath lib/\* -XX:+UseG1GC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms256m -Xmx${HEAP_SIZE}m -XX:+IgnoreUnrecognizedVMOptions --add-modules=java.se.ee"
+JAVA_PARAMETERS="-showversion -classpath lib/\* -XX:+UseG1GC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms256m -Xmx${HEAP_SIZE}m"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 
 # Make sure we are in the correct directory
