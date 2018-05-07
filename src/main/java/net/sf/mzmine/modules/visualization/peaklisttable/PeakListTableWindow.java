@@ -19,24 +19,37 @@
 
 package net.sf.mzmine.modules.visualization.peaklisttable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.GridLayout;
 import java.awt.print.PrinterException;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable.PrintMode;
+import javax.swing.JTextField;
+import javax.swing.RowFilter;
+import javax.swing.SwingConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
+import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableColumnModel;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -54,46 +67,101 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
     private PeakListTable table;
 
     private ParameterSet parameters;
+    
+    private JTextField filterTextId;
+    private JTextField filterTextMz;
+    private JTextField filterTextRt;
+    private JTextField filterTextIdentity;
+    private JTextField filterTextComment;
+
+    RowFilter<Object,Object > mzFilter = new RowFilter<Object, Object>() {
+        public boolean include(Entry<? extends Object, ? extends Object> entry) {
+            String mzValue = entry.getStringValue(1);
+            if (mzValue.startsWith(filterTextMz.getText())) {
+                return true;
+            }
+            return false;
+        }
+    };
+    
+    RowFilter<Object,Object > rtFilter = new RowFilter<Object, Object>() {
+        public boolean include(Entry<? extends Object, ? extends Object> entry) {
+            String rtValue = entry.getStringValue(2);
+            if (rtValue.startsWith(filterTextRt.getText())) {
+                return true;
+            }
+            return false;
+        }
+    };
 
     /**
      * Constructor: initializes an empty visualizer
      */
     PeakListTableWindow(PeakList peakList, ParameterSet parameters) {
 
-	super("Peak list: " + peakList.getName());
-
-	this.parameters = parameters;
-
-	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-	setBackground(Color.white);
-
-	// Build toolbar
-	PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
-	add(toolBar, BorderLayout.EAST);
-
-	// Build table
-	table = new PeakListTable(this, parameters, peakList);
-
-	scrollPane = new JScrollPane(table);
-
-	add(scrollPane, BorderLayout.CENTER);
-
-	// Add the Windows menu
-	JMenuBar menuBar = new JMenuBar();
-	menuBar.add(new WindowsMenu());
-	setJMenuBar(menuBar);
-
-	pack();
-
-	// get the window settings parameter
-	ParameterSet paramSet = MZmineCore.getConfiguration()
-		.getModuleParameters(PeakListTableModule.class);
-	WindowSettingsParameter settings = paramSet
-		.getParameter(PeakListTableParameters.windowSettings);
-
-	// update the window and listen for changes
-	settings.applySettingsToWindow(this);
-	this.addComponentListener(settings);
+		super("Peak list: " + peakList.getName());
+	
+		this.parameters = parameters;
+	
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setBackground(Color.white);
+	
+		// Build tool bar
+		PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
+		add(toolBar, BorderLayout.EAST);
+	
+		// Build table
+		table = new PeakListTable(this, parameters, peakList);
+	
+		scrollPane = new JScrollPane(table);
+	
+		add(scrollPane, BorderLayout.CENTER);
+	
+		
+		JPanel filterPane = new JPanel(new GridLayout(1,10));
+	    
+	    filterTextId = new JTextField(10);
+	    filterTextMz = new JTextField(10);
+	    filterTextRt = new JTextField(10);
+	    filterTextIdentity = new JTextField(10);
+	    filterTextComment = new JTextField(10);
+	    
+	    filterPane.add(new JLabel("ID:",SwingConstants.CENTER));
+	    filterPane.add(filterTextId);
+	    filterPane.add(new JLabel("m/z:",SwingConstants.CENTER));
+	    filterPane.add(filterTextMz);
+	    filterPane.add(new JLabel("RT:",SwingConstants.CENTER));
+	    filterPane.add(filterTextRt);
+	    filterPane.add(new JLabel("Identity:",SwingConstants.CENTER));
+	    filterPane.add(filterTextIdentity);
+	    filterPane.add(new JLabel("Comment:",SwingConstants.CENTER));
+	    filterPane.add(filterTextComment);
+	
+	    addListener(filterTextId);
+	    addListener(filterTextMz);
+	    addListener(filterTextRt);
+	    addListener(filterTextIdentity);
+	    addListener(filterTextComment);
+		
+		
+	    add(filterPane, BorderLayout.NORTH);
+	    
+		// Add the Windows menu
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.add(new WindowsMenu());
+		setJMenuBar(menuBar);
+	
+		pack();
+	
+		// get the window settings parameter
+		ParameterSet paramSet = MZmineCore.getConfiguration()
+			.getModuleParameters(PeakListTableModule.class);
+		WindowSettingsParameter settings = paramSet
+			.getParameter(PeakListTableParameters.windowSettings);
+	
+		// update the window and listen for changes
+		settings.applySettingsToWindow(this);
+		this.addComponentListener(settings);
 
     }
 
@@ -105,6 +173,50 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
 	return table.getPreferredSize().height;
     }
 
+    
+    
+    public void addListener(JTextField filterText){
+        filterText.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateFilter();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateFilter();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateFilter();
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+	public void updateFilter() {
+        
+        List<RowFilter<Object,Object>> rowSorters = new ArrayList<RowFilter<Object,Object>>();
+
+        
+		TableRowSorter<PeakListTableModel> sorter = (TableRowSorter<PeakListTableModel>) table.getRowSorter();
+
+        String textId = "(?i)" + filterTextId.getText();
+        String textIdentity = "(?i)" + filterTextIdentity.getText();
+        String textComment = "(?i)" + filterTextComment.getText();
+
+        rowSorters.add(RowFilter.regexFilter(textId,0));
+        rowSorters.add(mzFilter);
+        rowSorters.add(rtFilter);
+        rowSorters.add(RowFilter.regexFilter(textIdentity,3));
+        rowSorters.add(RowFilter.regexFilter(textComment,4));
+
+        sorter.setRowFilter(RowFilter.andFilter(rowSorters));
+        table.setRowSorter(sorter);
+
+    }
+    
     /**
      * Methods for ActionListener interface implementation
      */
@@ -156,5 +268,5 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
 		MZmineCore.getDesktop().displayException(this, e);
 	    }
 	}
-    }
+    } 
 }

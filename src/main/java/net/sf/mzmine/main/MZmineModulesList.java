@@ -22,6 +22,7 @@ import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
+import net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical.HierarAlignerGcModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringModule;
@@ -107,6 +108,7 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import net.sf.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
 
 /**
  * List of modules included in MZmine 2
@@ -135,6 +137,7 @@ public class MZmineModulesList {
 
       // Alignment
       OrderPeakListsModule.class, JoinAlignerModule.class,
+      HierarAlignerGcModule.class,
 
       RansacAlignerModule.class,
       // PathAlignerModule.class,
@@ -180,7 +183,7 @@ public class MZmineModulesList {
       PeakListTableModule.class, IsotopePatternExportModule.class, MSMSExportModule.class,
       ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
       InfoVisualizerModule.class, IntensityPlotModule.class,
-      KendrickMassPlotModule.class,
+      KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
 
       // Tools
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class

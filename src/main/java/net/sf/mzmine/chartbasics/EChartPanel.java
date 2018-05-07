@@ -29,6 +29,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYZDataset;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureMouseAdapter;
 import net.sf.mzmine.chartbasics.gestures.interf.GestureHandlerFactory;
@@ -212,9 +213,9 @@ public class EChartPanel extends ChartPanel {
   }
 
   /**
-   * Default tries to extract all series from an XYDataset <br>
+   * Default tries to extract all series from an XYDataset or XYZDataset<br>
    * series 1 | Series 2 <br>
-   * x y x y
+   * x y x y x y z x y z
    * 
    * @return Data array[columns][rows]
    */
@@ -222,31 +223,58 @@ public class EChartPanel extends ChartPanel {
     if (getChart().getXYPlot() != null && getChart().getXYPlot().getDataset() != null) {
       try {
         XYDataset data = getChart().getXYPlot().getDataset();
-
-        int series = data.getSeriesCount();
-        Object[][] model = new Object[series * 2][];
-        for (int s = 0; s < series; s++) {
-          int size = 1 + data.getItemCount(s);
-          Object[] x = new Object[size];
-          Object[] y = new Object[size];
-          // create new Array model[row][col]
-          // Write header
-          x[0] = getChart().getXYPlot().getDomainAxis().getLabel();
-          y[0] = getChart().getXYPlot().getRangeAxis().getLabel();
-          // write data
-          for (int i = 0; i < data.getItemCount(s); i++) {
-            x[i + 1] = data.getX(s, i);
-            y[i + 1] = data.getY(s, i);
+        if (data instanceof XYZDataset) {
+          XYZDataset xyz = (XYZDataset) data;
+          int series = data.getSeriesCount();
+          Object[][] model = new Object[series * 3][];
+          for (int s = 0; s < series; s++) {
+            int size = 1 + xyz.getItemCount(s);
+            Object[] x = new Object[size];
+            Object[] y = new Object[size];
+            Object[] z = new Object[size];
+            // create new Array model[row][col]
+            // Write header
+            x[0] = getChart().getXYPlot().getDomainAxis().getLabel();
+            y[0] = getChart().getXYPlot().getRangeAxis().getLabel();
+            z[0] = "z-axis";
+            // write data
+            for (int i = 0; i < xyz.getItemCount(s); i++) {
+              x[i + 1] = xyz.getX(s, i);
+              y[i + 1] = xyz.getY(s, i);
+              z[i + 1] = xyz.getZ(s, i);
+            }
+            model[s * 3] = x;
+            model[s * 3 + 1] = y;
+            model[s * 3 + 2] = z;
           }
-          model[s * 2] = x;
-          model[s * 2 + 1] = y;
+          return model;
+        } else {
+          int series = data.getSeriesCount();
+          Object[][] model = new Object[series * 2][];
+          for (int s = 0; s < series; s++) {
+            int size = 1 + data.getItemCount(s);
+            Object[] x = new Object[size];
+            Object[] y = new Object[size];
+            // create new Array model[row][col]
+            // Write header
+            x[0] = getChart().getXYPlot().getDomainAxis().getLabel();
+            y[0] = getChart().getXYPlot().getRangeAxis().getLabel();
+            // write data
+            for (int i = 0; i < data.getItemCount(s); i++) {
+              x[i + 1] = data.getX(s, i);
+              y[i + 1] = data.getY(s, i);
+            }
+            model[s * 2] = x;
+            model[s * 2 + 1] = y;
+          }
+          return model;
         }
-        return model;
       } catch (Exception ex) {
         return null;
       }
     }
     return null;
+
   }
 
   /*
