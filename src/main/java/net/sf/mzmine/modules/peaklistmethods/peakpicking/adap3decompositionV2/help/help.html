@@ -14,13 +14,26 @@
 
 
 
-<h1>Improved Spectral deconvolution</h1>
+<h1>Spectral deconvolution / Blind Source Separation</h1>
 
 <p>
-    This method finds analytes and their fragmentation mass spectra by performing the following steps: by combining
-    peaks with similar retention times into clusters and using a blind source separation method to determine model peaks
-    and construct fragmentation mass spectra.
+    This method performs Spectral Deconvolution of detected peaks. It finds components (compounds, analytes, etc.) and
+    determines their elution profiles and fragmentation mass spectra. The Spectral Deconvolution consists of two steps:
 </p>
+<ol>
+    <li>Entire retention time interval is split into deconvolution windows so that</li>
+    <ul>
+        <li>Peaks produced by the same component or by coeluting components belong to the same deconvolution window,</li>
+        <li>Number of peaks in deconvolution window is significantly smaller than the total number of peaks.</li>
+    </ul>
+</ol>
+
+<p>
+    <div align="center">
+        <img src="spectral_deconvolution_window.png" alt="Spectral Deconvolution Window" style="width: 800px;">
+    </div>
+</p>
+
 
 <ol>
     <li><p>Similar EIC peaks are combined into clusters. For each EIC peak, we define its <em>retention time</em> as the
