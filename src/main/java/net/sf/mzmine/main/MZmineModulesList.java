@@ -78,13 +78,13 @@ import net.sf.mzmine.modules.projectmethods.projectclose.ProjectCloseModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaveAsModule;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaveModule;
+import net.sf.mzmine.modules.rawdatamethods.exportscans.ExtractScansModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.alignscans.AlignScansModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrectionModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.cropper.CropFilterModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFiltersModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scansmoothing.ScanSmoothingModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.adap3d.ADAP3DModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass.GridMassModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectionModule;
@@ -126,18 +126,16 @@ public class MZmineModulesList {
       BatchModeModule.class,
 
       // Raw data methods
-      RawDataImportModule.class, RawDataExportModule.class, MassDetectionModule.class,
-      ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
-      ADAPChromatogramBuilderModule.class, 
-      // Not ready for prime time: ADAP3DModule.class,  
-      GridMassModule.class,
-      ManualPeakPickerModule.class, MsMsPeakPickerModule.class, ScanFiltersModule.class,
-      CropFilterModule.class, BaselineCorrectionModule.class, AlignScansModule.class,
-      ScanSmoothingModule.class, OrderDataFilesModule.class,
+      RawDataImportModule.class, RawDataExportModule.class, ExtractScansModule.class,
+      MassDetectionModule.class, ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
+      ADAPChromatogramBuilderModule.class,
+      // Not ready for prime time: ADAP3DModule.class,
+      GridMassModule.class, ManualPeakPickerModule.class, MsMsPeakPickerModule.class,
+      ScanFiltersModule.class, CropFilterModule.class, BaselineCorrectionModule.class,
+      AlignScansModule.class, ScanSmoothingModule.class, OrderDataFilesModule.class,
 
       // Alignment
-      OrderPeakListsModule.class, JoinAlignerModule.class,
-      HierarAlignerGcModule.class,
+      OrderPeakListsModule.class, JoinAlignerModule.class, HierarAlignerGcModule.class,
 
       RansacAlignerModule.class,
       // PathAlignerModule.class,
@@ -182,8 +180,8 @@ public class MZmineModulesList {
       ThreeDVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
       PeakListTableModule.class, IsotopePatternExportModule.class, MSMSExportModule.class,
       ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
-      InfoVisualizerModule.class, IntensityPlotModule.class,
-      KendrickMassPlotModule.class, VanKrevelenDiagramModule.class,
+      InfoVisualizerModule.class, IntensityPlotModule.class, KendrickMassPlotModule.class,
+      VanKrevelenDiagramModule.class,
 
       // Tools
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class

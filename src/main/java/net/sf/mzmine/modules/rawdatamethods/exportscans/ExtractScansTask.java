@@ -32,7 +32,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.chartexport.FileAndPathUtil;
+import net.sf.mzmine.util.files.FileAndPathUtil;
 
 class ExtractScansTask extends AbstractTask {
 
