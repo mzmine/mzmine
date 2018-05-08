@@ -17,27 +17,20 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.kendrickmassplot;
+package net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical;
 
-import java.awt.Color;
-import java.awt.Paint;
-/**
- * Kendrick mass plot paint scale
- */
-public class KendrickMassPlotPaintScales {
-    public static Paint[] getFullRainBowScale(){
-        int ncolor = 360;
-        Color[] readRainbow = new Color[ncolor];
-        Color[] rainbow = new Color[ncolor];
+public enum ClustererType {
 
-        float x = (float) (1./(ncolor + 160));
-        for (int i=0; i < rainbow.length; i++)
-        {       
-            readRainbow[i] = new Color(Color.HSBtoRGB((i)*x,1.0F,1.0F));
-        }
-        for(int i = 0; i < rainbow.length; i++){
-            rainbow[i] = readRainbow[readRainbow.length-i-1];
-        }
-        return rainbow;
+    CLASSIC("Classic (Base)"), CACHED("Classic (Cached)"), HYBRID("Hybrid");
+
+    private final String name;
+
+    ClustererType(String name) {
+        this.name = name;
     }
+
+    public String getName() {
+        return this.name;
+    }
+
 }

@@ -1,0 +1,198 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+    <head>
+        <title>Alignment - Hierachical aligner (GC)</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+    <body>
+    
+
+        <h1>Hierachical aligner GC (or <b>Hierarchical Clustering aligner)</b></h1>
+
+<h2>Description</h2>
+
+        <p>
+            This method aligns detected peaks in different samples through a match score. This score is calculated
+            based on the mass spectrum and retention time of each peak and ranges of tolerance stipulated in the parameters
+            setup dialog.
+        </p>
+        
+<h2>General considerations</h2>
+
+  <h3>GeneralAlgorithm: Agglomerative / hierarchical clustering approaches</h3>
+        
+        <em>How 
+  They Work</em></font><font face="Times New Roman, Times, serif"><br>
+  Given a set of N items to be clustered, and an N*N distance (or similarity) 
+  matrix, the basic process of hierarchical clustering (defined by S.C. Johnson in 1967 - <a href="#">https://home.deib.polimi.it/matteucc/Clustering/tutorial_html/hierarchical.html#johnson</a>) is this: </font></p>
+<ol>
+  <li><font align="justify" face="Times New Roman, Times, serif">Start by assigning 
+    each item to a cluster, so that if you have N items, you now have N clusters, 
+    each containing just one item. Let the distances (similarities) between the 
+    clusters the same as the distances (similarities) between the items they contain.</font></li>
+  <li><font face="Times New Roman, Times, serif">Find the closest (most similar) 
+    pair of clusters and merge them into a single cluster, so that now you have 
+    one cluster less.</font></li>
+  <li><font face="Times New Roman, Times, serif">Compute distances (similarities) 
+    between the new cluster and each of the old clusters.</font></li>
+  <li><font face="Times New Roman, Times, serif">Repeat steps 2 and 3 until all 
+    items are clustered into a single cluster of size N. (*)</font></li>
+</ol>
+<p align="justify"><font face="Times New Roman, Times, serif">Step 3 can be done 
+  in different ways, which is what distinguishes <em>single-linkage</em> from 
+  <em>complete-linkage</em> and <em>average-linkage</em> clustering.<br>
+  In <em>single-linkage</em> clustering (also called the <em>connectedness</em> 
+  or <em>minimum</em> method), we consider the distance between one cluster and 
+  another cluster to be equal to the <u>shortest</u> distance from any member 
+  of one cluster to any member of the other cluster. If the data consist of similarities, 
+  we consider the similarity between one cluster and another cluster to be equal 
+  to the <u>greatest</u> similarity from any member of one cluster to any member 
+  of the other cluster.<br>
+  In <em>complete-linkage</em> clustering (also called the <em>diameter</em> or 
+  <em>maximum</em> method), we consider the distance between one cluster and another 
+  cluster to be equal to the <u>greatest</u> distance from any member of one cluster 
+  to any member of the other cluster.<br>
+  In <em>average-linkage</em> clustering, we consider the distance between one 
+  cluster and another cluster to be equal to the <u>average</u> distance from 
+  any member of one cluster to any member of the other cluster.<br>
+  A variation on average-link clustering is the UCLUS method of R. 
+  D'Andrade (1978) - <a href="#">https://home.deib.polimi.it/matteucc/Clustering/tutorial_html/hierarchical.html#dandrade</a> - which uses the <u>median</u> distance, which is much more 
+  outlier-proof than the average distance.</font></p>
+<p align="justify"><font face="Times New Roman, Times, serif">This kind of hierarchical 
+  clustering is called <em>agglomerative</em> because it merges clusters iteratively. 
+  There is also a <em>divisive</em> hierarchical clustering which does the reverse 
+  by starting with all objects in one cluster and subdividing them into smaller 
+  pieces. Divisive methods are not generally available, and rarely have been applied.</font></p>
+<p align="justify"><font face="Times New Roman, Times, serif">(*) Of course there 
+  is no point in having all the N items grouped in a single cluster but, once 
+  you have got the complete hierarchical tree, if you want k clusters you just 
+  have to cut the k-1 longest links.</font></p>
+<p></p>
+
+        
+        <hr>
+        
+        <h3>>> Available linkage criterion are:</h3>
+			<ul>
+			<li>Single</li>
+			<li>Complete</li>
+			<li>Average</li>
+			</ul>
+        
+
+			<p>The linkage criterion determines the distance between sets of observations as a function of the pairwise distances between observations.</p>
+			<p>Some commonly used linkage criteria between two sets of observations <i>A</i> and <i>B</i> are:</p>
+			<img src="linkage-criteria-0.png" width="905" height="155" alt="">
+			<p>where <i>d</i> is the chosen metric. </p>
+            
+         <h4>Linkage methods:</h4>
+         <p><img src="single-complete-average-2.png" width="400" height="400" alt=""><p><br>
+        
+        
+
+<hr>
+
+<h2>MZmine GC: Specific considerations</h2>
+
+<h3>>> How distance matrix between all pairs of observations is obtained</h3>
+			
+			<ol>
+			<li>Compute a similarity score based on chemical likelihood only</li>			
+			<li>Compute a similarity score based on RT likelihood only</li>
+			<li>Determine a combined weighted (=mixture) score based on a mixture of the above two scores</li>			
+			</ol>
+			
+			Giving:<br>
+			
+			<h4>1. Chemical similarity measurement (<i>chemSimScore</i>)</h4>
+			   <img src="chem-sim-3.png" width="675" height="232" alt="">
+			   <br>
+			<h4>2. Retention time score</h4>
+				Retention time score is normalized relatively to the RT window tolerance provided by the user (<i><b>rtScore = (1.0d - rtDiff / rtMaxDiff)</b></i>)<br>
+				<br>
+			<h4>3. Mixture score</h4>
+            The final mixture score (<i><b>score = (chemSimScore * mzWeight) + (rtScore * rtWeight)</b></i>).<br>
+            <br>
+            <img src="mixture-similarity-score.png" width="671" height="175" alt="">
+            <br>
+			
+			<h4>A square matrix is generated by comparing all the scores, for all the pairs of peaks.</h4>
+			
+			
+<h3>>> Getting clusters from rooted binary tree</h3>
+
+The algorithm methods described above all lead to a unique binary tree where all items are clustered into a single cluster of size N (number of leafs). 
+<br>
+A final step is required to get the very final clusters list. A "cutoff" based on two criterion allows to split the single cluster into appropriate subgroups:
+
+<ol>
+<li>A cluster cannot contain more than one leaf per sample</li>
+<li>A cluster cannot contain two leafs for which the distance (or mixture similarity score) is to low</li>
+</ol>
+
+<h4>Example with a 3 samples binary tree</h4>
+
+<img src="splitting-binary-tree.png" width="953" height="614" alt="">
+
+
+<hr>
+
+  <h2>Method parameters</h2>
+
+        <dl>
+            <dt>Peak list name</dt>
+            <dd>Name of the new aligned peak list</dd>
+            <dt>m/z tolerance</dt>
+            <dd>This value sets the range, in terms of m/z, for possible peaks to be
+                aligned. Maximum allowed m/z difference</dd>
+            <dt>Weight for m/z</dt>
+            <dd>This is the assigned weight for m/z difference at the moment of match score calculation between peak rows.
+                In case of perfectly matching m/z values the score receives the complete weight.</dd>
+            <dt>Retention time tolerance type</dt>
+            <dd>Maximum RT difference can be defined either using absolute or relative value</dd>
+            <dt>Absolute RT tolerance</dt>
+            <dd>Maximum allowed absolute RT difference</dd>
+            <dt>Relative RT tolerance</dt>
+            <dd>Maximum allowed relative RT difference</dd>
+            <dt>Weight for RT</dt>
+            <dd>This is the assigned weight for RT difference at the moment of match score calculation between peak rows.
+                In case of perfectly matching RT values the score receives the complete weight.</dd>
+                
+            <dt>Export dendrogram as TXT</dt>
+            <dd>Results in CDT + GTR files (See bellow how to visualize those files).</dd>
+            <dt>Dendrogram output text filename</dt>
+            <dd>Name of the resulting TXT file to write the clustering resulting dendrogram to. If the file already exists, it will be overwritten.</dd>
+
+        </dl>
+
+       <br>
+       <hr align="center" width="50">
+       <br>
+       
+        <p>
+         <b>New aligned peak list showing peaks from 3 different samples</b><br>
+         <br>
+         <img src="alignment-result.png" width="1292" height="624" alt="">
+        </p>
+        
+        <p>
+         <b>Clustering result can be exported into CDT+GTR format</b><br>
+         The latter can be then browsed using common applications such as TreeView - <a href="#" name="TreeView" title="TreeView">https://sourceforge.net/projects/jtreeview/</a>.<br>
+         <br>
+         <br>
+        </p>
+
+<hr>
+
+			<p>
+			<h2>Inspiration taken from</h2>
+			<ul>
+			<li>An Optimal Peak Alignment For Comprehensive Two-Dimensional Gas Chromatography Mass Spectrometry Using Mixture Similarity Measure - 2013 [Seongho Kim, Aiqin Fang, Bing Wang, Jaesik Jeong, Xiang Zhang] - 
+						<a href="#">https://louisville.edu/faculty/x0zhan17/papers/2011_mspa_bioinfor</a></li>			
+			<li>WEKA hierarchical clustering - <a href="#">http://www.cs.waikato.ac.nz/ml/weka/</a></li>			
+			</ul>			
+			</p>
+
+    </body>
+</html>

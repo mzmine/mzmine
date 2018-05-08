@@ -72,11 +72,11 @@ public class MetaCycGateway implements DBGateway {
     String line;
     while ((line = lineReader.readLine()) != null) {
       String split[] = line.split("\\t");
+      if (split.length < 5) continue;
       String id = split[4];
       results.add(id);
       if (results.size() == numOfResults)
         break;
-
     }
 
     return results.toArray(new String[0]);

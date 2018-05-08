@@ -50,7 +50,7 @@ public class HMDBGateway implements DBGateway {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private static final String hmdbSeachAddress = "http://www.hmdb.ca/structures/search/metabolites/mass?";
+    private static final String hmdbSeachAddress = "http://www.hmdb.ca/structures/search/metabolites/mass?search_type=monoisotopic&";
     private static final String hmdbStructureAddress = "http://structures.wishartlab.com/molecules/";
     private static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
 
@@ -66,6 +66,7 @@ public class HMDBGateway implements DBGateway {
 	URL queryURL = new URL(queryAddress);
 
 	// Submit the query
+	logger.finest("Loading URL " + queryAddress);
 	String queryResult = InetUtils.retrieveData(queryURL);
 
 	// Organize the IDs as a TreeSet to keep them sorted
@@ -105,6 +106,7 @@ public class HMDBGateway implements DBGateway {
 	try {
 
 	    final String url = hmdbEntryAddress + ID + ".xml";
+	    logger.finest("Loading URL " + url);
 	    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder builder = dbf.newDocumentBuilder();
 	    Document parsedResult = builder.parse(url);
