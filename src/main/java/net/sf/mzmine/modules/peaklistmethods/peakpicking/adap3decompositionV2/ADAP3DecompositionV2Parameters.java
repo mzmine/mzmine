@@ -53,7 +53,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
             new DoubleParameter("Preferred window width (min)",
                     "Preferred width of a deconvolution window (in minutes). The algorithm will try to " +
                             "select windows of the given width, but it may not be able to do so.",
-                    NumberFormat.getNumberInstance(), 0.5);
+                    NumberFormat.getNumberInstance(), 0.05);
     
     public static final IntegerParameter MIN_NUM_PEAK =
             new IntegerParameter("Min number peaks",
@@ -68,10 +68,10 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ----- Second-phase parameters ------------------------------------------
     // ------------------------------------------------------------------------
 
-    public static final DoubleParameter RET_TIME_TOLERANCE = new DoubleParameter("Retention time tolerance",
+    public static final DoubleParameter RET_TIME_TOLERANCE = new DoubleParameter("Retention time tolerance (min)",
             "Retention time tolerance value (between 0 and 1) is used for determine the number of components" +
                     " in a window. The larger tolerance, the smaller components are determined.",
-            NumberFormat.getNumberInstance(), 0.5, 0.0, Double.MAX_VALUE);
+            NumberFormat.getNumberInstance(), 0.05, 0.0, Double.MAX_VALUE);
 
     public static final BooleanParameter SMOOTHING = new BooleanParameter("Smoothed elution profiles",
             "If this option is checked, the elution profiles of components are smoothed", false);
