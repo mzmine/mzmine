@@ -41,8 +41,7 @@ import javax.annotation.Nonnull;
  */
 public class ADAP3DecompositionV2Task extends AbstractTask {
 
-    static final int DEFAULT_MIN_CLUSTER_SIZE = 5;
-     // Logger.
+    // Logger.
     private static final Logger LOG = Logger.getLogger(ADAP3DecompositionV2Task.class.getName());
     
     // Peak lists.
@@ -282,5 +281,11 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                 Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
                 Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
                 Range.closed(0.0, peak.getIntensity()));
+    }
+
+    @Override
+    public void cancel() {
+        decomposition.cancel();
+        super.cancel();
     }
 }
