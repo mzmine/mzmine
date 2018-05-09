@@ -46,9 +46,6 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ----- First-phase parameters -------------------------------------------
     // ------------------------------------------------------------------------
 
-//    public static final ParameterSetParameter PEAK_DETECTOR_PARAMETERS =
-//            new ParameterSetParameter("Peak detector", "", new MsDialPeakDetectorParameters());
-
     public static final DoubleParameter PREF_WINDOW_WIDTH =
             new DoubleParameter("Preferred window width (min)",
                     "Preferred width of a deconvolution window (in minutes). The algorithm will try to " +

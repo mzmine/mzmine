@@ -23,7 +23,6 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.msdial.MsDialPeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector;
 import net.sf.mzmine.parameters.Parameter;
@@ -40,7 +39,7 @@ public class DeconvolutionParameters extends SimpleParameterSet {
     private static final PeakResolver[] RESOLVERS = {
 	    new BaselinePeakDetector(), new NoiseAmplitudePeakDetector(),
 	    new SavitzkyGolayPeakDetector(), new MinimumSearchPeakDetector(),
-	    new CentWaveDetector(), new ADAPDetector(), new MsDialPeakDetector()};
+	    new CentWaveDetector(), new ADAPDetector()};
 
     public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
