@@ -63,14 +63,9 @@ import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 import com.google.common.collect.Range;
-import dulab.adap.datamodel.IsotopicDistribution;
-import dulab.adap.datamodel.IsotopicDistributionParser;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import net.sf.mzmine.datamodel.PeakInformation;
-import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 
 public class PeakSummaryComponent extends JPanel implements ActionListener {
