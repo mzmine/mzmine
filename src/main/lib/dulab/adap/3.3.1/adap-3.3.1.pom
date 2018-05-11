@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>dulab</groupId>
   <artifactId>adap</artifactId>
-  <version>3.3.0</version>
+  <version>3.3.1</version>
   <build>
     <resources>
       <resource>
