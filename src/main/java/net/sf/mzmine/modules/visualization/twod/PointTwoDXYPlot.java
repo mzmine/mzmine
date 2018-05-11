@@ -174,7 +174,7 @@ class PointTwoDXYPlot extends BaseXYPlot {
             //g2.setColor(Color.BLACK);
             Color pointColor = paletteType.getColor(curIntensity);
             g2.setColor(pointColor );
-            Ellipse2D dot = new Ellipse2D.Double(xPlace - 1, yPlace - 1, 2, 2);
+			Ellipse2D dot = new Ellipse2D.Double(xPlace - 2, yPlace - 2, 5, 5);
             g2.fill(dot);
 
             count += 1;

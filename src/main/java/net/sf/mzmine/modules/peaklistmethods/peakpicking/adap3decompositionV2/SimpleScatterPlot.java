@@ -18,17 +18,23 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.Paint;
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.util.List;
 
+import com.google.common.collect.Range;
+import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYDotRenderer;
-import org.jfree.data.xy.DefaultXYZDataset;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYItemRendererState;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  *
@@ -37,62 +43,45 @@ import org.jfree.data.xy.DefaultXYZDataset;
 
 
 public class SimpleScatterPlot extends ChartPanel
-{   
-    private static final int SERIES_ID = 0;
-    
-    private final JFreeChart chart;
+{
     private final XYPlot plot;
-    private final NumberAxis xAxis, yAxis;
-    private final DefaultXYZDataset xyDataset;
+    private final XYSeriesCollection xyDataset;
     
-    public SimpleScatterPlot(String xLabel, String yLabel)
-    {
-        this(new double[0], new double[0], new double[0], xLabel, yLabel);
-    }
-    
-    public SimpleScatterPlot(double[] xValues, double[] yValues, double[] colors,
-            String xLabel, String yLabel)
+    SimpleScatterPlot(String xLabel, String yLabel)
     {
         super(null, true);
         
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         
-        xAxis = new NumberAxis(xLabel);
+        NumberAxis xAxis = new NumberAxis(xLabel);
         xAxis.setAutoRangeIncludesZero(false);
         xAxis.setUpperMargin(0);
         xAxis.setLowerMargin(0);
         
-        yAxis = new NumberAxis(yLabel);
+        NumberAxis yAxis = new NumberAxis(yLabel);
         yAxis.setAutoRangeIncludesZero(false);
         yAxis.setUpperMargin(0);
         yAxis.setLowerMargin(0);
         
-        xyDataset = new DefaultXYZDataset();
-        int length = Math.min(xValues.length, yValues.length);
-        double[][] data = new double[3][length];
-        System.arraycopy(xValues, 0, data[0], 0, length);
-        System.arraycopy(yValues, 0, data[1], 0, length);
-        System.arraycopy(colors, 0, data[2], 0, length);
-        xyDataset.addSeries(SERIES_ID, data);
-        
-        XYDotRenderer renderer = new XYDotRenderer() {
+        xyDataset = new XYSeriesCollection();
+
+        XYItemRenderer renderer = new XYLineAndShapeRenderer(true, false) {
             @Override
-            public Paint getItemPaint(int row, int col) {
-                double c = xyDataset.getZ(row, col).doubleValue();
-                return Color.getHSBColor((float) c, 1.0f, 1.0f);
+            protected void drawPrimaryLine(XYItemRendererState state, Graphics2D g2, XYPlot plot, XYDataset dataset,
+                                           int pass, int series, int item, ValueAxis domainAxis, ValueAxis rangeAxis,
+                                           Rectangle2D dataArea) {
+                if (item % 2 != 0)
+                    super.drawPrimaryLine(state, g2, plot, dataset, pass, series, item, domainAxis, rangeAxis, dataArea);
             }
         };
-        
-        renderer.setDotHeight(3);
-        renderer.setDotWidth(3);
-        
+
         plot = new XYPlot(xyDataset, xAxis, yAxis, renderer);
         plot.setBackgroundPaint(Color.white);
         plot.setDomainGridlinesVisible(true);
         plot.setRangeGridlinesVisible(true);
         
-        chart = new JFreeChart("", 
+        JFreeChart chart = new JFreeChart("",
                 new Font("SansSerif", Font.BOLD, 12),
                 plot, 
                 false);
@@ -100,17 +89,25 @@ public class SimpleScatterPlot extends ChartPanel
         
         super.setChart(chart);
     }
-    
-    public void updateData(double[] xValues, double[] yValues, double[] colors)
+
+    void updateData(List<RetTimeClusterer.Cluster> clusters)
     {
-        xyDataset.removeSeries(SERIES_ID);
-        
-        int length = Math.min(xValues.length, yValues.length);
-        
-        double[][] data = new double[3][length];
-        System.arraycopy(xValues, 0, data[0], 0, length);
-        System.arraycopy(yValues, 0, data[1], 0, length);
-        System.arraycopy(colors, 0, data[2], 0, length);
-        xyDataset.addSeries(SERIES_ID, data);
+        xyDataset.setNotify(false);
+        xyDataset.removeAllSeries();
+
+        int seriesID = 0;
+        for (RetTimeClusterer.Cluster c : clusters) {
+            XYSeries series = new XYSeries(seriesID++, false);
+            for (RetTimeClusterer.Item range : c.ranges) {
+                series.add(range.getInterval().lowerEndpoint().doubleValue(), range.getMZ());
+                series.add(range.getInterval().upperEndpoint().doubleValue(), range.getMZ());
+            }
+            xyDataset.addSeries(series);
+        }
+        xyDataset.setNotify(true);
+    }
+
+    public void setDomain(Range<Double> range) {
+        plot.getDomainAxis().setRange(range.lowerEndpoint(), range.upperEndpoint());
     }
 }

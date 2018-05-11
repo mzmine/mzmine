@@ -222,7 +222,20 @@ public class EICPlot extends ChartPanel
     void updateData(@Nonnull List<BetterPeak> peaks, @Nonnull List<BetterComponent> modelPeaks)
     {
         xyDataset.removeAllSeries();
+        xyDataset.setNotify(false);
         toolTips.clear();
+
+        // Find retention-time range
+        double startRetTime = Double.MAX_VALUE;
+        double endRetTime = -Double.MAX_VALUE;
+        for (BetterPeak peak : modelPeaks) {
+            if (peak.getFirstRetTime() < startRetTime)
+                startRetTime = peak.getFirstRetTime();
+            if (peak.getLastRetTime() > endRetTime)
+                endRetTime = peak.getLastRetTime();
+        }
+
+        if (endRetTime < startRetTime) return;
 
         int seriesID = 0;
         for (BetterPeak peak : peaks)
@@ -230,8 +243,11 @@ public class EICPlot extends ChartPanel
             XYSeries series = new XYSeries(seriesID++);
             series.setDescription(PeakType.SIMPLE.name());
 
-            for (int i = 0; i < peak.chromatogram.length; ++i)
-                series.add(peak.chromatogram.getRetTime(i), peak.chromatogram.getIntensity(i));
+            for (int i = 0; i < peak.chromatogram.length; ++i) {
+                double retTime = peak.chromatogram.getRetTime(i);
+                if (startRetTime <= retTime && retTime <= endRetTime)
+                    series.add(peak.chromatogram.getRetTime(i), peak.chromatogram.getIntensity(i));
+            }
 
             xyDataset.addSeries(series);
             toolTips.add(String.format("M/z: %.2f\nIntensity: %.0f",
@@ -250,6 +266,8 @@ public class EICPlot extends ChartPanel
             toolTips.add(String.format("Model peak\nM/z: %.2f\nIntensity: %.0f",
                     peak.getMZ(), peak.getIntensity()));
         }
+
+        xyDataset.setNotify(true);
     }
 
     void removeData() {

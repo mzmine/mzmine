@@ -90,11 +90,11 @@ public class ParameterSetParameter
     public ParameterSetComponent createEditingComponent() {
         return new ParameterSetComponent(this.value);
     }
-    
+
     @Override
     public void saveValueToXML(Element xmlElement) {
         if (this.value == null) return;
-        
+
         xmlElement.setAttribute("type", this.name);
         Document parent = xmlElement.getOwnerDocument();
         

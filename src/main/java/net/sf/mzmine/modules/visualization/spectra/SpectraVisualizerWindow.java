@@ -295,11 +295,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     }
 
     public void loadSpectrum(IsotopePattern newPattern) {
-        Color newColor;
-        if (newPattern.getStatus() == IsotopePatternStatus.DETECTED)
-            newColor = detectedIsotopesColor;
-        else
-            newColor = predictedIsotopesColor;
+        Color newColor = newPattern.getStatus() == IsotopePatternStatus.DETECTED ?
+                detectedIsotopesColor : predictedIsotopesColor;
         IsotopesDataSet newDataSet = new IsotopesDataSet(newPattern);
         spectrumPlot.addDataSet(newDataSet, newColor, true);
     }

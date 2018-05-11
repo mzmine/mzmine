@@ -18,7 +18,6 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import java.awt.Window;
-
 import java.text.NumberFormat;
 
 import net.sf.mzmine.parameters.Parameter;
@@ -28,6 +27,7 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsSelectionType;
 import net.sf.mzmine.util.ExitCode;
 
 /**
@@ -35,24 +35,26 @@ import net.sf.mzmine.util.ExitCode;
  * @author aleksandrsmirnov
  */
 public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
-    
-    
-    
-    public static final PeakListsParameter PEAK_LISTS = 
-            new PeakListsParameter();
+
+    public static final PeakListsParameter CHROMATOGRAM_LISTS =
+            new PeakListsParameter("Chromatograms", 1, Integer.MAX_VALUE);
+
+    public static final PeakListsParameter PEAK_LISTS =
+            new PeakListsParameter("Peaks", 1, Integer.MAX_VALUE);
     
     // ------------------------------------------------------------------------
     // ----- First-phase parameters -------------------------------------------
     // ------------------------------------------------------------------------
+
+    public static final DoubleParameter PREF_WINDOW_WIDTH =
+            new DoubleParameter("Preferred window width (min)",
+                    "Preferred width of a deconvolution window (in minutes). The algorithm will try to " +
+                            "select windows of the given width, but it may not be able to do so.",
+                    NumberFormat.getNumberInstance(), 0.05);
     
-    public static final DoubleParameter MIN_CLUSTER_DISTANCE =
-            new DoubleParameter("Min distance between analytes (min)",
-                    "Minimum distance between any two analytes",
-                    NumberFormat.getNumberInstance(), 0.01);
-    
-    public static final IntegerParameter MIN_CLUSTER_SIZE =
-            new IntegerParameter("Min cluster size",
-                    "Minimum size of a cluster",
+    public static final IntegerParameter MIN_NUM_PEAK =
+            new IntegerParameter("Min number peaks",
+                    "Minimum number of detected peaks in a window",
                     5);
     
     // ------------------------------------------------------------------------
@@ -63,33 +65,39 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ----- Second-phase parameters ------------------------------------------
     // ------------------------------------------------------------------------
 
-//    public static final DoubleParameter FWHM_TOLERANCE = new DoubleParameter("Full-Width at Half-Max tolerance",
-//            "Model peaks found by the algorithm must have FWHM within certain range estimated from the real peaks plus/minus the specified tolerance",
-//            NumberFormat.getNumberInstance(), 1.0, 0.0, 49.0);
+    public static final DoubleParameter RET_TIME_TOLERANCE = new DoubleParameter("Retention time tolerance (min)",
+            "Retention time tolerance value (between 0 and 1) is used for determine the number of components" +
+                    " in a window. The larger tolerance, the smaller components are determined.",
+            NumberFormat.getNumberInstance(), 0.05, 0.0, Double.MAX_VALUE);
 
-    public static final DoubleParameter PEAK_SIMILARITY = new DoubleParameter("Peak-Similarity tolerance",
-            "Each model peak must have a real peak similar to it with the specified tolerance",
-            NumberFormat.getNumberInstance(), 0.17, 0.0, 1.0);
-    
+    public static final BooleanParameter SMOOTHING = new BooleanParameter("Smoothed elution profiles",
+            "If this option is checked, the elution profiles of components are smoothed", false);
+
+    public static final BooleanParameter UNIMODALITY = new BooleanParameter("Unimodal elution profiles",
+            "If this option is checked, the elution profiles have a single local maximum", false);
+
     // ------------------------------------------------------------------------
     // ----- End of Second-phase parameters -----------------------------------
     // ------------------------------------------------------------------------
     
     public static final StringParameter SUFFIX = new StringParameter("Suffix",
-	    "This string is added to peak list name as suffix", "ADAP-GC Spectral Deconvolution");
+	    "This string is added to peak list name as suffix", "Spectral Deconvolution");
     
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-	    "Remove original peak list",
-	    "If checked, original chromatogram will be removed and only the deconvolved version remains");
+	    "Remove original peak lists",
+	    "If checked, original chromomatogram and peak lists will be removed");
     
     public ADAP3DecompositionV2Parameters() {
-	    super(new Parameter[] {PEAK_LISTS, MIN_CLUSTER_DISTANCE, MIN_CLUSTER_SIZE,
-                PEAK_SIMILARITY, SUFFIX, AUTO_REMOVE});
+	    super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH, MIN_NUM_PEAK,
+                RET_TIME_TOLERANCE, SMOOTHING, UNIMODALITY, SUFFIX, AUTO_REMOVE});
     }
     
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired)
     {
+        CHROMATOGRAM_LISTS.setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS);
+        PEAK_LISTS.setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS);
+
         final ADAP3DecompositionV2SetupDialog dialog =
                 new ADAP3DecompositionV2SetupDialog(
                         parent, valueCheckRequired, this);

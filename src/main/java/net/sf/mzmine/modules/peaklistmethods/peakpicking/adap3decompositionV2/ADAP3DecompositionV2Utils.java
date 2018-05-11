@@ -61,16 +61,6 @@ public class ADAP3DecompositionV2Utils
             }
             Chromatogram chromatogram = new Chromatogram(retTimes, intensities);
 
-//            // Build chromatogram
-//            NavigableMap<Double, Double> chromatogram = new TreeMap<>();
-//            for (int scanNumber : scanNumbers) {
-//                DataPoint dataPoint = peak.getDataPoint(scanNumber);
-//                if (dataPoint != null)
-//                    chromatogram.put(
-//                            getRetTime(dataFile, scanNumber),
-//                            dataPoint.getIntensity());
-//            }
-
             if (chromatogram.length <= 1) continue;
 
             // Fill out PeakInfo
@@ -83,7 +73,11 @@ public class ADAP3DecompositionV2Utils
 
                 double height = -Double.MIN_VALUE;
                 for (int scan : scanNumbers) {
-                    double intensity = peak.getDataPoint(scan).getIntensity();
+                    DataPoint dataPoint = peak.getDataPoint(scan);
+
+                    if (dataPoint == null) continue;
+
+                    double intensity = dataPoint.getIntensity();
 
                     if (intensity > height) {
                         height = intensity;

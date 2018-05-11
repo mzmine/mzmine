@@ -14,37 +14,70 @@
 
 
 
-<h1>Improved Spectral deconvolution</h1>
+<h1>Spectral deconvolution / Blind Source Separation</h1>
 
 <p>
-    This method finds analytes and their fragmentation mass spectra by performing the following steps: by combining
-    peaks with similar retention times into clusters and using a blind source separation method to determine model peaks
-    and construct fragmentation mass spectra.
+    This method performs Spectral Deconvolution of detected peaks. It finds components (compounds, analytes, etc.) and
+    determines their elution profiles and fragmentation mass spectra.
+</p>
+<p>
+    The spectral deconvolution uses both constructed chromatograms and detected peaks. The list of constructed
+    chromatograms is specified by selecting <i>Specific peak lists</i> for parameter <em>Chromatograms</em>, clicking
+    on the ellipsis button, and choosing one or more lists with chromatograms in the popup window. The list of
+    detected peaks is specified by selecting <i>Specific peak lists</i> for parameter <em>Peaks</em>, clicking on the
+    ellipsis button, and choosing one or more lists with detected peaks in the popup window.
 </p>
 
+<p>
+<div align="center">
+    <img src="spectral_deconvolution_window.png" alt="Spectral Deconvolution Window">
+</div>
+</p>
+
+<p>
+    The Spectral Deconvolution consists of two steps:
+</p>
 <ol>
-    <li><p>Similar EIC peaks are combined into clusters. For each EIC peak, we define its <em>retention time</em> as the
-        time corresponding to the peak apex and <em>retention-time range</em> as the interval
-        corresponding to the peak intensity values above 5% of its apex intensity. Then the distance between two EIC
-        peaks is equal to
-        <p><ul type="square">
-            <li> zero if the retention-time range of one EIC peak is a subset of the retention-time range of the other,</li>
-            <li> infinity if the retention-time ranges of the two EIC peaks do not intersect,</li>
-            <li> absolute distance between retention times of the two EIC peaks otherwise.</li>
+    <li>
+        <p>Entire retention time interval is split into deconvolution windows so that<p/>
+        <ul>
+            <li>Peaks produced by the same component or by coeluting components belong to the same deconvolution window,</li>
+            <li>Number of peaks in deconvolution window is significantly smaller than the total number of peaks.</li>
         </ul>
-        <p>The EIC peaks are clustered by DBSCAN clustering algorithms and users need specify
-        <em>minimum distance between clusters</em> and <em>minimum cluster size</em>. If <em>preview</em> is selected,
-        the top right plot displays the result of the clustering with dots corresponding to EIC peaks and colors
-            corresponding to different clusters.
+        <p>
+            The deconvolution windows are displayed in the top plot of the preview, where small dash lines denote peaks
+            in the (retention time, m/z)-plane, and peaks belonging to one deconvolution window have the same color.
+            The vertical sequences of peaks usually mark the presence of one or several compounds, so it is important
+            that those peaks are assigned to the same deconvolution window, i.e. they have the same color on the plot. On
+            the other hand, if deconvolution windows contain too many peaks, it will significantly slow down the spectral
+            deconvolution computations, so the deconvolution windows should be as short (in the retention time domain) as
+            possible.
+        </p>
+        <p>The following two parameters control the deconvolution window selection:</p>
+        <ul>
+            <li><em>Preferred window width (min)</em> - The algorithm will <span style="color: red;">try</span> to
+                produce deconvolution windows so that their width (in retention time domain) does not exceed the value
+                of this parameter. However, the algorithm can fail to produce deconvolution windows of the
+                specified width if there are too many peaks.</li>
+            <li><em>Min number of peaks</em> - Each deconvolution window will contain at least the specified number of
+                peaks.</li>
+        </ul>
     </li>
 
     <li>
-        The number and shape of model peaks are determining by performing the non-negative matrix decomposition with
-        the unimodality constrain. The number of model peaks are determined so that the shape of each model peak would
-        be similar to the shape of at least one EIC peaks. The <em>Peak-Similarity tolerance</em> is used when the
-        similarity is estimated.
+        <p>The algorithm infers the number of components in each deconvolution window and construct their
+        elution profiles and fragmentation spectra. The inferred number of components is controlled by parameter
+        <em>Retention time tolerance (min)</em>, which is the smallest time-gap between any two components. The shape
+        of constructed elution profiles is constrained by the following two parameters:</p>
+        <ul>
+            <li><em>Smoothed elution profiles</em> - If checked, elution profiles of components are smoothed using
+                the moving average algorithm,</li>
+            <li><em>Unimodal elution profiles</em> - If checked, each elution profile has only one local maximum.</li>
+        </ul>
     </li>
 </ol>
+
+
 
 </body>
 </html>
