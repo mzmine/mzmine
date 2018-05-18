@@ -63,6 +63,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.peaklistmethods.mymodule.MyModuleModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizerModule;
@@ -175,6 +176,9 @@ public class MZmineModulesList {
       GPLipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
       FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
 
+      //MYMODULE
+      MyModuleModule.class,
+      
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
       ThreeDVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,

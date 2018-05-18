@@ -41,7 +41,7 @@ public class MyModuleParameters extends SimpleParameterSet{
 	    "Restrict formulas by heuristic restrictions of elemental counts and ratios",
 	    new ElementalHeuristicParameters());*/
 
-    public static final StringParameter element = new StringParameter("Element", "Element whose isotope pattern to be searched for.");
+    public static final StringParameter element = new StringParameter("Element", "Element whose isotope pattern to be searched for. Please enter the two letter Symbol. (e.g. \"Gd\"");
     
     public static final PercentParameter minAbundance = new PercentParameter("Minimum abundance", "The minimum abundance (%) of Isotopes. Small values "
     		+ "might increase accuracy but will decrease sensitivity.");
@@ -51,8 +51,11 @@ public class MyModuleParameters extends SimpleParameterSet{
     
     public static final DoubleParameter minRating = new DoubleParameter("Minimun rating", "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.95, 0.0, 1.0);
     
+    public static final StringParameter suffix =
+    	      new StringParameter("Name suffix", "Suffix to be added to peak list name", "_mymodule_results");
+    
     public MyModuleParameters()
     {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, rtTolerance, element, minAbundance, checkIntensity, minRating, intensityDeviation});
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, rtTolerance, element, minAbundance, checkIntensity, minRating, intensityDeviation, suffix});
     }
 }

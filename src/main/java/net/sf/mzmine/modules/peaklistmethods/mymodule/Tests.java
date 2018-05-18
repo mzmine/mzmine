@@ -1,6 +1,7 @@
 package net.sf.mzmine.modules.peaklistmethods.mymodule;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.openscience.cdk.config.Isotopes;
@@ -36,19 +37,10 @@ public class Tests {
 
 	private static void test()
 	{
-		outer: for(int i = 0; i <= 5; i++)
-		{
-			if(i >= 2 && i <= 4)
-			{
-				for(int j = 0; j < 10; j++)
-				{
-					if(i==3)
-					{
-						continue outer;
-					}
-				}
-			}
-			System.out.println(i);
-		}
+		ArrayList<Integer> list = new ArrayList<Integer>(3);
+		
+		for(int i = 0; i < 50; i++)
+			list.add(i);
+		System.out.println(list.size() + " last entry: " + list.get(list.size()-1));
 	}
 }

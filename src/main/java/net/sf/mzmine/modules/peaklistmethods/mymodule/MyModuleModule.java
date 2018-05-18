@@ -30,7 +30,7 @@ public class MyModuleModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return FormulaPredictionPeakListParameters.class;
+        return MyModuleParameters.class;
     }
 
     public @Nonnull String getDescription() {
@@ -41,7 +41,7 @@ public class MyModuleModule implements MZmineProcessingModule {
     public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
         PeakList peakLists[] = parameters
-                .getParameter(FormulaPredictionPeakListParameters.PEAK_LISTS)
+                .getParameter(MyModuleParameters.PEAK_LISTS)
                 .getValue().getMatchingPeakLists();
 
         for (PeakList peakList : peakLists) {

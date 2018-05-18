@@ -11,7 +11,7 @@ public class ResultBuffer {
 		return found;
 	}
 	public void addFound() {
-		this.found += 1;
+		this.found++;
 	}
 	public int getSize()
 	{
@@ -21,12 +21,12 @@ public class ResultBuffer {
 		return row.get(i).intValue();
 	}
 	public void addRow(int r) {
-		row.add(new Integer(r));
+		row.add((Integer) r);
 	}
 	
 	ResultBuffer()
 	{
 		found = 0;
-		row = new ArrayList<Integer>(1);
+		row = new ArrayList<Integer>();
 	}
 }

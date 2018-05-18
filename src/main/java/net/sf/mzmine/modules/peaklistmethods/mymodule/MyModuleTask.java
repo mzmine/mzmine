@@ -38,7 +38,7 @@ public class MyModuleTask extends AbstractTask {
     private double intensityDeviation;
     private double minAbundance;
     private double minRating;
-    private String element;
+    private String element, suffix;
     private MZTolerance mzTolerance;
     private RTTolerance rtTolerance;
     private String message;
@@ -79,8 +79,9 @@ public class MyModuleTask extends AbstractTask {
         intensityDeviation = parameters.getParameter(MyModuleParameters.intensityDeviation).getValue() / 100;
         element = parameters.getParameter(MyModuleParameters.element).getValue();
         minRating = parameters.getParameter(MyModuleParameters.minRating).getValue();
+        suffix = parameters.getParameter(MyModuleParameters.suffix).getValue();
         
-        message = "Hi :-)"; //TODO
+        message = "Got paramenters..."; //TODO
 
         /*charge = parameters
         	.getParameter(MyModuleParameters.charge)
@@ -146,13 +147,14 @@ public class MyModuleTask extends AbstractTask {
 		
 		totalRows = peakList.getNumberOfRows();
 		
-		//get isotope information, idk if it works		
+		//get isotope information, idk if it works
+		message = "Getting isotope information for element " + element;
 		Isotopes ifac;// = Isotopes.getInstance();
 		
 		IIsotope[] el;
 		try {
 			ifac = Isotopes.getInstance();
-			el = ifac.getIsotopes("Gd");
+			el = ifac.getIsotopes(element);
 			el = (IIsotope[]) Arrays.stream(el).filter(i -> i.getNaturalAbundance()>minAbundance).toArray(IIsotope[]::new);
 			int size = el.length;
 			System.out.println(size);
@@ -179,33 +181,38 @@ public class MyModuleTask extends AbstractTask {
 	    PeakListRow[] rows = peakList.getRows();
 	    
 	    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
-
 	    totalRows = rows.length;
 	    
-	    resultPeakList = new SimplePeakList(peakList + " results" , peakList.getRawDataFiles());
+	    resultPeakList = new SimplePeakList(peakList.getName() + suffix, peakList.getRawDataFiles());
 	    
-	    for (int i = 0; i < totalRows; i++) 
+	    for(int i = 0; i < totalRows; i++) 
 	    {
 	    // i will represent the index of the row in peakList
 			if(peakList.getRow(i).getPeakIdentities().length > 0)
 				continue;
 			
+			message = "Row " + i + "/" + totalRows;
 			massRange = mzTolerance.getToleranceRange(peakList.getRow(i).getAverageMZ());
 			rtRange = rtTolerance.getToleranceRange(peakList.getRow(i).getAverageRT());
 			
 			//now get all peaks that lie within RT and maxIsotopeMassRange: pL[index].mz -> pL[index].mz+maxMass
-			ArrayList<PeakListRow> groupedPeaks = groupPeaks(rows, i, diff.get(diff.size()).doubleValue());
+			ArrayList<PeakListRow> groupedPeaks = groupPeaks(rows, i, diff.get(diff.size()-1).doubleValue());
 			
-			logger.info("Row: " + i + "\tsgroupedPeaks.size(): " + groupedPeaks.size());
+			logger.info("Row: " + i + "\tgroupedPeaks.size(): " + groupedPeaks.size());
+			if(groupedPeaks.size() < 2)
+				continue;
+			else
+				logger.info("groupedPeaks.size > 2 in row: " + i + " size: " + groupedPeaks.size());
 
 			ResultBuffer[] resultBuffer = new ResultBuffer[el.length]; 	//this will store row indexes of all features with fitting rt and mz		
-																		//resultBuffer[i] index will represent Isotope[i]
-																		//[0] will be the isotope with lowest mass
+			for(int a = 0; a < el.length; a++)							//resultBuffer[i] index will represent Isotope[i]
+				resultBuffer[a] = new ResultBuffer();					//[0] will be the isotope with lowest mass#
+			
 			int resultCounter = 0; 	// not sure if we need this yet
 
 			for(int j = 0; j < groupedPeaks.size(); j++)	// go through all possible peaks
 			{
-				for(int k = 0; k < diff.size(); k ++)		// check for each peak if it is a possible feature for every diff[](isotope)
+				for(int k = 0; k < el.length; k ++)		// check for each peak if it is a possible feature for every diff[](isotope)
 				{											// this is necessary bc there might be more than one possible feature
 			// j represents the row index in groupedPeaks
 			// k represents the isotope number the peak will be a candidate for
@@ -213,7 +220,7 @@ public class MyModuleTask extends AbstractTask {
 					{
 					// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
 						logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
-						logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k 		+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
+						logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k  +"\t\t"+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
 
 						resultBuffer[k].addFound(); //+1 result for isotope k
 						resultBuffer[k].addRow(j);  //row in groupedPeaks[]
@@ -231,6 +238,8 @@ public class MyModuleTask extends AbstractTask {
 			
 			message = "Found enough possible features.";
 			Candidate[] candidates = new Candidate[el.length];
+			for(int a = 0; a < el.length; a++)							//resultBuffer[i] index will represent Isotope[i]
+				candidates[a] = new Candidate();
 			
 			for(int k = 0; k < resultBuffer.length; k++) // reminder: resultBuffer.length = el.length
 			{
@@ -257,13 +266,17 @@ public class MyModuleTask extends AbstractTask {
 
 			
 			resultPeakList.addRow(groupedPeaks.get(0));		//add results to resultPeakList
-			int parentIndex = resultPeakList.getNumberOfRows()/* - 1*/; //TODO -1 or not -1? is it handled like an array? pL[n] will go from pL[0] to pL[n-1];
-			
+			int parentIndex = resultPeakList.getNumberOfRows() - 1;
+			resultPeakList.getRow(parentIndex).setComment("-Parent- ID: " + resultPeakList.getRow(parentIndex).getID());
+			int parentID = peakList.getRow(i).getID();
 			for(int k = 0; k < candidates.length; k++)
 			{
 				resultPeakList.addRow(groupedPeaks.get(candidates[k].getRow()));
-				resultPeakList.getRow(k).setComment("Parentmz: " + resultPeakList.getRow(parentIndex).getAverageMZ()
+				/*resultPeakList.getRow(k).setComment("Parentmz: " + resultPeakList.getRow(parentIndex).getAverageMZ()
 						+ "\nAbbrv. (m/z): " + (resultPeakList.getRow(parentIndex + k).getAverageMZ()-resultPeakList.getRow(parentIndex).getAverageMZ())
+						+ "\nIsotope num.: " + k + "\nIsotope mass: " + el[k].getExactMass() + "\nRating: " + candidates[k].getRating());*/
+				resultPeakList.getRow(k).setComment("ParentID:" + parentID + "Parentmz: " + peakList.getRow(i).getAverageMZ()
+						+ "\nAbbrv. (m/z): " + (resultPeakList.getRow(parentIndex + k).getAverageMZ()-peakList.getRow(i).getAverageMZ())
 						+ "\nIsotope num.: " + k + "\nIsotope mass: " + el[k].getExactMass() + "\nRating: " + candidates[k].getRating());
 			}
 			
@@ -271,9 +284,11 @@ public class MyModuleTask extends AbstractTask {
 				return;			
 			
 			finishedRows++;
-			
 		}
-	    project.addPeakList(resultPeakList);
+	    if(resultPeakList.getNumberOfRows() > 1)
+	    	project.addPeakList(resultPeakList);
+	    else
+	    	message = "Element not found.";
 	}
 	
 	private boolean checkIfAllTrue(ResultBuffer[] b)
@@ -291,77 +306,44 @@ public class MyModuleTask extends AbstractTask {
 				return false;
 		return true;
 	}
-	/**
-	 * 
-	 * @param pL PeakList to be searched, must be sorted by ascending mz
-	 * @param index index of feature to be compared with
-	 * @param maxMass maximum mass added by isotope abundance
-	 * @return will return an ArrayList of PeakListRow whose mass is bigger or equal to mass in row index
-	 * and smaller than mass of index + maxMass
-	 * result will contain row(index)
-	 */
-	private ArrayList<PeakListRow> groupPeaks(PeakList pL, int index, double maxMass)
-	{
-		//TODO: creating a new PeakList would be more elegant, but how do you create an empty one?
-		ArrayList<PeakListRow> buf = new ArrayList<PeakListRow>();
-		
-		buf.add(pL.getRow(index)); //buf.get(0) will be the current row
 
-		double mz = pL.getRow(index).getAverageMZ();
-		double rt = pL.getRow(index).getAverageRT();
-		
-		for(int i = index + 1; i < pL.getNumberOfRows(); i++)
-		{
-			PeakListRow r = pL.getRow(i);
-			// check for rt
-			if(rtTolerance.checkWithinTolerance(rt, r.getAverageRT()))
-			{
-				if(mz >= (pL.getRow(i).getAverageMZ()) //this means the result will contain row(index) itself
-						&& mz <= (pL.getRow(i).getAverageMZ() + maxMass))
-				{
-					buf.add(pL.getRow(i));
-				}
-			}
-		}
-		
-		return buf;
-	}
 	/**
 	 * 
 	 * @param pL
-	 * @param index index of possible parent peak
+	 * @param parentIndex index of possible parent peak
 	 * @param maxMass
-	 * @return will return ArrayList<PeakListRow> of all peaks within the range of pL[index].mz -> pL[index].mz+maxMass 
+	 * @return will return ArrayList<PeakListRow> of all peaks within the range of pL[parentIndex].mz -> pL[parentIndex].mz+maxMass 
 	 */
-	private ArrayList<PeakListRow> groupPeaks(PeakListRow[] pL, int index, double maxDiff)
+	private ArrayList<PeakListRow> groupPeaks(PeakListRow[] pL, int parentIndex, double maxDiff)
 	{
 		//TODO: creating a new PeakList would be more elegant, but how do you create an empty one?
 		ArrayList<PeakListRow> buf = new ArrayList<PeakListRow>();
 		
-		buf.add(pL[index]); //this means the result will contain row(index) itself
+		buf.add(pL[parentIndex]); //this means the result will contain row(parentIndex) itself
 
-		//double mz = pL.getRow(index).getAverageMZ();
-		//double rt = pL.getRow(index).getAverageRT();
-		double mz = pL[index].getAverageMZ();
-		double rt = pL[index].getAverageRT();
+		//double mz = pL.getRow(parentIndex).getAverageMZ();
+		//double rt = pL.getRow(parentIndex).getAverageRT();
+		double mz = pL[parentIndex].getAverageMZ();
+		double rt = pL[parentIndex].getAverageRT();
 		
-		for(int i = index + 1; i < pL.length; i++) // will not add the parent peak itself
+		for(int i = parentIndex + 1; i < pL.length; i++) // will not add the parent peak itself
 		{
 			PeakListRow r = pL[i];
 			// check for rt
 			if(rtTolerance.checkWithinTolerance(rt, r.getAverageRT()))
 			{
-				if(mz >= (pL[i].getAverageMZ()) 
-						&& mz <= (pL[i].getAverageMZ() + maxDiff + mzTolerance.getMzTolerance()))
+				logger.info("within RT tolerance: parentRow: " + parentIndex + " row: " + i);
+				//if(mzTolerance.checkWithinTolerance(mz + maxDiff, pL[i].getAverageMZ()))
+				if(pL[i].getAverageMZ() > mz && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance()))
 				{
-					buf.add(pL[i]);
+					logger.info("within MZ tolerance - parentRow: " + parentIndex + " row: " + i);
+						buf.add(pL[i]);
 				}
 			}
 			
 			if(pL[i].getAverageMZ() > (mz + maxDiff))	// since pL is sorted by ascending mass, we can stop now
 				return buf;
 		}
-		
 		return buf;
 	}
 }
