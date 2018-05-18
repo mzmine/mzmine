@@ -45,7 +45,7 @@ public class MyModuleModule implements MZmineProcessingModule {
                 .getValue().getMatchingPeakLists();
 
         for (PeakList peakList : peakLists) {
-            Task newTask = new MyModuleTask(peakList,
+            Task newTask = new MyModuleTask(project, peakList,
                     parameters);
             tasks.add(newTask);
         }
