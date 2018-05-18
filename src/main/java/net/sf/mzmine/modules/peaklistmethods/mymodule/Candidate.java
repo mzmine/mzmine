@@ -39,8 +39,11 @@ public class Candidate {
 	 * @param mzDiff Difference added by isotope mass
 	 * @return true if candMZ is a better fit
 	 */
-	public boolean checkForBetterRating(double parentMZ, double candMZ, double mzDiff)
+	
+	/*public boolean checkForBetterRating(double parentMZ, double candMZ, double mzDiff, double minRating)
 	{
+		candMZ = pL.get(candindex).getAverageMZ();
+		parentMZ = pL.get(parentindex).getAverageMZ();
 		double tempRating = candMZ / (parentMZ + mzDiff);
 		
 		if(tempRating > 1.0) // 0.99 and 1.01 should be comparable
@@ -53,38 +56,32 @@ public class Candidate {
 			Logger.info("ERROR: tempRating > 1 or < 0.\ttempRating: " + tempRating); // TODO: can you do this without creating a new logger?
 			return false;
 		}		
-		if(tempRating > rating)
+		if(tempRating > rating && tempRating >= minRating)
 		{
 			rating = tempRating;
 			return true;
 		}
 		return false;
-	}
+	}*/
 	
-	public double calcIntensityDeviation(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum, double maxDeviation)
+	public double calcIntensityAccuracy(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum)
 	{
 		PeakListRow parent = pL.get(parentindex);
 		PeakListRow cand = pL.get(candindex);
 		
-		double x = isotopes[isotopenum].getNaturalAbundance() / isotopes[0].getNaturalAbundance();
+		double idealIntensity = isotopes[isotopenum].getNaturalAbundance() / isotopes[0].getNaturalAbundance();
 		
-		return ( (x * parent.getAverageArea()) / cand.getAverageArea() );
+		return ( (idealIntensity * parent.getAverageArea()) / cand.getAverageArea() );
 	}
 	
-	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum, double maxDeviation)
+	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum, double maxDeviation, double minRating, boolean checkIntensity)
 	{
 		double parentMZ = pL.get(parentindex).getAverageMZ();
 		double candMZ = pL.get(candindex).getAverageMZ();
 		double mzDiff = isotopes[isotopenum].getExactMass() - isotopes[0].getExactMass();
 		
 		double tempRating = candMZ / (parentMZ + mzDiff);
-		double deviation = calcIntensityDeviation(pL, parentindex, candindex, isotopes, isotopenum, maxDeviation);
-		
-		if(deviation > 1.0)
-		{
-			deviation -= 1.0;
-			deviation = 1 - deviation;
-		}
+		double intensAcc = 0;
 		
 		if(tempRating > 1.0) // 0.99 and 1.01 should be comparable
 		{
@@ -92,15 +89,30 @@ public class Candidate {
 			tempRating = 1 - tempRating;
 		}
 		
-		if(deviation > 1.0 || deviation <= 0.0 || tempRating > 1.0 || tempRating < 0.0)
+		if(checkIntensity)
 		{
-			Logger.debug("ERROR: tempRating or deviation > 1 or < 0.\ttempRating: " + tempRating + "\tdeviation: " + deviation);  // TODO: can you do this without creating a new logger?
+			intensAcc = calcIntensityAccuracy(pL, parentindex, candindex, isotopes, isotopenum);
+					
+			if(intensAcc > 1.0) // 0.99 and 1.01 should be comparable
+			{
+				intensAcc -= 1.0;
+				intensAcc = 1 - intensAcc;
+			}
+			
+			if(intensAcc < (1 - maxDeviation))
+				return false;
+		}
+		
+		if(intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0)
+		{
+			Logger.debug("ERROR: tempRating or deviation > 1 or < 0.\ttempRating: " + tempRating + "\tintensAcc: " + intensAcc);  // TODO: can you do this without creating a new logger?
 			return false;
 		}
 		
-		tempRating *= deviation;
+		if(checkIntensity)
+			tempRating *= intensAcc;
 		
-		if(tempRating > rating)
+		if(tempRating > rating && tempRating >= minRating)
 		{
 			rating = tempRating;
 			

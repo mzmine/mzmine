@@ -31,30 +31,31 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class MyModuleTask extends AbstractTask {
 
-    private List<ResultFormula> ResultingFormulas;
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private Range<Double> massRange;
     private Range<Double> rtRange;
-    private MolecularFormulaRange elementCounts;
-    private MolecularFormulaGenerator generator;
-    private IonizationType ionType;
-    private double searchedMass;
-    private int charge;
-    private PeakList peakList;
-    private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
-    private ParameterSet isotopeParameters, msmsParameters, ratiosParameters,
-            rdbeParameters;
+    private boolean checkIntensity;
+    private double intensityDeviation;
+    private double minAbundance;
+    private double minRating;
+    private String element;
     private MZTolerance mzTolerance;
     private RTTolerance rtTolerance;
     private String message;
     private int totalRows, finishedRows;
     private PeakList resultPeakList;
     private MZmineProject project;
+    private PeakList peakList;
     
-    private boolean checkIntensity;
-    private double intensityDeviation;
+    //private MolecularFormulaRange elementCounts;
+    //private MolecularFormulaGenerator generator;
+    //private IonizationType ionType;
+    //private double searchedMass;
+    //private int charge;
+    //private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
+    //private ParameterSet isotopeParameters, msmsParameters, ratiosParameters,
+    //        rdbeParameters;
     
-    private String element;
 
     /**
      *
@@ -66,22 +67,30 @@ public class MyModuleTask extends AbstractTask {
     MyModuleTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
     	this.project = project;
         this.peakList = peakList;
-        charge = parameters
-                .getParameter(MyModuleParameters.charge)
-                .getValue();
-        ionType = (IonizationType) parameters
-                .getParameter(MyModuleParameters.ionization)
-                .getValue();
+        
         mzTolerance = parameters
                 .getParameter(MyModuleParameters.mzTolerance)
                 .getValue();
         rtTolerance = parameters
                 .getParameter(MyModuleParameters.rtTolerance)
                 .getValue();
+        checkIntensity = parameters.getParameter(MyModuleParameters.checkIntensity).getValue();
+        minAbundance = parameters.getParameter(MyModuleParameters.minAbundance).getValue();
+        intensityDeviation = parameters.getParameter(MyModuleParameters.intensityDeviation).getValue() / 100;
+        element = parameters.getParameter(MyModuleParameters.element).getValue();
+        minRating = parameters.getParameter(MyModuleParameters.minRating).getValue();
+        
+        message = "Hi :-)"; //TODO
+
+        /*charge = parameters
+        	.getParameter(MyModuleParameters.charge)
+        	.getValue();
+		ionType = (IonizationType) parameters
+        	.getParameter(MyModuleParameters.ionization)
+        	.getValue();
         elementCounts = parameters
                 .getParameter(MyModuleParameters.elements)
-                .getValue();
-
+                .getValue(); 
         checkIsotopes = parameters
                 .getParameter(MyModuleParameters.isotopeFilter)
                 .getValue();
@@ -112,12 +121,7 @@ public class MyModuleTask extends AbstractTask {
         ratiosParameters = parameters
                 .getParameter(
                         MyModuleParameters.elementalRatios)
-                .getEmbeddedParameters();
-
-        message = "TODO"; //TODO
-        
-        checkIntensity = true;
-        intensityDeviation = 0.05;
+                .getEmbeddedParameters();*/
     }
 
     /**
@@ -142,15 +146,14 @@ public class MyModuleTask extends AbstractTask {
 		
 		totalRows = peakList.getNumberOfRows();
 		
-		//get isotope information, idk if it works
-		element = "Gd";
+		//get isotope information, idk if it works		
 		Isotopes ifac;// = Isotopes.getInstance();
 		
 		IIsotope[] el;
 		try {
 			ifac = Isotopes.getInstance();
 			el = ifac.getIsotopes("Gd");
-			el = (IIsotope[]) Arrays.stream(el).filter(i -> i.getNaturalAbundance()>0.1).toArray(IIsotope[]::new);
+			el = (IIsotope[]) Arrays.stream(el).filter(i -> i.getNaturalAbundance()>minAbundance).toArray(IIsotope[]::new);
 			int size = el.length;
 			System.out.println(size);
 			for(IIsotope i : el)
@@ -164,7 +167,7 @@ public class MyModuleTask extends AbstractTask {
 		
 		logger.info(size + " isotopes for " + element);
 		for(IIsotope i : el)
-			logger.info("mass "+ i.getExactMass() + "   abundance "+i.getNaturalAbundance());
+			logger.info("mass: "+ i.getExactMass() + "\tabundance: "+i.getNaturalAbundance());
 		
 		ArrayList<Double> diff = new ArrayList<Double>(size);
 		
@@ -196,6 +199,7 @@ public class MyModuleTask extends AbstractTask {
 			logger.info("Row: " + i + "\tsgroupedPeaks.size(): " + groupedPeaks.size());
 
 			ResultBuffer[] resultBuffer = new ResultBuffer[el.length]; 	//this will store row indexes of all features with fitting rt and mz		
+																		//resultBuffer[i] index will represent Isotope[i]
 																		//[0] will be the isotope with lowest mass
 			int resultCounter = 0; 	// not sure if we need this yet
 
@@ -206,73 +210,68 @@ public class MyModuleTask extends AbstractTask {
 			// j represents the row index in groupedPeaks
 			// k represents the isotope number the peak will be a candidate for
 					if(mzTolerance.checkWithinTolerance(groupedPeaks.get(0).getAverageMZ() + diff.get(k), groupedPeaks.get(j).getAverageMZ()))
-					{	
+					{
 					// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
 						logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
 						logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k 		+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
-						
+
 						resultBuffer[k].addFound(); //+1 result for isotope k
 						resultBuffer[k].addRow(j);  //row in groupedPeaks[]
-						
+
 						resultCounter++;
 					}
 				}
 			}
 			
-			if(checkIfAllTrue(resultBuffer)) // this means that for every isotope we expected to find, we found one or more possible features
+			if(!checkIfAllTrue(resultBuffer))	// this means that for every isotope we expected to find, we found one or more possible features
 			{
-				message = "Found enough possible features.";
-				Candidate[] candidates = new Candidate[el.length];
-				for(int k = 0; k < resultBuffer.length; k++) // reminder: resultBuffer.length = el.length
+				logger.info("Not enough possible features were added to resultBUffer.");
+				continue;
+			}
+			
+			message = "Found enough possible features.";
+			Candidate[] candidates = new Candidate[el.length];
+			
+			for(int k = 0; k < resultBuffer.length; k++) // reminder: resultBuffer.length = el.length
+			{
+				for(int l = 0; l < resultBuffer[k].getFoundCount(); l++)
 				{
-					for(int l = 0; l < resultBuffer[k].getFoundCount(); l++)
+		// k represents index resultBuffer[k] and thereby the isotope number
+		// l represents the number of results in resultBuffer[k]
+
+					if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), el, k, intensityDeviation, minRating, checkIntensity))
 					{
-			// k represents index resultBuffer[k] and thereby the isotope number
-			// l represents the number of results in resultBuffer[k]
-						if(checkIntensity)	// shall we check if peak intensity matches the natural abundance?
-						{
-							if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), el, k, intensityDeviation))
-							{
-								logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
-										groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating());
-								
-								/*candidates[k].setParentRow(0);						// store result properties
-								candidates[k].setRow(resultBuffer[k].getRow(l));
-								candidates[k].setIsotope(el[k]);*/
-							}
-						}
-						else
-						{
-							if(candidates[k].checkForBetterRating(groupedPeaks.get(0).getAverageMZ(), 
-									groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ(), diff.get(k)))
-							{
-								logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
-										groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating());
-								
-								candidates[k].setParentRow(0);						// store result properties
-								candidates[k].setRow(resultBuffer[k].getRow(l));
-								candidates[k].setIsotope(el[k]);
-							}
-						}
+						logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
+								groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
+								"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
+						
 					}
 				}
-				
-				resultPeakList.addRow(groupedPeaks.get(0));		//add results to resultPeakList
-				int parentIndex = resultPeakList.getNumberOfRows() - 1; //TODO -1 or not -1? is it handled like an array? pL[n] will go from pL[0] to pL[n-1];
-				
-				for(int k = 0; k < candidates.length; k++)
-				{
-					resultPeakList.addRow(groupedPeaks.get(candidates[k].getRow()));
-					resultPeakList.getRow(k).setComment("Parentmz: " + resultPeakList.getRow(parentIndex).getAverageMZ()
-							+ "\nAbbrv. (m/z): " + (resultPeakList.getRow(parentIndex + k + 1).getAverageMZ()-resultPeakList.getRow(parentIndex).getAverageMZ())
-							+ "\nIsotope num.: " + k + "\nIsotope mass: " + el[k].getExactMass() + "\nRating: " + candidates[k].getRating());
-				}
+			}
+			
+			if(!checkIfAllTrue(candidates))
+			{
+				logger.info("Not enough valid candidates for parent feature " + groupedPeaks.get(0).getAverageMZ() + "\talthough enough peaks were found.") ;
+				continue;	// jump to next i
+			}
+
+			
+			resultPeakList.addRow(groupedPeaks.get(0));		//add results to resultPeakList
+			int parentIndex = resultPeakList.getNumberOfRows()/* - 1*/; //TODO -1 or not -1? is it handled like an array? pL[n] will go from pL[0] to pL[n-1];
+			
+			for(int k = 0; k < candidates.length; k++)
+			{
+				resultPeakList.addRow(groupedPeaks.get(candidates[k].getRow()));
+				resultPeakList.getRow(k).setComment("Parentmz: " + resultPeakList.getRow(parentIndex).getAverageMZ()
+						+ "\nAbbrv. (m/z): " + (resultPeakList.getRow(parentIndex + k).getAverageMZ()-resultPeakList.getRow(parentIndex).getAverageMZ())
+						+ "\nIsotope num.: " + k + "\nIsotope mass: " + el[k].getExactMass() + "\nRating: " + candidates[k].getRating());
 			}
 			
 			if(isCanceled())
 				return;			
 			
 			finishedRows++;
+			
 		}
 	    project.addPeakList(resultPeakList);
 	}
@@ -281,6 +280,14 @@ public class MyModuleTask extends AbstractTask {
 	{
 		for(int i = 0; i < b.length; i++)
 			if(b[i].getFoundCount() == 0)
+				return false;
+		return true;
+	}
+	
+	private boolean checkIfAllTrue (Candidate[] cs)
+	{
+		for(Candidate c : cs)
+			if(c.getRating() == 0)
 				return false;
 		return true;
 	}
@@ -345,7 +352,7 @@ public class MyModuleTask extends AbstractTask {
 			if(rtTolerance.checkWithinTolerance(rt, r.getAverageRT()))
 			{
 				if(mz >= (pL[i].getAverageMZ()) 
-						&& mz <= (pL[i].getAverageMZ() + maxDiff))
+						&& mz <= (pL[i].getAverageMZ() + maxDiff + mzTolerance.getMzTolerance()))
 				{
 					buf.add(pL[i]);
 				}

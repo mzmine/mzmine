@@ -14,7 +14,8 @@ public class Tests {
 
 	public static void main(String[] args) {
 		System.out.println("Tests");
-		testIsotope();
+		//testIsotope();
+		test();
 	}
 	
 	private static void testIsotope() {
@@ -33,4 +34,21 @@ public class Tests {
 		}
 	}
 
+	private static void test()
+	{
+		outer: for(int i = 0; i <= 5; i++)
+		{
+			if(i >= 2 && i <= 4)
+			{
+				for(int j = 0; j < 10; j++)
+				{
+					if(i==3)
+					{
+						continue outer;
+					}
+				}
+			}
+			System.out.println(i);
+		}
+	}
 }
