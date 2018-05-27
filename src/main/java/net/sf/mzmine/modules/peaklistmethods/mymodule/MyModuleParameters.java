@@ -12,6 +12,7 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
@@ -30,6 +31,8 @@ public class MyModuleParameters extends SimpleParameterSet{
 	    "Ionization type", "Ionization type", IonizationType.values());*/
 
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    
+    public static final BooleanParameter checkRT = new BooleanParameter("Check rt", "Compare rt of peaks to parent.");
     
     public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
@@ -54,8 +57,13 @@ public class MyModuleParameters extends SimpleParameterSet{
     public static final StringParameter suffix =
     	      new StringParameter("Name suffix", "Suffix to be added to peak list name", "_mymodule_results");
     
+    public static final DoubleParameter neutralLoss = new DoubleParameter("Neutral loss ?(Y/N)", "Enter exact mass if yes else leave 0.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
+    
+    public static final IntegerParameter numAtoms = new IntegerParameter("Number of atoms", "Number of atoms of the specific element.", 1);
+    
+    
     public MyModuleParameters()
     {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, rtTolerance, element, minAbundance, checkIntensity, minRating, intensityDeviation, suffix});
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, numAtoms, minAbundance, checkIntensity, minRating, intensityDeviation, suffix, neutralLoss});
     }
 }

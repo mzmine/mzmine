@@ -9,8 +9,8 @@ import net.sf.mzmine.datamodel.PeakListRow;
 
 public class Candidate {
 	private IIsotope isotope;
-	private int row;
-	private int parentRow;
+	private int row, candID; //row represents index in groupedPeaks list, candID is ID in original PeakList
+	private int parentID;
 	private double rating;
 	
 	public IIsotope getIsotope() {
@@ -25,11 +25,17 @@ public class Candidate {
 	public void setRow(int row) {
 		this.row = row;
 	}
-	public int getParentRow() {
-		return parentRow;
+	public int getParentID() {
+		return parentID;
 	}
-	public void setParentRow(int parentRow) {
-		this.parentRow = parentRow;
+	public void setParentID(int parentID) {
+		this.parentID = parentID;
+	}
+	public int getCandID() {
+		return candID;
+	}
+	public void setCandID(int candID) {
+		this.candID = candID;
 	}
 	
 	/**
@@ -39,7 +45,6 @@ public class Candidate {
 	 * @param mzDiff Difference added by isotope mass
 	 * @return true if candMZ is a better fit
 	 */
-	
 	/*public boolean checkForBetterRating(double parentMZ, double candMZ, double mzDiff, double minRating)
 	{
 		candMZ = pL.get(candindex).getAverageMZ();
@@ -70,7 +75,7 @@ public class Candidate {
 		PeakListRow cand = pL.get(candindex);
 		
 		double idealIntensity = isotopes[isotopenum].getNaturalAbundance() / isotopes[0].getNaturalAbundance();
-		
+		//TODO sth seems to be wrong here
 		return ( (idealIntensity * parent.getAverageArea()) / cand.getAverageArea() );
 	}
 	
@@ -110,14 +115,15 @@ public class Candidate {
 		}
 		
 		if(checkIntensity)
-			tempRating *= intensAcc;
+			tempRating = intensAcc * tempRating;
 		
 		if(tempRating > rating && tempRating >= minRating)
 		{
 			rating = tempRating;
 			
-			this.setParentRow(parentindex);
+			this.setParentID(parentindex);
 			this.setRow(candindex);
+			this.setCandID(pL.get(candindex).getID());
 			this.setIsotope(isotopes[isotopenum]);
 			return true;
 		}
@@ -132,7 +138,7 @@ public class Candidate {
 	Candidate()
 	{
 		row = 0;
-		parentRow = 0;
+		parentID = 0;
 		rating = 0.0;
 		//isotope = 0;
 	}
