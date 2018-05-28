@@ -268,17 +268,24 @@ public class MyModuleTask extends AbstractTask {
 			resultPeakList.getRow(parentIndex).setComment("-Parent- ID: " + resultPeakList.getRow(parentIndex).getID());
 			int parentID = peakList.getRow(i).getID(); // = groupedPeaks.get(0).getID();
 			
+
+			
 			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{//TODO
-				if(candidates[k].getCandID() >= totalRows) //TODO why do i have to do this?
-					continue;
+				//if(candidates[k].getCandID() >= totalRows) //TODO why do i have to do this?
+					//continue;
 				
-				resultPeakList.addRow(peakList.getRow(candidates[k].getCandID()));
+				resultPeakList.addRow(groupedPeaks.get((candidates[k].getRow())));
 
-				resultPeakList.getRow(parentIndex+k).setComment("ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()	// parentID+k seems weird	
+				/*resultPeakList.getRow(parentIndex+k).setComment("ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()	// parentID+k seems weird	
 						+ " Diff. (mass): " + (peakList.getRow(candidates[k].getCandID()).getAverageMZ()-peakList.getRow(i).getAverageMZ())
 						+ " Diff. (isot)" + (candidates[k].getIsotope().getExactMass() - el[0].getExactMass())
 						+ " A(p)/A(c): " + (peakList.getRow(parentID).getAverageArea()/peakList.getRow(candidates[k].getCandID()).getAverageArea())
+						+ " Rating: " + candidates[k].getRating());*/
+				resultPeakList.getRow(parentIndex+k).setComment("ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()	// parentID+k seems weird	
+						+ " Diff. (mass): " + (groupedPeaks.get((candidates[k].getRow())).getAverageMZ()-peakList.getRow(i).getAverageMZ())
+						+ " Diff. (isot)" + (candidates[k].getIsotope().getExactMass() - el[0].getExactMass())
+						+ " A(p)/A(c): " + (peakList.getRow(parentID).getAverageArea()/groupedPeaks.get((candidates[k].getRow())).getAverageArea())
 						+ " Rating: " + candidates[k].getRating());
 			}
 			
