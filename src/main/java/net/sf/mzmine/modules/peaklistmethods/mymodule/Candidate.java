@@ -19,6 +19,10 @@ public class Candidate {
 	public void setIsotope(IIsotope isotope) {
 		this.isotope = isotope;
 	}
+	/**
+	 * 
+	 * @return row in groupedPeaks
+	 */
 	public int getRow() {
 		return row;
 	}

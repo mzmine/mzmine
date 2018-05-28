@@ -282,13 +282,14 @@ public class MyModuleTask extends AbstractTask {
 						+ " Diff. (isot)" + (candidates[k].getIsotope().getExactMass() - el[0].getExactMass())
 						+ " A(p)/A(c): " + (peakList.getRow(parentID).getAverageArea()/peakList.getRow(candidates[k].getCandID()).getAverageArea())
 						+ " Rating: " + candidates[k].getRating());*/
-				resultPeakList.getRow(parentIndex+k).setComment("ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()	// parentID+k seems weird	
+				resultPeakList.getRow(parentIndex+k).setComment(resultPeakList.getRow(parentIndex+k).getComment() + 
+						" ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()	// parentID+k seems weird	
 						+ " Diff. (mass): " + (groupedPeaks.get((candidates[k].getRow())).getAverageMZ()-peakList.getRow(i).getAverageMZ())
 						+ " Diff. (isot)" + (candidates[k].getIsotope().getExactMass() - el[0].getExactMass())
 						+ " A(p)/A(c): " + (peakList.getRow(parentID).getAverageArea()/groupedPeaks.get((candidates[k].getRow())).getAverageArea())
 						+ " Rating: " + candidates[k].getRating());
 			}
-			
+
 			if(isCanceled())
 				return;			
 			
