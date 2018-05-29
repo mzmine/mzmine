@@ -296,6 +296,7 @@ public class MyModuleTask extends AbstractTask {
 			
 			finishedRows++;
 		}
+
 	    if(resultPeakList.getNumberOfRows() > 1)
 	    	project.addPeakList(resultPeakList);
 	    else
@@ -437,6 +438,7 @@ public class MyModuleTask extends AbstractTask {
 		}
 		return buf;
 	}
+
 }
 
 
