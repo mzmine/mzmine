@@ -38,6 +38,7 @@ public class MyModuleTask extends AbstractTask {
     private double intensityDeviation;
     private double minAbundance;
     private double minRating;
+    private double minHeight;
     private String element, suffix;
     private MZTolerance mzTolerance;
     private RTTolerance rtTolerance;
@@ -88,6 +89,7 @@ public class MyModuleTask extends AbstractTask {
         minRating = parameters.getParameter(MyModuleParameters.minRating).getValue();
         suffix = parameters.getParameter(MyModuleParameters.suffix).getValue();
         checkRT = parameters.getParameter(MyModuleParameters.checkRT).getValue();
+        minHeight = parameters.getParameter(MyModuleParameters.minHeight).getValue();
         
         dMassLoss = parameters.getParameter(MyModuleParameters.neutralLoss).getValue();
         numAtoms = parameters.getParameter(MyModuleParameters.numAtoms).getValue();
@@ -265,11 +267,10 @@ public class MyModuleTask extends AbstractTask {
 			//resultPeakList.addRow(groupedPeaks.get(0));		//add results to resultPeakList
 			resultPeakList.addRow(peakList.getRow(i));
 			int parentIndex = resultPeakList.getNumberOfRows() - 1;
-			resultPeakList.getRow(parentIndex).setComment("-Parent- ID: " + resultPeakList.getRow(parentIndex).getID());
+			resultPeakList.getRow(parentIndex).setComment(resultPeakList.getRow(parentIndex).getComment()
+					+ " -Parent- ID: " + resultPeakList.getRow(parentIndex).getID());
 			int parentID = peakList.getRow(i).getID(); // = groupedPeaks.get(0).getID();
-			
 
-			
 			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{//TODO
 				//if(candidates[k].getCandID() >= totalRows) //TODO why do i have to do this?
@@ -302,6 +303,11 @@ public class MyModuleTask extends AbstractTask {
 	    setStatus(TaskStatus.FINISHED);
 	}
 	
+	/**
+	 * 
+	 * @param b
+	 * @return true if every
+	 */
 	private boolean checkIfAllTrue(ResultBuffer[] b)
 	{
 		for(int i = 0; i < b.length; i++)
@@ -411,6 +417,8 @@ public class MyModuleTask extends AbstractTask {
 			PeakListRow r = pL[i];
 			// check for rt
 			
+			if(r.getAverageHeight() < minHeight)
+				continue;
 			
 			if(!rtTolerance.checkWithinTolerance(rt, r.getAverageRT()) && checkRT)
 				continue;

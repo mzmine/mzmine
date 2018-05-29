@@ -84,7 +84,7 @@ public class Candidate {
 	}
 	
 	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum, double maxDeviation, double minRating, boolean checkIntensity)
-	{
+	{			
 		double parentMZ = pL.get(parentindex).getAverageMZ();
 		double candMZ = pL.get(candindex).getAverageMZ();
 		double mzDiff = isotopes[isotopenum].getExactMass() - isotopes[0].getExactMass();

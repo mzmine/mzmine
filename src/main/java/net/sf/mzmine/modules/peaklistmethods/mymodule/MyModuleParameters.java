@@ -48,6 +48,9 @@ public class MyModuleParameters extends SimpleParameterSet{
     
     public static final PercentParameter minAbundance = new PercentParameter("Minimum abundance", "The minimum abundance (%) of Isotopes. Small values "
     		+ "might increase accuracy but will decrease sensitivity.");
+    
+    public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "Minimum peak height to be considered as an isotope peak.", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
+    
     public static final BooleanParameter checkIntensity = new BooleanParameter("Check intensity", "Compare intesity of peaks to the natural abundance.");
     
     public static final DoubleParameter intensityDeviation = new DoubleParameter("Intesity deviation", "Maximum (%) the intensity may deviate from the natural abundance");
@@ -64,6 +67,6 @@ public class MyModuleParameters extends SimpleParameterSet{
     
     public MyModuleParameters()
     {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, numAtoms, minAbundance, checkIntensity, minRating, intensityDeviation, suffix, neutralLoss});
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, numAtoms, minAbundance, minHeight, checkIntensity, minRating, intensityDeviation, suffix, neutralLoss});
     }
 }
