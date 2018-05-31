@@ -1,5 +1,6 @@
 package net.sf.mzmine.modules.peaklistmethods.mymodule;
 
+import java.util.Set;
 import java.util.TreeMap;
 
 import net.sf.mzmine.datamodel.PeakList;
@@ -13,8 +14,11 @@ public class PeakListHandler {
 	{
 		map = new TreeMap<Integer, PeakListRow>();
 	}
-	
-	void setUp(PeakList pL)
+	/**
+	 * use this if you want to manage an existing PeakList
+	 * @param pL 
+	 */
+	public void setUp(PeakList pL)
 	{
 		for(PeakListRow row : pL.getRows())
 		{
@@ -22,7 +26,30 @@ public class PeakListHandler {
 		}
 	}
 	
-	PeakListRow getRowByID(int ID)
+	public void addRow(PeakListRow row)
+	{
+		map.put(row.getID(), row);
+	}
+	
+	public int size()
+	{
+		return map.size();
+	}
+	
+	public Integer[] getAllKeys()
+	{
+		Set<Integer> set = map.keySet();
+		Integer[] keys = (Integer[]) set.toArray();
+		
+		return keys;
+	}
+	
+	/**
+	 * 
+	 * @param ID
+	 * @return
+	 */
+	public PeakListRow getRowByID(int ID)
 	{
 		return map.get(ID);
 	}
