@@ -1,5 +1,7 @@
 package net.sf.mzmine.modules.peaklistmethods.mymodule;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -36,12 +38,12 @@ public class PeakListHandler {
 		return map.size();
 	}
 	
-	public Integer[] getAllKeys()
+	public ArrayList<Integer> getAllKeys()
 	{
 		Set<Integer> set = map.keySet();
-		Integer[] keys = (Integer[]) set.toArray();
+		ArrayList<Integer> list = new ArrayList<Integer>(set);
 		
-		return keys;
+		return list;
 	}
 	
 	/**

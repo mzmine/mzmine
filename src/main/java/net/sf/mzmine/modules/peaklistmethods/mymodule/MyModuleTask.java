@@ -14,11 +14,14 @@ import org.openscience.cdk.interfaces.IIsotope;
 import com.google.common.collect.Range;
 
 import dulab.adap.datamodel.Project;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormula;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -26,6 +29,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
@@ -168,8 +172,6 @@ public class MyModuleTask extends AbstractTask {
 		
 		totalRows = peakList.getNumberOfRows();
 		
-		
-		
 		ArrayList<Double> diff = setUpDiff(scanType);
 		if(diff == null)
 		{
@@ -179,11 +181,11 @@ public class MyModuleTask extends AbstractTask {
 		
 	    // get all rows and sort by m/z
 	    PeakListRow[] rows = peakList.getRows();
-	    
 	    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
-	    totalRows = rows.length;
+	    //totalRows = rows.length;
 	    
 	    resultPeakList = new SimplePeakList(peakList.getName() + suffix, peakList.getRawDataFiles());
+	    PeakListHandler resultMap = new PeakListHandler(); 
 	    
 	    for(int i = 0; i < totalRows; i++) 
 	    {
@@ -199,6 +201,7 @@ public class MyModuleTask extends AbstractTask {
 			ArrayList<PeakListRow> groupedPeaks = groupPeaks(rows, i, diff.get(diff.size()-1).doubleValue());
 			
 			logger.info("Row: " + i + "\tgroupedPeaks.size(): " + groupedPeaks.size());
+			
 			if(groupedPeaks.size() < 2)
 				continue;
 			else
@@ -265,30 +268,37 @@ public class MyModuleTask extends AbstractTask {
 
 			
 			//resultPeakList.addRow(groupedPeaks.get(0));		//add results to resultPeakList
-			resultPeakList.addRow(peakList.getRow(i));
+			String comParent = "", comChild = "";
+			PeakListRow parent = copyPeakRow(peakList.getRow(i));
+			resultPeakList.addRow(parent);
 			int parentIndex = resultPeakList.getNumberOfRows() - 1;
-			resultPeakList.getRow(parentIndex).setComment(resultPeakList.getRow(parentIndex).getComment()
-					+ " -Parent- ID: " + resultPeakList.getRow(parentIndex).getID());
+			comParent = parent.getComment()
+					+ " - is parent - ID: " + resultPeakList.getRow(parentIndex).getID();
+			parent.setComment(comParent);
+			resultMap.addRow(parent);
+			//resultPeakList.getRow(parentIndex).setComment(comParent);
+			
 			int parentID = peakList.getRow(i).getID(); // = groupedPeaks.get(0).getID();
 
 			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
-			{//TODO
-				//if(candidates[k].getCandID() >= totalRows) //TODO why do i have to do this?
-					//continue;
+			{
+				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates[k].getRow())));
 				
-				resultPeakList.addRow(groupedPeaks.get((candidates[k].getRow())));
+				//resultPeakList.addRow(copyPeakRow(groupedPeaks.get((candidates[k].getRow()))));
 
 				/*resultPeakList.getRow(parentIndex+k).setComment("ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()	// parentID+k seems weird	
 						+ " Diff. (mass): " + (peakList.getRow(candidates[k].getCandID()).getAverageMZ()-peakList.getRow(i).getAverageMZ())
 						+ " Diff. (isot)" + (candidates[k].getIsotope().getExactMass() - el[0].getExactMass())
 						+ " A(p)/A(c): " + (peakList.getRow(parentID).getAverageArea()/peakList.getRow(candidates[k].getCandID()).getAverageArea())
 						+ " Rating: " + candidates[k].getRating());*/
-				resultPeakList.getRow(parentIndex+k).setComment(resultPeakList.getRow(parentIndex+k).getComment() + 
-						" ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()	// parentID+k seems weird	
+				comChild = (child.getComment() + 
+						" ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()
 						+ " Diff. (mass): " + (groupedPeaks.get((candidates[k].getRow())).getAverageMZ()-peakList.getRow(i).getAverageMZ())
 						+ " Diff. (isot)" + (candidates[k].getIsotope().getExactMass() - el[0].getExactMass())
 						+ " A(p)/A(c): " + (peakList.getRow(parentID).getAverageArea()/groupedPeaks.get((candidates[k].getRow())).getAverageArea())
 						+ " Rating: " + candidates[k].getRating());
+				child.setComment(comChild);
+				resultMap.addRow(child);
 			}
 
 			if(isCanceled())
@@ -297,6 +307,11 @@ public class MyModuleTask extends AbstractTask {
 			finishedRows++;
 		}
 
+	    ArrayList<Integer> keys = resultMap.getAllKeys();
+	    for(int j = 0; j < keys.size(); j++)
+	    	resultPeakList.addRow(resultMap.getRowByID(keys.get(j)));
+	    
+	    
 	    if(resultPeakList.getNumberOfRows() > 1)
 	    	project.addPeakList(resultPeakList);
 	    else
@@ -438,7 +453,27 @@ public class MyModuleTask extends AbstractTask {
 		}
 		return buf;
 	}
+	
+	/**
+	   * Create a copy of a peak list row.
+	   *
+	   * @param row the row to copy.
+	   * @return the newly created copy.
+	   */
+	private static PeakListRow copyPeakRow(final PeakListRow row) {
+		// Copy the peak list row.
+	    final PeakListRow newRow = new SimplePeakListRow(row.getID());
+	    PeakUtils.copyPeakListRowProperties(row, newRow);
 
+	    // Copy the peaks.
+	    for (final Feature peak : row.getPeaks()) {
+	      final Feature newPeak = new SimpleFeature(peak);
+	      PeakUtils.copyPeakProperties(peak, newPeak);
+	      newRow.addPeak(peak.getDataFile(), newPeak);
+	    }
+
+	    return newRow;
+	  }
 }
 
 
