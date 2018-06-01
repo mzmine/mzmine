@@ -180,7 +180,7 @@ public class Candidate {
 		if(intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0)
 		{
 			Logger.debug("ERROR: tempRating or deviation > 1 or < 0.\ttempRating: " + tempRating + "\tintensAcc: " + intensAcc);  // TODO: can you do this without creating a new logger?
-			return false;
+			return false; 
 		}
 		
 		if(checkIntensity)
