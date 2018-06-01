@@ -1,14 +1,13 @@
 package net.sf.mzmine.modules.peaklistmethods.mymodule;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.openscience.cdk.config.Isotopes;
-import org.openscience.cdk.formula.MolecularFormulaGenerator;
-import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
 import com.google.common.collect.Range;
@@ -16,13 +15,19 @@ import com.google.common.collect.Range;
 import dulab.adap.datamodel.Project;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.PolarityType;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormula;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -36,6 +41,7 @@ import net.sf.mzmine.util.SortingProperty;
 public class MyModuleTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    private ParameterSet parameters;
     private Range<Double> massRange;
     private Range<Double> rtRange;
     private boolean checkIntensity;
@@ -52,10 +58,12 @@ public class MyModuleTask extends AbstractTask {
     private MZmineProject project;
     private PeakList peakList;
     private boolean checkRT;
+    private IsotopePattern pattern;
+    private PolarityType polarityType;
+    private int charge;
     
-    private enum ScanType {singleAtom, multipleAtoms, neutralLoss};
+    private enum ScanType {singleAtom, neutralLoss, pattern};
     ScanType scanType;
-    private int numAtoms;
     private double dMassLoss;
     IIsotope[] el;
     
@@ -77,6 +85,7 @@ public class MyModuleTask extends AbstractTask {
      * @param peak
      */
     MyModuleTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+    	this.parameters = parameters;
     	this.project = project;
         this.peakList = peakList;
         
@@ -94,60 +103,27 @@ public class MyModuleTask extends AbstractTask {
         suffix = parameters.getParameter(MyModuleParameters.suffix).getValue();
         checkRT = parameters.getParameter(MyModuleParameters.checkRT).getValue();
         minHeight = parameters.getParameter(MyModuleParameters.minHeight).getValue();
-        
         dMassLoss = parameters.getParameter(MyModuleParameters.neutralLoss).getValue();
-        numAtoms = parameters.getParameter(MyModuleParameters.numAtoms).getValue();
+        charge = parameters.getParameter(MyModuleParameters.charge).getValue();
+        
+        polarityType = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
+        charge = (charge < 0) ? charge*-1 : charge;
+        
+        if(suffix.equals("auto"))
+        	suffix = "_-El/Pat_" + element + "-chRT_" + checkRT + "-chrg_" + charge + "-minH_" 
+        			+ minHeight +"-chIDev_" + checkIntensity +  "-idev_" + intensityDeviation + "_results";
+
         
         if(dMassLoss != 0.0)
         	scanType = ScanType.neutralLoss;
 
-        if(numAtoms > 1)
-        	scanType = ScanType.multipleAtoms;
+        if(element.length() > 2)
+        	scanType = ScanType.pattern;
         else
         	scanType = ScanType.singleAtom;
         
         message = "Got paramenters..."; //TODO
-
-        /*charge = parameters
-        	.getParameter(MyModuleParameters.charge)
-        	.getValue();
-		ionType = (IonizationType) parameters
-        	.getParameter(MyModuleParameters.ionization)
-        	.getValue();
-        elementCounts = parameters
-                .getParameter(MyModuleParameters.elements)
-                .getValue(); 
-        checkIsotopes = parameters
-                .getParameter(MyModuleParameters.isotopeFilter)
-                .getValue();
-        isotopeParameters = parameters
-                .getParameter(MyModuleParameters.isotopeFilter)
-                .getEmbeddedParameters();
-
-        checkMSMS = parameters
-                .getParameter(MyModuleParameters.msmsFilter)
-                .getValue();
-        msmsParameters = parameters
-                .getParameter(MyModuleParameters.msmsFilter)
-                .getEmbeddedParameters();
-
-        checkRDBE = parameters
-                .getParameter(
-                        MyModuleParameters.rdbeRestrictions)
-                .getValue();
-        rdbeParameters = parameters
-                .getParameter(
-                        MyModuleParameters.rdbeRestrictions)
-                .getEmbeddedParameters();
-
-        checkRatios = parameters
-                .getParameter(
-                        MyModuleParameters.elementalRatios)
-                .getValue();
-        ratiosParameters = parameters
-                .getParameter(
-                        MyModuleParameters.elementalRatios)
-                .getEmbeddedParameters();*/
+        
     }
 
     /**
@@ -221,21 +197,45 @@ public class MyModuleTask extends AbstractTask {
 			// k represents the isotope number the peak will be a candidate for
 					if(mzTolerance.checkWithinTolerance(groupedPeaks.get(0).getAverageMZ() + diff.get(k), groupedPeaks.get(j).getAverageMZ()))
 					{
-					// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
-						logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
-						logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k  +"\t\t"+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
+						if(scanType == ScanType.singleAtom)
+						{
+							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
+							logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
+							logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k  +"\t\t"+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
 
-						resultBuffer[k].addFound(); //+1 result for isotope k
-						resultBuffer[k].addRow(j);  //row in groupedPeaks[]
-						resultBuffer[k].addID(groupedPeaks.get(j).getID());
-						resultCounter++;
+							resultBuffer[k].addFound(); //+1 result for isotope k
+							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
+							resultBuffer[k].addID(groupedPeaks.get(j).getID());
+							resultCounter++;
+						}
+						else if(scanType == ScanType.pattern)
+						{
+							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
+							logger.info("Main peak (m/z)" +						"\tPattern" + 		 "\tPeak num" +		"\tPeak mass" + 					"\tAbbrevieation(m/z)");
+							logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + element + "\t"+ k  +"\t\t"+ 	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
+
+							resultBuffer[k].addFound(); //+1 result for isotope k
+							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
+							resultBuffer[k].addID(groupedPeaks.get(j).getID());
+							resultCounter++;
+						}
+						else if(scanType == ScanType.neutralLoss)
+						{
+							logger.info("Main peak (m/z)" +											"\tMass loss(found)"					 + 		"\tMass loss(input)");
+							logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()) + dMassLoss);
+							
+							resultBuffer[k].addFound(); //+1 result for isotope k
+							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
+							resultBuffer[k].addID(groupedPeaks.get(j).getID());
+							resultCounter++;
+						}
 					}
 				}
 			}
 			
 			if(!checkIfAllTrue(resultBuffer))	// this means that for every isotope we expected to find, we found one or more possible features
 			{
-				logger.info("Not enough possible features were added to resultBUffer.");
+				logger.info("Not enough possible features were added to resultBuffer.");
 				continue;
 			}
 			
@@ -250,55 +250,79 @@ public class MyModuleTask extends AbstractTask {
 				{
 		// k represents index resultBuffer[k] and thereby the isotope number
 		// l represents the number of results in resultBuffer[k]
-					if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), el, k, intensityDeviation, minRating, checkIntensity))
+					if(scanType == ScanType.singleAtom)
 					{
-						logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
-								groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
-								"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
-						
+						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), el, k, intensityDeviation, minRating, checkIntensity))
+						{
+							
+							logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
+									groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
+									"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
+							
+						}
+					}
+					else if(scanType == ScanType.pattern)
+					{
+						if(candidates[k].checkForBetterRating_Pattern(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, intensityDeviation, minRating, checkIntensity))
+							logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
+									groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
+									"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
+					}
+					else if(scanType == ScanType.neutralLoss)
+					{
+					
 					}
 				}
 			}
 			
 			if(!checkIfAllTrue(candidates))
-			{
+			{ 
 				logger.info("Not enough valid candidates for parent feature " + groupedPeaks.get(0).getAverageMZ() + "\talthough enough peaks were found.") ;
 				continue;	// jump to next i
 			}
 
 			
-			//resultPeakList.addRow(groupedPeaks.get(0));		//add results to resultPeakList
 			String comParent = "", comChild = "";
 			PeakListRow parent = copyPeakRow(peakList.getRow(i));
-			resultPeakList.addRow(parent);
-			int parentIndex = resultPeakList.getNumberOfRows() - 1;
-			comParent = parent.getComment()
-					+ " - is parent - ID: " + resultPeakList.getRow(parentIndex).getID();
-			parent.setComment(comParent);
-			resultMap.addRow(parent);
-			//resultPeakList.getRow(parentIndex).setComment(comParent);
+			//resultPeakList.addRow(parent);
+			resultMap.addRow(parent);	//add results to resultPeakList
+			//int parentIndex = resultPeakList.getNumberOfRows() - 1;
 			
-			int parentID = peakList.getRow(i).getID(); // = groupedPeaks.get(0).getID();
+			comParent = "-IS PARENT-ID: " + parent.getID();
+			addComment(parent, comParent);
+			int parentID = parent.getID(); // = groupedPeaks.get(0).getID();
 
 			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{
 				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates[k].getRow())));
 				
-				//resultPeakList.addRow(copyPeakRow(groupedPeaks.get((candidates[k].getRow()))));
+				if(scanType == ScanType.singleAtom)
+				{
+					comChild = (/*child.getComment() +*/ 
+							" ParentID:" + parentID
+							+ " Diff. (mass): " +  round(child.getAverageMZ()-parent.getAverageMZ(), 5)
+							+ " Diff. (isot)" +  round((candidates[k].getIsotope().getExactMass() - el[0].getExactMass()), 5)
+							+ " A(c)/A(p): " +  round(child.getAverageArea()/parent.getAverageArea(), 2)
+							+ " Rating: " +  round(candidates[k].getRating(), 7));
+					
+					//child.setComment(comChild);
+					addComment(child, comChild);
+				}
+				else if(scanType == ScanType.pattern)
+				{
+					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
+					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern));
+					comChild = ("Parent ID: " + parent.getID() + " Diff. (mass) " + round(child.getAverageMZ() - parent.getAverageMZ(), 5)
+							+ " Diff. (pattern): " +  round(diff.get(k), 5) + " A(c)/A(p): " +  round(child.getAverageArea()/parent.getAverageArea(),2) + " Rating: " +  round(candidates[k].getRating(), 7));
+					//child.setComment(comChild);
+					addComment(child, comChild);
+				}
+				else if(scanType == ScanType.neutralLoss)
+				{
 
-				/*resultPeakList.getRow(parentIndex+k).setComment("ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()	// parentID+k seems weird	
-						+ " Diff. (mass): " + (peakList.getRow(candidates[k].getCandID()).getAverageMZ()-peakList.getRow(i).getAverageMZ())
-						+ " Diff. (isot)" + (candidates[k].getIsotope().getExactMass() - el[0].getExactMass())
-						+ " A(p)/A(c): " + (peakList.getRow(parentID).getAverageArea()/peakList.getRow(candidates[k].getCandID()).getAverageArea())
-						+ " Rating: " + candidates[k].getRating());*/
-				comChild = (child.getComment() + 
-						" ParentID:" + parentID + " Parentmz: " + peakList.getRow(i).getAverageMZ()
-						+ " Diff. (mass): " + (groupedPeaks.get((candidates[k].getRow())).getAverageMZ()-peakList.getRow(i).getAverageMZ())
-						+ " Diff. (isot)" + (candidates[k].getIsotope().getExactMass() - el[0].getExactMass())
-						+ " A(p)/A(c): " + (peakList.getRow(parentID).getAverageArea()/groupedPeaks.get((candidates[k].getRow())).getAverageArea())
-						+ " Rating: " + candidates[k].getRating());
-				child.setComment(comChild);
+				}
 				resultMap.addRow(child);
+				//resultPeakList.addRow(child);
 			}
 
 			if(isCanceled())
@@ -359,14 +383,15 @@ public class MyModuleTask extends AbstractTask {
 				diff.add(i, el[i].getExactMass() - el[0].getExactMass());	//diff[0] will be 0
 			break;
 			
-		case multipleAtoms:
-			el = getIsotopes(element);
-			if(el == null)
+		case pattern:
+			pattern = IsotopePatternCalculator.calculateIsotopePattern(element, minAbundance, charge, polarityType);
+			pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0003);
+			DataPoint[] points = pattern.getDataPoints();
+			logger.info("DataPoints in Pattern: " + points.length);
+			for(int i = 0; i < pattern.getNumberOfDataPoints(); i++)
 			{
-				logger.info("Error setting up isotope information. el == null.");
-				return null;
+				diff.add(i, points[i].getMZ() - points[0].getMZ());
 			}
-			
 			/*
 			 * (a+b)^n ; n=2; => a^2 + 2ab + b^2 => 35Cl+35Cl, 2 * (35Cl+37Cl), 37Cl+37Cl
 			 * possibility: a^2 = 0.7577^2; 2ab = 2*(0.7577*0.2423); b^2 = 0.2423^2
@@ -473,6 +498,50 @@ public class MyModuleTask extends AbstractTask {
 	    }
 
 	    return newRow;
+	  }
+	private static String getIntensityRatios(IsotopePattern pattern)
+	{
+		DataPoint[] dp = pattern.getDataPoints();
+		String ratios = "";
+		for(int i = 0; i < dp.length; i++)
+			ratios += round((dp[i].getIntensity()/dp[0].getIntensity()),2) + ":";
+		ratios = (ratios.length() > 0) ? ratios.substring(0, ratios.length()-1) : ratios;
+		return 	ratios;
+	}
+	public static double round(double value, int places) { // https://stackoverflow.com/questions/2808535/round-a-double-to-2-decimal-places
+	    if (places < 0) throw new IllegalArgumentException();
+
+	    BigDecimal bd = new BigDecimal(value);
+	    bd = bd.setScale(places, RoundingMode.HALF_UP);
+	    return bd.doubleValue();
+	}
+	
+	public static void addComment(PeakListRow row, String str)
+	{
+		String current = row.getComment();
+		if(current == null)
+			row.setComment(str);
+		else if(current.contains(str))
+			return;
+		else
+			row.setComment(current + " " + str);
+	}
+	/**
+	   * Add peaklist to project, delete old if requested, add description to result
+	   */
+	public void addResultToProject() 
+	{
+	    // Add new peakList to the project
+	    project.addPeakList(resultPeakList);
+
+	    // Load previous applied methods
+	    for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
+	      resultPeakList.addDescriptionOfAppliedTask(proc);
+	    }
+
+	    // Add task description to peakList
+	    resultPeakList
+	        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("MyModule", parameters));
 	  }
 }
 

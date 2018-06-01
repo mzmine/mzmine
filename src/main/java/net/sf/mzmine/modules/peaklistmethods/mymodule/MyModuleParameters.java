@@ -44,7 +44,7 @@ public class MyModuleParameters extends SimpleParameterSet{
 	    "Restrict formulas by heuristic restrictions of elemental counts and ratios",
 	    new ElementalHeuristicParameters());*/
 
-    public static final StringParameter element = new StringParameter("Element", "Element whose isotope pattern to be searched for. Please enter the two letter Symbol. (e.g. \"Gd\"");
+    public static final StringParameter element = new StringParameter("Element pattern", "Element (combibation) whose isotope pattern to be searched for. Please enter the two letter Symbol. (e.g. \"Gd\", Cl2Br)");
     
     public static final PercentParameter minAbundance = new PercentParameter("Minimum abundance", "The minimum abundance (%) of Isotopes. Small values "
     		+ "might increase accuracy but will decrease sensitivity.");
@@ -58,15 +58,15 @@ public class MyModuleParameters extends SimpleParameterSet{
     public static final DoubleParameter minRating = new DoubleParameter("Minimun rating", "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.95, 0.0, 1.0);
     
     public static final StringParameter suffix =
-    	      new StringParameter("Name suffix", "Suffix to be added to peak list name", "_mymodule_results");
+    	      new StringParameter("Name suffix", "Suffix to be added to peak list name", "auto");
     
-    public static final DoubleParameter neutralLoss = new DoubleParameter("Neutral loss ?(Y/N)", "Enter exact mass if yes else leave 0.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
+    public static final DoubleParameter neutralLoss = new DoubleParameter("Neutral loss? (Y/N)", "Enter exact mass if yes else leave 0.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
     
-    public static final IntegerParameter numAtoms = new IntegerParameter("Number of atoms", "Number of atoms of the specific element.", 1);
+    public static final IntegerParameter charge = new IntegerParameter("Charge", "Amount and polarity (e.g.: [M+]=+1 / [M-]=-1");
     
     
     public MyModuleParameters()
     {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, numAtoms, minAbundance, minHeight, checkIntensity, minRating, intensityDeviation, suffix, neutralLoss});
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, charge, minAbundance, minHeight, checkIntensity, minRating, intensityDeviation, suffix, neutralLoss});
     }
 }
