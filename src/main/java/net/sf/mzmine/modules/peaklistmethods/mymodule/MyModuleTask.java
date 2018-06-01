@@ -3,23 +3,21 @@ package net.sf.mzmine.modules.peaklistmethods.mymodule;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.openscience.cdk.config.Isotopes;
-import org.openscience.cdk.formula.MolecularFormulaGenerator;
-import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IIsotope;
 
 import com.google.common.collect.Range;
 
-import dulab.adap.datamodel.Project;
-import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormula;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -29,7 +27,7 @@ import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-public class MyModuleTask extends AbstractTask {
+public class MyModuleTask2 extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private Range<Double> massRange;
@@ -48,8 +46,11 @@ public class MyModuleTask extends AbstractTask {
     private MZmineProject project;
     private PeakList peakList;
     private boolean checkRT;
+    private IsotopePattern pattern;
+    private PolarityType polarityType;
+    private int charge;
     
-    private enum ScanType {singleAtom, multipleAtoms, neutralLoss};
+    private enum ScanType {singleAtom, multipleAtoms, neutralLoss, pattern};
     ScanType scanType;
     private int numAtoms;
     private double dMassLoss;
@@ -72,7 +73,7 @@ public class MyModuleTask extends AbstractTask {
      * @param peakListRow
      * @param peak
      */
-    MyModuleTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+    MyModuleTask2(MZmineProject project, PeakList peakList, ParameterSet parameters) {
     	this.project = project;
         this.peakList = peakList;
         
@@ -168,8 +169,6 @@ public class MyModuleTask extends AbstractTask {
 		
 		totalRows = peakList.getNumberOfRows();
 		
-		
-		
 		ArrayList<Double> diff = setUpDiff(scanType);
 		if(diff == null)
 		{
@@ -218,14 +217,31 @@ public class MyModuleTask extends AbstractTask {
 			// k represents the isotope number the peak will be a candidate for
 					if(mzTolerance.checkWithinTolerance(groupedPeaks.get(0).getAverageMZ() + diff.get(k), groupedPeaks.get(j).getAverageMZ()))
 					{
-					// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
-						logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
-						logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k  +"\t\t"+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
+						if(scanType == ScanType.singleAtom)
+						{
+							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
+							logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
+							logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k  +"\t\t"+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
 
-						resultBuffer[k].addFound(); //+1 result for isotope k
-						resultBuffer[k].addRow(j);  //row in groupedPeaks[]
-						resultBuffer[k].addID(groupedPeaks.get(j).getID());
-						resultCounter++;
+							resultBuffer[k].addFound(); //+1 result for isotope k
+							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
+							resultBuffer[k].addID(groupedPeaks.get(j).getID());
+							resultCounter++;
+						}
+						else if(scanType == ScanType.pattern)
+						{
+							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
+							logger.info("Main peak (m/z)" +						"\tPattern" + 		 "\tPeak num" +		"\tPeak mass" + 					"\tAbbrevieation(m/z)");
+							logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + element + "\t"+ k  +"\t\t"+ 	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
+
+							resultBuffer[k].addFound(); //+1 result for isotope k
+							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
+							resultBuffer[k].addID(groupedPeaks.get(j).getID());
+							resultCounter++;
+						}
+						else if(scanType == ScanType.neutralLoss)
+						{
+						}
 					}
 				}
 			}
@@ -247,23 +263,33 @@ public class MyModuleTask extends AbstractTask {
 				{
 		// k represents index resultBuffer[k] and thereby the isotope number
 		// l represents the number of results in resultBuffer[k]
-					if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), el, k, intensityDeviation, minRating, checkIntensity))
+					if(scanType == ScanType.singleAtom)
 					{
-						logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
-								groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
-								"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
-						
+						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), el, k, intensityDeviation, minRating, checkIntensity))
+						{
+							
+							logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
+									groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
+									"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
+							
+						}
+					}
+					else if(scanType == ScanType.pattern)
+					{
+						if(candidates[k].checkForBetterRating_Pattern(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, intensityDeviation, minRating, checkIntensity))
+							logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
+									groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
+									"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
 					}
 				}
 			}
 			
 			if(!checkIfAllTrue(candidates))
-			{
+			{ 
 				logger.info("Not enough valid candidates for parent feature " + groupedPeaks.get(0).getAverageMZ() + "\talthough enough peaks were found.") ;
 				continue;	// jump to next i
 			}
 
-			
 			//resultPeakList.addRow(groupedPeaks.get(0));		//add results to resultPeakList
 			resultPeakList.addRow(peakList.getRow(i));
 			int parentIndex = resultPeakList.getNumberOfRows() - 1;
@@ -344,14 +370,13 @@ public class MyModuleTask extends AbstractTask {
 				diff.add(i, el[i].getExactMass() - el[0].getExactMass());	//diff[0] will be 0
 			break;
 			
-		case multipleAtoms:
-			el = getIsotopes(element);
-			if(el == null)
+		case pattern:
+			pattern = IsotopePatternCalculator.calculateIsotopePattern(element, minAbundance, charge, polarityType);
+			DataPoint[] points = pattern.getDataPoints();
+			for(int i = 0; i < pattern.getNumberOfDataPoints(); i++)
 			{
-				logger.info("Error setting up isotope information. el == null.");
-				return null;
+				diff.add(i, points[i].getMZ() - points[0].getMZ());
 			}
-			
 			/*
 			 * (a+b)^n ; n=2; => a^2 + 2ab + b^2 => 35Cl+35Cl, 2 * (35Cl+37Cl), 37Cl+37Cl
 			 * possibility: a^2 = 0.7577^2; 2ab = 2*(0.7577*0.2423); b^2 = 0.2423^2
