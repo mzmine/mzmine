@@ -27,7 +27,7 @@ import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-public class MyModuleTask2 extends AbstractTask {
+public class MyModuleTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private Range<Double> massRange;
@@ -73,7 +73,7 @@ public class MyModuleTask2 extends AbstractTask {
      * @param peakListRow
      * @param peak
      */
-    MyModuleTask2(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+    MyModuleTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
     	this.project = project;
         this.peakList = peakList;
         
