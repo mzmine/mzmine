@@ -110,8 +110,8 @@ public class MyModuleTask extends AbstractTask {
         charge = (charge < 0) ? charge*-1 : charge;
         
         if(suffix.equals("auto"))
-        	suffix = "_-El/Pat_" + element + "-chRT_" + checkRT + "-chrg_" + charge + "-minH_" 
-        			+ minHeight +"-chIDev_" + checkIntensity +  "-idev_" + intensityDeviation + "_results";
+        	suffix = "_-El/Pat_" + element + "-chRT_" + checkRT + 
+        			"-checkInt_"+ checkIntensity + "_results";
 
         
         if(dMassLoss != 0.0)
@@ -176,12 +176,12 @@ public class MyModuleTask extends AbstractTask {
 			//now get all peaks that lie within RT and maxIsotopeMassRange: pL[index].mz -> pL[index].mz+maxMass
 			ArrayList<PeakListRow> groupedPeaks = groupPeaks(rows, i, diff.get(diff.size()-1).doubleValue());
 			
-			logger.info("Row: " + i + "\tgroupedPeaks.size(): " + groupedPeaks.size());
+			//logger.info("Row: " + i + "\tgroupedPeaks.size(): " + groupedPeaks.size());
 			
 			if(groupedPeaks.size() < 2)
 				continue;
-			else
-				logger.info("groupedPeaks.size > 2 in row: " + i + " size: " + groupedPeaks.size());
+			//else
+			//	logger.info("groupedPeaks.size > 2 in row: " + i + " size: " + groupedPeaks.size());
 
 			ResultBuffer[] resultBuffer = new ResultBuffer[diff.size()];//this will store row indexes of all features with fitting rt and mz		
 			for(int a = 0; a < diff.size(); a++)							//resultBuffer[i] index will represent Isotope[i] (if numAtoms = 0)
@@ -200,8 +200,8 @@ public class MyModuleTask extends AbstractTask {
 						if(scanType == ScanType.singleAtom)
 						{
 							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
-							logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
-							logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k  +"\t\t"+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
+							//logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
+							//logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k  +"\t\t"+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
 
 							resultBuffer[k].addFound(); //+1 result for isotope k
 							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
@@ -211,8 +211,8 @@ public class MyModuleTask extends AbstractTask {
 						else if(scanType == ScanType.pattern)
 						{
 							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
-							logger.info("Main peak (m/z)" +						"\tPattern" + 		 "\tPeak num" +		"\tPeak mass" + 					"\tAbbrevieation(m/z)");
-							logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + element + "\t"+ k  +"\t\t"+ 	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
+							//logger.info("Main peak (m/z)" +						"\tPattern" + 		 "\tPeak num" +		"\tPeak mass" + 					"\tAbbrevieation(m/z)");
+							//logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + element + "\t"+ k  +"\t\t"+ 	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
 
 							resultBuffer[k].addFound(); //+1 result for isotope k
 							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
@@ -221,8 +221,8 @@ public class MyModuleTask extends AbstractTask {
 						}
 						else if(scanType == ScanType.neutralLoss)
 						{
-							logger.info("Main peak (m/z)" +											"\tMass loss(found)"					 + 		"\tMass loss(input)");
-							logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()) + dMassLoss);
+							//logger.info("Main peak (m/z)" +											"\tMass loss(found)"					 + 		"\tMass loss(input)");
+							//logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()) + dMassLoss);
 							
 							resultBuffer[k].addFound(); //+1 result for isotope k
 							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
@@ -235,7 +235,7 @@ public class MyModuleTask extends AbstractTask {
 			
 			if(!checkIfAllTrue(resultBuffer))	// this means that for every isotope we expected to find, we found one or more possible features
 			{
-				logger.info("Not enough possible features were added to resultBuffer.");
+				//logger.info("Not enough possible features were added to resultBuffer.");
 				continue;
 			}
 			
@@ -244,7 +244,7 @@ public class MyModuleTask extends AbstractTask {
 			for(int a = 0; a < diff.size(); a++)							//resultBuffer[i] index will represent Isotope[i] (if numAtoms = 0)
 				candidates[a] = new Candidate();
 			
-			for(int k = 0; k < resultBuffer.length; k++) // reminder: resultBuffer.length = el.length
+			for(int k = 0; k < resultBuffer.length; k++) // reminder: resultBuffer.length = diff.size()
 			{
 				for(int l = 0; l < resultBuffer[k].getFoundCount(); l++)
 				{
@@ -254,30 +254,36 @@ public class MyModuleTask extends AbstractTask {
 					{
 						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), el, k, intensityDeviation, minRating, checkIntensity))
 						{
-							
-							logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
-									groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
-									"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
+						//	logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
+						//		groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
+						//		"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
 							
 						}
 					}
 					else if(scanType == ScanType.pattern)
 					{
-						if(candidates[k].checkForBetterRating_Pattern(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, intensityDeviation, minRating, checkIntensity))
-							logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
-									groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
-									"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
+						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, intensityDeviation, minRating, checkIntensity))
+						{
+						//	logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
+						//			groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
+						//			"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
+						}
 					}
 					else if(scanType == ScanType.neutralLoss)
 					{
-					
+						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), diff.get(k), minRating))
+						{
+						//	logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
+						//			groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
+						//			"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
+						}
 					}
 				}
 			}
 			
 			if(!checkIfAllTrue(candidates))
 			{ 
-				logger.info("Not enough valid candidates for parent feature " + groupedPeaks.get(0).getAverageMZ() + "\talthough enough peaks were found.") ;
+				//logger.info("Not enough valid candidates for parent feature " + groupedPeaks.get(0).getAverageMZ() + "\talthough enough peaks were found.") ;
 				continue;	// jump to next i
 			}
 
@@ -298,9 +304,10 @@ public class MyModuleTask extends AbstractTask {
 				
 				if(scanType == ScanType.singleAtom)
 				{
+					addComment(parent, "Intensity ratios: 1:" + round(el[k].getExactMass()/el[0].getExactMass(), 2));
 					comChild = (/*child.getComment() +*/ 
 							" ParentID:" + parentID
-							+ " Diff. (mass): " +  round(child.getAverageMZ()-parent.getAverageMZ(), 5)
+							+ " Diff. (m/z): " +  round(child.getAverageMZ()-parent.getAverageMZ(), 5)
 							+ " Diff. (isot)" +  round((candidates[k].getIsotope().getExactMass() - el[0].getExactMass()), 5)
 							+ " A(c)/A(p): " +  round(child.getAverageArea()/parent.getAverageArea(), 2)
 							+ " Rating: " +  round(candidates[k].getRating(), 7));
@@ -312,14 +319,16 @@ public class MyModuleTask extends AbstractTask {
 				{
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
 					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern));
-					comChild = ("Parent ID: " + parent.getID() + " Diff. (mass) " + round(child.getAverageMZ() - parent.getAverageMZ(), 5)
+					comChild = ("Parent ID: " + parent.getID() + " Diff. (m/z): " + round(child.getAverageMZ() - parent.getAverageMZ(), 5)
 							+ " Diff. (pattern): " +  round(diff.get(k), 5) + " A(c)/A(p): " +  round(child.getAverageArea()/parent.getAverageArea(),2) + " Rating: " +  round(candidates[k].getRating(), 7));
 					//child.setComment(comChild);
 					addComment(child, comChild);
 				}
 				else if(scanType == ScanType.neutralLoss)
 				{
-
+					comChild = ("Parent ID: " + parent.getID() + " Diff(m/z): " + round(child.getAverageMZ() - parent.getAverageMZ(), 5)
+					+ "Diff (calc): " + round(diff.get(k), 5) + " Rating: " + round(candidates[k].getRating(), 7));
+					addComment(child, comChild);
 				}
 				resultMap.addRow(child);
 				//resultPeakList.addRow(child);

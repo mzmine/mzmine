@@ -116,11 +116,10 @@ public class Candidate {
 		PeakListRow cand = pL.get(candindex);
 		
 		double idealIntensity = pChild.getIntensity() / pParent.getIntensity();
-		//TODO sth seems to be wrong here
 		return ( (idealIntensity * parent.getAverageArea()) / cand.getAverageArea() );
 	}
 	
-	public boolean checkForBetterRating_Pattern(ArrayList<PeakListRow> pL, int parentindex, int candindex, IsotopePattern pattern, int peakNum, double maxDeviation, double minRating, boolean checkIntensity)
+	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IsotopePattern pattern, int peakNum, double maxDeviation, double minRating, boolean checkIntensity)
 	{			
 		double parentMZ = pL.get(parentindex).getAverageMZ();
 		double candMZ = pL.get(candindex).getAverageMZ();
@@ -171,6 +170,39 @@ public class Candidate {
 		}
 		return false;
 	}
+	
+	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, double mzDiff, double minRating)
+	{			
+		double parentMZ = pL.get(parentindex).getAverageMZ();
+		double candMZ = pL.get(candindex).getAverageMZ();
+		
+		double tempRating = candMZ / (parentMZ + mzDiff);
+		double intensAcc = 0;
+		
+		if(tempRating > 1.0) // 0.99 and 1.01 should be comparable
+		{
+			tempRating -= 1.0; 
+			tempRating = 1 - tempRating;
+		}
+		
+		if(intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0)
+		{
+			Logger.debug("ERROR: tempRating > 1 or < 0.\ttempRating: " + tempRating);  // TODO: can you do this without creating a new logger?
+			return false;
+		}
+		
+		if(tempRating > rating && tempRating >= minRating)
+		{
+			rating = tempRating;
+			
+			this.setParentID(parentindex);
+			this.setRow(candindex);
+			this.setCandID(pL.get(candindex).getID());
+			return true;
+		}
+		return false;
+	}
+	
 	public double getRating()
 	{
 		return rating;

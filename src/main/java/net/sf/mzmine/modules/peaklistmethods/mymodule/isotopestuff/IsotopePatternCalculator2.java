@@ -1,3 +1,5 @@
+package net.sf.mzmine.modules.peaklistmethods.mymodule.isotopestuff;
+
 /*
  * Copyright 2006-2015 The MZmine 2 Development Team
  * 
@@ -16,8 +18,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction;
 
 import java.awt.Window;
 import java.util.ArrayList;
@@ -46,11 +46,13 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * The reason why we introduce this as a module, rather than simple utility
  * class, is to remember the parameter values.
  */
-public class IsotopePatternCalculator implements MZmineModule {
+public class IsotopePatternCalculator2 implements MZmineModule {
 
     private static final double ELECTRON_MASS = 5.4857990943E-4;
 
     private static final String MODULE_NAME = "Isotope pattern prediction.";
+    
+    public static ArrayList<String> lastPattern = new ArrayList<String>();
 
     @Override
     public @Nonnull String getName() {
@@ -79,11 +81,11 @@ public class IsotopePatternCalculator implements MZmineModule {
 	// if so, just cancel the prediction
 
 	// Set the minimum abundance of isotope
-	IsotopePatternGenerator generator = new IsotopePatternGenerator(
+	IsotopePatternGenerator2 generator = new IsotopePatternGenerator2(
 		minAbundance);
 
 	org.openscience.cdk.formula.IsotopePattern pattern = generator
-		.getIsotopes(cdkFormula);
+		.getIsotopes(cdkFormula, lastPattern);
 
 	int numOfIsotopes = pattern.getNumberOfIsotopes();
 
@@ -199,20 +201,20 @@ public class IsotopePatternCalculator implements MZmineModule {
 	    boolean valueCheckRequired) {
 
 	ParameterSet parameters = MZmineCore.getConfiguration()
-		.getModuleParameters(IsotopePatternCalculator.class);
+		.getModuleParameters(IsotopePatternCalculator2.class);
 	ExitCode exitCode = parameters.showSetupDialog(parent,
 		valueCheckRequired);
 	if (exitCode != ExitCode.OK)
 	    return null;
 
 	String formula = parameters.getParameter(
-		IsotopePatternCalculatorParameters.formula).getValue();
+		IsotopePatternCalculatorParameters2.formula).getValue();
 	int charge = parameters.getParameter(
-		IsotopePatternCalculatorParameters.charge).getValue();
+		IsotopePatternCalculatorParameters2.charge).getValue();
 	PolarityType polarity = parameters.getParameter(
-		IsotopePatternCalculatorParameters.polarity).getValue();
+		IsotopePatternCalculatorParameters2.polarity).getValue();
 	double minAbundance = parameters.getParameter(
-		IsotopePatternCalculatorParameters.minAbundance).getValue();
+		IsotopePatternCalculatorParameters2.minAbundance).getValue();
 
 	try {
 	    IsotopePattern predictedPattern = calculateIsotopePattern(formula,
@@ -229,7 +231,8 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return IsotopePatternCalculatorParameters.class;
+	return IsotopePatternCalculatorParameters2.class;
     }
 
 }
+

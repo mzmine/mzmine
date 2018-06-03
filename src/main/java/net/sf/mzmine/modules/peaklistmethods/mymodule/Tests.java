@@ -14,6 +14,7 @@ import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.peaklistmethods.mymodule.isotopestuff.IsotopePatternCalculator2;
 
 public class Tests {
 
@@ -52,8 +53,8 @@ public class Tests {
 	private static void isotopePatternTest()
 	{
 		String formula = "ClBr";
-		IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(formula, 0.01, 1, PolarityType.NEGATIVE);
-		pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.000904);
+		IsotopePattern pattern = IsotopePatternCalculator2.calculateIsotopePattern(formula, 0.01, 1, PolarityType.NEGATIVE);
+		pattern = IsotopePatternCalculator2.mergeIsotopes(pattern, 0.000904);
 		int size = pattern.getNumberOfDataPoints();
 		System.out.println("size: " + size);
 		DataPoint[] points = pattern.getDataPoints();
@@ -64,6 +65,7 @@ public class Tests {
 			System.out.println(formula + "Peak " + i + ": m/z: " + points[i].getMZ() + "\tI: " + points[i].getIntensity());
 		}
 		System.out.println(getIntensityRatios(pattern));
+		System.out.println(IsotopePatternCalculator2.lastPattern.toString());
 	}
 	
 	private static String getIntensityRatios(IsotopePattern pattern)
