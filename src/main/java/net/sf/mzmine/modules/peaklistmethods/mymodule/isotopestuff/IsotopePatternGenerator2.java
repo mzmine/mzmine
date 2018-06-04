@@ -194,7 +194,6 @@ public class IsotopePatternGenerator2 {
         }
 
         return isotopePattern;
-
     }
 
     /**

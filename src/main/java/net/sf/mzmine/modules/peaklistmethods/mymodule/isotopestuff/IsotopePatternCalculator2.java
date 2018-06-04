@@ -93,6 +93,7 @@ public class IsotopePatternCalculator2 implements MZmineModule {
 
 	for (int i = 0; i < numOfIsotopes; i++) {
 	    IsotopeContainer isotope = pattern.getIsotope(i);
+	    System.out.println(isotope.getFormula().toString());
 	    
 	    //System.out.println(MolecularFormulaManipulator.getString(cdkFormula));
 	    

@@ -17,10 +17,13 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
@@ -297,14 +300,18 @@ public class MyModuleTask extends AbstractTask {
 			comParent = "-IS PARENT-ID: " + parent.getID();
 			addComment(parent, comParent);
 			int parentID = parent.getID(); // = groupedPeaks.get(0).getID();
-
+			
+			DataPoint[] dp = new DataPoint[candidates.length];
+			dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
+			
 			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{
 				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates[k].getRow())));
-				
+
+				dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
 				if(scanType == ScanType.singleAtom)
 				{
-					addComment(parent, "Intensity ratios: 1:" + round(el[k].getExactMass()/el[0].getExactMass(), 2));
+					addComment(parent, "Intensity ratios: " + el[0].getExactMass()/el[0].getExactMass() + ":" + round(el[k].getExactMass()/el[0].getExactMass(), 2));
 					comChild = (/*child.getComment() +*/ 
 							" ParentID:" + parentID
 							+ " Diff. (m/z): " +  round(child.getAverageMZ()-parent.getAverageMZ(), 5)
@@ -333,7 +340,13 @@ public class MyModuleTask extends AbstractTask {
 				resultMap.addRow(child);
 				//resultPeakList.addRow(child);
 			}
-
+			
+			IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED, "Monoisotopic mass: " + parent.getAverageMZ());
+			
+			parent.getBestPeak().setIsotopePattern(resultPattern);
+			for(int j = 1; j < candidates.length; j++)
+				resultMap.getRowByID(candidates[j].getCandID()).getBestPeak().setIsotopePattern(resultPattern);
+			
 			if(isCanceled())
 				return;			
 			

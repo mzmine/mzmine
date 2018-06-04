@@ -58,7 +58,7 @@ public class Tests {
 		int size = pattern.getNumberOfDataPoints();
 		System.out.println("size: " + size);
 		DataPoint[] points = pattern.getDataPoints();
-		System.out.println(pattern.getDescription());
+		//System.out.println(pattern.getDescription());
 
 		for(int i = 0; i<points.length; i++)
 		{
