@@ -1,13 +1,20 @@
-package net.sf.mzmine.modules.peaklistmethods.mymodule;
+package net.sf.mzmine.modules.peaklistmethods.mymodule.tests;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.formula.MolecularFormulaGenerator;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IElement;
 import org.openscience.cdk.interfaces.IIsotope;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -19,37 +26,10 @@ import net.sf.mzmine.modules.peaklistmethods.mymodule.isotopestuff.IsotopePatter
 public class Tests {
 
 	public static void main(String[] args) {
-		System.out.println("Tests");
-		//testIsotope();
-		//test();
-		isotopePatternTest();
+		//testMolFor();
+		exIPT();
 	}
-	
-	private static void testIsotope() {
-		//get isotope information, idk if it works
-		Isotopes ifac;
-		try {
-			ifac = Isotopes.getInstance();
-			IIsotope[] el = ifac.getIsotopes("Gd");
-			el = (IIsotope[]) Arrays.stream(el).filter(i -> i.getNaturalAbundance()>0.1).toArray(IIsotope[]::new);
-			int size = el.length;
-			System.out.println(size);
-			for(IIsotope i : el)
-				System.out.println("mass "+ i.getExactMass() + "   abundance "+i.getNaturalAbundance());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static void test()
-	{
-		ArrayList<Integer> list = new ArrayList<Integer>(3);
 		
-		for(int i = 0; i < 50; i++)
-			list.add(i);
-		System.out.println(list.size() + " last entry: " + list.get(list.size()-1));
-	}
-	
 	private static void isotopePatternTest()
 	{
 		String formula = "ClBr";
@@ -83,5 +63,42 @@ public class Tests {
 	    BigDecimal bd = new BigDecimal(value);
 	    bd = bd.setScale(places, RoundingMode.HALF_UP);
 	    return bd.doubleValue();
+	}
+	
+	public static void testMolFor()
+	{
+		String molecule = "C5Cl2H7";
+		IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+		IMolecularFormula molFor = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(molecule, builder);
+		IMolecularFormula newFor = MolecularFormulaManipulator.getMolecularFormula("C", builder);
+		newFor.removeAllIsotopes();
+		
+		System.out.println(molFor.getIsotopeCount());
+		List<IElement> elements = MolecularFormulaManipulator.elements(molFor);
+		System.out.println(elements.toString());
+		
+		for(IIsotope isotopes : molFor.isotopes())
+		{
+			System.out.println(isotopes.getSymbol());
+			newFor.addIsotope(isotopes, molFor.getIsotopeCount(isotopes)+1);
+		}
+		
+		for(IIsotope isos : newFor.isotopes())
+		{
+			System.out.println(isos.getSymbol() + newFor.getIsotopeCount(isos));
+		}
+	}
+	
+	public static void exIPT()
+	{
+		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
+		//p.addElement("C5");
+		p.addElement("Cl");
+		//p.addElement("Cl");
+		
+		DataPoint[] dps = p.getDataPoints();
+		for(DataPoint dp : dps)
+			System.out.println("mass: " + dp.getMZ() + "\tintensity: " + dp.getIntensity());
+		
 	}
 }

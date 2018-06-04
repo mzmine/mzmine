@@ -242,7 +242,7 @@ public class MyModuleTask extends AbstractTask {
 				continue;
 			}
 			
-			message = "Found enough possible features.";
+//			message = "Found enough possible features.";
 			Candidate[] candidates = new Candidate[diff.size()];
 			for(int a = 0; a < diff.size(); a++)							//resultBuffer[i] index will represent Isotope[i] (if numAtoms = 0)
 				candidates[a] = new Candidate();
@@ -301,17 +301,16 @@ public class MyModuleTask extends AbstractTask {
 			addComment(parent, comParent);
 			int parentID = parent.getID(); // = groupedPeaks.get(0).getID();
 			
-			DataPoint[] dp = new DataPoint[candidates.length];
+			DataPoint[] dp = new DataPoint[candidates.length];	// we need this to add the IsotopePattern later on
 			dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
 			
 			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{
 				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates[k].getRow())));
-
 				dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
 				if(scanType == ScanType.singleAtom)
 				{
-					addComment(parent, "Intensity ratios: " + el[0].getExactMass()/el[0].getExactMass() + ":" + round(el[k].getExactMass()/el[0].getExactMass(), 2));
+					addComment(parent, "Intensity ratios: 1:" + round(el[k].getNaturalAbundance()/el[0].getNaturalAbundance(),2));
 					comChild = (/*child.getComment() +*/ 
 							" ParentID:" + parentID
 							+ " Diff. (m/z): " +  round(child.getAverageMZ()-parent.getAverageMZ(), 5)
@@ -482,14 +481,14 @@ public class MyModuleTask extends AbstractTask {
 			
 			if(!rtTolerance.checkWithinTolerance(rt, r.getAverageRT()) && checkRT)
 				continue;
-			else
-				logger.info("within RT tolerance: parentRow: " + parentIndex + " row: " + i);
+//			else
+//				logger.info("within RT tolerance: parentRow: " + parentIndex + " row: " + i);
 			
 			//if(mzTolerance.checkWithinTolerance(mz + maxDiff, pL[i].getAverageMZ()))
 			if(pL[i].getAverageMZ() > mz && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance()))
 			{
-				logger.info("within MZ tolerance - parentRow: " + parentIndex + " row: " + i);
-					buf.add(pL[i]);
+//				logger.info("within MZ tolerance - parentRow: " + parentIndex + " row: " + i);
+				buf.add(pL[i]);
 			}
 			
 			if(pL[i].getAverageMZ() > (mz + maxDiff))	// since pL is sorted by ascending mass, we can stop now
