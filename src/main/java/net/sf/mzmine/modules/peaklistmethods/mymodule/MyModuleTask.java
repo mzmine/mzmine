@@ -346,7 +346,7 @@ public class MyModuleTask extends AbstractTask {
 	    
 	    
 	    if(resultPeakList.getNumberOfRows() > 1)
-	    	project.addPeakList(resultPeakList);
+	    	addResultToProject(/*resultPeakList*/);
 	    else
 	    	message = "Element not found.";
 	    setStatus(TaskStatus.FINISHED);
@@ -452,13 +452,10 @@ public class MyModuleTask extends AbstractTask {
 	 */
 	private ArrayList<PeakListRow> groupPeaks(PeakListRow[] pL, int parentIndex, double maxDiff)
 	{
-		//TODO: creating a new PeakList would be more elegant, but how do you create an empty one?
 		ArrayList<PeakListRow> buf = new ArrayList<PeakListRow>();
 		
 		buf.add(pL[parentIndex]); //this means the result will contain row(parentIndex) itself
 
-		//double mz = pL.getRow(parentIndex).getAverageMZ();
-		//double rt = pL.getRow(parentIndex).getAverageRT();
 		double mz = pL[parentIndex].getAverageMZ();
 		double rt = pL[parentIndex].getAverageRT();
 		
@@ -494,7 +491,8 @@ public class MyModuleTask extends AbstractTask {
 	   * @param row the row to copy.
 	   * @return the newly created copy.
 	   */
-	private static PeakListRow copyPeakRow(final PeakListRow row) {
+	private static PeakListRow copyPeakRow(final PeakListRow row)
+	{
 		// Copy the peak list row.
 	    final PeakListRow newRow = new SimplePeakListRow(row.getID());
 	    PeakUtils.copyPeakListRowProperties(row, newRow);
@@ -507,7 +505,8 @@ public class MyModuleTask extends AbstractTask {
 	    }
 
 	    return newRow;
-	  }
+	}
+	
 	private static String getIntensityRatios(IsotopePattern pattern)
 	{
 		DataPoint[] dp = pattern.getDataPoints();
@@ -517,6 +516,7 @@ public class MyModuleTask extends AbstractTask {
 		ratios = (ratios.length() > 0) ? ratios.substring(0, ratios.length()-1) : ratios;
 		return 	ratios;
 	}
+	
 	public static double round(double value, int places) { // https://stackoverflow.com/questions/2808535/round-a-double-to-2-decimal-places
 	    if (places < 0) throw new IllegalArgumentException();
 
