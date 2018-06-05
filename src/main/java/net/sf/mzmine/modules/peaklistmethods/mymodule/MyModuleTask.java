@@ -12,24 +12,22 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 import com.google.common.collect.Range;
 
-import dulab.adap.datamodel.Project;
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.PolarityType;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
-import net.sf.mzmine.datamodel.PolarityType;
-import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormula;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -112,6 +110,9 @@ public class MyModuleTask extends AbstractTask {
         polarityType = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
         charge = (charge < 0) ? charge*-1 : charge;
         
+        if(getPeakListPolarity(peakList) != polarityType)
+        	logger.warning("PeakList.polarityType does not match selected polarity. " + getPeakListPolarity(peakList).toString() + "!=" + polarityType.toString());
+        
         if(suffix.equals("auto"))
         	suffix = "_-El/Pat_" + element + "-chRT_" + checkRT + 
         			"-checkInt_"+ checkIntensity + "_results";
@@ -169,8 +170,12 @@ public class MyModuleTask extends AbstractTask {
 	    for(int i = 0; i < totalRows; i++) 
 	    {
 	    // i will represent the index of the row in peakList
-			if(peakList.getRow(i).getPeakIdentities().length > 0)
-				continue;
+			if(peakList.getRow(i).getPeakIdentities().length > 0
+					|| peakList.getRow(i).getRowCharge() != this.charge)
+			{
+				logger.info("Charge of row " + i + " is not " + charge + ".");
+				continue;			
+			}
 			
 			message = "Row " + i + "/" + totalRows;
 			massRange = mzTolerance.getToleranceRange(peakList.getRow(i).getAverageMZ());
@@ -565,6 +570,13 @@ public class MyModuleTask extends AbstractTask {
 	    resultPeakList
 	        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("MyModule", parameters));
 	  }
+	
+	private PolarityType getPeakListPolarity(PeakList peakList)
+	{
+		int[] scans = peakList.getRow(0).getPeaks()[0].getScanNumbers();
+		RawDataFile raw = peakList.getRow(0).getPeaks()[0].getDataFile();
+		return raw.getScan(scans[0]).getPolarity();
+	}
 }
 
 
