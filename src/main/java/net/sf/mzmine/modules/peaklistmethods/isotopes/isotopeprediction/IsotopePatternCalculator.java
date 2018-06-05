@@ -155,7 +155,41 @@ public class IsotopePatternCalculator implements MZmineModule {
 	return newPattern;
 
     }
+    /**
+     * 
+     * @param pattern
+     * @param normalizedValue
+     * @return
+     */
+    public static IsotopePattern normalizeIsotopePattern(
+    	    IsotopePattern pattern, int normPeak, double normalizedValue) {
+    	
+    	DataPoint highestIsotope = pattern.getHighestDataPoint();
+    	DataPoint dataPoints[] = pattern.getDataPoints();
+    	
+    	if(normPeak >= dataPoints.length)
+    		return null;
 
+    	double normIntensity = dataPoints[normPeak].getIntensity();
+
+    	DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
+
+    	for (int i = 0; i < dataPoints.length; i++) {
+
+    	    double mz = dataPoints[i].getMZ();
+    	    double intensity = dataPoints[i].getIntensity() / normIntensity
+    		    * normalizedValue;
+
+    	    newDataPoints[i] = new SimpleDataPoint(mz, intensity);
+    	}
+
+    	SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
+    		newDataPoints, pattern.getStatus(), pattern.getDescription());
+
+    	return newPattern;
+
+        }
+    
     /**
      * Merges the isotopes falling within the given m/z tolerance. If the m/z
      * difference between the isotopes is smaller than mzTolerance, their

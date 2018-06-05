@@ -114,20 +114,15 @@ public class MyModuleTask extends AbstractTask {
         	logger.warning("PeakList.polarityType does not match selected polarity. " + getPeakListPolarity(peakList).toString() + "!=" + polarityType.toString());
         
         if(suffix.equals("auto"))
-        	suffix = "_-El/Pat_" + element + "-chRT_" + checkRT + 
+        	suffix = "_-Pat_" + element + "-chRT_" + checkRT + 
         			"-checkInt_"+ checkIntensity + "_results";
 
-        
         if(dMassLoss != 0.0)
         	scanType = ScanType.neutralLoss;
-
-        if(element.length() > 2)
-        	scanType = ScanType.pattern;
         else
-        	scanType = ScanType.singleAtom;
-        
+        	scanType = ScanType.pattern;
+
         message = "Got paramenters..."; //TODO
-        
     }
 
     /**
@@ -158,7 +153,7 @@ public class MyModuleTask extends AbstractTask {
 			message = "ERROR: could not set up diff.";
 			return;
 		}
-		
+
 	    // get all rows and sort by m/z
 	    PeakListRow[] rows = peakList.getRows();
 	    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
@@ -171,9 +166,9 @@ public class MyModuleTask extends AbstractTask {
 	    {
 	    // i will represent the index of the row in peakList
 			if(peakList.getRow(i).getPeakIdentities().length > 0
-					|| peakList.getRow(i).getRowCharge() != this.charge)
+					/*|| peakList.getRow(i).getRowCharge() != this.charge*/)
 			{
-				logger.info("Charge of row " + i + " is not " + charge + ".");
+				//logger.info("Charge of row " + i + " is not " + charge + ". Charge of row " + i + " is " + peakList.getRow(i).getRowCharge());
 				continue;			
 			}
 			
@@ -302,7 +297,7 @@ public class MyModuleTask extends AbstractTask {
 			resultMap.addRow(parent);	//add results to resultPeakList
 			//int parentIndex = resultPeakList.getNumberOfRows() - 1;
 			
-			comParent = "-IS PARENT-ID: " + parent.getID();
+			comParent =  parent.getID() + "--IS PARENT--";
 			addComment(parent, comParent);
 			int parentID = parent.getID(); // = groupedPeaks.get(0).getID();
 			
@@ -313,11 +308,12 @@ public class MyModuleTask extends AbstractTask {
 			{
 				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates[k].getRow())));
 				dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
+				
 				if(scanType == ScanType.singleAtom)
 				{
 					addComment(parent, "Intensity ratios: 1:" + round(el[k].getNaturalAbundance()/el[0].getNaturalAbundance(),2));
 					comChild = (/*child.getComment() +*/ 
-							" ParentID:" + parentID
+							parentID + "-ParentID"
 							+ " Diff. (m/z): " +  round(child.getAverageMZ()-parent.getAverageMZ(), 5)
 							+ " Diff. (isot)" +  round((candidates[k].getIsotope().getExactMass() - el[0].getExactMass()), 5)
 							+ " A(c)/A(p): " +  round(child.getAverageArea()/parent.getAverageArea(), 2)
@@ -330,8 +326,9 @@ public class MyModuleTask extends AbstractTask {
 				{
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
 					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern));
-					comChild = ("Parent ID: " + parent.getID() + " Diff. (m/z): " + round(child.getAverageMZ() - parent.getAverageMZ(), 5)
-							+ " Diff. (pattern): " +  round(diff.get(k), 5) + " A(c)/A(p): " +  round(child.getAverageArea()/parent.getAverageArea(),2) + " Rating: " +  round(candidates[k].getRating(), 7));
+					comChild = (parent.getID() + "-Parent ID" + " Abbrv.: " + round((child.getAverageMZ() - parent.getAverageMZ()) 
+							- diff.get(k), 7) + " A(c)/A(p): " +  round(child.getAverageHeight()/parent.getAverageHeight(),2) 
+							+ " Rating: " +  round(candidates[k].getRating(), 7));
 					//child.setComment(comChild);
 					addComment(child, comChild);
 				}
@@ -412,6 +409,7 @@ public class MyModuleTask extends AbstractTask {
 		case pattern:
 			pattern = IsotopePatternCalculator.calculateIsotopePattern(element, minAbundance, charge, polarityType);
 			pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0003);
+			pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern, 0, 1.0);
 			DataPoint[] points = pattern.getDataPoints();
 			logger.info("DataPoints in Pattern: " + points.length);
 			for(int i = 0; i < pattern.getNumberOfDataPoints(); i++)

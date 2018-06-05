@@ -26,15 +26,15 @@ import net.sf.mzmine.modules.peaklistmethods.mymodule.isotopestuff.IsotopePatter
 public class Tests {
 
 	public static void main(String[] args) {
-		//testMolFor();
-		exIPT();
+		isotopePatternTest();
+	
 	}
 		
 	private static void isotopePatternTest()
 	{
-		String formula = "ClBr";
-		IsotopePattern pattern = IsotopePatternCalculator2.calculateIsotopePattern(formula, 0.01, 1, PolarityType.NEGATIVE);
-		pattern = IsotopePatternCalculator2.mergeIsotopes(pattern, 0.000904);
+		String formula = "Cl8";
+		IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(formula, 0.1, 1, PolarityType.NEGATIVE);
+		pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.000904);
 		int size = pattern.getNumberOfDataPoints();
 		System.out.println("size: " + size);
 		DataPoint[] points = pattern.getDataPoints();
@@ -45,7 +45,16 @@ public class Tests {
 			System.out.println(formula + "Peak " + i + ": m/z: " + points[i].getMZ() + "\tI: " + points[i].getIntensity());
 		}
 		System.out.println(getIntensityRatios(pattern));
-		System.out.println(IsotopePatternCalculator2.lastPattern.toString());
+		
+		pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern, 1, 1.0);
+		DataPoint[] points2 = pattern.getDataPoints();
+		//System.out.println(pattern.getDescription());
+
+		for(int i = 0; i<points.length; i++)
+		{
+			System.out.println(formula + "Peak " + i + ": m/z: " + points2[i].getMZ() + "\tI: " + points2[i].getIntensity());
+		}
+		System.out.println(getIntensityRatios(pattern));
 	}
 	
 	private static String getIntensityRatios(IsotopePattern pattern)
@@ -53,7 +62,7 @@ public class Tests {
 		DataPoint[] dp = pattern.getDataPoints();
 		String ratios = "";
 		for(int i = 0; i < dp.length; i++)
-			ratios += round((dp[i].getIntensity()/dp[0].getIntensity()), 2) + ":";
+			ratios += round((dp[i].getIntensity()/dp[0].getIntensity()),2) + ":";
 		ratios = (ratios.length() > 0) ? ratios.substring(0, ratios.length()-1) : ratios;
 		return 	ratios;
 	}
