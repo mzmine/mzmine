@@ -110,7 +110,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
 	    		if(dpDescr != null)
 	    			newDpDescr.add(dpDescr.get(i) + "/" + iso.getMassNumber() + iso.getSymbol() );
 	    		else
-	    			newDpDescr.add("/" + iso.getMassNumber() + iso.getSymbol() );
+	    			newDpDescr.add("/" + iso.getMassNumber() + iso.getSymbol());
     		}
     	}
     	
@@ -124,6 +124,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     public void normalizePatternToHighestPeak()
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
+    	updateHighestPeak();
     	double maxIntensity = highestPeak.getIntensity();
     	
     	for(int i = 0; i < dataPoints.size(); i++)
@@ -161,10 +162,10 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     			if(Math.abs(dataPoints.get(i).getMZ() - dataPoints.get(j).getMZ()) < 0.00000001)
     			{
     				double newIntensity = dataPoints.get(i).getIntensity() + dataPoints.get(j).getIntensity();
-    				dataPoints.set(i, new SimpleDataPoint(Math.abs(
+    				dataPoints.set(i, new SimpleDataPoint(
     					( dataPoints.get(i).getMZ() * dataPoints.get(i).getIntensity()
     					+ dataPoints.get(j).getMZ() * dataPoints.get(j).getIntensity() )
-    					/ newIntensity), newIntensity));
+    					/ newIntensity, newIntensity));
     				
     				dataPoints.set(j, null);
     				dpDescr.set(j, null);	//we dont want to merge here since its the !same! peak
@@ -182,7 +183,8 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	dataPoints = newDp;
     	dpDescr = newDpDescr;
     	
-    	updateHighestPeak();
+    	normalizePatternToHighestPeak();
+//    	updateHighestPeak();
     }
     
     public void mergePeaks(double mzTolerance)	// totally based on mergeIsotopes in IsotopePatternCalculator
@@ -211,7 +213,8 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	
     	dataPoints = newDp;
     	
-    	updateHighestPeak();
+    	normalizePatternToHighestPeak();
+//    	updateHighestPeak();
     }
     
     private void mergeDescription(int peak1, int peak2)
@@ -220,7 +223,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	for(int i = 0; i < dpDescr.size(); i++)
     	{
     		if(i==peak1)
-    			newDpDescr.add(dpDescr.get(peak1) + " + " + dpDescr.get(peak2));
+    			newDpDescr.add(dpDescr.get(peak1) + "/ + /" + dpDescr.get(peak2));
     		else if(i == peak2)
     			continue;
     		else
@@ -254,13 +257,15 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	
     	dataPoints = newDp;
     	dpDescr = newDpDescr;
+    	
+    	normalizePatternToHighestPeak();
     }
     /**
      * WANRING: ONLY USE THIS METHOD WHEN YOU'RE DONE AND DONT WANT TO ADD ANY MORE ELEMENTS TO THE PATTERN
      * @param charge
      * @param polarityType
      */
-    private void applyCharge(int charge, PolarityType polarityType)	// totally based on IsotopePatternCalculator
+    public void applyCharge(int charge, PolarityType polarityType)	// totally based on IsotopePatternCalculator
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
     	
@@ -313,6 +318,8 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     			{
     				if(cut[j].equals(isotopes[i].getMassNumber() + symbol))
     					isotopeCount[i]++;
+    				if(cut[j].equals(" + "))
+    					break;
     			}
     			if(isotopeCount[i] != 0)
     				simpleDescr += "^" + isotopes[i].getMassNumber() + symbol + isotopeCount[i] + "_";

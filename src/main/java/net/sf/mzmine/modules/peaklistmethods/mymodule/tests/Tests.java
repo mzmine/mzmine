@@ -26,32 +26,25 @@ import net.sf.mzmine.modules.peaklistmethods.mymodule.isotopestuff.IsotopePatter
 public class Tests {
 
 	public static void main(String[] args) {
-		//isotopePatternTest();
+		
 		exIPT();
+		isotopePatternTest();
 	
 	}
 		
 	private static void isotopePatternTest()
 	{
-		String formula = "Cl8";
+		String formula = "Cl6";
 		IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(formula, 0.1, 1, PolarityType.NEGATIVE);
 		pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.000904);
 		int size = pattern.getNumberOfDataPoints();
 		System.out.println("size: " + size);
-		DataPoint[] points = pattern.getDataPoints();
-		//System.out.println(pattern.getDescription());
-
-		for(int i = 0; i<points.length; i++)
-		{
-			System.out.println(formula + "Peak " + i + ": m/z: " + points[i].getMZ() + "\tI: " + points[i].getIntensity());
-		}
-		System.out.println(getIntensityRatios(pattern));
 		
 		pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern, 1, 1.0);
 		DataPoint[] points2 = pattern.getDataPoints();
 		//System.out.println(pattern.getDescription());
 
-		for(int i = 0; i<points.length; i++)
+		for(int i = 0; i<points2.length; i++)
 		{
 			System.out.println(formula + "Peak " + i + ": m/z: " + points2[i].getMZ() + "\tI: " + points2[i].getIntensity());
 		}
@@ -103,7 +96,8 @@ public class Tests {
 	{
 		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
 		//p.addElement("C5");
-		p.setUpFromFormula("C15", 0.0002);
+		p.setUpFromFormula("Cl6", 0.1);
+		p.applyCharge(1, PolarityType.NEGATIVE);
 		//p.addElement("Cl");
 		
 		DataPoint[] dps = p.getDataPoints();
@@ -114,11 +108,11 @@ public class Tests {
 		System.out.println("-------------------------------------------------------\n"
 						 + "-------------------------MERGE-------------------------\n"
 						 + "-------------------------------------------------------");
-		p.mergePeaks(0.3);
+		//p.mergePeaks(0.3);
 		DataPoint[] dps2 = p.getDataPoints();
 		for(int i = 0; i < dps2.length; i++)
 		{
-			System.out.println("mass: " + dps2[i].getMZ() + "\tintensity: " + dps2[i].getIntensity() + " " + p.getSimplePeakDescription(i)+ "---"+ p.getExplicitPeakDescription(i));
+			System.out.println("mass: " + dps2[i].getMZ() + "\t\tintensity: " + dps2[i].getIntensity() + "\t" + p.getSimplePeakDescription(i)+ "\t---\t"+ p.getExplicitPeakDescription(i));
 		}
 	}
 }
