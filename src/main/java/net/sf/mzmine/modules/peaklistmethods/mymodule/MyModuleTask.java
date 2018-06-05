@@ -405,7 +405,6 @@ public class MyModuleTask extends AbstractTask {
 			for (int i = 0; i < el.length; i++)
 				diff.add(i, el[i].getExactMass() - el[0].getExactMass());	//diff[0] will be 0
 			break;
-			
 		case pattern:
 			pattern = IsotopePatternCalculator.calculateIsotopePattern(element, minAbundance, charge, polarityType);
 			pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0003);
