@@ -26,7 +26,8 @@ import net.sf.mzmine.modules.peaklistmethods.mymodule.isotopestuff.IsotopePatter
 public class Tests {
 
 	public static void main(String[] args) {
-		isotopePatternTest();
+		//isotopePatternTest();
+		exIPT();
 	
 	}
 		
@@ -102,12 +103,22 @@ public class Tests {
 	{
 		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
 		//p.addElement("C5");
-		p.addElement("Cl");
+		p.setUpFromFormula("C15", 0.0002);
 		//p.addElement("Cl");
 		
 		DataPoint[] dps = p.getDataPoints();
-		for(DataPoint dp : dps)
-			System.out.println("mass: " + dp.getMZ() + "\tintensity: " + dp.getIntensity());
-		
+		for(int i = 0; i < dps.length; i++)
+		{
+			System.out.println("mass: " + dps[i].getMZ() + "\tintensity: " + dps[i].getIntensity() + p.getExplicitPeakDescription(i));
+		}
+		System.out.println("-------------------------------------------------------\n"
+						 + "-------------------------MERGE-------------------------\n"
+						 + "-------------------------------------------------------");
+		p.mergePeaks(0.3);
+		DataPoint[] dps2 = p.getDataPoints();
+		for(int i = 0; i < dps2.length; i++)
+		{
+			System.out.println("mass: " + dps2[i].getMZ() + "\tintensity: " + dps2[i].getIntensity() + " " + p.getSimplePeakDescription(i)+ "---"+ p.getExplicitPeakDescription(i));
+		}
 	}
 }
