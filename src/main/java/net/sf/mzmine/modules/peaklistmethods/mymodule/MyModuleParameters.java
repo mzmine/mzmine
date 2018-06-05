@@ -36,14 +36,6 @@ public class MyModuleParameters extends SimpleParameterSet{
     
     public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-    /*public static final ElementsParameter elements = new ElementsParameter(
-	    "Elements", "Elements and ranges");
-
-    public static final OptionalModuleParameter elementalRatios = new OptionalModuleParameter(
-	    "Element count heuristics",
-	    "Restrict formulas by heuristic restrictions of elemental counts and ratios",
-	    new ElementalHeuristicParameters());*/
-
     public static final StringParameter element = new StringParameter("Element pattern", "Element (combibation) whose isotope pattern to be searched for. Please enter the two letter Symbol. (e.g. \"Gd\", Cl2Br)");
     
     public static final PercentParameter minAbundance = new PercentParameter("Minimum abundance", "The minimum abundance (%) of Isotopes. Small values "
@@ -53,7 +45,7 @@ public class MyModuleParameters extends SimpleParameterSet{
     
     public static final BooleanParameter checkIntensity = new BooleanParameter("Check intensity", "Compare intesity of peaks to the natural abundance.");
     
-    public static final DoubleParameter intensityDeviation = new DoubleParameter("Intesity deviation", "Maximum (%) the intensity may deviate from the natural abundance");
+    public static final PercentParameter intensityDeviation = new PercentParameter("Intesity deviation", "Maximum (%) the intensity may deviate from the natural abundance");
     
     public static final DoubleParameter minRating = new DoubleParameter("Minimun rating", "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.95, 0.0, 1.0);
     
