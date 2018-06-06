@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -28,7 +28,7 @@ import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper.tests.ExtendedIsotopePattern;
+import net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.tests.ExtendedIsotopePattern;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -39,7 +39,7 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-public class IsotopePeakGrouperTask extends AbstractTask {
+public class IsotopePeakScannerTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private ParameterSet parameters;
@@ -75,27 +75,27 @@ public class IsotopePeakGrouperTask extends AbstractTask {
      * @param peakListRow
      * @param peak
      */
-    IsotopePeakGrouperTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+    IsotopePeakScannerTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
     	this.parameters = parameters;
     	this.project = project;
         this.peakList = peakList;
         
         mzTolerance = parameters
-                .getParameter(IsotopePeakGrouperParameters.mzTolerance)
+                .getParameter(IsotopePeakScannerParameters.mzTolerance)
                 .getValue();
         rtTolerance = parameters
-                .getParameter(IsotopePeakGrouperParameters.rtTolerance)
+                .getParameter(IsotopePeakScannerParameters.rtTolerance)
                 .getValue();
-        checkIntensity = parameters.getParameter(IsotopePeakGrouperParameters.checkIntensity).getValue();
-        minAbundance = parameters.getParameter(IsotopePeakGrouperParameters.minAbundance).getValue();
-//        intensityDeviation = parameters.getParameter(IsotopePeakGrouperParameters.intensityDeviation).getValue() / 100;
-        element = parameters.getParameter(IsotopePeakGrouperParameters.element).getValue();
-        minRating = parameters.getParameter(IsotopePeakGrouperParameters.minRating).getValue();
-        suffix = parameters.getParameter(IsotopePeakGrouperParameters.suffix).getValue();
-        checkRT = parameters.getParameter(IsotopePeakGrouperParameters.checkRT).getValue();
-        minHeight = parameters.getParameter(IsotopePeakGrouperParameters.minHeight).getValue();
-        dMassLoss = parameters.getParameter(IsotopePeakGrouperParameters.neutralLoss).getValue();
-        charge = parameters.getParameter(IsotopePeakGrouperParameters.charge).getValue();
+        checkIntensity = parameters.getParameter(IsotopePeakScannerParameters.checkIntensity).getValue();
+        minAbundance = parameters.getParameter(IsotopePeakScannerParameters.minAbundance).getValue();
+//        intensityDeviation = parameters.getParameter(IsotopePeakScannerParameters.intensityDeviation).getValue() / 100;
+        element = parameters.getParameter(IsotopePeakScannerParameters.element).getValue();
+        minRating = parameters.getParameter(IsotopePeakScannerParameters.minRating).getValue();
+        suffix = parameters.getParameter(IsotopePeakScannerParameters.suffix).getValue();
+        checkRT = parameters.getParameter(IsotopePeakScannerParameters.checkRT).getValue();
+        minHeight = parameters.getParameter(IsotopePeakScannerParameters.minHeight).getValue();
+        dMassLoss = parameters.getParameter(IsotopePeakScannerParameters.neutralLoss).getValue();
+        charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
         
         polarityType = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
         charge = (charge < 0) ? charge*-1 : charge;
@@ -104,8 +104,8 @@ public class IsotopePeakGrouperTask extends AbstractTask {
         	logger.warning("PeakList.polarityType does not match selected polarity. " + getPeakListPolarity(peakList).toString() + "!=" + polarityType.toString());
         
         if(suffix.equals("auto"))
-        	suffix = "_-Pat_" + element + "-chRT_" + checkRT + 
-        			"-checkInt_"+ checkIntensity + "_results";
+        	suffix = "_-Pat_" + element + "-RT" + checkRT + 
+        			"-Int"+ checkIntensity + "-R" + minRating + "_results";
 
         if(dMassLoss != 0.0)
         	scanType = ScanType.neutralLoss;
@@ -557,7 +557,7 @@ public class IsotopePeakGrouperTask extends AbstractTask {
 
 	    // Add task description to peakList
 	    resultPeakList
-	        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("IsotopePeakGrouper", parameters));
+	        .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("IsotopePeakScanner", parameters));
 	  }
 	
 	private PolarityType getPeakListPolarity(PeakList peakList)

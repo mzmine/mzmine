@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper.tests;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.tests;
 
 import java.io.IOException;
 import java.util.ArrayList;

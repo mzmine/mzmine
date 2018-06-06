@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -20,7 +20,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public class IsotopePeakGrouperParameters extends SimpleParameterSet{
+public class IsotopePeakScannerParameters extends SimpleParameterSet{
 	
 	public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
@@ -55,7 +55,7 @@ public class IsotopePeakGrouperParameters extends SimpleParameterSet{
     public static final IntegerParameter charge = new IntegerParameter("Charge", "Amount and polarity (e.g.: [M+]=+1 / [M-]=-1");
     
     
-    public IsotopePeakGrouperParameters()
+    public IsotopePeakScannerParameters()
     {
     	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss});
     }

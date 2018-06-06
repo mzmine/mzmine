@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
 
 import java.util.ArrayList;
 

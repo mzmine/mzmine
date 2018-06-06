@@ -22,6 +22,7 @@ import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
+import net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.IsotopePeakScannerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringModule;
@@ -63,7 +64,6 @@ import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
-import net.sf.mzmine.modules.peaklistmethods.mymodule.MyModuleModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizerModule;
@@ -177,7 +177,7 @@ public class MZmineModulesList {
       FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
 
       //MYMODULE
-      MyModuleModule.class,
+      IsotopePeakScannerModule.class,
       
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
