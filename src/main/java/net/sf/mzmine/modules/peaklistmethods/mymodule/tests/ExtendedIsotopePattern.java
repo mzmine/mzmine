@@ -68,7 +68,11 @@ public class ExtendedIsotopePattern implements IsotopePattern {
 			e.printStackTrace();
 	    }
     }
-
+    /**
+     * Will create isotope pattern, can be accessed via getDataPoints and getSimple/PreciseDescr.
+     * @param sumFormula
+     * @param minAbundance the minimum abundance of a peak in finished pattern
+     */
    public void setUpFromFormula(String sumFormula, double minAbundance)
     {
     	IMolecularFormula form = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(sumFormula, builder);
@@ -121,6 +125,9 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	normalizePatternToHighestPeak();
     }
     
+    /**
+     * Normalizes max-intensity-peak to 1
+     */
     public void normalizePatternToHighestPeak()
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
@@ -134,7 +141,10 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	
     	updateHighestPeak();
     }
-    
+    /**
+     * Normalizes the whole pattern to peak peakNum.
+     * @param peakNum Index of the peak.
+     */
     public void normalizePatternToPeak(int peakNum)
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
@@ -148,6 +158,9 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	updateHighestPeak();
     }
     
+    /**
+     * Merges duplicate peaks. (35Cl + 37Cl will be merged with 37Cl + 35Cl)
+     */
     private void mergeDuplicates()
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
@@ -186,7 +199,10 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	normalizePatternToHighestPeak();
 //    	updateHighestPeak();
     }
-    
+    /**
+     * Merges peaks withing given mzTolerance.
+     * @param mzTolerance Absolute tolerance range.
+     */
     public void mergePeaks(double mzTolerance)	// totally based on mergeIsotopes in IsotopePatternCalculator
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
@@ -217,6 +233,11 @@ public class ExtendedIsotopePattern implements IsotopePattern {
 //    	updateHighestPeak();
     }
     
+    /**
+     * Merges peak Description. Result will be /37Cl/12C/12C/ + 35Cl/13C/13C/ 
+     * @param peak1
+     * @param peak2
+     */
     private void mergeDescription(int peak1, int peak2)
     {
     	ArrayList<String> newDpDescr = new ArrayList<String>();
@@ -232,6 +253,10 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	dpDescr = newDpDescr;
     }
     
+    /**
+     * Removes peaks below given intensity.  
+     * @param minAbundance Threshold min=0.0, max=1.0
+     */
     private void removePeaksBelowAbundance(double minAbundance)
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
@@ -261,6 +286,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	normalizePatternToHighestPeak();
     }
     /**
+     * Adds polarity and charge 
      * WANRING: ONLY USE THIS METHOD WHEN YOU'RE DONE AND DONT WANT TO ADD ANY MORE ELEMENTS TO THE PATTERN
      * @param charge
      * @param polarityType
@@ -288,13 +314,22 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     		dp[i] = new SimpleDataPoint(dataPoints.get(i));
     	return dp;
     }
-    
+    /**
+     * 
+     * @param peakNum Index of the Peak.
+     * @return Peak description like /37Cl/12C/12C/. If merged then /37Cl/12C/12C/ + 35Cl/13C/13C/ 
+     */
     public String getExplicitPeakDescription(int peakNum)
     {
     	if(dpDescr.size() < peakNum)
     		return null;
     	return dpDescr.get(peakNum);
     }
+    /**
+     * Note: If Peaks werge merged, only the first description will be analyzed. Use getExplicitPeakDescription then.
+     * @param peakNum
+     * @return Peak description such as ^37Cl1_^12C2 or ^35Cl1_^13C2
+     */
     public String getSimplePeakDescription(int peakNum)
     {
     	String descr = getExplicitPeakDescription(peakNum);
@@ -318,7 +353,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     			{
     				if(cut[j].equals(isotopes[i].getMassNumber() + symbol))
     					isotopeCount[i]++;
-    				if(cut[j].equals(" + "))
+    				if(cut[j].equals(" + "))	//maybe description was merged, so dont want to count it double
     					break;
     			}
     			if(isotopeCount[i] != 0)

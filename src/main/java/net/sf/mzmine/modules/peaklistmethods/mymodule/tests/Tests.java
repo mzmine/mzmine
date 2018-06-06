@@ -34,7 +34,7 @@ public class Tests {
 		
 	private static void isotopePatternTest()
 	{
-		String formula = "Cl6";
+		String formula = "C12Cl6";
 		IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(formula, 0.1, 1, PolarityType.NEGATIVE);
 		pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.000904);
 		int size = pattern.getNumberOfDataPoints();
@@ -96,7 +96,7 @@ public class Tests {
 	{
 		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
 		//p.addElement("C5");
-		p.setUpFromFormula("Cl6", 0.1);
+		p.setUpFromFormula("C12Cl6", 0.1);
 		p.applyCharge(1, PolarityType.NEGATIVE);
 		//p.addElement("Cl");
 		
