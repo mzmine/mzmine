@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.mymodule.tests;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper.tests;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,6 +81,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	status = IsotopePatternStatus.PREDICTED;
     	addMolecule(form);
     	removePeaksBelowAbundance(minAbundance);
+    	sortByAscendingMZ();
     }
     
     private void addMolecule(IMolecularFormula molecule)
@@ -104,7 +105,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	{
     		for(IIsotope iso : isotopes)
     		{
-    			if(iso.getNaturalAbundance() < 0.0001)
+    			if(iso.getNaturalAbundance() == 0.0)
     				continue;
     			
 	    		newDp.add(new SimpleDataPoint(dataPoints.get(i).getMZ() + iso.getExactMass(),
@@ -234,7 +235,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     }
     
     /**
-     * Merges peak Description. Result will be /37Cl/12C/12C/ + 35Cl/13C/13C/ 
+     * Merges peak Description. Result will be /37Cl/12C/12C/ + /35Cl/13C/13C 
      * @param peak1
      * @param peak2
      */
@@ -244,7 +245,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	for(int i = 0; i < dpDescr.size(); i++)
     	{
     		if(i==peak1)
-    			newDpDescr.add(dpDescr.get(peak1) + "/ + /" + dpDescr.get(peak2));
+    			newDpDescr.add(dpDescr.get(peak1) + "/ # /" + dpDescr.get(peak2));
     		else if(i == peak2)
     			continue;
     		else
@@ -325,14 +326,37 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     		return null;
     	return dpDescr.get(peakNum);
     }
+    
+    public String getDetailedPeakDescription(int peakNum)
+    {
+    	String[] split = getExplicitPeakDescription(peakNum).split(" # ");
+    	String detailedDescription = "";
+    	
+    	for(String descr : split)
+    	{
+    		detailedDescription += getSimplePeakDescription(peakNum, descr);
+    		if(split.length > 1)
+    			detailedDescription += " + ";
+    	}
+    	
+    	if(split.length > 1)
+    		detailedDescription = detailedDescription.substring(0, detailedDescription.length() - 3);
+    	
+    	return detailedDescription;
+    }
     /**
-     * Note: If Peaks werge merged, only the first description will be analyzed. Use getExplicitPeakDescription then.
+     * Note: If Peaks werge merged, only the first description will be analyzed. Use getDetailedPeakDescription or getExplicitPeakDescription then.
      * @param peakNum
      * @return Peak description such as ^37Cl1_^12C2 or ^35Cl1_^13C2
      */
     public String getSimplePeakDescription(int peakNum)
     {
-    	String descr = getExplicitPeakDescription(peakNum);
+    	return getSimplePeakDescription(peakNum, getExplicitPeakDescription(peakNum));
+    }
+    
+    private String getSimplePeakDescription(int peakNum, String descr)
+    {
+    	//String descr = getExplicitPeakDescription(peakNum);
     	String[] cut = descr.split("/");
     	
     	String simpleDescr = "";
@@ -353,40 +377,39 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     			{
     				if(cut[j].equals(isotopes[i].getMassNumber() + symbol))
     					isotopeCount[i]++;
-    				if(cut[j].equals(" + "))	//maybe description was merged, so dont want to count it double
+    				if(cut[j].equals(" # "))	//maybe description was merged, so dont want to count it double
     					break;
     			}
     			if(isotopeCount[i] != 0 && !(symbol.equals("C") && isotopes[i].getMassNumber() == 12))
-    				simpleDescr += "^" + isotopes[i].getMassNumber() + symbol + isotopeCount[i] + "_";
+    				simpleDescr += "^" + isotopes[i].getMassNumber() + symbol + isotopeCount[i] + " ";
     		}
     	}
     	return simpleDescr;
     }
     
-    public void sortByAscendingMZ()
+    private void sortByAscendingMZ()
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
     	ArrayList<String> newDpDescr = new ArrayList<String>();
     	
-    	for(int i = 0; i < dataPoints.size(); i++)
+    	newDp.add(dataPoints.get(0));
+    	newDpDescr.add(dpDescr.get(0));
+    	
+    	for(int i = 1; i < dataPoints.size(); i++)
     	{
     		for(int j = 0; j < newDp.size(); j++)
     		{
-    			if(newDp.size() < i)
-    			{
-    				newDp.add(dataPoints.get(i));
-    				newDpDescr.add(dpDescr.get(i));
-    			}
-    			else if(dataPoints.get(i).getMZ() > newDp.get(j).getMZ())
+    			if(dataPoints.get(i).getMZ() < newDp.get(j).getMZ())
     			{
     				newDp.add(j, dataPoints.get(i));
     				newDpDescr.add(j, dpDescr.get(i));
+    				break;
     			}
-    			else
+    			else if(j == newDp.size()-1)
     			{
     				newDp.add(dataPoints.get(i));
     				newDpDescr.add(dpDescr.get(i));
-
+    				break;
     			}
     		}
     	}

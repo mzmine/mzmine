@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.mymodule;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper;
 
 import java.util.Collection;
 
@@ -14,7 +14,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class MyModuleModule implements MZmineProcessingModule {
+public class IsotopePeakGrouperModule implements MZmineProcessingModule {
 
     private static final String MODULE_NAME = "MyModule";
     private static final String MODULE_DESCRIPTION = "This method gets the predicted formula for each unknown compound and compares with an isotope pattern";
@@ -30,7 +30,7 @@ public class MyModuleModule implements MZmineProcessingModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return MyModuleParameters.class;
+        return IsotopePeakGrouperParameters.class;
     }
 
     public @Nonnull String getDescription() {
@@ -41,11 +41,11 @@ public class MyModuleModule implements MZmineProcessingModule {
     public @Nonnull ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
         PeakList peakLists[] = parameters
-                .getParameter(MyModuleParameters.PEAK_LISTS)
+                .getParameter(IsotopePeakGrouperParameters.PEAK_LISTS)
                 .getValue().getMatchingPeakLists();
 
         for (PeakList peakList : peakLists) {
-            Task newTask = new MyModuleTask(project, peakList,
+            Task newTask = new IsotopePeakGrouperTask(project, peakList,
                     parameters);
             tasks.add(newTask);
         }

@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.mymodule.tests;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper.tests;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -21,7 +21,6 @@ import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
-import net.sf.mzmine.modules.peaklistmethods.mymodule.isotopestuff.IsotopePatternCalculator2;
 
 public class Tests {
 
@@ -29,7 +28,6 @@ public class Tests {
 		
 		exIPT();
 //		isotopePatternTest();
-	
 	}
 		
 	private static void isotopePatternTest()
@@ -96,29 +94,15 @@ public class Tests {
 	{
 		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
 		//p.addElement("C5");
-		p.setUpFromFormula("Cl3Gd", 0.1);
+		p.setUpFromFormula("C30Cl2", 0.1);
 		p.applyCharge(1, PolarityType.NEGATIVE);
+		p.mergePeaks(1.1);
 		//p.addElement("Cl");
 		
-		DataPoint[] dps = p.getDataPoints();
-		for(int i = 0; i < dps.length; i++)
-		{
-			System.out.println("mass: " + dps[i].getMZ() + "\tintensity: " + dps[i].getIntensity() + p.getExplicitPeakDescription(i));
-		}
-		System.out.println("-------------------------------------------------------\n"
-						 + "-------------------------MERGE-------------------------\n"
-						 + "-------------------------------------------------------");
-		p.mergePeaks(0.3);
 		DataPoint[] dps2 = p.getDataPoints();
 		for(int i = 0; i < dps2.length; i++)
 		{
-			System.out.println("mass: " + dps2[i].getMZ() + "\t\tintensity: " + dps2[i].getIntensity() + "\t" + p.getSimplePeakDescription(i) /*+ "\t---\t"+ p.getExplicitPeakDescription(i)*/);
-		}
-		p.sortByAscendingMZ();
-		DataPoint[] dps3 = p.getDataPoints();
-		for(int i = 0; i < dps3.length; i++)
-		{
-			System.out.println("mass: " + dps3[i].getMZ() + "\t\tintensity: " + dps3[i].getIntensity() + "\t" + p.getSimplePeakDescription(i) /*+ "\t---\t"+ p.getExplicitPeakDescription(i)*/);
+			System.out.println("mass: " + dps2[i].getMZ() + "\t\tintensity: " + dps2[i].getIntensity() + "\t" + p.getSimplePeakDescription(i) + "\t---\t"+ p.getDetailedPeakDescription(i));
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.mymodule;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper;
 
 import java.util.ArrayList;
 
@@ -60,7 +60,7 @@ public class Candidate {
 	 * will check if parentMZ + diffMZ is close to candMZ 
 	 * @return true if candMZ is a better fit
 	 */
-	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum, double maxDeviation, double minRating, boolean checkIntensity)
+	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum, double minRating, boolean checkIntensity)
 	{			
 		double parentMZ = pL.get(parentindex).getAverageMZ();
 		double candMZ = pL.get(candindex).getAverageMZ();
@@ -69,24 +69,15 @@ public class Candidate {
 		double tempRating = candMZ / (parentMZ + mzDiff);
 		double intensAcc = 0;
 		
-		if(tempRating > 1.0) // 0.99 and 1.01 should be comparable
-		{
-			tempRating -= 1.0; 
-			tempRating = 1 - tempRating;
-		}
+		if(tempRating > 1.0) // 0.99 and 1.01 should be comparable 
+			tempRating = 1 / tempRating;
 		
 		if(checkIntensity)
 		{
 			intensAcc = calcIntensityAccuracy(pL, parentindex, candindex, isotopes, isotopenum);
 					
 			if(intensAcc > 1.0) // 0.99 and 1.01 should be comparable
-			{
-				intensAcc -= 1.0;
-				intensAcc = 1 - intensAcc;
-			}
-			
-			if(intensAcc < (1 - maxDeviation))
-				return false;
+				intensAcc = 1 / intensAcc;
 		}
 		
 		if(intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0)
@@ -120,7 +111,7 @@ public class Candidate {
 		return ( (idealIntensity * parent.getAverageArea()) / cand.getAverageArea() );
 	}
 	
-	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IsotopePattern pattern, int peakNum, double maxDeviation, double minRating, boolean checkIntensity)
+	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IsotopePattern pattern, int peakNum, double minRating, boolean checkIntensity)
 	{			
 		double parentMZ = pL.get(parentindex).getAverageMZ();
 		double candMZ = pL.get(candindex).getAverageMZ();
@@ -131,28 +122,18 @@ public class Candidate {
 		double intensAcc = 0;
 		
 		if(tempRating > 1.0) // 0.99 and 1.01 should be comparable
-		{
-			tempRating -= 1.0; 
-			tempRating = 1 - tempRating;
-		}
+			tempRating = 1 / tempRating;
 		
 		if(checkIntensity)
 		{
 			intensAcc = calcIntensityAccuracy_Pattern(pL, parentindex, candindex, points[0], points[peakNum]);
 					
 			if(intensAcc > 1.0) // 0.99 and 1.01 should be comparable
-			{
-				intensAcc -= 1.0;
-				intensAcc = 1 - intensAcc;
-			}
-			
-			//if(intensAcc < (1 - maxDeviation))
-				//return false;
+				intensAcc = 1 / intensAcc;
 		}
 		
 		if(intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0)
 		{
-			
 			Logger.debug("ERROR: tempRating or deviation > 1 or < 0.\ttempRating: " + tempRating + "\tintensAcc: " + intensAcc);  // TODO: can you do this without creating a new logger?
 			return false; 
 		}

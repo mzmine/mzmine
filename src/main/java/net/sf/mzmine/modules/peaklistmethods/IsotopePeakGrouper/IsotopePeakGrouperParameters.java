@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.mymodule;
+package net.sf.mzmine.modules.peaklistmethods.IsotopePeakGrouper;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -20,7 +20,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public class MyModuleParameters extends SimpleParameterSet{
+public class IsotopePeakGrouperParameters extends SimpleParameterSet{
 	
 	public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
@@ -44,9 +44,7 @@ public class MyModuleParameters extends SimpleParameterSet{
     public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "Minimum peak height to be considered as an isotope peak.", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
     
     public static final BooleanParameter checkIntensity = new BooleanParameter("Check intensity", "Compare intesity of peaks to the natural abundance.");
-    
-    public static final PercentParameter intensityDeviation = new PercentParameter("Intesity deviation", "Maximum (%) the intensity may deviate from the natural abundance");
-    
+        
     public static final DoubleParameter minRating = new DoubleParameter("Minimun rating", "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.95, 0.0, 1.0);
     
     public static final StringParameter suffix =
@@ -57,8 +55,8 @@ public class MyModuleParameters extends SimpleParameterSet{
     public static final IntegerParameter charge = new IntegerParameter("Charge", "Amount and polarity (e.g.: [M+]=+1 / [M-]=-1");
     
     
-    public MyModuleParameters()
+    public IsotopePeakGrouperParameters()
     {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, charge, minAbundance, minHeight, checkIntensity, minRating, intensityDeviation, suffix, neutralLoss});
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss});
     }
 }
