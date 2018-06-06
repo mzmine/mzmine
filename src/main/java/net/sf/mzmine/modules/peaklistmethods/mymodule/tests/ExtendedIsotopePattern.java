@@ -356,11 +356,44 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     				if(cut[j].equals(" + "))	//maybe description was merged, so dont want to count it double
     					break;
     			}
-    			if(isotopeCount[i] != 0)
+    			if(isotopeCount[i] != 0 && !(symbol.equals("C") && isotopes[i].getMassNumber() == 12))
     				simpleDescr += "^" + isotopes[i].getMassNumber() + symbol + isotopeCount[i] + "_";
     		}
     	}
     	return simpleDescr;
+    }
+    
+    public void sortByAscendingMZ()
+    {
+    	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
+    	ArrayList<String> newDpDescr = new ArrayList<String>();
+    	
+    	for(int i = 0; i < dataPoints.size(); i++)
+    	{
+    		for(int j = 0; j < newDp.size(); j++)
+    		{
+    			if(newDp.size() < i)
+    			{
+    				newDp.add(dataPoints.get(i));
+    				newDpDescr.add(dpDescr.get(i));
+    			}
+    			else if(dataPoints.get(i).getMZ() > newDp.get(j).getMZ())
+    			{
+    				newDp.add(j, dataPoints.get(i));
+    				newDpDescr.add(j, dpDescr.get(i));
+    			}
+    			else
+    			{
+    				newDp.add(dataPoints.get(i));
+    				newDpDescr.add(dpDescr.get(i));
+
+    			}
+    		}
+    	}
+    	dataPoints = newDp;
+    	dpDescr = newDpDescr;
+    	
+    	updateHighestPeak();
     }
 
     @Override

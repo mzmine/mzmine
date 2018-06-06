@@ -28,19 +28,19 @@ public class Tests {
 	public static void main(String[] args) {
 		
 		exIPT();
-		isotopePatternTest();
+//		isotopePatternTest();
 	
 	}
 		
 	private static void isotopePatternTest()
 	{
-		String formula = "C12Cl6";
+		String formula = "C12Cl6Gd";
 		IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(formula, 0.1, 1, PolarityType.NEGATIVE);
 		pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.000904);
 		int size = pattern.getNumberOfDataPoints();
 		System.out.println("size: " + size);
 		
-		pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern, 1, 1.0);
+		pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern);
 		DataPoint[] points2 = pattern.getDataPoints();
 		//System.out.println(pattern.getDescription());
 
@@ -96,7 +96,7 @@ public class Tests {
 	{
 		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
 		//p.addElement("C5");
-		p.setUpFromFormula("C12Cl6", 0.1);
+		p.setUpFromFormula("Cl3Gd", 0.1);
 		p.applyCharge(1, PolarityType.NEGATIVE);
 		//p.addElement("Cl");
 		
@@ -108,11 +108,17 @@ public class Tests {
 		System.out.println("-------------------------------------------------------\n"
 						 + "-------------------------MERGE-------------------------\n"
 						 + "-------------------------------------------------------");
-		//p.mergePeaks(0.3);
+		p.mergePeaks(0.3);
 		DataPoint[] dps2 = p.getDataPoints();
 		for(int i = 0; i < dps2.length; i++)
 		{
-			System.out.println("mass: " + dps2[i].getMZ() + "\t\tintensity: " + dps2[i].getIntensity() + "\t" + p.getSimplePeakDescription(i)+ "\t---\t"+ p.getExplicitPeakDescription(i));
+			System.out.println("mass: " + dps2[i].getMZ() + "\t\tintensity: " + dps2[i].getIntensity() + "\t" + p.getSimplePeakDescription(i) /*+ "\t---\t"+ p.getExplicitPeakDescription(i)*/);
+		}
+		p.sortByAscendingMZ();
+		DataPoint[] dps3 = p.getDataPoints();
+		for(int i = 0; i < dps3.length; i++)
+		{
+			System.out.println("mass: " + dps3[i].getMZ() + "\t\tintensity: " + dps3[i].getIntensity() + "\t" + p.getSimplePeakDescription(i) /*+ "\t---\t"+ p.getExplicitPeakDescription(i)*/);
 		}
 	}
 }
