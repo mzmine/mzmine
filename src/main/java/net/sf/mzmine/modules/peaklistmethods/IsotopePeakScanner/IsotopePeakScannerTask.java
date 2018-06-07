@@ -397,7 +397,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 //			pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0003);
 //			pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern, 0, 1.0);
 			pattern = new ExtendedIsotopePattern();
-			pattern.setUpFromFormula(element, minAbundance);
+			pattern.setUpFromFormula(element, minAbundance, minAbundance * 100);
 			pattern.mergePeaks(0.00015);
 			pattern.normalizePatternToPeak(0);
 			pattern.applyCharge(charge, polarityType);

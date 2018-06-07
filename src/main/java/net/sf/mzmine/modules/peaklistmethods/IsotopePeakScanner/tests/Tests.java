@@ -94,9 +94,9 @@ public class Tests {
 	{
 		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
 		//p.addElement("C5");
-		p.setUpFromFormula("C30Cl2", 0.1);
+		p.setUpFromFormula("Gd2", 0.001, 0.01);
 		p.applyCharge(1, PolarityType.NEGATIVE);
-		p.mergePeaks(1.1);
+		p.mergePeaks(0.001);
 		//p.addElement("Cl");
 		
 		DataPoint[] dps2 = p.getDataPoints();
