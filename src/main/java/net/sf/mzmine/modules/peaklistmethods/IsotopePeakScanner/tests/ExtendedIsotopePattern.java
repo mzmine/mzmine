@@ -102,14 +102,14 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	IIsotope[] isotopes = ifac.getIsotopes(element.getSymbol());
     	for(int i = 0; i < count; i++)	//add each element "count" times to the pattern
     		addIsotopes(isotopes);
-    	System.out.println(element.getSymbol() + "added");
+//    	System.out.println(element.getSymbol() + "added");
     }
     
     private void addIsotopes(IIsotope[] isotopes)
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
     	ArrayList<String> newDpDescr = new ArrayList<String>();
-    	int size = dataPoints.size();
+    
     	for(int i = 0; i < dataPoints.size(); i++)	//add every isotope to every data point
     	{
     		for(IIsotope iso : isotopes)

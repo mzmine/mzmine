@@ -53,6 +53,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
     private String element, suffix;
     private MZTolerance mzTolerance;
     private RTTolerance rtTolerance;
+    private double minPatternIntensity;
+    private double mergeFWHM;
     private String message;
     private int totalRows, finishedRows;
     private PeakList resultPeakList;
@@ -89,6 +91,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         checkIntensity = parameters.getParameter(IsotopePeakScannerParameters.checkIntensity).getValue();
         minAbundance = parameters.getParameter(IsotopePeakScannerParameters.minAbundance).getValue();
 //        intensityDeviation = parameters.getParameter(IsotopePeakScannerParameters.intensityDeviation).getValue() / 100;
+        mergeFWHM = parameters.getParameter(IsotopePeakScannerParameters.mergeFWHM).getValue();
+        minPatternIntensity = parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity).getValue();
         element = parameters.getParameter(IsotopePeakScannerParameters.element).getValue();
         minRating = parameters.getParameter(IsotopePeakScannerParameters.minRating).getValue();
         suffix = parameters.getParameter(IsotopePeakScannerParameters.suffix).getValue();
@@ -327,6 +331,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				}
 				resultMap.addRow(child);
 				//resultPeakList.addRow(child);
+
 			}
 			
 			IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED, "Monoisotopic mass: " + parent.getAverageMZ());
@@ -397,8 +402,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
 //			pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0003);
 //			pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern, 0, 1.0);
 			pattern = new ExtendedIsotopePattern();
-			pattern.setUpFromFormula(element, minAbundance, minAbundance * 100);
-			pattern.mergePeaks(0.00015);
+			pattern.setUpFromFormula(element, minAbundance, minPatternIntensity); //TODO: introduce intensity
+			pattern.mergePeaks(mergeFWHM);
 			pattern.normalizePatternToPeak(0);
 			pattern.applyCharge(charge, polarityType);
 			

@@ -43,6 +43,10 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
     
     public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "Minimum peak height to be considered as an isotope peak.", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
     
+    public static final DoubleParameter mergeFWHM = new DoubleParameter("Merge FWHM(m/z)", " Full width at half maximun of the relevant peaks.\nThis will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum.\n", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0003);
+   
+    public static final DoubleParameter minPatternIntensity = new DoubleParameter("Min. pattern intensity", "The minimum intensity of a peak in the final calculated isotope pattern. Depends on the sensitivity of you MS.\nMin = 0.0, Max = 0.99...", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.01, 0.0, 0.99999);
+    
     public static final BooleanParameter checkIntensity = new BooleanParameter("Check intensity", "Compare intesity of peaks to the natural abundance.");
         
     public static final DoubleParameter minRating = new DoubleParameter("Minimun rating", "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.95, 0.0, 1.0);
@@ -57,6 +61,6 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
     
     public IsotopePeakScannerParameters()
     {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss});
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, minPatternIntensity, mergeFWHM, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss});
     }
 }
