@@ -65,7 +65,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
     private PolarityType polarityType;
     private int charge;
     
-    private enum ScanType {singleAtom, neutralLoss, pattern};
+    private enum ScanType {neutralLoss, pattern};
     ScanType scanType;
     private double dMassLoss;
     IIsotope[] el;    
@@ -180,9 +180,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			//else
 			//	logger.info("groupedPeaks.size > 2 in row: " + i + " size: " + groupedPeaks.size());
 
-			ResultBuffer[] resultBuffer = new ResultBuffer[diff.size()];//this will store row indexes of all features with fitting rt and mz		
+			ResultBuffer[] resultBuffer = new ResultBuffer[diff.size()];	//this will store row indexes of all features with fitting rt and mz		
 			for(int a = 0; a < diff.size(); a++)							//resultBuffer[i] index will represent Isotope[i] (if numAtoms = 0)
-				resultBuffer[a] = new ResultBuffer();					//[0] will be the isotope with lowest mass#
+				resultBuffer[a] = new ResultBuffer();						//[0] will be the isotope with lowest mass#
 
 			for(int j = 0; j < groupedPeaks.size(); j++)	// go through all possible peaks
 			{
@@ -192,17 +192,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			// k represents the isotope number the peak will be a candidate for
 					if(mzTolerance.checkWithinTolerance(groupedPeaks.get(0).getAverageMZ() + diff.get(k), groupedPeaks.get(j).getAverageMZ()))
 					{
-						if(scanType == ScanType.singleAtom)
-						{
-							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
-							//logger.info("Main peak (m/z)" +						"\tElement" + 		 "\tIsotope num" + "\tIsotope mass" + 				"\tPeak mass" + 					"\tAbbrevieation(m/z)");
-							//logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + el[k].getSymbol() +"\t"+ k  +"\t\t"+ el[k].getExactMass()	+	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
-
-							resultBuffer[k].addFound(); //+1 result for isotope k
-							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
-							resultBuffer[k].addID(groupedPeaks.get(j).getID());
-						}
-						else if(scanType == ScanType.pattern)
+						if(scanType == ScanType.pattern)
 						{
 							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
 							//logger.info("Main peak (m/z)" +						"\tPattern" + 		 "\tPeak num" +		"\tPeak mass" + 					"\tAbbrevieation(m/z)");
@@ -243,17 +233,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				{
 		// k represents index resultBuffer[k] and thereby the isotope number
 		// l represents the number of results in resultBuffer[k]
-					if(scanType == ScanType.singleAtom)
-					{
-						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), el, k, minRating, checkIntensity))
-						{
-						//	logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
-						//		groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
-						//		"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
-							
-						}
-					}
-					else if(scanType == ScanType.pattern)
+					if(scanType == ScanType.pattern)
 					{
 						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, minRating, checkIntensity))
 						{
@@ -299,20 +279,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates[k].getRow())));
 				dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
 				
-				if(scanType == ScanType.singleAtom)
-				{
-					addComment(parent, "Intensity ratios: 1:" + round(el[k].getNaturalAbundance()/el[0].getNaturalAbundance(),2));
-					comChild = (/*child.getComment() +*/ 
-							parentID + "-ParentID"
-							+ " Diff. (m/z): " +  round(child.getAverageMZ()-parent.getAverageMZ(), 5)
-							+ " Diff. (isot)" +  round((candidates[k].getIsotope().getExactMass() - el[0].getExactMass()), 5)
-							+ " A(c)/A(p): " +  round(child.getAverageArea()/parent.getAverageArea(), 2)
-							+ " Rating: " +  round(candidates[k].getRating(), 7));
-					
-					//child.setComment(comChild);
-					addComment(child, comChild);
-				}
-				else if(scanType == ScanType.pattern)
+				if(scanType == ScanType.pattern)
 				{
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
 					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern) + " Identity: " + pattern.getDetailedPeakDescription(0));
@@ -385,18 +352,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
 		
 		switch(scanType)
 		{
-		case singleAtom:			
-			el = getIsotopes(element);
-			if(el == null)
-			{
-				logger.info("Error setting up isotope information. el == null.");
-				return null;
-			}
-		
-			//calc differences in isotope masses, i'm assuming [0] has lowest and [n] highest mass
-			for (int i = 0; i < el.length; i++)
-				diff.add(i, el[i].getExactMass() - el[0].getExactMass());	//diff[0] will be 0
-			break;
 		case pattern:
 //			pattern = IsotopePatternCalculator.calculateIsotopePattern(element, minAbundance, charge, polarityType);
 //			pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0003);
