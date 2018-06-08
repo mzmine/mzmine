@@ -113,7 +113,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	for(int i = 0; i < dataPoints.size(); i++)	//add every isotope to every data point
     	{
     		for(IIsotope iso : isotopes)
-    		{		// when adding new isotopes intensitys only get smaller, so we can to this here to avoid useless calculation
+    		{		// when adding new isotopes intensities only get smaller, so we can to this here to avoid useless calculation
     			if(iso.getNaturalAbundance() < minAbundance || ((iso.getNaturalAbundance() / 100) * dataPoints.get(i).getIntensity()) < minIntensity)
     				continue;
     			
@@ -217,58 +217,41 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     public void mergePeaks(double mzTolerance)	// totally based on mergeIsotopes in IsotopePatternCalculator
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
-    	int mergeCount = 0;
+    	ArrayList<String> newDpDescr = new ArrayList<String>();
+
+    	sortByAscendingMZ();
     	    	
     	for(int i = 0; i < dataPoints.size()-1; i++)
     	{
     		if(Math.abs(dataPoints.get(i).getMZ() - dataPoints.get(i+1).getMZ()) < mzTolerance)
     		{
-    			System.out.println("dp.size: " + dataPoints.size() + " descr.size: " + dpDescr.size());
-    			System.out.println("about to merge peaks: " + i + " " + dataPoints.get(i).getMZ() + " " + dataPoints.get(i+1).getMZ());
-    			System.out.println("descriptions: " + getDetailedPeakDescription(i) + " + " + getDetailedPeakDescription(i+1));
+//    			System.out.println("dp.size: " + dataPoints.size() + " descr.size: " + dpDescr.size());
+//    			System.out.println("about to merge peaks: " + i + " " + dataPoints.get(i).getMZ() + " " + dataPoints.get(i+1).getMZ());
+//    			System.out.println("descriptions: " + getDetailedPeakDescription(i) + " + " + getDetailedPeakDescription(i+1));
     			
     			double newIntensity = dataPoints.get(i).getIntensity() + dataPoints.get(i+1).getIntensity();
-    			//newDp.add(new SimpleDataPoint(dataPoints.get(index)))
     			dataPoints.set(i+1, new SimpleDataPoint( 
     					Math.abs(( dataPoints.get(i).getMZ() * dataPoints.get(i).getIntensity()
     					+ dataPoints.get(i+1).getMZ() * dataPoints.get(i+1).getIntensity() )
     					/ newIntensity), newIntensity)); // set it to i+1 first, we might have to merge more than one Peak
     			dataPoints.set(i, null);
     			
-    			//TODO: this crashes when merging more than one peak, move that function here
-    			mergeDescription(i, i+1);
-    			mergeCount++;
+    			dpDescr.set(i+1, dpDescr.get(i) + " # " + dpDescr.get(i+1));
+    			dpDescr.set(i, null);
     		}
     	}
     	
     	for(int i = 0; i < dataPoints.size(); i++)
     		if(dataPoints.get(i) != null)
+    		{
     			newDp.add(dataPoints.get(i));
+    			newDpDescr.add(dpDescr.get(i));
+    		}
     	
     	dataPoints = newDp;
+    	dpDescr = newDpDescr;
     	
     	normalizePatternToHighestPeak();
-//    	updateHighestPeak();
-    }
-    
-    /**
-     * Merges peak Description. Result will be /37Cl/12C/12C/ + /35Cl/13C/13C 
-     * @param peak1
-     * @param peak2
-     */
-    private void mergeDescription(int peak1, int peak2)
-    {
-    	ArrayList<String> newDpDescr = new ArrayList<String>();
-    	for(int i = 0; i < dpDescr.size(); i++)
-    	{
-    		if(i==peak1)
-    			newDpDescr.add(dpDescr.get(peak1) + "/ # /" + dpDescr.get(peak2));
-    		else if(i == peak2)
-    			continue;
-    		else
-    			newDpDescr.add(dpDescr.get(i));
-    	}
-    	dpDescr = newDpDescr;
     }
     
     /**
