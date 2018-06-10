@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import org.apache.poi.ss.formula.functions.Rows;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IIsotope;
 
@@ -22,6 +23,7 @@ import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -109,7 +111,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         
         if(suffix.equals("auto"))
         	suffix = "_-Pat_" + element + "-RT" + checkRT + 
-        			"-Int"+ checkIntensity + "-R" + minRating + "_results";
+        			"-INT"+ checkIntensity + "-R" + minRating + "_results";
 
         if(dMassLoss != 0.0)
         	scanType = ScanType.neutralLoss;
@@ -353,13 +355,12 @@ public class IsotopePeakScannerTask extends AbstractTask {
 		switch(scanType)
 		{
 		case pattern:
-//			pattern = IsotopePatternCalculator.calculateIsotopePattern(element, minAbundance, charge, polarityType);
-//			pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0003);
-//			pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern, 0, 1.0);
+
 			pattern = new ExtendedIsotopePattern();
-			pattern.setUpFromFormula(element, minAbundance, minPatternIntensity); //TODO: introduce intensity
-			pattern.mergePeaks(mergeFWHM);
+			pattern.setUpFromFormula(element, minAbundance, mergeFWHM,minPatternIntensity);
+			//pattern.mergePeaks(mergeFWHM);
 			pattern.normalizePatternToPeak(0);
+			pattern.print();
 			pattern.applyCharge(charge, polarityType);
 			
 			DataPoint[] points = pattern.getDataPoints();
@@ -525,6 +526,95 @@ public class IsotopePeakScannerTask extends AbstractTask {
 		int[] scans = peakList.getRow(0).getPeaks()[0].getScanNumbers();
 		RawDataFile raw = peakList.getRow(0).getPeaks()[0].getDataFile();
 		return raw.getScan(scans[0]).getPolarity();
+	}
+	
+	private double[] getAvgPeakHeights(PeakList pL, int[] ID, double minHeight)
+	{
+		PeakListHandler plh = new PeakListHandler();
+		plh.setUp(pL);
+		
+		PeakListRow[] rows = plh.getRowsByID(ID);
+		
+		RawDataFile[] raws = rows[0].getRawDataFiles();
+		
+		if(raws.length< 1)
+			return null;
+		
+		double[] mzs = new double[ID.length];  
+		
+		for(int i = 0; i < rows.length; i++)
+			mzs[i] = rows[i].getAverageMZ();
+		
+		double[] avgHeights = new double[ID.length];
+		int pointsAdded = 0;
+		
+		for(RawDataFile raw : raws)
+		{
+			
+			if(!raw.getDataMZRange().contains(rows[0].getAverageMZ()))
+				continue;
+			
+			int[] scanNums = raw.getScanNumbers();
+			
+			for(int i = 0; i < scanNums.length; i++)
+			{
+				Scan scan = raw.getScan(scanNums[i]);
+				
+				if(!scanContainsEveryMZ(scan, mzs, minHeight))
+					continue;
+				
+				for(int j = 0; j < mzs.length; j++)
+				{
+					DataPoint dp = getClosestDataPoint(scan.getDataPointsByMass(mzTolerance.getToleranceRange(mzs[j])), rows[j].getAverageMZ(), minHeight);
+					avgHeights[j] += dp.getIntensity();
+					pointsAdded++;
+				}
+			}
+		}
+		
+		for(int i = 0; i < avgHeights.length; i++)
+			avgHeights[i] /= (pointsAdded/mzs.length);
+				
+		return avgHeights;
+	}
+	
+	private DataPoint getClosestDataPoint(DataPoint[] dp, double mz, double minHeight)
+	{
+		if(dp == null || dp[0] == null)
+			return null;
+		
+		DataPoint n = dp[0];
+		
+		for(DataPoint p : dp)
+			if(Math.abs(p.getMZ() - mz) < Math.abs(mz - n.getMZ()) && p.getIntensity() > minHeight)
+				n = p;
+		
+		return n;
+	}
+	/**
+	 * 
+	 * @param scan
+	 * @param mz
+	 * @return true if the scan contains dataPoints in every Scan
+	 */
+	private boolean scanContainsEveryMZ(Scan scan, double [] mz, double minHeight)
+	{
+		for(int i = 0; i < mz.length; i++)
+		{
+			DataPoint[] dps = scan.getDataPointsByMass(mzTolerance.getToleranceRange(mz[i]));
+			if(dps.length < 1)
+				return false;
+			
+			boolean aboveMinHeight = false;
+			
+			for(DataPoint p : dps)
+				if(p.getIntensity() > minHeight)
+					aboveMinHeight = true;
+			
+			if(!aboveMinHeight)
+				return false;
+		}
+		return true;
 	}
 }
 

@@ -55,4 +55,13 @@ public class PeakListHandler {
 	{
 		return map.get(ID);
 	}
+	public PeakListRow[] getRowsByID(int ID[])
+	{
+		PeakListRow[] rows = new PeakListRow[ID.length];
+		
+		for(int i = 0; i < ID.length; i++)
+			rows[i] = map.get(ID[i]);
+		
+		return rows;
+	}
 }

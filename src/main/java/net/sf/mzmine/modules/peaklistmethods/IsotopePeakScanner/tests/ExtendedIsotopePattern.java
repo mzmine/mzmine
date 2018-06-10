@@ -78,7 +78,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
      * @param minAbundance minimum abundance to be used to calculate the pattern 0.0-1.0
      * @param minIntensity the minimum intensity of a peak in finished pattern
      */
-   public void setUpFromFormula(String sumFormula, double minAbundance, double minIntensity)
+   public void setUpFromFormula(String sumFormula, double minAbundance, double mzMerge, double minIntensity)
     {
     	IMolecularFormula form = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(sumFormula, builder);
     	description = sumFormula;
@@ -87,6 +87,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	this.minIntensity = minIntensity;
     	status = IsotopePatternStatus.PREDICTED;
     	addMolecule(form);
+    	mergePeaks(mzMerge);
     	removePeaksBelowAbundance(minIntensity);
     	sortByAscendingMZ();
     }
@@ -483,5 +484,9 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     public DataPoint[] getDataPointsOverIntensity(double intensity) {
 	throw new UnsupportedOperationException();
     }
-
+    public void print()
+    {
+    	for(int i = 0; i < dataPoints.size(); i++)
+    		System.out.println("mass: " + dataPoints.get(i).getMZ() + "\t\tintensity: " + dataPoints.get(i).getIntensity() + "\t" + getDetailedPeakDescription(i));
+    }
 }
