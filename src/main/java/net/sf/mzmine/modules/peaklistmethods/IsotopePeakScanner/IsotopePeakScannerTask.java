@@ -384,33 +384,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
 		return diff;
 	}
 	
-	private IIsotope[] getIsotopes(String isotope)
-	{
-		message = "Getting isotope information for element " + element;
-		Isotopes ifac;// = Isotopes.getInstance();
-		
-		IIsotope[] el;
-		try {
-			ifac = Isotopes.getInstance();
-			el = ifac.getIsotopes(element);
-			el = (IIsotope[]) Arrays.stream(el).filter(i -> i.getNaturalAbundance()>minAbundance).toArray(IIsotope[]::new);
-			int size = el.length;
-			System.out.println(size);
-			for(IIsotope i : el)
-				System.out.println("mass "+ i.getExactMass() + "   abundance "+i.getNaturalAbundance());
-			
-			logger.info(size + " isotopes for " + element);
-			for(IIsotope i : el)
-				logger.info("mass: "+ i.getExactMass() + "\tabundance: "+i.getNaturalAbundance());
-			
-			return el;
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
 	/**
 	 * 
 	 * @param pL
