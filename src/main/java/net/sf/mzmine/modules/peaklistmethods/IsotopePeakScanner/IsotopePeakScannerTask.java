@@ -297,12 +297,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			DataPoint[] dp = new DataPoint[candidates.length];	// we need this to add the IsotopePattern later on
 			dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
 			
-			int[] ids = new int[diff.size()];
-			ids[0] = parent.getID();
-			for(int k= 1; k < diff.size(); k++)
-				ids[k] = candidates[k].getCandID();
-			
-			double[] avgIntens = getAvgPeakHeights(plh, ids, minHeight);
+			double[] avgIntens = null;
+			if(avgIntensity) 
+			{
+				int[] ids = new int[diff.size()];
+				ids[0] = parent.getID();
+				for(int k= 1; k < diff.size(); k++)
+					ids[k] = candidates[k].getCandID();
+				avgIntens = getAvgPeakHeights(plh, ids, minHeight);
+			}
 			
 			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{
@@ -311,13 +314,17 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				
 				if(scanType == ScanType.pattern)
 				{
+					String average = "";
+					if(avgIntensity)
+						average = " AvgIntensity: " + avgIntens[k] + " AvgRating: " + candidates[k].recalcRatingWithAvgIntensities(groupedPeaks, 0, candidates[k].getRow(), pattern, k, avgIntens);
+					
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
 					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern) + " Identity: " + pattern.getDetailedPeakDescription(0));
 					comChild = (parent.getID() + "-Parent ID" + " m/z-shift: " + round((child.getAverageMZ() - parent.getAverageMZ()) 
 							- diff.get(k), 7) + " A(c)/A(p): " +  round(child.getAverageHeight()/parent.getAverageHeight(),2)
 							+ " Identity: " + pattern.getDetailedPeakDescription(k)
 							+ " Rating: " +  round(candidates[k].getRating(), 7)
-							+ "AvgIntensity: " + avgIntens[k]);
+							+ average);
 					//child.setComment(comChild);
 					addComment(child, comChild);
 				}

@@ -48,7 +48,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
     
     public static final DoubleParameter mergeFWHM = new DoubleParameter("Merge FWHM(m/z)", " Full width at half maximun of the relevant peaks.\nThis will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum.\n", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0003, 0.000001, 10.0);
    
-    public static final DoubleParameter minPatternIntensity = new DoubleParameter("Min. pattern intensity", "The minimum intensity of a peak in the final calculated isotope pattern. Depends on the sensitivity of you MS.\nMin = 0.0, Max = 0.99...", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.01, 0.0, 0.99999);
+    public static final DoubleParameter minPatternIntensity = new DoubleParameter("Min. pattern intensity", "The minimum intensity of a peak in the final calculated isotope pattern. Depends on the sensitivity of your MS.\nMin = 0.0, Max = 0.99...", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.01, 0.0, 0.99999);
     
     public static final BooleanParameter checkIntensity = new BooleanParameter("Check intensity", "Compare intesity of peaks to the natural abundance.");
         

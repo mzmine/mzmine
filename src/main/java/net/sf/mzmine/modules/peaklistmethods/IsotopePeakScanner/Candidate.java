@@ -10,19 +10,12 @@ import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakListRow;
 
 public class Candidate {
-	private IIsotope isotope; //only used for single atom patterns
+
 	private int peakNum; // only used for patterns, temporary use only TODO
 	private int row, candID; //row represents index in groupedPeaks list, candID is ID in original PeakList
 	private int parentID;
 	private double rating;
-	
-	
-	public IIsotope getIsotope() {
-		return isotope;
-	}
-	public void setIsotope(IIsotope isotope) {
-		this.isotope = isotope;
-	}
+
 	/**
 	 * 
 	 * @return row in groupedPeaks
@@ -44,62 +37,6 @@ public class Candidate {
 	}
 	public void setCandID(int candID) {
 		this.candID = candID;
-	}
-	
-	
-	public double calcIntensityAccuracy(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum)
-	{
-		PeakListRow parent = pL.get(parentindex);
-		PeakListRow cand = pL.get(candindex);
-		
-		double idealIntensity = isotopes[isotopenum].getNaturalAbundance() / isotopes[0].getNaturalAbundance();
-		//TODO sth seems to be wrong here
-		return ( (idealIntensity * parent.getAverageArea()) / cand.getAverageArea() );
-	}
-	/**
-	 * will check if parentMZ + diffMZ is close to candMZ 
-	 * @return true if candMZ is a better fit
-	 */
-	public boolean checkForBetterRating(ArrayList<PeakListRow> pL, int parentindex, int candindex, IIsotope[] isotopes, int isotopenum, double minRating, boolean checkIntensity)
-	{			
-		double parentMZ = pL.get(parentindex).getAverageMZ();
-		double candMZ = pL.get(candindex).getAverageMZ();
-		double mzDiff = isotopes[isotopenum].getExactMass() - isotopes[0].getExactMass();
-		
-		double tempRating = candMZ / (parentMZ + mzDiff);
-		double intensAcc = 0;
-		
-		if(tempRating > 1.0) // 0.99 and 1.01 should be comparable 
-			tempRating = 1 / tempRating;
-		
-		if(checkIntensity)
-		{
-			intensAcc = calcIntensityAccuracy(pL, parentindex, candindex, isotopes, isotopenum);
-					
-			if(intensAcc > 1.0) // 0.99 and 1.01 should be comparable
-				intensAcc = 1 / intensAcc;
-		}
-		
-		if(intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0)
-		{
-			Logger.debug("ERROR: tempRating or deviation > 1 or < 0.\ttempRating: " + tempRating + "\tintensAcc: " + intensAcc);  // TODO: can you do this without creating a new logger?
-			return false;
-		}
-		
-		if(checkIntensity)
-			tempRating = intensAcc * tempRating;
-		
-		if(tempRating > rating && tempRating >= minRating)
-		{
-			rating = tempRating;
-			
-			this.setParentID(parentindex);
-			this.setRow(candindex);
-			this.setCandID(pL.get(candindex).getID());
-			this.setIsotope(isotopes[isotopenum]);
-			return true;
-		}
-		return false;
 	}
 	
 	public double calcIntensityAccuracy_Pattern(ArrayList<PeakListRow> pL, int parentindex, int candindex, DataPoint pParent, DataPoint pChild)
@@ -212,8 +149,8 @@ public class Candidate {
 		
 		tempRating = intensAcc * tempRating;
 		
-		rating = tempRating;
-		return rating;
+		//rating = tempRating;
+		return tempRating;
 	}
 	
 	private double calcIntensityAccuracy_Avg(double iParent, double iChild, DataPoint pParent, DataPoint pChild)
@@ -230,8 +167,8 @@ public class Candidate {
 	Candidate()
 	{
 		row = 0;
+		candID = 0;
 		parentID = 0;
 		rating = 0.0;
-		//isotope = 0;
 	}
 }
