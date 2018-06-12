@@ -13,11 +13,13 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 import com.google.common.collect.Range;
 
+import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -66,6 +68,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
     private ExtendedIsotopePattern pattern;
     private PolarityType polarityType;
     private int charge;
+    private boolean avgIntensity;
+    private String massListName;
     
     private enum ScanType {neutralLoss, pattern};
     ScanType scanType;
@@ -102,6 +106,14 @@ public class IsotopePeakScannerTask extends AbstractTask {
         minHeight = parameters.getParameter(IsotopePeakScannerParameters.minHeight).getValue();
         dMassLoss = parameters.getParameter(IsotopePeakScannerParameters.neutralLoss).getValue();
         charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
+        avgIntensity = parameters.getParameter(IsotopePeakScannerParameters.massList).getValue();
+        massListName = parameters.getParameter(IsotopePeakScannerParameters.massList).getEmbeddedParameter().getValue();
+        
+        if(avgIntensity == true && checkIntensity == false)
+        {
+        	
+        	avgIntensity = false;
+        }
         
         polarityType = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
         charge = (charge < 0) ? charge*-1 : charge;
@@ -153,10 +165,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
 	    // get all rows and sort by m/z
 	    PeakListRow[] rows = peakList.getRows();
 	    Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+	    
+	    PeakListHandler plh = new PeakListHandler();
+	    plh.setUp(peakList);
 	    //totalRows = rows.length;
 	    
 	    resultPeakList = new SimplePeakList(peakList.getName() + suffix, peakList.getRawDataFiles());
-	    PeakListHandler resultMap = new PeakListHandler(); 
+	    PeakListHandler resultMap = new PeakListHandler();
 	    
 	    for(int i = 0; i < totalRows; i++) 
 	    {
@@ -165,6 +180,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					/*|| peakList.getRow(i).getRowCharge() != this.charge*/)
 			{
 				//logger.info("Charge of row " + i + " is not " + charge + ". Charge of row " + i + " is " + peakList.getRow(i).getRowCharge());
+				finishedRows++;
 				continue;			
 			}
 			
@@ -178,7 +194,10 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			//logger.info("Row: " + i + "\tgroupedPeaks.size(): " + groupedPeaks.size());
 			
 			if(groupedPeaks.size() < 2)
+			{
+				finishedRows++;
 				continue;
+			}
 			//else
 			//	logger.info("groupedPeaks.size > 2 in row: " + i + " size: " + groupedPeaks.size());
 
@@ -220,6 +239,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			
 			if(!checkIfAllTrue(resultBuffer))	// this means that for every isotope we expected to find, we found one or more possible features
 			{
+				finishedRows++;
 				//logger.info("Not enough possible features were added to resultBuffer.");
 				continue;
 			}
@@ -258,6 +278,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			
 			if(!checkIfAllTrue(candidates))
 			{ 
+				finishedRows++;
 				//logger.info("Not enough valid candidates for parent feature " + groupedPeaks.get(0).getAverageMZ() + "\talthough enough peaks were found.") ;
 				continue;	// jump to next i
 			}
@@ -276,6 +297,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			DataPoint[] dp = new DataPoint[candidates.length];	// we need this to add the IsotopePattern later on
 			dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
 			
+			int[] ids = new int[diff.size()];
+			ids[0] = parent.getID();
+			for(int k= 1; k < diff.size(); k++)
+				ids[k] = candidates[k].getCandID();
+			
+			double[] avgIntens = getAvgPeakHeights(plh, ids, minHeight);
+			
 			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{
 				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates[k].getRow())));
@@ -285,10 +313,11 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				{
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
 					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern) + " Identity: " + pattern.getDetailedPeakDescription(0));
-					comChild = (parent.getID() + "-Parent ID" + " Abbrv.: " + round((child.getAverageMZ() - parent.getAverageMZ()) 
+					comChild = (parent.getID() + "-Parent ID" + " m/z-shift: " + round((child.getAverageMZ() - parent.getAverageMZ()) 
 							- diff.get(k), 7) + " A(c)/A(p): " +  round(child.getAverageHeight()/parent.getAverageHeight(),2)
 							+ " Identity: " + pattern.getDetailedPeakDescription(k)
-							+ " Rating: " +  round(candidates[k].getRating(), 7));
+							+ " Rating: " +  round(candidates[k].getRating(), 7)
+							+ "AvgIntensity: " + avgIntens[k]);
 					//child.setComment(comChild);
 					addComment(child, comChild);
 				}
@@ -501,11 +530,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
 		return raw.getScan(scans[0]).getPolarity();
 	}
 	
-	private double[] getAvgPeakHeights(PeakList pL, int[] ID, double minHeight)
-	{
-		PeakListHandler plh = new PeakListHandler();
-		plh.setUp(pL);
-		
+	private double[] getAvgPeakHeights(PeakListHandler plh, int[] ID, double minHeight)
+	{		
 		PeakListRow[] rows = plh.getRowsByID(ID);
 		
 		RawDataFile[] raws = rows[0].getRawDataFiles();
@@ -533,16 +559,31 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			{
 				Scan scan = raw.getScan(scanNums[i]);
 				
-				if(!scanContainsEveryMZ(scan, mzs, minHeight))
+				MassList list = scan.getMassList(massListName);
+				
+				if(!massListContainsEveryMZ(list, mzs, minHeight))
 					continue;
+				
+//				if(!scanContainsEveryMZ(scan, mzs, minHeight))
+//					continue;
 				
 				for(int j = 0; j < mzs.length; j++)
 				{
-					DataPoint dp = getClosestDataPoint(scan.getDataPointsByMass(mzTolerance.getToleranceRange(mzs[j])), rows[j].getAverageMZ(), minHeight);
+					DataPoint[] points = scan.getDataPointsByMass(mzTolerance.getToleranceRange(mzs[j])); //TODO: DP from massList
+					
+					if(points.length == 0)
+						continue;
+					
+					DataPoint dp = getClosestDataPoint(points, rows[j].getAverageMZ(), minHeight);
 					avgHeights[j] += dp.getIntensity();
 					pointsAdded++;
 				}
 			}
+		}
+		
+		if(!(pointsAdded%mzs.length==0))
+		{
+			throw new MSDKRuntimeException("points added not devisable by mzs.length");
 		}
 		
 		for(int i = 0; i < avgHeights.length; i++)
@@ -553,13 +594,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
 	
 	private DataPoint getClosestDataPoint(DataPoint[] dp, double mz, double minHeight)
 	{
-		if(dp == null || dp[0] == null)
+		if(dp == null || dp[0] == null || dp.length == 0)
 			return null;
 		
 		DataPoint n = dp[0];
 		
 		for(DataPoint p : dp)
-			if(Math.abs(p.getMZ() - mz) < Math.abs(mz - n.getMZ()) && p.getIntensity() > minHeight)
+			if(Math.abs(p.getMZ() - mz) < Math.abs(mz - n.getMZ()) && p.getIntensity() >= minHeight)
 				n = p;
 		
 		return n;
@@ -581,9 +622,36 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			boolean aboveMinHeight = false;
 			
 			for(DataPoint p : dps)
-				if(p.getIntensity() > minHeight)
+				if(p.getIntensity() >= minHeight)
 					aboveMinHeight = true;
 			
+			if(!aboveMinHeight)
+				return false;
+		}
+		return true;
+	}
+	
+	private boolean massListContainsEveryMZ(MassList list, double[] mz, double minHeight)
+	{
+		DataPoint[] dps = list.getDataPoints();
+		if(dps.length < 1)
+			return false;
+
+		for(int i = 0; i < mz.length; i++)
+		{
+			boolean aboveMinHeight = false;
+			
+			for(DataPoint p : dps)
+			{
+				if(p.getMZ() < (mz[i] - 0.1)) //TODO: maybe make this not hard coded?
+					continue;
+				if(p.getMZ() > (mz[i] + 0.1))
+					break;
+
+				if(p.getIntensity() >= minHeight && mzTolerance.checkWithinTolerance(p.getMZ(), mz[i]))
+					aboveMinHeight = true;
+			}
+
 			if(!aboveMinHeight)
 				return false;
 		}

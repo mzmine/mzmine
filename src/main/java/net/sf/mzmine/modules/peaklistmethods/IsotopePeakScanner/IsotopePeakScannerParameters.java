@@ -4,6 +4,7 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import net.sf.mzmine.parameters.Parameter;
@@ -12,8 +13,10 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
@@ -58,9 +61,12 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
     
     public static final IntegerParameter charge = new IntegerParameter("Charge", "Amount and polarity (e.g.: [M+]=+1 / [M-]=-1");
     
+    //public static final BooleanParameter avgIntensity = new BooleanParameter("Average Intensity", "Use avg Intensity to calculate final rating.");
     
-    public IsotopePeakScannerParameters()
-    {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, minPatternIntensity, mergeFWHM, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss});
+    public static final OptionalParameter<MassListParameter> massList = new OptionalParameter<MassListParameter>(new MassListParameter("Average Intensity", "Please select a mass list.\nThis method will use averaged intensitys over all scans the relevant masses were detected in. This will only be done for peaks that match the defined rating-calculation with the given rating."));
+    
+    
+    public IsotopePeakScannerParameters() {
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, minPatternIntensity, mergeFWHM, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss, massList});
     }
 }
