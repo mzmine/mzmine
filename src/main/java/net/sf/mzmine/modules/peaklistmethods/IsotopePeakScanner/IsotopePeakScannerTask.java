@@ -109,6 +109,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
         avgIntensity = parameters.getParameter(IsotopePeakScannerParameters.massList).getValue();
         massListName = parameters.getParameter(IsotopePeakScannerParameters.massList).getEmbeddedParameter().getValue();
         
+        
+       /* RawDataFile[] raws = peakList.getRawDataFiles();
+        Scan scan = raws[0].getScan(1);
+        MassList[] lists = scan.getMassLists();
+        for(MassList list : lists)
+        	System.out.println("MassList: " + list.getName());
+        if(!peakList.getRawDataFiles()[0].getScan(0).getMassLists().toString().contains(massListName))
+        	throw new MSDKRuntimeException("massList " + massListName + " not within: " + peakList.getRawDataFiles()[0].getScan(0).getMassLists().toString());*/
+        
         if(avgIntensity == true && checkIntensity == false)
         {
         	
@@ -245,9 +254,12 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			}
 			
 //			message = "Found enough possible features.";
-			Candidate[] candidates = new Candidate[diff.size()];
-			for(int a = 0; a < diff.size(); a++)							//resultBuffer[i] index will represent Isotope[i] (if numAtoms = 0)
-				candidates[a] = new Candidate();
+			
+			Candidates candidates = new Candidates(diff.size(), minHeight, mzTolerance, pattern, massListName);
+			
+			//Candidate[] candidates = new Candidate[diff.size()];
+//			for(int a = 0; a < diff.size(); a++)							//resultBuffer[i] index will represent Isotope[i] (if numAtoms = 0)
+//				candidates[a] = new Candidate();
 			
 			for(int k = 0; k < resultBuffer.length; k++) // reminder: resultBuffer.length = diff.size()
 			{
@@ -257,7 +269,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 		// l represents the number of results in resultBuffer[k]
 					if(scanType == ScanType.pattern)
 					{
-						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, minRating, checkIntensity))
+						if(candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, minRating, checkIntensity))
 						{
 						//	logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
 						//			groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
@@ -266,7 +278,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					}
 					else if(scanType == ScanType.neutralLoss)
 					{
-						if(candidates[k].checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), diff.get(k), minRating))
+						if(candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), diff.get(k), minRating))
 						{
 						//	logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
 						//			groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
@@ -276,7 +288,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				}
 			}
 			
-			if(!checkIfAllTrue(candidates))
+			if(!checkIfAllTrue(candidates.getCandidates()))
 			{ 
 				finishedRows++;
 				//logger.info("Not enough valid candidates for parent feature " + groupedPeaks.get(0).getAverageMZ() + "\talthough enough peaks were found.") ;
@@ -286,44 +298,45 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			
 			String comParent = "", comChild = "";
 			PeakListRow parent = copyPeakRow(peakList.getRow(i));
-			//resultPeakList.addRow(parent);
 			resultMap.addRow(parent);	//add results to resultPeakList
-			//int parentIndex = resultPeakList.getNumberOfRows() - 1;
 			
 			comParent =  parent.getID() + "--IS PARENT--";
 			addComment(parent, comParent);
-			int parentID = parent.getID(); // = groupedPeaks.get(0).getID();
 			
-			DataPoint[] dp = new DataPoint[candidates.length];	// we need this to add the IsotopePattern later on
+			DataPoint[] dp = new DataPoint[candidates.size()];	// we need this to add the IsotopePattern later on
 			dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
 			
 			double[] avgIntens = null;
 			if(avgIntensity) 
 			{
-				int[] ids = new int[diff.size()];
+				/*int[] ids = new int[diff.size()];
 				ids[0] = parent.getID();
 				for(int k= 1; k < diff.size(); k++)
-					ids[k] = candidates[k].getCandID();
-				avgIntens = getAvgPeakHeights(plh, ids, minHeight);
+					ids[k] = candidates.get(k).getCandID();
+				avgIntens = getAvgPeakHeights(plh, ids, minHeight);*/
+				
+				candidates.calcAvgRating(plh);
 			}
 			
-			for(int k = 1; k < candidates.length; k++) //we skip k=0 because == groupedPeaks[0] which we added before
+			for(int k = 1; k < candidates.size(); k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{
-				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates[k].getRow())));
+				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates.get(k).getRow())));
 				dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
 				
 				if(scanType == ScanType.pattern)
 				{
 					String average = "";
 					if(avgIntensity)
-						average = " AvgIntensity: " + avgIntens[k] + " AvgRating: " + candidates[k].recalcRatingWithAvgIntensities(groupedPeaks, 0, candidates[k].getRow(), pattern, k, avgIntens);
+					{
+						average = " AvgIntensity: " + candidates.getAvgHeight(k) + " AvgRating: " + candidates.getAvgRating(k);
+					}
 					
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
 					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern) + " Identity: " + pattern.getDetailedPeakDescription(0));
 					comChild = (parent.getID() + "-Parent ID" + " m/z-shift: " + round((child.getAverageMZ() - parent.getAverageMZ()) 
 							- diff.get(k), 7) + " A(c)/A(p): " +  round(child.getAverageHeight()/parent.getAverageHeight(),2)
 							+ " Identity: " + pattern.getDetailedPeakDescription(k)
-							+ " Rating: " +  round(candidates[k].getRating(), 7)
+							+ " Rating: " +  round(candidates.get(k).getRating(), 7)
 							+ average);
 					//child.setComment(comChild);
 					addComment(child, comChild);
@@ -331,7 +344,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				else if(scanType == ScanType.neutralLoss)
 				{
 					comChild = ("Parent ID: " + parent.getID() + " Diff(m/z): " + round(child.getAverageMZ() - parent.getAverageMZ(), 5)
-					+ "Diff (calc): " + round(diff.get(k), 5) + " Rating: " + round(candidates[k].getRating(), 7));
+					+ "Diff (calc): " + round(diff.get(k), 5) + " Rating: " + round(candidates.get(k).getRating(), 7));
 					addComment(child, comChild);
 				}
 				resultMap.addRow(child);
@@ -342,8 +355,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED, "Monoisotopic mass: " + parent.getAverageMZ());
 			
 			parent.getBestPeak().setIsotopePattern(resultPattern);
-			for(int j = 1; j < candidates.length; j++)
-				resultMap.getRowByID(candidates[j].getCandID()).getBestPeak().setIsotopePattern(resultPattern);
+			for(int j = 1; j < candidates.size(); j++)
+				resultMap.getRowByID(candidates.get(j).getCandID()).getBestPeak().setIsotopePattern(resultPattern);
 			
 			if(isCanceled())
 				return;			

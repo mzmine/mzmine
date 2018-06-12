@@ -12,25 +12,26 @@ import net.sf.mzmine.datamodel.PeakListRow;
 public class Candidate {
 
 	private int peakNum; // only used for patterns, temporary use only TODO
-	private int row, candID; //row represents index in groupedPeaks list, candID is ID in original PeakList
-	private int parentID;
+	private int rowNum, candID; //row represents index in groupedPeaks list, candID is ID in original PeakList
 	private double rating;
+	private double mz;
+	private double height;
+	private PeakListRow row;
+	
 
 	/**
 	 * 
 	 * @return row in groupedPeaks
 	 */
+	public double getMZ()
+	{
+		return mz;
+	}
 	public int getRow() {
-		return row;
+		return rowNum;
 	}
-	public void setRow(int row) {
-		this.row = row;
-	}
-	public int getParentID() {
-		return parentID;
-	}
-	public void setParentID(int parentID) {
-		this.parentID = parentID;
+	public void setRowNum(int rowNum) {
+		this.rowNum = rowNum;
 	}
 	public int getCandID() {
 		return candID;
@@ -81,9 +82,12 @@ public class Candidate {
 		if(tempRating > rating && tempRating >= minRating)
 		{
 			rating = tempRating;
+
+			row = pL.get(candindex);
+			mz = row.getAverageMZ();
+			height = row.getAverageHeight();
 			
-			this.setParentID(parentindex);
-			this.setRow(candindex);
+			this.setRowNum(candindex);
 			this.setCandID(pL.get(candindex).getID());
 			//this.setIsotope(isotopes[isotopenum]);
 			return true;
@@ -115,18 +119,20 @@ public class Candidate {
 		{
 			rating = tempRating;
 			
-			this.setParentID(parentindex);
-			this.setRow(candindex);
+			row = pL.get(candindex);
+			mz = row.getAverageMZ();
+			height = row.getAverageHeight();
+
+			this.setRowNum(candindex);
 			this.setCandID(pL.get(candindex).getID());
 			return true;
 		}
 		return false;
 	}
 	
-	public double recalcRatingWithAvgIntensities(ArrayList<PeakListRow> pL, int parentindex, int candindex, IsotopePattern pattern, int peakNum, double[] avgIntensity)
+	public double recalcRatingWithAvgIntensities(double parentMZ, IsotopePattern pattern, int peakNum, double[] avgIntensity) // TODO no pL here!
 	{
-		double parentMZ = pL.get(parentindex).getAverageMZ();
-		double candMZ = pL.get(candindex).getAverageMZ();
+		double candMZ = this.mz;
 		DataPoint[] points = pattern.getDataPoints();
 		double mzDiff = points[peakNum].getMZ() - points[0].getMZ();
 		
@@ -166,9 +172,8 @@ public class Candidate {
 
 	Candidate()
 	{
-		row = 0;
+		rowNum = 0;
 		candID = 0;
-		parentID = 0;
 		rating = 0.0;
 	}
 }

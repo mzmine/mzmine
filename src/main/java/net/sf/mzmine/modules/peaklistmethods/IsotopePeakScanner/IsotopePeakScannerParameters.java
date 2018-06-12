@@ -46,7 +46,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
     
     public static final DoubleParameter minHeight = new DoubleParameter("Minimum height", "Minimum peak height to be considered as an isotope peak.", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
     
-    public static final DoubleParameter mergeFWHM = new DoubleParameter("Merge FWHM(m/z)", " Full width at half maximun of the relevant peaks.\nThis will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum.\n", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0003, 0.000001, 10.0);
+    public static final DoubleParameter mergeFWHM = new DoubleParameter("Merge FWHM(m/z)", " Full width at half maximun of the relevant peaks.\nThis will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum.\n", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0005, 0.00001, 10.0);
    
     public static final DoubleParameter minPatternIntensity = new DoubleParameter("Min. pattern intensity", "The minimum intensity of a peak in the final calculated isotope pattern. Depends on the sensitivity of your MS.\nMin = 0.0, Max = 0.99...", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.01, 0.0, 0.99999);
     
@@ -64,7 +64,6 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
     //public static final BooleanParameter avgIntensity = new BooleanParameter("Average Intensity", "Use avg Intensity to calculate final rating.");
     
     public static final OptionalParameter<MassListParameter> massList = new OptionalParameter<MassListParameter>(new MassListParameter("Average Intensity", "Please select a mass list.\nThis method will use averaged intensitys over all scans the relevant masses were detected in. This will only be done for peaks that match the defined rating-calculation with the given rating."));
-    
     
     public IsotopePeakScannerParameters() {
     	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, minPatternIntensity, mergeFWHM, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss, massList});
