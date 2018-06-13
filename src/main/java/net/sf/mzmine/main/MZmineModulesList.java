@@ -50,6 +50,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipids
 import net.sf.mzmine.modules.peaklistmethods.identification.ms2search.Ms2SearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportModule;
@@ -175,7 +176,7 @@ public class MZmineModulesList {
       CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
       AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
       GPLipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
-      FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
+      FormulaPredictionPeakListModule.class, Ms2SearchModule.class, SiriusProcessingModule.class,
 
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
