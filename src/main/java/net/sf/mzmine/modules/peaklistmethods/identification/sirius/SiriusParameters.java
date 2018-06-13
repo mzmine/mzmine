@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.modules.peaklistmethods.identification.sirius.elements.ElementsParameter;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -49,6 +50,9 @@ public class SiriusParameters extends SimpleParameterSet {
 
 	public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
+	public static final ElementsParameter ELEMENTS = new ElementsParameter(
+			"Elements", "Elements and ranges");
+
 	public static final OptionalModuleParameter ISOTOPE_FILTER = new OptionalModuleParameter(
 			"Isotope pattern filter",
 			"Search only for compounds with a isotope pattern similar",
@@ -59,6 +63,7 @@ public class SiriusParameters extends SimpleParameterSet {
 		PARENT_MASS,
 		MAX_RESULTS,
 		MZ_TOLERANCE,
+		ELEMENTS,
 		ISOTOPE_FILTER });
     }
 

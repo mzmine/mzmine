@@ -36,8 +36,8 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class SiriusProcessingModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Sirius super guy";
-  private static final String MODULE_DESCRIPTION = "This module attempts to find a better life.";
+  private static final String MODULE_NAME = "Sirius";
+  private static final String MODULE_DESCRIPTION = "Sirius identification method.";
 
   @Override
   public @Nonnull

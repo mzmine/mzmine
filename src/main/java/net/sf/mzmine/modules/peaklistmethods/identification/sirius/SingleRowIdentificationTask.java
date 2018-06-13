@@ -18,11 +18,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import static net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.SingleRowIdentificationParameters.DATABASE;
-import static net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.SingleRowIdentificationParameters.ISOTOPE_FILTER;
-import static net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.SingleRowIdentificationParameters.MAX_RESULTS;
-import static net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.SingleRowIdentificationParameters.MZ_TOLERANCE;
-import static net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.SingleRowIdentificationParameters.NEUTRAL_MASS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ELEMENTS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MZ_TOLERANCE;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ISOTOPE_FILTER;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MAX_RESULTS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.PARENT_MASS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.NEUTRAL_MASS;
 
 import java.text.NumberFormat;
 import java.util.logging.Level;
@@ -42,6 +43,7 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.FormulaUtils;
+import org.openscience.cdk.formula.MolecularFormulaRange;
 
 public class SingleRowIdentificationTask extends AbstractTask {
 
@@ -61,6 +63,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private boolean isotopeFilter = false;
   private ParameterSet isotopeFilterParameters;
   private DBGateway gateway;
+  private MolecularFormulaRange formulaRange;
+  private Double parentMass;
 
   /**
    * Create the task.
@@ -89,6 +93,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     isotopeFilter = parameters.getParameter(ISOTOPE_FILTER).getValue();
     isotopeFilterParameters = parameters.getParameter(ISOTOPE_FILTER).getEmbeddedParameters();
+    formulaRange = parameters.getParameter(ELEMENTS).getValue();
+    parentMass = parameters.getParameter(PARENT_MASS).getValue();
 
   }
 
