@@ -19,8 +19,10 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import java.io.IOException;
 import net.sf.mzmine.datamodel.IonizationType;
-import net.sf.mzmine.modules.peaklistmethods.identification.sirius.elements.ElementsParameter;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
+import net.sf.mzmine.modules.peaklistmethods.identification.sirius.elements.IsotopeConstants;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -31,6 +33,9 @@ import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.formula.MolecularFormulaRange;
 
 public class SiriusParameters extends SimpleParameterSet {
 
@@ -52,6 +57,9 @@ public class SiriusParameters extends SimpleParameterSet {
 
 	public static final ElementsParameter ELEMENTS = new ElementsParameter(
 			"Elements", "Elements and ranges");
+	static {
+	  setDefaultCompounds();
+  }
 
 	public static final OptionalModuleParameter ISOTOPE_FILTER = new OptionalModuleParameter(
 			"Isotope pattern filter",
@@ -65,6 +73,24 @@ public class SiriusParameters extends SimpleParameterSet {
 		MZ_TOLERANCE,
 		ELEMENTS,
 		ISOTOPE_FILTER });
+    }
+
+    private static void setDefaultCompounds() {
+      MolecularFormulaRange range = new MolecularFormulaRange();
+      try {
+        IsotopeFactory iFac = Isotopes.getInstance();
+        range.addIsotope(iFac.getMajorIsotope("S"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MAX);
+        range.addIsotope(iFac.getMajorIsotope("F"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MIN);
+        range.addIsotope(iFac.getMajorIsotope("B"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MIN);
+        range.addIsotope(iFac.getMajorIsotope("I"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MIN);
+        range.addIsotope(iFac.getMajorIsotope("Br"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MIN);
+        range.addIsotope(iFac.getMajorIsotope("Se"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MIN);
+        range.addIsotope(iFac.getMajorIsotope("Cl"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MIN);
+      } catch (IOException e) {
+        //TODO: throw analogue of MSDKException?
+        e.printStackTrace();
+      }
+      ELEMENTS.setValue(range);
     }
 
 }
