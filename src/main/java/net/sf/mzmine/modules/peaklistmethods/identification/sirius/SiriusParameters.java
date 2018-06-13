@@ -78,6 +78,11 @@ public class SiriusParameters extends SimpleParameterSet {
       MolecularFormulaRange range = new MolecularFormulaRange();
       try {
         IsotopeFactory iFac = Isotopes.getInstance();
+        range.addIsotope(iFac.getMajorIsotope("C"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MAX);
+        range.addIsotope(iFac.getMajorIsotope("H"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MAX);
+        range.addIsotope(iFac.getMajorIsotope("N"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MAX);
+        range.addIsotope(iFac.getMajorIsotope("O"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MAX);
+        range.addIsotope(iFac.getMajorIsotope("P"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MAX);
         range.addIsotope(iFac.getMajorIsotope("S"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MAX);
         range.addIsotope(iFac.getMajorIsotope("F"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MIN);
         range.addIsotope(iFac.getMajorIsotope("B"), IsotopeConstants.ISOTOPE_MIN, IsotopeConstants.ISOTOPE_MIN);
