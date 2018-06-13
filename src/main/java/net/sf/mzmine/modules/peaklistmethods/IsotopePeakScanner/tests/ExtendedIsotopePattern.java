@@ -54,7 +54,6 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     private IsotopePatternStatus status;
     private String description;
     private Range<Double> mzRange;
-    private ArrayList<String> descr;
     private double minAbundance;
     private double minIntensity;
     IMolecularFormula formula;
@@ -87,6 +86,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	this.minIntensity = minIntensity;
     	status = IsotopePatternStatus.PREDICTED;
     	addMolecule(form);
+    	mergeDuplicates();
     	mergePeaks(mzMerge);
     	removePeaksBelowAbundance(minIntensity);
     	sortByAscendingMZ();
@@ -115,11 +115,11 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	{
     		for(IIsotope iso : isotopes)
     		{		// when adding new isotopes intensities only get smaller, so we can to this here to avoid useless calculation
-    			if(iso.getNaturalAbundance() < minAbundance || ((iso.getNaturalAbundance() / 100) * dataPoints.get(i).getIntensity()) < minIntensity)
+    			if(iso.getNaturalAbundance() < minAbundance || ((iso.getNaturalAbundance() / 100) * dataPoints.get(i).getIntensity()) < 1E-12)
     				continue;
     			
 	    		newDp.add(new SimpleDataPoint(dataPoints.get(i).getMZ() + iso.getExactMass(),
-	    				dataPoints.get(i).getIntensity() * iso.getNaturalAbundance() / 100 ));
+	    				dataPoints.get(i).getIntensity() * (iso.getNaturalAbundance() / 100) ));
 	    		//System.out.println(iso.getMassNumber() + iso.getSymbol());
 	    		
 	    		if(dpDescr != null)
@@ -178,24 +178,22 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
     	ArrayList<String> newDpDescr = new ArrayList<String>();
     	
-    	for(int i = 0; i < dataPoints.size(); i++)
+    	sortByAscendingMZ();
+    	
+    	for(int i = 0; i < dataPoints.size()-1; i++)
     	{
-    		for(int j = 0; j < dataPoints.size(); j++)
-    		{
-    			if(dataPoints.get(j) == null || dataPoints.get(i) == null || i == j)
-    				continue;
-    			if(Math.abs(dataPoints.get(i).getMZ() - dataPoints.get(j).getMZ()) < 0.00000001)
-    			{
-    				double newIntensity = dataPoints.get(i).getIntensity() + dataPoints.get(j).getIntensity();
-    				dataPoints.set(i, new SimpleDataPoint(
-    					( dataPoints.get(i).getMZ() * dataPoints.get(i).getIntensity()
-    					+ dataPoints.get(j).getMZ() * dataPoints.get(j).getIntensity() )
-    					/ newIntensity, newIntensity));
-    				
-    				dataPoints.set(j, null);
-    				dpDescr.set(j, null);	//we dont want to merge here since its the !same! peak
-    			}
-    		}
+			if(dataPoints.get(i+1) == null || dataPoints.get(i) == null)
+				continue;
+			
+			if(Math.abs(dataPoints.get(i).getMZ() - dataPoints.get(i+1).getMZ()) < 0.0000001)
+			{
+				double newIntensity = dataPoints.get(i).getIntensity() + dataPoints.get(i+1).getIntensity();
+				dataPoints.set(i+1, new SimpleDataPoint(
+					 dataPoints.get(i).getMZ(), newIntensity));
+				
+				dataPoints.set(i, null);
+				dpDescr.set(i, null);	//we dont want to merge here since its the !same! peak
+			}
     	}
     	
     	for(int i = 0; i < dataPoints.size(); i++)

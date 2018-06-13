@@ -25,20 +25,20 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopeP
 public class Tests {
 
 	public static void main(String[] args) {
-		
+		//isotopePatternTest();
 		exIPT();
-//		isotopePatternTest();
+		isotopePatternTest();
 	}
 		
 	private static void isotopePatternTest()
 	{
-		String formula = "C12Cl6Gd";
-		IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(formula, 0.1, 1, PolarityType.NEGATIVE);
-		pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.000904);
+		String formula = " C18H31GdN4O9";
+		IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(formula, 0.05, 1, PolarityType.NEGATIVE);
+		pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0005);
 		int size = pattern.getNumberOfDataPoints();
 		System.out.println("size: " + size);
 		
-		pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern);
+		pattern = IsotopePatternCalculator.normalizeIsotopePattern(pattern, 0, 1);
 		DataPoint[] points2 = pattern.getDataPoints();
 		//System.out.println(pattern.getDescription());
 
@@ -47,6 +47,18 @@ public class Tests {
 			System.out.println(formula + "Peak " + i + ": m/z: " + points2[i].getMZ() + "\tI: " + points2[i].getIntensity());
 		}
 		System.out.println(getIntensityRatios(pattern));
+	}
+	public static void exIPT()
+	{
+		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
+		//p.addElement("C5");
+		p.setUpFromFormula("C18H31GdN4O9", 0.01, 0.0005, 0.05);
+		p.applyCharge(1, PolarityType.NEGATIVE);
+		p.normalizePatternToPeak(0);
+		//p.addElement("Cl");
+		
+		DataPoint[] dps2 = p.getDataPoints();
+		p.print();
 	}
 	
 	private static String getIntensityRatios(IsotopePattern pattern)
@@ -66,42 +78,4 @@ public class Tests {
 	    return bd.doubleValue();
 	}
 	
-	public static void testMolFor()
-	{
-		String molecule = "C5Cl2H7";
-		IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-		IMolecularFormula molFor = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(molecule, builder);
-		IMolecularFormula newFor = MolecularFormulaManipulator.getMolecularFormula("C", builder);
-		newFor.removeAllIsotopes();
-		
-		System.out.println(molFor.getIsotopeCount());
-		List<IElement> elements = MolecularFormulaManipulator.elements(molFor);
-		System.out.println(elements.toString());
-		
-		for(IIsotope isotopes : molFor.isotopes())
-		{
-			System.out.println(isotopes.getSymbol());
-			newFor.addIsotope(isotopes, molFor.getIsotopeCount(isotopes)+1);
-		}
-		
-		for(IIsotope isos : newFor.isotopes())
-		{
-			System.out.println(isos.getSymbol() + newFor.getIsotopeCount(isos));
-		}
-	}
-	
-	public static void exIPT()
-	{
-		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
-		//p.addElement("C5");
-		p.setUpFromFormula("CuS4", 0.01, 0.0001,0.01);
-		p.applyCharge(1, PolarityType.NEGATIVE);
-		//p.addElement("Cl");
-		
-		DataPoint[] dps2 = p.getDataPoints();
-		for(int i = 0; i < dps2.length; i++)
-		{
-			System.out.println("mass: " + dps2[i].getMZ() + "\t\tintensity: " + dps2[i].getIntensity() + "\t" + p.getSimplePeakDescription(i) + "\t---\t"+ p.getDetailedPeakDescription(i));
-		}
-	}
 }
