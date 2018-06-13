@@ -31,9 +31,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-/**
- * Module for identifying peaks by searching on-line databases.
- */
 public class SiriusProcessingModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Sirius";

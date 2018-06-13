@@ -26,6 +26,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
@@ -511,6 +512,18 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 public void run() {
                     FormulaPredictionModule
                     .showSingleRowIdentificationDialog(clickedPeakListRow);                }
+            });
+
+        }
+
+        //TODO: what is going on here?
+        if (formulaItem != null && formulaItem.equals(src)) {
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    SiriusProcessingModule
+                        .showSingleRowIdentificationDialog(clickedPeakListRow);                }
             });
 
         }

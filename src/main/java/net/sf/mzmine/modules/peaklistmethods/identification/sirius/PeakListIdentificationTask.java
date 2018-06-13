@@ -58,7 +58,6 @@ public class PeakListIdentificationTask extends AbstractTask {
   private final boolean isotopeFilter;
   private final ParameterSet isotopeFilterParameters;
   private final IonizationType ionType;
-  private DBGateway gateway;
   private PeakListRow currentRow;
 
   /**
@@ -72,7 +71,6 @@ public class PeakListIdentificationTask extends AbstractTask {
     peakList = list;
     numItems = 0;
     finishedItems = 0;
-    gateway = null;
     currentRow = null;
 
     mzTolerance =

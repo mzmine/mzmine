@@ -53,7 +53,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
   private int finishedItems = 0, numItems;
 
-  private MZmineProcessingStep<OnlineDatabase> db;
   private double searchedMass;
   private MZTolerance mzTolerance;
   private int charge;
@@ -62,7 +61,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private IonizationType ionType;
   private boolean isotopeFilter = false;
   private ParameterSet isotopeFilterParameters;
-  private DBGateway gateway;
   private MolecularFormulaRange formulaRange;
   private Double parentMass;
 
@@ -75,14 +73,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
   public SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
 
     this.peakListRow = peakListRow;
-
-    db = null;
-
-    try {
-      gateway = db.getModule().getGatewayClass().newInstance();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
 
     searchedMass = parameters.getParameter(NEUTRAL_MASS).getValue();
     mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
@@ -107,11 +97,9 @@ public class SingleRowIdentificationTask extends AbstractTask {
     return ((double) finishedItems) / numItems;
   }
 
-  /**
-   * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-   */
+  //TODO: todo
   public String getTaskDescription() {
-    return "Peak identification of " + massFormater.format(searchedMass) + " using " + db;
+    return "Peak identification of " + massFormater.format(searchedMass) + " using Sirius module";
   }
 
   /**
@@ -135,17 +123,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     }
 
     try {
-      String compoundIDs[] =
-          gateway.findCompounds(searchedMass, mzTolerance, numOfResults, db.getParameterSet());
-
-      // Get the number of results
-      numItems = compoundIDs.length;
-
-      if (numItems == 0) {
-        window.setTitle(
-            "Searching for " + massFormater.format(searchedMass) + " amu: no results found");
-      }
-
+      //TODO: todo
       // Process each one of the result ID's.
       for (int i = 0; i < numItems; i++) {
 
@@ -153,67 +131,12 @@ public class SingleRowIdentificationTask extends AbstractTask {
           return;
         }
 
-        DBCompound compound = gateway.getCompound(compoundIDs[i], db.getParameterSet());
-
-        // In case we failed to retrieve data, skip this compound
-        if (compound == null)
-          continue;
-
-        String formula = compound.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
-
-        if (formula != null) {
-
-          // First modify the formula according to the ionization
-          String adjustedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
-
-          logger.finest("Calculating isotope pattern for compound formula " + formula
-              + " adjusted to " + adjustedFormula);
-
-          // Generate IsotopePattern for this compound
-          IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-              .calculateIsotopePattern(adjustedFormula, 0.001, charge, ionType.getPolarity());
-
-          compound.setIsotopePattern(compoundIsotopePattern);
-
-          IsotopePattern rawDataIsotopePattern = peakListRow.getBestIsotopePattern();
-
-          // If required, check isotope score
-          if (isotopeFilter && (rawDataIsotopePattern != null)
-              && (compoundIsotopePattern != null)) {
-
-            double score = IsotopePatternScoreCalculator.getSimilarityScore(rawDataIsotopePattern,
-                compoundIsotopePattern, isotopeFilterParameters);
-            compound.setIsotopePatternScore(score);
-
-            double minimumScore = isotopeFilterParameters
-                .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold)
-                .getValue();
-
-            if (score < minimumScore) {
-              finishedItems++;
-              continue;
-            }
-          }
-
-        }
-
-        // Add compound to the list of possible candidate and
-        // display it in window of results.
-        window.addNewListItem(compound);
-
-        // Update window title
-        window.setTitle("Searching for " + massFormater.format(searchedMass) + " amu (" + (i + 1)
-            + "/" + numItems + ")");
-
         finishedItems++;
 
       }
 
     } catch (Exception e) {
       e.printStackTrace();
-      logger.log(Level.WARNING, "Could not connect to " + db, e);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Could not connect to " + db + ": " + ExceptionUtils.exceptionToString(e));
       return;
     }
 
