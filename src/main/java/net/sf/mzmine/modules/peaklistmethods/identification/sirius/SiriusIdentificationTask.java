@@ -127,6 +127,7 @@ public class SiriusIdentificationTask extends AbstractTask {
           // Retrieve results for each row.
           retrieveIdentification(rows[finishedItems]);
         }
+//        processSpectra(sirius)
 
         if (!isCanceled()) {
           setStatus(TaskStatus.FINISHED);

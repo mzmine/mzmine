@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -64,37 +65,37 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
     return ExitCode.OK;
   }
 
-//  /**
-//   * Show dialog for identifying a single peak-list row.
-//   *
-//   * @param row the peak list row.
-//   */
-//  public static void showSingleRowIdentificationDialog(final PeakListRow row) {
-//
-//    final ParameterSet parameters = new SiriusParameters();
-//
-////         Set m/z.
-//    parameters.getParameter(SiriusParameters.NEUTRAL_MASS)
-//        .setIonMass(row.getAverageMZ());
-//
-//    // Set charge.
-//    final int charge = row.getBestPeak().getCharge();
-//    if (charge > 0) {
-//
-//      parameters.getParameter(
-//          SiriusParameters.NEUTRAL_MASS).setCharge(
-//          charge);
-//    }
-//
-//    // Run task.
-////    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
-////        true) == ExitCode.OK) {
-////
-////      MZmineCore.getTaskController().addTask(
-////          new SingleRowIdentificationTask(parameters
-////              .cloneParameterSet(), row));
-////    }
-//  }
+  /**
+   * Show dialog for identifying a single peak-list row.
+   *
+   * @param row the peak list row.
+   */
+  public static void showSingleRowIdentificationDialog(final PeakListRow row) {
+
+    final ParameterSet parameters = new SiriusParameters();
+
+//         Set m/z.
+    parameters.getParameter(SiriusParameters.NEUTRAL_MASS)
+        .setIonMass(row.getAverageMZ());
+
+    // Set charge.
+    final int charge = row.getBestPeak().getCharge();
+    if (charge > 0) {
+
+      parameters.getParameter(
+          SiriusParameters.NEUTRAL_MASS).setCharge(
+          charge);
+    }
+
+    // Run task.
+    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+        true) == ExitCode.OK) {
+
+      MZmineCore.getTaskController().addTask(
+          new SingleRowIdentificationTask(parameters
+              .cloneParameterSet(), row));
+    }
+  }
 
   @Override
   public @Nonnull

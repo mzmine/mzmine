@@ -114,23 +114,24 @@ public class SingleRowIdentificationTask extends AbstractTask {
       MZmineCore.getDesktop().displayMessage(window, msg);
     }
 
-    try {
-      //TODO: todo
-      // Process each one of the result ID's.
-      for (int i = 0; i < numItems; i++) {
-
-        if (getStatus() != TaskStatus.PROCESSING) {
-          return;
-        }
-
-        finishedItems++;
-
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      return;
-    }
+//    try {
+//      //TODO: process by Sirius
+//        // Add compound to the list of possible candidate and
+//        // display it in window of results.
+////        window.add
+//
+//        // Update window title
+//        window.setTitle("Searching for " + massFormater.format(searchedMass) + " amu (" + (i + 1)
+//            + "/" + numItems + ")");
+//
+//        finishedItems++;
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//      logger.log(Level.WARNING, "Could not connect to " + db, e);
+//      setStatus(TaskStatus.ERROR);
+//      setErrorMessage("Could not connect to " + db + ": " + ExceptionUtils.exceptionToString(e));
+//      return;
+//    }
 
     setStatus(TaskStatus.FINISHED);
 

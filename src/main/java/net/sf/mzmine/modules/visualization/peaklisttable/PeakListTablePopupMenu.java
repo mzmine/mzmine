@@ -516,7 +516,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         }
 
-        //TODO: what is going on here?
+//        //TODO: what is going on here?
+        //TODO: probably remove singlerowidentificationDialog as Sirius works with spectrum, not 1 peak.
         if (formulaItem != null && formulaItem.equals(src)) {
 
             SwingUtilities.invokeLater(new Runnable() {
