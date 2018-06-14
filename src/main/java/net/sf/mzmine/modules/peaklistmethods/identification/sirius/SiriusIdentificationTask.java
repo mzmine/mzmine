@@ -38,12 +38,13 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+import org.openscience.cdk.formula.MolecularFormulaRange;
 
-public class PeakListIdentificationTask extends AbstractTask {
+public class SiriusIdentificationTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(
-      PeakListIdentificationTask.class.getName());
+      SiriusIdentificationTask.class.getName());
 
   // Minimum abundance.
   private static final double MIN_ABUNDANCE = 0.001;
@@ -58,6 +59,8 @@ public class PeakListIdentificationTask extends AbstractTask {
   private final boolean isotopeFilter;
   private final ParameterSet isotopeFilterParameters;
   private final IonizationType ionType;
+  private final double parentMass;
+  private final MolecularFormulaRange range;
   private PeakListRow currentRow;
 
   /**
@@ -66,7 +69,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list peak list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
+  SiriusIdentificationTask(final ParameterSet parameters, final PeakList list) {
 
     peakList = list;
     numItems = 0;
@@ -82,6 +85,8 @@ public class PeakListIdentificationTask extends AbstractTask {
     isotopeFilterParameters = parameters
         .getParameter(SiriusParameters.ISOTOPE_FILTER).getEmbeddedParameters();
     ionType = parameters.getParameter(SiriusParameters.ionizationType).getValue();
+    parentMass = parameters.getParameter(SiriusParameters.PARENT_MASS).getValue();
+    range = parameters.getParameter(SiriusParameters.ELEMENTS).getValue();
   }
 
   @Override
@@ -96,7 +101,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     return "Identification of peaks in " + peakList
         + (currentRow == null ? " using "
             : " (" + MZmineCore.getConfiguration().getMZFormat().format(currentRow.getAverageMZ())
-                + " m/z) using ");
+                + " m/z) using SIRIUS");
   }
 
   @Override
