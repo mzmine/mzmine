@@ -25,6 +25,8 @@ import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.Sirius
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.PARENT_MASS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.NEUTRAL_MASS;
 
+import io.github.msdk.id.sirius.ConstraintsGenerator;
+import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -113,6 +115,9 @@ public class SingleRowIdentificationTask extends AbstractTask {
           + " peak does not have any isotopes. Have you run the isotope peak grouper?";
       MZmineCore.getDesktop().displayMessage(window, msg);
     }
+
+    ConstraintsGenerator generator = new ConstraintsGenerator();
+    SiriusIdentificationMethod siriusMethod = new SiriusIdentificationMethod();
 
 //    try {
 //      //TODO: process by Sirius
