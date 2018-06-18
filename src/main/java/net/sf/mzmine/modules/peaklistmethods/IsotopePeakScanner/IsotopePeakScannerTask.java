@@ -328,13 +328,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					String average = "";
 					if(avgIntensity)
 					{
-						average = " AvgIntensity: " + candidates.getAvgHeight(k) + " AvgRating: " + candidates.getAvgRating(k);
+						average = " AvgRating: " + candidates.getAvgRating(k);
 					}
 					
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
 					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern) + " Identity: " + pattern.getDetailedPeakDescription(0));
-					comChild = (parent.getID() + "-Parent ID" + " m/z-shift: " + round((child.getAverageMZ() - parent.getAverageMZ()) 
-							- diff.get(k), 7) + " A(c)/A(p): " +  round(child.getAverageHeight()/parent.getAverageHeight(),2)
+					comChild = (parent.getID() + "-Parent ID" + " m/z-shift(ppm): " + round(((child.getAverageMZ() - parent.getAverageMZ()) 
+							- diff.get(k))*1E6/child.getAverageMZ(), 4) + " A(c)/A(p): " +  round(child.getAverageHeight()/parent.getAverageHeight(),2)
 							+ " Identity: " + pattern.getDetailedPeakDescription(k)
 							+ " Rating: " +  round(candidates.get(k).getRating(), 7)
 							+ average);
