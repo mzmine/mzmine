@@ -30,7 +30,6 @@ import net.sf.mzmine.util.components.GridBagPanel;
 import com.google.common.collect.Range;
 
 public class IntRangeComponent extends GridBagPanel {
-
     private static final long serialVersionUID = 1L;
 
     private JTextField minTxtField, maxTxtField;
@@ -55,9 +54,15 @@ public class IntRangeComponent extends GridBagPanel {
         String maxString = maxTxtField.getText();
 
         try {
-            return Range.closed(Integer.parseInt(minString),
-                    Integer.parseInt(maxString));
-
+            if (!minString.isEmpty() && !maxString.isEmpty()) {
+                return Range.closed(Integer.parseInt(minString), Integer.parseInt(maxString));
+            } else if (!minString.isEmpty()) {
+                return Range.closed(Integer.parseInt(minString), Integer.MAX_VALUE);
+            } else if (!maxString.isEmpty()) {
+                return Range.closed(0, Integer.parseInt(maxString));
+            } else {
+                return null;
+            }
         } catch (Exception e) {
             return null;
         }
