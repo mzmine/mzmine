@@ -1,5 +1,7 @@
 package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
 
+import com.google.common.collect.Range;
+
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -130,6 +132,7 @@ public class Candidates {
 				{
 					DataPoint[] points = scan.getDataPointsByMass(mzTolerance.getToleranceRange(mzs[j])); //TODO: DP from massList
 					
+					
 					if(points.length == 0)
 						continue;
 					
@@ -215,5 +218,16 @@ public class Candidates {
 				return false;
 		}
 		return true;
+	}
+	private DataPoint[] getMassListDataPointsByMass(MassList list, Range<Double> massRange, double minIntensity)
+	{
+		DataPoint[] dps = list.getDataPoints();
+		int start = 0, end = 0;
+		
+		for(int i = 0; i < dps.length; i++)
+		{
+			if(massRange.contains(dps[i].getMZ()))
+				//TODO
+		}
 	}
 }
