@@ -61,11 +61,11 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
     
     public static final IntegerParameter charge = new IntegerParameter("Charge", "Amount and polarity (e.g.: [M+]=+1 / [M-]=-1");
     
-    //public static final BooleanParameter avgIntensity = new BooleanParameter("Average Intensity", "Use avg Intensity to calculate final rating.");
+    public static final BooleanParameter tempAvgIntensity = new BooleanParameter("Temporary Average Intensity", "Use temporary avg intensity to calculate rating.", false);
     
-    public static final OptionalParameter<MassListParameter> massList = new OptionalParameter<MassListParameter>(new MassListParameter("Average Intensity", "Please select a mass list.\nThis method will use averaged intensitys over all scans the relevant masses were detected in. This will only be done for peaks that match the defined rating-calculation with the given rating."));
+    public static final OptionalParameter<MassListParameter> massList = new OptionalParameter<MassListParameter>(new MassListParameter("Calculate Average Rating", "Please select a mass list.\nThis method will use averaged intensitys over all scans the relevant masses were detected in. This will only be done for peaks that match the defined rating-calculation with the given rating."));
     
     public IsotopePeakScannerParameters() {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, minPatternIntensity, mergeFWHM, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss, massList});
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, minPatternIntensity, mergeFWHM, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss, tempAvgIntensity, massList});
     }
 }

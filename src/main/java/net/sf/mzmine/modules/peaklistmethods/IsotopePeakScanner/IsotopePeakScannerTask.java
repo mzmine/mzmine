@@ -70,9 +70,12 @@ public class IsotopePeakScannerTask extends AbstractTask {
     private int charge;
     private boolean avgIntensity;
     private String massListName;
+    private boolean tempAvgIntensity;
     
     private enum ScanType {neutralLoss, pattern};
+    public enum RatingType {HIGHEST, TEMPAVG};
     ScanType scanType;
+    RatingType ratingType;
     private double dMassLoss;
     IIsotope[] el;    
 
@@ -108,6 +111,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
         avgIntensity = parameters.getParameter(IsotopePeakScannerParameters.massList).getValue();
         massListName = parameters.getParameter(IsotopePeakScannerParameters.massList).getEmbeddedParameter().getValue();
+        tempAvgIntensity = parameters.getParameter(IsotopePeakScannerParameters.tempAvgIntensity).getValue();
+        
         
         
        /* RawDataFile[] raws = peakList.getRawDataFiles();
@@ -120,9 +125,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
         
         if(avgIntensity == true && checkIntensity == false)
         {
-        	
         	avgIntensity = false;
         }
+        if(checkIntensity == false && tempAvgIntensity == true)
+        	tempAvgIntensity = false;
+        
+        if(tempAvgIntensity)
+        	ratingType = RatingType.TEMPAVG;
+        else
+        	ratingType = RatingType.HIGHEST;
         
         polarityType = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
         charge = (charge < 0) ? charge*-1 : charge;
@@ -200,8 +211,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			//now get all peaks that lie within RT and maxIsotopeMassRange: pL[index].mz -> pL[index].mz+maxMass
 			ArrayList<PeakListRow> groupedPeaks = groupPeaks(rows, i, diff.get(diff.size()-1).doubleValue());
 			
-			//logger.info("Row: " + i + "\tgroupedPeaks.size(): " + groupedPeaks.size());
-			
 			if(groupedPeaks.size() < 2)
 			{
 				finishedRows++;
@@ -253,7 +262,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				continue;
 			}
 			
-			Candidates candidates = new Candidates(diff.size(), minHeight, mzTolerance, pattern, massListName);
+			Candidates candidates = new Candidates(diff.size(), minHeight, mzTolerance, pattern, massListName, plh, ratingType);
 			
 			for(int k = 0; k < resultBuffer.length; k++) // reminder: resultBuffer.length = diff.size()
 			{
@@ -263,12 +272,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
 		// l represents the number of results in resultBuffer[k]
 					if(scanType == ScanType.pattern)
 					{
-						if(candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, minRating, checkIntensity))
-						{
+//						if(candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), pattern, k, minRating, checkIntensity))
+//						{
 						//	logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
 						//			groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
 						//			"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
-						}
+//						}
+						//candidates.get(k).checkForBetterRating(groupedPeaks.get(0), groupedPeaks.get(resultBuffer[k].getRow(l)), pattern, k, minRating, checkIntensity);
+						
+						candidates.checkForBetterRating(k, groupedPeaks.get(0), groupedPeaks.get(resultBuffer[k].getRow(l)), minRating, checkIntensity);
 					}
 					else if(scanType == ScanType.neutralLoss)
 					{
@@ -300,20 +312,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			DataPoint[] dp = new DataPoint[candidates.size()];	// we need this to add the IsotopePattern later on
 			dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
 			
-			if(avgIntensity) 
-			{
-				/*int[] ids = new int[diff.size()];
-				ids[0] = parent.getID();
-				for(int k= 1; k < diff.size(); k++)
-					ids[k] = candidates.get(k).getCandID();
-				avgIntens = getAvgPeakHeights(plh, ids, minHeight);*/
-				
-				candidates.calcAvgRatings(plh);
-			}
+			if(avgIntensity)				
+				candidates.calcAvgRatings();
 			
 			for(int k = 1; k < candidates.size(); k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{
-				PeakListRow child = copyPeakRow(groupedPeaks.get((candidates.get(k).getRow())));
+				//PeakListRow child = copyPeakRow(groupedPeaks.get((candidates.get(k).getRow())));
+				PeakListRow child = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));
 				dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
 				
 				if(scanType == ScanType.pattern)

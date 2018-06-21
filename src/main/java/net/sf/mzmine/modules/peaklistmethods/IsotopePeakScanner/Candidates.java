@@ -10,6 +10,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.IsotopePeakScannerTask.RatingType;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 public class Candidates {
@@ -20,8 +21,12 @@ public class Candidates {
 	private double minHeight;
 	private double avgRating[];
 	private double avgHeight[];
+	private Candidate[] candidate;
+	RatingType ratingType;
+	PeakListHandler plh;
 	
-	public Candidates(int size, double minHeight, MZTolerance mzTolerance, IsotopePattern pattern, String massListName)
+	
+	public Candidates(int size, double minHeight, MZTolerance mzTolerance, IsotopePattern pattern, String massListName, PeakListHandler plh, RatingType ratingType)
 	{
 		this.candidate = new Candidate[size];
 		for(int i = 0; i < size; i++)
@@ -32,10 +37,10 @@ public class Candidates {
 		this.mzTolerance = mzTolerance;
 		this.massListName = massListName;
 		this.pattern = pattern;
+		this.plh = plh;
+		this.ratingType = ratingType;
 	}
-	
-	private Candidate[] candidate;
-	
+		
 	public Candidate get(int index)
 	{
 		if(index >= candidate.length)
@@ -44,6 +49,8 @@ public class Candidates {
 	}
 	public double getAvgRating(int index)
 	{
+		if(index >= candidate.length)
+			throw new MSDKRuntimeException("Candidates.get(index) - index > length");
 		return avgRating[index];
 	}
 	public int size()
@@ -71,13 +78,27 @@ public class Candidates {
 		return avgHeight[index];
 	}
 	
-	public double calcTemporaryAvgRating(PeakListHandler plh, int index)
+	public boolean checkForBetterRating(int index, PeakListRow parent, PeakListRow cand, double minRating, boolean checkIntensity)
+	{
+		if(ratingType == RatingType.HIGHEST)
+			return candidate[index].checkForBetterRating(parent, cand, pattern, index, minRating, checkIntensity);
+		else if(ratingType == RatingType.TEMPAVG)
+		{
+			DataPoint dpParent = new SimpleDataPoint(parent.getAverageMZ(), calcAvgPeakHeight(parent.getID()));
+			double candidateIntensity = calcAvgPeakHeight(cand.getID());
+			return candidate[index].checkForBetterRating(dpParent, candidateIntensity, cand, pattern, index, minRating, checkIntensity);
+		}
+		else
+			throw new MSDKRuntimeException("Error: Invalid RatingType.");
+	}
+	
+	public double calcTemporaryAvgRating(int index)
 	{
 		if(index > candidate.length)
 			return 0.0;
 		
-		double parentHeight = calcAvgPeakHeight(plh, candidate[0].getCandID());
-		double childHeight = calcAvgPeakHeight(plh, candidate[index].getCandID());
+		double parentHeight = calcAvgPeakHeight(candidate[0].getCandID());
+		double childHeight = calcAvgPeakHeight(candidate[index].getCandID());
 		
 		double[] avg = new double[candidate.length];
 		avg[0] = parentHeight;
@@ -86,25 +107,26 @@ public class Candidates {
 		return candidate[index].recalcRatingWithAvgIntensities(candidate[0].getMZ(), pattern, index, avg);
 	}
 	
-	public void calcAvgRatings(PeakListHandler plh)
+	public double[] calcAvgRatings()
 	{
 		int[] ids = new int[candidate.length];
 		
 		for(int i = 0; i < candidate.length; i++)
 			ids[i] = candidate[i].getCandID();
 		
-		avgHeight = getAvgPeakHeights(plh, ids);
+		avgHeight = getAvgPeakHeights(ids);
 		
 		if(avgHeight == null)
-			return;
+			return null;
 		
 		for(int i = 0; i < candidate.length; i++)
 		{
 			avgRating[i] = candidate[i].recalcRatingWithAvgIntensities(candidate[0].getMZ(), pattern, i, avgHeight);
 		}
+		return avgRating;
 	}
 	
-	private double calcAvgPeakHeight(PeakListHandler plh, int ID)
+	private double calcAvgPeakHeight(int ID)
 	{
 		PeakListRow row = plh.getRowByID(ID);
 		
@@ -150,7 +172,7 @@ public class Candidates {
 		return avgIntensity/pointsAdded;
 	}
 	
-	private double[] getAvgPeakHeights(PeakListHandler plh, int[] ID)
+	private double[] getAvgPeakHeights(int[] ID)
 	{		
 		PeakListRow[] rows = plh.getRowsByID(ID);
 		
