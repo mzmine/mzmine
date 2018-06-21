@@ -253,13 +253,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				continue;
 			}
 			
-//			message = "Found enough possible features.";
-			
 			Candidates candidates = new Candidates(diff.size(), minHeight, mzTolerance, pattern, massListName);
-			
-			//Candidate[] candidates = new Candidate[diff.size()];
-//			for(int a = 0; a < diff.size(); a++)							//resultBuffer[i] index will represent Isotope[i] (if numAtoms = 0)
-//				candidates[a] = new Candidate();
 			
 			for(int k = 0; k < resultBuffer.length; k++) // reminder: resultBuffer.length = diff.size()
 			{
@@ -306,7 +300,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			DataPoint[] dp = new DataPoint[candidates.size()];	// we need this to add the IsotopePattern later on
 			dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
 			
-			double[] avgIntens = null;
 			if(avgIntensity) 
 			{
 				/*int[] ids = new int[diff.size()];
@@ -315,7 +308,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					ids[k] = candidates.get(k).getCandID();
 				avgIntens = getAvgPeakHeights(plh, ids, minHeight);*/
 				
-				candidates.calcAvgRating(plh);
+				candidates.calcAvgRatings(plh);
 			}
 			
 			for(int k = 1; k < candidates.size(); k++) //we skip k=0 because == groupedPeaks[0] which we added before
@@ -328,7 +321,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					String average = "";
 					if(avgIntensity)
 					{
-						average = " AvgRating: " + candidates.getAvgRating(k);
+						average = " AvgRating: " + round(candidates.getAvgRating(k), 3) /*+ " TempAvg: " + round(candidates.calcTemporaryAvgRating(plh, k), 3)*/;
 					}
 					
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
@@ -336,9 +329,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					comChild = (parent.getID() + "-Parent ID" + " m/z-shift(ppm): " + round(((child.getAverageMZ() - parent.getAverageMZ()) 
 							- diff.get(k))*1E6/child.getAverageMZ(), 2) + " A(c)/A(p): " +  round(child.getAverageHeight()/parent.getAverageHeight(),2)
 							+ " Identity: " + pattern.getDetailedPeakDescription(k)
-							+ " Rating: " +  round(candidates.get(k).getRating(), 7)
+							+ " Rating: " +  round(candidates.get(k).getRating(), 3)
 							+ average);
-					//child.setComment(comChild);
 					addComment(child, comChild);
 				}
 				else if(scanType == ScanType.neutralLoss)
@@ -348,8 +340,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					addComment(child, comChild);
 				}
 				resultMap.addRow(child);
-				//resultPeakList.addRow(child);
-
 			}
 			
 			IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED, "Monoisotopic mass: " + parent.getAverageMZ());

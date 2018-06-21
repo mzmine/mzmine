@@ -130,7 +130,7 @@ public class Candidate {
 		return false;
 	}
 	
-	public double recalcRatingWithAvgIntensities(double parentMZ, IsotopePattern pattern, int peakNum, double[] avgIntensity) // TODO no pL here!
+	public double recalcRatingWithAvgIntensities(double parentMZ, IsotopePattern pattern, int peakNum, double[] avgIntensity)
 	{
 		double candMZ = this.mz;
 		DataPoint[] points = pattern.getDataPoints();
