@@ -220,7 +220,7 @@ public class Candidates {
 					DataPoint dp = getClosestDataPoint(points, rows[j].getAverageMZ(), minHeight);
 					
 					if(dp == null)	//yes the list contained something close to every datapoint that was over minHeight, BUT
-					{				// the closest might not have been. Check is done inside getClosestDataPoint()
+					{				// the closest might not have been. Check is done inside getClosestDataPoint();
 						allFound = false;
 						break;
 					}
