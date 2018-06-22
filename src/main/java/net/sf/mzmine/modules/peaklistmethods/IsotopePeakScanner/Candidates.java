@@ -1,5 +1,7 @@
 package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
 
+import java.util.Arrays;
+
 import com.google.common.collect.Range;
 
 import io.github.msdk.MSDKRuntimeException;
@@ -32,6 +34,7 @@ public class Candidates {
 		for(int i = 0; i < size; i++)
 			candidate[i] = new Candidate();
 		avgRating = new double[size];
+		Arrays.fill(avgRating, -1.0);
 		avgHeight = new double[size];
 		this.minHeight = minHeight;
 		this.mzTolerance = mzTolerance;
@@ -116,8 +119,8 @@ public class Candidates {
 		
 		avgHeight = getAvgPeakHeights(ids);
 		
-		if(avgHeight == null)
-			return null;
+		if(avgHeight == null || avgHeight[0] == 0.0)
+			return avgRating;
 		
 		for(int i = 0; i < candidate.length; i++)
 		{
@@ -238,6 +241,9 @@ public class Candidates {
 		
 //		if(!(pointsAdded%mzs.length==0))
 //			throw new MSDKRuntimeException("points added not devideable by mzs.length");
+		
+		if(pointsAdded == 0)
+			return null;
 		
 		for(int i = 0; i < avgHeights.length; i++)
 			avgHeights[i] /= (pointsAdded/*/mzs.length*/);
