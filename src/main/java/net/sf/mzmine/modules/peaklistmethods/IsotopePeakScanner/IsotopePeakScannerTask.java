@@ -68,9 +68,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
     private ExtendedIsotopePattern pattern;
     private PolarityType polarityType;
     private int charge;
-    private boolean avgIntensity;
+    private boolean accurateAvgIntensity;
     private String massListName;
-    private boolean tempAvgIntensity;
+    private String ratingChoice;
     
     private enum ScanType {neutralLoss, pattern};
     public enum RatingType {HIGHEST, TEMPAVG};
@@ -109,13 +109,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
         minHeight = parameters.getParameter(IsotopePeakScannerParameters.minHeight).getValue();
         dMassLoss = parameters.getParameter(IsotopePeakScannerParameters.neutralLoss).getValue();
         charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
-        avgIntensity = parameters.getParameter(IsotopePeakScannerParameters.massList).getValue();
+        accurateAvgIntensity = parameters.getParameter(IsotopePeakScannerParameters.massList).getValue();
         massListName = parameters.getParameter(IsotopePeakScannerParameters.massList).getEmbeddedParameter().getValue();
-        tempAvgIntensity = parameters.getParameter(IsotopePeakScannerParameters.tempAvgIntensity).getValue();
+        ratingChoice = parameters.getParameter(IsotopePeakScannerParameters.ratingChoices).getValue();
         
         
         
-       /* RawDataFile[] raws = peakList.getRawDataFiles();
+        /*RawDataFile[] raws = peakList.getRawDataFiles();
         Scan scan = raws[0].getScan(1);
         MassList[] lists = scan.getMassLists();
         for(MassList list : lists)
@@ -123,17 +123,18 @@ public class IsotopePeakScannerTask extends AbstractTask {
         if(!peakList.getRawDataFiles()[0].getScan(0).getMassLists().toString().contains(massListName))
         	throw new MSDKRuntimeException("massList " + massListName + " not within: " + peakList.getRawDataFiles()[0].getScan(0).getMassLists().toString());*/
         
-        if(avgIntensity == true && checkIntensity == false)
+        if(accurateAvgIntensity == true && checkIntensity == false)
         {
-        	avgIntensity = false;
+        	accurateAvgIntensity = false;
         }
-        if(checkIntensity == false && tempAvgIntensity == true)
-        	tempAvgIntensity = false;
         
-        if(tempAvgIntensity)
+        if(ratingChoice.equals("Temporary Average"))
         	ratingType = RatingType.TEMPAVG;
         else
         	ratingType = RatingType.HIGHEST;
+        
+        if(massListName.equals("") && ratingType == RatingType.TEMPAVG)
+        	throw new MSDKRuntimeException("Error: Rating Type = temporary average but no masslist was selected.\nYou can still select a mass list without checking accurate average.");
         
         polarityType = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
         charge = (charge < 0) ? charge*-1 : charge;
@@ -310,21 +311,35 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			addComment(parent, comParent);
 			
 			DataPoint[] dp = new DataPoint[candidates.size()];	// we need this to add the IsotopePattern later on
-			dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
 			
-			if(avgIntensity)				
-				candidates.calcAvgRatings();
+			if(accurateAvgIntensity)
+			{
+				candidates.calcAvgRatings();	// this is a final rating, with averaged intensities in all mass lists that contain EVERY peak that was selected.
+												// thats why we can only do it after ALL peaks have been found
+				dp[0] = new SimpleDataPoint(parent.getAverageMZ(), candidates.getAvgHeight(0));
+			}
+			else
+			{
+				dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
+			}
 			
 			for(int k = 1; k < candidates.size(); k++) //we skip k=0 because == groupedPeaks[0] which we added before
 			{
 				//PeakListRow child = copyPeakRow(groupedPeaks.get((candidates.get(k).getRow())));
 				PeakListRow child = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));
-				dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
+				if(accurateAvgIntensity)
+				{
+					dp[k] = new SimpleDataPoint(child.getAverageMZ(), candidates.getAvgHeight(k));
+				}
+				else
+				{
+					dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
+				}
 				
 				if(scanType == ScanType.pattern)
 				{
 					String average = "";
-					if(avgIntensity)
+					if(accurateAvgIntensity)
 					{
 						average = " AvgRating: " + round(candidates.getAvgRating(k), 3) /*+ " TempAvg: " + round(candidates.calcTemporaryAvgRating(plh, k), 3)*/;
 					}

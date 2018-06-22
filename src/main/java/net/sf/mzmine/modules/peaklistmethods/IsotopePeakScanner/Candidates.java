@@ -78,6 +78,8 @@ public class Candidates {
 	
 	public double getAvgHeight(int index)
 	{
+		if(index > candidate.length || avgHeight == null)
+			return 0.0;
 		return avgHeight[index];
 	}
 	
