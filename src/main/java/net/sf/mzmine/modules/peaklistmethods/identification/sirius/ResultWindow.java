@@ -33,6 +33,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -181,6 +182,17 @@ public class ResultWindow extends JFrame implements ActionListener {
 
       java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
     }
+
+  }
+
+  public void addNewListItem(final SiriusCompound compound) {
+
+    // Update the model in swing thread to avoid exceptions
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        listElementModel.addElement(compound);
+      }
+    });
 
   }
 

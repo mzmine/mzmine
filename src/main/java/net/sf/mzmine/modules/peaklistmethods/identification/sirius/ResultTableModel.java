@@ -20,14 +20,17 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import java.text.NumberFormat;
+import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
+import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 
 public class ResultTableModel extends AbstractTableModel {
+
   private static final long serialVersionUID = 1L;
 
-  private static final String[] columnNames = {"ID", "Common Name",
-      "Formula", "Mass difference", "Isotope pattern score"};
+  private static final String[] columnNames = {"ID", "Name",
+      "Formula", "SMILES", "Inchi", "DBs"};
 
   private double searchedMass;
 
@@ -35,7 +38,7 @@ public class ResultTableModel extends AbstractTableModel {
       .getPercentInstance();
   private final NumberFormat massFormat = MZmineCore.getConfiguration()
       .getMZFormat();
-
+  private Vector<SiriusCompound> annotations = new Vector<SiriusCompound>();
 
   //TODO: todo
   ResultTableModel(double searchedMass) {
@@ -49,7 +52,7 @@ public class ResultTableModel extends AbstractTableModel {
 
   //TODO: todo
   public int getRowCount() {
-    return 0;
+    return annotations.size();
   }
 
   //TODO: todo
@@ -60,8 +63,35 @@ public class ResultTableModel extends AbstractTableModel {
   //TODO: todo
   public Object getValueAt(int row, int col) {
     Object value = null;
+    SiriusCompound compound = annotations.get(row);
+    switch (col) {
+      case 0:
+        value = compound.getPropertyValue(PeakIdentity.PROPERTY_ID);
+        break;
+      case 1:
+        String name = compound.getAnnotationDescription();
+        value = name;
+        break;
+      case 2:
+        value = compound.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+        break;
+      case 3:
+        value = compound.getSMILES();
+        break;
+      case 4:
+        value = compound.getInchi();
+        break;
+      case 5:
+        value = compound.getDBS();
+        break;
+    }
 
     return value;
+  }
+
+  public void addElement(SiriusCompound compound) {
+    annotations.add(compound);
+    fireTableRowsInserted(annotations.size() - 1, annotations.size() - 1);
   }
 
 
@@ -72,5 +102,8 @@ public class ResultTableModel extends AbstractTableModel {
 
   //TODO: todo
   public void setValueAt(Object value, int row, int col) {
+    SiriusCompound compound = annotations.get(row);
+    compound.setOnCol(value, col);
+    fireTableRowsUpdated(row, col);
   }
 }

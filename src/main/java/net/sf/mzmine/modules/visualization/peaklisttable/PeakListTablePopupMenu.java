@@ -90,6 +90,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private final JMenuItem clearIdsItem;
     private final JMenuItem dbSearchItem;
     private final JMenuItem formulaItem;
+    private final JMenuItem siriusItem;
     private final JMenuItem nistSearchItem;
     private final JMenuItem copyIdsItem;
     private final JMenuItem pasteIdsItem;
@@ -141,6 +142,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 this);
         formulaItem = GUIUtils.addMenuItem(searchMenu,
                 "Predict molecular formula", this);
+        siriusItem = GUIUtils.addMenuItem(searchMenu,
+                    "Predict formula & chemical structure by Sirius module", this);
 
         exportMenu = new JMenu("Export");
         add(exportMenu);
@@ -518,7 +521,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 //        //TODO: what is going on here?
         //TODO: probably remove singlerowidentificationDialog as Sirius works with spectrum, not 1 peak.
-        if (formulaItem != null && formulaItem.equals(src)) {
+        if (siriusItem != null && siriusItem.equals(src)) {
 
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
