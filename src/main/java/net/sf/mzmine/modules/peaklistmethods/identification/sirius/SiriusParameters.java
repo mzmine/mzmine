@@ -40,8 +40,8 @@ public class SiriusParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-    public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
-	    "Ionization type", "Ionization type", IonizationType.values());
+//    public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
+//	    "Ionization type", "Ionization type", IonizationType.values());
 
 	public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter(
 			"Neutral mass", "Value to use in the search query");
@@ -66,7 +66,9 @@ public class SiriusParameters extends SimpleParameterSet {
 			new IsotopePatternScoreParameters());
 
     public SiriusParameters() {
-	super(new Parameter[] { peakLists, ionizationType,
+//      super(new Parameter[] { peakLists, ionizationType,
+    super(new Parameter[] { peakLists,
+    NEUTRAL_MASS,
 		PARENT_MASS,
 		MAX_RESULTS,
 		MZ_TOLERANCE,

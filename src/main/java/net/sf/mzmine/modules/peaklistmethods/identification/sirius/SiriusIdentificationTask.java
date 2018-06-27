@@ -18,13 +18,24 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
+import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
+import io.github.msdk.MSDKException;
+import io.github.msdk.datamodel.IonAnnotation;
+import io.github.msdk.datamodel.IonType;
+import io.github.msdk.datamodel.MsSpectrum;
+import io.github.msdk.datamodel.SimpleMsSpectrum;
+import io.github.msdk.id.sirius.ConstraintsGenerator;
+import io.github.msdk.id.sirius.FingerIdWebMethod;
+import io.github.msdk.id.sirius.SiriusIdentificationMethod;
+import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.msdk.util.IonTypeUtil;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.LinkedList;
+import java.util.List;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
-import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
@@ -38,12 +49,14 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.slf4j.LoggerFactory;
 
-public class PeakListIdentificationTask extends AbstractTask {
+public class SiriusIdentificationTask extends AbstractTask {
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(
-      PeakListIdentificationTask.class.getName());
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SiriusIdentificationTask.class);
+
 
   // Minimum abundance.
   private static final double MIN_ABUNDANCE = 0.001;
@@ -58,6 +71,8 @@ public class PeakListIdentificationTask extends AbstractTask {
   private final boolean isotopeFilter;
   private final ParameterSet isotopeFilterParameters;
   private final IonizationType ionType;
+  private final double parentMass;
+  private final MolecularFormulaRange range;
   private PeakListRow currentRow;
 
   /**
@@ -66,7 +81,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list peak list to operate on.
    */
-  PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
+  SiriusIdentificationTask(final ParameterSet parameters, final PeakList list) {
 
     peakList = list;
     numItems = 0;
@@ -81,7 +96,9 @@ public class PeakListIdentificationTask extends AbstractTask {
         parameters.getParameter(SiriusParameters.ISOTOPE_FILTER).getValue();
     isotopeFilterParameters = parameters
         .getParameter(SiriusParameters.ISOTOPE_FILTER).getEmbeddedParameters();
-    ionType = parameters.getParameter(SiriusParameters.ionizationType).getValue();
+    ionType = parameters.getParameter(SiriusParameters.NEUTRAL_MASS).getIonType();
+    parentMass = parameters.getParameter(SiriusParameters.PARENT_MASS).getValue();
+    range = parameters.getParameter(SiriusParameters.ELEMENTS).getValue();
   }
 
   @Override
@@ -96,7 +113,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     return "Identification of peaks in " + peakList
         + (currentRow == null ? " using "
             : " (" + MZmineCore.getConfiguration().getMZFormat().format(currentRow.getAverageMZ())
-                + " m/z) using ");
+                + " m/z) using SIRIUS");
   }
 
   @Override
@@ -119,8 +136,8 @@ public class PeakListIdentificationTask extends AbstractTask {
         // Process rows.
         for (finishedItems = 0; !isCanceled() && finishedItems < numItems; finishedItems++) {
 
-          // Retrieve results for each row.
-          retrieveIdentification(rows[finishedItems]);
+          processSpectra(rows[finishedItems]);
+
         }
 
         if (!isCanceled()) {
@@ -129,7 +146,7 @@ public class PeakListIdentificationTask extends AbstractTask {
       } catch (Throwable t) {
 
         final String msg = "Could not search ";
-        LOG.log(Level.WARNING, msg, t);
+        logger.warn(msg, t);
         setStatus(TaskStatus.ERROR);
         setErrorMessage(msg + ": " + ExceptionUtils.exceptionToString(t));
       }
@@ -142,23 +159,59 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param row the peak list row.
    * @throws IOException if there are i/o problems.
    */
-  private void retrieveIdentification(final PeakListRow row) throws IOException {
+  private void processSpectra(final PeakListRow row) throws IOException {
 
     currentRow = row;
 
-    // Determine peak charge.
-    final Feature bestPeak = row.getBestPeak();
-    int charge = bestPeak.getCharge();
-    if (charge <= 0) {
-      charge = 1;
-    }
+//    final Feature bestPeak = row.getBestPeak();
+//    int charge = bestPeak.getCharge();
+//    if (charge <= 0) {
+//      charge = 1;
+//    }
 
     // Calculate mass value.
 
-    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
+//    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
 
     // Isotope pattern.
-    final IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();
+//    final IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();
+
+    double ppm = mzTolerance.getPpmTolerance();
+    SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
+    Feature[] peaks = row.getPeaks();
+    double mz[] = new double[peaks.length];
+    float intensity[] = new float[peaks.length];
+    IonType siriusIonType = IonTypeUtil.createIonType(ionType.toString());
+
+    for (int i = 0; i < peaks.length; i++) {
+      mz[i] = peaks[i].getMZ();
+      intensity[i] = (float) peaks[i].getHeight();
+    }
+
+    spectrum.setDataPoints(mz, intensity, peaks.length);
+    List<MsSpectrum> ms1 = null, ms2 = null;
+
+    if (true) {
+      ms2 = new LinkedList<>();
+      ms2.add(spectrum);
+    }
+
+
+    ConstraintsGenerator constraintsGenerator = new ConstraintsGenerator();
+    FormulaConstraints constraints = constraintsGenerator.generateConstraint(range);
+    SiriusIdentificationMethod siriusMethod = new SiriusIdentificationMethod(
+        ms1,
+        ms2,
+        parentMass,
+        siriusIonType,
+        numOfResults,
+        constraints,
+        ppm
+    );
+
+
+
+
 
     // Process each one of the result ID's.
 //    final String[] findCompounds =
@@ -194,15 +247,39 @@ public class PeakListIdentificationTask extends AbstractTask {
 //        if (!check)
 //          continue;
 //      }
-//
-      // Add the retrieved identity to the peak list row
-//      row.addPeakIdentity(compound, false);
+    List<IonAnnotation> siriusAnnotations = null;
+    List<IonAnnotation> fingerAnnotations = null;
+    try {
+      siriusAnnotations = siriusMethod.execute();
+    } catch (MSDKException e) {
+      e.printStackTrace();
+      System.out.println("Hell is here");
+    }
 
-      // Notify the GUI about the change in the project
-      MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
-      // Repaint the window to reflect the change in the peak list
-      Desktop desktop = MZmineCore.getDesktop();
-      if (!(desktop instanceof HeadLessDesktop))
-        desktop.getMainWindow().repaint();
+
+    Ms2Experiment experiment = siriusMethod.getExperiment();
+    SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) siriusAnnotations.get(0);
+
+    FingerIdWebMethod fingerMethod = null;
+    try {
+      fingerMethod = new FingerIdWebMethod(experiment, siriusAnnotation, 10);
+      fingerAnnotations = fingerMethod.execute();
+    } catch (Exception e) {
+      logger.error("Exception!&@!#$^&@#$");
+      System.out.println("Panic");
+    }
+
+    IonAnnotation best = fingerAnnotations.get(0);
+
+    SiriusCompound compound = new SiriusCompound(best, 10.);
+    // Add the retrieved identity to the peak list row
+    row.addPeakIdentity(compound, false);
+
+    // Notify the GUI about the change in the project
+    MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
+    // Repaint the window to reflect the change in the peak list
+    Desktop desktop = MZmineCore.getDesktop();
+    if (!(desktop instanceof HeadLessDesktop))
+      desktop.getMainWindow().repaint();
   }
 }
