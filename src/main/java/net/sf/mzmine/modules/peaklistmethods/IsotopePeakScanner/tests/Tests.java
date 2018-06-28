@@ -26,13 +26,12 @@ public class Tests {
 
 	public static void main(String[] args) {
 		//isotopePatternTest();
-		exIPT();
-		isotopePatternTest();
+		exIPT("Cl2");
+		//isotopePatternTest();
 	}
 		
-	private static void isotopePatternTest()
+	private static void isotopePatternTest(String formula)
 	{
-		String formula = " C18H31GdN4O9";
 		IsotopePattern pattern = IsotopePatternCalculator.calculateIsotopePattern(formula, 0.05, 1, PolarityType.NEGATIVE);
 		pattern = IsotopePatternCalculator.mergeIsotopes(pattern, 0.0005);
 		int size = pattern.getNumberOfDataPoints();
@@ -48,16 +47,15 @@ public class Tests {
 		}
 		System.out.println(getIntensityRatios(pattern));
 	}
-	public static void exIPT()
+	public static void exIPT(String formula)
 	{
 		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
 		//p.addElement("C5");
-		p.setUpFromFormula("C18H31GdN4O9", 0.01, 0.0005, 0.05);
+		p.setUpFromFormula(formula, 0.01, 0.0005, 0.05);
 		p.applyCharge(1, PolarityType.NEGATIVE);
 		p.normalizePatternToPeak(0);
 		//p.addElement("Cl");
 		
-		DataPoint[] dps2 = p.getDataPoints();
 		p.print();
 	}
 	

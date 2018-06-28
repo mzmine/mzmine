@@ -71,6 +71,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
     private boolean accurateAvgIntensity;
     private String massListName;
     private String ratingChoice;
+    private double minAccurateAvgIntensity;
     
     private enum ScanType {neutralLoss, pattern};
     public enum RatingType {HIGHEST, TEMPAVG};
@@ -115,6 +116,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         
         
         
+        
         /*RawDataFile[] raws = peakList.getRawDataFiles();
         Scan scan = raws[0].getScan(1);
         MassList[] lists = scan.getMassLists();
@@ -123,12 +125,12 @@ public class IsotopePeakScannerTask extends AbstractTask {
         if(!peakList.getRawDataFiles()[0].getScan(0).getMassLists().toString().contains(massListName))
         	throw new MSDKRuntimeException("massList " + massListName + " not within: " + peakList.getRawDataFiles()[0].getScan(0).getMassLists().toString());*/
         
-        if(accurateAvgIntensity == true && checkIntensity == false)
+        if(accurateAvgIntensity && !checkIntensity)
         {
         	accurateAvgIntensity = false;
         }
         
-        if(ratingChoice.equals("Temporary Average"))
+        if(ratingChoice.equals("Temporary average"))
         	ratingType = RatingType.TEMPAVG;
         else
         	ratingType = RatingType.HIGHEST;

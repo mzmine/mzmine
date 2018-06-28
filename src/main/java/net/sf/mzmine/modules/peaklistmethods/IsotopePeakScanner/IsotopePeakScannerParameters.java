@@ -35,11 +35,11 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
 
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
     
-    public static final BooleanParameter checkRT = new BooleanParameter("Check rt", "Compare rt of peaks to parent.");
+    public static final BooleanParameter checkRT = new BooleanParameter("Check RT", "Compare rt of peaks to parent.");
     
     public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-    public static final StringParameter element = new StringParameter("Element pattern", "Element (combibation) whose isotope pattern to be searched for. Please enter the two letter Symbol. (e.g. \"Gd\", Cl2Br)");
+    public static final StringParameter element = new StringParameter("Element pattern", "Element (combination) whose isotope pattern to be searched for. Please enter the two letter Symbol. (e.g. \"Gd\", \"Cl2Br\"S)");
     
     public static final PercentParameter minAbundance = new PercentParameter("Minimum abundance", "The minimum abundance (%) of Isotopes. Small values "
     		+ "might increase accuracy but will decrease sensitivity.");
@@ -54,6 +54,10 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
         
     public static final DoubleParameter minRating = new DoubleParameter("Minimun rating", "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.95, 0.0, 1.0);
     
+    public static final String[] ratingTypeChoices = {"Highest intensity", "Temporary average"};
+    
+    public static final ComboParameter<String> ratingChoices = new ComboParameter<String>("Rating type", "Method to calculate the rating with.\nHighest Intensity is the standard method and faster.\nAverage is slower but might be more accurate for more intense peaks. Select a masslist.", ratingTypeChoices);
+    
     public static final StringParameter suffix =
     	      new StringParameter("Name suffix", "Suffix to be added to peak list name", "auto");
     
@@ -62,12 +66,10 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet{
     public static final IntegerParameter charge = new IntegerParameter("Charge", "Amount and polarity (e.g.: [M+]=+1 / [M-]=-1");
     
     //public static final BooleanParameter tempAvgIntensity = new BooleanParameter("Temporary Average Intensity", "Use temporary avg intensity to calculate rating.", false);
-    public static final String[] ratingTypeChoices = {"Highest Intensity", "Temporary Average"};
-    public static final ComboParameter<String> ratingChoices = new ComboParameter<String>("Rating Type", "Method to calculate the rating with.\nHighest Intensity is the standard method and faster.\nAverage is slower but might be more accurate for more intense peaks. Selcect a masslist.", ratingTypeChoices);
     
-    public static final OptionalParameter<MassListParameter> massList = new OptionalParameter<MassListParameter>(new MassListParameter("Calculate Accurate Average", "Please select a mass list.\nThis method will use averaged intensitys over all mass lists in which ALL relevant masses were detected in.\nThis will only be done for peaks that match the defined rating-calculation with the given rating.\nMake sure the mass list is contained in the peak list."));
+    public static final OptionalParameter<MassListParameter> massList = new OptionalParameter<MassListParameter>(new MassListParameter("Calculate accurate average", "Please select a mass list.\nThis method will use averaged intensitys over all mass lists in which ALL relevant masses were detected in.\nThis will only be done for peaks that match the defined rating-calculation with the given rating.\nMake sure the mass list is contained in the peak list."));
     
     public IsotopePeakScannerParameters() {
-    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, minPatternIntensity, mergeFWHM, charge, minAbundance, minHeight, checkIntensity, minRating, suffix, neutralLoss, ratingChoices, massList});
+    	super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, charge, minAbundance, minPatternIntensity, mergeFWHM,  minHeight, checkIntensity, minRating, ratingChoices, massList, suffix, neutralLoss});
     }
 }
