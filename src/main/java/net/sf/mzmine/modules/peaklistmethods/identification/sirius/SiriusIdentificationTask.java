@@ -68,8 +68,6 @@ public class SiriusIdentificationTask extends AbstractTask {
   private final MZTolerance mzTolerance;
   private final int numOfResults;
   private final PeakList peakList;
-  private final boolean isotopeFilter;
-  private final ParameterSet isotopeFilterParameters;
   private final IonizationType ionType;
   private final double parentMass;
   private final MolecularFormulaRange range;
@@ -92,10 +90,6 @@ public class SiriusIdentificationTask extends AbstractTask {
         parameters.getParameter(SiriusParameters.MZ_TOLERANCE).getValue();
     numOfResults =
         parameters.getParameter(SiriusParameters.MAX_RESULTS).getValue();
-    isotopeFilter =
-        parameters.getParameter(SiriusParameters.ISOTOPE_FILTER).getValue();
-    isotopeFilterParameters = parameters
-        .getParameter(SiriusParameters.ISOTOPE_FILTER).getEmbeddedParameters();
     ionType = parameters.getParameter(SiriusParameters.NEUTRAL_MASS).getIonType();
     parentMass = parameters.getParameter(SiriusParameters.PARENT_MASS).getValue();
     range = parameters.getParameter(SiriusParameters.ELEMENTS).getValue();
@@ -210,43 +204,6 @@ public class SiriusIdentificationTask extends AbstractTask {
     );
 
 
-
-
-
-    // Process each one of the result ID's.
-//    final String[] findCompounds =
-//        gateway.findCompounds(massValue, mzTolerance, numOfResults, db.getParameterSet());
-
-//    for (int i = 0; !isCanceled() && i < findCompounds.length; i++) {
-//
-//      final DBCompound compound = gateway.getCompound(findCompounds[i], db.getParameterSet());
-//
-//       In case we failed to retrieve data, skip this compound
-//      if (compound == null)
-//        continue;
-//
-//      final String formula = compound.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
-//
-//       If required, check isotope score.
-//      if (isotopeFilter && rowIsotopePattern != null && formula != null) {
-//
-//         First modify the formula according to ionization.
-//        final String adjustedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
-//
-//        LOG.finest("Calculating isotope pattern for compound formula " + formula + " adjusted to "
-//            + adjustedFormula);
-//
-//         Generate IsotopePattern for this compound
-//        final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-//            .calculateIsotopePattern(adjustedFormula, MIN_ABUNDANCE, charge, ionType.getPolarity());
-//
-        // Check isotope pattern match
-//        boolean check = IsotopePatternScoreCalculator.checkMatch(rowIsotopePattern,
-//            compoundIsotopePattern, isotopeFilterParameters);
-//
-//        if (!check)
-//          continue;
-//      }
     List<IonAnnotation> siriusAnnotations = null;
     List<IonAnnotation> fingerAnnotations = null;
     try {

@@ -75,7 +75,7 @@ public class ResultWindow extends JFrame implements ActionListener {
     pnlLabelsAndList.add(new JLabel("List of possible identities"),
         BorderLayout.NORTH);
 
-    listElementModel = new ResultTableModel(searchedMass);
+    listElementModel = new ResultTableModel();
     IDList = new JTable();
     IDList.setModel(listElementModel);
     IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -99,10 +99,6 @@ public class ResultWindow extends JFrame implements ActionListener {
     pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
-    GUIUtils.addButton(pnlButtons, "View structure", null, this, "VIEWER");
-    GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
-        "ISOTOPE_VIEWER");
-    GUIUtils.addButton(pnlButtons, "Open browser", null, this, "BROWSER");
 
     setLayout(new BorderLayout());
     setSize(500, 200);
@@ -138,50 +134,50 @@ public class ResultWindow extends JFrame implements ActionListener {
       dispose();
     }
 
-    if (command.equals("VIEWER")) {
-
-      int index = IDList.getSelectedRow();
-
-      if (index < 0) {
-        MZmineCore.getDesktop().displayMessage(this,
-            "Select one result to display molecule structure");
-        return;
-      }
-    }
-
-    if (command.equals("ISOTOPE_VIEWER")) {
-
-      int index = IDList.getSelectedRow();
-
-      if (index < 0) {
-        MZmineCore.getDesktop().displayMessage(this,
-            "Select one result to display the isotope pattern");
-        return;
-      }
-
-      index = IDList.convertRowIndexToModel(index);
-
-      Feature peak = peakListRow.getBestPeak();
-
-      RawDataFile dataFile = peak.getDataFile();
-      int scanNumber = peak.getRepresentativeScanNumber();
-    }
-
-    if (command.equals("BROWSER")) {
-      int index = IDList.getSelectedRow();
-
-      if (index < 0) {
-        MZmineCore.getDesktop().displayMessage(this,
-            "Select one compound to display in a web browser");
-        return;
-
-      }
-      index = IDList.convertRowIndexToModel(index);
-
-      logger.finest("Launching default browser to display compound details");
-
-      java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
-    }
+//    if (command.equals("VIEWER")) {
+//
+//      int index = IDList.getSelectedRow();
+//
+//      if (index < 0) {
+//        MZmineCore.getDesktop().displayMessage(this,
+//            "Select one result to display molecule structure");
+//        return;
+//      }
+//    }
+//
+//    if (command.equals("ISOTOPE_VIEWER")) {
+//
+//      int index = IDList.getSelectedRow();
+//
+//      if (index < 0) {
+//        MZmineCore.getDesktop().displayMessage(this,
+//            "Select one result to display the isotope pattern");
+//        return;
+//      }
+//
+//      index = IDList.convertRowIndexToModel(index);
+//
+//      Feature peak = peakListRow.getBestPeak();
+//
+//      RawDataFile dataFile = peak.getDataFile();
+//      int scanNumber = peak.getRepresentativeScanNumber();
+//    }
+//
+//    if (command.equals("BROWSER")) {
+//      int index = IDList.getSelectedRow();
+//
+//      if (index < 0) {
+//        MZmineCore.getDesktop().displayMessage(this,
+//            "Select one compound to display in a web browser");
+//        return;
+//
+//      }
+//      index = IDList.convertRowIndexToModel(index);
+//
+//      logger.finest("Launching default browser to display compound details");
+//
+//      java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+//    }
 
   }
 

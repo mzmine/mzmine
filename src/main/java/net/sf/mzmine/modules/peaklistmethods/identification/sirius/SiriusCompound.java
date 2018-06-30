@@ -23,6 +23,8 @@ import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SiriusCompound extends SimplePeakIdentity {
   private Double compoundScore;
@@ -55,6 +57,10 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   public Object getDBS() {
     return null; // TODO: make list of dbs somehow
+  }
+
+  public String getFormula() {
+    return MolecularFormulaManipulator.getString(ion.getFormula());
   }
 
   public void setOnCol(Object value, int col) {

@@ -41,8 +41,7 @@ public class ResultTableModel extends AbstractTableModel {
   private Vector<SiriusCompound> annotations = new Vector<SiriusCompound>();
 
   //TODO: todo
-  ResultTableModel(double searchedMass) {
-    this.searchedMass = searchedMass;
+  ResultTableModel() {
     percentFormat.setMaximumFractionDigits(1);
   }
 
@@ -73,7 +72,7 @@ public class ResultTableModel extends AbstractTableModel {
         value = name;
         break;
       case 2:
-        value = compound.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+        value = compound.getFormula();
         break;
       case 3:
         value = compound.getSMILES();

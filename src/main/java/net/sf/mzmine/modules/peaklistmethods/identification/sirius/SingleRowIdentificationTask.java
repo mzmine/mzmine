@@ -20,19 +20,21 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MZ_TOLERANCE;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ISOTOPE_FILTER;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MAX_RESULTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.PARENT_MASS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.NEUTRAL_MASS;
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
+import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
 import io.github.msdk.datamodel.SimpleMsSpectrum;
 import io.github.msdk.id.sirius.ConstraintsGenerator;
+import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIdentificationMethod;
+import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -50,10 +52,12 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.slf4j.LoggerFactory;
 
 public class SingleRowIdentificationTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
+
 
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
@@ -65,8 +69,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private int numOfResults;
   private PeakListRow peakListRow;
   private IonizationType ionType;
-  private boolean isotopeFilter = false;
-  private ParameterSet isotopeFilterParameters;
   private MolecularFormulaRange formulaRange;
   private Double parentMass;
 
@@ -87,8 +89,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     ionType = parameters.getParameter(NEUTRAL_MASS).getIonType();
     charge = parameters.getParameter(NEUTRAL_MASS).getCharge();
 
-    isotopeFilter = parameters.getParameter(ISOTOPE_FILTER).getValue();
-    isotopeFilterParameters = parameters.getParameter(ISOTOPE_FILTER).getEmbeddedParameters();
     formulaRange = parameters.getParameter(ELEMENTS).getValue();
     parentMass = parameters.getParameter(PARENT_MASS).getValue();
   }
@@ -139,26 +139,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
     int ms1index = bestPeak.getRepresentativeScanNumber();
     int ms2index = bestPeak.getMostIntenseFragmentScanNumber();
 
+    logger.info("####################### {} & {} ##############", ms1index, ms2index);
 
     RawDataFile rawfile = bestPeak.getDataFile();
-    Scan ms1scan = rawfile.getScan(ms1index);
-    Scan ms2scan = rawfile.getScan(ms2index);
-    int level1 = ms1scan.getMSLevel();
-    int level2 = ms2scan.getMSLevel();
 
-    DataPoint[] ms1points = ms1scan.getDataPoints();
-    DataPoint[] ms2points = ms2scan.getDataPoints();
+    List<MsSpectrum> ms1list = processRawScan(rawfile, ms1index);
+    List<MsSpectrum> ms2list = processRawScan(rawfile, ms2index);
 
-
-    MsSpectrum ms1 = buildSpectrum(ms1points);
-    MsSpectrum ms2 = buildSpectrum(ms2points);
-
-    List<MsSpectrum> ms1list, ms2list;
-    ms1list = new LinkedList<>();
-    ms2list = new LinkedList<>();
     IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
-    ms1list.add(ms1);
-    ms2list.add(ms2);
 
     SiriusIdentificationMethod siriusMethod = new SiriusIdentificationMethod(
         ms1list,
@@ -170,15 +158,39 @@ public class SingleRowIdentificationTask extends AbstractTask {
         ppm
     );
 
+    FingerIdWebMethod fingerMethod = null;
+    List<IonAnnotation> siriusResults = null;
     try {
       siriusMethod.execute();
-      List<IonAnnotation> results = siriusMethod.getResult();
+      siriusResults = siriusMethod.getResult();
 
-      IonAnnotation best = results.get(0);
-      //TODO: make it
-      SiriusCompound compound = new SiriusCompound(best, 10.);
+      if (ms2index != -1) {
+        SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) siriusResults.get(0);
+        Ms2Experiment experiment = siriusMethod.getExperiment();
+        fingerMethod = new FingerIdWebMethod(experiment, siriusAnnotation, 10);
 
-      window.addNewListItem(compound);
+        List<IonAnnotation> fingerResults = fingerMethod.execute();
+
+        if (fingerResults != null && fingerResults.size() > 0) {
+          for (IonAnnotation a: fingerResults) {
+            SiriusCompound compound = new SiriusCompound(a, 10.);
+            window.addNewListItem(compound);
+          }
+        } else {
+          for (IonAnnotation a: siriusResults) {
+            SiriusCompound compound = new SiriusCompound(a, 10.);
+            window.addNewListItem(compound);
+          }
+        }
+      } else {
+        for (IonAnnotation a: siriusResults) {
+          SiriusCompound compound = new SiriusCompound(a, 10.);
+          window.addNewListItem(compound);
+        }
+      }
+    } catch (RuntimeException t) {
+      System.out.println("No edges stuf happened");
+      t.printStackTrace();
     } catch (MSDKException e) {
       e.printStackTrace();
       System.out.println("Hell is here");
@@ -339,6 +351,20 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  private
+  List<MsSpectrum> processRawScan(RawDataFile rawfile, int index) {
+    LinkedList<MsSpectrum> spectra = null;
+    if (index != -1) {
+      spectra = new LinkedList<>();
+      Scan scan = rawfile.getScan(index);
+      DataPoint[] points = scan.getDataPoints();
+      MsSpectrum ms = buildSpectrum(points);
+      spectra.add(ms);
+    }
+
+    return spectra;
   }
 
   private MsSpectrum buildSpectrum(DataPoint[] ms1points) {
