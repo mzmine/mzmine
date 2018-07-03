@@ -105,8 +105,12 @@ public class ResultTableModel extends AbstractTableModel {
 
   //TODO: todo
   public void setValueAt(Object value, int row, int col) {
-    SiriusCompound compound = annotations.get(row);
-    compound.setOnCol(value, col);
-    fireTableRowsUpdated(row, col);
+//    SiriusCompound compound = annotations.get(row);
+//    compound.setOnCol(value, col);
+//    fireTableRowsUpdated(row, col);
+  }
+
+  public SiriusCompound getCompoundAt(int row) {
+    return annotations.get(row);
   }
 }

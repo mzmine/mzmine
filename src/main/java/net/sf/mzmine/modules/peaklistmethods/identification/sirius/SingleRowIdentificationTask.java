@@ -18,11 +18,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ELEMENTS;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MZ_TOLERANCE;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MAX_RESULTS;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.PARENT_MASS;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.NEUTRAL_MASS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MAX_RESULTS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.PARENT_MASS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.NEUTRAL_MASS;
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
@@ -39,7 +39,6 @@ import io.github.msdk.util.IonTypeUtil;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -52,13 +51,8 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.slf4j.LoggerFactory;
 
 public class SingleRowIdentificationTask extends AbstractTask {
-
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
-
-
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   private int finishedItems = 0, numItems;
@@ -102,7 +96,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     return ((double) finishedItems) / numItems;
   }
 
-  //TODO: todo
   public String getTaskDescription() {
     return "Peak identification of " + massFormater.format(searchedMass) + " using Sirius module";
   }
@@ -120,15 +113,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     window.setTitle("Sirius makes fun " + massFormater.format(searchedMass) + " amu");
     window.setVisible(true);
 
-    /*  TODO: What is it for?
-    IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
-    if ((isotopeFilter) && (detectedPattern == null)) {
-      final String msg = "Cannot calculate isotope pattern scores, because selected"
-          + " peak does not have any isotopes. Have you run the isotope peak grouper?";
-      MZmineCore.getDesktop().displayMessage(window, msg);
-    }
-
-    */
     ConstraintsGenerator generator = new ConstraintsGenerator();
     FormulaConstraints constraints = generator.generateConstraint(formulaRange);
 
@@ -139,7 +123,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     int ms1index = bestPeak.getRepresentativeScanNumber();
     int ms2index = bestPeak.getMostIntenseFragmentScanNumber();
 
-    logger.info("####################### {} & {} ##############", ms1index, ms2index);
 
     RawDataFile rawfile = bestPeak.getDataFile();
 
@@ -173,18 +156,21 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
         if (fingerResults != null && fingerResults.size() > 0) {
           for (IonAnnotation a: fingerResults) {
-            SiriusCompound compound = new SiriusCompound(a, 10.);
+            SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
+            SiriusCompound compound = new SiriusCompound(temp, temp.getFingerIdScore());
             window.addNewListItem(compound);
           }
         } else {
           for (IonAnnotation a: siriusResults) {
-            SiriusCompound compound = new SiriusCompound(a, 10.);
+            SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
+            SiriusCompound compound = new SiriusCompound(temp, temp.getSiriusScore());
             window.addNewListItem(compound);
           }
         }
       } else {
         for (IonAnnotation a: siriusResults) {
-          SiriusCompound compound = new SiriusCompound(a, 10.);
+          SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
+          SiriusCompound compound = new SiriusCompound(temp, temp.getSiriusScore());
           window.addNewListItem(compound);
         }
       }
@@ -201,8 +187,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
   }
 
-  private
-  List<MsSpectrum> processRawScan(RawDataFile rawfile, int index) {
+  private List<MsSpectrum> processRawScan(RawDataFile rawfile, int index) {
     LinkedList<MsSpectrum> spectra = null;
     if (index != -1) {
       spectra = new LinkedList<>();

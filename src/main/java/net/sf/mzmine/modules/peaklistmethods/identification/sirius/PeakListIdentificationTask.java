@@ -52,14 +52,10 @@ import net.sf.mzmine.util.SortingProperty;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.LoggerFactory;
 
-public class SiriusIdentificationTask extends AbstractTask {
+public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SiriusIdentificationTask.class);
-
-
-  // Minimum abundance.
-  private static final double MIN_ABUNDANCE = 0.001;
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PeakListIdentificationTask.class);
 
   // Counters.
   private int finishedItems;
@@ -79,20 +75,17 @@ public class SiriusIdentificationTask extends AbstractTask {
    * @param parameters task parameters.
    * @param list peak list to operate on.
    */
-  SiriusIdentificationTask(final ParameterSet parameters, final PeakList list) {
-
+  PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
     peakList = list;
     numItems = 0;
     finishedItems = 0;
     currentRow = null;
 
-    mzTolerance =
-        parameters.getParameter(SiriusParameters.MZ_TOLERANCE).getValue();
-    numOfResults =
-        parameters.getParameter(SiriusParameters.MAX_RESULTS).getValue();
-    ionType = parameters.getParameter(SiriusParameters.NEUTRAL_MASS).getIonType();
-    parentMass = parameters.getParameter(SiriusParameters.PARENT_MASS).getValue();
-    range = parameters.getParameter(SiriusParameters.ELEMENTS).getValue();
+    mzTolerance = parameters.getParameter(SingleRowIdentificationParameters.MZ_TOLERANCE).getValue();
+    numOfResults = parameters.getParameter(SingleRowIdentificationParameters.MAX_RESULTS).getValue();
+    ionType = parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS).getIonType();
+    parentMass = parameters.getParameter(SingleRowIdentificationParameters.PARENT_MASS).getValue();
+    range = parameters.getParameter(SingleRowIdentificationParameters.ELEMENTS).getValue();
   }
 
   @Override
@@ -129,9 +122,8 @@ public class SiriusIdentificationTask extends AbstractTask {
 
         // Process rows.
         for (finishedItems = 0; !isCanceled() && finishedItems < numItems; finishedItems++) {
-
+          //TODO: add code here
           processSpectra(rows[finishedItems]);
-
         }
 
         if (!isCanceled()) {
@@ -154,21 +146,7 @@ public class SiriusIdentificationTask extends AbstractTask {
    * @throws IOException if there are i/o problems.
    */
   private void processSpectra(final PeakListRow row) throws IOException {
-
     currentRow = row;
-
-//    final Feature bestPeak = row.getBestPeak();
-//    int charge = bestPeak.getCharge();
-//    if (charge <= 0) {
-//      charge = 1;
-//    }
-
-    // Calculate mass value.
-
-//    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
-
-    // Isotope pattern.
-//    final IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();
 
     double ppm = mzTolerance.getPpmTolerance();
     SimpleMsSpectrum spectrum = new SimpleMsSpectrum();

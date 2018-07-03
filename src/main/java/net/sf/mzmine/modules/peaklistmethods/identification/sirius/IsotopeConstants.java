@@ -18,9 +18,48 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import java.io.IOException;
+import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+
 public class IsotopeConstants {
   public static final int ISOTOPE_MAX = 100;
   public static final int ISOTOPE_MIN = 0;
+
+  public static MolecularFormulaRange setDefaultCompounds() {
+    MolecularFormulaRange range = new MolecularFormulaRange();
+    try {
+      IsotopeFactory iFac = Isotopes.getInstance();
+      range.addIsotope(iFac.getMajorIsotope("C"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("H"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("N"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("O"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("P"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("S"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("F"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("B"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("I"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("Br"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("Se"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("Cl"), IsotopeConstants.ISOTOPE_MIN,
+          IsotopeConstants.ISOTOPE_MIN);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return range;
+  }
 
   private IsotopeConstants() {}
 }

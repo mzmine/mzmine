@@ -21,15 +21,12 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
-import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.SingleRowIdentificationParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -57,10 +54,10 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
       @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
     final PeakList[] peakLists = parameters
-        .getParameter(SiriusParameters.peakLists)
+        .getParameter(PeakListIdentificationParameters.peakLists)
         .getValue().getMatchingPeakLists();
     for (final PeakList peakList : peakLists) {
-      Task newTask = new SiriusIdentificationTask(parameters, peakList);
+      Task newTask = new PeakListIdentificationTask(parameters, peakList);
       tasks.add(newTask);
     }
 
@@ -74,18 +71,18 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
    */
   public static void showSingleRowIdentificationDialog(final PeakListRow row) {
 
-    final ParameterSet parameters = new SiriusParameters();
+    final ParameterSet parameters = new SingleRowIdentificationParameters();
 
 //         Set m/z.
-    parameters.getParameter(SiriusParameters.NEUTRAL_MASS)
+    parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS)
         .setIonMass(row.getAverageMZ());
 
     // Set charge.
     final int charge = row.getBestPeak().getCharge();
     if (charge > 0) {
-
+      //TODO: auto update the mass value on charge update
       parameters.getParameter(
-          SiriusParameters.NEUTRAL_MASS).setCharge(
+          SingleRowIdentificationParameters.NEUTRAL_MASS).setCharge(
           charge);
     }
 
@@ -108,6 +105,6 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
   @Override
   public @Nonnull
   Class<? extends ParameterSet> getParameterSetClass() {
-    return SiriusParameters.class;
+    return SingleRowIdentificationParameters.class;
   }
 }
