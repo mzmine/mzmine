@@ -30,7 +30,7 @@ public class ResultTableModel extends AbstractTableModel {
   private static final long serialVersionUID = 1L;
 
   private static final String[] columnNames = {"ID", "Name",
-      "Formula", "SMILES", "Inchi", "DBs"};
+      "Formula", "SMILES", "Inchi", "DBs", "Sirius score", "FingerId Score"};
 
   private double searchedMass;
 
@@ -49,12 +49,10 @@ public class ResultTableModel extends AbstractTableModel {
     return columnNames[col];
   }
 
-  //TODO: todo
   public int getRowCount() {
     return annotations.size();
   }
 
-  //TODO: todo
   public int getColumnCount() {
     return columnNames.length;
   }
@@ -82,6 +80,12 @@ public class ResultTableModel extends AbstractTableModel {
         break;
       case 5:
         value = compound.getDBS();
+        break;
+      case 6:
+        value = compound.getSiriusScore();
+        break;
+      case 7:
+        value = compound.getFingerIdScore();
         break;
     }
 

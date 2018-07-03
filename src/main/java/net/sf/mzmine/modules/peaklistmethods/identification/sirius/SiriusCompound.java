@@ -19,11 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SiriusCompound extends SimplePeakIdentity {
@@ -88,5 +86,15 @@ public class SiriusCompound extends SimplePeakIdentity {
 //        siriusAnnotation.setDBLinks(links);
 //        break;
 //    }
+  }
+
+  public Object getFingerIdScore() {
+    final SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) ion;
+    return siriusAnnotation.getFingerIdScore();
+  }
+
+  public Object getSiriusScore() {
+    final SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) ion;
+    return siriusAnnotation.getSiriusScore();
   }
 }
