@@ -105,6 +105,6 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
   @Override
   public @Nonnull
   Class<? extends ParameterSet> getParameterSetClass() {
-    return SingleRowIdentificationParameters.class;
+    return PeakListIdentificationParameters.class;
   }
 }
