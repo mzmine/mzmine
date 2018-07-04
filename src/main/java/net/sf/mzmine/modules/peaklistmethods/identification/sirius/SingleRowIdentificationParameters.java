@@ -35,9 +35,6 @@ public class SingleRowIdentificationParameters extends SimpleParameterSet {
   public static final IntegerParameter MAX_RESULTS = new IntegerParameter(
       "Number of candidates", "Maximum number of results to display", 10);
 
-  public static final DoubleParameter PARENT_MASS = new DoubleParameter(
-      "Parent mass", "Mass of the precurosr ion, before fragmentation");
-
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
   public static final ElementsParameter ELEMENTS = new ElementsParameter(
@@ -50,7 +47,6 @@ public class SingleRowIdentificationParameters extends SimpleParameterSet {
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {
         NEUTRAL_MASS,
-        PARENT_MASS,
         MAX_RESULTS,
         MZ_TOLERANCE,
         ELEMENTS

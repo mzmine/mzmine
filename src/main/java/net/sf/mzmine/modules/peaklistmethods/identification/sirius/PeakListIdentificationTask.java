@@ -84,7 +84,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     mzTolerance = parameters.getParameter(SingleRowIdentificationParameters.MZ_TOLERANCE).getValue();
     numOfResults = parameters.getParameter(SingleRowIdentificationParameters.MAX_RESULTS).getValue();
     ionType = parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS).getIonType();
-    parentMass = parameters.getParameter(SingleRowIdentificationParameters.PARENT_MASS).getValue();
+    parentMass = parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS).getValue();
     range = parameters.getParameter(SingleRowIdentificationParameters.ELEMENTS).getValue();
   }
 

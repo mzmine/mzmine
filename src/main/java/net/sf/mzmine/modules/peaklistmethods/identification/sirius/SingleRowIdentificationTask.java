@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MAX_RESULTS;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.PARENT_MASS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.NEUTRAL_MASS;
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
@@ -82,9 +81,9 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     ionType = parameters.getParameter(NEUTRAL_MASS).getIonType();
     charge = parameters.getParameter(NEUTRAL_MASS).getCharge();
+    parentMass = parameters.getParameter(NEUTRAL_MASS).getValue();
 
     formulaRange = parameters.getParameter(ELEMENTS).getValue();
-    parentMass = parameters.getParameter(PARENT_MASS).getValue();
   }
 
   /**
@@ -176,6 +175,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
       }
     } catch (RuntimeException t) {
       System.out.println("No edges stuf happened");
+      for (IonAnnotation a: siriusResults) {
+        SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
+        SiriusCompound compound = new SiriusCompound(temp, temp.getSiriusScore());
+        window.addNewListItem(compound);
+      }
       t.printStackTrace();
     } catch (MSDKException e) {
       e.printStackTrace();

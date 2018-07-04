@@ -19,8 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import java.util.Hashtable;
+import java.util.TreeSet;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -29,9 +32,56 @@ public class SiriusCompound extends SimplePeakIdentity {
   private IonAnnotation ion;
 
   public SiriusCompound(IonAnnotation ion, Double score) {
-    super();
+    super(loadProps(ion));
+
     this.ion = ion;
     this.compoundScore = score;
+  }
+
+  private static Hashtable<String, String> loadProps(IonAnnotation ion) {
+    SiriusIonAnnotation annotation = (SiriusIonAnnotation) ion;
+    String formula = MolecularFormulaManipulator.getString(annotation.getFormula());
+    String siriusScore = String.format(".%2f", annotation.getSiriusScore());
+
+    Hashtable<String, String> props = new Hashtable<>(10);
+    props.put("Identification method", "Sirius");
+    props.put("Formula", formula);
+    props.put("Sirius score", siriusScore);
+
+
+    if (isProcessedByFingerId(annotation)) { // Execute this code if
+      String name = annotation.getDescription();
+      String inchi = annotation.getInchiKey();
+      String smiles = annotation.getSMILES();
+
+      props.put("Name", name);
+      props.put("SMILES", smiles);
+      props.put("Inchi", inchi);
+      String fingerScore = String.format(".%2f", annotation.getFingerIdScore());
+      props.put("FingerId score", fingerScore);
+
+      DBLink[] links = annotation.getDBLinks(); //todo: here can be again same PubChems, make it Pubchem #1, Pubchem #2
+      Hashtable<String, Integer> dbnames = new Hashtable<>();
+      for (DBLink link : links) {
+        /* Map is used to count indexes of repeating elements */
+        if (dbnames.contains(link.name)) {
+          int amount = dbnames.get(link.name);
+          dbnames.put(link.name, ++amount);
+        } else {
+          dbnames.put(link.name, 1);
+        }
+
+        String dbname = String.format("%s #%d", link.name, dbnames.get(link.name));
+        props.put(dbname, link.id);
+      }
+    } else
+      props.put("Name", formula);
+
+    return props;
+  }
+
+  private static boolean isProcessedByFingerId(SiriusIonAnnotation annotation) {
+    return annotation.getFingerIdScore() != null;
   }
 
   public SiriusCompound clone() {
