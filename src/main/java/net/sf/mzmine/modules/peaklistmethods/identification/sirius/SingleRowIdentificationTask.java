@@ -145,41 +145,24 @@ public class SingleRowIdentificationTask extends AbstractTask {
     try {
       siriusMethod.execute();
       siriusResults = siriusMethod.getResult();
+      List<IonAnnotation> items = null;
 
       if (ms2index != -1) {
+        // TODO: visit everyone
         SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) siriusResults.get(0);
         Ms2Experiment experiment = siriusMethod.getExperiment();
         fingerMethod = new FingerIdWebMethod(experiment, siriusAnnotation, 10);
 
         List<IonAnnotation> fingerResults = fingerMethod.execute();
+        items = (fingerResults != null && fingerResults.size() > 0) ? fingerResults : siriusResults;
 
-        if (fingerResults != null && fingerResults.size() > 0) {
-          for (IonAnnotation a: fingerResults) {
-            SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
-            SiriusCompound compound = new SiriusCompound(temp, temp.getFingerIdScore());
-            window.addNewListItem(compound);
-          }
-        } else {
-          for (IonAnnotation a: siriusResults) {
-            SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
-            SiriusCompound compound = new SiriusCompound(temp, temp.getSiriusScore());
-            window.addNewListItem(compound);
-          }
-        }
       } else {
-        for (IonAnnotation a: siriusResults) {
-          SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
-          SiriusCompound compound = new SiriusCompound(temp, temp.getSiriusScore());
-          window.addNewListItem(compound);
-        }
+        items = siriusResults;
       }
+      addListItems(window, items);
     } catch (RuntimeException t) {
-      System.out.println("No edges stuf happened");
-      for (IonAnnotation a: siriusResults) {
-        SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
-        SiriusCompound compound = new SiriusCompound(temp, temp.getSiriusScore());
-        window.addNewListItem(compound);
-      }
+      System.out.println("No edges stuff happened");
+      addListItems(window, siriusResults);
       t.printStackTrace();
     } catch (MSDKException e) {
       e.printStackTrace();
@@ -189,6 +172,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  private void addListItems(ResultWindow window, List<IonAnnotation> items) {
+    for (IonAnnotation a: items) {
+      SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
+      SiriusCompound compound = new SiriusCompound(temp, temp.getFingerIdScore());
+      window.addNewListItem(compound);
+    }
   }
 
   private List<MsSpectrum> processRawScan(RawDataFile rawfile, int index) {
@@ -204,19 +195,17 @@ public class SingleRowIdentificationTask extends AbstractTask {
     return spectra;
   }
 
-  private MsSpectrum buildSpectrum(DataPoint[] ms1points) {
+  private MsSpectrum buildSpectrum(DataPoint[] points) {
     SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
-    double mz[] = new double[ms1points.length];
-    float intensity[] = new float[ms1points.length];
-    IonType siriusIonType = IonTypeUtil.createIonType(ionType.toString());
+    double mz[] = new double[points.length];
+    float intensity[] = new float[points.length];
 
-    for (int i = 0; i < ms1points.length; i++) {
-      mz[i] = ms1points[i].getMZ();
-      intensity[i] = (float) ms1points[i].getIntensity();
+    for (int i = 0; i < points.length; i++) {
+      mz[i] = points[i].getMZ();
+      intensity[i] = (float) points[i].getIntensity();
     }
 
-    spectrum.setDataPoints(mz, intensity, ms1points.length);
+    spectrum.setDataPoints(mz, intensity, points.length);
     return spectrum;
   }
-
 }

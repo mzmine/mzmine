@@ -111,7 +111,6 @@ public class PeakListIdentificationTask extends AbstractTask {
 
         setStatus(TaskStatus.PROCESSING);
 
-        // Create database gateway.
 
         // Identify the peak list rows starting from the biggest peaks.
         final PeakListRow[] rows = peakList.getRows();
@@ -148,65 +147,7 @@ public class PeakListIdentificationTask extends AbstractTask {
   private void processSpectra(final PeakListRow row) throws IOException {
     currentRow = row;
 
-    double ppm = mzTolerance.getPpmTolerance();
-    SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
-    Feature[] peaks = row.getPeaks();
-    double mz[] = new double[peaks.length];
-    float intensity[] = new float[peaks.length];
-    IonType siriusIonType = IonTypeUtil.createIonType(ionType.toString());
 
-    for (int i = 0; i < peaks.length; i++) {
-      mz[i] = peaks[i].getMZ();
-      intensity[i] = (float) peaks[i].getHeight();
-    }
-
-    spectrum.setDataPoints(mz, intensity, peaks.length);
-    List<MsSpectrum> ms1 = null, ms2 = null;
-
-    if (true) {
-      ms2 = new LinkedList<>();
-      ms2.add(spectrum);
-    }
-
-
-    ConstraintsGenerator constraintsGenerator = new ConstraintsGenerator();
-    FormulaConstraints constraints = constraintsGenerator.generateConstraint(range);
-    SiriusIdentificationMethod siriusMethod = new SiriusIdentificationMethod(
-        ms1,
-        ms2,
-        parentMass,
-        siriusIonType,
-        numOfResults,
-        constraints,
-        ppm
-    );
-
-
-    List<IonAnnotation> siriusAnnotations = null;
-    List<IonAnnotation> fingerAnnotations = null;
-    try {
-      siriusAnnotations = siriusMethod.execute();
-    } catch (MSDKException e) {
-      e.printStackTrace();
-      System.out.println("Hell is here");
-    }
-
-
-    Ms2Experiment experiment = siriusMethod.getExperiment();
-    SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) siriusAnnotations.get(0);
-
-    FingerIdWebMethod fingerMethod = null;
-    try {
-      fingerMethod = new FingerIdWebMethod(experiment, siriusAnnotation, 10);
-      fingerAnnotations = fingerMethod.execute();
-    } catch (Exception e) {
-      logger.error("Exception!&@!#$^&@#$");
-      System.out.println("Panic");
-    }
-
-    IonAnnotation best = fingerAnnotations.get(0);
-
-    SiriusCompound compound = new SiriusCompound(best, 10.);
     // Add the retrieved identity to the peak list row
     row.addPeakIdentity(compound, false);
 
