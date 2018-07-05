@@ -41,7 +41,8 @@ public class SiriusCompound extends SimplePeakIdentity {
   private static Hashtable<String, String> loadProps(IonAnnotation ion) {
     SiriusIonAnnotation annotation = (SiriusIonAnnotation) ion;
     String formula = MolecularFormulaManipulator.getString(annotation.getFormula());
-    String siriusScore = String.format(".%2f", annotation.getSiriusScore());
+    String siriusScore = String.format("%.2f", annotation.getSiriusScore());
+    String name = null;
 
     Hashtable<String, String> props = new Hashtable<>(10);
     props.put("Identification method", "Sirius");
@@ -50,14 +51,13 @@ public class SiriusCompound extends SimplePeakIdentity {
 
 
     if (isProcessedByFingerId(annotation)) { // Execute this code if
-      String name = annotation.getDescription();
+      name = annotation.getDescription();
       String inchi = annotation.getInchiKey();
       String smiles = annotation.getSMILES();
 
-      props.put("Name", name);
       props.put("SMILES", smiles);
       props.put("Inchi", inchi);
-      String fingerScore = String.format(".%2f", annotation.getFingerIdScore());
+      String fingerScore = String.format("%.2f", annotation.getFingerIdScore());
       props.put("FingerId score", fingerScore);
 
       DBLink[] links = annotation.getDBLinks(); //todo: here can be again same PubChems, make it Pubchem #1, Pubchem #2
@@ -74,8 +74,11 @@ public class SiriusCompound extends SimplePeakIdentity {
         String dbname = String.format("%s #%d", link.name, dbnames.get(link.name));
         props.put(dbname, link.id);
       }
-    } else
-      props.put("Name", formula);
+    }
+
+    if (name == null)
+      name = formula;
+    props.put("Name", name);
 
     return props;
   }
