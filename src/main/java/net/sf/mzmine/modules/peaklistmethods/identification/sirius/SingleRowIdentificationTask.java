@@ -58,7 +58,6 @@ import org.slf4j.LoggerFactory;
 public class SingleRowIdentificationTask extends AbstractTask {
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
-  private int finishedItems = 0;
   private double searchedMass;
   private MZTolerance mzTolerance;
   private PeakListRow peakListRow;
@@ -138,7 +137,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<MsSpectrum> ms1list = processRawScan(rawfile, ms1index);
     List<MsSpectrum> ms2list = processRawScan(rawfile, ms2index);
 
-    SiriusIdentificationMethod siriusMethod = processSirius(ms1list, ms2list);
+    SiriusIdentificationMethod siriusMethod = null;
+    try {
+      siriusMethod = processSirius(ms1list, ms2list);
+    } catch (MSDKException e) {
+      logger.error("Internal error of Sirius MSDK module appeared");
+      e.printStackTrace();
+    }
+    /* If code below will failure, then siriusMethod will be null... Unhandled Null-pointer exception? */
     List<IonAnnotation> items = siriusMethod.getResult(); // TODO: use a HEAP to sort items
     //TODO SORT ITEMS BY FINGERID SCORE
 
@@ -161,7 +167,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           fingerTasks.add(task);
           MZmineCore.getTaskController().addTask(task);
         }
-        
+
         latch.await();
         for (FingerIdWebMethodTask t : fingerTasks) {
           items.addAll(t.getResults());
@@ -187,8 +193,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
     //make it as a task
     List<IonAnnotation> methodResults = new LinkedList<>();
     SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
-    FingerIdWebMethod method = new FingerIdWebMethod(experiment, siriusAnnotation, fingerCandidates);
     try {
+      FingerIdWebMethod method = new FingerIdWebMethod(experiment, siriusAnnotation, fingerCandidates);
       methodResults.addAll(method.execute());
     } catch (RuntimeException r) {
       // No edges exception happened. - probably only ms1 spectrum is used.

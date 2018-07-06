@@ -49,9 +49,9 @@ public class SingleRowIdentificationParameters extends SimpleParameterSet {
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {
         NEUTRAL_MASS,
+        MZ_TOLERANCE,
         SIRIUS_CANDIDATES,
         FINGERID_CANDIDATES,
-        MZ_TOLERANCE,
         ELEMENTS
     });
   }

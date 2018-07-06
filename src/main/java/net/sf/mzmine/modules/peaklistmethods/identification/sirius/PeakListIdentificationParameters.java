@@ -33,8 +33,11 @@ public class PeakListIdentificationParameters extends SimpleParameterSet {
   public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter(
       "Neutral mass", "Value to use in the search query");
 
-  public static final IntegerParameter MAX_RESULTS = new IntegerParameter(
-      "Number of candidates", "Maximum number of results to display", 10);
+  public static final IntegerParameter SIRIUS_CANDIDATES = new IntegerParameter(
+      "Number of candidates from Sirius method", "Maximum number of results to display", 10);
+
+  public static final IntegerParameter FINGERID_CANDIDATES = new IntegerParameter(
+      "Number of candidates from FingerId method", "Pass 0 to get all possible results", 0);
 
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
@@ -49,8 +52,9 @@ public class PeakListIdentificationParameters extends SimpleParameterSet {
     super(new Parameter[] {
         peakLists,
         NEUTRAL_MASS,
-        MAX_RESULTS,
         MZ_TOLERANCE,
+        SIRIUS_CANDIDATES,
+        FINGERID_CANDIDATES,
         ELEMENTS
     });
   }

@@ -62,11 +62,12 @@ public class PeakListIdentificationTask extends AbstractTask {
   private int numItems;
 
   private final MZTolerance mzTolerance;
-  private final int numOfResults;
   private final PeakList peakList;
   private final IonizationType ionType;
   private final double parentMass;
   private final MolecularFormulaRange range;
+  private final int siriusCandidates;
+  private final int fingeridCandidates;
   private PeakListRow currentRow;
 
   /**
@@ -81,11 +82,12 @@ public class PeakListIdentificationTask extends AbstractTask {
     finishedItems = 0;
     currentRow = null;
 
-    mzTolerance = parameters.getParameter(SingleRowIdentificationParameters.MZ_TOLERANCE).getValue();
-    numOfResults = parameters.getParameter(SingleRowIdentificationParameters.MAX_RESULTS).getValue();
-    ionType = parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS).getIonType();
-    parentMass = parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS).getValue();
-    range = parameters.getParameter(SingleRowIdentificationParameters.ELEMENTS).getValue();
+    mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
+    ionType = parameters.getParameter(PeakListIdentificationParameters.NEUTRAL_MASS).getIonType();
+    parentMass = parameters.getParameter(PeakListIdentificationParameters.NEUTRAL_MASS).getValue();
+    range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
+    siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_CANDIDATES).getValue();
+    fingeridCandidates = parameters.getParameter(PeakListIdentificationParameters.FINGERID_CANDIDATES).getValue();
   }
 
   @Override
