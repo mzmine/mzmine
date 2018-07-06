@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +51,8 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
+    if (method == null || method.getFinishedPercentage() == null)
+      return 0;
     return method.getFinishedPercentage();
   }
 
@@ -71,6 +74,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
       msdk.printStackTrace();
     }
 
+    setStatus(TaskStatus.FINISHED);
     latch.countDown();
   }
 

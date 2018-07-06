@@ -151,7 +151,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 
     // Add the retrieved identity to the peak list row
-    row.addPeakIdentity(compound, false);
+//    row.addPeakIdentity(compound, false);
 
     // Notify the GUI about the change in the project
     MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
