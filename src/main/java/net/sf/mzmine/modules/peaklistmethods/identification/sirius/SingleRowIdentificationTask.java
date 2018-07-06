@@ -19,9 +19,10 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MAX_RESULTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.NEUTRAL_MASS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_CANDIDATES;
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
@@ -38,6 +39,7 @@ import io.github.msdk.util.IonTypeUtil;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -50,20 +52,25 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SingleRowIdentificationTask extends AbstractTask {
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
-  private int finishedItems = 0, numItems;
-
+  private int finishedItems = 0;
   private double searchedMass;
   private MZTolerance mzTolerance;
-  private int charge;
-  private int numOfResults;
   private PeakListRow peakListRow;
   private IonizationType ionType;
   private MolecularFormulaRange formulaRange;
   private Double parentMass;
+  private Integer fingerCandidates;
+  private Integer siriusCandidates;
+  private LinkedList<FingerIdWebMethodTask> fingerTasks;
+
+  private static final Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
+
 
   /**
    * Create the task.
@@ -77,10 +84,10 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     searchedMass = parameters.getParameter(NEUTRAL_MASS).getValue();
     mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
-    numOfResults = parameters.getParameter(MAX_RESULTS).getValue();
+    siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();
+    fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES).getValue();
 
     ionType = parameters.getParameter(NEUTRAL_MASS).getIonType();
-    charge = parameters.getParameter(NEUTRAL_MASS).getCharge();
     parentMass = parameters.getParameter(NEUTRAL_MASS).getValue();
 
     formulaRange = parameters.getParameter(ELEMENTS).getValue();
@@ -90,11 +97,22 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   public double getFinishedPercentage() {
-    if (numItems == 0)
-      return 0;
-    return ((double) finishedItems) / numItems;
+    //TODO: refactor
+    if (isFinished())
+      return 100.0;
+    else if (fingerTasks != null) {
+      int amount = fingerTasks.size();
+      double value = 0;
+      for (FingerIdWebMethodTask t: fingerTasks)
+        value += t.getFinishedPercentage();
+      value /= amount;
+
+      return value;
+    }
+    return 0;
   }
 
+  //TODO: refactor
   public String getTaskDescription() {
     return "Peak identification of " + massFormater.format(searchedMass) + " using Sirius module";
   }
@@ -112,22 +130,73 @@ public class SingleRowIdentificationTask extends AbstractTask {
     window.setTitle("Sirius makes fun " + massFormater.format(searchedMass) + " amu");
     window.setVisible(true);
 
-    ConstraintsGenerator generator = new ConstraintsGenerator();
-    FormulaConstraints constraints = generator.generateConstraint(formulaRange);
-
-
-    double ppm = mzTolerance.getPpmTolerance();
-
     Feature bestPeak = peakListRow.getBestPeak();
     int ms1index = bestPeak.getRepresentativeScanNumber();
     int ms2index = bestPeak.getMostIntenseFragmentScanNumber();
 
-
     RawDataFile rawfile = bestPeak.getDataFile();
-
     List<MsSpectrum> ms1list = processRawScan(rawfile, ms1index);
     List<MsSpectrum> ms2list = processRawScan(rawfile, ms2index);
 
+    SiriusIdentificationMethod siriusMethod = processSirius(ms1list, ms2list);
+    List<IonAnnotation> items = siriusMethod.getResult();
+
+    if (rowContainsMsMs(ms2index)) {
+      fingerTasks = new LinkedList<>();
+      //TODO SORT ITEMS BY FINGERID SCORE
+      items = new LinkedList<>();
+      CountDownLatch latch = new CountDownLatch(siriusMethod.getResult().size());
+      Ms2Experiment experiment = siriusMethod.getExperiment();
+
+      /* // Serial processing
+      for (IonAnnotation ia: siriusMethod.getResult()) {
+        SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+        List<IonAnnotation> fingerResults = processFingerId(annotation, siriusMethod.getExperiment());
+        items.addAll(fingerResults);
+      } */
+      for (IonAnnotation ia: siriusMethod.getResult()) {
+        SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+        FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, latch);
+        fingerTasks.add(task);
+        MZmineCore.getTaskController().addTask(task);
+      }
+
+      Thread.sleep(1000);
+    }
+
+
+    addListItems(window, items);
+    setStatus(TaskStatus.FINISHED);
+  }
+
+  private boolean rowContainsMsMs(int ms2index) {
+    return ms2index != -1; // equals -1, if no ms2 spectra is found
+  }
+
+  private List<IonAnnotation> processFingerId(SiriusIonAnnotation annotation, Ms2Experiment experiment) {
+    //make it as a task
+    List<IonAnnotation> methodResults = new LinkedList<>();
+    SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
+    FingerIdWebMethod method = new FingerIdWebMethod(experiment, siriusAnnotation, fingerCandidates);
+    try {
+      methodResults.addAll(method.execute());
+    } catch (RuntimeException r) {
+      // No edges exception happened. - probably only ms1 spectrum is used.
+      // Return initial item
+      methodResults.add(annotation);
+    } catch (MSDKException s) {
+      logger.error("Error during FingerIdWebMethod processing");
+      s.printStackTrace();
+      //TODO: refactor
+    }
+
+    return methodResults;
+  }
+
+  private SiriusIdentificationMethod processSirius(List<MsSpectrum> ms1list, List<MsSpectrum> ms2list) throws MSDKException {
+    ConstraintsGenerator generator = new ConstraintsGenerator();
+    FormulaConstraints constraints = generator.generateConstraint(formulaRange);
+    double ppm = mzTolerance.getPpmTolerance();
     IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
 
     SiriusIdentificationMethod siriusMethod = new SiriusIdentificationMethod(
@@ -135,43 +204,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
         ms2list,
         parentMass,
         siriusIon,
-        numOfResults,
+        siriusCandidates,
         constraints,
         ppm
     );
 
-    FingerIdWebMethod fingerMethod = null;
-    List<IonAnnotation> siriusResults = null;
-    try {
-      siriusMethod.execute();
-      siriusResults = siriusMethod.getResult();
-      List<IonAnnotation> items = null;
-
-      if (ms2index != -1) {
-        // TODO: visit everyone
-        SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) siriusResults.get(0);
-        Ms2Experiment experiment = siriusMethod.getExperiment();
-        fingerMethod = new FingerIdWebMethod(experiment, siriusAnnotation, 10);
-
-        List<IonAnnotation> fingerResults = fingerMethod.execute();
-        items = (fingerResults != null && fingerResults.size() > 0) ? fingerResults : siriusResults;
-
-      } else {
-        items = siriusResults;
-      }
-      addListItems(window, items);
-    } catch (RuntimeException t) {
-      System.out.println("No edges stuff happened");
-      addListItems(window, siriusResults);
-      t.printStackTrace();
-    } catch (MSDKException e) {
-      e.printStackTrace();
-      System.out.println("Hell is here");
-    }
-
-
-    setStatus(TaskStatus.FINISHED);
-
+    siriusMethod.execute(); // todo: Make it as a task
+    return siriusMethod;
   }
 
   private void addListItems(ResultWindow window, List<IonAnnotation> items) {

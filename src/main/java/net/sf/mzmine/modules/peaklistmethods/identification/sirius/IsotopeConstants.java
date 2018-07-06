@@ -27,7 +27,7 @@ public class IsotopeConstants {
   public static final int ISOTOPE_MAX = 100;
   public static final int ISOTOPE_MIN = 0;
 
-  public static MolecularFormulaRange setDefaultCompounds() {
+  public static MolecularFormulaRange createDefaultCompounds() {
     MolecularFormulaRange range = new MolecularFormulaRange();
     try {
       IsotopeFactory iFac = Isotopes.getInstance();

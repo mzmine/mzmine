@@ -42,7 +42,7 @@ public class PeakListIdentificationParameters extends SimpleParameterSet {
       "Elements", "Elements and ranges");
 
   static {
-    ELEMENTS.setValue(IsotopeConstants.setDefaultCompounds());
+    ELEMENTS.setValue(IsotopeConstants.createDefaultCompounds());
   }
 
   public PeakListIdentificationParameters() {
