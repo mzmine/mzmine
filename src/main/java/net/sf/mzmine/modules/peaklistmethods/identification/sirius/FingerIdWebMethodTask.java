@@ -11,6 +11,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;/*
  * (b) the terms of the Eclipse Public License v1.0 as published by the Eclipse Foundation.
  */
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Single;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
@@ -33,20 +34,22 @@ public class FingerIdWebMethodTask extends AbstractTask {
   private final SiriusIonAnnotation annotation;
   private final CountDownLatch latch;
   private final String formula;
+  private final ResultWindow window;
 
   private static final Logger logger = LoggerFactory.getLogger(FingerIdWebMethodTask.class);
 
-  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, CountDownLatch latch) {
+  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, CountDownLatch latch, ResultWindow window) {
     this.candidatesAmount = candidatesAmount;
     this.experiment = experiment;
     this.annotation = annotation;
     this.latch = latch;
+    this.window = window;
     formula = MolecularFormulaManipulator.getString(annotation.getFormula());
   }
 
   @Override
   public String getTaskDescription() {
-    return String.format("Processing element {} by FingerIdWebMethod", formula);
+    return String.format("Processing element %s by FingerIdWebMethod", formula);
   }
 
   @Override
@@ -75,7 +78,8 @@ public class FingerIdWebMethodTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
-    latch.countDown();
+    SingleRowIdentificationTask.addListItems(window, fingerResults);
+//    latch.countDown();
   }
 
   public List<IonAnnotation> getResults() {

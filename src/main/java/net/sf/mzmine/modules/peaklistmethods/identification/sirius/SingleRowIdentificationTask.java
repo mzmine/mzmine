@@ -50,6 +50,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.Logger;
@@ -163,15 +164,18 @@ public class SingleRowIdentificationTask extends AbstractTask {
       } */
         for (IonAnnotation ia : siriusMethod.getResult()) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, latch);
+          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, latch, window);
           fingerTasks.add(task);
-          MZmineCore.getTaskController().addTask(task);
+//          MZmineCore.getTaskController().addTask(task);
+          MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
         }
+        //TODO: i do not why, but only first two items add their results to the dictionary (26C2 - 7th item - charge 2 [M+H]+) - better to test other combination
+        // 26 c2-11 charge 1 returned 0 items??
 
-        latch.await();
-        for (FingerIdWebMethodTask t : fingerTasks) {
-          items.addAll(t.getResults());
-        }
+//        latch.await();
+//        for (FingerIdWebMethodTask t : fingerTasks) {
+//          items.addAll(t.getResults());
+//        }
 
         Thread.sleep(1000);
       } catch (InterruptedException interrupt) {
@@ -179,9 +183,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
         interrupt.printStackTrace();
         items = siriusMethod.getResult();
       }
+    } else {
+      addListItems(window, siriusMethod.getResult());
     }
 
-    addListItems(window, items);
+//    addListItems(window, items);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -229,7 +235,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     return siriusMethod;
   }
 
-  private void addListItems(ResultWindow window, List<IonAnnotation> items) {
+  public static void addListItems(ResultWindow window, List<IonAnnotation> items) {
     for (IonAnnotation a: items) {
       SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
       SiriusCompound compound = new SiriusCompound(temp, temp.getFingerIdScore());
