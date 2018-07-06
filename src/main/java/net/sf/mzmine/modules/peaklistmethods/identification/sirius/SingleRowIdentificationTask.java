@@ -139,14 +139,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<MsSpectrum> ms2list = processRawScan(rawfile, ms2index);
 
     SiriusIdentificationMethod siriusMethod = processSirius(ms1list, ms2list);
-    List<IonAnnotation> items = siriusMethod.getResult();
+    List<IonAnnotation> items = siriusMethod.getResult(); // TODO: use a HEAP to sort items
+    //TODO SORT ITEMS BY FINGERID SCORE
 
     if (rowContainsMsMs(ms2index)) {
-      fingerTasks = new LinkedList<>();
-      //TODO SORT ITEMS BY FINGERID SCORE
-      items = new LinkedList<>();
-      CountDownLatch latch = new CountDownLatch(siriusMethod.getResult().size());
-      Ms2Experiment experiment = siriusMethod.getExperiment();
+      try {
+        items = new LinkedList<>();
+        fingerTasks = new LinkedList<>();
+        CountDownLatch latch = new CountDownLatch(siriusMethod.getResult().size());
+        Ms2Experiment experiment = siriusMethod.getExperiment();
 
       /* // Serial processing
       for (IonAnnotation ia: siriusMethod.getResult()) {
@@ -154,16 +155,25 @@ public class SingleRowIdentificationTask extends AbstractTask {
         List<IonAnnotation> fingerResults = processFingerId(annotation, siriusMethod.getExperiment());
         items.addAll(fingerResults);
       } */
-      for (IonAnnotation ia: siriusMethod.getResult()) {
-        SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-        FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, latch);
-        fingerTasks.add(task);
-        MZmineCore.getTaskController().addTask(task);
+        for (IonAnnotation ia : siriusMethod.getResult()) {
+          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, latch);
+          fingerTasks.add(task);
+          MZmineCore.getTaskController().addTask(task);
+        }
+        
+        latch.await();
+        for (FingerIdWebMethodTask t : fingerTasks) {
+          items.addAll(t.getResults());
+        }
+
+        Thread.sleep(1000);
+      } catch (InterruptedException interrupt) {
+        logger.error("Processing of FingerWebMethods were interrupted");
+        interrupt.printStackTrace();
+        items = siriusMethod.getResult();
       }
-
-      Thread.sleep(1000);
     }
-
 
     addListItems(window, items);
     setStatus(TaskStatus.FINISHED);
