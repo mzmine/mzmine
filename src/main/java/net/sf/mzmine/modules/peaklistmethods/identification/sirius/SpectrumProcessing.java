@@ -26,11 +26,34 @@ import java.io.FileWriter;
 import java.util.LinkedList;
 import java.util.List;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 
 public class SpectrumProcessing {
-  public static List<MsSpectrum> processRawScan(RawDataFile rawfile, int index) {
+  private final Feature peak;
+  private final RawDataFile rawfile;
+  private final int ms1index;
+  private final int ms2index;
+
+  public String getPeakName() {
+    return rawfile.getName();
+  }
+
+
+  public List<MsSpectrum> getMsList() {
+    if (indexExists(ms1index))
+      return processRawScan(ms1index);
+    return null;
+  }
+
+  public List<MsSpectrum> getMsMsList() {
+    if (indexExists(ms2index))
+      return processRawScan(ms2index);
+    return null;
+  }
+
+  private List<MsSpectrum> processRawScan(int index) {
     LinkedList<MsSpectrum> spectra = null;
     if (index != -1) {
       spectra = new LinkedList<>();
@@ -43,11 +66,15 @@ public class SpectrumProcessing {
     return spectra;
   }
 
-  public static boolean rowContainsMsMs(int ms2index) {
-    return ms2index != -1; // equals -1, if no ms2 spectra is found
+  public boolean peakContainsMsMs() {
+    return indexExists(ms2index);
   }
 
-  private static MsSpectrum buildSpectrum(DataPoint[] points) {
+  private boolean indexExists(int index) {
+    return index != -1; // equals -1, if no ms or ms/ms spectra is found
+  }
+
+  private MsSpectrum buildSpectrum(DataPoint[] points) {
     SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
     double mz[] = new double[points.length];
     float intensity[] = new float[points.length];
@@ -61,7 +88,9 @@ public class SpectrumProcessing {
     return spectrum;
   }
 
-  public static void saveSpectrum(RawDataFile rawfile, int index, String filename) {
+  // TEMP FUNCTION
+  public void saveSpectrum(String filename, int level) {
+    int index = (level == 2) ? ms2index : ms1index;
     Scan scan = rawfile.getScan(index);
     DataPoint[] points = scan.getDataPoints();
 
@@ -75,5 +104,12 @@ public class SpectrumProcessing {
     }
   }
 
-  private SpectrumProcessing() {}
+
+
+  public SpectrumProcessing(Feature peak) {
+    this.peak = peak;
+    this.ms1index = peak.getRepresentativeScanNumber();
+    this.ms2index = peak.getMostIntenseFragmentScanNumber();
+    this.rawfile = peak.getDataFile();
+  }
 }

@@ -129,16 +129,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
     window.setVisible(true);
 
     Feature bestPeak = peakListRow.getBestPeak();
-    int ms1index = bestPeak.getRepresentativeScanNumber();
-    int ms2index = bestPeak.getMostIntenseFragmentScanNumber();
-
-    RawDataFile rawfile = bestPeak.getDataFile();
-    List<MsSpectrum> ms1list = processRawScan(rawfile, ms1index);
-    List<MsSpectrum> ms2list = processRawScan(rawfile, ms2index);
+    SpectrumProcessing processor = new SpectrumProcessing(bestPeak);
+    List<MsSpectrum> ms1list = processor.getMsList();
+    List<MsSpectrum> ms2list = processor.getMsMsList();
 
     /* Debug */
-    saveSpectrum(rawfile, ms1index, rawfile.getName() + "_ms1.txt");
-    saveSpectrum(rawfile, ms2index, rawfile.getName() + "_ms2.txt");
+    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
+    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
 
     SiriusIdentificationMethod siriusMethod = null;
     try {
@@ -151,7 +148,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     // TODO: use a HEAP to sort items
     //TODO SORT ITEMS BY FINGERID SCORE
 
-    if (rowContainsMsMs(ms2index)) {
+    if (processor.peakContainsMsMs()) {
       try {
         fingerTasks = new LinkedList<>();
         Ms2Experiment experiment = siriusMethod.getExperiment();
