@@ -18,13 +18,14 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.IsotopeConstants.processRawScan;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.IsotopeConstants.saveSpectrum;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.NEUTRAL_MASS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_CANDIDATES;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SpectrumProcessing.processRawScan;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SpectrumProcessing.rowContainsMsMs;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SpectrumProcessing.saveSpectrum;
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
@@ -32,25 +33,18 @@ import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
-import io.github.msdk.datamodel.SimpleMsSpectrum;
 import io.github.msdk.id.sirius.ConstraintsGenerator;
 import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
-import java.io.File;
-import java.io.FileWriter;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import javax.xml.crypto.Data;
-import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -184,12 +178,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     }
 
     setStatus(TaskStatus.FINISHED);
-  }
-
-
-
-  private boolean rowContainsMsMs(int ms2index) {
-    return ms2index != -1; // equals -1, if no ms2 spectra is found
   }
 
   private List<IonAnnotation> processFingerId(SiriusIonAnnotation annotation, Ms2Experiment experiment) {

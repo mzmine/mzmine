@@ -26,26 +26,7 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class SingleRowIdentificationParameters extends SimpleParameterSet {
-
-  public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter(
-      "Neutral mass", "Value to use in the search query");
-
-  public static final IntegerParameter SIRIUS_CANDIDATES = new IntegerParameter(
-      "Number of candidates from Sirius method", "Maximum number of results to display", 10);
-
-  public static final IntegerParameter FINGERID_CANDIDATES = new IntegerParameter(
-      "Number of candidates from FingerId method", "Pass 0 to get all possible results", 0);
-
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
-
-  public static final ElementsParameter ELEMENTS = new ElementsParameter(
-      "Elements", "Elements and ranges");
-
-  static {
-    ELEMENTS.setValue(IsotopeConstants.createDefaultCompounds());
-  }
-
+public class SingleRowIdentificationParameters extends AbstractParameters {
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {
         NEUTRAL_MASS,
