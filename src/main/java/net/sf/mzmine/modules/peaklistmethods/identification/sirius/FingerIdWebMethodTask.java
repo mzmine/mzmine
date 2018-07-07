@@ -65,6 +65,8 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   @Override
   public void run()  {
+    setStatus(TaskStatus.PROCESSING);
+
     try {
       method = new FingerIdWebMethod(experiment, annotation, candidatesAmount);
       fingerResults = method.execute();
@@ -81,6 +83,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
     }
 
     if (fingerResults == null || fingerResults.size() == 0) {
+      logger.info("No results found by FingerId Web Method for {}, adding initial compound", formula);
       fingerResults = new LinkedList<>();
       fingerResults.add(annotation);
     }

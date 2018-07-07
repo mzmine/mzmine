@@ -80,7 +80,6 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
     // Set charge.
     final int charge = row.getBestPeak().getCharge();
     if (charge > 0) {
-      //TODO: auto update the mass value on charge update
       parameters.getParameter(
           SingleRowIdentificationParameters.NEUTRAL_MASS).setCharge(
           charge);

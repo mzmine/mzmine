@@ -23,9 +23,6 @@ import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.Single
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.NEUTRAL_MASS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_CANDIDATES;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SpectrumProcessing.processRawScan;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SpectrumProcessing.rowContainsMsMs;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SpectrumProcessing.saveSpectrum;
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
@@ -44,7 +41,6 @@ import java.util.List;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -66,10 +62,9 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private Double parentMass;
   private Integer fingerCandidates;
   private Integer siriusCandidates;
-  private LinkedList<FingerIdWebMethodTask> fingerTasks;
+  private List<FingerIdWebMethodTask> fingerTasks;
 
   private static final Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
-
 
   /**
    * Create the task.
@@ -139,7 +134,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     SiriusIdentificationMethod siriusMethod = null;
     try {
-      siriusMethod = processSirius(ms1list, ms2list);
+      siriusMethod = MethodsExecution.generateSiriusMethod(ms1list, ms2list, formulaRange, mzTolerance.getPpmTolerance(), ionType, parentMass, siriusCandidates);
+      siriusMethod.execute();
     } catch (MSDKException e) {
       logger.error("Internal error of Sirius MSDK module appeared");
       e.printStackTrace();
@@ -149,71 +145,32 @@ public class SingleRowIdentificationTask extends AbstractTask {
     //TODO SORT ITEMS BY FINGERID SCORE
 
     if (processor.peakContainsMsMs()) {
-      try {
-        fingerTasks = new LinkedList<>();
+//      try {
         Ms2Experiment experiment = siriusMethod.getExperiment();
-
-      /* // Serial processing
-      for (IonAnnotation ia: siriusMethod.getResult()) {
-        SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-        List<IonAnnotation> fingerResults = processFingerId(annotation, siriusMethod.getExperiment());
-        items.addAll(fingerResults);
-      } */
-        for (IonAnnotation ia : siriusMethod.getResult()) {
-          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
-          fingerTasks.add(task);
-          MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-        }
-        Thread.sleep(1000);
-      } catch (InterruptedException interrupt) {
-        logger.error("Processing of FingerWebMethods were interrupted");
-        interrupt.printStackTrace();
-      }
+        fingerTasks = MethodsExecution.generateFingerIdWebMethods(siriusMethod.getResult(), experiment, fingerCandidates, window);
+////        fingerTasks = new LinkedList<>();
+//
+//      /* // Serial processing
+//      for (IonAnnotation ia: siriusMethod.getResult()) {
+//        SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+//        List<IonAnnotation> fingerResults = processFingerId(annotation, siriusMethod.getExperiment());
+//        items.addAll(fingerResults);
+//      } */
+//        for (IonAnnotation ia : siriusMethod.getResult()) {
+//          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+//          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
+//          fingerTasks.add(task);
+//          MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+//        }
+//        Thread.sleep(1000);
+//      } catch (InterruptedException interrupt) {
+//        logger.error("Processing of FingerWebMethods were interrupted");
+//        interrupt.printStackTrace();
+//      }
     } else {
       window.addListofItems(siriusMethod.getResult());
     }
 
     setStatus(TaskStatus.FINISHED);
-  }
-
-  private List<IonAnnotation> processFingerId(SiriusIonAnnotation annotation, Ms2Experiment experiment) {
-    //make it as a task
-    List<IonAnnotation> methodResults = new LinkedList<>();
-    SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
-    try {
-      FingerIdWebMethod method = new FingerIdWebMethod(experiment, siriusAnnotation, fingerCandidates);
-      methodResults.addAll(method.execute());
-    } catch (RuntimeException r) {
-      // No edges exception happened. - probably only ms1 spectrum is used.
-      // Return initial item
-      methodResults.add(annotation);
-    } catch (MSDKException s) {
-      logger.error("Error during FingerIdWebMethod processing");
-      s.printStackTrace();
-      //TODO: refactor
-    }
-
-    return methodResults;
-  }
-
-  private SiriusIdentificationMethod processSirius(List<MsSpectrum> ms1list, List<MsSpectrum> ms2list) throws MSDKException {
-    ConstraintsGenerator generator = new ConstraintsGenerator();
-    FormulaConstraints constraints = generator.generateConstraint(formulaRange);
-    double ppm = mzTolerance.getPpmTolerance();
-    IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
-
-    SiriusIdentificationMethod siriusMethod = new SiriusIdentificationMethod(
-        ms1list,
-        ms2list,
-        parentMass,
-        siriusIon,
-        siriusCandidates,
-        constraints,
-        ppm
-    );
-
-    siriusMethod.execute(); // todo: Make it as a task
-    return siriusMethod;
   }
 }

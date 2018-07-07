@@ -104,8 +104,6 @@ public class SpectrumProcessing {
     }
   }
 
-
-
   public SpectrumProcessing(Feature peak) {
     this.peak = peak;
     this.ms1index = peak.getRepresentativeScanNumber();

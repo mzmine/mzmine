@@ -23,7 +23,6 @@ import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.util.Hashtable;
-import java.util.TreeSet;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -41,7 +40,7 @@ public class SiriusCompound extends SimplePeakIdentity {
   private static Hashtable<String, String> loadProps(IonAnnotation ion) {
     SiriusIonAnnotation annotation = (SiriusIonAnnotation) ion;
     String formula = MolecularFormulaManipulator.getString(annotation.getFormula());
-    String siriusScore = String.format("%.2f", annotation.getSiriusScore());
+    String siriusScore = String.format("%.4f", annotation.getSiriusScore());
     String name = null;
 
     Hashtable<String, String> props = new Hashtable<>(10);
@@ -57,7 +56,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
       props.put("SMILES", smiles);
       props.put("Inchi", inchi);
-      String fingerScore = String.format("%.2f", annotation.getFingerIdScore());
+      String fingerScore = String.format("%.4f", annotation.getFingerIdScore());
       props.put("FingerId score", fingerScore);
 
       DBLink[] links = annotation.getDBLinks(); //todo: here can be again same PubChems, make it Pubchem #1, Pubchem #2
@@ -107,47 +106,24 @@ public class SiriusCompound extends SimplePeakIdentity {
   }
 
   public Object getDBS() {
-    return null; // TODO: make list of dbs somehow
+    StringBuilder b = new StringBuilder();
+    SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) ion;
+    for (DBLink link: siriusAnnotation.getDBLinks())
+      b.append(String.format("%s : %s\n", link.name, link.id));
+    return b.toString();
   }
 
   public String getFormula() {
     return MolecularFormulaManipulator.getString(ion.getFormula());
   }
 
-  public void setOnCol(Object value, int col) {
-//    SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) ion;
-//    switch (col) {
-//      case 0:
-//        break;
-//      case 1:
-//        break;
-//      case 2:
-//        break;
-//      case 3:
-//        IAtomContainer container = smp.parseSmiles(smilesString);
-//        extendedAnnotation.setChemicalStructure(container);
-//        String smiles = (String) value;
-//        siriusAnnotation.setSMILES(smiles);
-//        break;
-//      case 4:
-//        String inchi = (String) value;
-//        siriusAnnotation.setInchiKey(inchi);
-//
-//        break;
-//      case 5:
-//        DBLink[] links = (DBLink[]) value;
-//        siriusAnnotation.setDBLinks(links);
-//        break;
-//    }
-  }
-
   public Object getFingerIdScore() {
     final SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) ion;
-    return siriusAnnotation.getFingerIdScore();
+    return String.format("%.5f", siriusAnnotation.getFingerIdScore());
   }
 
   public Object getSiriusScore() {
     final SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) ion;
-    return siriusAnnotation.getSiriusScore();
+    return String.format("%.5f",siriusAnnotation.getSiriusScore());
   }
 }

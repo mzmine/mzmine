@@ -34,10 +34,7 @@ public class ResultTableModel extends AbstractTableModel {
 
   private double searchedMass;
 
-  private final NumberFormat percentFormat = NumberFormat
-      .getPercentInstance();
-  private final NumberFormat massFormat = MZmineCore.getConfiguration()
-      .getMZFormat();
+  private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private Vector<SiriusCompound> annotations = new Vector<SiriusCompound>();
 
   //TODO: todo
@@ -105,9 +102,6 @@ public class ResultTableModel extends AbstractTableModel {
 
   //TODO: todo
   public void setValueAt(Object value, int row, int col) {
-//    SiriusCompound compound = annotations.get(row);
-//    compound.setOnCol(value, col);
-//    fireTableRowsUpdated(row, col);
   }
 
   public SiriusCompound getCompoundAt(int row) {

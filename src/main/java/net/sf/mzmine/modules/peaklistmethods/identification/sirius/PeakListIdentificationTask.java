@@ -44,6 +44,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -110,9 +111,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
     if (!isCanceled()) {
       try {
-
         setStatus(TaskStatus.PROCESSING);
-
 
         // Identify the peak list rows starting from the biggest peaks.
         final PeakListRow[] rows = peakList.getRows();
@@ -149,6 +148,8 @@ public class PeakListIdentificationTask extends AbstractTask {
   private void processSpectra(final PeakListRow row) throws IOException {
     currentRow = row;
 
+    Feature bestPeak = row.getBestPeak();
+    SpectrumProcessing processor = new SpectrumProcessing(bestPeak);
 
     // Add the retrieved identity to the peak list row
 //    row.addPeakIdentity(compound, false);

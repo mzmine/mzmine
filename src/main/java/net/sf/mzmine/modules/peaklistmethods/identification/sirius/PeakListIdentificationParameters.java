@@ -19,13 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class PeakListIdentificationParameters extends AbstractParameters {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
