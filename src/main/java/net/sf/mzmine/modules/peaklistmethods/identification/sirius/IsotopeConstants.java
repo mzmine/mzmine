@@ -18,14 +18,23 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import io.github.msdk.datamodel.MsSpectrum;
+import io.github.msdk.datamodel.SimpleMsSpectrum;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 
 public class IsotopeConstants {
-  public static final int ISOTOPE_MAX = 100;
-  public static final int ISOTOPE_MIN = 0;
+  private static final int ISOTOPE_MAX = 100;
+  private static final int ISOTOPE_MIN = 0;
 
   public static MolecularFormulaRange createDefaultCompounds() {
     MolecularFormulaRange range = new MolecularFormulaRange();
@@ -59,6 +68,47 @@ public class IsotopeConstants {
       e.printStackTrace();
     }
     return range;
+  }
+
+  public static List<MsSpectrum> processRawScan(RawDataFile rawfile, int index) {
+    LinkedList<MsSpectrum> spectra = null;
+    if (index != -1) {
+      spectra = new LinkedList<>();
+      Scan scan = rawfile.getScan(index);
+      DataPoint[] points = scan.getDataPoints();
+      MsSpectrum ms = buildSpectrum(points);
+      spectra.add(ms);
+    }
+
+    return spectra;
+  }
+
+  private static MsSpectrum buildSpectrum(DataPoint[] points) {
+    SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
+    double mz[] = new double[points.length];
+    float intensity[] = new float[points.length];
+
+    for (int i = 0; i < points.length; i++) {
+      mz[i] = points[i].getMZ();
+      intensity[i] = (float) points[i].getIntensity();
+    }
+
+    spectrum.setDataPoints(mz, intensity, points.length);
+    return spectrum;
+  }
+
+  public static void saveSpectrum(RawDataFile rawfile, int index, String filename) {
+    Scan scan = rawfile.getScan(index);
+    DataPoint[] points = scan.getDataPoints();
+
+    try {
+      FileWriter fw = new FileWriter(new File(filename));
+      for (DataPoint point: points)
+        fw.write(String.format("%f %f\n", point.getMZ(), point.getIntensity()));
+      fw.close();
+    } catch (Exception e) {
+      System.out.println("Suffering");
+    }
   }
 
   private IsotopeConstants() {}

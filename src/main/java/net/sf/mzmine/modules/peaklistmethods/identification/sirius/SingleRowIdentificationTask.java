@@ -18,6 +18,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.IsotopeConstants.processRawScan;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.IsotopeConstants.saveSpectrum;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
@@ -36,10 +38,13 @@ import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
+import java.io.File;
+import java.io.FileWriter;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import javax.xml.crypto.Data;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -121,7 +126,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @see Runnable#run()
    */
   public void run() {
-
     setStatus(TaskStatus.PROCESSING);
 
     NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
@@ -138,6 +142,10 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<MsSpectrum> ms1list = processRawScan(rawfile, ms1index);
     List<MsSpectrum> ms2list = processRawScan(rawfile, ms2index);
 
+    /* Debug */
+    saveSpectrum(rawfile, ms1index, rawfile.getName() + "_ms1.txt");
+    saveSpectrum(rawfile, ms2index, rawfile.getName() + "_ms2.txt");
+
     SiriusIdentificationMethod siriusMethod = null;
     try {
       siriusMethod = processSirius(ms1list, ms2list);
@@ -145,15 +153,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
       logger.error("Internal error of Sirius MSDK module appeared");
       e.printStackTrace();
     }
-    /* If code below will failure, then siriusMethod will be null... Unhandled Null-pointer exception? */
-    List<IonAnnotation> items = siriusMethod.getResult(); // TODO: use a HEAP to sort items
+    /* TODO: If code below will failure, then siriusMethod will be null... Unhandled Null-pointer exception? */
+    // TODO: use a HEAP to sort items
     //TODO SORT ITEMS BY FINGERID SCORE
 
     if (rowContainsMsMs(ms2index)) {
       try {
-        items = new LinkedList<>();
         fingerTasks = new LinkedList<>();
-        CountDownLatch latch = new CountDownLatch(siriusMethod.getResult().size());
         Ms2Experiment experiment = siriusMethod.getExperiment();
 
       /* // Serial processing
@@ -164,32 +170,23 @@ public class SingleRowIdentificationTask extends AbstractTask {
       } */
         for (IonAnnotation ia : siriusMethod.getResult()) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, latch, window);
+          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
           fingerTasks.add(task);
-//          MZmineCore.getTaskController().addTask(task);
           MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
         }
-        //TODO: i do not why, but only first two items add their results to the dictionary (26C2 - 7th item - charge 2 [M+H]+) - better to test other combination
-        // 26 c2-11 charge 1 returned 0 items??
-
-//        latch.await();
-//        for (FingerIdWebMethodTask t : fingerTasks) {
-//          items.addAll(t.getResults());
-//        }
-
         Thread.sleep(1000);
       } catch (InterruptedException interrupt) {
         logger.error("Processing of FingerWebMethods were interrupted");
         interrupt.printStackTrace();
-        items = siriusMethod.getResult();
       }
     } else {
-      addListItems(window, siriusMethod.getResult());
+      window.addListofItems(siriusMethod.getResult());
     }
 
-//    addListItems(window, items);
     setStatus(TaskStatus.FINISHED);
   }
+
+
 
   private boolean rowContainsMsMs(int ms2index) {
     return ms2index != -1; // equals -1, if no ms2 spectra is found
@@ -233,40 +230,5 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     siriusMethod.execute(); // todo: Make it as a task
     return siriusMethod;
-  }
-
-  public static void addListItems(ResultWindow window, List<IonAnnotation> items) {
-    for (IonAnnotation a: items) {
-      SiriusIonAnnotation temp = (SiriusIonAnnotation) a;
-      SiriusCompound compound = new SiriusCompound(temp, temp.getFingerIdScore());
-      window.addNewListItem(compound);
-    }
-  }
-
-  private List<MsSpectrum> processRawScan(RawDataFile rawfile, int index) {
-    LinkedList<MsSpectrum> spectra = null;
-    if (index != -1) {
-      spectra = new LinkedList<>();
-      Scan scan = rawfile.getScan(index);
-      DataPoint[] points = scan.getDataPoints();
-      MsSpectrum ms = buildSpectrum(points);
-      spectra.add(ms);
-    }
-
-    return spectra;
-  }
-
-  private MsSpectrum buildSpectrum(DataPoint[] points) {
-    SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
-    double mz[] = new double[points.length];
-    float intensity[] = new float[points.length];
-
-    for (int i = 0; i < points.length; i++) {
-      mz[i] = points[i].getMZ();
-      intensity[i] = (float) points[i].getIntensity();
-    }
-
-    spectrum.setDataPoints(mz, intensity, points.length);
-    return spectrum;
   }
 }

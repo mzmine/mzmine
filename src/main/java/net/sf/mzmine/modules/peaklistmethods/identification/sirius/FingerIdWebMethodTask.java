@@ -32,17 +32,15 @@ public class FingerIdWebMethodTask extends AbstractTask {
   private final int candidatesAmount;
   private final Ms2Experiment experiment;
   private final SiriusIonAnnotation annotation;
-  private final CountDownLatch latch;
   private final String formula;
   private final ResultWindow window;
 
   private static final Logger logger = LoggerFactory.getLogger(FingerIdWebMethodTask.class);
 
-  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, CountDownLatch latch, ResultWindow window) {
+  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, ResultWindow window) {
     this.candidatesAmount = candidatesAmount;
     this.experiment = experiment;
     this.annotation = annotation;
-    this.latch = latch;
     this.window = window;
     formula = MolecularFormulaManipulator.getString(annotation.getFormula());
   }
@@ -69,17 +67,20 @@ public class FingerIdWebMethodTask extends AbstractTask {
     } catch (RuntimeException e) {
       logger.error("Error during processing FingerIdWebMethod --- return initial compound");
       e.printStackTrace();
-
-      fingerResults = new LinkedList<>();
-      fingerResults.add(annotation);
+      fingerResults = null;
     } catch (MSDKException msdk) {
       logger.error("Internal FingerIdWebMethod error occured.");
       msdk.printStackTrace();
+      fingerResults = null;
     }
 
+    if (fingerResults == null || fingerResults.size() == 0) {
+      fingerResults = new LinkedList<>();
+      fingerResults.add(annotation);
+    }
+
+    window.addListofItems(fingerResults);
     setStatus(TaskStatus.FINISHED);
-    SingleRowIdentificationTask.addListItems(window, fingerResults);
-//    latch.countDown();
   }
 
   public List<IonAnnotation> getResults() {

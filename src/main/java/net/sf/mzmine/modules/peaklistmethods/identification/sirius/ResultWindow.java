@@ -19,11 +19,14 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import io.github.msdk.datamodel.IonAnnotation;
+import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -145,6 +148,14 @@ public class ResultWindow extends JFrame implements ActionListener {
       }
     });
 
+  }
+
+  public void addListofItems(final List<IonAnnotation> annotations) {
+    for (IonAnnotation ann: annotations) {
+      SiriusIonAnnotation annotation = (SiriusIonAnnotation) ann;
+      SiriusCompound compound = new SiriusCompound(annotation, annotation.getFingerIdScore());
+      addNewListItem(compound);
+    }
   }
 
   public void dispose() {
