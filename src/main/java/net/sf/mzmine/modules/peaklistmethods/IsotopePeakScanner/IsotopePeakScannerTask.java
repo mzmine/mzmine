@@ -420,7 +420,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			pattern = new ExtendedIsotopePattern();
 			pattern.setUpFromFormula(element, minAbundance, mergeFWHM,minPatternIntensity);
 			//pattern.mergePeaks(mergeFWHM);
-			pattern.normalizePatternToPeak(0);
+			pattern.normalizePatternToHighestPeak();
 			pattern.print();
 			pattern.applyCharge(charge, polarityType);
 			
@@ -514,7 +514,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
 		DataPoint[] dp = pattern.getDataPoints();
 		String ratios = "";
 		for(int i = 0; i < dp.length; i++)
-			ratios += round((dp[i].getIntensity()/dp[0].getIntensity()),2) + ":";
+			ratios += round(dp[i].getIntensity(), 2) + ":";
+//			ratios += round((dp[i].getIntensity()/dp[0].getIntensity()),2) + ":";
 		ratios = (ratios.length() > 0) ? ratios.substring(0, ratios.length()-1) : ratios;
 		return 	ratios;
 	}

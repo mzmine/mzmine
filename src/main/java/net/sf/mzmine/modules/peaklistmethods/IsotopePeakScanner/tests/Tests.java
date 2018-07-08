@@ -26,7 +26,7 @@ public class Tests {
 
 	public static void main(String[] args) {
 		//isotopePatternTest();
-		exIPT("Cl2");
+		exIPT("C80Gd2Cl8");
 		//isotopePatternTest();
 	}
 		
@@ -51,9 +51,8 @@ public class Tests {
 	{
 		ExtendedIsotopePattern p = new ExtendedIsotopePattern();
 		//p.addElement("C5");
-		p.setUpFromFormula(formula, 0.01, 0.0005, 0.05);
-		p.applyCharge(1, PolarityType.NEGATIVE);
-		p.normalizePatternToPeak(0);
+		p.setUpFromFormula(formula, 0.001, 0.0005, 0.001);
+		//p.applyCharge(1, PolarityType.NEGATIVE);
 		//p.addElement("Cl");
 		
 		p.print();

@@ -41,7 +41,9 @@ public class Candidate {
 	public double calcIntensityAccuracy_Pattern(PeakListRow parent, PeakListRow candidate, DataPoint pParent, DataPoint pChild)
 	{
 		double idealIntensity = pChild.getIntensity() / pParent.getIntensity();
-		return ( (idealIntensity * parent.getAverageArea()) / candidate.getAverageArea() );
+		return ( (idealIntensity * parent.getAverageHeight()) / candidate.getAverageHeight() );
+		
+		//return ( (pChild.getIntensity() / pParent.getIntensity()) * (parent.getAverageArea()) / candidate.getAverageArea() );
 	}
 	/**
 	 * for RatingType.HIGHEST

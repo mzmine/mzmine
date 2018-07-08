@@ -245,8 +245,10 @@ public class Candidates {
 //			throw new MSDKRuntimeException("points added not devideable by mzs.length");
 		
 		if(pointsAdded == 0)
+		{
+			System.out.println("Error: Peaks with ids: " + ID.toString() + "were not in same scans at all");
 			return null;
-		
+		}
 		for(int i = 0; i < avgHeights.length; i++)
 			avgHeights[i] /= (pointsAdded/*/mzs.length*/);
 				
@@ -271,7 +273,10 @@ public class Candidates {
 				n = p;
 		
 		if(n.getIntensity() == 0.0)
+		{
+//			System.out.println("Info: Closest data point not above min intensity. m/z: " + mz);
 			return null;
+		}
 		return n;
 	}
 		
@@ -305,7 +310,10 @@ public class Candidates {
 			}
 
 			if(!aboveMinHeight)
+			{
+//				System.out.println("Info: Mass list " + list.getName() + " does not contain every mz: " + mz.toString());
 				return false;
+			}
 		}
 		return true;
 	}

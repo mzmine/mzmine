@@ -116,8 +116,9 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     		for(IIsotope iso : isotopes)
     		{		// when adding new isotopes intensities only get smaller, so we can to this here to avoid useless calculation
     			if(iso.getNaturalAbundance() < minAbundance || ((iso.getNaturalAbundance() / 100) * dataPoints.get(i).getIntensity()) < 1E-12)
+    			{
     				continue;
-    			
+    			}
 	    		newDp.add(new SimpleDataPoint(dataPoints.get(i).getMZ() + iso.getExactMass(),
 	    				dataPoints.get(i).getIntensity() * (iso.getNaturalAbundance() / 100) ));
 	    		//System.out.println(iso.getMassNumber() + iso.getSymbol());
