@@ -20,17 +20,25 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class PeakListIdentificationParameters extends AbstractParameters {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
+  public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter("Amount of candidates to save",
+      "Specify the amount of candidates to be saved after processing by Sirius module", 1);
+
+  public static final IntegerParameter charge = new IntegerParameter(
+      "Charge", "Charge");
+
+  //todo: add how many top params to save
   public PeakListIdentificationParameters() {
     super(new Parameter[] {
         peakLists,
-        NEUTRAL_MASS,
+        ionizationType,
+        charge,
         MZ_TOLERANCE,
-        SIRIUS_CANDIDATES,
-        FINGERID_CANDIDATES,
+        CANDIDATES_AMOUNT,
         ELEMENTS
     });
   }

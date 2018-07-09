@@ -55,7 +55,7 @@ public class SpectrumProcessing {
 
   private List<MsSpectrum> processRawScan(int index) {
     LinkedList<MsSpectrum> spectra = null;
-    if (index != -1) {
+    if (indexExists(index)) {
       spectra = new LinkedList<>();
       Scan scan = rawfile.getScan(index);
       DataPoint[] points = scan.getDataPoints();
@@ -71,7 +71,7 @@ public class SpectrumProcessing {
   }
 
   private boolean indexExists(int index) {
-    return index != -1; // equals -1, if no ms or ms/ms spectra is found
+    return index >= 0; // equals -1, if no ms or ms/ms spectra is found
   }
 
   private MsSpectrum buildSpectrum(DataPoint[] points) {

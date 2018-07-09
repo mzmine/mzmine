@@ -38,6 +38,12 @@ import io.github.msdk.util.IonTypeUtil;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -47,6 +53,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import org.apache.commons.lang3.concurrent.ConcurrentException;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,41 +139,49 @@ public class SingleRowIdentificationTask extends AbstractTask {
     processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
     processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
 
+    final ExecutorService service = Executors.newSingleThreadExecutor();
     SiriusIdentificationMethod siriusMethod = null;
+    List<IonAnnotation> siriusResults = null;
+
     try {
-      siriusMethod = MethodsExecution.generateSiriusMethod(ms1list, ms2list, formulaRange, mzTolerance.getPpmTolerance(), ionType, parentMass, siriusCandidates);
-      siriusMethod.execute();
+      final SiriusIdentificationMethod method = MethodsExecution.generateSiriusMethod(ms1list, ms2list, formulaRange, mzTolerance.getPpmTolerance(),
+              ionType, parentMass, siriusCandidates);
+      final Future<List<IonAnnotation>> f = service.submit(() -> {
+        return method.execute();
+      });
+      siriusResults = f.get(40, TimeUnit.SECONDS); // todo: what about dynamic value for it?
+      siriusMethod = method;
+    } catch (InterruptedException|TimeoutException ie) {
+      logger.error("Timeout on Sirius method expired, abort.");
+      ie.printStackTrace();
+    } catch (ExecutionException ce) {
+      logger.error("Concurrency error during Sirius method.");
+      ce.printStackTrace();
     } catch (MSDKException e) {
       logger.error("Internal error of Sirius MSDK module appeared");
       e.printStackTrace();
     }
     /* TODO: If code below will failure, then siriusMethod will be null... Unhandled Null-pointer exception? */
     // TODO: use a HEAP to sort items
-    //TODO SORT ITEMS BY FINGERID SCORE
+    // TODO SORT ITEMS BY FINGERID SCORE
 
     if (processor.peakContainsMsMs()) {
-//      try {
+      try {
         Ms2Experiment experiment = siriusMethod.getExperiment();
-        fingerTasks = MethodsExecution.generateFingerIdWebMethods(siriusMethod.getResult(), experiment, fingerCandidates, window);
-////        fingerTasks = new LinkedList<>();
-//
-//      /* // Serial processing
-//      for (IonAnnotation ia: siriusMethod.getResult()) {
-//        SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-//        List<IonAnnotation> fingerResults = processFingerId(annotation, siriusMethod.getExperiment());
-//        items.addAll(fingerResults);
-//      } */
-//        for (IonAnnotation ia : siriusMethod.getResult()) {
-//          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-//          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
-//          fingerTasks.add(task);
-//          MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-//        }
-//        Thread.sleep(1000);
-//      } catch (InterruptedException interrupt) {
-//        logger.error("Processing of FingerWebMethods were interrupted");
-//        interrupt.printStackTrace();
-//      }
+//        fingerTasks = MethodsExecution.generateFingerIdWebMethods(siriusMethod.getResult(), experiment, fingerCandidates, window);
+        fingerTasks = new LinkedList<>();
+
+        for (IonAnnotation ia : siriusResults) {
+          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
+          fingerTasks.add(task);
+          MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+        }
+        Thread.sleep(1000);
+      } catch (InterruptedException interrupt) {
+        logger.error("Processing of FingerWebMethods were interrupted");
+        interrupt.printStackTrace();
+      }
     } else {
       window.addListofItems(siriusMethod.getResult());
     }

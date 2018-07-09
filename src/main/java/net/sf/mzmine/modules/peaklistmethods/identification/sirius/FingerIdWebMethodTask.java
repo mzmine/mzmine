@@ -26,6 +26,10 @@ import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.util.LinkedList;
 import java.util.List;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.HeadLessDesktop;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -40,15 +44,28 @@ public class FingerIdWebMethodTask extends AbstractTask {
   private final SiriusIonAnnotation annotation;
   private final String formula;
   private final ResultWindow window;
+  private final PeakListRow row;
 
   private static final Logger logger = LoggerFactory.getLogger(FingerIdWebMethodTask.class);
 
-  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, ResultWindow window) {
+  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, ResultWindow window, PeakListRow row) {
+    if (window == null && row == null)
+      throw new RuntimeException("Only one result container can be null at a time");
+
     this.candidatesAmount = candidatesAmount;
     this.experiment = experiment;
     this.annotation = annotation;
     this.window = window;
+    this.row = row;
     formula = MolecularFormulaManipulator.getString(annotation.getFormula());
+  }
+
+  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, ResultWindow window) {
+    this(annotation, experiment, candidatesAmount, window, null);
+  }
+
+  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, PeakListRow row) {
+    this(annotation, experiment, candidatesAmount, null, row);
   }
 
   @Override
@@ -88,8 +105,29 @@ public class FingerIdWebMethodTask extends AbstractTask {
       fingerResults.add(annotation);
     }
 
-    window.addListofItems(fingerResults);
+    submitResults(fingerResults);
+//    window.addListofItems(fingerResults);
+
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void submitResults(List<IonAnnotation> results) {
+    if (window != null)
+      window.addListofItems(results);
+
+    if (row != null) {
+      if (results.size() == 0) {
+        SiriusCompound compound = new SiriusCompound(annotation, annotation.getSiriusScore());
+        row.addPeakIdentity(compound, false);
+      } else {
+        for (IonAnnotation ia : results) { //todo: add howManyTopResultsToStore
+          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+          SiriusCompound compound = new SiriusCompound(annotation, annotation.getFingerIdScore());
+          row.addPeakIdentity(compound, false);
+        }
+      }
+      PeakListIdentificationTask.updateRow(row);
+    }
   }
 
   public List<IonAnnotation> getResults() {

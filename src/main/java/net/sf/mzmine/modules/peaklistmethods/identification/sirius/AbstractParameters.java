@@ -19,9 +19,11 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import java.io.IOException;
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -37,15 +39,18 @@ public abstract class AbstractParameters extends SimpleParameterSet {
       "Neutral mass", "Value to use in the search query");
 
   public static final IntegerParameter SIRIUS_CANDIDATES = new IntegerParameter(
-      "Number of candidates from Sirius method", "Maximum number of results to display", 10);
+      "Number of candidates from Sirius method", "Maximum number of results to display", 5);
 
   public static final IntegerParameter FINGERID_CANDIDATES = new IntegerParameter(
-      "Number of candidates from FingerId method", "Pass 0 to get all possible results", 15);
+      "Number of candidates from FingerId method", "Pass 0 to get all possible results", 5);
 
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
   public static final ElementsParameter ELEMENTS = new ElementsParameter(
       "Elements", "Elements and ranges");
+
+  public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
+      "Ionization type", "Ionization type", IonizationType.values());
 
   static {
     ELEMENTS.setValue(createDefaultElements());

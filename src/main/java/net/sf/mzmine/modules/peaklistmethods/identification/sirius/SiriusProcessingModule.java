@@ -36,6 +36,11 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Sirius";
   private static final String MODULE_DESCRIPTION = "Sirius identification method.";
 
+  static {
+//    String loggingProperties = getResourcePath("logging.properties").toString();
+//    System.setProperty("java.util.logging.config.file", loggingProperties);
+  }
+
   @Override
   public @Nonnull
   String getName() {

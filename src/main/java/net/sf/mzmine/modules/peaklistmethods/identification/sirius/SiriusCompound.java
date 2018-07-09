@@ -109,7 +109,7 @@ public class SiriusCompound extends SimplePeakIdentity {
     SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
     if (siriusAnnotation.getDBLinks() != null) {
       for (DBLink link : siriusAnnotation.getDBLinks())
-        b.append(String.format("%s : %s  ", link.name, link.id));
+        b.append(String.format("%s : %s, ", link.name, link.id));
       return b.toString();
     }
     return null;

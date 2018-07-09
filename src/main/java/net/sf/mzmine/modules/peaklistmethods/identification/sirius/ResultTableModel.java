@@ -32,8 +32,6 @@ public class ResultTableModel extends AbstractTableModel {
   private static final String[] columnNames = {"ID", "Name",
       "Formula", "SMILES", "Inchi", "DBs", "Sirius score", "FingerId Score"};
 
-  private double searchedMass;
-
   private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private Vector<SiriusCompound> annotations = new Vector<SiriusCompound>();
 
