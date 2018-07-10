@@ -56,6 +56,14 @@ public class Candidates {
 			throw new MSDKRuntimeException("Candidates.get(index) - index > length");
 		return avgRating[index];
 	}
+	public double getAvgAvgRatings()
+	{
+		double buffer = 0.0;
+		for(double rating : avgRating)
+			buffer += rating;
+		
+		return buffer / avgRating.length;
+	}
 	public int size()
 	{
 		return candidate.length;
