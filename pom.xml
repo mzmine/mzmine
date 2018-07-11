@@ -483,6 +483,120 @@
 			<version>${msdk.version}</version>
 		</dependency>
 
+		<!-- start delete after tsts -->
+
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>chemical_db_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>fingerid_utils_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>chemdb_file_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>chemdb_rest_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>chemdb_sql_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>chemical_db_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>canopus_predict_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>fingerblast_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>fingerprint_pvalues_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>de.unijena.bioinf.ms</groupId>-->
+			<!--<artifactId>fingerprinter_oss</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+
+		<!--<dependency>-->
+			<!--<groupId>org.apache.httpcomponents</groupId>-->
+			<!--<artifactId>httpclient</artifactId>-->
+			<!--<version>4.5.3</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.apache.httpcomponents</groupId>-->
+			<!--<artifactId>httpcore</artifactId>-->
+			<!--<version>4.4.6</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>com.google.code.gson</groupId>-->
+			<!--<artifactId>gson</artifactId>-->
+			<!--<version>2.6.2</version>-->
+		<!--</dependency>-->
+
+
+		<!--&lt;!&ndash; RESTDB class dependencies &ndash;&gt;-->
+		<!--<dependency>-->
+			<!--<groupId>javax.json</groupId>-->
+			<!--<artifactId>javax.json-api</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+		<!--<dependency>-->
+			<!--<groupId>org.glassfish</groupId>-->
+			<!--<artifactId>javax.json</artifactId>-->
+			<!--<version>1.1.2</version>-->
+		<!--</dependency>-->
+
+		<!--&lt;!&ndash; CDK dependencies &ndash;&gt;-->
+		<!--<dependency>-->
+			<!--<groupId>org.openscience.cdk</groupId>-->
+			<!--<artifactId>cdk-smiles</artifactId>-->
+			<!--<version>${cdk.version}</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.openscience.cdk</groupId>-->
+			<!--<artifactId>cdk-data</artifactId>-->
+			<!--<version>${cdk.version}</version>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.openscience.cdk</groupId>-->
+			<!--<artifactId>cdk-interfaces</artifactId>-->
+			<!--<version>${cdk.version}</version>-->
+		<!--</dependency>-->
+
+		<!--<dependency>-->
+			<!--<groupId>org.openscience.cdk</groupId>-->
+			<!--<artifactId>cdk-silent</artifactId>-->
+			<!--<version>${cdk.version}</version>-->
+		<!--</dependency>-->
+
+		<!-- end delete after tsts -->
 		<dependency>
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
@@ -591,7 +705,7 @@
 			<artifactId>epsgraphics</artifactId>
 			<version>1.2</version>
 		</dependency>
-		<!-- END of graphics dependencies -->
+		 <!--END of graphics dependencies-->
 
 		<dependency>
 			<groupId>com.miglayout</groupId>

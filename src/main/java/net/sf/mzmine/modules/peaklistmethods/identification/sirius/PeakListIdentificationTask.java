@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import EDU.oswego.cs.dl.util.concurrent.CountDown;
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.MSDKException;
@@ -34,10 +35,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import net.sf.mzmine.datamodel.Feature;
@@ -63,11 +66,15 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PeakListIdentificationTask.class);
+  private final Semaphore semaphore;
+  private final CountDownLatch latch;
 
   // Counters.
   private int finishedItems;
   private int numItems;
+  private Integer itemsDone;
 
+  private final ParameterSet parameters;
   private final MZTolerance mzTolerance;
   private final PeakList peakList;
   private final IonizationType ionType;
@@ -89,6 +96,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     numItems = 0;
     finishedItems = 0;
     currentRow = null;
+    this.parameters = parameters;
 
     mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
@@ -97,12 +105,17 @@ public class PeakListIdentificationTask extends AbstractTask {
     fingeridCandidates = 1;
     charge = parameters.getParameter(PeakListIdentificationParameters.charge).getValue();
     candidatesAmount = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
+
+    semaphore = new Semaphore(4);
+    latch = new CountDownLatch(list.getNumberOfRows());
+    itemsDone = 0;
   }
 
   @Override
   public double getFinishedPercentage() {
 
-    return numItems == 0 ? 0.0 : (double) finishedItems / (double) numItems;
+//    return numItems == 0 ? 0.0 : (double) finishedItems / (double) numItems;
+    return numItems == 0 ? 0.0 : (double) itemsDone / (double) numItems;
   }
 
   @Override
@@ -129,10 +142,14 @@ public class PeakListIdentificationTask extends AbstractTask {
         numItems = rows.length;
 
         // Process rows.
-        for (finishedItems = 0; !isCanceled() && finishedItems < numItems; finishedItems++) {
-          processSpectra(rows[finishedItems]);
+        for (finishedItems = 0; !isCanceled() && finishedItems < numItems;) {
+          Thread th = new Thread(new SiriusThread(rows[finishedItems], semaphore, parameters, latch));
+          th.setDaemon(true);
+          th.start();
+//          processSpectra(rows[finishedItems]);
         }
 
+        latch.await();
         if (!isCanceled()) {
           setStatus(TaskStatus.FINISHED);
         }
@@ -155,67 +172,67 @@ public class PeakListIdentificationTask extends AbstractTask {
   private void processSpectra(final PeakListRow row) throws IOException {
     currentRow = row;
 
-    Feature bestPeak = row.getBestPeak();
-//    int charge = bestPeak.getCharge();
-//    if (charge <= 0) {
-//      charge = 1;
+//    Feature bestPeak = row.getBestPeak();
+////    int charge = bestPeak.getCharge();
+////    if (charge <= 0) {
+////      charge = 1;
+////    }
+//
+//    // Calculate mass value.
+//
+//    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
+//
+//    SpectrumProcessing processor = new SpectrumProcessing(bestPeak);
+//    List<MsSpectrum> ms1 = processor.getMsList();
+//    List<MsSpectrum> ms2 = processor.getMsMsList();
+//
+//    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
+//    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
+//
+//    ConstraintsGenerator generator = new ConstraintsGenerator();
+//    FormulaConstraints constraints = generator.generateConstraint(range);
+//    IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
+//
+//
+//    List<IonAnnotation> siriusResults = null;
+//    SiriusIdentificationMethod siriusMethod = null;
+//
+//    try {
+//      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue, siriusIon, siriusCandidates, constraints, mzTolerance.getPpmTolerance());
+//      final Future<List<IonAnnotation>> f = service.submit(() -> {
+//        return method.execute();
+//      });
+//      siriusResults = f.get(5, TimeUnit.SECONDS);
+//      siriusMethod = method;
+//    } catch (InterruptedException|TimeoutException ie) {
+//      logger.error("Timeout on Sirius method expired, abort.");
+//      ie.printStackTrace();
+//      return;
+//    } catch (ExecutionException ce) {
+//      logger.error("Concurrency error during Sirius method.");
+//      ce.printStackTrace();
+//      return;
 //    }
-
-    // Calculate mass value.
-
-    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
-
-    SpectrumProcessing processor = new SpectrumProcessing(bestPeak);
-    List<MsSpectrum> ms1 = processor.getMsList();
-    List<MsSpectrum> ms2 = processor.getMsMsList();
-
-    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
-    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
-
-    ConstraintsGenerator generator = new ConstraintsGenerator();
-    FormulaConstraints constraints = generator.generateConstraint(range);
-    IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
-
-    final ExecutorService service = Executors.newSingleThreadExecutor();
-    List<IonAnnotation> siriusResults = null;
-    SiriusIdentificationMethod siriusMethod = null;
-
-    try {
-      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue, siriusIon, siriusCandidates, constraints, mzTolerance.getPpmTolerance());
-      final Future<List<IonAnnotation>> f = service.submit(() -> {
-        return method.execute();
-      });
-      siriusResults = f.get(5, TimeUnit.SECONDS);
-      siriusMethod = method;
-    } catch (InterruptedException|TimeoutException ie) {
-      logger.error("Timeout on Sirius method expired, abort.");
-      ie.printStackTrace();
-      return;
-    } catch (ExecutionException ce) {
-      logger.error("Concurrency error during Sirius method.");
-      ce.printStackTrace();
-      return;
-    }
-
-    if (!processor.peakContainsMsMs()) {
-      addSiriusCompounds(siriusResults, row, candidatesAmount);
-    } else {
-      try {
-        Ms2Experiment experiment = siriusMethod.getExperiment();
-
-        SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(0);
-        FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
-        MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-        Thread.sleep(300);
-      } catch (InterruptedException interrupt) {
-        logger.error("Processing of FingerWebMethods were interrupted");
-        interrupt.printStackTrace();
-        addSiriusCompounds(siriusResults, row, candidatesAmount);
-      }
-    }
+//
+//    if (!processor.peakContainsMsMs()) {
+//      addSiriusCompounds(siriusResults, row, candidatesAmount);
+//    } else {
+//      try {
+//        Ms2Experiment experiment = siriusMethod.getExperiment();
+//
+//        SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(0);
+//        FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
+//        MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+//        Thread.sleep(300);
+//      } catch (InterruptedException interrupt) {
+//        logger.error("Processing of FingerWebMethods were interrupted");
+//        interrupt.printStackTrace();
+//        addSiriusCompounds(siriusResults, row, candidatesAmount);
+//      }
+//    }
   }
 
-  private void addSiriusCompounds(List<IonAnnotation> annotations, PeakListRow row, int amount) {
+  public static void addSiriusCompounds(List<IonAnnotation> annotations, PeakListRow row, int amount) {
     for (int i = 0; i < amount; i++) { //todo: add howManyTopResultsToStore
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation, annotation.getSiriusScore());
