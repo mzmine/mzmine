@@ -56,6 +56,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     private Range<Double> mzRange;
     private double minAbundance;
     private double minIntensity;
+    private int highestDpIndex;
     IMolecularFormula formula;
     IChemObjectBuilder builder;
     Isotopes ifac;
@@ -69,6 +70,8 @@ public class ExtendedIsotopePattern implements IsotopePattern {
 		}catch (IOException e) {
 			e.printStackTrace();
 	    }
+    	
+		highestDpIndex = 0;
     }
     /**
      * Will create isotope pattern, can be accessed via getDataPoints and getSimple/PreciseDescr.
@@ -79,6 +82,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
      */
    public void setUpFromFormula(String sumFormula, double minAbundance, double mzMerge, double minIntensity)
     {
+	    highestDpIndex = 0;
     	IMolecularFormula form = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(sumFormula, builder);
     	description = sumFormula;
     	formula = form;
@@ -435,14 +439,25 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	return highestPeak;
     }
     
+    public int getHighestDataPointIndex()
+    {
+    	return highestDpIndex;
+    }
+    
     private void updateHighestPeak()
     {
     	DataPoint max = dataPoints.get(0);
+    	highestDpIndex = 0;
+    	
     	if(max == null)
     		return;
     	for(int i = 0; i < dataPoints.size(); i++)
     		if(dataPoints.get(i).getIntensity() > max.getIntensity())
+    		{
+    			highestDpIndex = i;
     			max = dataPoints.get(i);
+    		}
+    	
     	highestPeak = max;
     }
 
@@ -475,13 +490,13 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     @Override
     @Nonnull
     public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) {
-	throw new UnsupportedOperationException();
+    	throw new UnsupportedOperationException();
     }
 
     @Override
     @Nonnull
     public DataPoint[] getDataPointsOverIntensity(double intensity) {
-	throw new UnsupportedOperationException();
+    	throw new UnsupportedOperationException();
     }
     public void print()
     {

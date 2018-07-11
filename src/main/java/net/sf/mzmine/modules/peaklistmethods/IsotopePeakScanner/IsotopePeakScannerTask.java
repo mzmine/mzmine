@@ -347,7 +347,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					}
 					
 					//parent.setComment(parent.getComment() + " Intensity: " + getIntensityRatios(pattern));
-					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern) + " Identity: " + pattern.getDetailedPeakDescription(0) + " Avg pattern Rating: " + round(candidates.getAvgAvgRatings(), 3));
+					addComment(parent, "Intensity ratios: " + getIntensityRatios(pattern, pattern.getHighestDataPointIndex()) + " Identity: " + pattern.getDetailedPeakDescription(0) + " Avg pattern Rating: " + round(candidates.getAvgAvgRatings(), 3));
 					comChild = (parent.getID() + "-Parent ID" + " m/z-shift(ppm): " + round(((child.getAverageMZ() - parent.getAverageMZ()) 
 							- diff.get(k))*1E6/child.getAverageMZ(), 2) + " I(c)/I(p): " +  round(child.getAverageHeight()/parent.getAverageHeight(),2)
 							+ " Identity: " + pattern.getDetailedPeakDescription(k)
@@ -509,13 +509,14 @@ public class IsotopePeakScannerTask extends AbstractTask {
 	    return newRow;
 	}
 	
-	private static String getIntensityRatios(IsotopePattern pattern)
+	private static String getIntensityRatios(IsotopePattern pattern, int index)
 	{
 		DataPoint[] dp = pattern.getDataPoints();
+		
 		String ratios = "";
 		for(int i = 0; i < dp.length; i++)
-			ratios += round(dp[i].getIntensity(), 2) + ":";
-//			ratios += round((dp[i].getIntensity()/dp[0].getIntensity()),2) + ":";
+//			ratios += round(dp[i].getIntensity(), 2) + ":";
+			ratios += round((dp[i].getIntensity()/dp[index].getIntensity()),2) + ":";
 		ratios = (ratios.length() > 0) ? ratios.substring(0, ratios.length()-1) : ratios;
 		return 	ratios;
 	}
