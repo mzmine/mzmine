@@ -24,6 +24,9 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -100,6 +103,7 @@ public class ResultWindow extends JFrame implements ActionListener {
     pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
+    GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "SMILES");
 
     setLayout(new BorderLayout());
     setSize(500, 200);
@@ -120,7 +124,6 @@ public class ResultWindow extends JFrame implements ActionListener {
         MZmineCore.getDesktop().displayMessage(this,
             "Select one result to add as compound identity");
         return;
-
       }
       index = IDList.convertRowIndexToModel(index);
       peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
@@ -135,6 +138,23 @@ public class ResultWindow extends JFrame implements ActionListener {
       MZmineCore.getDesktop().getMainWindow().repaint();
 
       dispose();
+    }
+
+    if (command.equals("SMILES")) {
+      int index = IDList.getSelectedRow();
+
+      if (index < 0) {
+        MZmineCore.getDesktop().displayMessage(this,
+            "Select one result to copy SMILES value");
+        return;
+      }
+//      index = IDList.convertRowIndexToModel(index);
+      // SMILES column index == 3
+      StringSelection stringSelection = new StringSelection((String) listElementModel.getValueAt(index, 3));
+
+      // May be make clipboard static?
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      clipboard.setContents(stringSelection, null);
     }
 
   }
