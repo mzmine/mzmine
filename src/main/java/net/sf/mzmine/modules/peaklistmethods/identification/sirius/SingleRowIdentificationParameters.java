@@ -27,6 +27,12 @@ import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class SingleRowIdentificationParameters extends AbstractParameters {
+  public static final IntegerParameter SIRIUS_CANDIDATES = new IntegerParameter(
+      "Number of candidates from Sirius method", "Maximum number of results to display", 5);
+
+  public static final IntegerParameter FINGERID_CANDIDATES = new IntegerParameter(
+      "Number of candidates from FingerId method", "Pass 0 to get all possible results", 5);
+
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {
         NEUTRAL_MASS,

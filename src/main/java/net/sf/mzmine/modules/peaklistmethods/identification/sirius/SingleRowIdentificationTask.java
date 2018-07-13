@@ -62,7 +62,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   private double searchedMass;
-  private MZTolerance mzTolerance;
+  private double mzTolerance;
   private PeakListRow peakListRow;
   private IonizationType ionType;
   private MolecularFormulaRange formulaRange;
@@ -144,7 +144,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<IonAnnotation> siriusResults = null;
 
     try {
-      final SiriusIdentificationMethod method = MethodsExecution.generateSiriusMethod(ms1list, ms2list, formulaRange, mzTolerance.getPpmTolerance(),
+      final SiriusIdentificationMethod method = MethodsExecution.generateSiriusMethod(ms1list, ms2list, formulaRange, mzTolerance,
               ionType, parentMass, siriusCandidates);
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();

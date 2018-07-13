@@ -65,7 +65,7 @@ public class ResultTableModel extends AbstractTableModel {
         value = name;
         break;
       case 2:
-        value = compound.getFormula();
+        value = compound.getStringFormula();
         break;
       case 3:
         value = compound.getSMILES();

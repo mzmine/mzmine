@@ -21,15 +21,27 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class PeakListIdentificationParameters extends AbstractParameters {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
-  public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter("Amount of candidates to save",
-      "Specify the amount of candidates to be saved after processing by Sirius module", 1);
 
   public static final IntegerParameter charge = new IntegerParameter(
       "Charge", "Charge");
+
+  public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter("Amount of Sirius candidates to save",
+      "Specify the amount of candidates to be saved after processing by Sirius module", 1);
+
+  public static final IntegerParameter CANDIDATES_FINGERID = new IntegerParameter(
+      "Amount of FingerId results to save",
+      "Specify the amount of candidates to be saved after processing by Sirius & FingerId module",
+      1, 1, 5);
+
+  public static final IntegerParameter THREADS_AMOUNT = new IntegerParameter("Amount of parallel jobs",
+          "Specify the amount of parallel processing jobs",
+          4, 1, 20);
 
   //todo: add how many top params to save
   public PeakListIdentificationParameters() {
@@ -38,8 +50,10 @@ public class PeakListIdentificationParameters extends AbstractParameters {
         ionizationType,
         charge,
         MZ_TOLERANCE,
+        ELEMENTS,
         CANDIDATES_AMOUNT,
-        ELEMENTS
+        CANDIDATES_FINGERID,
+        THREADS_AMOUNT
     });
   }
 

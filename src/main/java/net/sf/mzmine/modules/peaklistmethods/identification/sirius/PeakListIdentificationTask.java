@@ -75,14 +75,15 @@ public class PeakListIdentificationTask extends AbstractTask {
   private Integer itemsDone;
 
   private final ParameterSet parameters;
-  private final MZTolerance mzTolerance;
   private final PeakList peakList;
   private final IonizationType ionType;
   private final MolecularFormulaRange range;
+  private final double mzTolerance;
   private final int siriusCandidates;
   private final int fingeridCandidates;
   private final int candidatesAmount;
   private final int charge;
+  private final int threadsAmount;
   private PeakListRow currentRow;
 
   /**
@@ -106,7 +107,8 @@ public class PeakListIdentificationTask extends AbstractTask {
     charge = parameters.getParameter(PeakListIdentificationParameters.charge).getValue();
     candidatesAmount = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
 
-    semaphore = new Semaphore(4);
+    threadsAmount = parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
+    semaphore = new Semaphore(threadsAmount);
     latch = new CountDownLatch(list.getNumberOfRows());
     itemsDone = 0;
   }
@@ -143,10 +145,17 @@ public class PeakListIdentificationTask extends AbstractTask {
 
         // Process rows.
         for (finishedItems = 0; !isCanceled() && finishedItems < numItems;) {
-          Thread th = new Thread(new SiriusThread(rows[finishedItems], semaphore, parameters, latch));
-          th.setDaemon(true);
-          th.start();
-//          processSpectra(rows[finishedItems]);
+          try {
+            semaphore.acquire();
+            logger.debug("Semaphore ACQUIRED");
+            Thread th = new Thread(new SiriusThread(rows[finishedItems++], semaphore, parameters, latch));
+            th.setDaemon(true);
+            th.start();
+          } catch (InterruptedException e) {
+            logger.error("The thread was interrupted");
+            e.printStackTrace();
+          }
+
         }
 
         latch.await();

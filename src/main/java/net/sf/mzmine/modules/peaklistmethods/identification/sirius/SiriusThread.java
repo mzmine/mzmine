@@ -57,13 +57,13 @@ public class SiriusThread implements Runnable {
 
   private final Semaphore semaphore;
   private final PeakListRow row;
-  private final int charge;
   private final IonizationType ionType;
+  private final int charge;
   private final int siriusCandidates;
   private final int fingeridCandidates;
   private final int candidates;
+  private final double mzTolerance;
   private final MolecularFormulaRange range;
-  private final MZTolerance mzTolerance;
   private final CountDownLatch latch;
 
   public SiriusThread(PeakListRow row, Semaphore semaphore, ParameterSet parameters, CountDownLatch latch) {
@@ -74,25 +74,16 @@ public class SiriusThread implements Runnable {
     range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
     mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
 
-//    siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_CANDIDATES).getValue();
-//    fingeridCandidates = parameters.getParameter(PeakListIdentificationParameters.FINGERID_CANDIDATES).getValue();
-//    candidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
+    siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
+    fingeridCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
     this.latch = latch;
 
-    siriusCandidates = 1;
-    fingeridCandidates = 1;
     candidates = 1;
   }
 
   @Override
   public void run() {
-    try {
-      semaphore.acquire();
-      logger.debug("Semaphore ACQUIRED");
-    } catch (InterruptedException e) {
-      logger.error("The thread was interrupted");
-      e.printStackTrace();
-    }
+
 
     final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
 
@@ -112,7 +103,7 @@ public class SiriusThread implements Runnable {
     SiriusIdentificationMethod siriusMethod = null;
 
     try {
-      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue, siriusIon, siriusCandidates, constraints, mzTolerance.getPpmTolerance());
+      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue, siriusIon, siriusCandidates, constraints, mzTolerance);
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();
       });
