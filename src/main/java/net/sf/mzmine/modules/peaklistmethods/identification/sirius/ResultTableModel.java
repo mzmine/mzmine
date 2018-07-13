@@ -93,7 +93,6 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
 
-  //TODO: todo
   public boolean isCellEditable(int row, int col) {
     return false;
   }

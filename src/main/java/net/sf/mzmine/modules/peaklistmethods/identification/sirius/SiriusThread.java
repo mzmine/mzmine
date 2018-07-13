@@ -116,19 +116,11 @@ public class SiriusThread implements Runnable {
         for (int index = 0; index < siriusCandidates; index++) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(index);
           try {
-//            FingerIdWebMethod fingerMethod = new FingerIdWebMethod(experiment, annotation,
-//                fingeridCandidates);
-//            List<IonAnnotation> fingerResults = fingerMethod.execute();
-//
-//            for (IonAnnotation ann : fingerResults) {
-//              SiriusIonAnnotation a = (SiriusIonAnnotation) ann;
-//              SiriusCompound compound = new SiriusCompound(a, annotation.getFingerIdScore());
-//              row.addPeakIdentity(compound, false);
-//            }
-          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
-          Thread.sleep(500);
+
+            FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
+            MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+            Thread.sleep(1000);
           } catch (InterruptedException interrupt) {
-//          } catch (MSDKException interrupt) {
             logger.error("Processing of FingerWebMethods were interrupted");
             interrupt.printStackTrace();
             List<IonAnnotation> lastItem = new LinkedList<>();
