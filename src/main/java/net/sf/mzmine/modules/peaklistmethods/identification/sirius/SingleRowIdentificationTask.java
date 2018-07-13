@@ -129,8 +129,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<MsSpectrum> ms2list = processor.getMsMsList();
 
     /* Debug */
-    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
-    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
+//    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
+//    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
 
     final ExecutorService service = Executors.newSingleThreadExecutor();
     SiriusIdentificationMethod siriusMethod = null;
