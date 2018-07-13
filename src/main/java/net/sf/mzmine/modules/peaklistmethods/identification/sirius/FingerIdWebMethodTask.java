@@ -76,7 +76,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     if (method == null || method.getFinishedPercentage() == null)
-      return 0;
+      return 0.0;
     return method.getFinishedPercentage();
   }
 
@@ -114,13 +114,9 @@ public class FingerIdWebMethodTask extends AbstractTask {
       window.addListofItems(results);
 
     if (row != null) {
-      PeakListIdentificationTask.addSiriusCompounds(results, row, candidatesAmount);
-//      for (IonAnnotation ia : results) { //todo: add howManyTopResultsToStore
-//        SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-//        SiriusCompound compound = new SiriusCompound(annotation, annotation.getFingerIdScore());
-//        row.addPeakIdentity(compound, false);
-//      }
-//      PeakListIdentificationTask.updateRow(row);
+      // Sometimes method may return less items than expected (1 or 2).
+      int quantity = (candidatesAmount > results.size()) ? results.size() : candidatesAmount;
+      PeakListIdentificationTask.addSiriusCompounds(results, row, quantity);
     }
   }
 
