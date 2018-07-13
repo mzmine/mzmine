@@ -19,10 +19,10 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 public class PeakListIdentificationParameters extends AbstractParameters {
@@ -43,6 +43,15 @@ public class PeakListIdentificationParameters extends AbstractParameters {
           "Specify the amount of parallel processing jobs",
           4, 1, 20);
 
+  public static final IntegerParameter SIRIUS_TIMEOUT =
+      new IntegerParameter(
+          "Timer for Sirius task", "Specify the amount of seconds, during which Sirius should finish processing of the row",
+          10
+      );
+
+  public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
+      "Ionization type", "Ionization type", IonizationType.values());
+
   //todo: add how many top params to save
   public PeakListIdentificationParameters() {
     super(new Parameter[] {
@@ -53,7 +62,8 @@ public class PeakListIdentificationParameters extends AbstractParameters {
         ELEMENTS,
         CANDIDATES_AMOUNT,
         CANDIDATES_FINGERID,
-        THREADS_AMOUNT
+        THREADS_AMOUNT,
+        SIRIUS_TIMEOUT
     });
   }
 
