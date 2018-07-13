@@ -72,7 +72,6 @@ public class PeakListIdentificationTask extends AbstractTask {
   // Counters.
   private int finishedItems;
   private int numItems;
-  private Integer itemsDone;
 
   private final ParameterSet parameters;
   private final PeakList peakList;
@@ -110,14 +109,12 @@ public class PeakListIdentificationTask extends AbstractTask {
     threadsAmount = parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
     semaphore = new Semaphore(threadsAmount);
     latch = new CountDownLatch(list.getNumberOfRows());
-    itemsDone = 0;
   }
 
   @Override
   public double getFinishedPercentage() {
 
-//    return numItems == 0 ? 0.0 : (double) finishedItems / (double) numItems;
-    return numItems == 0 ? 0.0 : (double) itemsDone / (double) numItems;
+    return numItems == 0 ? 0.0 : (double) (numItems - latch.getCount()) / (double) numItems;
   }
 
   @Override
@@ -172,76 +169,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     }
   }
 
-  /**
-   * Search the database for the peak's identity.
-   * 
-   * @param row the peak list row.
-   * @throws IOException if there are i/o problems.
-   */
-  private void processSpectra(final PeakListRow row) throws IOException {
-    currentRow = row;
-
-//    Feature bestPeak = row.getBestPeak();
-////    int charge = bestPeak.getCharge();
-////    if (charge <= 0) {
-////      charge = 1;
-////    }
-//
-//    // Calculate mass value.
-//
-//    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
-//
-//    SpectrumProcessing processor = new SpectrumProcessing(bestPeak);
-//    List<MsSpectrum> ms1 = processor.getMsList();
-//    List<MsSpectrum> ms2 = processor.getMsMsList();
-//
-//    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
-//    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
-//
-//    ConstraintsGenerator generator = new ConstraintsGenerator();
-//    FormulaConstraints constraints = generator.generateConstraint(range);
-//    IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
-//
-//
-//    List<IonAnnotation> siriusResults = null;
-//    SiriusIdentificationMethod siriusMethod = null;
-//
-//    try {
-//      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue, siriusIon, siriusCandidates, constraints, mzTolerance.getPpmTolerance());
-//      final Future<List<IonAnnotation>> f = service.submit(() -> {
-//        return method.execute();
-//      });
-//      siriusResults = f.get(5, TimeUnit.SECONDS);
-//      siriusMethod = method;
-//    } catch (InterruptedException|TimeoutException ie) {
-//      logger.error("Timeout on Sirius method expired, abort.");
-//      ie.printStackTrace();
-//      return;
-//    } catch (ExecutionException ce) {
-//      logger.error("Concurrency error during Sirius method.");
-//      ce.printStackTrace();
-//      return;
-//    }
-//
-//    if (!processor.peakContainsMsMs()) {
-//      addSiriusCompounds(siriusResults, row, candidatesAmount);
-//    } else {
-//      try {
-//        Ms2Experiment experiment = siriusMethod.getExperiment();
-//
-//        SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(0);
-//        FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
-//        MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-//        Thread.sleep(300);
-//      } catch (InterruptedException interrupt) {
-//        logger.error("Processing of FingerWebMethods were interrupted");
-//        interrupt.printStackTrace();
-//        addSiriusCompounds(siriusResults, row, candidatesAmount);
-//      }
-//    }
-  }
-
-  public static void addSiriusCompounds(List<IonAnnotation> annotations, PeakListRow row, int amount) {
+  public synchronized static void addSiriusCompounds(List<IonAnnotation> annotations, PeakListRow row, int amount) {
     for (int i = 0; i < amount; i++) { //todo: add howManyTopResultsToStore
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation, annotation.getSiriusScore());

@@ -32,6 +32,7 @@ import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -61,10 +62,10 @@ public class SiriusThread implements Runnable {
   private final int charge;
   private final int siriusCandidates;
   private final int fingeridCandidates;
-  private final int candidates;
   private final double mzTolerance;
   private final MolecularFormulaRange range;
   private final CountDownLatch latch;
+  private final int siriusTimer;
 
   public SiriusThread(PeakListRow row, Semaphore semaphore, ParameterSet parameters, CountDownLatch latch) {
     this.semaphore = semaphore;
@@ -73,12 +74,10 @@ public class SiriusThread implements Runnable {
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
     range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
     mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
-
     siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
     fingeridCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
+    siriusTimer = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
     this.latch = latch;
-
-    candidates = 1;
   }
 
   @Override
@@ -107,31 +106,35 @@ public class SiriusThread implements Runnable {
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();
       });
-      siriusResults = f.get(5, TimeUnit.SECONDS);
+      siriusResults = f.get(siriusTimer, TimeUnit.SECONDS);
       siriusMethod = method;
 
       if (!processor.peakContainsMsMs()) {
-        addSiriusCompounds(siriusResults, row, candidates);
+        addSiriusCompounds(siriusResults, row, siriusCandidates);
       } else {
-        try {
-          Ms2Experiment experiment = siriusMethod.getExperiment();
-
-          SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(0);
-          FingerIdWebMethod fingerMethod = new FingerIdWebMethod(experiment, annotation, fingeridCandidates);
-          List<IonAnnotation> fingerResults = fingerMethod.execute();
-
-          for (IonAnnotation ann: fingerResults) {
-            SiriusIonAnnotation a = (SiriusIonAnnotation) ann;
-            SiriusCompound compound = new SiriusCompound(a, annotation.getFingerIdScore());
-            row.addPeakIdentity(compound, false);
+        Ms2Experiment experiment = siriusMethod.getExperiment();
+        for (int index = 0; index < siriusCandidates; index++) {
+          SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(index);
+          try {
+//            FingerIdWebMethod fingerMethod = new FingerIdWebMethod(experiment, annotation,
+//                fingeridCandidates);
+//            List<IonAnnotation> fingerResults = fingerMethod.execute();
+//
+//            for (IonAnnotation ann : fingerResults) {
+//              SiriusIonAnnotation a = (SiriusIonAnnotation) ann;
+//              SiriusCompound compound = new SiriusCompound(a, annotation.getFingerIdScore());
+//              row.addPeakIdentity(compound, false);
+//            }
+          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
+          Thread.sleep(500);
+          } catch (InterruptedException interrupt) {
+//          } catch (MSDKException interrupt) {
+            logger.error("Processing of FingerWebMethods were interrupted");
+            interrupt.printStackTrace();
+            List<IonAnnotation> lastItem = new LinkedList<>();
+            lastItem.add(annotation);
+            addSiriusCompounds(lastItem, row, 1);
           }
-//          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
-//          Thread.sleep(500);
-//        } catch (InterruptedException interrupt) {
-        } catch (MSDKException interrupt) {
-          logger.error("Processing of FingerWebMethods were interrupted");
-          interrupt.printStackTrace();
-          addSiriusCompounds(siriusResults, row, candidates);
         }
       }
     } catch (InterruptedException|TimeoutException ie) {

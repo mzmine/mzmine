@@ -106,8 +106,6 @@ public class FingerIdWebMethodTask extends AbstractTask {
     }
 
     submitResults(fingerResults);
-//    window.addListofItems(fingerResults);
-
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -116,17 +114,13 @@ public class FingerIdWebMethodTask extends AbstractTask {
       window.addListofItems(results);
 
     if (row != null) {
-      if (results.size() == 0) {
-        SiriusCompound compound = new SiriusCompound(annotation, annotation.getSiriusScore());
-        row.addPeakIdentity(compound, false);
-      } else {
-        for (IonAnnotation ia : results) { //todo: add howManyTopResultsToStore
-          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-          SiriusCompound compound = new SiriusCompound(annotation, annotation.getFingerIdScore());
-          row.addPeakIdentity(compound, false);
-        }
-      }
-      PeakListIdentificationTask.updateRow(row);
+      PeakListIdentificationTask.addSiriusCompounds(results, row, candidatesAmount);
+//      for (IonAnnotation ia : results) { //todo: add howManyTopResultsToStore
+//        SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+//        SiriusCompound compound = new SiriusCompound(annotation, annotation.getFingerIdScore());
+//        row.addPeakIdentity(compound, false);
+//      }
+//      PeakListIdentificationTask.updateRow(row);
     }
   }
 
