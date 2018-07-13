@@ -18,29 +18,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
-import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
-import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
-import io.github.msdk.datamodel.IonType;
-import io.github.msdk.datamodel.MsSpectrum;
-import io.github.msdk.datamodel.SimpleMsSpectrum;
-import io.github.msdk.id.sirius.ConstraintsGenerator;
-import io.github.msdk.id.sirius.FingerIdWebMethod;
-import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.msdk.util.IonTypeUtil;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import net.sf.mzmine.datamodel.Feature;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -48,9 +31,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
-import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -63,19 +44,23 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PeakListIdentificationTask.class);
+  private final Semaphore semaphore;
+  private final CountDownLatch latch;
 
   // Counters.
   private int finishedItems;
   private int numItems;
 
-  private final MZTolerance mzTolerance;
+  private final ParameterSet parameters;
   private final PeakList peakList;
   private final IonizationType ionType;
   private final MolecularFormulaRange range;
+  private final double mzTolerance;
   private final int siriusCandidates;
   private final int fingeridCandidates;
   private final int candidatesAmount;
   private final int charge;
+  private final int threadsAmount;
   private PeakListRow currentRow;
 
   /**
@@ -89,6 +74,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     numItems = 0;
     finishedItems = 0;
     currentRow = null;
+    this.parameters = parameters;
 
     mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
@@ -97,12 +83,16 @@ public class PeakListIdentificationTask extends AbstractTask {
     fingeridCandidates = 1;
     charge = parameters.getParameter(PeakListIdentificationParameters.charge).getValue();
     candidatesAmount = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
+
+    threadsAmount = parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
+    semaphore = new Semaphore(threadsAmount);
+    latch = new CountDownLatch(list.getNumberOfRows());
   }
 
   @Override
   public double getFinishedPercentage() {
 
-    return numItems == 0 ? 0.0 : (double) finishedItems / (double) numItems;
+    return numItems == 0 ? 0.0 : (double) (numItems - latch.getCount()) / (double) numItems;
   }
 
   @Override
@@ -129,10 +119,21 @@ public class PeakListIdentificationTask extends AbstractTask {
         numItems = rows.length;
 
         // Process rows.
-        for (finishedItems = 0; !isCanceled() && finishedItems < numItems; finishedItems++) {
-          processSpectra(rows[finishedItems]);
+        for (finishedItems = 0; !isCanceled() && finishedItems < numItems;) {
+          try {
+            semaphore.acquire();
+            logger.debug("Semaphore ACQUIRED");
+            Thread th = new Thread(new SiriusThread(rows[finishedItems++], semaphore, parameters, latch));
+            th.setDaemon(true);
+            th.start();
+          } catch (InterruptedException e) {
+            logger.error("The thread was interrupted");
+            e.printStackTrace();
+          }
+
         }
 
+        latch.await();
         if (!isCanceled()) {
           setStatus(TaskStatus.FINISHED);
         }
@@ -146,76 +147,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     }
   }
 
-  /**
-   * Search the database for the peak's identity.
-   * 
-   * @param row the peak list row.
-   * @throws IOException if there are i/o problems.
-   */
-  private void processSpectra(final PeakListRow row) throws IOException {
-    currentRow = row;
-
-    Feature bestPeak = row.getBestPeak();
-//    int charge = bestPeak.getCharge();
-//    if (charge <= 0) {
-//      charge = 1;
-//    }
-
-    // Calculate mass value.
-
-    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
-
-    SpectrumProcessing processor = new SpectrumProcessing(bestPeak);
-    List<MsSpectrum> ms1 = processor.getMsList();
-    List<MsSpectrum> ms2 = processor.getMsMsList();
-
-    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
-    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
-
-    ConstraintsGenerator generator = new ConstraintsGenerator();
-    FormulaConstraints constraints = generator.generateConstraint(range);
-    IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
-
-    final ExecutorService service = Executors.newSingleThreadExecutor();
-    List<IonAnnotation> siriusResults = null;
-    SiriusIdentificationMethod siriusMethod = null;
-
-    try {
-      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue, siriusIon, siriusCandidates, constraints, mzTolerance.getPpmTolerance());
-      final Future<List<IonAnnotation>> f = service.submit(() -> {
-        return method.execute();
-      });
-      siriusResults = f.get(5, TimeUnit.SECONDS);
-      siriusMethod = method;
-    } catch (InterruptedException|TimeoutException ie) {
-      logger.error("Timeout on Sirius method expired, abort.");
-      ie.printStackTrace();
-      return;
-    } catch (ExecutionException ce) {
-      logger.error("Concurrency error during Sirius method.");
-      ce.printStackTrace();
-      return;
-    }
-
-    if (!processor.peakContainsMsMs()) {
-      addSiriusCompounds(siriusResults, row, candidatesAmount);
-    } else {
-      try {
-        Ms2Experiment experiment = siriusMethod.getExperiment();
-
-        SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(0);
-        FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
-        MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-        Thread.sleep(300);
-      } catch (InterruptedException interrupt) {
-        logger.error("Processing of FingerWebMethods were interrupted");
-        interrupt.printStackTrace();
-        addSiriusCompounds(siriusResults, row, candidatesAmount);
-      }
-    }
-  }
-
-  private void addSiriusCompounds(List<IonAnnotation> annotations, PeakListRow row, int amount) {
+  public synchronized static void addSiriusCompounds(List<IonAnnotation> annotations, PeakListRow row, int amount) {
     for (int i = 0; i < amount; i++) { //todo: add howManyTopResultsToStore
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation, annotation.getSiriusScore());

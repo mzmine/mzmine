@@ -24,17 +24,12 @@ import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.Single
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.NEUTRAL_MASS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_CANDIDATES;
 
-import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
-import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
-import io.github.msdk.id.sirius.ConstraintsGenerator;
-import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.msdk.util.IonTypeUtil;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,11 +44,9 @@ import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import org.apache.commons.lang3.concurrent.ConcurrentException;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +55,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   private double searchedMass;
-  private MZTolerance mzTolerance;
+  private double mzTolerance;
   private PeakListRow peakListRow;
   private IonizationType ionType;
   private MolecularFormulaRange formulaRange;
@@ -136,15 +129,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<MsSpectrum> ms2list = processor.getMsMsList();
 
     /* Debug */
-    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
-    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
+//    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
+//    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
 
     final ExecutorService service = Executors.newSingleThreadExecutor();
     SiriusIdentificationMethod siriusMethod = null;
     List<IonAnnotation> siriusResults = null;
 
     try {
-      final SiriusIdentificationMethod method = MethodsExecution.generateSiriusMethod(ms1list, ms2list, formulaRange, mzTolerance.getPpmTolerance(),
+      final SiriusIdentificationMethod method = MethodsExecution.generateSiriusMethod(ms1list, ms2list, formulaRange, mzTolerance,
               ionType, parentMass, siriusCandidates);
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();

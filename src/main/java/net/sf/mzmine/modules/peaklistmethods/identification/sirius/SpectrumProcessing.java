@@ -91,6 +91,9 @@ public class SpectrumProcessing {
   // TEMP FUNCTION
   public void saveSpectrum(String filename, int level) {
     int index = (level == 2) ? ms2index : ms1index;
+    if (!indexExists(index))
+      return;
+
     Scan scan = rawfile.getScan(index);
     DataPoint[] points = scan.getDataPoints();
 

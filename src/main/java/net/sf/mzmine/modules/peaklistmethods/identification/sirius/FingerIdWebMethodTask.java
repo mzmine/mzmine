@@ -27,9 +27,6 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.util.LinkedList;
 import java.util.List;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.impl.HeadLessDesktop;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
@@ -76,7 +73,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
   @Override
   public double getFinishedPercentage() {
     if (method == null || method.getFinishedPercentage() == null)
-      return 0;
+      return 0.0;
     return method.getFinishedPercentage();
   }
 
@@ -106,8 +103,6 @@ public class FingerIdWebMethodTask extends AbstractTask {
     }
 
     submitResults(fingerResults);
-//    window.addListofItems(fingerResults);
-
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -116,17 +111,9 @@ public class FingerIdWebMethodTask extends AbstractTask {
       window.addListofItems(results);
 
     if (row != null) {
-      if (results.size() == 0) {
-        SiriusCompound compound = new SiriusCompound(annotation, annotation.getSiriusScore());
-        row.addPeakIdentity(compound, false);
-      } else {
-        for (IonAnnotation ia : results) { //todo: add howManyTopResultsToStore
-          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-          SiriusCompound compound = new SiriusCompound(annotation, annotation.getFingerIdScore());
-          row.addPeakIdentity(compound, false);
-        }
-      }
-      PeakListIdentificationTask.updateRow(row);
+      // Sometimes method may return less items than expected (1 or 2).
+      int quantity = (candidatesAmount > results.size()) ? results.size() : candidatesAmount;
+      PeakListIdentificationTask.addSiriusCompounds(results, row, quantity);
     }
   }
 

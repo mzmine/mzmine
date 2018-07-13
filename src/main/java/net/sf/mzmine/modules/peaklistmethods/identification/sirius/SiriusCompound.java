@@ -24,20 +24,31 @@ import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.util.Hashtable;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SiriusCompound extends SimplePeakIdentity {
-  private Double compoundScore;
-  private IonAnnotation annotation;
+  private final Double compoundScore;
+  private final IMolecularFormula formula;
+  private final DBLink[] dblinks;
 
-  public SiriusCompound(IonAnnotation annotation, Double score) {
+  public SiriusCompound(final IonAnnotation annotation, Double score) {
     super(loadProps(annotation));
+    SiriusIonAnnotation ann = (SiriusIonAnnotation) annotation;
+    dblinks = ann.getDBLinks();
+    formula = ann.getFormula();
 
-    this.annotation = annotation;
     this.compoundScore = score;
   }
 
-  private static Hashtable<String, String> loadProps(IonAnnotation ann) {
+  public SiriusCompound(final SiriusCompound master) {
+    super((Hashtable<String, String>) master.getAllProperties());
+    formula = master.formula;
+    dblinks = master.dblinks;
+    compoundScore = master.compoundScore;
+  }
+
+  private static Hashtable<String, String> loadProps(final IonAnnotation ann) {
     SiriusIonAnnotation annotation = (SiriusIonAnnotation) ann;
     String formula = MolecularFormulaManipulator.getString(annotation.getFormula());
     String siriusScore = String.format("%.4f", annotation.getSiriusScore());
@@ -48,7 +59,7 @@ public class SiriusCompound extends SimplePeakIdentity {
     props.put(PROPERTY_FORMULA, formula);
     props.put("Sirius score", siriusScore);
 
-    if (isProcessedByFingerId(annotation)) { // Execute this code if
+    if (annotation.getFingerIdScore() != null) { // Execute this code if
       name = annotation.getDescription();
       String inchi = annotation.getInchiKey();
       String smiles = annotation.getSMILES();
@@ -81,53 +92,51 @@ public class SiriusCompound extends SimplePeakIdentity {
     return props;
   }
 
-  private static boolean isProcessedByFingerId(SiriusIonAnnotation annotation) {
-    return annotation.getFingerIdScore() != null;
-  }
-
   public SiriusCompound clone() {
-    final SiriusCompound compound = new SiriusCompound(this.annotation, this.compoundScore);
+    final SiriusCompound compound = new SiriusCompound(this);
     return compound;
   }
 
   public String getAnnotationDescription() {
-    return annotation.getDescription();
+    return getPropertyValue(PROPERTY_NAME);
   }
 
   public String getInchi() {
-    final SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
-    return siriusAnnotation.getInchiKey();
+    return getPropertyValue("Inchi");
   }
 
   public String getSMILES() {
-    final SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
-    return siriusAnnotation.getSMILES();
+    return getPropertyValue("SMILES");
   }
 
   public Object getDBS() {
     StringBuilder b = new StringBuilder();
-    SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
-    if (siriusAnnotation.getDBLinks() != null) {
-      for (DBLink link : siriusAnnotation.getDBLinks())
+    if (dblinks != null) {
+      for (DBLink link : dblinks)
         b.append(String.format("%s : %s, ", link.name, link.id));
       return b.toString();
     }
+
     return null;
   }
 
-  public String getFormula() {
-    return MolecularFormulaManipulator.getString(annotation.getFormula());
+  public DBLink[] getDBLinks() {
+    return dblinks;
+  }
+
+  public String getStringFormula() {
+    return MolecularFormulaManipulator.getString(formula);
+  }
+
+  public IMolecularFormula getFormula() {
+    return formula;
   }
 
   public Object getFingerIdScore() {
-    final SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
-    if (siriusAnnotation.getFingerIdScore() != null)
-      return String.format("%.5f", siriusAnnotation.getFingerIdScore());
-    return null;
+    return getPropertyValue("FingerId score");
   }
 
   public Object getSiriusScore() {
-    final SiriusIonAnnotation siriusAnnotation = (SiriusIonAnnotation) annotation;
-    return String.format("%.5f",siriusAnnotation.getSiriusScore());
+    return getPropertyValue("Sirius score");
   }
 }

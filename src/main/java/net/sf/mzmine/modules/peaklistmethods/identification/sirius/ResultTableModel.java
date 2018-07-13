@@ -23,7 +23,6 @@ import java.text.NumberFormat;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
 import net.sf.mzmine.datamodel.PeakIdentity;
-import net.sf.mzmine.main.MZmineCore;
 
 public class ResultTableModel extends AbstractTableModel {
 
@@ -65,7 +64,7 @@ public class ResultTableModel extends AbstractTableModel {
         value = name;
         break;
       case 2:
-        value = compound.getFormula();
+        value = compound.getStringFormula();
         break;
       case 3:
         value = compound.getSMILES();
@@ -93,7 +92,6 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
 
-  //TODO: todo
   public boolean isCellEditable(int row, int col) {
     return false;
   }

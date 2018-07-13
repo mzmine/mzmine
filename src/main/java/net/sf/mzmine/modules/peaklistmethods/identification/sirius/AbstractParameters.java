@@ -19,14 +19,11 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import java.io.IOException;
-import net.sf.mzmine.datamodel.IonizationType;
+import java.text.DecimalFormat;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
@@ -35,22 +32,13 @@ public abstract class AbstractParameters extends SimpleParameterSet {
   private static final int ISOTOPE_MAX = 100;
   private static final int ISOTOPE_MIN = 0;
 
-  public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter(
-      "Neutral mass", "Value to use in the search query");
-
-  public static final IntegerParameter SIRIUS_CANDIDATES = new IntegerParameter(
-      "Number of candidates from Sirius method", "Maximum number of results to display", 5);
-
-  public static final IntegerParameter FINGERID_CANDIDATES = new IntegerParameter(
-      "Number of candidates from FingerId method", "Pass 0 to get all possible results", 5);
-
-  public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
+ public static final DoubleParameter MZ_TOLERANCE = new DoubleParameter("Deviation",
+      "Speficy the deviation value in ppm s",
+      new DecimalFormat("#0.00"),
+      10.0d);
 
   public static final ElementsParameter ELEMENTS = new ElementsParameter(
       "Elements", "Elements and ranges");
-
-  public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
-      "Ionization type", "Ionization type", IonizationType.values());
 
   static {
     ELEMENTS.setValue(createDefaultElements());

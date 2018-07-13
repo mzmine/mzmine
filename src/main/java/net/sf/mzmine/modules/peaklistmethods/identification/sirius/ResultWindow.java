@@ -24,6 +24,9 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -100,6 +103,8 @@ public class ResultWindow extends JFrame implements ActionListener {
     pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
+    GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "SMILES");
+    GUIUtils.addButton(pnlButtons, "View structure", null, this, "VIEWER");
 
     setLayout(new BorderLayout());
     setSize(500, 200);
@@ -120,7 +125,6 @@ public class ResultWindow extends JFrame implements ActionListener {
         MZmineCore.getDesktop().displayMessage(this,
             "Select one result to add as compound identity");
         return;
-
       }
       index = IDList.convertRowIndexToModel(index);
       peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
@@ -137,6 +141,43 @@ public class ResultWindow extends JFrame implements ActionListener {
       dispose();
     }
 
+    if (command.equals("SMILES")) {
+      int index = IDList.getSelectedRow();
+
+      if (index < 0) {
+        MZmineCore.getDesktop().displayMessage(this,
+            "Select one result to copy SMILES value");
+        return;
+      }
+      // SMILES column index == 3
+      StringSelection stringSelection = new StringSelection((String) listElementModel.getValueAt(index, 3));
+
+      // todo: May be make clipboard static?
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      clipboard.setContents(stringSelection, null);
+    }
+
+//    if (command.equals("VIEWER")) {
+//
+//      int index = IDList.getSelectedRow();
+//
+//      if (index < 0) {
+//        MZmineCore.getDesktop().displayMessage(this,
+//            "Select one result to display molecule structure");
+//        return;
+//      }
+//      index = IDList.convertRowIndexToModel(index);
+
+//      DBCompound compound = listElementModel.getCompoundAt(index);
+//      URL url2D = compound.get2DStructureURL();
+//      URL url3D = compound.get3DStructureURL();
+//      String name = compound.getName() + " ("
+//          + compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
+//      MolStructureViewer viewer = new MolStructureViewer(name, url2D,
+//          url3D);
+//      viewer.setVisible(true);
+
+//    }
   }
 
   public void addNewListItem(final SiriusCompound compound) {
