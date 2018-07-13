@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import de.unijena.bioinf.ChemistryBase.chem.InChI;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.awt.BorderLayout;
@@ -29,6 +30,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -41,11 +43,15 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
+import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
+import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
+import org.openscience.cdk.atomtype.CDKAtomTypeMatcher;
 
 public class ResultWindow extends JFrame implements ActionListener {
 
@@ -104,6 +110,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
     GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "SMILES");
+    GUIUtils.addButton(pnlButtons, "View structure", null, this, "VIEWER");
 
     setLayout(new BorderLayout());
     setSize(500, 200);
@@ -148,15 +155,35 @@ public class ResultWindow extends JFrame implements ActionListener {
             "Select one result to copy SMILES value");
         return;
       }
-//      index = IDList.convertRowIndexToModel(index);
       // SMILES column index == 3
       StringSelection stringSelection = new StringSelection((String) listElementModel.getValueAt(index, 3));
 
-      // May be make clipboard static?
+      // todo: May be make clipboard static?
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
       clipboard.setContents(stringSelection, null);
     }
 
+    if (command.equals("VIEWER")) {
+
+      int index = IDList.getSelectedRow();
+
+      if (index < 0) {
+        MZmineCore.getDesktop().displayMessage(this,
+            "Select one result to display molecule structure");
+        return;
+      }
+      index = IDList.convertRowIndexToModel(index);
+
+//      DBCompound compound = listElementModel.getCompoundAt(index);
+//      URL url2D = compound.get2DStructureURL();
+//      URL url3D = compound.get3DStructureURL();
+//      String name = compound.getName() + " ("
+//          + compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
+//      MolStructureViewer viewer = new MolStructureViewer(name, url2D,
+//          url3D);
+//      viewer.setVisible(true);
+
+    }
   }
 
   public void addNewListItem(final SiriusCompound compound) {
