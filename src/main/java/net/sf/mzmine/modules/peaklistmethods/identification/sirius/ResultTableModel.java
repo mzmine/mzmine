@@ -23,7 +23,6 @@ import java.text.NumberFormat;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
 import net.sf.mzmine.datamodel.PeakIdentity;
-import net.sf.mzmine.main.MZmineCore;
 
 public class ResultTableModel extends AbstractTableModel {
 
