@@ -28,6 +28,8 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
+import org.apache.xpath.functions.FuncFalse;
+
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -38,6 +40,7 @@ import net.sf.mzmine.util.TextUtils;
 public class ScanSelection {
 
     private final Range<Integer> scanNumberRange;
+    private Integer baseFilteringInteger;
     private final Range<Double> scanRTRange;
     private final PolarityType polarity;
     private final MassSpectrumType spectrumType;
@@ -49,18 +52,17 @@ public class ScanSelection {
     }
 
     public ScanSelection(int msLevel) {
-        this(null, null, null, null, msLevel, null);
+        this(null, null, null, null, null, msLevel, null);
     }
 
     public ScanSelection(Range<Double> scanRTRange, int msLevel) {
-        this(null, scanRTRange, null, null, msLevel, null);
+        this(null, null, scanRTRange, null, null, msLevel, null);
     }
 
-    public ScanSelection(Range<Integer> scanNumberRange,
-            Range<Double> scanRTRange, PolarityType polarity,
-            MassSpectrumType spectrumType, Integer msLevel,
-            String scanDefinition) {
+    public ScanSelection(Range<Integer> scanNumberRange, Integer baseFilteringInteger, Range<Double> scanRTRange,
+            PolarityType polarity, MassSpectrumType spectrumType, Integer msLevel, String scanDefinition) {
         this.scanNumberRange = scanNumberRange;
+        this.baseFilteringInteger = baseFilteringInteger;
         this.scanRTRange = scanRTRange;
         this.polarity = polarity;
         this.spectrumType = spectrumType;
@@ -70,6 +72,10 @@ public class ScanSelection {
 
     public Range<Integer> getScanNumberRange() {
         return scanNumberRange;
+    }
+
+    public Integer getBaseFilteringInteger() {
+        return baseFilteringInteger;
     }
 
     public Range<Double> getScanRTRange() {
@@ -95,7 +101,9 @@ public class ScanSelection {
     public Scan[] getMatchingScans(RawDataFile dataFile) {
 
         final List<Scan> matchingScans = new ArrayList<>();
-
+        boolean offsetSet = false;
+        int offset = 1;
+        
         int scanNumbers[] = dataFile.getScanNumbers();
         for (int scanNumber : scanNumbers) {
 
@@ -107,16 +115,22 @@ public class ScanSelection {
             if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
                 continue;
 
-            if ((spectrumType != null)
-                    && (!spectrumType.equals(scan.getSpectrumType())))
+            if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType())))
                 continue;
 
-            if ((scanNumberRange != null)
-                    && (!scanNumberRange.contains(scanNumber)))
+            if ((scanNumberRange != null) && (!scanNumberRange.contains(scanNumber))) {
+                continue;
+            } else {
+                if (!offsetSet) {
+                    offsetSet = true;
+                    offset = scanNumber;
+                }
+            }
+
+            if ((baseFilteringInteger != null) && ((scanNumber - offset) % baseFilteringInteger != 0))
                 continue;
 
-            if ((scanRTRange != null)
-                    && (!scanRTRange.contains(scan.getRetentionTime())))
+            if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime())))
                 continue;
 
             if (!Strings.isNullOrEmpty(scanDefinition)) {
@@ -126,8 +140,7 @@ public class ScanSelection {
                 if (Strings.isNullOrEmpty(actualScanDefition))
                     continue;
 
-                final String regex = TextUtils
-                        .createRegexFromWildcards(scanDefinition);
+                final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
 
                 if (!actualScanDefition.matches(regex))
                     continue;
@@ -140,12 +153,14 @@ public class ScanSelection {
         return matchingScans.toArray(new Scan[matchingScans.size()]);
 
     }
-    
+
     public int[] getMatchingScanNumbers(RawDataFile dataFile) {
 
         final List<Integer> matchingScans = new ArrayList<>();
 
         int scanNumbers[] = dataFile.getScanNumbers();
+        boolean offsetSet = false;
+        int offset = 1;
         for (int scanNumber : scanNumbers) {
 
             Scan scan = dataFile.getScan(scanNumber);
@@ -156,29 +171,33 @@ public class ScanSelection {
             if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
                 continue;
 
-            if ((spectrumType != null)
-                    && (!spectrumType.equals(scan.getSpectrumType())))
+            if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType())))
                 continue;
 
-            if ((scanNumberRange != null)
-                    && (!scanNumberRange.contains(scanNumber)))
+            if ((scanNumberRange != null) && (!scanNumberRange.contains(scanNumber))) {
+                continue;
+            } else {
+                if (!offsetSet) {
+                    offsetSet = true;
+                    offset = scanNumber;
+                }
+            }
+            if ((baseFilteringInteger != null) && ((scan.getScanNumber() - offset) % baseFilteringInteger != 0))
                 continue;
 
-            if ((scanRTRange != null)
-                    && (!scanRTRange.contains(scan.getRetentionTime())))
+            if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime())))
                 continue;
 
             if (!Strings.isNullOrEmpty(scanDefinition)) {
 
-                final String actualScanDefition = scan.getScanDefinition();
+                final String actualScanDefinition = scan.getScanDefinition();
 
-                if (Strings.isNullOrEmpty(actualScanDefition))
+                if (Strings.isNullOrEmpty(actualScanDefinition))
                     continue;
 
-                final String regex = TextUtils
-                        .createRegexFromWildcards(scanDefinition);
+                final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
 
-                if (!actualScanDefition.matches(regex))
+                if (!actualScanDefinition.matches(regex))
                     continue;
 
             }

@@ -51,7 +51,7 @@ public class HMDBGateway implements DBGateway {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private static final String hmdbSeachAddress = "http://www.hmdb.ca/structures/search/metabolites/mass?search_type=monoisotopic&";
-    private static final String hmdbStructureAddress = "http://structures.wishartlab.com/molecules/";
+    private static final String hmdbStructureAddress = "http://www.hmdb.ca/structures/metabolites/";
     private static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,

@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2015 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -53,6 +53,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   private PeakList processedPeakList;
   private String suffix;
   private MZTolerance mzTolerance;
+  private int msLevel;
   private RTTolerance rtTolerance;
   private double intTolerance;
   private ParameterSet parameters;
@@ -64,13 +65,14 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   private int ID = 1;
   private double noiseLevel;
 
-  TargetedPeakDetectionModuleTask(MZmineProject project, ParameterSet parameters,
-      RawDataFile dataFile) {
+  TargetedPeakDetectionModuleTask(
+      MZmineProject project, ParameterSet parameters, RawDataFile dataFile) {
 
     this.project = project;
     this.parameters = parameters;
 
     suffix = parameters.getParameter(TargetedPeakDetectionParameters.suffix).getValue();
+    msLevel = parameters.getParameter(TargetedPeakDetectionParameters.msLevel).getValue();
     peakListFile = parameters.getParameter(TargetedPeakDetectionParameters.peakListFile).getValue();
     fieldSeparator =
         parameters.getParameter(TargetedPeakDetectionParameters.fieldSeparator).getValue();
@@ -130,7 +132,6 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange, intTolerance, noiseLevel);
 
       gaps.add(newGap);
-
     }
 
     // Stop processing this file if there are no gaps
@@ -139,7 +140,12 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     }
 
     // Get all scans of this data file
-    int scanNumbers[] = dataFile.getScanNumbers(1);
+    int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+    if (scanNumbers == null) {
+      logger.log(Level.WARNING, "Could not read file with the MS level of " + msLevel);
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
 
     // Process each scan
     for (int scanNumber : scanNumbers) {
@@ -177,7 +183,6 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
     logger.log(Level.INFO, "Targeted peak detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);
-
   }
 
   public List<PeakInformation> readFile() {
@@ -193,7 +198,8 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       }
       for (; finishedLines < peakListValues.length; finishedLines++) {
         try {
-          // Removing the FEFF character is important in case the CSV file contains byte-order-mark
+          // Removing the FEFF character is important in case the CSV file contains
+          // byte-order-mark
           String mzString = peakListValues[finishedLines][0].replace("\uFEFF", "").trim();
           String rtString = peakListValues[finishedLines][1].replace("\uFEFF", "").trim();
           double mz = Double.parseDouble(mzString);
@@ -215,7 +221,6 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       setErrorMessage(e.toString());
       return null;
     }
-
   }
 
   public double getFinishedPercentage() {
@@ -223,11 +228,9 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       return 0;
     }
     return (double) processedScans / (double) totalScans;
-
   }
 
   public String getTaskDescription() {
     return "Targeted peak detection " + this.dataFile;
   }
-
 }
