@@ -29,22 +29,18 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SiriusCompound extends SimplePeakIdentity {
   private final Double compoundScore;
-  private final IMolecularFormula formula;
-  private final DBLink[] dblinks;
+  private final SiriusIonAnnotation annotation;
 
   public SiriusCompound(final IonAnnotation annotation, Double score) {
     super(loadProps(annotation));
-    SiriusIonAnnotation ann = (SiriusIonAnnotation) annotation;
-    dblinks = ann.getDBLinks();
-    formula = ann.getFormula();
+    this.annotation = (SiriusIonAnnotation) annotation;
 
     this.compoundScore = score;
   }
 
   public SiriusCompound(final SiriusCompound master) {
     super((Hashtable<String, String>) master.getAllProperties());
-    formula = master.formula;
-    dblinks = master.dblinks;
+    this.annotation = master.annotation;
     compoundScore = master.compoundScore;
   }
 
@@ -111,6 +107,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   public Object getDBS() {
     StringBuilder b = new StringBuilder();
+    DBLink[] dblinks = annotation.getDBLinks();
     if (dblinks != null) {
       for (DBLink link : dblinks)
         b.append(String.format("%s : %s, ", link.name, link.id));
@@ -120,16 +117,13 @@ public class SiriusCompound extends SimplePeakIdentity {
     return null;
   }
 
-  public DBLink[] getDBLinks() {
-    return dblinks;
+  public SiriusIonAnnotation getIonAnnotation() {
+    return annotation;
   }
+
 
   public String getStringFormula() {
-    return MolecularFormulaManipulator.getString(formula);
-  }
-
-  public IMolecularFormula getFormula() {
-    return formula;
+    return MolecularFormulaManipulator.getString(annotation.getFormula());
   }
 
   public Object getFingerIdScore() {

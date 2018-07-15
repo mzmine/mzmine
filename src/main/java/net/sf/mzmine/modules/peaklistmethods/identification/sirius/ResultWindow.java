@@ -43,9 +43,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
+import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class ResultWindow extends JFrame implements ActionListener {
 
@@ -157,27 +160,21 @@ public class ResultWindow extends JFrame implements ActionListener {
       clipboard.setContents(stringSelection, null);
     }
 
-//    if (command.equals("VIEWER")) {
-//
-//      int index = IDList.getSelectedRow();
-//
-//      if (index < 0) {
-//        MZmineCore.getDesktop().displayMessage(this,
-//            "Select one result to display molecule structure");
-//        return;
-//      }
-//      index = IDList.convertRowIndexToModel(index);
+    if (command.equals("VIEWER")) {
+      int index = IDList.getSelectedRow();
 
-//      DBCompound compound = listElementModel.getCompoundAt(index);
-//      URL url2D = compound.get2DStructureURL();
-//      URL url3D = compound.get3DStructureURL();
-//      String name = compound.getName() + " ("
-//          + compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
-//      MolStructureViewer viewer = new MolStructureViewer(name, url2D,
-//          url3D);
-//      viewer.setVisible(true);
+      if (index < 0) {
+        MZmineCore.getDesktop().displayMessage(this,
+            "Select one result to display molecule structure");
+        return;
+      }
 
-//    }
+      SiriusCompound compound = listElementModel.getCompoundAt(index);
+      IAtomContainer container = compound.getIonAnnotation().getChemicalStructure();
+      String name = compound.getName();
+      MolStructureViewer viewer = new MolStructureViewer(name, container);
+      viewer.setVisible(true);
+    }
   }
 
   public void addNewListItem(final SiriusCompound compound) {

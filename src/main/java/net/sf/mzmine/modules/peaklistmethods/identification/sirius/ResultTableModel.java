@@ -32,7 +32,7 @@ public class ResultTableModel extends AbstractTableModel {
       "Formula", "SMILES", "Inchi", "DBs", "Sirius score", "FingerId Score"};
 
   private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-  private Vector<SiriusCompound> annotations = new Vector<SiriusCompound>();
+  private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
 
   //TODO: todo
   ResultTableModel() {
@@ -44,7 +44,7 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
   public int getRowCount() {
-    return annotations.size();
+    return compounds.size();
   }
 
   public int getColumnCount() {
@@ -54,7 +54,7 @@ public class ResultTableModel extends AbstractTableModel {
   //TODO: todo
   public Object getValueAt(int row, int col) {
     Object value = null;
-    SiriusCompound compound = annotations.get(row);
+    SiriusCompound compound = compounds.get(row);
     switch (col) {
       case 0:
         value = compound.getPropertyValue(PeakIdentity.PROPERTY_ID);
@@ -87,8 +87,8 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
   public void addElement(SiriusCompound compound) {
-    annotations.add(compound);
-    fireTableRowsInserted(annotations.size() - 1, annotations.size() - 1);
+    compounds.add(compound);
+    fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
   }
 
 
@@ -101,6 +101,6 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
   public SiriusCompound getCompoundAt(int row) {
-    return annotations.get(row);
+    return compounds.get(row);
   }
 }
