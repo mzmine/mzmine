@@ -28,28 +28,51 @@ import java.io.FileWriter;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 
+/**
+ * Class SpectrumScanner
+ * Allows to process Feature objects (peaks) and return appropriate objects for SiriusIdentificationMethod
+ */
 public class SpectrumScanner {
   private final Feature peak;
   private final RawDataFile rawfile;
   private final int ms1index;
   private final int ms2index;
 
+  /**
+   * Constructor for SpectrumScanner
+   * @param peak
+   */
+  public SpectrumScanner(@Nonnull Feature peak) {
+    this.peak = peak;
+    this.ms1index = peak.getRepresentativeScanNumber();
+    this.ms2index = peak.getMostIntenseFragmentScanNumber();
+    this.rawfile = peak.getDataFile();
+  }
+
   public String getPeakName() {
     return rawfile.getName();
   }
 
-
+  /**
+   * Process RawDataFile and return list with one MsSpectrum of level 1.
+   * @return MS spectra list
+   */
   public List<MsSpectrum> getMsList() {
     if (indexExists(ms1index))
       return processRawScan(ms1index);
     return null;
   }
 
+  /**
+   * Process RawDataFile and return list with one MsSpectrum of level 2.
+   * @return MSMS spectra list
+   */
   public List<MsSpectrum> getMsMsList() {
     if (indexExists(ms2index))
       return processRawScan(ms2index);
@@ -73,10 +96,20 @@ public class SpectrumScanner {
     return indexExists(ms2index);
   }
 
+  /**
+   * Check the existence of spectrum
+   * @param index - equals to -1, if no ms or ms/ms spectra is found
+   * @return
+   */
   private boolean indexExists(int index) {
-    return index >= 0; // equals -1, if no ms or ms/ms spectra is found
+    return index >= 0;
   }
 
+  /**
+   * Construct MsSpectrum object from data points
+   * @param points Array of DataPoints
+   * @return new MsSpectrum object
+   */
   private MsSpectrum buildSpectrum(DataPoint[] points) {
     SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
     double mz[] = new double[points.length];
@@ -110,10 +143,4 @@ public class SpectrumScanner {
     }
   }
 
-  public SpectrumScanner(Feature peak) {
-    this.peak = peak;
-    this.ms1index = peak.getRepresentativeScanNumber();
-    this.ms2index = peak.getMostIntenseFragmentScanNumber();
-    this.rawfile = peak.getDataFile();
-  }
 }

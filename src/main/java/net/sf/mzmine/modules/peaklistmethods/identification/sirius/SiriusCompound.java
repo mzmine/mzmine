@@ -24,38 +24,62 @@ import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 
 import java.util.Hashtable;
+import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
+/**
+ * Class SiriusCompound
+ * May contain different amount of properties
+ * 1) if the IonAnnotation is from SiriusIdentificationMethod, then there will be Sirius Score, formula, name == formula
+ * 2) if FingerIdWebMethod is used, then name may differ, added SMILES & Inchi and links to DBs
+ */
 public class SiriusCompound extends SimplePeakIdentity {
   private final Double compoundScore;
   private final SiriusIonAnnotation annotation;
 
-  public SiriusCompound(final IonAnnotation annotation, Double score) {
+  /**
+   * Constructor for SiriusCompound
+   * @param annotation
+   * @param score
+   */
+  public SiriusCompound(@Nonnull final IonAnnotation annotation, @Nonnull Double score) {
     super(loadProps(annotation));
     this.annotation = (SiriusIonAnnotation) annotation;
 
     this.compoundScore = score;
   }
 
+  /**
+   * Copy constructor
+   * @param master - SiriusCompound to copy from
+   */
   public SiriusCompound(final SiriusCompound master) {
     super((Hashtable<String, String>) master.getAllProperties());
     this.annotation = master.annotation;
     compoundScore = master.compoundScore;
   }
 
+  /**
+   * Construct parameters from SiriusIonAnnotation
+   * Amount of params differ, either it is identified by SiriusIdentificationMethod, or also by FingerIdWebMethod
+   * @param ann
+   * @return constructed Hashtable
+   */
   private static Hashtable<String, String> loadProps(final IonAnnotation ann) {
     SiriusIonAnnotation annotation = (SiriusIonAnnotation) ann;
     String formula = MolecularFormulaManipulator.getString(annotation.getFormula());
     String siriusScore = String.format("%.4f", annotation.getSiriusScore());
     String name = null;
 
+    /* Put default properties */
     Hashtable<String, String> props = new Hashtable<>(10);
     props.put(PROPERTY_METHOD, "Sirius");
     props.put(PROPERTY_FORMULA, formula);
     props.put("Sirius score", siriusScore);
 
-    if (annotation.getFingerIdScore() != null) { // Execute this code if
+    /* Check that annotation is processed by FingerIdWebMethod */
+    if (annotation.getFingerIdScore() != null) {
       name = annotation.getDescription();
       String inchi = annotation.getInchiKey();
       String smiles = annotation.getSMILES();
@@ -67,6 +91,11 @@ public class SiriusCompound extends SimplePeakIdentity {
 
       DBLink[] links = annotation.getDBLinks();
       Hashtable<String, Integer> dbnames = new Hashtable<>();
+
+      /*
+        DBLinks may contain several links to Pubchem (for example)
+        And to store them, a trick with <s> #<d> is used, where <d> is amount of times this DB (<s>) has been met.
+      */
       for (DBLink link : links) {
         /* Map is used to count indexes of repeating elements */
         if (dbnames.containsKey(link.name)) {
@@ -81,6 +110,7 @@ public class SiriusCompound extends SimplePeakIdentity {
       }
     }
 
+    // Load name param with formula, if FingerId did not identify it
     if (name == null)
       name = formula;
     props.put(PROPERTY_NAME, name);
@@ -88,23 +118,39 @@ public class SiriusCompound extends SimplePeakIdentity {
     return props;
   }
 
+  /**
+   * @return cloned object
+   */
   public SiriusCompound clone() {
     final SiriusCompound compound = new SiriusCompound(this);
     return compound;
   }
 
+  /**
+   * @return description of SiriusIonAnnotation, usually it contains name of the identified compound
+   */
   public String getAnnotationDescription() {
     return annotation.getDescription();
   }
 
+  /**
+   * @return Inchi string, if exists
+   */
   public String getInchi() {
     return getPropertyValue("Inchi");
   }
 
+  /**
+   * @return SMILES string, if exists
+   */
   public String getSMILES() {
     return getPropertyValue("SMILES");
   }
 
+  /**
+   * Render list of dbs in readable form
+   * @return one String (rows in form of DB names : db IDs)
+   */
   public Object getDBS() {
     StringBuilder b = new StringBuilder();
     DBLink[] dblinks = annotation.getDBLinks();
@@ -117,19 +163,31 @@ public class SiriusCompound extends SimplePeakIdentity {
     return null;
   }
 
+  /**
+   * @return SiriusIonAnnotation object
+   */
   public SiriusIonAnnotation getIonAnnotation() {
     return annotation;
   }
 
-
+  /**
+   * @return molecular formula in form of string
+   */
   public String getStringFormula() {
     return MolecularFormulaManipulator.getString(annotation.getFormula());
   }
 
+  /**
+   * FingerId score had negative value, the closer it is to 0, the better result is (Ex.: -115.23)
+   * @return FingerId score, if exists
+   */
   public Object getFingerIdScore() {
     return getPropertyValue("FingerId score");
   }
 
+  /**
+   * @return Sirius score
+   */
   public Object getSiriusScore() {
     return getPropertyValue("Sirius score");
   }

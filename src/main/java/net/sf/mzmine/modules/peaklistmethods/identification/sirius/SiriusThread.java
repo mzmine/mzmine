@@ -23,6 +23,7 @@ import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.PeakLi
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
+
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
@@ -30,6 +31,7 @@ import io.github.msdk.id.sirius.ConstraintsGenerator;
 import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -40,31 +42,49 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskPriority;
+
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * SiriusThread class
+ * Allows to process PeakListIdentificationTask faster by subthreading it.
+ */
 public class SiriusThread implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(SiriusThread.class);
   private static final ExecutorService service = Executors.newSingleThreadExecutor();
 
-  private final Semaphore semaphore;
+  // Identification params
   private final PeakListRow row;
   private final IonizationType ionType;
   private final int charge;
-  private final int siriusCandidates;
-  private final int fingeridCandidates;
   private final double mzTolerance;
   private final MolecularFormulaRange range;
+
+  // Amount of items to store
+  private final int siriusCandidates;
+  private final int fingeridCandidates;
+
+  // Multithreading params
   private final CountDownLatch latch;
+  private final Semaphore semaphore;
   private final int siriusTimer;
 
-  public SiriusThread(PeakListRow row, Semaphore semaphore, ParameterSet parameters, CountDownLatch latch) {
+  /**
+   * Constructor for SiriusThread - initializes params
+   * @param row
+   * @param semaphore
+   * @param parameters
+   * @param latch
+   */
+  public SiriusThread(PeakListRow row, ParameterSet parameters, Semaphore semaphore, CountDownLatch latch) {
     this.semaphore = semaphore;
     this.row = row;
     charge = parameters.getParameter(PeakListIdentificationParameters.charge).getValue();
@@ -79,8 +99,6 @@ public class SiriusThread implements Runnable {
 
   @Override
   public void run() {
-
-
     final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
 
     SpectrumScanner scanner = new SpectrumScanner(row.getBestPeak());
@@ -96,12 +114,18 @@ public class SiriusThread implements Runnable {
     FormulaConstraints constraints = generator.generateConstraint(range);
     IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
 
-
     List<IonAnnotation> siriusResults = null;
     SiriusIdentificationMethod siriusMethod = null;
 
+    /*
+      Code block below gives SiriusMethod specific amount of time to be executed,
+      if it expires -> log error and continue
+    */
     try {
-      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue, siriusIon, siriusCandidates, constraints, mzTolerance);
+      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue,
+          siriusIon, siriusCandidates, constraints, mzTolerance);
+
+      // On some spectra it may never stop (halting problem)
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();
       });
@@ -109,8 +133,10 @@ public class SiriusThread implements Runnable {
       siriusMethod = method;
 
       if (!scanner.peakContainsMsMs()) {
+        /* If no MSMS spectra - add sirius results */
         addSiriusCompounds(siriusResults, row, siriusCandidates);
       } else {
+        /* Initiate FingerId processing */
         Ms2Experiment experiment = siriusMethod.getExperiment();
         for (int index = 0; index < siriusCandidates; index++) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(index);
@@ -121,6 +147,8 @@ public class SiriusThread implements Runnable {
           } catch (InterruptedException interrupt) {
             logger.error("Processing of FingerWebMethods were interrupted");
             interrupt.printStackTrace();
+
+            /* If interrupted, store last item */
             List<IonAnnotation> lastItem = new LinkedList<>();
             lastItem.add(annotation);
             addSiriusCompounds(lastItem, row, 1);
@@ -134,6 +162,7 @@ public class SiriusThread implements Runnable {
       logger.error("Concurrency error during Sirius method.");
       ce.printStackTrace();
     } finally {
+      // Do not forget to release resources!
       latch.countDown();
       semaphore.release();
       logger.debug("Semaphore RELEASED");

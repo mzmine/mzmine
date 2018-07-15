@@ -18,12 +18,14 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import java.io.IOException;
-import java.text.DecimalFormat;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
+
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
@@ -48,34 +50,27 @@ public abstract class AbstractParameters extends SimpleParameterSet {
     super(params);
   }
 
+  /**
+   * Create default table of elements
+   * The table is used later to calculate FormulaConstraints
+   * @return
+   */
   private static MolecularFormulaRange createDefaultElements() {
     MolecularFormulaRange range = new MolecularFormulaRange();
     try {
       IsotopeFactory iFac = Isotopes.getInstance();
-      range.addIsotope(iFac.getMajorIsotope("C"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MAX);
-      range.addIsotope(iFac.getMajorIsotope("H"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MAX);
-      range.addIsotope(iFac.getMajorIsotope("N"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MAX);
-      range.addIsotope(iFac.getMajorIsotope("O"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MAX);
-      range.addIsotope(iFac.getMajorIsotope("P"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MAX);
-      range.addIsotope(iFac.getMajorIsotope("S"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MAX);
-      range.addIsotope(iFac.getMajorIsotope("F"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MIN);
-      range.addIsotope(iFac.getMajorIsotope("B"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MIN);
-      range.addIsotope(iFac.getMajorIsotope("I"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MIN);
-      range.addIsotope(iFac.getMajorIsotope("Br"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MIN);
-      range.addIsotope(iFac.getMajorIsotope("Se"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MIN);
-      range.addIsotope(iFac.getMajorIsotope("Cl"), AbstractParameters.ISOTOPE_MIN,
-          AbstractParameters.ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("C"), ISOTOPE_MIN, ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("H"), ISOTOPE_MIN, ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("N"), ISOTOPE_MIN, ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("O"), ISOTOPE_MIN, ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("P"), ISOTOPE_MIN, ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("S"), ISOTOPE_MIN, ISOTOPE_MAX);
+      range.addIsotope(iFac.getMajorIsotope("F"), ISOTOPE_MIN, ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("B"), ISOTOPE_MIN, ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("I"), ISOTOPE_MIN, ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("Br"), ISOTOPE_MIN, ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("Se"), ISOTOPE_MIN, ISOTOPE_MIN);
+      range.addIsotope(iFac.getMajorIsotope("Cl"), ISOTOPE_MIN, ISOTOPE_MIN);
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -24,28 +24,47 @@ import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+
 import java.util.LinkedList;
 import java.util.List;
+
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Class FingerIdWebMethodTask
+ * Wrapper around FingerIdWebMethod - calculates the result as a separate MZmine task
+ * On end of execution - updates result containers (ResultWindow or PeakListRow)
+ */
 public class FingerIdWebMethodTask extends AbstractTask {
-  private FingerIdWebMethod method;
-  private List<IonAnnotation> fingerResults = null;
-  private final int candidatesAmount;
+  private static final Logger logger = LoggerFactory.getLogger(FingerIdWebMethodTask.class);
+
   private final Ms2Experiment experiment;
   private final SiriusIonAnnotation annotation;
   private final String formula;
   private final ResultWindow window;
   private final PeakListRow row;
+  private final int candidatesAmount;
 
-  private static final Logger logger = LoggerFactory.getLogger(FingerIdWebMethodTask.class);
+  private FingerIdWebMethod method;
+  private List<IonAnnotation> fingerResults = null;
 
-  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, ResultWindow window, PeakListRow row) {
+
+  /**
+   * Constructor for FingerIdWebMethodTask
+   * @param annotation
+   * @param experiment
+   * @param candidatesAmount
+   * @param window
+   * @param row
+   */
+  private FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
+      Integer candidatesAmount, ResultWindow window, PeakListRow row) {
     if (window == null && row == null)
       throw new RuntimeException("Only one result container can be null at a time");
 
@@ -57,11 +76,27 @@ public class FingerIdWebMethodTask extends AbstractTask {
     formula = MolecularFormulaManipulator.getString(annotation.getFormula());
   }
 
-  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, ResultWindow window) {
+  /**
+   * Constructor for FingerIdWebMethodTask, used by SingleRowIdentificationTask
+   * @param annotation
+   * @param experiment
+   * @param candidatesAmount
+   * @param window
+   */
+  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
+      Integer candidatesAmount, ResultWindow window) {
     this(annotation, experiment, candidatesAmount, window, null);
   }
 
-  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment, Integer candidatesAmount, PeakListRow row) {
+  /**
+   * Constructor for FingerIdWebMethodTask, used by PeakListIdentificationTask
+   * @param annotation
+   * @param experiment
+   * @param candidatesAmount
+   * @param row
+   */
+  public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
+      Integer candidatesAmount, PeakListRow row) {
     this(annotation, experiment, candidatesAmount, null, row);
   }
 
@@ -84,7 +119,6 @@ public class FingerIdWebMethodTask extends AbstractTask {
     try {
       method = new FingerIdWebMethod(experiment, annotation, candidatesAmount);
       fingerResults = method.execute();
-
       logger.debug("Successfully processed {} by FingerWebMethod", formula);
     } catch (RuntimeException e) {
       logger.error("Error during processing FingerIdWebMethod --- return initial compound");
@@ -96,27 +130,36 @@ public class FingerIdWebMethodTask extends AbstractTask {
       fingerResults = null;
     }
 
+    // Check exception handling and empty results from web request
     if (fingerResults == null || fingerResults.size() == 0) {
       logger.info("No results found by FingerId Web Method for {}, adding initial compound", formula);
       fingerResults = new LinkedList<>();
       fingerResults.add(annotation);
     }
 
+    // Update containers
     submitResults(fingerResults);
     setStatus(TaskStatus.FINISHED);
   }
 
+  /**
+   * Updates result container - stores the results of execution
+    * @param results
+   */
   private void submitResults(List<IonAnnotation> results) {
-    if (window != null)
+    if (window != null) // Update ResultWindow - if called from SingleRowIdentificationTask
       window.addListofItems(results);
 
-    if (row != null) {
+    if (row != null) { // Update PeakListRow - if called from PeakListIdentificationTask
       // Sometimes method may return less items than expected (1 or 2).
       int quantity = (candidatesAmount > results.size()) ? results.size() : candidatesAmount;
       PeakListIdentificationTask.addSiriusCompounds(results, row, quantity);
     }
   }
 
+  /**
+   * @return results of execution
+   */
   public List<IonAnnotation> getResults() {
     return fingerResults;
   }

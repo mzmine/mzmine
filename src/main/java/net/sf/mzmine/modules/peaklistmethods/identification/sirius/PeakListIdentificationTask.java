@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
-import net.sf.mzmine.datamodel.IonizationType;
+import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
@@ -40,30 +40,22 @@ import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.LoggerFactory;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PeakListIdentificationTask.class);
-  private final Semaphore semaphore;
-  private final CountDownLatch latch;
 
   // Counters.
-  private int finishedItems;
   private int numItems;
+  private final CountDownLatch latch;
+
+  // Thread controller
+  private final Semaphore semaphore;
 
   private final ParameterSet parameters;
   private final PeakList peakList;
-  private final IonizationType ionType;
-  private final MolecularFormulaRange range;
-  private final double mzTolerance;
-  private final int siriusCandidates;
-  private final int fingeridCandidates;
-  private final int candidatesAmount;
-  private final int charge;
-  private final int threadsAmount;
   private PeakListRow currentRow;
 
   /**
@@ -75,19 +67,10 @@ public class PeakListIdentificationTask extends AbstractTask {
   PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
     peakList = list;
     numItems = 0;
-    finishedItems = 0;
     currentRow = null;
     this.parameters = parameters;
 
-    mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
-    ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
-    range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
-    siriusCandidates = 1;
-    fingeridCandidates = 1;
-    charge = parameters.getParameter(PeakListIdentificationParameters.charge).getValue();
-    candidatesAmount = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
-
-    threadsAmount = parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
+    int threadsAmount = parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
     semaphore = new Semaphore(threadsAmount);
     latch = new CountDownLatch(list.getNumberOfRows());
   }
@@ -122,11 +105,11 @@ public class PeakListIdentificationTask extends AbstractTask {
         numItems = rows.length;
 
         // Process rows.
-        for (finishedItems = 0; !isCanceled() && finishedItems < numItems;) {
+        for (int index = 0; !isCanceled() && index < numItems;) {
           try {
             semaphore.acquire();
             logger.debug("Semaphore ACQUIRED");
-            Thread th = new Thread(new SiriusThread(rows[finishedItems++], semaphore, parameters, latch));
+            Thread th = new Thread(new SiriusThread(rows[index++], parameters, semaphore, latch));
             th.setDaemon(true);
             th.start();
           } catch (InterruptedException e) {
@@ -135,6 +118,7 @@ public class PeakListIdentificationTask extends AbstractTask {
           }
         }
 
+        // Wait till all rows are processed
         latch.await();
         if (!isCanceled()) {
           setStatus(TaskStatus.FINISHED);
@@ -149,7 +133,13 @@ public class PeakListIdentificationTask extends AbstractTask {
     }
   }
 
-  public synchronized static void addSiriusCompounds(List<IonAnnotation> annotations, PeakListRow row, int amount) {
+  /**
+   * Adds peak identities to requested row
+   * @param annotations list of IonAnnotations
+   * @param row to add identities
+   * @param amount of identities to be added from list
+   */
+  public synchronized static void addSiriusCompounds(@Nonnull List<IonAnnotation> annotations, @Nonnull PeakListRow row, int amount) {
     for (int i = 0; i < amount; i++) { //todo: add howManyTopResultsToStore
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation, annotation.getSiriusScore());
@@ -158,6 +148,10 @@ public class PeakListIdentificationTask extends AbstractTask {
     notifyRow(row);
   }
 
+  /**
+   * Method notifies object about content update
+   * @param row to be notified
+   */
   private static void notifyRow(PeakListRow row) {
     MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
 

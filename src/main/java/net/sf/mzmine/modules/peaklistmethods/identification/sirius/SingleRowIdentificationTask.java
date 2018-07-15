@@ -112,7 +112,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     return 0;
   }
 
-  //TODO: refactor
   public String getTaskDescription() {
     return "Peak identification of " + massFormater.format(searchedMass) + " using Sirius module";
   }
@@ -124,9 +123,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
-
     ResultWindow window = new ResultWindow(peakListRow, searchedMass, this);
-    window.setTitle("Sirius makes fun " + massFormater.format(searchedMass) + " amu");
+    window.setTitle("Sirius identifies peak with " + massFormater.format(searchedMass) + " amu");
     window.setVisible(true);
 
     Feature bestPeak = peakListRow.getBestPeak();
