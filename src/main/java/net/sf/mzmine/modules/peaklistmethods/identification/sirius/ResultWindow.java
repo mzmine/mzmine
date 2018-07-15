@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -29,8 +30,10 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import java.util.List;
 import java.util.logging.Logger;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -41,10 +44,10 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
+
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
-import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
@@ -121,7 +124,6 @@ public class ResultWindow extends JFrame implements ActionListener {
     String command = e.getActionCommand();
 
     if (command.equals("ADD")) {
-
       int index = IDList.getSelectedRow();
 
       if (index < 0) {

@@ -22,9 +22,9 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+
 import java.util.Hashtable;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
-import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SiriusCompound extends SimplePeakIdentity {
