@@ -155,11 +155,18 @@ public class ResultWindow extends JFrame implements ActionListener {
         return;
       }
       // SMILES column index == 3
-      StringSelection stringSelection = new StringSelection((String) listElementModel.getValueAt(index, 3));
+      String smiles = listElementModel.getCompoundAt(index).getSMILES();
+      if (smiles != null) {
+        StringSelection stringSelection = new StringSelection(smiles);
 
-      // todo: May be make clipboard static?
-      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-      clipboard.setContents(stringSelection, null);
+        // todo: May be make clipboard static?
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
+      } else {
+        MZmineCore.getDesktop().displayMessage(this,
+            "Selected compound does not contain identified SMILES");
+        return;
+      }
     }
 
     if (command.equals("VIEWER")) {

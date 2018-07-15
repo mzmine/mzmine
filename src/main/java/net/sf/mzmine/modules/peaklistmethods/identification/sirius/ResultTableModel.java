@@ -22,19 +22,17 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 import java.text.NumberFormat;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
-import net.sf.mzmine.datamodel.PeakIdentity;
 
 public class ResultTableModel extends AbstractTableModel {
 
   private static final long serialVersionUID = 1L;
 
-  private static final String[] columnNames = {"ID", "Name",
-      "Formula", "SMILES", "Inchi", "DBs", "Sirius score", "FingerId Score"};
+  private static final String[] columnNames = {"Name",
+      "Formula", "DBs", "Sirius score", "FingerId Score"};
 
   private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
 
-  //TODO: todo
   ResultTableModel() {
     percentFormat.setMaximumFractionDigits(1);
   }
@@ -51,34 +49,24 @@ public class ResultTableModel extends AbstractTableModel {
     return columnNames.length;
   }
 
-  //TODO: todo
   public Object getValueAt(int row, int col) {
     Object value = null;
     SiriusCompound compound = compounds.get(row);
     switch (col) {
       case 0:
-        value = compound.getPropertyValue(PeakIdentity.PROPERTY_ID);
-        break;
-      case 1:
         String name = compound.getAnnotationDescription();
         value = name;
         break;
-      case 2:
+      case 1:
         value = compound.getStringFormula();
         break;
-      case 3:
-        value = compound.getSMILES();
-        break;
-      case 4:
-        value = compound.getInchi();
-        break;
-      case 5:
+      case 2:
         value = compound.getDBS();
         break;
-      case 6:
+      case 3:
         value = compound.getSiriusScore();
         break;
-      case 7:
+      case 4:
         value = compound.getFingerIdScore();
         break;
     }

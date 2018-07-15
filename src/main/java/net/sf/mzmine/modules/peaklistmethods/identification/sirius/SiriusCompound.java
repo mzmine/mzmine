@@ -94,7 +94,7 @@ public class SiriusCompound extends SimplePeakIdentity {
   }
 
   public String getAnnotationDescription() {
-    return getPropertyValue(PROPERTY_NAME);
+    return annotation.getDescription();
   }
 
   public String getInchi() {
