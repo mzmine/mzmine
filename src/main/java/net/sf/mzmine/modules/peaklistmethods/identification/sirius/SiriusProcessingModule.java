@@ -19,13 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import io.github.msdk.MSDKException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import javax.annotation.Nonnull;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -40,24 +36,6 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Sirius";
   private static final String MODULE_DESCRIPTION = "Sirius identification method.";
-
-  static {
-    try {
-      String loggingProperties = getResourcePath("logging.properties").toString();
-      System.setProperty("java.util.logging.config.file", loggingProperties);
-    } catch (Exception e) {
-      System.out.println("Sick");
-    }
-  }
-
-  private static Path getResourcePath(String s) throws MSDKException {
-    final URL url = SiriusProcessingModule.class.getClassLoader().getResource(s);
-    try {
-      return Paths.get(url.toURI()).toAbsolutePath();
-    } catch (URISyntaxException e) {
-      throw new MSDKException(e);
-    }
-  }
 
   @Override
   public @Nonnull

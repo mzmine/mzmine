@@ -130,9 +130,9 @@ public class SingleRowIdentificationTask extends AbstractTask {
     window.setVisible(true);
 
     Feature bestPeak = peakListRow.getBestPeak();
-    SpectrumProcessing processor = new SpectrumProcessing(bestPeak);
-    List<MsSpectrum> ms1list = processor.getMsList();
-    List<MsSpectrum> ms2list = processor.getMsMsList();
+    SpectrumScanner scanner = new SpectrumScanner(bestPeak);
+    List<MsSpectrum> ms1list = scanner.getMsList();
+    List<MsSpectrum> ms2list = scanner.getMsMsList();
 
     /* Debug */
 //    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
@@ -144,6 +144,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     /* Sirius processing */
     try {
+      //todo: after msdk update, update this code
       ConstraintsGenerator generator = new ConstraintsGenerator();
       FormulaConstraints constraints = generator.generateConstraint(range);
       IonType type = IonTypeUtil.createIonType(ionType.toString());
@@ -164,7 +165,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     }
 
     /* FingerId processing */
-    if (processor.peakContainsMsMs()) {
+    if (scanner.peakContainsMsMs()) {
       try {
         Ms2Experiment experiment = siriusMethod.getExperiment();
         fingerTasks = new LinkedList<>();

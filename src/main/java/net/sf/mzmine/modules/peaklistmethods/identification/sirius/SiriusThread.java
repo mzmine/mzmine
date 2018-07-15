@@ -83,9 +83,9 @@ public class SiriusThread implements Runnable {
 
     final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
 
-    SpectrumProcessing processor = new SpectrumProcessing(row.getBestPeak());
-    List<MsSpectrum> ms1 = processor.getMsList();
-    List<MsSpectrum> ms2 = processor.getMsMsList();
+    SpectrumScanner scanner = new SpectrumScanner(row.getBestPeak());
+    List<MsSpectrum> ms1 = scanner.getMsList();
+    List<MsSpectrum> ms2 = scanner.getMsMsList();
 
     /* Debug */
 //    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
@@ -108,14 +108,13 @@ public class SiriusThread implements Runnable {
       siriusResults = f.get(siriusTimer, TimeUnit.SECONDS);
       siriusMethod = method;
 
-      if (!processor.peakContainsMsMs()) {
+      if (!scanner.peakContainsMsMs()) {
         addSiriusCompounds(siriusResults, row, siriusCandidates);
       } else {
         Ms2Experiment experiment = siriusMethod.getExperiment();
         for (int index = 0; index < siriusCandidates; index++) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(index);
           try {
-
             FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
             MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
             Thread.sleep(1000);

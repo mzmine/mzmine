@@ -21,16 +21,19 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import io.github.msdk.datamodel.MsSpectrum;
 import io.github.msdk.datamodel.SimpleMsSpectrum;
+
 import java.io.File;
 import java.io.FileWriter;
+
 import java.util.LinkedList;
 import java.util.List;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 
-public class SpectrumProcessing {
+public class SpectrumScanner {
   private final Feature peak;
   private final RawDataFile rawfile;
   private final int ms1index;
@@ -107,7 +110,7 @@ public class SpectrumProcessing {
     }
   }
 
-  public SpectrumProcessing(Feature peak) {
+  public SpectrumScanner(Feature peak) {
     this.peak = peak;
     this.ms1index = peak.getRepresentativeScanNumber();
     this.ms2index = peak.getMostIntenseFragmentScanNumber();

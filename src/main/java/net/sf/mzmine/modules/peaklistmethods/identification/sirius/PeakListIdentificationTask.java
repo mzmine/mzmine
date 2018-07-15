@@ -20,10 +20,12 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -37,6 +39,7 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.LoggerFactory;
 
@@ -130,7 +133,6 @@ public class PeakListIdentificationTask extends AbstractTask {
             logger.error("The thread was interrupted");
             e.printStackTrace();
           }
-
         }
 
         latch.await();
@@ -153,10 +155,10 @@ public class PeakListIdentificationTask extends AbstractTask {
       SiriusCompound compound = new SiriusCompound(annotation, annotation.getSiriusScore());
       row.addPeakIdentity(compound, false);
     }
-    updateRow(row);
+    notifyRow(row);
   }
 
-  public static void updateRow(PeakListRow row) {
+  private static void notifyRow(PeakListRow row) {
     MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
 
     Desktop desktop = MZmineCore.getDesktop();
