@@ -113,9 +113,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         accurateAvgIntensity = parameters.getParameter(IsotopePeakScannerParameters.massList).getValue();
         massListName = parameters.getParameter(IsotopePeakScannerParameters.massList).getEmbeddedParameter().getValue();
         ratingChoice = parameters.getParameter(IsotopePeakScannerParameters.ratingChoices).getValue();
-        
-        
-        
+       
         
         /*RawDataFile[] raws = peakList.getRawDataFiles();
         Scan scan = raws[0].getScan(1);
@@ -351,8 +349,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					if(accurateAvgIntensity)
 						addComment(parent, " Avg pattern Rating: " + round(candidates.getAvgAvgRatings(), 3));
 
-					comChild = (parent.getID() + "-Parent ID" + " m/z-shift(ppm): " + round(((child.getAverageMZ() - parent.getAverageMZ()) 
-							- diff.get(k))*1E6/child.getAverageMZ(), 2) + " I(c)/I(p): " +  round(child.getAverageHeight()/plh.getRowByID(candidates.get(pattern.getHighestDataPointIndex()).getCandID()).getAverageHeight(),2)
+					comChild = (parent.getID() + "-Parent ID" + " m/z-shift(ppm): " 
+							+ round( ( (child.getAverageMZ() - parent.getAverageMZ() ) - diff.get(k) )/ child.getAverageMZ() * 1E6, 2) 
+							+ " I(c)/I(p): " +  round(child.getAverageHeight()/plh.getRowByID(candidates.get(pattern.getHighestDataPointIndex()).getCandID()).getAverageHeight(),2)
 							+ " Identity: " + pattern.getDetailedPeakDescription(k)
 							+ " Rating: " +  round(candidates.get(k).getRating(), 3)
 							+ average);
@@ -511,7 +510,12 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
 	    return newRow;
 	}
-	
+	/**
+	 * 
+	 * @param pattern IsotopePattern to calculate intensity ratios of
+	 * @param index DataPoint index to normalize the intesitys to
+	 * @return String of intensity ratios seperated by ":"
+	 */
 	private static String getIntensityRatios(IsotopePattern pattern, int index)
 	{
 		DataPoint[] dp = pattern.getDataPoints();
@@ -532,6 +536,11 @@ public class IsotopePeakScannerTask extends AbstractTask {
 	    return bd.doubleValue();
 	}
 	
+	/**
+	 * adds a comment to a PeakListRow without deleting the current comment
+	 * @param row PeakListRow to add the comment to
+	 * @param str comment to be added
+	 */
 	public static void addComment(PeakListRow row, String str)
 	{
 		String current = row.getComment();
