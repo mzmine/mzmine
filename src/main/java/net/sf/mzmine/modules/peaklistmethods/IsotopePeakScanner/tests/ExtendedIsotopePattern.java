@@ -96,12 +96,21 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	sortByAscendingMZ();
     }
     
+   /**
+    * add molecule to isotope pattern
+    * @param molecule molecule to be added
+    */
     private void addMolecule(IMolecularFormula molecule)
     {    												//.isotopes() will give the major isotope of each element contained in the formula
     	for(IIsotope element : molecule.isotopes())		//so we loop through every element
     		addElement(element, molecule.getIsotopeCount(element));	//and the number of each element
     }
     
+    /**
+     * 
+     * @param element element to be added
+     * @param count number of given element to be added
+     */
     private void addElement(IIsotope element, int count)
     {
     	IIsotope[] isotopes = ifac.getIsotopes(element.getSymbol());
@@ -321,7 +330,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     }
     /**
      * 
-     * @param peakNum Index of the Peak.
+     * @param peakNum Index of the peak.
      * @return Peak description like /37Cl/12C/12C/. If merged then /37Cl/12C/12C/ + 35Cl/13C/13C/ 
      */
     public String getExplicitPeakDescription(int peakNum)
@@ -331,6 +340,11 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	return dpDescr.get(peakNum);
     }
     
+    /**
+     * 
+     * @param peakNum Index of peak
+     * @return Peak description like 37^Cl ^32S. If merged then 37^Cl 32^S + 35^Cl ^34S 
+     */
     public String getDetailedPeakDescription(int peakNum)
     {
     	String[] split = getExplicitPeakDescription(peakNum).split(" # ");
@@ -338,7 +352,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	
     	for(String descr : split)
     	{
-    		detailedDescription += getSimplePeakDescription(peakNum, descr);
+    		detailedDescription += makeSimplePeakDescription(descr);
     		if(split.length > 1)
     			detailedDescription += " + ";
     	}
@@ -355,10 +369,14 @@ public class ExtendedIsotopePattern implements IsotopePattern {
      */
     public String getSimplePeakDescription(int peakNum)
     {
-    	return getSimplePeakDescription(peakNum, getExplicitPeakDescription(peakNum));
+    	return makeSimplePeakDescription(getExplicitPeakDescription(peakNum));
     }
-    
-    private String getSimplePeakDescription(int peakNum, String descr)
+    /**
+     * 
+     * @param descr
+     * @return cuts explicit description down: ^13C^13C => ^13C2
+     */
+    private String makeSimplePeakDescription(String descr)
     {
     	//String descr = getExplicitPeakDescription(peakNum);
     	String[] cut = descr.split("/");
@@ -390,7 +408,9 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     	}
     	return simpleDescr;
     }
-    
+    /**
+     * sorts by ascending mz
+     */
     private void sortByAscendingMZ()
     {
     	ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();

@@ -285,12 +285,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
 					}
 					else if(scanType == ScanType.neutralLoss)
 					{
-						if(candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), diff.get(k), minRating))
-						{
+						candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), diff.get(k), minRating);
+//						if(candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l), diff.get(k), minRating))
+//						{
 						//	logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() + "\t->\t" + 
 						//			groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
 						//			"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
-						}
+//						}
 					}
 				}
 			}
@@ -312,7 +313,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			
 			DataPoint[] dp = new DataPoint[candidates.size()];	// we need this to add the IsotopePattern later on
 			
-			if(accurateAvgIntensity)
+			if(accurateAvgIntensity && scanType != ScanType.neutralLoss)
 			{
 				candidates.calcAvgRatings();	// this is a final rating, with averaged intensities in all mass lists that contain EVERY peak that was selected.
 												// thats why we can only do it after ALL peaks have been found
@@ -327,7 +328,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			{
 				//PeakListRow child = copyPeakRow(groupedPeaks.get((candidates.get(k).getRow())));
 				PeakListRow child = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));
-				if(accurateAvgIntensity)
+				if(accurateAvgIntensity && scanType != ScanType.neutralLoss)
 				{
 					dp[k] = new SimpleDataPoint(child.getAverageMZ(), candidates.getAvgHeight(k));
 				}
@@ -366,11 +367,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				resultMap.addRow(child);
 			}
 			
-			IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED, "Monoisotopic mass: " + parent.getAverageMZ());
-			
-			parent.getBestPeak().setIsotopePattern(resultPattern);
-			for(int j = 1; j < candidates.size(); j++)
-				resultMap.getRowByID(candidates.get(j).getCandID()).getBestPeak().setIsotopePattern(resultPattern);
+			if(scanType == ScanType.pattern) {
+				IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED, "Monoisotopic mass: " + parent.getAverageMZ());
+				parent.getBestPeak().setIsotopePattern(resultPattern);
+				
+				for(int j = 1; j < candidates.size(); j++)
+					resultMap.getRowByID(candidates.get(j).getCandID()).getBestPeak().setIsotopePattern(resultPattern);
+			}
 			
 			if(isCanceled())
 				return;			

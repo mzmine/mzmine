@@ -43,47 +43,83 @@ public class Candidates {
 		this.plh = plh;
 		this.ratingType = ratingType;
 	}
-		
+	
+	/**
+	 * 
+	 * @param index integer index
+	 * @return Candidate with specified index
+	 */
 	public Candidate get(int index)
 	{
 		if(index >= candidate.length)
 			throw new MSDKRuntimeException("Candidates.get(index) - index > length");
 		return candidate[index];
 	}
+	
+	/**
+	 * 
+	 * @param index
+	 * @return average rating of specified peak. -1 if not set
+	 */
 	public double getAvgRating(int index)
 	{
 		if(index >= candidate.length)
 			throw new MSDKRuntimeException("Candidates.get(index) - index > length");
 		return avgRating[index];
 	}
+	/**
+	 * 
+	 * @return total average rating of all data points in the detected pattern
+	 */
 	public double getAvgAvgRatings()
 	{
+		if(avgRating.length == 0)
+			return 0.0;
+		
 		double buffer = 0.0;
 		for(double rating : avgRating)
 			buffer += rating;
 		
 		return buffer / avgRating.length;
 	}
+	
+	
 	public int size()
 	{
 		return candidate.length;
 	}
 	
+	/**
+	 * 
+	 * @return all candidate objects
+	 */
 	public Candidate[] getCandidates()
 	{
 		return candidate;
 	}
 	
+	/**
+	 * @return IsotopePattern object the pattern got initialized with 
+	 */
 	public IsotopePattern getPattern()
 	{
 		return pattern;
 	}
 	
+	/**
+	 * sets isotope pattern, should not be used when there are different numbers of data points in the pattern.
+	 * @param pattern
+	 */
 	public void setPattern(IsotopePattern pattern)
 	{
 		this.pattern = pattern;
 	}
 	
+	/**
+	 * 
+	 * @param indexreturns average intensity of a signle peak
+	 * @return
+	 */
 	public double getAvgHeight(int index)
 	{
 		if(index > candidate.length || avgHeight == null)
@@ -91,6 +127,15 @@ public class Candidates {
 		return avgHeight[index];
 	}
 	
+	/**
+	 * 
+	 * @param index
+	 * @param parent Row of monoisotopic mass
+	 * @param cand row of candidate peak
+	 * @param minRating minimum rating
+	 * @param checkIntensity 
+	 * @return true if better, false if worse
+	 */
 	public boolean checkForBetterRating(int index, PeakListRow parent, PeakListRow cand, double minRating, boolean checkIntensity)
 	{
 		if(ratingType == RatingType.HIGHEST)
@@ -105,6 +150,11 @@ public class Candidates {
 			throw new MSDKRuntimeException("Error: Invalid RatingType.");
 	}
 	
+	/**
+	 * 
+	 * @param index index
+	 * @return average peak intensity over all mass lists it is contained in
+	 */
 	public double calcTemporaryAvgRating(int index)
 	{
 		if(index > candidate.length)
@@ -120,6 +170,10 @@ public class Candidates {
 		return candidate[index].recalcRatingWithAvgIntensities(candidate[0].getMZ(), pattern, index, avg);
 	}
 	
+	/**
+	 * 
+	 * @return array of all avg ratings
+	 */
 	public double[] calcAvgRatings()
 	{
 		int[] ids = new int[candidate.length];
@@ -139,6 +193,11 @@ public class Candidates {
 		return avgRating;
 	}
 	
+	/**
+	 * needed of calcTemporaryAvgRating
+	 * @param ID
+	 * @return avPeakHeight
+	 */
 	private double calcAvgPeakHeight(int ID)
 	{
 		PeakListRow row = plh.getRowByID(ID);
@@ -185,6 +244,11 @@ public class Candidates {
 		return avgIntensity/pointsAdded;
 	}
 	
+	/**
+	 * 
+	 * @param ID
+	 * @return avg heights of all with the ids, but only if they are contained in same scans and mass lists
+	 */
 	private double[] getAvgPeakHeights(int[] ID)
 	{		
 		PeakListRow[] rows = plh.getRowsByID(ID);
