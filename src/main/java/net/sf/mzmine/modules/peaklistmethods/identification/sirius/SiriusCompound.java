@@ -43,7 +43,7 @@ public class SiriusCompound extends SimplePeakIdentity {
    * @param annotation
    * @param score
    */
-  public SiriusCompound(@Nonnull final IonAnnotation annotation, @Nonnull Double score) {
+  public SiriusCompound(@Nonnull final IonAnnotation annotation, Double score) {
     super(loadProps(annotation));
     this.annotation = (SiriusIonAnnotation) annotation;
 

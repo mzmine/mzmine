@@ -742,7 +742,7 @@
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-data</artifactId>
-			<version>2.0</version>
+			<version>${cdk.version}</version>
 		</dependency>
 
 		<dependency>
