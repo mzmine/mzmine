@@ -109,9 +109,7 @@ public class SiriusThread implements Runnable {
 //    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
 //    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
 
-    //todo: after msdk update, update this code
-    ConstraintsGenerator generator = new ConstraintsGenerator();
-    FormulaConstraints constraints = generator.generateConstraint(range);
+    FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
     IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
 
     List<IonAnnotation> siriusResults = null;

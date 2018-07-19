@@ -142,9 +142,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     /* Sirius processing */
     try {
-      //todo: after msdk update, update this code
-      ConstraintsGenerator generator = new ConstraintsGenerator();
-      FormulaConstraints constraints = generator.generateConstraint(range);
+      FormulaConstraints constraints =     ConstraintsGenerator.generateConstraint(range);
       IonType type = IonTypeUtil.createIonType(ionType.toString());
 
       final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list,

@@ -15,7 +15,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>2.1.1</cdk.version>
 		<jmztab.version>3.0.7</jmztab.version>
-		<msdk.version>0.0.13</msdk.version>
+		<msdk.version>0.0.14</msdk.version>
 	</properties>
 
 	<mailingLists>
@@ -760,7 +760,7 @@
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-smiles</artifactId>
-			<version>2.0</version>
+			<version>${cdk.version}</version>
 		</dependency>
 
 	</dependencies>
