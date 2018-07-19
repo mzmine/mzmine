@@ -28,9 +28,6 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 public class PeakListIdentificationParameters extends AbstractParameters {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final IntegerParameter charge = new IntegerParameter(
-      "Charge", "Charge");
-
   public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter("Amount of Sirius candidates to save",
       "Specify the amount of candidates to be saved after processing by Sirius module", 1);
 
@@ -49,8 +46,7 @@ public class PeakListIdentificationParameters extends AbstractParameters {
           10
       );
 
-  public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
-      "Ionization type", "Ionization type", IonizationType.values());
+
 
   //todo: add how many top params to save
   public PeakListIdentificationParameters() {

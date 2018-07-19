@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.AbstractParameters.ionizationType;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
@@ -60,7 +61,6 @@ import org.slf4j.LoggerFactory;
 public class SingleRowIdentificationTask extends AbstractTask {
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
-  private double searchedMass;
   private double mzTolerance;
   private PeakListRow peakListRow;
   private IonizationType ionType;
@@ -79,17 +79,12 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @param peakListRow peak-list row to identify.
    */
   public SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
-
     this.peakListRow = peakListRow;
-
-    searchedMass = parameters.getParameter(NEUTRAL_MASS).getValue();
     mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
     siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();
     fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES).getValue();
-
-    ionType = parameters.getParameter(NEUTRAL_MASS).getIonType();
+    ionType = parameters.getParameter(ionizationType).getValue();
     parentMass = parameters.getParameter(NEUTRAL_MASS).getValue();
-
     range = parameters.getParameter(ELEMENTS).getValue();
   }
 
@@ -113,7 +108,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Peak identification of " + massFormater.format(searchedMass) + " using Sirius module";
+    return "Peak identification of " + massFormater.format(parentMass) + " using Sirius module";
   }
 
   /**
@@ -123,8 +118,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
-    ResultWindow window = new ResultWindow(peakListRow, searchedMass, this);
-    window.setTitle("Sirius identifies peak with " + massFormater.format(searchedMass) + " amu");
+    ResultWindow window = new ResultWindow(peakListRow, parentMass, this);
+    window.setTitle("Sirius identifies peak with " + massFormater.format(parentMass) + " amu");
     window.setVisible(true);
 
     Feature bestPeak = peakListRow.getBestPeak();
@@ -142,7 +137,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     /* Sirius processing */
     try {
-      FormulaConstraints constraints =     ConstraintsGenerator.generateConstraint(range);
+      FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
       IonType type = IonTypeUtil.createIonType(ionType.toString());
 
       final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list,

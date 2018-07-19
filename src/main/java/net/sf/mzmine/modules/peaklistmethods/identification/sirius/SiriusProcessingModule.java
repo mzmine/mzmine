@@ -76,13 +76,13 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
 
 //         Set m/z.
     parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS)
-        .setIonMass(row.getAverageMZ());
+        .setValue(row.getAverageMZ());
 
     // Set charge.
     final int charge = row.getBestPeak().getCharge();
     if (charge > 0) {
       parameters.getParameter(
-          SingleRowIdentificationParameters.NEUTRAL_MASS).setCharge(
+          SingleRowIdentificationParameters.charge).setValue(
           charge);
     }
 

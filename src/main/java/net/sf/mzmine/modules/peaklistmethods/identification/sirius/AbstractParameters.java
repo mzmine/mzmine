@@ -18,14 +18,17 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
 
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
@@ -38,6 +41,11 @@ public abstract class AbstractParameters extends SimpleParameterSet {
       "Speficy the deviation value in ppm s",
       new DecimalFormat("#0.00"),
       10.0d);
+
+  public static final IntegerParameter charge = new IntegerParameter(
+      "Charge", "Charge");
+  public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
+      "Ionization type", "Ionization type", IonizationType.values());
 
   public static final ElementsParameter ELEMENTS = new ElementsParameter(
       "Elements", "Elements and ranges");

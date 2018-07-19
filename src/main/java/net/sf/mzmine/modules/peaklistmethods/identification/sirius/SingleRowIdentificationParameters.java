@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 
@@ -30,12 +31,14 @@ public class SingleRowIdentificationParameters extends AbstractParameters {
   public static final IntegerParameter FINGERID_CANDIDATES = new IntegerParameter(
       "Number of candidates from FingerId method", "Pass 0 to get all possible results", 5);
 
-  public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter(
-      "Neutral mass", "Value to use in the search query");
+  public static final DoubleParameter NEUTRAL_MASS = new DoubleParameter(
+      "Precursor m/z", "Value to use in the search query of precursor ion");
 
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {
         NEUTRAL_MASS,
+        charge,
+        ionizationType,
         MZ_TOLERANCE,
         SIRIUS_CANDIDATES,
         FINGERID_CANDIDATES,
