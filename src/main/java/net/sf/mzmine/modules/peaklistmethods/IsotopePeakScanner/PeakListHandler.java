@@ -10,7 +10,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 
 public class PeakListHandler {
 	
-	TreeMap<Integer, PeakListRow> map;
+	private TreeMap<Integer, PeakListRow> map;
 	
 	PeakListHandler()
 	{
@@ -36,6 +36,11 @@ public class PeakListHandler {
 	public int size()
 	{
 		return map.size();
+	}
+	
+	public boolean containsID(int ID)
+	{
+		return map.containsKey(ID);
 	}
 	
 	public ArrayList<Integer> getAllKeys()

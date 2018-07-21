@@ -26,7 +26,7 @@ public class Tests {
 
 	public static void main(String[] args) {
 		//isotopePatternTest();
-		exIPT("C80Gd2Cl8");
+		exIPT("Cl");
 		//isotopePatternTest();
 	}
 		

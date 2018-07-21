@@ -142,14 +142,19 @@ public class IsotopePeakScannerTask extends AbstractTask {
         if(getPeakListPolarity(peakList) != polarityType)
         	logger.warning("PeakList.polarityType does not match selected polarity. " + getPeakListPolarity(peakList).toString() + "!=" + polarityType.toString());
         
-        if(suffix.equals("auto"))
-        	suffix = "_-Pat_" + element + "-RT" + checkRT + 
-        			"-INT"+ checkIntensity + "-R" + minRating + "_results";
-
         if(dMassLoss != 0.0)
         	scanType = ScanType.neutralLoss;
         else
         	scanType = ScanType.pattern;
+        
+        if(suffix.equals("auto")) {
+            
+        	if(scanType == ScanType.pattern)
+        		suffix = "_-Pat_" + element + "-RT" + checkRT + 
+        			"-INT"+ checkIntensity + "-R" + minRating + "_results";
+        	else
+        		suffix = "_NL: " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + " minRating: " + minRating + "_results";
+        }
 
         message = "Got paramenters..."; //TODO
     }
@@ -232,26 +237,10 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			// k represents the isotope number the peak will be a candidate for
 					if(mzTolerance.checkWithinTolerance(groupedPeaks.get(0).getAverageMZ() + diff.get(k), groupedPeaks.get(j).getAverageMZ()))
 					{
-						if(scanType == ScanType.pattern)
-						{
-							// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
-							//logger.info("Main peak (m/z)" +						"\tPattern" + 		 "\tPeak num" +		"\tPeak mass" + 					"\tAbbrevieation(m/z)");
-							//logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + element + "\t"+ k  +"\t\t"+ 	"\t" + groupedPeaks.get(j).getAverageMZ() +"\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()));
-
-							resultBuffer[k].addFound(); //+1 result for isotope k
-							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
-							resultBuffer[k].addID(groupedPeaks.get(j).getID());
-						}
-						else if(scanType == ScanType.neutralLoss)
-						{
-							//logger.info("Main peak (m/z)" +											"\tMass loss(found)"					 + 		"\tMass loss(input)");
-							//logger.info(groupedPeaks.get(0).getAverageMZ() + "\t" + (groupedPeaks.get(j).getAverageMZ()-groupedPeaks.get(0).getAverageMZ()) + dMassLoss);
-							
-							resultBuffer[k].addFound(); //+1 result for isotope k
-							resultBuffer[k].addRow(j);  //row in groupedPeaks[]
-							resultBuffer[k].addID(groupedPeaks.get(j).getID());
-
-						}
+						// this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
+						resultBuffer[k].addFound(); //+1 result for isotope k
+						resultBuffer[k].addRow(j);  //row in groupedPeaks[]
+						resultBuffer[k].addID(groupedPeaks.get(j).getID());
 					}
 				}
 			}
@@ -259,7 +248,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			if(!checkIfAllTrue(resultBuffer))	// this means that for every isotope we expected to find, we found one or more possible features
 			{
 				finishedRows++;
-				//logger.info("Not enough possible features were added to resultBuffer.");
 				continue;
 			}
 			
@@ -279,7 +267,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
 						//			groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " + candidates[k].getRating() + 
 						//			"\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) - groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
 //						}
-						//candidates.get(k).checkForBetterRating(groupedPeaks.get(0), groupedPeaks.get(resultBuffer[k].getRow(l)), pattern, k, minRating, checkIntensity);
 						
 						candidates.checkForBetterRating(k, groupedPeaks.get(0), groupedPeaks.get(resultBuffer[k].getRow(l)), minRating, checkIntensity);
 					}
@@ -306,10 +293,20 @@ public class IsotopePeakScannerTask extends AbstractTask {
 			
 			String comParent = "", comChild = "";
 			PeakListRow parent = copyPeakRow(peakList.getRow(i));
-			resultMap.addRow(parent);	//add results to resultPeakList
 			
-			comParent =  parent.getID() + "--IS PARENT--";
-			addComment(parent, comParent);
+			if(scanType == ScanType.pattern) {
+				comParent = /*parent.getID() +*/ "--IS PARENT--";
+				addComment(parent, comParent);
+			}
+			else if(scanType == ScanType.neutralLoss) {
+				if(resultMap.containsID(parent.getID()))
+					comParent += resultMap.getRowByID(parent.getID()).getComment();
+				
+				comParent += candidates.get(1).getCandID() + "<-ParentID";
+				addComment(parent, comParent);
+			}
+			
+			resultMap.addRow(parent);	//add results to resultPeakList
 			
 			DataPoint[] dp = new DataPoint[candidates.size()];	// we need this to add the IsotopePattern later on
 			
@@ -332,7 +329,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 				{
 					dp[k] = new SimpleDataPoint(child.getAverageMZ(), candidates.getAvgHeight(k));
 				}
-				else
+				else if(!accurateAvgIntensity && scanType != ScanType.neutralLoss)
 				{
 					dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
 				}
@@ -357,14 +354,22 @@ public class IsotopePeakScannerTask extends AbstractTask {
 							+ " Rating: " +  round(candidates.get(k).getRating(), 3)
 							+ average);
 					addComment(child, comChild);
+					
+					resultMap.addRow(child);
 				}
-				else if(scanType == ScanType.neutralLoss)
+				else if(scanType == ScanType.neutralLoss)	//For neutral loss child and parent are inverted. since child=higher m/z we set the comments differently
 				{
-					comChild = ("Parent ID: " + parent.getID() + " Diff(m/z): " + round(child.getAverageMZ() - parent.getAverageMZ(), 5)
-					+ "Diff (calc): " + round(diff.get(k), 5) + " Rating: " + round(candidates.get(k).getRating(), 7));
+					if(resultMap.containsID(child.getID()))
+						comChild += resultMap.getRowByID(child.getID()).getComment();
+
+					
+					comChild += (/*child.getID() +*/ "[--IS PARENT-- child ID: " + parent.getID() + " ] | ");
 					addComment(child, comChild);
+					
+					addComment(parent, " m/z shift(ppm): " + round( ( (child.getAverageMZ() - parent.getAverageMZ() ) - diff.get(1) )/ child.getAverageMZ() * 1E6, 2) + " Rating: " + round(candidates.get(k).getRating(), 7) + " ");
+	
+					resultMap.addRow(child);
 				}
-				resultMap.addRow(child);
 			}
 			
 			if(scanType == ScanType.pattern) {
