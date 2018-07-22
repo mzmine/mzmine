@@ -23,10 +23,28 @@ import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import javax.annotation.Nonnull;
+import javax.swing.ImageIcon;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.layout.StructureDiagramGenerator;
+import org.openscience.cdk.renderer.AtomContainerRenderer;
+import org.openscience.cdk.renderer.font.AWTFontManager;
+import org.openscience.cdk.renderer.generators.BasicAtomGenerator;
+import org.openscience.cdk.renderer.generators.BasicBondGenerator;
+import org.openscience.cdk.renderer.generators.BasicSceneGenerator;
+import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class SiriusCompound
@@ -35,6 +53,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
  * 2) if FingerIdWebMethod is used, then name may differ, added SMILES & Inchi and links to DBs
  */
 public class SiriusCompound extends SimplePeakIdentity {
+  private static final Logger logger = LoggerFactory.getLogger(SiriusCompound.class);
+
   private final Double compoundScore;
   private final SiriusIonAnnotation annotation;
 
@@ -160,6 +180,43 @@ public class SiriusCompound extends SimplePeakIdentity {
       return b.toString();
     }
 
+    return null;
+  }
+
+  public Object getStructureImage(int width, int height) {
+    IAtomContainer molecule = annotation.getChemicalStructure();
+    if (molecule == null)
+      return null;
+
+    return generateIconImage(molecule, width, height);
+  }
+
+  private ImageIcon generateIconImage(IAtomContainer molecule, int width, int height) {
+    Rectangle drawArea = new Rectangle(300, 200);
+    Image image = new BufferedImage(300, 200, BufferedImage.TYPE_INT_RGB);
+    StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+    try {
+      sdg.setMolecule(molecule, false);
+      sdg.generateCoordinates();
+      List generators = new ArrayList();
+      generators.add(new BasicSceneGenerator());
+      generators.add(new BasicBondGenerator());
+      generators.add(new BasicAtomGenerator());
+      // the renderer needs to have a toolkit-specific font manager
+      AtomContainerRenderer renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+      renderer.setup(molecule, drawArea);
+
+      Graphics2D g2 = (Graphics2D) image.getGraphics();
+      g2.setColor(Color.WHITE);
+      g2.fillRect(0, 0, 300, 200);
+      renderer.paint(molecule, new AWTDrawVisitor(g2));
+      image = image.getScaledInstance(width, height, Image.SCALE_DEFAULT);
+      ImageIcon ic = new ImageIcon(image);
+      return ic;
+    } catch (Exception ex) {
+      logger.info("Exception during ImageIcon construction occured");
+//      ex.printStackTrace();
+    }
     return null;
   }
 

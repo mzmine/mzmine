@@ -21,19 +21,25 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import java.text.NumberFormat;
 import java.util.Vector;
+import javax.swing.ImageIcon;
+import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 public class ResultTableModel extends AbstractTableModel {
 
   private static final long serialVersionUID = 1L;
+  private static final int PREVIEW_HEIGHT = 100;
+  private static final int PREVIEW_WIDTH = 150;
 
   private static final String[] columnNames = {"Name",
-      "Formula", "DBs", "Sirius score", "FingerId Score"};
+      "Formula", "DBs", "Sirius score", "FingerId Score", "Chemical structure"};
 
+  private final JTable table;
   private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
 
-  ResultTableModel() {
+  ResultTableModel(JTable table) {
+    this.table = table;
     percentFormat.setMaximumFractionDigits(1);
   }
 
@@ -47,6 +53,13 @@ public class ResultTableModel extends AbstractTableModel {
 
   public int getColumnCount() {
     return columnNames.length;
+  }
+
+  @Override
+  public Class getColumnClass(int column) {
+    if (column == 5)
+      return ImageIcon.class;
+    return String.class;
   }
 
   public Object getValueAt(int row, int col) {
@@ -68,6 +81,13 @@ public class ResultTableModel extends AbstractTableModel {
         break;
       case 4:
         value = compound.getFingerIdScore();
+        break;
+      case 5:
+        value = compound.getStructureImage(PREVIEW_WIDTH, PREVIEW_HEIGHT);
+        if (value != null) {
+          table.getColumnModel().getColumn(5).setWidth(PREVIEW_WIDTH);
+          table.setRowHeight(row, PREVIEW_HEIGHT);
+        }
         break;
     }
 

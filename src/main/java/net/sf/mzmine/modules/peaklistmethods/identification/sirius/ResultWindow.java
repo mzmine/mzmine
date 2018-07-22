@@ -85,11 +85,14 @@ public class ResultWindow extends JFrame implements ActionListener {
     pnlLabelsAndList.add(new JLabel("List of possible identities"),
         BorderLayout.NORTH);
 
-    listElementModel = new ResultTableModel();
+
     IDList = new JTable();
+    listElementModel = new ResultTableModel(IDList);
+
     IDList.setModel(listElementModel);
     IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     IDList.getTableHeader().setReorderingAllowed(false);
+
 
     TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
         listElementModel);
@@ -106,7 +109,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     JPanel pnlButtons = new JPanel();
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-    pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    pnlButtons.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
     GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "SMILES");
@@ -180,9 +183,14 @@ public class ResultWindow extends JFrame implements ActionListener {
 
       SiriusCompound compound = listElementModel.getCompoundAt(index);
       IAtomContainer container = compound.getIonAnnotation().getChemicalStructure();
-      String name = compound.getName();
-      MolStructureViewer viewer = new MolStructureViewer(name, container);
-      viewer.setVisible(true);
+      if (container != null) {
+        String name = compound.getName();
+        MolStructureViewer viewer = new MolStructureViewer(name, container);
+        viewer.setVisible(true);
+      } else {
+        MZmineCore.getDesktop().displayErrorMessage(this,
+            "This result does not have chemical structure.");
+      }
     }
   }
 
