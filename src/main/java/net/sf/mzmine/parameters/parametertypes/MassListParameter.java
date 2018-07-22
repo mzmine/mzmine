@@ -30,6 +30,10 @@ public class MassListParameter implements
 
     private String name, description, value;
 
+    public MassListParameter(String name1, String description1) {
+	this.name = name1;
+	this.description = description1;
+    }
     public MassListParameter() {
 	this.name = "Mass list";
 	this.description = "Please select a mass list name";
@@ -67,7 +71,7 @@ public class MassListParameter implements
 
     @Override
     public MassListParameter cloneParameter() {
-	MassListParameter copy = new MassListParameter();
+	MassListParameter copy = new MassListParameter(name, description);
 	copy.setValue(this.getValue());
 	return copy;
     }
