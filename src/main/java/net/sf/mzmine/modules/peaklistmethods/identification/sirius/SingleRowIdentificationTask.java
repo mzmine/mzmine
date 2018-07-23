@@ -38,6 +38,7 @@ import io.github.msdk.util.IonTypeUtil;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
 public class SingleRowIdentificationTask extends AbstractTask {
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
+  private CountDownLatch latch;
   private double mzTolerance;
   private PeakListRow peakListRow;
   private IonizationType ionType;
@@ -158,6 +160,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     /* FingerId processing */
     if (scanner.peakContainsMsMs()) {
       try {
+        latch = new CountDownLatch(siriusResults.size());
         Ms2Experiment experiment = siriusMethod.getExperiment();
         fingerTasks = new LinkedList<>();
 
@@ -165,6 +168,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
         for (IonAnnotation ia : siriusResults) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
           FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
+          task.setLatch(latch);
           fingerTasks.add(task);
           MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
         }
@@ -180,6 +184,10 @@ public class SingleRowIdentificationTask extends AbstractTask {
       window.addListofItems(siriusMethod.getResult());
     }
 
+    try {
+      if (latch != null)
+        latch.await();
+    } catch (Exception e) {}
     setStatus(TaskStatus.FINISHED);
   }
 }

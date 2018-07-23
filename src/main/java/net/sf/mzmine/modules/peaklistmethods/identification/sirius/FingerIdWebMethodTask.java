@@ -28,6 +28,7 @@ import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.util.LinkedList;
 import java.util.List;
 
+import java.util.concurrent.CountDownLatch;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -53,6 +54,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   private FingerIdWebMethod method;
   private List<IonAnnotation> fingerResults = null;
+  private CountDownLatch latch = null;
 
 
   /**
@@ -74,6 +76,10 @@ public class FingerIdWebMethodTask extends AbstractTask {
     this.window = window;
     this.row = row;
     formula = MolecularFormulaManipulator.getString(annotation.getFormula());
+  }
+
+  public void setLatch(CountDownLatch latch) {
+    this.latch = latch;
   }
 
   /**
@@ -139,6 +145,9 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
     // Update containers
     submitResults(fingerResults);
+    // If Barrier exists - count it down
+    if (latch != null)
+      latch.countDown();
     setStatus(TaskStatus.FINISHED);
   }
 

@@ -31,6 +31,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -93,13 +94,11 @@ public class ResultWindow extends JFrame implements ActionListener {
     IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     IDList.getTableHeader().setReorderingAllowed(false);
 
-
-    TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
-        listElementModel);
+    ResultTableSorter sorter = new ResultTableSorter(listElementModel);
     IDList.setRowSorter(sorter);
 
     JScrollPane listScroller = new JScrollPane(IDList);
-    listScroller.setPreferredSize(new Dimension(350, 100));
+    listScroller.setPreferredSize(new Dimension(800, 400));
     listScroller.setAlignmentX(LEFT_ALIGNMENT);
     JPanel listPanel = new JPanel();
     listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));

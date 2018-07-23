@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
+import javax.swing.RowSorter;
 import javax.swing.table.AbstractTableModel;
 
 public class ResultTableModel extends AbstractTableModel {
@@ -57,9 +58,15 @@ public class ResultTableModel extends AbstractTableModel {
 
   @Override
   public Class getColumnClass(int column) {
-    if (column == 5)
-      return ImageIcon.class;
-    return String.class;
+    switch (column) {
+      case 5:
+        return ImageIcon.class;
+//      case 4:
+//      case 3:
+//        return Double.class;
+      default:
+        return String.class;
+    }
   }
 
   public Object getValueAt(int row, int col) {
