@@ -19,18 +19,16 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import de.unijena.bioinf.sirius.Sirius;
 import java.text.NumberFormat;
 import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
-import javax.swing.RowSorter;
 import javax.swing.table.AbstractTableModel;
 
 public class ResultTableModel extends AbstractTableModel {
 
   private static final long serialVersionUID = 1L;
-  private static final int PREVIEW_HEIGHT = 100;
-  private static final int PREVIEW_WIDTH = 150;
 
   private static final String[] columnNames = {"Name",
       "Formula", "DBs", "Sirius score", "FingerId Score", "Chemical structure"};
@@ -61,9 +59,6 @@ public class ResultTableModel extends AbstractTableModel {
     switch (column) {
       case 5:
         return ImageIcon.class;
-//      case 4:
-//      case 3:
-//        return Double.class;
       default:
         return String.class;
     }
@@ -90,10 +85,10 @@ public class ResultTableModel extends AbstractTableModel {
         value = compound.getFingerIdScore();
         break;
       case 5:
-        value = compound.getStructureImage(PREVIEW_WIDTH, PREVIEW_HEIGHT);
+        value = compound.getPreview();
         if (value != null) {
-          table.getColumnModel().getColumn(5).setWidth(PREVIEW_WIDTH);
-          table.setRowHeight(row, PREVIEW_HEIGHT);
+          table.getColumnModel().getColumn(5).setWidth(SiriusCompound.PREVIEW_WIDTH);
+          table.setRowHeight(row, SiriusCompound.PREVIEW_HEIGHT);
         }
         break;
     }

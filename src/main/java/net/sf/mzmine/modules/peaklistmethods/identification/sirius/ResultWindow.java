@@ -31,12 +31,14 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import java.util.Comparator;
+import java.awt.event.MouseEvent;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -66,7 +68,7 @@ public class ResultWindow extends JFrame implements ActionListener {
   private ResultTableModel listElementModel;
 
   private PeakListRow peakListRow;
-  private JTable IDList;
+  private ResultTable IDList;
   private Task searchTask;
 
   public ResultWindow(PeakListRow peakListRow, double searchedMass,
@@ -87,7 +89,7 @@ public class ResultWindow extends JFrame implements ActionListener {
         BorderLayout.NORTH);
 
 
-    IDList = new JTable();
+    IDList = new ResultTable();
     listElementModel = new ResultTableModel(IDList);
 
     IDList.setModel(listElementModel);
@@ -96,6 +98,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     ResultTableSorter sorter = new ResultTableSorter(listElementModel);
     IDList.setRowSorter(sorter);
+//    IDList.addMouseMotionListener(new RollOverListener(IDList));
 
     JScrollPane listScroller = new JScrollPane(IDList);
     listScroller.setPreferredSize(new Dimension(800, 400));
@@ -194,14 +197,13 @@ public class ResultWindow extends JFrame implements ActionListener {
   }
 
   public void addNewListItem(final SiriusCompound compound) {
-
     // Update the model in swing thread to avoid exceptions
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         listElementModel.addElement(compound);
+        IDList.generateIconImage(compound);
       }
     });
-
   }
 
   public void addListofItems(final List<IonAnnotation> annotations) {
