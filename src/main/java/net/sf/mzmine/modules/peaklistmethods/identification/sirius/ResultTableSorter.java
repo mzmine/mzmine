@@ -26,8 +26,12 @@ public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
 
   public ResultTableSorter(ResultTableModel model) {
     setModel(model);
-    // Column 4 - FingerId Score
-    this.setComparator(3, new Comparator<String>() {
+
+    /**
+     * Sets a comparator for sirius results
+     * Uses a trick with parsing Strings
+     */
+    this.setComparator(ResultTableModel.SIRIUS_SCORE_INDEX, new Comparator<String>() {
       @Override
       public int compare(String s1, String s2) {
         Double d1 = Double.parseDouble(s1);
@@ -42,7 +46,12 @@ public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
         return (int)(d1 - d2);
       }
     });
-    this.setComparator(4, new Comparator<String>() {
+
+    /**
+     * Sets a comparator for finger id results
+     * Uses a trick with parsing Strings
+     */
+    this.setComparator(ResultTableModel.FINGERID_SCORE_INDEX, new Comparator<String>() {
       @Override
       public int compare(String s1, String s2) {
         Double d1 = Double.parseDouble(s1);

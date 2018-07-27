@@ -31,30 +31,23 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import java.awt.event.MouseEvent;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.table.TableRowSorter;
 
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
-import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class ResultWindow extends JFrame implements ActionListener {
 
@@ -71,8 +64,7 @@ public class ResultWindow extends JFrame implements ActionListener {
   private ResultTable IDList;
   private Task searchTask;
 
-  public ResultWindow(PeakListRow peakListRow, double searchedMass,
-      Task searchTask) {
+  public ResultWindow(PeakListRow peakListRow, Task searchTask) {
 
     super("");
 
@@ -90,17 +82,20 @@ public class ResultWindow extends JFrame implements ActionListener {
 
 
     IDList = new ResultTable();
+
     listElementModel = new ResultTableModel(IDList);
+
 
     IDList.setModel(listElementModel);
     IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     IDList.getTableHeader().setReorderingAllowed(false);
 
+
     ResultTableSorter sorter = new ResultTableSorter(listElementModel);
     IDList.setRowSorter(sorter);
-//    IDList.addMouseMotionListener(new RollOverListener(IDList));
 
     JScrollPane listScroller = new JScrollPane(IDList);
+
     listScroller.setPreferredSize(new Dimension(800, 400));
     listScroller.setAlignmentX(LEFT_ALIGNMENT);
     JPanel listPanel = new JPanel();
@@ -115,31 +110,29 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
     GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "SMILES");
-    GUIUtils.addButton(pnlButtons, "View structure", null, this, "VIEWER");
 
     setLayout(new BorderLayout());
     setSize(500, 200);
     add(pnlLabelsAndList, BorderLayout.CENTER);
     add(pnlButtons, BorderLayout.SOUTH);
+
+
     pack();
   }
 
   public void actionPerformed(ActionEvent e) {
-
     String command = e.getActionCommand();
 
     if (command.equals("ADD")) {
       int index = IDList.getSelectedRow();
 
       if (index < 0) {
-        MZmineCore.getDesktop().displayMessage(this,
-            "Select one result to add as compound identity");
+        MZmineCore.getDesktop().displayMessage(this, "Select one result to add as compound identity");
         return;
       }
       index = IDList.convertRowIndexToModel(index);
       peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
           false);
-
 
       // Notify the GUI about the change in the project
       MZmineCore.getProjectManager().getCurrentProject()
@@ -152,46 +145,24 @@ public class ResultWindow extends JFrame implements ActionListener {
     }
 
     if (command.equals("SMILES")) {
-      int index = IDList.getSelectedRow();
+      int row = IDList.getSelectedRow();
 
-      if (index < 0) {
-        MZmineCore.getDesktop().displayMessage(this,
-            "Select one result to copy SMILES value");
+      if (row < 0) {
+        MZmineCore.getDesktop().displayMessage(this, "Select one result to copy SMILES value");
         return;
       }
-      // SMILES column index == 3
-      String smiles = listElementModel.getCompoundAt(index).getSMILES();
+
+      int realRow = IDList.convertRowIndexToModel(row);
+      String smiles = listElementModel.getCompoundAt(realRow).getSMILES();
       if (smiles != null) {
         StringSelection stringSelection = new StringSelection(smiles);
 
-        // todo: May be make clipboard static?
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(stringSelection, null);
       } else {
         MZmineCore.getDesktop().displayMessage(this,
             "Selected compound does not contain identified SMILES");
         return;
-      }
-    }
-
-    if (command.equals("VIEWER")) {
-      int index = IDList.getSelectedRow();
-
-      if (index < 0) {
-        MZmineCore.getDesktop().displayMessage(this,
-            "Select one result to display molecule structure");
-        return;
-      }
-
-      SiriusCompound compound = listElementModel.getCompoundAt(index);
-      IAtomContainer container = compound.getIonAnnotation().getChemicalStructure();
-      if (container != null) {
-        String name = compound.getName();
-        MolStructureViewer viewer = new MolStructureViewer(name, container);
-        viewer.setVisible(true);
-      } else {
-        MZmineCore.getDesktop().displayErrorMessage(this,
-            "This result does not have chemical structure.");
       }
     }
   }
@@ -215,7 +186,6 @@ public class ResultWindow extends JFrame implements ActionListener {
   }
 
   public void dispose() {
-
     // Cancel the search task if it is still running
     TaskStatus searchStatus = searchTask.getStatus();
     if ((searchStatus == TaskStatus.WAITING)
@@ -224,7 +194,5 @@ public class ResultWindow extends JFrame implements ActionListener {
     }
 
     super.dispose();
-
   }
-
 }

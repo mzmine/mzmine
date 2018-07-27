@@ -28,12 +28,16 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.swing.ImageIcon;
+
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
@@ -188,6 +192,10 @@ public class SiriusCompound extends SimplePeakIdentity {
     return null;
   }
 
+  /**
+   * Method generates preview image of the sirius compound
+   * @return scaled image
+   */
   private ImageIcon generateStructurePreview() {
     Image image = generateImage(300, 200);
     if (image == null)
@@ -198,6 +206,10 @@ public class SiriusCompound extends SimplePeakIdentity {
     return ic;
   }
 
+  /**
+   * Getter for preview ImageIcon object
+   * @return shortcut ImageIcon object
+   */
   public Object getPreview() {
     return preview;
   }
@@ -218,8 +230,11 @@ public class SiriusCompound extends SimplePeakIdentity {
     if (molecule == null)
       return null;
 
+    /* Form an area for future image */
     Rectangle drawArea = new Rectangle(width, height);
     Image image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+    /* Transform AtomContainer into image */
     StructureDiagramGenerator sdg = new StructureDiagramGenerator();
     try {
       sdg.setMolecule(molecule, false);
@@ -234,12 +249,11 @@ public class SiriusCompound extends SimplePeakIdentity {
 
       Graphics2D g2 = (Graphics2D) image.getGraphics();
       g2.setColor(Color.WHITE);
-      g2.fillRect(0, 0, 300, 200);
+      g2.fillRect(0, 0, width, height);
       renderer.paint(molecule, new AWTDrawVisitor(g2));
       return image;
     } catch (Exception ex) {
       logger.info("Exception during ImageIcon construction occured");
-//      ex.printStackTrace();
     }
     return null;
   }

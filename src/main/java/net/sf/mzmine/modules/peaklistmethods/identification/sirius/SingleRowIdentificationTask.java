@@ -120,7 +120,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
-    ResultWindow window = new ResultWindow(peakListRow, parentMass, this);
+    ResultWindow window = new ResultWindow(peakListRow, this);
     window.setTitle("Sirius identifies peak with " + massFormater.format(parentMass) + " amu");
     window.setVisible(true);
 

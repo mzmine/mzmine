@@ -19,25 +19,85 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import java.awt.Component;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.util.Hashtable;
+import javax.annotation.Nullable;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
+import net.sf.mzmine.util.components.ComponentToolTipManager;
+import net.sf.mzmine.util.components.ComponentToolTipProvider;
 
-public class ResultTable extends JTable {
+public class ResultTable extends JTable implements ComponentToolTipProvider {
   private Hashtable<Long, Image> images;
+  private ComponentToolTipManager ttm;
+
 
   public ResultTable() {
     super();
     images = new Hashtable<>(10);
+
+    ttm = new ComponentToolTipManager();
+    ttm.registerComponent(this);
   }
 
+  @Override
+  public String getToolTipText(MouseEvent e) {
+    return "PRINT_IMAGE";
+  }
+
+  public JComponent getCustomToolTipComponent(MouseEvent event) {
+    JComponent component = null;
+    String text = this.getToolTipText(event);
+
+    if (text == null) {
+      return null;
+    }
+
+    if (text.contains("PRINT_IMAGE")) {
+      Point p = event.getPoint();
+      int row = this.rowAtPoint(p);
+      int realRow = this.convertRowIndexToModel(row);
+
+      ResultTableModel model = (ResultTableModel)(this.getModel());
+      SiriusCompound compound = model.getCompoundAt(realRow);
+
+      Object shortcut = compound.getPreview();
+      if (shortcut != null) {
+        long hash = shortcut.hashCode();
+//        String smiles = compound.getSMILES();
+//        String inchi = compound.getInchi();
+//        String name = compound.getName();
+//        if (name == null)
+//          name = compound.getStringFormula();
+
+        //todo: check this.
+        JLabel label = new JLabel();
+        Image img = getIconImage(hash);
+        if (img != null) {
+          label.setIcon(new ImageIcon(img));
+          JPanel panel = new JPanel();
+          panel.setBackground(ComponentToolTipManager.bg);
+          panel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+          panel.add(label);
+          component = panel;
+        } else {
+          return null;
+        }
+      }
+    }
+
+    return component;
+  }
+
+  private @Nullable Image getIconImage(Long hash) {
+    return images.get(hash);
+  }
 
   public void generateIconImage(SiriusCompound compound) {
     Object preview = compound.getPreview();
@@ -48,50 +108,5 @@ public class ResultTable extends JTable {
     Image image = compound.generateStructureImage(600, 400);
     if (image != null)
       images.put(hash, image);
-  }
-
-//  @Override
-//  public String getToolTipText(MouseEvent e) {
-//    Point p = e.getPoint();
-//    int row = this.rowAtPoint(p);
-//    int col = this.columnAtPoint(p);
-//
-//    JFrame frame = new JFrame();
-//    frame.setIconImage(image);
-//
-//    System.out.println("Hello");
-//    return "Sick";
-//  }
-
-  @Override
-  public Component prepareRenderer(TableCellRenderer renderer,
-      int row, int col) {
-
-    Object icon = this.getValueAt(row, 5);
-    Component c = super.prepareRenderer(renderer, row, col);
-
-    try {
-      Image image = images.get(icon.hashCode());
-
-      if (c instanceof JComponent) {
-        JComponent jc = (JComponent) c;
-//      String name = getValueAt(row, 0).toString();
-        String html = getHtml();
-        jc.setToolTipText(html);
-      }
-    } catch (NullPointerException e) {
-
-    }
-    return c;
-  }
-
-  private String getHtml() {
-    StringBuilder b = new StringBuilder();
-    b.append("<html>");
-    b.append("<body>");
-    b.append("<img src='http://www.topapps.net/wp-content/uploads/2014/03/Google-URL-Shortener-app.png'>");
-    b.append("</body>");
-    b.append("</html>");
-    return b.toString();
   }
 }

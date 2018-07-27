@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import de.unijena.bioinf.sirius.Sirius;
 import java.text.NumberFormat;
 import java.util.Vector;
 import javax.swing.ImageIcon;
@@ -29,9 +28,15 @@ import javax.swing.table.AbstractTableModel;
 public class ResultTableModel extends AbstractTableModel {
 
   private static final long serialVersionUID = 1L;
-
   private static final String[] columnNames = {"Name",
       "Formula", "DBs", "Sirius score", "FingerId Score", "Chemical structure"};
+  public static final int NAME_INDEX = 0;
+  public static final int FORMULA_INDEX = 1;
+  public static final int DBS_INDEX = 2;
+  public static final int SIRIUS_SCORE_INDEX = 3;
+  public static final int FINGERID_SCORE_INDEX = 4;
+  public static final int PREVIEW_INDEX = 5;
+
 
   private final JTable table;
   private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
@@ -54,6 +59,11 @@ public class ResultTableModel extends AbstractTableModel {
     return columnNames.length;
   }
 
+  /**
+   * There was used Double.class for score fields, but it did not work properly
+   * @param column
+   * @return
+   */
   @Override
   public Class getColumnClass(int column) {
     switch (column) {
@@ -64,27 +74,34 @@ public class ResultTableModel extends AbstractTableModel {
     }
   }
 
+  /**
+   * Returns an object from a row by column
+   * @param row index
+   * @param col index
+   * @return Object from a SiriusCompound
+   */
+  @Override
   public Object getValueAt(int row, int col) {
     Object value = null;
     SiriusCompound compound = compounds.get(row);
     switch (col) {
-      case 0:
+      case NAME_INDEX:
         String name = compound.getAnnotationDescription();
         value = name;
         break;
-      case 1:
+      case FORMULA_INDEX:
         value = compound.getStringFormula();
         break;
-      case 2:
+      case DBS_INDEX:
         value = compound.getDBS();
         break;
-      case 3:
+      case SIRIUS_SCORE_INDEX:
         value = compound.getSiriusScore();
         break;
-      case 4:
+      case FINGERID_SCORE_INDEX:
         value = compound.getFingerIdScore();
         break;
-      case 5:
+      case PREVIEW_INDEX:
         value = compound.getPreview();
         if (value != null) {
           table.getColumnModel().getColumn(5).setWidth(SiriusCompound.PREVIEW_WIDTH);
@@ -101,12 +118,10 @@ public class ResultTableModel extends AbstractTableModel {
     fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
   }
 
-
   public boolean isCellEditable(int row, int col) {
     return false;
   }
 
-  //TODO: todo
   public void setValueAt(Object value, int row, int col) {
   }
 
