@@ -29,21 +29,18 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 
-public abstract class AbstractParameters extends SimpleParameterSet {
+public abstract class SiriusParameters extends SimpleParameterSet {
   private static final int ISOTOPE_MAX = 100;
   private static final int ISOTOPE_MIN = 0;
 
- public static final DoubleParameter MZ_TOLERANCE = new DoubleParameter("Deviation",
-      "Speficy the deviation value in ppm s",
-      new DecimalFormat("#0.00"),
-      10.0d);
+ public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
-  public static final IntegerParameter charge = new IntegerParameter(
-      "Charge", "Charge");
   public static final ComboParameter<IonizationType> ionizationType = new ComboParameter<IonizationType>(
       "Ionization type", "Ionization type", IonizationType.values());
 
@@ -54,7 +51,7 @@ public abstract class AbstractParameters extends SimpleParameterSet {
     ELEMENTS.setValue(createDefaultElements());
   }
 
-  public AbstractParameters(Parameter[] params) {
+  public SiriusParameters(Parameter[] params) {
     super(params);
   }
 

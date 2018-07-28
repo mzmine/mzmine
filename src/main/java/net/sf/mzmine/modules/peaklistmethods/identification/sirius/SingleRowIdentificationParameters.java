@@ -22,9 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 
-public class SingleRowIdentificationParameters extends AbstractParameters {
+public class SingleRowIdentificationParameters extends SiriusParameters {
   public static final IntegerParameter SIRIUS_CANDIDATES = new IntegerParameter(
       "Number of candidates from Sirius method", "Maximum number of results to display", 5);
 
@@ -37,7 +36,6 @@ public class SingleRowIdentificationParameters extends AbstractParameters {
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {
         NEUTRAL_MASS,
-        charge,
         ionizationType,
         MZ_TOLERANCE,
         SIRIUS_CANDIDATES,

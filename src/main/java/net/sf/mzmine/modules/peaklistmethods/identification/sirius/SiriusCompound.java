@@ -61,7 +61,6 @@ public class SiriusCompound extends SimplePeakIdentity {
   public static final int PREVIEW_HEIGHT = 100;
   public static final int PREVIEW_WIDTH = 150;
 
-  private final Double compoundScore;
   private final SiriusIonAnnotation annotation;
   private final ImageIcon preview;
 
@@ -70,12 +69,10 @@ public class SiriusCompound extends SimplePeakIdentity {
    * @param annotation
    * @param score
    */
-  public SiriusCompound(@Nonnull final IonAnnotation annotation, Double score) {
+  public SiriusCompound(@Nonnull final IonAnnotation annotation) {
     super(loadProps(annotation));
     this.annotation = (SiriusIonAnnotation) annotation;
     this.preview = generateStructurePreview();
-
-    this.compoundScore = score;
   }
 
   /**
@@ -85,7 +82,6 @@ public class SiriusCompound extends SimplePeakIdentity {
   public SiriusCompound(final SiriusCompound master) {
     super((Hashtable<String, String>) master.getAllProperties());
     this.annotation = master.annotation;
-    compoundScore = master.compoundScore;
     preview = master.preview;
   }
 

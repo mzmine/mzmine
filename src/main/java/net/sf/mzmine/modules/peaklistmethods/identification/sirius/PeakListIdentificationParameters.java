@@ -19,13 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
-public class PeakListIdentificationParameters extends AbstractParameters {
+public class PeakListIdentificationParameters extends SiriusParameters {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter("Amount of Sirius candidates to save",
@@ -46,14 +44,10 @@ public class PeakListIdentificationParameters extends AbstractParameters {
           10
       );
 
-
-
-  //todo: add how many top params to save
   public PeakListIdentificationParameters() {
     super(new Parameter[] {
         peakLists,
         ionizationType,
-        charge,
         MZ_TOLERANCE,
         ELEMENTS,
         CANDIDATES_AMOUNT,
@@ -62,6 +56,4 @@ public class PeakListIdentificationParameters extends AbstractParameters {
         SIRIUS_TIMEOUT
     });
   }
-
-
 }

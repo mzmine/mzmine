@@ -32,8 +32,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.util.List;
-import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -56,16 +56,12 @@ public class ResultWindow extends JFrame implements ActionListener {
    */
   private static final long serialVersionUID = 1L;
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
   private ResultTableModel listElementModel;
-
   private PeakListRow peakListRow;
-  private ResultTable IDList;
+  private ResultTable compoundsTable;
   private Task searchTask;
 
   public ResultWindow(PeakListRow peakListRow, Task searchTask) {
-
     super("");
 
     this.peakListRow = peakListRow;
@@ -76,26 +72,22 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     JPanel pnlLabelsAndList = new JPanel(new BorderLayout());
     pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-    pnlLabelsAndList.add(new JLabel("List of possible identities"),
-        BorderLayout.NORTH);
+    pnlLabelsAndList.add(new JLabel("List of possible identities"), BorderLayout.NORTH);
 
 
-    IDList = new ResultTable();
+    compoundsTable = new ResultTable();
+    listElementModel = new ResultTableModel(compoundsTable);
 
-    listElementModel = new ResultTableModel(IDList);
+    /* Configure table */
+    compoundsTable.setModel(listElementModel);
+    compoundsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    compoundsTable.getTableHeader().setReorderingAllowed(false);
 
-
-    IDList.setModel(listElementModel);
-    IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    IDList.getTableHeader().setReorderingAllowed(false);
-
-
+    /* Sorter orders by FingerID score by default */
     ResultTableSorter sorter = new ResultTableSorter(listElementModel);
-    IDList.setRowSorter(sorter);
+    compoundsTable.setRowSorter(sorter);
 
-    JScrollPane listScroller = new JScrollPane(IDList);
-
+    JScrollPane listScroller = new JScrollPane(compoundsTable);
     listScroller.setPreferredSize(new Dimension(800, 400));
     listScroller.setAlignmentX(LEFT_ALIGNMENT);
     JPanel listPanel = new JPanel();
@@ -109,14 +101,13 @@ public class ResultWindow extends JFrame implements ActionListener {
     pnlButtons.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
-    GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "SMILES");
+    GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "COPY_SMILES");
+    GUIUtils.addButton(pnlButtons, "Copy Formula string", null, this, "COPY_FORMULA");
 
     setLayout(new BorderLayout());
     setSize(500, 200);
     add(pnlLabelsAndList, BorderLayout.CENTER);
     add(pnlButtons, BorderLayout.SOUTH);
-
-
     pack();
   }
 
@@ -124,13 +115,13 @@ public class ResultWindow extends JFrame implements ActionListener {
     String command = e.getActionCommand();
 
     if (command.equals("ADD")) {
-      int index = IDList.getSelectedRow();
+      int index = compoundsTable.getSelectedRow();
 
       if (index < 0) {
         MZmineCore.getDesktop().displayMessage(this, "Select one result to add as compound identity");
         return;
       }
-      index = IDList.convertRowIndexToModel(index);
+      index = compoundsTable.convertRowIndexToModel(index);
       peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
           false);
 
@@ -144,47 +135,78 @@ public class ResultWindow extends JFrame implements ActionListener {
       dispose();
     }
 
-    if (command.equals("SMILES")) {
-      int row = IDList.getSelectedRow();
+    if (command.equals("COPY_SMILES")) {
+      int row = compoundsTable.getSelectedRow();
 
       if (row < 0) {
         MZmineCore.getDesktop().displayMessage(this, "Select one result to copy SMILES value");
         return;
       }
+      int realRow = compoundsTable.convertRowIndexToModel(row);
 
-      int realRow = IDList.convertRowIndexToModel(row);
       String smiles = listElementModel.getCompoundAt(realRow).getSMILES();
-      if (smiles != null) {
-        StringSelection stringSelection = new StringSelection(smiles);
+      copyToClipboard(smiles, "Selected compound does not contain identified SMILES");
+    }
 
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(stringSelection, null);
-      } else {
-        MZmineCore.getDesktop().displayMessage(this,
-            "Selected compound does not contain identified SMILES");
+    if (command.equals("COPY_FORMULA")) {
+      int row = compoundsTable.getSelectedRow();
+
+      if (row < 0) {
+        MZmineCore.getDesktop().displayMessage(this, "Select one result to copy FORMULA value");
         return;
       }
+      int realRow = compoundsTable.convertRowIndexToModel(row);
+
+      String formula = listElementModel.getCompoundAt(realRow).getStringFormula();
+      copyToClipboard(formula, "Formula value is null...");
     }
   }
 
-  public void addNewListItem(final SiriusCompound compound) {
+  /**
+   * Method sets value of clipboard to `content`
+   * @param content - Formula or SMILES string
+   * @param errorMessage - to print in a message if value of `content` is null
+   */
+  private void copyToClipboard(String content, String errorMessage) {
+    if (content == null) {
+      MZmineCore.getDesktop().displayMessage(this, errorMessage);
+      return;
+    }
+
+    StringSelection stringSelection = new StringSelection(content);
+    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    clipboard.setContents(stringSelection, null);
+  }
+
+  /**
+   * Update content of a table using swing-thread
+   * @param compound
+   */
+  public void addNewListItem(@Nonnull final SiriusCompound compound) {
     // Update the model in swing thread to avoid exceptions
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         listElementModel.addElement(compound);
-        IDList.generateIconImage(compound);
+        compoundsTable.generateIconImage(compound);
       }
     });
   }
 
-  public void addListofItems(final List<IonAnnotation> annotations) {
+  /**
+   * Method adds a new SiriusCompound to a table
+   * @param annotations - SiriusIonAnnotation results processed by Sirius/FingerId methods
+   */
+  public void addListofItems(@Nonnull final List<IonAnnotation> annotations) {
     for (IonAnnotation ann: annotations) {
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) ann;
-      SiriusCompound compound = new SiriusCompound(annotation, annotation.getFingerIdScore());
+      SiriusCompound compound = new SiriusCompound(annotation);
       addNewListItem(compound);
     }
   }
 
+  /**
+   * Releases the list of subtasks and disposes windows related to it.
+   */
   public void dispose() {
     // Cancel the search task if it is still running
     TaskStatus searchStatus = searchTask.getStatus();

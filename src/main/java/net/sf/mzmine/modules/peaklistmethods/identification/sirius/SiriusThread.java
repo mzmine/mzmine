@@ -47,6 +47,7 @@ import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 
 import org.openscience.cdk.formula.MolecularFormulaRange;
@@ -64,8 +65,7 @@ public class SiriusThread implements Runnable {
   // Identification params
   private final PeakListRow row;
   private final IonizationType ionType;
-  private final int charge;
-  private final double mzTolerance;
+  private final MZTolerance mzTolerance;
   private final MolecularFormulaRange range;
 
   // Amount of items to store
@@ -85,21 +85,21 @@ public class SiriusThread implements Runnable {
    * @param latch
    */
   public SiriusThread(PeakListRow row, ParameterSet parameters, Semaphore semaphore, CountDownLatch latch) {
-    this.semaphore = semaphore;
-    this.row = row;
-    charge = parameters.getParameter(PeakListIdentificationParameters.charge).getValue();
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
     range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
     mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
     siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
     fingeridCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
     siriusTimer = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
+    this.semaphore = semaphore;
+    this.row = row;
     this.latch = latch;
   }
 
   @Override
   public void run() {
-    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
+    //TODO: is it correct? or row.getAverageMZ() is better?
+//    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
 
     SpectrumScanner scanner = new SpectrumScanner(row.getBestPeak());
     List<MsSpectrum> ms1 = scanner.getMsList();
@@ -120,8 +120,11 @@ public class SiriusThread implements Runnable {
       if it expires -> log error and continue
     */
     try {
-      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, massValue,
-          siriusIon, siriusCandidates, constraints, mzTolerance);
+      double mz = row.getAverageMZ();
+      double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
+      double deviationPpm = (upperPoint - mz) / (mz * 1E-6);
+      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, row.getAverageMZ(),
+          siriusIon, siriusCandidates, constraints, deviationPpm);
 
       // On some spectra it may never stop (halting problem)
       final Future<List<IonAnnotation>> f = service.submit(() -> {

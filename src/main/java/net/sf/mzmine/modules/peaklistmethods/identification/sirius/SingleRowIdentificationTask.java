@@ -18,7 +18,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.AbstractParameters.ionizationType;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ionizationType;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
@@ -51,6 +51,7 @@ import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -60,19 +61,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SingleRowIdentificationTask extends AbstractTask {
-  public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
+  private static final Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
+  private static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
+  private final PeakListRow peakListRow;
+  private final IonizationType ionType;
+  private final MolecularFormulaRange range;
+  private final Integer fingerCandidates;
+  private final Integer siriusCandidates;
+  private final Double parentMass;
+  private final Double deviationPpm;
   private CountDownLatch latch;
-  private double mzTolerance;
-  private PeakListRow peakListRow;
-  private IonizationType ionType;
-  private MolecularFormulaRange range;
-  private Double parentMass;
-  private Integer fingerCandidates;
-  private Integer siriusCandidates;
   private List<FingerIdWebMethodTask> fingerTasks;
 
-  private static final Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
 
   /**
    * Create the task.
@@ -82,12 +83,16 @@ public class SingleRowIdentificationTask extends AbstractTask {
    */
   public SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
     this.peakListRow = peakListRow;
-    mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
     siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();
     fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES).getValue();
     ionType = parameters.getParameter(ionizationType).getValue();
     parentMass = parameters.getParameter(NEUTRAL_MASS).getValue();
     range = parameters.getParameter(ELEMENTS).getValue();
+
+    MZTolerance mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
+    double mz = peakListRow.getAverageMZ();
+    double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
+    deviationPpm = (upperPoint - mz) / (mz * 1E-6);
   }
 
   /**
@@ -143,7 +148,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
       IonType type = IonTypeUtil.createIonType(ionType.toString());
 
       final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list,
-          parentMass, type, siriusCandidates, constraints, mzTolerance);
+          parentMass, type, siriusCandidates, constraints, deviationPpm);
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();
       });

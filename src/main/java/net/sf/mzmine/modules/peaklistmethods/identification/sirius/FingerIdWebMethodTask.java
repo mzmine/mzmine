@@ -45,25 +45,31 @@ import org.slf4j.LoggerFactory;
 public class FingerIdWebMethodTask extends AbstractTask {
   private static final Logger logger = LoggerFactory.getLogger(FingerIdWebMethodTask.class);
 
-  private final Ms2Experiment experiment;
+  /* Web-request parameters */
   private final SiriusIonAnnotation annotation;
+  private final Ms2Experiment experiment;
   private final String formula;
+  private final Integer candidatesAmount;
+
+  /* Result containers */
   private final ResultWindow window;
   private final PeakListRow row;
-  private final int candidatesAmount;
 
+  /* MSDK-method */
   private FingerIdWebMethod method;
-  private List<IonAnnotation> fingerResults = null;
+
+  /* Concurrency tracker */
   private CountDownLatch latch = null;
 
+  private List<IonAnnotation> fingerResults = null;
 
   /**
    * Constructor for FingerIdWebMethodTask
-   * @param annotation
-   * @param experiment
-   * @param candidatesAmount
-   * @param window
-   * @param row
+   * @param annotation - SiriusIonAnnotation to process by FingerId
+   * @param experiment - contains necessary information for a web-request
+   * @param candidatesAmount - amount of candidates to return from this task
+   * @param window - one of possible result containers
+   * @param row - one of possible result containers
    */
   private FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
       Integer candidatesAmount, ResultWindow window, PeakListRow row) {
@@ -87,7 +93,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param annotation
    * @param experiment
    * @param candidatesAmount
-   * @param window
+   * @param window - Result container for SingleRowIdentificationTask
    */
   public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
       Integer candidatesAmount, ResultWindow window) {
@@ -99,7 +105,7 @@ public class FingerIdWebMethodTask extends AbstractTask {
    * @param annotation
    * @param experiment
    * @param candidatesAmount
-   * @param row
+   * @param row - Result container for PeakListIdentificationTask
    */
   public FingerIdWebMethodTask(SiriusIonAnnotation annotation, Ms2Experiment experiment,
       Integer candidatesAmount, PeakListRow row) {
