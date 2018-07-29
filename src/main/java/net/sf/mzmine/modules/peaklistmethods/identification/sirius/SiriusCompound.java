@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import de.unijena.bioinf.chemdb.DBLink;
-import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 
 import java.awt.Color;
@@ -67,11 +66,10 @@ public class SiriusCompound extends SimplePeakIdentity {
   /**
    * Constructor for SiriusCompound
    * @param annotation
-   * @param score
    */
-  public SiriusCompound(@Nonnull final IonAnnotation annotation) {
+  public SiriusCompound(@Nonnull final SiriusIonAnnotation annotation) {
     super(loadProps(annotation));
-    this.annotation = (SiriusIonAnnotation) annotation;
+    this.annotation = annotation;
     this.preview = generateStructurePreview();
   }
 
@@ -88,11 +86,10 @@ public class SiriusCompound extends SimplePeakIdentity {
   /**
    * Construct parameters from SiriusIonAnnotation
    * Amount of params differ, either it is identified by SiriusIdentificationMethod, or also by FingerIdWebMethod
-   * @param ann
+   * @param annotation
    * @return constructed Hashtable
    */
-  private static Hashtable<String, String> loadProps(final IonAnnotation ann) {
-    SiriusIonAnnotation annotation = (SiriusIonAnnotation) ann;
+  private static Hashtable<String, String> loadProps(final SiriusIonAnnotation annotation) {
     String formula = MolecularFormulaManipulator.getString(annotation.getFormula());
     String siriusScore = String.format("%.4f", annotation.getSiriusScore());
     String name = null;

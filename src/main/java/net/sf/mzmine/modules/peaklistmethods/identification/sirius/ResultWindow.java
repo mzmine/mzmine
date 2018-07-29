@@ -45,6 +45,7 @@ import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.identification.sirius.db.DBFrame;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
@@ -159,6 +160,20 @@ public class ResultWindow extends JFrame implements ActionListener {
 
       String formula = listElementModel.getCompoundAt(realRow).getStringFormula();
       copyToClipboard(formula, "Formula value is null...");
+    }
+
+    if (command.equals("DB_LIST")) {
+      int row = compoundsTable.getSelectedRow();
+
+      if (row < 0) {
+        MZmineCore.getDesktop().displayMessage(this, "Select one result to copy SMILES value");
+        return;
+      }
+      int realRow = compoundsTable.convertRowIndexToModel(row);
+      final SiriusCompound compound = listElementModel.getCompoundAt(realRow);
+
+      DBFrame dbFrame = new DBFrame(compound);
+      dbFrame.setVisible(true);
     }
   }
 

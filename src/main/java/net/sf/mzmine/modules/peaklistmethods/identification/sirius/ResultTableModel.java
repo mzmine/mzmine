@@ -60,7 +60,7 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
   /**
-   * There was used Double.class for score fields, but it did not work properly
+   * There was used Double.class for score fields, but it did not
    * @param column
    * @return
    */
