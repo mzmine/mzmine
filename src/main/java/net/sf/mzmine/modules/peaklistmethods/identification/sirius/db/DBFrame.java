@@ -21,9 +21,12 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius.db;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URI;
+import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -34,15 +37,16 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusCompound;
 import net.sf.mzmine.util.GUIUtils;
 
 public class DBFrame extends JFrame implements ActionListener {
-  private final SiriusCompound compound;
+  private final JTable dbTable;
+  private final DBTableModel model;
 
   public DBFrame(SiriusCompound compound) {
     super("");
-    this.compound = compound;
 
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     setBackground(Color.white);
@@ -63,8 +67,8 @@ public class DBFrame extends JFrame implements ActionListener {
 //      ResultTableSorter sorter = new ResultTableSorter(listElementModel);
 //      compoundsTable.setRowSorter(sorter);
 
-    JTable dbTable = new JTable();
-    DBTableModel model = new DBTableModel();
+    dbTable = new JTable();
+    model = new DBTableModel();
     dbTable.setModel(model);
     dbTable.setRowSorter(new TableRowSorter<>(dbTable.getModel()));
     dbTable.getTableHeader().setReorderingAllowed(false);
@@ -103,7 +107,27 @@ public class DBFrame extends JFrame implements ActionListener {
     String action = e.getActionCommand();
 
     if (action.equals("OPEN_WEB")) {
-      //todo: add browser support
+      int index = dbTable.getSelectedRow();
+
+      if (index < 0) {
+        MZmineCore.getDesktop().displayMessage(this, "Select one result to add as compound identity");
+        return;
+      }
+      int realIndex = dbTable.convertRowIndexToModel(index);
+      DBCompound compound = model.getCompoundAt(realIndex);
+
+      try {
+        URL url = compound.generateURL();
+        if (Desktop.isDesktopSupported()) {
+          Desktop.getDesktop().browse(url.toURI());
+        }
+      } catch (Exception f) {
+        f.printStackTrace();
+        //todo: remove it
+        MZmineCore.getDesktop().displayMessage(this, "Sorry, did not implemented this DB...");
+
+      }
+
     }
   }
 }

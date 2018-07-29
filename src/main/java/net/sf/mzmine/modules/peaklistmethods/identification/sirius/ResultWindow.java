@@ -104,6 +104,7 @@ public class ResultWindow extends JFrame implements ActionListener {
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
     GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "COPY_SMILES");
     GUIUtils.addButton(pnlButtons, "Copy Formula string", null, this, "COPY_FORMULA");
+    GUIUtils.addButton(pnlButtons, "Display DB links", null, this, "DB_LIST");
 
     setLayout(new BorderLayout());
     setSize(500, 200);
