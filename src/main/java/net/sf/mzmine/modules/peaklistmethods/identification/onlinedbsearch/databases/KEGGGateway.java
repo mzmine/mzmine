@@ -36,10 +36,10 @@ import com.google.common.collect.Range;
 
 public class KEGGGateway implements DBGateway {
 
+		public static final String keggEntryAddress = "http://www.kegg.jp/entry/";
     private static final String keggFindAddress1 = "http://rest.kegg.jp/find/compound/";
     private static final String keggFindAddress2 = "/exact_mass";
     private static final String keggGetAddress = "http://rest.kegg.jp/get/";
-    private static final String keggEntryAddress = "http://www.kegg.jp/entry/";
 
     private static final String kegg2DStructureAddress = "https://www.genome.jp/dbget-bin/www_bget?-f+m+compound+";
     private static final String met3DStructureAddress1 = "http://www.3dmet.dna.affrc.go.jp/pdb/";

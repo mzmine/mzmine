@@ -36,8 +36,8 @@ import com.google.common.collect.Range;
 
 public class YMDBGateway implements DBGateway {
 
+		public static final String ymdbEntryAddress = "http://www.ymdb.ca/structures/structures/compounds/";
     private static final String ymdbSeachAddress = "http://www.ymdb.ca/structures/search/compounds/mass?";
-    private static final String ymdbEntryAddress = "http://www.ymdb.ca/structures/structures/compounds/";
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
