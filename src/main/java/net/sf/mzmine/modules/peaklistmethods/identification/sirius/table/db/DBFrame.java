@@ -86,9 +86,8 @@ public class DBFrame extends JFrame implements ActionListener {
     add(pnlLabelsAndList, BorderLayout.CENTER);
     add(pnlButtons, BorderLayout.SOUTH);
 
-    int x = button.getBounds().x;
-    int y = button.getBounds().y;
-    setBounds(x, y, 400, 250);
+    setSize(400, 250);
+    setLocation(button.getLocationOnScreen());
     pack();
 
     SwingUtilities.invokeLater(new Runnable() {

@@ -42,7 +42,7 @@ public class ResultTableModel extends AbstractTableModel {
   private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
   private JTable table;
 
-  ResultTableModel() {
+  public ResultTableModel() {
     percentFormat.setMaximumFractionDigits(1);
   }
 
