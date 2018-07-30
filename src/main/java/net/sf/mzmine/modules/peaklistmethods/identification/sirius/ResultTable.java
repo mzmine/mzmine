@@ -68,8 +68,6 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
     int column = columnAtPoint(p);
 
     if (column == ResultTableModel.PREVIEW_INDEX) {
-//      int row = rowAtPoint(p);
-//      int realRow = convertRowIndexToModel(row);
       return "PRINT_IMAGE";
     }
 

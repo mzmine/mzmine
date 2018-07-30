@@ -22,11 +22,9 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius.db;
 import java.net.MalformedURLException;
 import java.net.URL;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.HMDBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.KEGGGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.LipidMapsGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.PubChemGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.YMDBGateway;
 
 public class SiriusDBCompound extends SimplePeakIdentity {
   private final static String PUBCHEM = "PubChem";
@@ -43,12 +41,12 @@ public class SiriusDBCompound extends SimplePeakIdentity {
 
   private final static String PUBCHEM_ENTRY = PubChemGateway.pubchemEntryAddress;
   private final static String KEGG_ENTRY = KEGGGateway.keggEntryAddress;
-  private final static String HMDB_ENTRY = HMDBGateway.hmdbEntryAddress;
-  private final static String YMDB_ENTRY = YMDBGateway.ymdbEntryAddress;
+  private final static String HMDB_ENTRY = "http://www.hmdb.ca/metabolites/HMDB0000000";
+  private final static String YMDB_ENTRY = "http://www.ymdb.ca/compounds/YMDB00000";
   private final static String LIPID_MAPS_ENTRY = LipidMapsGateway.lipidMapsEntryAddress;
   private final static String CHEBI_ENTRY = "https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:";
-  private final static String KNAPSACK_ENTRY = "http://kanaya.naist.jp/knapsack_jsp/information.jsp?word=C0000";
-  private final static String NATURAL_RPODUCTS_ENTRY = "https://gnps.ucsd.edu/ProteoSAFe/gnpslibraryspectrum.jsp?SpectrumID=CCMSLIB000000";
+  private final static String KNAPSACK_ENTRY = "http://kanaya.naist.jp/knapsack_jsp/information.jsp?word=C00000000";
+  private final static String NATURAL_RPODUCTS_ENTRY = "https://gnps.ucsd.edu/ProteoSAFe/gnpslibraryspectrum.jsp?SpectrumID=CCMSLIB00000000000";
   private final static String HSDB_ENTRY = ""; // TODO: implement!
   private final static String PLANTCYC_ENTRY = "https://pmn.plantcyc.org/compound?orgid=PLANT&id=";
   private final static String BIOCYC_ENTRY = "https://biocyc.org/compound?orgid=META&id=";
@@ -71,6 +69,7 @@ public class SiriusDBCompound extends SimplePeakIdentity {
 
   public URL generateURL() throws MalformedURLException {
     String entry = "";
+    int symbols = id.length();
     switch(db) {
       case PUBCHEM:
         entry = PUBCHEM_ENTRY;
@@ -83,22 +82,27 @@ public class SiriusDBCompound extends SimplePeakIdentity {
         break;
       case YMDB:
         entry = YMDB_ENTRY;
+        entry = entry.substring(0, entry.length() - symbols);
         break;
       case LIPID_MAPS:
         entry = LIPID_MAPS_ENTRY;
         break;
       case HMDB:
         entry = HMDB_ENTRY;
+        entry = entry.substring(0, entry.length() - symbols);
         break;
 //      case HSDB:
 //        entry = HSDB_ENTRY;
 //        break;
       case KNAPSACK:
         entry = KNAPSACK_ENTRY;
+        entry = entry.substring(0, entry.length() - symbols);
         break;
       case NATURAL_PRODUCTS:
         entry = NATURAL_RPODUCTS_ENTRY;
-        String modifiedId = id.substring(4); // End of UNPD substring
+        String modifiedId = id.substring(4, id.length()); // End of UNPD substring
+        symbols = modifiedId.length();
+        entry = entry.substring(0, entry.length() - symbols);
         return new URL(entry + modifiedId);
       case PLANTCYC:
         entry = PLANTCYC_ENTRY;

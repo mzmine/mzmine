@@ -167,7 +167,7 @@ public class ResultWindow extends JFrame implements ActionListener {
       int row = compoundsTable.getSelectedRow();
 
       if (row < 0) {
-        MZmineCore.getDesktop().displayMessage(this, "Select one result to copy SMILES value");
+        MZmineCore.getDesktop().displayMessage(this, "Select one row to display the list DBs");
         return;
       }
       int realRow = compoundsTable.convertRowIndexToModel(row);

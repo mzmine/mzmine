@@ -45,7 +45,7 @@ public class DBFrame extends JFrame implements ActionListener {
   private final DBTableModel model;
 
   public DBFrame(SiriusCompound compound) {
-    super("");
+    super("Database links");
 
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     setBackground(Color.white);
