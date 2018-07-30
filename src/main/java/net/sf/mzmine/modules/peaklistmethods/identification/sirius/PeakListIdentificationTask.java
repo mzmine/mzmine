@@ -140,7 +140,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * @param amount of identities to be added from list
    */
   public synchronized static void addSiriusCompounds(@Nonnull List<IonAnnotation> annotations, @Nonnull PeakListRow row, int amount) {
-    for (int i = 0; i < amount; i++) { //todo: add howManyTopResultsToStore
+    for (int i = 0; i < amount; i++) {
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation);
       row.addPeakIdentity(compound, false);

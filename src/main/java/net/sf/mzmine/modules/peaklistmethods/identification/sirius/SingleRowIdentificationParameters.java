@@ -40,7 +40,8 @@ public class SingleRowIdentificationParameters extends SiriusParameters {
         MZ_TOLERANCE,
         SIRIUS_CANDIDATES,
         FINGERID_CANDIDATES,
-        ELEMENTS
+        ELEMENTS,
+        SIRIUS_TIMEOUT
     });
   }
 }

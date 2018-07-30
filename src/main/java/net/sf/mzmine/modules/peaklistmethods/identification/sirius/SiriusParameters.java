@@ -47,6 +47,12 @@ public abstract class SiriusParameters extends SimpleParameterSet {
   public static final ElementsParameter ELEMENTS = new ElementsParameter(
       "Elements", "Elements and ranges");
 
+  public static final IntegerParameter SIRIUS_TIMEOUT =
+      new IntegerParameter(
+          "Timer for Sirius task", "Specify the amount of seconds, during which Sirius should finish processing of the row",
+          10
+      );
+
   static {
     ELEMENTS.setValue(createDefaultElements());
   }

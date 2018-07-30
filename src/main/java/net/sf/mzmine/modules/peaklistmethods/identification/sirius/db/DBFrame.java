@@ -25,7 +25,6 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URI;
 import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -54,18 +53,6 @@ public class DBFrame extends JFrame implements ActionListener {
     JPanel pnlLabelsAndList = new JPanel(new BorderLayout());
     pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     pnlLabelsAndList.add(new JLabel("List of databases with IDs"), BorderLayout.NORTH);
-
-//      compoundsTable = new ResultTable();
-//      listElementModel = new ResultTableModel(compoundsTable);
-
-    /* Configure table */
-//      compoundsTable.setModel(listElementModel);
-//      compoundsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//      compoundsTable.getTableHeader().setReorderingAllowed(false);
-
-    /* Sorter orders by FingerID score by default */
-//      ResultTableSorter sorter = new ResultTableSorter(listElementModel);
-//      compoundsTable.setRowSorter(sorter);
 
     dbTable = new JTable();
     model = new DBTableModel();
@@ -114,7 +101,7 @@ public class DBFrame extends JFrame implements ActionListener {
         return;
       }
       int realIndex = dbTable.convertRowIndexToModel(index);
-      DBCompound compound = model.getCompoundAt(realIndex);
+      SiriusDBCompound compound = model.getCompoundAt(realIndex);
 
       try {
         URL url = compound.generateURL();
@@ -125,9 +112,7 @@ public class DBFrame extends JFrame implements ActionListener {
         f.printStackTrace();
         //todo: remove it
         MZmineCore.getDesktop().displayMessage(this, "Sorry, did not implemented this DB...");
-
       }
-
     }
   }
 }

@@ -99,7 +99,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
   public double getFinishedPercentage() {
-    //TODO: refactor
     if (isFinished())
       return 1.0;
     else if (fingerTasks != null) {

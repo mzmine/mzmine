@@ -30,7 +30,7 @@ public class DBTableModel extends AbstractTableModel {
   public static final int DB_NAME = 0;
   public static final int DB_INDEX = 1;
 
-  private Vector<DBCompound> compounds = new Vector<DBCompound>();
+  private Vector<SiriusDBCompound> compounds = new Vector<SiriusDBCompound>();
 
   public String getColumnName(int col) {
     return columnNames[col];
@@ -51,7 +51,7 @@ public class DBTableModel extends AbstractTableModel {
   @Override
   public Object getValueAt(int row, int col) {
     Object value = null;
-    DBCompound compound = compounds.get(row);
+    SiriusDBCompound compound = compounds.get(row);
     switch (col) {
       case DB_NAME:
         value = compound.getDB();
@@ -67,7 +67,7 @@ public class DBTableModel extends AbstractTableModel {
   public void addElement(SiriusCompound compound) {
     SiriusIonAnnotation annotation = compound.getIonAnnotation();
     for (DBLink link: annotation.getDBLinks()) {
-      compounds.add(new DBCompound(link.name, link.id));
+      compounds.add(new SiriusDBCompound(link.name, link.id));
       fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
     }
   }
@@ -79,7 +79,7 @@ public class DBTableModel extends AbstractTableModel {
   public void setValueAt(Object value, int row, int col) {
   }
 
-  public DBCompound getCompoundAt(int row) {
+  public SiriusDBCompound getCompoundAt(int row) {
     return compounds.get(row);
   }
 }

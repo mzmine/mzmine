@@ -20,8 +20,6 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.db;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.HMDBGateway;
@@ -30,7 +28,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.datab
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.PubChemGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.YMDBGateway;
 
-public class DBCompound extends SimplePeakIdentity {
+public class SiriusDBCompound extends SimplePeakIdentity {
   private final static String PUBCHEM = "PubChem";
   private final static String KEGG = "KEGG";
   private final static String CHEBI = "CHEBI";
@@ -58,7 +56,7 @@ public class DBCompound extends SimplePeakIdentity {
   private final String db;
   private final String id;
 
-  public DBCompound(String DB, String ID) {
+  public SiriusDBCompound(String DB, String ID) {
     this.db = DB;
     this.id = ID;
   }

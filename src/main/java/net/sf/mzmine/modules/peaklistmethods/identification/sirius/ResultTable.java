@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import java.awt.Component;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -30,6 +31,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
 import net.sf.mzmine.util.components.ComponentToolTipManager;
 import net.sf.mzmine.util.components.ComponentToolTipProvider;
 
@@ -44,11 +46,34 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
 
     ttm = new ComponentToolTipManager();
     ttm.registerComponent(this);
+
   }
+
+//  @Override
+//  public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
+//    int realRow = this.convertRowIndexToModel(row);
+//    Object preview = this.getModel().getValueAt(realRow, col);
+//    if (preview != null) {
+//      Component comp = super.prepareRenderer(renderer, row, col);
+//      comp.getToolkit().
+//    }
+//
+//    return null;
+//  }
+
 
   @Override
   public String getToolTipText(MouseEvent e) {
-    return "PRINT_IMAGE";
+    Point p = e.getPoint();
+    int column = columnAtPoint(p);
+
+    if (column == ResultTableModel.PREVIEW_INDEX) {
+//      int row = rowAtPoint(p);
+//      int realRow = convertRowIndexToModel(row);
+      return "PRINT_IMAGE";
+    }
+
+    return null;
   }
 
   public JComponent getCustomToolTipComponent(MouseEvent event) {
@@ -70,13 +95,7 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
       Object shortcut = compound.getPreview();
       if (shortcut != null) {
         long hash = shortcut.hashCode();
-//        String smiles = compound.getSMILES();
-//        String inchi = compound.getInchi();
-//        String name = compound.getName();
-//        if (name == null)
-//          name = compound.getStringFormula();
 
-        //todo: check this.
         JLabel label = new JLabel();
         Image img = getIconImage(hash);
         if (img != null) {
