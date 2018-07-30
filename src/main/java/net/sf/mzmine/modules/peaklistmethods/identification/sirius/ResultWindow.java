@@ -45,7 +45,7 @@ import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.identification.sirius.db.DBFrame;
+import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.db.DBFrame;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTable;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.SiriusCompound;

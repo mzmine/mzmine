@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.sirius.db;
+package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.db;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -25,6 +25,8 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -40,8 +42,12 @@ import javax.swing.table.TableRowSorter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.SiriusCompound;
 import net.sf.mzmine.util.GUIUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DBFrame extends JFrame implements ActionListener {
+  private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
+
   private final JTable dbTable;
   private final DBTableModel model;
 
@@ -108,13 +114,15 @@ public class DBFrame extends JFrame implements ActionListener {
 
       try {
         URL url = compound.generateURL();
+        if (url == null)
+          throw new RuntimeException("Unsupported DB");
         if (Desktop.isDesktopSupported()) {
           Desktop.getDesktop().browse(url.toURI());
         }
-      } catch (Exception f) {
-        f.printStackTrace();
-        //todo: remove it
-        MZmineCore.getDesktop().displayMessage(this, "Sorry, did not implemented this DB...");
+      } catch (RuntimeException f) {
+        MZmineCore.getDesktop().displayMessage(this, "Not supported Database");
+      } catch (URISyntaxException | IOException d) {
+        logger.error("Error happened on opening db link for {} : {}", compound.getDB(), compound.getID());
       }
     }
   }
