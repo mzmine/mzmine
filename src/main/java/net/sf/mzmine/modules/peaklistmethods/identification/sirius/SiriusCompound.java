@@ -173,16 +173,17 @@ public class SiriusCompound extends SimplePeakIdentity {
    * Render list of dbs in readable form
    * @return one String (rows in form of DB names : db IDs)
    */
-  public Object getDBS() {
-    StringBuilder b = new StringBuilder();
-    DBLink[] dblinks = annotation.getDBLinks();
-    if (dblinks != null) {
-      for (DBLink link : dblinks)
-        b.append(String.format("%s : %s, ", link.name, link.id));
-      return b.toString();
+  public String[] getDBS() {
+    DBLink[] dblinks = getIonAnnotation().getDBLinks();
+    if (dblinks == null)
+      return null;
+
+    String[] dbs = new String[dblinks.length];
+    for (int i = 0; i < dbs.length; i++) {
+      dbs[i] = String.format("%s : %s", dblinks[i].name, dblinks[i].id);
     }
 
-    return null;
+    return dbs;
   }
 
   /**
@@ -203,7 +204,7 @@ public class SiriusCompound extends SimplePeakIdentity {
    * Getter for preview ImageIcon object
    * @return shortcut ImageIcon object
    */
-  public Object getPreview() {
+  public ImageIcon getPreview() {
     return preview;
   }
 
@@ -269,14 +270,14 @@ public class SiriusCompound extends SimplePeakIdentity {
    * FingerId score had negative value, the closer it is to 0, the better result is (Ex.: -115.23)
    * @return FingerId score, if exists
    */
-  public Object getFingerIdScore() {
+  public String getFingerIdScore() {
     return getPropertyValue("FingerId score");
   }
 
   /**
    * @return Sirius score
    */
-  public Object getSiriusScore() {
+  public String getSiriusScore() {
     return getPropertyValue("Sirius score");
   }
 }

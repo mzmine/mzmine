@@ -38,14 +38,18 @@ public class ResultTableModel extends AbstractTableModel {
   public static final int PREVIEW_INDEX = 5;
 
 
-  private final JTable table;
   private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
   private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
+  private JTable table;
 
-  ResultTableModel(JTable table) {
-    this.table = table;
+  ResultTableModel() {
     percentFormat.setMaximumFractionDigits(1);
   }
+
+  public void setTable(JTable table) {
+    this.table = table;
+  }
+
 
   public String getColumnName(int col) {
     return columnNames[col];
@@ -67,7 +71,9 @@ public class ResultTableModel extends AbstractTableModel {
   @Override
   public Class getColumnClass(int column) {
     switch (column) {
-      case 5:
+      case DBS_INDEX:
+        return String[].class;
+      case PREVIEW_INDEX:
         return ImageIcon.class;
       default:
         return String.class;

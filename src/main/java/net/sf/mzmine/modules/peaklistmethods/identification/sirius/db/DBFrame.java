@@ -28,6 +28,7 @@ import java.awt.event.ActionListener;
 import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -44,7 +45,7 @@ public class DBFrame extends JFrame implements ActionListener {
   private final JTable dbTable;
   private final DBTableModel model;
 
-  public DBFrame(SiriusCompound compound) {
+  public DBFrame(SiriusCompound compound, JButton button) {
     super("Database links");
 
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -75,11 +76,13 @@ public class DBFrame extends JFrame implements ActionListener {
     pnlButtons.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     GUIUtils.addButton(pnlButtons, "Open browser", null, this, "OPEN_WEB");
-
     setLayout(new BorderLayout());
-    setSize(400, 250);
     add(pnlLabelsAndList, BorderLayout.CENTER);
     add(pnlButtons, BorderLayout.SOUTH);
+
+    int x = button.getBounds().x;
+    int y = button.getBounds().y;
+    setBounds(x, y, 400, 250);
     pack();
 
     SwingUtilities.invokeLater(new Runnable() {

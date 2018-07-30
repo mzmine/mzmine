@@ -36,6 +36,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -56,6 +57,7 @@ public class ResultWindow extends JFrame implements ActionListener {
    *
    */
   private static final long serialVersionUID = 1L;
+  private final JButton browse;
 
   private ResultTableModel listElementModel;
   private PeakListRow peakListRow;
@@ -76,17 +78,9 @@ public class ResultWindow extends JFrame implements ActionListener {
     pnlLabelsAndList.add(new JLabel("List of possible identities"), BorderLayout.NORTH);
 
 
-    compoundsTable = new ResultTable();
-    listElementModel = new ResultTableModel(compoundsTable);
-
-    /* Configure table */
-    compoundsTable.setModel(listElementModel);
-    compoundsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    compoundsTable.getTableHeader().setReorderingAllowed(false);
-
-    /* Sorter orders by FingerID score by default */
-    ResultTableSorter sorter = new ResultTableSorter(listElementModel);
-    compoundsTable.setRowSorter(sorter);
+    listElementModel = new ResultTableModel();
+    compoundsTable = new ResultTable(listElementModel);
+    listElementModel.setTable(compoundsTable);
 
     JScrollPane listScroller = new JScrollPane(compoundsTable);
     listScroller.setPreferredSize(new Dimension(800, 400));
@@ -104,7 +98,11 @@ public class ResultWindow extends JFrame implements ActionListener {
     GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
     GUIUtils.addButton(pnlButtons, "Copy SMILES string", null, this, "COPY_SMILES");
     GUIUtils.addButton(pnlButtons, "Copy Formula string", null, this, "COPY_FORMULA");
-    GUIUtils.addButton(pnlButtons, "Display DB links", null, this, "DB_LIST");
+    browse = new JButton("Display DB links");
+    browse.setActionCommand("DB_LIST");
+    browse.addActionListener(this);
+    pnlButtons.add(browse);
+//    GUIUtils.addButton(pnlButtons, "Display DB links", null, this, "DB_LIST");
 
     setLayout(new BorderLayout());
     setSize(500, 200);
@@ -173,7 +171,7 @@ public class ResultWindow extends JFrame implements ActionListener {
       int realRow = compoundsTable.convertRowIndexToModel(row);
       final SiriusCompound compound = listElementModel.getCompoundAt(realRow);
 
-      DBFrame dbFrame = new DBFrame(compound);
+      DBFrame dbFrame = new DBFrame(compound, browse);
       dbFrame.setVisible(true);
     }
   }

@@ -23,7 +23,9 @@ import java.awt.Component;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+
 import java.util.Hashtable;
+
 import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -31,6 +33,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+
 import javax.swing.table.TableCellRenderer;
 import net.sf.mzmine.util.components.ComponentToolTipManager;
 import net.sf.mzmine.util.components.ComponentToolTipProvider;
@@ -38,15 +42,24 @@ import net.sf.mzmine.util.components.ComponentToolTipProvider;
 public class ResultTable extends JTable implements ComponentToolTipProvider {
   private Hashtable<Long, Image> images;
   private ComponentToolTipManager ttm;
+  private ResultTableModel listElementModel;
 
 
-  public ResultTable() {
-    super();
+  public ResultTable(ResultTableModel model) {
+    super(model);
+    this.listElementModel = model;
     images = new Hashtable<>(10);
 
     ttm = new ComponentToolTipManager();
     ttm.registerComponent(this);
 
+    setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    getTableHeader().setReorderingAllowed(false);
+    setDefaultRenderer(String[].class, new MultiLineTableCellRenderer());
+
+     /* Sorter orders by FingerID score by default */
+    ResultTableSorter sorter = new ResultTableSorter(listElementModel);
+    setRowSorter(sorter);
   }
 
 //  @Override
