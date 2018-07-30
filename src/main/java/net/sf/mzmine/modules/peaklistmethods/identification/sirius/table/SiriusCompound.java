@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
+package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
 import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import java.util.Set;
+import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import javax.swing.ImageIcon;
 
@@ -178,10 +180,13 @@ public class SiriusCompound extends SimplePeakIdentity {
     if (dblinks == null)
       return null;
 
-    String[] dbs = new String[dblinks.length];
-    for (int i = 0; i < dbs.length; i++) {
-      dbs[i] = String.format("%s : %s", dblinks[i].name, dblinks[i].id);
-    }
+    Set<String> dbNames = new TreeSet<String>();
+
+    for (DBLink link: dblinks)
+      dbNames.add(link.name);
+
+    String[] dbs = new String[dbNames.size()];
+    dbs = dbNames.toArray(dbs);
 
     return dbs;
   }

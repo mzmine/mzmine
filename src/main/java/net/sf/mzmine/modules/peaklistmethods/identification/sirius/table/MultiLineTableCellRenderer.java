@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
+package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
 import java.awt.Component;
 import javax.swing.JList;
@@ -34,12 +34,12 @@ public class MultiLineTableCellRenderer extends JList<String> implements TableCe
       setListData((String[]) value);
     }
 
-    //cell backgroud color when selected
-    if (isSelected) {
-      setBackground(UIManager.getColor("Table.selectionBackground"));
-    } else {
-      setBackground(UIManager.getColor("Table.background"));
-    }
+//    //cell backgroud color when selected
+//    if (isSelected) {
+//      setBackground(UIManager.getColor("Table.selectionBackground"));
+//    } else {
+//      setBackground(UIManager.getColor("Table.background"));
+//    }
 
     return this;
   }

@@ -17,9 +17,8 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
+package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
-import java.awt.Component;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -35,7 +34,6 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
-import javax.swing.table.TableCellRenderer;
 import net.sf.mzmine.util.components.ComponentToolTipManager;
 import net.sf.mzmine.util.components.ComponentToolTipProvider;
 
@@ -61,19 +59,6 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
     ResultTableSorter sorter = new ResultTableSorter(listElementModel);
     setRowSorter(sorter);
   }
-
-//  @Override
-//  public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
-//    int realRow = this.convertRowIndexToModel(row);
-//    Object preview = this.getModel().getValueAt(realRow, col);
-//    if (preview != null) {
-//      Component comp = super.prepareRenderer(renderer, row, col);
-//      comp.getToolkit().
-//    }
-//
-//    return null;
-//  }
-
 
   @Override
   public String getToolTipText(MouseEvent e) {

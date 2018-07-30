@@ -23,7 +23,7 @@ import de.unijena.bioinf.chemdb.DBLink;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
-import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusCompound;
+import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.SiriusCompound;
 
 public class DBTableModel extends AbstractTableModel {
   private static final String[] columnNames = {"Database", "Index"};
