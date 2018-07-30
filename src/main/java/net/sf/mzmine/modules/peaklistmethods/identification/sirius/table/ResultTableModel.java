@@ -24,6 +24,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+import net.sf.mzmine.main.MZmineCore;
 
 public class ResultTableModel extends AbstractTableModel {
 
@@ -38,12 +39,12 @@ public class ResultTableModel extends AbstractTableModel {
   public static final int PREVIEW_INDEX = 5;
 
 
-  private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+  private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
   private JTable table;
 
   public ResultTableModel() {
-    percentFormat.setMaximumFractionDigits(1);
+    mzFormat.setMaximumFractionDigits(1);
   }
 
   public void setTable(JTable table) {
