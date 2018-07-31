@@ -276,7 +276,10 @@ public class SiriusCompound extends SimplePeakIdentity {
    * @return FingerId score, if exists
    */
   public String getFingerIdScore() {
-    return getPropertyValue("FingerId score");
+    String val = getPropertyValue("FingerId score");
+    if (val == null)
+      return "";
+    return val;
   }
 
   /**

@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.SIRIUS_TIMEOUT;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ionizationType;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
@@ -71,6 +72,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private final Integer siriusCandidates;
   private final Double parentMass;
   private final Double deviationPpm;
+  private final Integer timer;
   private CountDownLatch latch;
   private List<FingerIdWebMethodTask> fingerTasks;
 
@@ -88,6 +90,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     ionType = parameters.getParameter(ionizationType).getValue();
     parentMass = parameters.getParameter(NEUTRAL_MASS).getValue();
     range = parameters.getParameter(ELEMENTS).getValue();
+    timer = parameters.getParameter(SIRIUS_TIMEOUT).getValue();
 
     MZTolerance mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
     double mz = peakListRow.getAverageMZ();
@@ -134,8 +137,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<MsSpectrum> ms2list = scanner.getMsMsList();
 
     /* Debug */
-//    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
-//    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
+//    scanner.saveSpectrum(scanner.getPeakName() + "_ms1.txt", 1);
+//    scanner.saveSpectrum(scanner.getPeakName() + "_ms2.txt", 2);
 
     final ExecutorService service = Executors.newSingleThreadExecutor();
     SiriusIdentificationMethod siriusMethod = null;
@@ -151,10 +154,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();
       });
-      siriusResults = f.get(40, TimeUnit.SECONDS);
+      siriusResults = f.get(timer, TimeUnit.SECONDS);
       siriusMethod = method;
     } catch (InterruptedException|TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
+      MZmineCore.getDesktop().displayMessage(window, "Timer expired",
+          "Processing of the peaklist with mass " + parentMass + " by Sirius module expired.\n"
+              + "Reinitialize the task with larger timer value.");
       ie.printStackTrace();
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");

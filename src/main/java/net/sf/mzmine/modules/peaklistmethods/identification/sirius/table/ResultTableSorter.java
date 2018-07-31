@@ -25,7 +25,7 @@ import javax.swing.table.TableRowSorter;
 public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
 
   public ResultTableSorter(ResultTableModel model) {
-    setModel(model);
+    super(model);
 
     /**
      * Sets a comparator for sirius results
@@ -34,16 +34,16 @@ public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
     this.setComparator(ResultTableModel.SIRIUS_SCORE_INDEX, new Comparator<String>() {
       @Override
       public int compare(String s1, String s2) {
+        if (s1 == null && s2 == null)
+          return 0;
+        if (s1 == null)
+          return 1;
+        if (s2 == null)
+          return -1;
+
         Double d1 = Double.parseDouble(s1);
         Double d2 = Double.parseDouble(s2);
-
-        if (d1 == null && d2 == null)
-          return 0;
-        if (d1 == null)
-          return -1;
-        if (d2 == null)
-          return 1;
-        return (int)(d1 - d2);
+        return d1.compareTo(d2);
       }
     });
 
@@ -54,18 +54,18 @@ public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
     this.setComparator(ResultTableModel.FINGERID_SCORE_INDEX, new Comparator<String>() {
       @Override
       public int compare(String s1, String s2) {
+        if (s1.equals("") && s2.equals(""))
+          return 0;
+        if (s1.equals(""))
+          return 1;
+        if (s2.equals(""))
+          return -1;
+
         Double d1 = Double.parseDouble(s1);
         Double d2 = Double.parseDouble(s2);
-
-        if (d1 == null && d2 == null)
-          return 0;
-        if (d1 == null)
-          return -1;
-        if (d2 == null)
-          return 1;
-        return (int)(d2 - d1);
+        return d2.compareTo(d1);
       }
     });
-    toggleSortOrder(4);
+    toggleSortOrder(ResultTableModel.FINGERID_SCORE_INDEX);
   }
 }
