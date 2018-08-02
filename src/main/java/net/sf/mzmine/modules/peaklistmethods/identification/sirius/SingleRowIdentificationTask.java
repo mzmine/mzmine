@@ -133,12 +133,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     SpectrumScanner scanner = new SpectrumScanner(peakListRow);
     List<MsSpectrum> ms1list = scanner.getMsList();
-//    List<MsSpectrum> ms1list = null;
     List<MsSpectrum> ms2list = scanner.getMsMsList();
-
-    /* Debug */
-//    scanner.saveSpectrum(scanner.getPeakName() + "_ms1.txt", 1);
-//    scanner.saveSpectrum(scanner.getPeakName() + "_ms2.txt", 2);
 
     final ExecutorService service = Executors.newSingleThreadExecutor();
     SiriusIdentificationMethod siriusMethod = null;

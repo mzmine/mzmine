@@ -174,24 +174,4 @@ public class SpectrumScanner {
     spectrum.setDataPoints(mz, intensity, points.length);
     return spectrum;
   }
-
-//   TEMP FUNCTION
-//  public void saveSpectrum(String filename, int level) {
-//    int index = (level == 2) ? ms2index : ms1index;
-//    if (!indexExists(index))
-//      return;
-//
-//    Scan scan = rawfile.getScan(index);
-//    DataPoint[] points = scan.getDataPoints();
-//
-//    try {
-//      FileWriter fw = new FileWriter(new File(filename));
-//      for (DataPoint point: points)
-//        fw.write(String.format("%f %f\n", point.getMZ(), point.getIntensity()));
-//      fw.close();
-//    } catch (Exception e) {
-//      System.out.println("Suffering");
-//    }
-//  }
-
 }

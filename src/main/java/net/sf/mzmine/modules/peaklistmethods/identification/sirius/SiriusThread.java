@@ -98,16 +98,9 @@ public class SiriusThread implements Runnable {
 
   @Override
   public void run() {
-    //TODO: is it correct? or row.getAverageMZ() is better?
-//    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
-
     SpectrumScanner scanner = new SpectrumScanner(row);
     List<MsSpectrum> ms1 = scanner.getMsList();
     List<MsSpectrum> ms2 = scanner.getMsMsList();
-
-    /* Debug */
-//    processor.saveSpectrum(processor.getPeakName() + "_ms1.txt", 1);
-//    processor.saveSpectrum(processor.getPeakName() + "_ms2.txt", 2);
 
     FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
     IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
