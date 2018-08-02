@@ -43,7 +43,7 @@ public class SpectrumScanner {
   private final List<MsSpectrum> ms1list;
   private final List<MsSpectrum> ms2list;
   private final HashMap<String, int[]> fragmentScans;
-  private final String massListName = "masses MS2";
+  private final String massListName = "masses MS2"; // Used the value from ExportSirius module.
 
   /**
    * Constructor for SpectrumScanner
@@ -58,6 +58,11 @@ public class SpectrumScanner {
     processRow();
   }
 
+  /**
+   * Function taken from SiriusExportTask class, getFragmentScans()
+   * @param rawDataFiles
+   * @return
+   */
   private HashMap<String,int[]> getFragmentScans(RawDataFile[] rawDataFiles) {
     final HashMap<String, int[]> fragmentScans = new HashMap<>();
     for (RawDataFile r : rawDataFiles) {
@@ -77,10 +82,19 @@ public class SpectrumScanner {
   }
 
 
+  /**
+   * Method processes a row and construct MS1 MS2 lists
+   */
   private void processRow() {
-    MsSpectrum isotopePattern = buildSpectrum(row.getBestPeak().getIsotopePattern().getDataPoints());
+    // Specify the Isotope Pattern (in form of MS1 spectrum)
+    MsSpectrum isotopePattern = buildSpectrum(row.getBestPeak()
+        .getIsotopePattern().getDataPoints());
     ms1list.add(isotopePattern);
 
+    /*
+      Process features, retrieve scans and write spectra. Only MS level 2.
+      Code taken from SiriusExportTask -> exportPeakListRow(...)
+     */
     for (Feature f : row.getPeaks()) {
       if (f.getFeatureStatus() == Feature.FeatureStatus.DETECTED
           && f.getMostIntenseFragmentScanNumber() >= 0) {
@@ -89,8 +103,7 @@ public class SpectrumScanner {
         int[] fs = fragmentScans.get(f.getDataFile().getName());
         int startWith = scanNumbers[0];
         int j = Arrays.binarySearch(fs, startWith);
-        if (j < 0)
-          j = (-j - 1);
+        if (j < 0) j = (-j - 1);
         for (int k = j; k < fs.length; ++k) {
           final Scan scan = f.getDataFile().getScan(fs[k]);
           if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) {
@@ -161,6 +174,11 @@ public class SpectrumScanner {
     return buildSpectrum(points);
   }
 
+  /**
+   * Construct MsSpectrum object from DataPoint array
+   * @param points MZ/Intensity pairs
+   * @return new MsSpectrum
+   */
   private MsSpectrum buildSpectrum(DataPoint[] points) {
     SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
     double mz[] = new double[points.length];
