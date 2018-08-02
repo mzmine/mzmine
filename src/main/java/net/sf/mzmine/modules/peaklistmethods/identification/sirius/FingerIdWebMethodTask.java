@@ -84,7 +84,11 @@ public class FingerIdWebMethodTask extends AbstractTask {
     formula = MolecularFormulaManipulator.getString(annotation.getFormula());
   }
 
-  public void setLatch(CountDownLatch latch) {
+  /**
+   * Set the barrier, the main Task will wait until all of them finish
+   * @param latch
+   */
+  public void setLatch(final CountDownLatch latch) {
     this.latch = latch;
   }
 

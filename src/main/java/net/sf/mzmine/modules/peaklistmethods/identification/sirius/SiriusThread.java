@@ -60,13 +60,16 @@ import org.slf4j.LoggerFactory;
  */
 public class SiriusThread implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(SiriusThread.class);
+
+  // Use executor to run Sirius Identification Method as an Interruptable thread.
+  // Otherwise it may compute for too long (or even forever).
   private static final ExecutorService service = Executors.newSingleThreadExecutor();
 
   // Identification params
   private final PeakListRow row;
   private final IonizationType ionType;
-  private final MZTolerance mzTolerance;
   private final MolecularFormulaRange range;
+  private final Double deviationPpm;
 
   // Amount of items to store
   private final int siriusCandidates;
@@ -87,13 +90,17 @@ public class SiriusThread implements Runnable {
   public SiriusThread(PeakListRow row, ParameterSet parameters, Semaphore semaphore, CountDownLatch latch) {
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
     range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
-    mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
     siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
     fingeridCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
     siriusTimer = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
     this.semaphore = semaphore;
     this.row = row;
     this.latch = latch;
+
+    MZTolerance mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
+    double mz = row.getAverageMZ();
+    double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
+    deviationPpm = (upperPoint - mz) / (mz * 1E-6);
   }
 
   @Override
@@ -113,13 +120,11 @@ public class SiriusThread implements Runnable {
       if it expires -> log error and continue
     */
     try {
-      double mz = row.getAverageMZ();
-      double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
-      double deviationPpm = (upperPoint - mz) / (mz * 1E-6);
+
       final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, row.getAverageMZ(),
           siriusIon, siriusCandidates, constraints, deviationPpm);
 
-      // On some spectra it may never stop (halting problem)
+      // On some spectra it may never stop (halting problem), that's why interruptable thread is used
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();
       });

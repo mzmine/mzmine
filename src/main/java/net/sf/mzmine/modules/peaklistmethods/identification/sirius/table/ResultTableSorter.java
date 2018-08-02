@@ -34,6 +34,7 @@ public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
     this.setComparator(ResultTableModel.SIRIUS_SCORE_INDEX, new Comparator<String>() {
       @Override
       public int compare(String s1, String s2) {
+        // Process empty fields and move them to the end of the table
         if (s1 == null && s2 == null)
           return 0;
         if (s1 == null)
@@ -54,6 +55,7 @@ public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
     this.setComparator(ResultTableModel.FINGERID_SCORE_INDEX, new Comparator<String>() {
       @Override
       public int compare(String s1, String s2) {
+        // Process empty fields and move them to the end of the table
         if (s1.equals("") && s2.equals(""))
           return 0;
         if (s1.equals(""))
@@ -63,6 +65,8 @@ public class ResultTableSorter extends TableRowSorter<ResultTableModel> {
 
         Double d1 = Double.parseDouble(s1);
         Double d2 = Double.parseDouble(s2);
+
+        // Inverted comparison as working with negative values
         return d2.compareTo(d1);
       }
     });

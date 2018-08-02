@@ -53,12 +53,21 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
 
+/**
+ * ResultWindow object for Sirius module
+ * Appears when SingleIdentificationTask is called
+ * Shows results of Sirius module, default sort by FingerId score.
+ * 1) Processing by SiriusIdentificationMethod
+ * 2) Processing by FingerIdIdentificationMethod (using parallel threads)
+ *
+ * FingerId score is negative, the closer it to 0, the better it is.
+ * Sirius score
+ */
 public class ResultWindow extends JFrame implements ActionListener {
-
-  /**
-   *
-   */
   private static final long serialVersionUID = 1L;
+
+  // Button `Display DB links`
+  // There is need in this link as its coordinates are used by DB links frame
   private final JButton browse;
 
   private ResultTableModel listElementModel;
@@ -79,11 +88,11 @@ public class ResultWindow extends JFrame implements ActionListener {
     pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     pnlLabelsAndList.add(new JLabel("List of possible identities"), BorderLayout.NORTH);
 
-
     listElementModel = new ResultTableModel();
     compoundsTable = new ResultTable(listElementModel);
     listElementModel.setTable(compoundsTable);
 
+    // Specify content position
     JScrollPane listScroller = new JScrollPane(compoundsTable);
     listScroller.setPreferredSize(new Dimension(800, 400));
     listScroller.setAlignmentX(LEFT_ALIGNMENT);
@@ -93,6 +102,7 @@ public class ResultWindow extends JFrame implements ActionListener {
     listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
     pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
 
+    // Specify buttons
     JPanel pnlButtons = new JPanel();
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     pnlButtons.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -104,7 +114,6 @@ public class ResultWindow extends JFrame implements ActionListener {
     browse.setActionCommand("DB_LIST");
     browse.addActionListener(this);
     pnlButtons.add(browse);
-//    GUIUtils.addButton(pnlButtons, "Display DB links", null, this, "DB_LIST");
 
     setLayout(new BorderLayout());
     setSize(500, 200);

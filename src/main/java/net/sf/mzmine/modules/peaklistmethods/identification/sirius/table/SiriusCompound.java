@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.ImageIcon;
 
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
@@ -172,8 +173,8 @@ public class SiriusCompound extends SimplePeakIdentity {
   }
 
   /**
-   * Render list of dbs in readable form
-   * @return one String (rows in form of DB names : db IDs)
+   *
+   * @return unique names of the databases
    */
   public String[] getDBS() {
     DBLink[] dblinks = getIonAnnotation().getDBLinks();
@@ -213,7 +214,13 @@ public class SiriusCompound extends SimplePeakIdentity {
     return preview;
   }
 
-  public Image generateStructureImage(int width, int height) {
+  /**
+   * Generates Image of the Chemical Structure
+   * @param width of the image
+   * @param height of the image
+   * @return new Image, returns null if used on non-processed by FingerId SiriusCompound
+   */
+  public @Nullable Image generateStructureImage(int width, int height) {
     return generateImage(width, height);
   }
 

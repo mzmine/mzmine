@@ -41,6 +41,8 @@ public class ResultTableModel extends AbstractTableModel {
 
   private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
+
+  // JTable object is used to resize the row height to show image
   private JTable table;
 
   public ResultTableModel() {
@@ -50,7 +52,6 @@ public class ResultTableModel extends AbstractTableModel {
   public void setTable(JTable table) {
     this.table = table;
   }
-
 
   public String getColumnName(int col) {
     return columnNames[col];
@@ -65,16 +66,17 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
   /**
-   * There was used Double.class for score fields, but it did not
+   * There was used Double.class for score fields, but it did not work properly
+   * Now it processes Double values from String
    * @param column
    * @return
    */
   @Override
   public Class getColumnClass(int column) {
     switch (column) {
-      case DBS_INDEX:
+      case DBS_INDEX: // Multiline content cell
         return String[].class;
-      case PREVIEW_INDEX:
+      case PREVIEW_INDEX: // Cell with image
         return ImageIcon.class;
       default:
         return String.class;
@@ -111,8 +113,10 @@ public class ResultTableModel extends AbstractTableModel {
       case PREVIEW_INDEX:
         value = compound.getPreview();
         if (value != null) {
-          table.getColumnModel().getColumn(5).setWidth(SiriusCompound.PREVIEW_WIDTH);
-          table.setRowHeight(row, SiriusCompound.PREVIEW_HEIGHT);
+          synchronized (table) {
+            table.getColumnModel().getColumn(PREVIEW_INDEX).setWidth(SiriusCompound.PREVIEW_WIDTH);
+            table.setRowHeight(row, SiriusCompound.PREVIEW_HEIGHT);
+          }
         }
         break;
     }
@@ -130,6 +134,7 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
   public void setValueAt(Object value, int row, int col) {
+
   }
 
   public SiriusCompound getCompoundAt(int row) {

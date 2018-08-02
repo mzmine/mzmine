@@ -19,21 +19,18 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import java.awt.Window;
+import java.io.IOException;
+
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-
-import java.io.IOException;
-import java.text.DecimalFormat;
-
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
+
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.MolecularFormulaRange;
@@ -56,6 +53,9 @@ public abstract class SiriusParameters extends SimpleParameterSet {
           10
       );
 
+  /**
+   * Disclaimer message about boecker-labs
+   */
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
     String message = "<html>SIRIUS Module Disclaimer:" +
         "<br>    - If you use the SIRIUS export module, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following articles: " +

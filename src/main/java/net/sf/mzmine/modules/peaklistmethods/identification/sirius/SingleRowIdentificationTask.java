@@ -65,14 +65,24 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   private final PeakListRow peakListRow;
+
+  // Parameters for Sirius & FingerId methods
   private final IonizationType ionType;
-  private final MolecularFormulaRange range;
-  private final Integer fingerCandidates;
-  private final Integer siriusCandidates;
+  private final MolecularFormulaRange range; // Future constraints object
   private final Double parentMass;
   private final Double deviationPpm;
+
+  // Amount of components to show
+  private final Integer fingerCandidates;
+  private final Integer siriusCandidates;
+
+  // Timer for Sirius Identification method. If it expires, dialogue window shows up.
   private final Integer timer;
+
+  // Barrier for this task, it will be scheduled until all subtasks finish.
   private CountDownLatch latch;
+
+  // Dynamic list of tasks
   private List<FingerIdWebMethodTask> fingerTasks;
 
 
@@ -115,6 +125,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     return 0;
   }
 
+  //todo: think about it
   public String getTaskDescription() {
     return "Peak identification of " + massFormater.format(parentMass) + " using Sirius module";
   }
@@ -134,6 +145,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<MsSpectrum> ms1list = scanner.getMsList();
     List<MsSpectrum> ms2list = scanner.getMsMsList();
 
+    // Use executor to run Sirius Identification Method as an Interruptable thread.
+    // Otherwise it may compute for too long (or even forever).
     final ExecutorService service = Executors.newSingleThreadExecutor();
     SiriusIdentificationMethod siriusMethod = null;
     List<IonAnnotation> siriusResults = null;
@@ -154,7 +167,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
       logger.error("Timeout on Sirius method expired, abort.");
       MZmineCore.getDesktop().displayMessage(window, "Timer expired",
           "Processing of the peaklist with mass " + parentMass + " by Sirius module expired.\n"
-              + "Reinitialize the task with larger timer value.");
+              + "Reinitialize the task with larger Sirius Timer value.");
       ie.printStackTrace();
       return;
     } catch (ExecutionException ce) {
@@ -189,6 +202,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
       window.addListofItems(siriusMethod.getResult());
     }
 
+    // If there was a FingerId processing, wait until subtasks finish
     try {
       if (latch != null)
         latch.await();
