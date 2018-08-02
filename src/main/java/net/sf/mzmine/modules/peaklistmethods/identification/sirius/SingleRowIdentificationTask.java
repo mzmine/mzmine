@@ -133,6 +133,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     SpectrumScanner scanner = new SpectrumScanner(peakListRow);
     List<MsSpectrum> ms1list = scanner.getMsList();
+//    List<MsSpectrum> ms1list = null;
     List<MsSpectrum> ms2list = scanner.getMsMsList();
 
     /* Debug */
@@ -161,6 +162,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           "Processing of the peaklist with mass " + parentMass + " by Sirius module expired.\n"
               + "Reinitialize the task with larger timer value.");
       ie.printStackTrace();
+      return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
       ce.printStackTrace();
