@@ -22,9 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 import io.github.msdk.datamodel.MsSpectrum;
 import io.github.msdk.datamodel.SimpleMsSpectrum;
 
-import java.io.File;
-import java.io.FileWriter;
-
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -43,6 +42,8 @@ public class SpectrumScanner {
   private final PeakListRow row;
   private final List<MsSpectrum> ms1list;
   private final List<MsSpectrum> ms2list;
+  private final HashMap<String, int[]> fragmentScans;
+  private final String massListName = "masses MS2"; // Used the value from ExportSirius module.
 
   /**
    * Constructor for SpectrumScanner
@@ -53,18 +54,77 @@ public class SpectrumScanner {
     ms1list = new LinkedList<>();
     ms2list = new LinkedList<>();
 
+    fragmentScans = getFragmentScans(row.getRawDataFiles());
     processRow();
   }
 
-  private void processRow() {
-    for (Feature peak: row.getPeaks()) {
-      int ms1index = peak.getRepresentativeScanNumber();
-      int ms2index = peak.getMostIntenseFragmentScanNumber();
-      if (indexExists(ms1index))
-        ms1list.add(buildSpectrum(peak, ms1index));
+  /**
+   * Function taken from SiriusExportTask class, getFragmentScans()
+   * @param rawDataFiles
+   * @return
+   */
+  private HashMap<String,int[]> getFragmentScans(RawDataFile[] rawDataFiles) {
+    final HashMap<String, int[]> fragmentScans = new HashMap<>();
+    for (RawDataFile r : rawDataFiles) {
+      int[] scans = new int[0];
+      for (int msLevel : r.getMSLevels()) {
+        if (msLevel > 1) {
+          int[] concat = r.getScanNumbers(msLevel);
+          int offset = scans.length;
+          scans = Arrays.copyOf(scans, scans.length + concat.length);
+          System.arraycopy(concat, 0, scans, offset, concat.length);
+        }
+      }
+      Arrays.sort(scans);
+      fragmentScans.put(r.getName(), scans);
+    }
+    return fragmentScans;
+  }
 
-      if (indexExists(ms2index))
-        ms2list.add(buildSpectrum(peak, ms2index));
+
+  /**
+   * Method processes a row and construct MS1 MS2 lists
+   */
+  private void processRow() {
+    // Specify the Isotope Pattern (in form of MS1 spectrum)
+    MsSpectrum isotopePattern = buildSpectrum(row.getBestPeak()
+        .getIsotopePattern().getDataPoints());
+    ms1list.add(isotopePattern);
+
+    /*
+      Process features, retrieve scans and write spectra. Only MS level 2.
+      Code taken from SiriusExportTask -> exportPeakListRow(...)
+     */
+    for (Feature f : row.getPeaks()) {
+      if (f.getFeatureStatus() == Feature.FeatureStatus.DETECTED
+          && f.getMostIntenseFragmentScanNumber() >= 0) {
+        final int[] scanNumbers = f.getScanNumbers().clone();
+        Arrays.sort(scanNumbers);
+        int[] fs = fragmentScans.get(f.getDataFile().getName());
+        int startWith = scanNumbers[0];
+        int j = Arrays.binarySearch(fs, startWith);
+        if (j < 0) j = (-j - 1);
+        for (int k = j; k < fs.length; ++k) {
+          final Scan scan = f.getDataFile().getScan(fs[k]);
+          if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) {
+
+            // Do not include MS1 scans (except for isotope pattern)
+            DataPoint[] points = massListName != null ?
+                scan.getMassList(massListName).getDataPoints() : scan.getDataPoints();
+            ms2list.add(buildSpectrum(points));
+          }
+        }
+      }
+
+//    for (Feature peak: row.getPeaks()) {
+//      int ms1index = peak.getRepresentativeScanNumber();
+//      int ms2index = peak.getMostIntenseFragmentScanNumber();
+//      if (indexExists(ms1index))
+//        ms1list.add(buildSpectrum(peak, ms1index));
+//
+//      if (indexExists(ms2index))
+//        ms2list.add(buildSpectrum(peak, ms2index));
+//    }
     }
   }
 
@@ -111,6 +171,15 @@ public class SpectrumScanner {
     Scan scan = peak.getDataFile().getScan(index);
     DataPoint[] points = scan.getDataPoints();
 
+    return buildSpectrum(points);
+  }
+
+  /**
+   * Construct MsSpectrum object from DataPoint array
+   * @param points MZ/Intensity pairs
+   * @return new MsSpectrum
+   */
+  private MsSpectrum buildSpectrum(DataPoint[] points) {
     SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
     double mz[] = new double[points.length];
     float intensity[] = new float[points.length];
@@ -123,24 +192,4 @@ public class SpectrumScanner {
     spectrum.setDataPoints(mz, intensity, points.length);
     return spectrum;
   }
-
-//   TEMP FUNCTION
-//  public void saveSpectrum(String filename, int level) {
-//    int index = (level == 2) ? ms2index : ms1index;
-//    if (!indexExists(index))
-//      return;
-//
-//    Scan scan = rawfile.getScan(index);
-//    DataPoint[] points = scan.getDataPoints();
-//
-//    try {
-//      FileWriter fw = new FileWriter(new File(filename));
-//      for (DataPoint point: points)
-//        fw.write(String.format("%f %f\n", point.getMZ(), point.getIntensity()));
-//      fw.close();
-//    } catch (Exception e) {
-//      System.out.println("Suffering");
-//    }
-//  }
-
 }

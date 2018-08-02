@@ -47,7 +47,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -135,10 +134,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     List<MsSpectrum> ms1list = scanner.getMsList();
     List<MsSpectrum> ms2list = scanner.getMsMsList();
 
-    /* Debug */
-//    scanner.saveSpectrum(scanner.getPeakName() + "_ms1.txt", 1);
-//    scanner.saveSpectrum(scanner.getPeakName() + "_ms2.txt", 2);
-
     final ExecutorService service = Executors.newSingleThreadExecutor();
     SiriusIdentificationMethod siriusMethod = null;
     List<IonAnnotation> siriusResults = null;
@@ -161,6 +156,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           "Processing of the peaklist with mass " + parentMass + " by Sirius module expired.\n"
               + "Reinitialize the task with larger timer value.");
       ie.printStackTrace();
+      return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
       ce.printStackTrace();
