@@ -31,6 +31,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 
@@ -39,24 +40,32 @@ import net.sf.mzmine.datamodel.Scan;
  * Allows to process Feature objects (peaks) and return appropriate objects for SiriusIdentificationMethod
  */
 public class SpectrumScanner {
-  private final Feature peak;
-  private final RawDataFile rawfile;
-  private final int ms1index;
-  private final int ms2index;
+  private final PeakListRow row;
+  private final List<MsSpectrum> ms1list;
+  private final List<MsSpectrum> ms2list;
 
   /**
    * Constructor for SpectrumScanner
-   * @param peak
+   * @param row
    */
-  public SpectrumScanner(@Nonnull Feature peak) {
-    this.peak = peak;
-    this.ms1index = peak.getRepresentativeScanNumber();
-    this.ms2index = peak.getMostIntenseFragmentScanNumber();
-    this.rawfile = peak.getDataFile();
+  public SpectrumScanner(@Nonnull PeakListRow row) {
+    this.row = row;
+    ms1list = new LinkedList<>();
+    ms2list = new LinkedList<>();
+
+    processRow();
   }
 
-  public String getPeakName() {
-    return rawfile.getName();
+  private void processRow() {
+    for (Feature peak: row.getPeaks()) {
+      int ms1index = peak.getRepresentativeScanNumber();
+      int ms2index = peak.getMostIntenseFragmentScanNumber();
+      if (indexExists(ms1index))
+        ms1list.add(buildSpectrum(peak, ms1index));
+
+      if (indexExists(ms2index))
+        ms2list.add(buildSpectrum(peak, ms2index));
+    }
   }
 
   /**
@@ -64,9 +73,9 @@ public class SpectrumScanner {
    * @return MS spectra list
    */
   public List<MsSpectrum> getMsList() {
-    if (indexExists(ms1index))
-      return processRawScan(ms1index);
-    return null;
+    if (ms1list.size() == 0)
+      return null;
+    return ms1list;
   }
 
   /**
@@ -74,26 +83,13 @@ public class SpectrumScanner {
    * @return MSMS spectra list
    */
   public List<MsSpectrum> getMsMsList() {
-    if (indexExists(ms2index))
-      return processRawScan(ms2index);
-    return null;
-  }
-
-  private List<MsSpectrum> processRawScan(int index) {
-    LinkedList<MsSpectrum> spectra = null;
-    if (indexExists(index)) {
-      spectra = new LinkedList<>();
-      Scan scan = rawfile.getScan(index);
-      DataPoint[] points = scan.getDataPoints();
-      MsSpectrum ms = buildSpectrum(points);
-      spectra.add(ms);
-    }
-
-    return spectra;
+    if (ms2list.size() == 0)
+      return null;
+    return ms2list;
   }
 
   public boolean peakContainsMsMs() {
-    return indexExists(ms2index);
+    return ms2list.size() > 0;
   }
 
   /**
@@ -106,11 +102,15 @@ public class SpectrumScanner {
   }
 
   /**
-   * Construct MsSpectrum object from data points
-   * @param points Array of DataPoints
+   * Construct MsSpectrum object from Feature object and index of its Scan
+   * @param peak - to retrieve data points from
+   * @param index - index of the scan in the Data File from Feature object
    * @return new MsSpectrum object
    */
-  private MsSpectrum buildSpectrum(DataPoint[] points) {
+  private MsSpectrum buildSpectrum(Feature peak, int index) {
+    Scan scan = peak.getDataFile().getScan(index);
+    DataPoint[] points = scan.getDataPoints();
+
     SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
     double mz[] = new double[points.length];
     float intensity[] = new float[points.length];
@@ -124,23 +124,23 @@ public class SpectrumScanner {
     return spectrum;
   }
 
-  // TEMP FUNCTION
-  public void saveSpectrum(String filename, int level) {
-    int index = (level == 2) ? ms2index : ms1index;
-    if (!indexExists(index))
-      return;
-
-    Scan scan = rawfile.getScan(index);
-    DataPoint[] points = scan.getDataPoints();
-
-    try {
-      FileWriter fw = new FileWriter(new File(filename));
-      for (DataPoint point: points)
-        fw.write(String.format("%f %f\n", point.getMZ(), point.getIntensity()));
-      fw.close();
-    } catch (Exception e) {
-      System.out.println("Suffering");
-    }
-  }
+//   TEMP FUNCTION
+//  public void saveSpectrum(String filename, int level) {
+//    int index = (level == 2) ? ms2index : ms1index;
+//    if (!indexExists(index))
+//      return;
+//
+//    Scan scan = rawfile.getScan(index);
+//    DataPoint[] points = scan.getDataPoints();
+//
+//    try {
+//      FileWriter fw = new FileWriter(new File(filename));
+//      for (DataPoint point: points)
+//        fw.write(String.format("%f %f\n", point.getMZ(), point.getIntensity()));
+//      fw.close();
+//    } catch (Exception e) {
+//      System.out.println("Suffering");
+//    }
+//  }
 
 }

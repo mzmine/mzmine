@@ -101,7 +101,7 @@ public class SiriusThread implements Runnable {
     //TODO: is it correct? or row.getAverageMZ() is better?
 //    final double massValue = row.getAverageMZ() * (double) charge - ionType.getAddedMass();
 
-    SpectrumScanner scanner = new SpectrumScanner(row.getBestPeak());
+    SpectrumScanner scanner = new SpectrumScanner(row);
     List<MsSpectrum> ms1 = scanner.getMsList();
     List<MsSpectrum> ms2 = scanner.getMsMsList();
 

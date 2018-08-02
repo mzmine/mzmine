@@ -131,8 +131,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     window.setTitle("Sirius identifies peak with " + massFormater.format(parentMass) + " amu");
     window.setVisible(true);
 
-    Feature bestPeak = peakListRow.getBestPeak();
-    SpectrumScanner scanner = new SpectrumScanner(bestPeak);
+    SpectrumScanner scanner = new SpectrumScanner(peakListRow);
     List<MsSpectrum> ms1list = scanner.getMsList();
     List<MsSpectrum> ms2list = scanner.getMsMsList();
 
