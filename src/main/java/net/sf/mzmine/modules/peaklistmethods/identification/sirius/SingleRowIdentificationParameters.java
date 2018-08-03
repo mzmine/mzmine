@@ -35,7 +35,7 @@ public class SingleRowIdentificationParameters extends SiriusParameters {
 
   public static final IntegerParameter SIRIUS_TIMEOUT =
       new IntegerParameter(
-          "Timer for Sirius Identification job", "Specify the amount of seconds, during which Sirius Identification job should finish processing.",
+          "Timer for Sirius Identification job (sec)", "Specify the amount of seconds, during which Sirius Identification job should finish processing.",
           40
       );
 
