@@ -64,6 +64,11 @@ public class DBTableModel extends AbstractTableModel {
     return value;
   }
 
+  /**
+   * Method unwraps SiriusCompound and retrieves all the DB links
+   * Adds DB links one by one into the table
+   * @param compound
+   */
   public void addElement(SiriusCompound compound) {
     SiriusIonAnnotation annotation = compound.getIonAnnotation();
     for (DBLink link: annotation.getDBLinks()) {

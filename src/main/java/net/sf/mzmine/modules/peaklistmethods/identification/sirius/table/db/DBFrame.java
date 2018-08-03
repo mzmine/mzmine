@@ -25,9 +25,11 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -39,12 +41,20 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.SiriusCompound;
 import net.sf.mzmine.util.GUIUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Class DBFrame
+ * Creates a new window with Database links (e.g.: Pubchem: 1520)
+ * New window is created on a position of `Display DB links` button (it is parent JFrame)
+ * Opens new window in a browser if entry point is known, otherwise shows dialogue window.
+ */
 public class DBFrame extends JFrame implements ActionListener {
   private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
 
@@ -61,6 +71,7 @@ public class DBFrame extends JFrame implements ActionListener {
     pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     pnlLabelsAndList.add(new JLabel("List of databases with IDs"), BorderLayout.NORTH);
 
+    // Configure table
     dbTable = new JTable();
     model = new DBTableModel();
     dbTable.setModel(model);
@@ -77,6 +88,7 @@ public class DBFrame extends JFrame implements ActionListener {
     listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
     pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
 
+    // Buttons panel
     JPanel pnlButtons = new JPanel();
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     pnlButtons.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -86,10 +98,12 @@ public class DBFrame extends JFrame implements ActionListener {
     add(pnlLabelsAndList, BorderLayout.CENTER);
     add(pnlButtons, BorderLayout.SOUTH);
 
+    // Set size and position
     setSize(400, 250);
     setLocation(button.getLocationOnScreen());
     pack();
 
+    // Initiate loading of DB links into new table
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         model.addElement(compound);
@@ -111,11 +125,13 @@ public class DBFrame extends JFrame implements ActionListener {
       int realIndex = dbTable.convertRowIndexToModel(index);
       SiriusDBCompound compound = model.getCompoundAt(realIndex);
 
+      // Generate url
       try {
         URL url = compound.generateURL();
         if (url == null)
           throw new RuntimeException("Unsupported DB");
         if (Desktop.isDesktopSupported()) {
+          // Open uri in default browser
           Desktop.getDesktop().browse(url.toURI());
         }
       } catch (RuntimeException f) {
