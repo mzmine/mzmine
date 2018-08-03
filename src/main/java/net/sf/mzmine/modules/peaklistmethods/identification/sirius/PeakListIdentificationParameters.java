@@ -26,17 +26,23 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 public class PeakListIdentificationParameters extends SiriusParameters {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter("Amount of Sirius candidates to save",
-      "Specify the amount of candidates to be saved after processing by Sirius module", 1);
+  public static final IntegerParameter CANDIDATES_AMOUNT = new IntegerParameter("Amount of Sirius candidates to return",
+      "Specify the amount of candidates to be saved after processing by Sirius Identification job", 1);
 
   public static final IntegerParameter CANDIDATES_FINGERID = new IntegerParameter(
-      "Amount of FingerId results to save",
-      "Specify the amount of candidates to be saved after processing by Sirius & FingerId module",
+      "Amount of FingerId results to return",
+      "Specify the amount of candidates to be returned from a single Sirius result",
       1, 1, 5);
 
   public static final IntegerParameter THREADS_AMOUNT = new IntegerParameter("Amount of parallel jobs",
           "Specify the amount of parallel processing jobs",
           4, 1, 20);
+
+  public static final IntegerParameter SIRIUS_TIMEOUT =
+      new IntegerParameter(
+          "Timer for Sirius Identification job", "Specify the amount of seconds, during which Sirius Identification job should finish processing a row.",
+          10
+      );
 
 
   public PeakListIdentificationParameters() {

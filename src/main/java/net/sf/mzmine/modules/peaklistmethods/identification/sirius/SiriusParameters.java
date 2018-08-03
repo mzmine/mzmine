@@ -47,20 +47,17 @@ public abstract class SiriusParameters extends SimpleParameterSet {
   public static final ElementsParameter ELEMENTS = new ElementsParameter(
       "Elements", "Elements and ranges");
 
-  public static final IntegerParameter SIRIUS_TIMEOUT =
-      new IntegerParameter(
-          "Timer for Sirius task", "Specify the amount of seconds, during which Sirius should finish processing of the row",
-          10
-      );
-
   /**
    * Disclaimer message about boecker-labs
    */
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
     String message = "<html>SIRIUS Module Disclaimer:" +
-        "<br>    - If you use the SIRIUS export module, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following articles: " +
-        "<br>     <a href=\"http://www.pnas.org/content/112/41/12580.abstract\">Dührkop et al., Proc Natl Acad Sci USA 112(41):12580-12585</a> "
-        + "and <a href=\"https://jcheminf.springeropen.com/articles/10.1186/s13321-016-0116-8\">Boecker et al., Journal of Cheminformatics (2016) 8:5</a>" +
+        "<br>    - Identification task consists of two parts:" +
+        "<br>      1) Sirius Identification job, the timer you specify above controls the execution of this job. " +
+        "<br>      2) FingerId Identification job, it is executed after Sirius Identification Job and uses its results. It makes web requests to boecker-labs server (FingerId web-api). " +
+        "<br>    - If you use the SIRIUS Identification module, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following articles: " +
+        "<br>     <a href=\"http://www.pnas.org/content/112/41/12580.abstract\">Dührkop et al., Proc Natl Acad Sci USA 112(41):12580-12585</a> " +
+        "and <a href=\"https://jcheminf.springeropen.com/articles/10.1186/s13321-016-0116-8\">Boecker et al., Journal of Cheminformatics (2016) 8:5</a>" +
         "<br>    - Sirius can be downloaded at the following address: <a href=\"https://bio.informatik.uni-jena.de/software/sirius/\">https://bio.informatik.uni-jena.de/software/sirius/</a>" +
         "<br>    - Sirius results can be mapped into <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular networks. <a href=\"https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS\">See the documentation</a>.";
     ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this, message);

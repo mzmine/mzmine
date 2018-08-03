@@ -33,6 +33,12 @@ public class SingleRowIdentificationParameters extends SiriusParameters {
   public static final DoubleParameter NEUTRAL_MASS = new DoubleParameter(
       "Precursor m/z", "Value to use in the search query of precursor ion");
 
+  public static final IntegerParameter SIRIUS_TIMEOUT =
+      new IntegerParameter(
+          "Timer for Sirius Identification job", "Specify the amount of seconds, during which Sirius Identification job should finish processing.",
+          40
+      );
+
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {
         NEUTRAL_MASS,

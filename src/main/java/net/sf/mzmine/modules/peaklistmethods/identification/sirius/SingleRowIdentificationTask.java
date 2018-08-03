@@ -18,7 +18,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.SIRIUS_TIMEOUT;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_TIMEOUT;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ionizationType;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
@@ -169,6 +169,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           "Processing of the peaklist with mass " + parentMass + " by Sirius module expired.\n"
               + "Reinitialize the task with larger Sirius Timer value.");
       ie.printStackTrace();
+      this.setStatus(TaskStatus.CANCELED);
       return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
