@@ -82,9 +82,19 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
     if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
         true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController().addTask(
-          new SingleRowIdentificationTask(parameters
-              .cloneParameterSet(), row));
+      int fingerCandidates, siriusCandidates, timer;
+      timer = parameters.getParameter(SingleRowIdentificationParameters.SIRIUS_TIMEOUT).getValue();
+      siriusCandidates = parameters.getParameter(SingleRowIdentificationParameters.SIRIUS_CANDIDATES).getValue();
+      fingerCandidates = parameters.getParameter(SingleRowIdentificationParameters.FINGERID_CANDIDATES).getValue();
+
+      if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0) {
+        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+            "Sirius parameters can't be negative");
+      } else {
+        MZmineCore.getTaskController().addTask(
+            new SingleRowIdentificationTask(parameters
+                .cloneParameterSet(), row));
+      }
     }
   }
 

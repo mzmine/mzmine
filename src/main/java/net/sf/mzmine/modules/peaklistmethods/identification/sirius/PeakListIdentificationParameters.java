@@ -32,7 +32,7 @@ public class PeakListIdentificationParameters extends SiriusParameters {
   public static final IntegerParameter CANDIDATES_FINGERID = new IntegerParameter(
       "Amount of FingerId results to return",
       "Specify the amount of candidates to be returned from a single Sirius result",
-      1, 1, 5);
+      1);
 
   public static final IntegerParameter THREADS_AMOUNT = new IntegerParameter("Amount of parallel jobs",
           "Specify the amount of parallel processing jobs",

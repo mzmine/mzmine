@@ -74,6 +74,18 @@ public class PeakListIdentificationTask extends AbstractTask {
     int threadsAmount = parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
     semaphore = new Semaphore(threadsAmount);
     latch = new CountDownLatch(list.getNumberOfRows());
+
+
+    int fingerCandidates, siriusCandidates, timer;
+    timer = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
+    siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
+    fingerCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
+
+    if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0 || threadsAmount <= 0) {
+      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+          "Sirius parameters can't be negative");
+      cancel();
+    }
   }
 
   @Override
