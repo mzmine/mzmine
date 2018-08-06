@@ -143,7 +143,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         formulaItem = GUIUtils.addMenuItem(searchMenu,
                 "Predict molecular formula", this);
         siriusItem = GUIUtils.addMenuItem(searchMenu,
-                    "Predict formula & chemical structure by Sirius module", this);
+                    "SIRIUS structure prediction", this);
 
         exportMenu = new JMenu("Export");
         add(exportMenu);
