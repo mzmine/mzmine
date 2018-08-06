@@ -29,6 +29,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -115,24 +116,19 @@ public class SiriusCompound extends SimplePeakIdentity {
       props.put("FingerId score", fingerScore);
 
       DBLink[] links = annotation.getDBLinks();
-      Hashtable<String, Integer> dbnames = new Hashtable<>();
+      Set<String> dbnames = new HashSet<>();
 
       /*
         DBLinks may contain several links to Pubchem (for example)
-        And to store them, a trick with <s> #<d> is used, where <d> is amount of times this DB (<s>) has been met.
       */
       for (DBLink link : links) {
-        /* Map is used to count indexes of repeating elements */
-        if (dbnames.containsKey(link.name)) {
-          int amount = dbnames.get(link.name);
-          dbnames.put(link.name, ++amount);
-        } else {
-          dbnames.put(link.name, 1);
-        }
-
-        String dbname = String.format("%s #%d", link.name, dbnames.get(link.name));
-        props.put(dbname, link.id);
+        dbnames.add(link.name);
       }
+
+      String[] dbs = new String[dbnames.size()];
+      dbs = dbnames.toArray(dbs);
+      for (String db: dbs)
+        props.put(db, "FOUND");
     }
 
     // Load name param with formula, if FingerId did not identify it
