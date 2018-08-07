@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder;
 
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
@@ -43,6 +44,7 @@ public class Gap {
   private List<GapDataPoint> currentPeakDataPoints;
   private List<GapDataPoint> bestPeakDataPoints;
   private double bestPeakHeight;
+
 
   /**
    * Constructor: Initializes an empty gap
@@ -111,6 +113,15 @@ public class Gap {
   }
 
   public void noMoreOffers() {
+    noMoreOffers(null);
+  }
+
+  /**
+   * Finalizes the gap, adds a peak
+   * 
+   * @param lock A lock for multi threading purpose. null if single threaded
+   */
+  public void noMoreOffers(Lock lock) {
 
     // Check peak that was last constructed
     if (currentPeakDataPoints != null) {
@@ -182,7 +193,18 @@ public class Gap {
           finalMZRange, finalIntensityRange);
 
       // Fill the gap
-      peakListRow.addPeak(rawDataFile, newPeak);
+      if (lock == null) {
+        // single thread
+        peakListRow.addPeak(rawDataFile, newPeak);
+      } else {
+        // multi thread
+        lock.lock();
+        try {
+          peakListRow.addPeak(rawDataFile, newPeak);
+        } finally {
+          lock.unlock();
+        }
+      }
     }
 
   }

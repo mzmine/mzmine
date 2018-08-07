@@ -22,9 +22,6 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.desktop.preferences.MZminePreferences;
-import net.sf.mzmine.desktop.preferences.NumOfThreadsParameter;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -56,31 +53,11 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
         .getValue().getMatchingPeakLists();
 
     for (PeakList peakList : peakLists) {
-      // Obtain the settings of max concurrent threads
-      NumOfThreadsParameter parameter = MZmineCore.getConfiguration().getPreferences()
-          .getParameter(MZminePreferences.numOfThreads);
-      int maxRunningThreads;
-      if (parameter.isAutomatic() || (parameter.getValue() == null))
-        maxRunningThreads = Runtime.getRuntime().availableProcessors();
-      else
-        maxRunningThreads = parameter.getValue();
-
-      // raw files
-      int raw = peakList.getNumberOfRawDataFiles();
-      int numPerTask = raw / maxRunningThreads;
       // start tasks
-      for (int i = 0; i < maxRunningThreads; i++) {
-        int start = numPerTask * i;
-        int endexcl = i < maxRunningThreads - 1 ? numPerTask * (i + 1) : raw;
-
-        // start task
-        Task newTask = new MultiThreadPeakFinderTask(project, peakList, parameters, start, endexcl);
-        tasks.add(newTask);
-      }
+      Task newTask = new MultiThreadPeakFinderMainTask(project, peakList, parameters);
+      tasks.add(newTask);
     }
-
     return ExitCode.OK;
-
   }
 
   @Override
