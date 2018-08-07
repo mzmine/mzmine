@@ -37,6 +37,14 @@ public class Candidate {
     this.candID = candID;
   }
 
+  /**
+   * 
+   * @param parent row of parent peak
+   * @param candidate row pf candidate peak
+   * @param pParent data point of predicted parent mass and intensity
+   * @param pChild data point of predicted child mass and intensity
+   * @return
+   */
   public double calcIntensityAccuracy_Pattern(PeakListRow parent, PeakListRow candidate,
       DataPoint pParent, DataPoint pChild) {
     double idealIntensity = pChild.getIntensity() / pParent.getIntensity();
@@ -49,7 +57,7 @@ public class Candidate {
   /**
    * for RatingType.HIGHEST
    * 
-   * @param parent
+   * @param parent 
    * @param candidate
    * @param pattern
    * @param peakNum
@@ -195,7 +203,6 @@ public class Candidate {
       mz = row.getAverageMZ();
       height = row.getAverageHeight();
 
-      // this.setRowNum(candindex);
       this.setCandID(pL.get(candindex).getID());
       return true;
     }
@@ -254,6 +261,4 @@ public class Candidate {
     double idealIntensity = pChild.getIntensity() / pParent.getIntensity();
     return idealIntensity * iParent / iChild;
   }
-
-
 }

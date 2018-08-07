@@ -37,7 +37,7 @@ import net.sf.mzmine.util.ScanUtils;
 import com.google.common.collect.Range;
 
 /**
- * Simple implementation of IsotopePattern interface
+ * Extended implementation of IsotopePattern interface
  */
 public class ExtendedIsotopePattern implements IsotopePattern {
 
@@ -218,7 +218,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
   }
 
   /**
-   * Merges peaks withing given mzTolerance.
+   * Merges peaks within given mzTolerance.
    * 
    * @param mzTolerance Absolute tolerance range.
    */
@@ -232,11 +232,6 @@ public class ExtendedIsotopePattern implements IsotopePattern {
 
     for (int i = 0; i < dataPoints.size() - 1; i++) {
       if (Math.abs(dataPoints.get(i).getMZ() - dataPoints.get(i + 1).getMZ()) < mzTolerance) {
-        // System.out.println("dp.size: " + dataPoints.size() + " descr.size: " + dpDescr.size());
-        // System.out.println("about to merge peaks: " + i + " " + dataPoints.get(i).getMZ() + " " +
-        // dataPoints.get(i+1).getMZ());
-        // System.out.println("descriptions: " + getDetailedPeakDescription(i) + " + " +
-        // getDetailedPeakDescription(i+1));
 
         double newIntensity =
             dataPoints.get(i).getIntensity() + dataPoints.get(i + 1).getIntensity();
@@ -268,7 +263,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
   /**
    * Removes peaks below given intensity.
    * 
-   * @param minAbundance Threshold min=0.0, max=1.0
+   * @param minAbundance threshold min=0.0, max=1.0
    */
   private void removePeaksBelowAbundance(double minAbundance) {
     ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
@@ -319,6 +314,9 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     dataPoints = newDp;
   }
 
+  /**
+   * @return Array of DataPoints in the isotope pattern
+   */
   @Override
   public @Nonnull DataPoint[] getDataPoints() {
     DataPoint[] dp = new DataPoint[dataPoints.size()];
@@ -397,7 +395,7 @@ public class ExtendedIsotopePattern implements IsotopePattern {
           if (cut[j].equals(" # ")) // maybe description was merged, so dont want to count it double
             break;
         }
-        if (isotopeCount[i] != 0 && !(symbol.equals("C") && isotopes[i].getMassNumber() == 12))
+        if (isotopeCount[i] != 0 && !(symbol.equals("C") && isotopes[i].getMassNumber() == 12)) // exclude 12C
           simpleDescr += "^" + isotopes[i].getMassNumber() + symbol + isotopeCount[i] + " ";
       }
     }

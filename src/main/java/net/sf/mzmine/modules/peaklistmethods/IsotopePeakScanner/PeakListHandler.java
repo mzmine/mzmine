@@ -14,11 +14,16 @@ public class PeakListHandler {
   PeakListHandler() {
     map = new TreeMap<Integer, PeakListRow>();
   }
+  
+  PeakListHandler(PeakList pL){
+    map = new TreeMap<Integer, PeakListRow>();
+    setUp(pL);
+  }
 
   /**
    * use this if you want to manage an existing PeakList
    * 
-   * @param pL
+   * @param pL the peak list you want to manage
    */
   public void setUp(PeakList pL) {
     for (PeakListRow row : pL.getRows()) {
@@ -26,18 +31,35 @@ public class PeakListHandler {
     }
   }
 
+  /**
+   * Manually add a PeakListRow
+   * @param row row to be added
+   */
   public void addRow(PeakListRow row) {
     map.put(row.getID(), row);
   }
 
+  /**
+   * 
+   * @return number of rows handled with plh
+   */
   public int size() {
     return map.size();
   }
 
+  /**
+   * 
+   * @param ID ID to check for
+   * @return true if contained, false if not
+   */
   public boolean containsID(int ID) {
     return map.containsKey(ID);
   }
 
+  /**
+   * 
+   * @return ArrayList<Integer> of all IDs of the peak list rows
+   */
   public ArrayList<Integer> getAllKeys() {
     Set<Integer> set = map.keySet();
     ArrayList<Integer> list = new ArrayList<Integer>(set);
@@ -47,13 +69,18 @@ public class PeakListHandler {
 
   /**
    * 
-   * @param ID
-   * @return
+   * @param ID ID of the row you want
+   * @return Row with specified ID
    */
   public PeakListRow getRowByID(int ID) {
     return map.get(ID);
   }
 
+  /**
+   * 
+   * @param ID integer array of IDs
+   * @return all rows with specified ids
+   */
   public PeakListRow[] getRowsByID(int ID[]) {
     PeakListRow[] rows = new PeakListRow[ID.length];
 
