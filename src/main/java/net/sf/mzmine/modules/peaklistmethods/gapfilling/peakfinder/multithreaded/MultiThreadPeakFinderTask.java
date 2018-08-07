@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder;
+package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.multithreaded;
 
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -31,6 +31,8 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.Gap;
+import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.RegressionInfo;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -38,7 +40,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-class PeakFinderTask extends AbstractTask {
+class MultiThreadPeakFinderTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -54,18 +56,26 @@ class PeakFinderTask extends AbstractTask {
   private boolean MASTERLIST = true, removeOriginal;
   private int masterSample = 0;
 
-  PeakFinderTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
+  // start and end (exclusive) for raw data file processing
+  private int start;
+  private int endexcl;
+
+  MultiThreadPeakFinderTask(MZmineProject project, PeakList peakList, ParameterSet parameters,
+      int start, int endexcl) {
 
     this.project = project;
     this.peakList = peakList;
     this.parameters = parameters;
 
-    suffix = parameters.getParameter(PeakFinderParameters.suffix).getValue();
-    intTolerance = parameters.getParameter(PeakFinderParameters.intTolerance).getValue();
-    mzTolerance = parameters.getParameter(PeakFinderParameters.MZTolerance).getValue();
-    rtTolerance = parameters.getParameter(PeakFinderParameters.RTTolerance).getValue();
-    rtCorrection = parameters.getParameter(PeakFinderParameters.RTCorrection).getValue();
-    removeOriginal = parameters.getParameter(PeakFinderParameters.autoRemove).getValue();
+    suffix = parameters.getParameter(MultiThreadPeakFinderParameters.suffix).getValue();
+    intTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.intTolerance).getValue();
+    mzTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.MZTolerance).getValue();
+    rtTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.RTTolerance).getValue();
+    rtCorrection = parameters.getParameter(MultiThreadPeakFinderParameters.RTCorrection).getValue();
+    removeOriginal = parameters.getParameter(MultiThreadPeakFinderParameters.autoRemove).getValue();
+
+    this.start = start;
+    this.endexcl = endexcl;
   }
 
   public void run() {
