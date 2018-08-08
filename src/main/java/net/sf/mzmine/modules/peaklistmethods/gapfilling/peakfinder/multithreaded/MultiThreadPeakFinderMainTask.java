@@ -31,8 +31,6 @@ import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.desktop.preferences.NumOfThreadsParameter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -45,11 +43,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   private ParameterSet parameters;
   private PeakList peakList, processedPeakList;
   private String suffix;
-  private double intTolerance;
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
-  private boolean MASTERLIST = true, removeOriginal;
-  private int masterSample = 0;
+  private boolean removeOriginal;
 
   private double progress = 0;
 
@@ -60,9 +54,6 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     this.parameters = parameters;
 
     suffix = parameters.getParameter(MultiThreadPeakFinderParameters.suffix).getValue();
-    intTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.intTolerance).getValue();
-    mzTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.MZTolerance).getValue();
-    rtTolerance = parameters.getParameter(MultiThreadPeakFinderParameters.RTTolerance).getValue();
     removeOriginal = parameters.getParameter(MultiThreadPeakFinderParameters.autoRemove).getValue();
   }
 
