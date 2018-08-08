@@ -35,6 +35,13 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
+/**
+ * The main task creates sub tasks to perform the PeakFinder algorithm on multiple threads. Each sub
+ * task performs gap filling on a number of RawDataFiles.
+ * 
+ * @author Robin Schmid (robinschmid@wwu.de)
+ *
+ */
 class MultiThreadPeakFinderMainTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
