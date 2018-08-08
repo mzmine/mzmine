@@ -34,6 +34,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
 /**
  * The main task creates sub tasks to perform the PeakFinder algorithm on multiple threads. Each sub
@@ -90,8 +91,33 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     Task[] tasks = createSubTasks(lock, raw, maxRunningThreads, listener);
     MZmineCore.getTaskController().addTasks(tasks);
 
-    // listener will take care of adding the final list
+    // listener for status change: Cancel / error
+    TaskStatusListener list = new TaskStatusListener() {
+      @Override
+      public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
+        if (newStatus.equals(TaskStatus.CANCELED) || newStatus.equals(TaskStatus.ERROR)) {
+          // if one is cancelled, stop all
+          synchronized (this) {
+            // remove listener
+            // cancel all
+            for (Task t : tasks) {
+              if (t instanceof AbstractTask)
+                ((AbstractTask) t).removeTaskStatusListener(this);
+              t.cancel();
+            }
+          }
+        }
+      }
+    };
 
+    // add listener to all sub tasks
+    for (Task t : tasks)
+      if (t instanceof AbstractTask)
+        ((AbstractTask) t).addTaskStatusListener(list);
+
+
+
+    // listener will take care of adding the final list
     progress = 1;
     // end
     logger.info("All sub tasks started for multi threaded gap-filling on " + peakList);

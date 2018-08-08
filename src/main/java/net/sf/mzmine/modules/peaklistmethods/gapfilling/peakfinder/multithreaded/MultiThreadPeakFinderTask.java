@@ -154,7 +154,6 @@ class MultiThreadPeakFinderTask extends AbstractTask {
       for (Gap gap : gaps) {
         gap.noMoreOffers(lock);
       }
-
     }
 
     // first notify listener
@@ -164,6 +163,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
         + (endexcl - 1) + " of pkl:" + peakList);
     setStatus(TaskStatus.FINISHED);
   }
+
 
 
   public double getFinishedPercentage() {
