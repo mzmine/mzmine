@@ -55,6 +55,8 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
   private double progress = 0;
 
+  private boolean useLock;
+
   public MultiThreadPeakFinderMainTask(MZmineProject project, PeakList peakList,
       ParameterSet parameters) {
     this.project = project;
@@ -62,6 +64,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     this.parameters = parameters;
 
     suffix = parameters.getParameter(MultiThreadPeakFinderParameters.suffix).getValue();
+    useLock = parameters.getParameter(MultiThreadPeakFinderParameters.useLock).getValue();
     removeOriginal = parameters.getParameter(MultiThreadPeakFinderParameters.autoRemove).getValue();
   }
 
@@ -70,7 +73,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     logger.info("Running multi threaded gap filler on " + peakList);
 
     // create lock to synchronize addPeak to processedPeakList in sub tasks
-    Lock lock = new ReentrantLock();
+    Lock lock = useLock ? new ReentrantLock() : null;
 
     // Create new results peak list
     processedPeakList = createResultsPeakList();
