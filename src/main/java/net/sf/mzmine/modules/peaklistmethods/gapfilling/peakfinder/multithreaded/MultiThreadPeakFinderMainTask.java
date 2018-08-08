@@ -115,8 +115,6 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
       if (t instanceof AbstractTask)
         ((AbstractTask) t).addTaskStatusListener(list);
 
-
-
     // listener will take care of adding the final list
     progress = 1;
     // end
@@ -161,13 +159,31 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     return maxRunningThreads;
   }
 
+  /**
+   * Distributes the RawDataFiles on different tasks
+   * 
+   * @param lock
+   * @param raw
+   * @param maxRunningThreads
+   * @param listener
+   * @return
+   */
   private Task[] createSubTasks(Lock lock, int raw, int maxRunningThreads,
       SubTaskFinishListener listener) {
     int numPerTask = raw / maxRunningThreads;
+    int rest = raw % maxRunningThreads;
     Task[] tasks = new Task[maxRunningThreads];
     for (int i = 0; i < maxRunningThreads; i++) {
       int start = numPerTask * i;
-      int endexcl = i < maxRunningThreads - 1 ? numPerTask * (i + 1) : raw;
+      int endexcl = numPerTask * (i + 1);
+      // add one from the rest
+      if (rest > 0) {
+        start += Math.min(i, rest);
+        endexcl += Math.min(i + 1, rest);
+      }
+
+      if (i == maxRunningThreads - 1)
+        endexcl = raw;
 
       // create task
       tasks[i] = new MultiThreadPeakFinderTask(project, peakList, processedPeakList, parameters,

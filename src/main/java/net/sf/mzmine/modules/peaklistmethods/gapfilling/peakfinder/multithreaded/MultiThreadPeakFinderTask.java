@@ -76,7 +76,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Running multi threaded gap filler on raw files " + start + "-" + (endexcl - 1)
+    logger.info("Running multi threaded gap filler on raw files " + (start + 1) + "-" + endexcl
         + " of pkl:" + peakList);
 
     // Calculate total number of scans in all files
@@ -159,8 +159,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     // first notify listener
     listener.accept(processedPeakList);
 
-    logger.info("Finished sub task: Multi threaded gap filler on raw files " + start + "-"
-        + (endexcl - 1) + " of pkl:" + peakList);
+    logger.info("Finished sub task: Multi threaded gap filler on raw files " + (start + 1) + "-"
+        + endexcl + " of pkl:" + peakList);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -174,7 +174,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Sub task: Gap filling on raw files " + start + "-" + (endexcl - 1) + " of pkl:"
+    return "Sub task: Gap filling on raw files " + (start + 1) + "-" + endexcl + " of pkl:"
         + peakList;
   }
 
