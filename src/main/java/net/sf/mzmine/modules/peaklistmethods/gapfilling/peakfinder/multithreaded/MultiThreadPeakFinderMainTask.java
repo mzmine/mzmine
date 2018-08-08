@@ -18,25 +18,18 @@
 
 package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.multithreaded;
 
-import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
-import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.desktop.preferences.NumOfThreadsParameter;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.Gap;
-import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.RegressionInfo;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -55,9 +48,10 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   private double intTolerance;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
-  private int finishedTasks, totalTasks;
   private boolean MASTERLIST = true, removeOriginal;
   private int masterSample = 0;
+
+  private double progress = 0;
 
   public MultiThreadPeakFinderMainTask(MZmineProject project, PeakList peakList,
       ParameterSet parameters) {
@@ -81,6 +75,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
     // Create new results peak list
     processedPeakList = createResultsPeakList();
+    progress = 0.5;
 
     // split raw data files into groups for each thread (task)
     // Obtain the settings of max concurrent threads
@@ -99,8 +94,9 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
     // listener will take care of adding the final list
 
+    progress = 1;
     // end
-    logger.info("Finished multi threaded gap-filling on " + peakList);
+    logger.info("All sub tasks started for multi threaded gap-filling on " + peakList);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -156,130 +152,13 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     return tasks;
   }
 
-  public void fillList(boolean masterList) {
-    for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
-      if (i != masterSample) {
-
-        RawDataFile datafile1;
-        RawDataFile datafile2;
-
-        if (masterList) {
-          datafile1 = peakList.getRawDataFile(masterSample);
-          datafile2 = peakList.getRawDataFile(i);
-        } else {
-          datafile1 = peakList.getRawDataFile(i);
-          datafile2 = peakList.getRawDataFile(masterSample);
-        }
-        RegressionInfo info = new RegressionInfo();
-
-        for (PeakListRow row : peakList.getRows()) {
-          Feature peaki = row.getPeak(datafile1);
-          Feature peake = row.getPeak(datafile2);
-          if (peaki != null && peake != null) {
-            info.addData(peake.getRT(), peaki.getRT());
-          }
-        }
-
-        info.setFunction();
-
-        // Canceled?
-        if (isCanceled()) {
-          return;
-        }
-
-        Vector<Gap> gaps = new Vector<Gap>();
-
-        // Fill each row of this raw data file column, create new empty
-        // gaps
-        // if necessary
-        for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-          PeakListRow sourceRow = peakList.getRow(row);
-          PeakListRow newRow = processedPeakList.getRow(row);
-
-          Feature sourcePeak = sourceRow.getPeak(datafile1);
-
-          if (sourcePeak == null) {
-
-            // Create a new gap
-
-            double mz = sourceRow.getAverageMZ();
-            double rt2 = -1;
-            if (!masterList) {
-              if (processedPeakList.getRow(row).getPeak(datafile2) != null) {
-                rt2 = processedPeakList.getRow(row).getPeak(datafile2).getRT();
-              }
-            } else {
-              if (peakList.getRow(row).getPeak(datafile2) != null) {
-                rt2 = peakList.getRow(row).getPeak(datafile2).getRT();
-              }
-            }
-
-            if (rt2 > -1) {
-
-              double rt = info.predict(rt2);
-
-              if (rt != -1) {
-
-                Range<Double> mzRange = mzTolerance.getToleranceRange(mz);
-                Range<Double> rtRange = rtTolerance.getToleranceRange(rt);
-
-                Gap newGap = new Gap(newRow, datafile1, mzRange, rtRange, intTolerance);
-
-                gaps.add(newGap);
-              }
-            }
-
-          } else {
-            newRow.addPeak(datafile1, sourcePeak);
-          }
-
-        }
-
-        // Stop processing this file if there are no gaps
-        if (gaps.size() == 0) {
-          finishedTasks += datafile1.getNumOfScans();
-          continue;
-        }
-
-        // Get all scans of this data file
-        int scanNumbers[] = datafile1.getScanNumbers(1);
-
-        // Process each scan
-        for (int scanNumber : scanNumbers) {
-
-          // Canceled?
-          if (isCanceled()) {
-            return;
-          }
-
-          // Get the scan
-          Scan scan = datafile1.getScan(scanNumber);
-
-          // Feed this scan to all gaps
-          for (Gap gap : gaps) {
-            gap.offerNextScan(scan);
-          }
-          finishedTasks++;
-        }
-
-        // Finalize gaps
-        for (Gap gap : gaps) {
-          gap.noMoreOffers();
-        }
-      }
-    }
-  }
-
   public double getFinishedPercentage() {
-    if (totalTasks == 0) {
-      return 0;
-    }
-    return (double) finishedTasks / (double) totalTasks;
+    return progress;
 
   }
 
   public String getTaskDescription() {
-    return "Sub task: Gap filling " + peakList;
+    return "Main task: Gap filling " + peakList;
   }
 
   PeakList getPeakList() {
