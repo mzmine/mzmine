@@ -70,7 +70,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Running multi threaded gap filler on " + peakList);
+    logger.info("Running multithreaded gap filler on " + peakList);
 
     // create lock to synchronize addPeak to processedPeakList in sub tasks
     Lock lock = useLock ? new ReentrantLock() : null;
@@ -123,7 +123,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     // listener will take care of adding the final list
     progress = 1;
     // end
-    logger.info("All sub tasks started for multi threaded gap-filling on " + peakList);
+    logger.info("All sub tasks started for multithreaded gap-filling on " + peakList);
     setStatus(TaskStatus.FINISHED);
   }
 

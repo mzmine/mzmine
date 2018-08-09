@@ -51,7 +51,7 @@ public class SubTaskFinishListener implements Consumer<PeakList> {
   public synchronized void accept(PeakList processedPeakList) {
     finished++;
     if (finished == tasks) {
-      logger.info("All sub tasks of multi threaded gap-filling have finished. Finalising results.");
+      logger.info("All sub tasks of multithreaded gap-filling have finished. Finalising results.");
       // add pkl to project
       // Append processed peak list to the project
       project.addPeakList(processedPeakList);
@@ -67,7 +67,7 @@ public class SubTaskFinishListener implements Consumer<PeakList> {
       if (removeOriginal)
         project.removePeakList(peakList);
 
-      logger.info("Completed: Multi threaded gap-filling successfull");
+      logger.info("Completed: Multithreaded gap-filling successfull");
     }
   }
 
