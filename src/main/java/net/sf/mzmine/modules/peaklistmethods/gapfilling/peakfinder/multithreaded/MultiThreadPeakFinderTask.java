@@ -55,12 +55,16 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   // takes care of adding the final result
   private SubTaskFinishListener listener;
 
+  private int taskIndex;
+
   MultiThreadPeakFinderTask(MZmineProject project, PeakList peakList, PeakList processedPeakList,
-      ParameterSet parameters, int start, int endexcl, Lock lock, SubTaskFinishListener listener) {
+      ParameterSet parameters, int start, int endexcl, Lock lock, SubTaskFinishListener listener,
+      int taskIndex) {
 
     // central lock that blocks only when peaks are added to the processedPeakList
     this.lock = lock;
     this.listener = listener;
+    this.taskIndex = taskIndex;
 
     this.peakList = peakList;
     this.processedPeakList = processedPeakList;
@@ -76,8 +80,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
-    logger.info("Running multi threaded gap filler on raw files " + (start + 1) + "-" + endexcl
-        + " of pkl:" + peakList);
+    logger.info("Running multi threaded gap filler " + taskIndex + " on raw files " + (start + 1)
+        + "-" + endexcl + " of pkl:" + peakList);
 
     // Calculate total number of scans in all files
     for (int i = start; i < endexcl; i++) {
@@ -159,8 +163,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
     // first notify listener
     listener.accept(processedPeakList);
 
-    logger.info("Finished sub task: Multi threaded gap filler on raw files " + (start + 1) + "-"
-        + endexcl + " of pkl:" + peakList);
+    logger.info("Finished sub task: Multi threaded gap filler " + taskIndex + " on raw files "
+        + (start + 1) + "-" + endexcl + " of pkl:" + peakList);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -174,8 +178,8 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Sub task: Gap filling on raw files " + (start + 1) + "-" + endexcl + " of pkl:"
-        + peakList;
+    return "Sub task " + taskIndex + ": Gap filling on raw files " + (start + 1) + "-" + endexcl
+        + " of pkl:" + peakList;
   }
 
   PeakList getPeakList() {

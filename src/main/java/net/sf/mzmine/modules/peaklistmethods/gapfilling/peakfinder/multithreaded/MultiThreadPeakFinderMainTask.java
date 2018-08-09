@@ -190,7 +190,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
       // create task
       tasks[i] = new MultiThreadPeakFinderTask(project, peakList, processedPeakList, parameters,
-          start, endexcl, lock, listener);
+          start, endexcl, lock, listener, i);
     }
     return tasks;
   }
