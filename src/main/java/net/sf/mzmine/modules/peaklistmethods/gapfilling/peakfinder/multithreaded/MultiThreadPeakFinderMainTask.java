@@ -92,7 +92,6 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
     // Submit the tasks to the task controller for processing
     Task[] tasks = createSubTasks(lock, raw, maxRunningThreads, listener);
-    MZmineCore.getTaskController().addTasks(tasks);
 
     // listener for status change: Cancel / error
     TaskStatusListener list = new TaskStatusListener() {
@@ -117,6 +116,9 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     for (Task t : tasks)
       if (t instanceof AbstractTask)
         ((AbstractTask) t).addTaskStatusListener(list);
+
+    // start
+    MZmineCore.getTaskController().addTasks(tasks);
 
     // listener will take care of adding the final list
     progress = 1;
