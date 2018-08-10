@@ -47,6 +47,7 @@ public class SingleRowIdentificationParameters extends SiriusParameters {
         SIRIUS_CANDIDATES,
         FINGERID_CANDIDATES,
         ELEMENTS,
+        MASS_LIST,
         SIRIUS_TIMEOUT
     });
   }

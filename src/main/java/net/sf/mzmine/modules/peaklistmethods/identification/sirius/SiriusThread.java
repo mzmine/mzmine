@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.PeakListIdentificationTask.addSiriusCompounds;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MASS_LIST;
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
@@ -67,6 +68,7 @@ public class SiriusThread implements Runnable {
 
   // Identification params
   private final PeakListRow row;
+  private final String massListName;
   private final IonizationType ionType;
   private final MolecularFormulaRange range;
   private final Double deviationPpm;
@@ -93,6 +95,8 @@ public class SiriusThread implements Runnable {
     siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
     fingeridCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
     siriusTimer = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
+    massListName = parameters.getParameter(MASS_LIST).getValue();
+
     this.semaphore = semaphore;
     this.row = row;
     this.latch = latch;
@@ -105,7 +109,7 @@ public class SiriusThread implements Runnable {
 
   @Override
   public void run() {
-    SpectrumScanner scanner = new SpectrumScanner(row);
+    SpectrumScanner scanner = new SpectrumScanner(row, massListName);
     List<MsSpectrum> ms1 = scanner.getMsList();
     List<MsSpectrum> ms2 = scanner.getMsMsList();
 
@@ -120,7 +124,6 @@ public class SiriusThread implements Runnable {
       if it expires -> log error and continue
     */
     try {
-
       final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, row.getAverageMZ(),
           siriusIon, siriusCandidates, constraints, deviationPpm);
 

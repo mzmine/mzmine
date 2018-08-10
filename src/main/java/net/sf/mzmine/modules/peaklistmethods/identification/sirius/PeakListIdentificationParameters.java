@@ -51,6 +51,7 @@ public class PeakListIdentificationParameters extends SiriusParameters {
         ionizationType,
         MZ_TOLERANCE,
         ELEMENTS,
+        MASS_LIST,
         CANDIDATES_AMOUNT,
         CANDIDATES_FINGERID,
         THREADS_AMOUNT,

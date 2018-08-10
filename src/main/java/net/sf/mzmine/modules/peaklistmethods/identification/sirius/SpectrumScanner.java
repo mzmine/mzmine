@@ -30,6 +30,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -40,17 +42,21 @@ import net.sf.mzmine.datamodel.Scan;
  */
 public class SpectrumScanner {
   private final PeakListRow row;
-  private final List<MsSpectrum> ms1list;
-  private final List<MsSpectrum> ms2list;
   private final HashMap<String, int[]> fragmentScans;
-  private final String massListName = "masses MS2"; // Used the value from ExportSirius module.
+  private final String massListName; // Used the value from ExportSirius module.
+
+  private List<MsSpectrum> ms1list;
+  private List<MsSpectrum> ms2list;
+
+  private boolean includeMs1 = true;
 
   /**
    * Constructor for SpectrumScanner
    * @param row
    */
-  public SpectrumScanner(@Nonnull PeakListRow row) {
+  public SpectrumScanner(@Nonnull PeakListRow row, String massListName) {
     this.row = row;
+    this.massListName = massListName;
     ms1list = new LinkedList<>();
     ms2list = new LinkedList<>();
 
@@ -87,17 +93,19 @@ public class SpectrumScanner {
    */
   private void processRow() {
     // Specify the Isotope Pattern (in form of MS1 spectrum)
-    MsSpectrum isotopePattern = buildSpectrum(row.getBestPeak()
-        .getIsotopePattern().getDataPoints());
-    ms1list.add(isotopePattern);
+    try {
+      IsotopePattern pattern = row.getBestPeak().getIsotopePattern();
+      MsSpectrum isotopePattern = buildSpectrum(pattern.getDataPoints());
+      ms1list.add(isotopePattern);
+    } catch (NullPointerException e) {
+
+    }
 
     /*
       Process features, retrieve scans and write spectra. Only MS level 2.
       Code taken from SiriusExportTask -> exportPeakListRow(...)
      */
     for (Feature f : row.getPeaks()) {
-      if (f.getFeatureStatus() == Feature.FeatureStatus.DETECTED
-          && f.getMostIntenseFragmentScanNumber() >= 0) {
         final int[] scanNumbers = f.getScanNumbers().clone();
         Arrays.sort(scanNumbers);
         int[] fs = fragmentScans.get(f.getDataFile().getName());
@@ -108,13 +116,32 @@ public class SpectrumScanner {
           final Scan scan = f.getDataFile().getScan(fs[k]);
           if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) {
 
+            if (includeMs1) {
+              // find precursor scan
+              int prec = Arrays.binarySearch(scanNumbers, fs[k]);
+              if (prec < 0) prec = -prec - 1;
+              prec = Math.max(0, prec - 1);
+              for (; prec < scanNumbers.length && scanNumbers[prec] < fs[k]; ++prec) {
+                final Scan precursorScan = f.getDataFile().getScan(scanNumbers[prec]);
+                if (precursorScan.getMSLevel() == 1) {
+                  try {
+                    MassList massList = precursorScan.getMassList(massListName);
+                    DataPoint[] points = massListName != null ? massList.getDataPoints(): precursorScan.getDataPoints();
+                    ms1list.add(buildSpectrum(points));
+                  } catch (NullPointerException e) {
+
+                  }
+                }
+              }
+            }
+
             // Do not include MS1 scans (except for isotope pattern)
+            MassList massList = scan.getMassList(massListName);
             DataPoint[] points = massListName != null ?
-                scan.getMassList(massListName).getDataPoints() : scan.getDataPoints();
+                massList.getDataPoints() : scan.getDataPoints();
             ms2list.add(buildSpectrum(points));
           }
         }
-      }
 
 //    for (Feature peak: row.getPeaks()) {
 //      int ms1index = peak.getRepresentativeScanNumber();

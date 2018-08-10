@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_TIMEOUT;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MASS_LIST;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ionizationType;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
@@ -65,12 +66,17 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
   private final PeakListRow peakListRow;
+  private final String massListName;
 
   // Parameters for Sirius & FingerId methods
   private final IonizationType ionType;
   private final MolecularFormulaRange range; // Future constraints object
   private final Double parentMass;
   private final Double deviationPpm;
+
+  // Error messages
+  private final String siriusErrorMessage;
+  private final String timerErrorMessage;
 
   // Amount of components to show
   private final Integer fingerCandidates;
@@ -100,11 +106,16 @@ public class SingleRowIdentificationTask extends AbstractTask {
     parentMass = parameters.getParameter(NEUTRAL_MASS).getValue();
     range = parameters.getParameter(ELEMENTS).getValue();
     timer = parameters.getParameter(SIRIUS_TIMEOUT).getValue();
+    massListName = parameters.getParameter(MASS_LIST).getValue();
 
     MZTolerance mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
     double mz = peakListRow.getAverageMZ();
     double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
     deviationPpm = (upperPoint - mz) / (mz * 1E-6);
+
+    timerErrorMessage = String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n", parentMass) +
+        "Reinitialize the task with larger Sirius Timer value.";
+    siriusErrorMessage = String.format("Sirius failed to predict compounds from row with id = %d", peakListRow.getID());
   }
 
   /**
@@ -125,7 +136,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     return 0;
   }
 
-  //todo: think about it
   public String getTaskDescription() {
     return "Peak identification of " + massFormater.format(parentMass) + " using Sirius module";
   }
@@ -141,7 +151,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     window.setTitle("Sirius identifies peak with " + massFormater.format(parentMass) + " amu");
     window.setVisible(true);
 
-    SpectrumScanner scanner = new SpectrumScanner(peakListRow);
+    SpectrumScanner scanner = new SpectrumScanner(peakListRow, massListName);
     List<MsSpectrum> ms1list = scanner.getMsList();
     List<MsSpectrum> ms2list = scanner.getMsMsList();
 
@@ -165,15 +175,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
       siriusMethod = method;
     } catch (InterruptedException|TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
-      MZmineCore.getDesktop().displayMessage(window, "Timer expired",
-          "Processing of the peaklist with mass " + parentMass + " by Sirius module expired.\n"
-              + "Reinitialize the task with larger Sirius Timer value.");
       ie.printStackTrace();
-      this.setStatus(TaskStatus.CANCELED);
+      showError(window, "Timer expired", timerErrorMessage);
       return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
       ce.printStackTrace();
+      showError(window, "Sirius Error", siriusErrorMessage);
+      return;
     }
 
     /* FingerId processing */
@@ -209,5 +218,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
         latch.await();
     } catch (Exception e) {}
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void showError(ResultWindow window, String title, String msg) {
+    MZmineCore.getDesktop().displayErrorMessage(window, "",
+        msg);
+    this.setStatus(TaskStatus.CANCELED);
   }
 }
