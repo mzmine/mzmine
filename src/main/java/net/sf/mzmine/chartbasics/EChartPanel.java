@@ -26,6 +26,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
@@ -180,7 +181,7 @@ public class EChartPanel extends ChartPanel {
   private void initChartPanel(boolean stickyZeroForRangeAxis) {
     final EChartPanel chartPanel = this;
 
-    if (chartPanel.getChart().getXYPlot() != null) {
+    if (chartPanel.getChart().getPlot() instanceof XYPlot) {
       // set sticky zero
       if (stickyZeroForRangeAxis) {
         ValueAxis rangeAxis = chartPanel.getChart().getXYPlot().getRangeAxis();
@@ -255,7 +256,8 @@ public class EChartPanel extends ChartPanel {
    * @return Data array[columns][rows]
    */
   public Object[][] getDataArrayForExport() {
-    if (getChart().getXYPlot() != null && getChart().getXYPlot().getDataset() != null) {
+    if (getChart().getPlot() instanceof XYPlot && getChart().getXYPlot() != null
+        && getChart().getXYPlot().getDataset() != null) {
       try {
         List<Object[]> modelList = new ArrayList<>();
 
