@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -63,8 +64,11 @@ class ExtractScansTask extends AbstractTask {
     massList = parameters.getParameter(ExtractScansParameters.useMassList).getEmbeddedParameter()
         .getValue();
     useCenterTime = parameters.getParameter(ExtractScansParameters.useCenterTime).getValue();
-    minTime = parameters.getParameter(ExtractScansParameters.rangeTime).getValue().lowerEndpoint();
-    maxTime = parameters.getParameter(ExtractScansParameters.rangeTime).getValue().upperEndpoint();
+    Range<Double> r = parameters.getParameter(ExtractScansParameters.rangeTime).getValue();
+    if (r != null) {
+      minTime = r.lowerEndpoint();
+      maxTime = r.upperEndpoint();
+    }
   }
 
   public double getFinishedPercentage() {

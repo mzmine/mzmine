@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <title>Extract scans - Spectra/mass list to csv export</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+    <body>
+
+        <h1>Extract scans - Spectra/mass list to csv export</h1>
+       
+        <h2>Description</h2>
+        <p>
+            This module exports scans or mass lists to csv text files. 
+        </p>
+
+        <h4>Method parameters</h4>
+        <dl>
+            <dt>Optional mass list: </dt>
+            <dd>If checked, mass lists are exported instead of raw scans</dd>
+            <dt>Raw data files: </dt>
+            <dd>One or more raw data files that contain the scans/mass lists</dd>
+            <dt>Use center time: </dt>
+            <dd>Specifies that the center time and scan count should be used (inactive in the case that auto search max is selected)</dd>
+            <dt>Scan count to be exported: </dt>
+            <dd>Only used for center time and for auto search max</dd>
+            <dt>Center time: </dt>
+            <dd>Used if option above is checked and auto max is disabled</dd>
+            <dt>Time range:</dt>
+            <dd>Time range to export scans. Only used if use center time and auto search max is unchecked</dd>
+            <dt>Auto search max: </dt>
+            <dd>Searches for TIC maximum to center the scan export of the specified count of scans. (Important: Disables the center time and time range)</dd>
+            <dt>Export header: </dt>
+            <dd>Export meta data as a header for each scan</dd>
+        </dl>
+
+    </body>
+</html>
