@@ -257,59 +257,75 @@ public class EChartPanel extends ChartPanel {
   public Object[][] getDataArrayForExport() {
     if (getChart().getXYPlot() != null && getChart().getXYPlot().getDataset() != null) {
       try {
-        XYDataset data = getChart().getXYPlot().getDataset();
-        if (data instanceof XYZDataset) {
-          XYZDataset xyz = (XYZDataset) data;
-          int series = data.getSeriesCount();
-          Object[][] model = new Object[series * 3][];
-          for (int s = 0; s < series; s++) {
-            int size = 1 + xyz.getItemCount(s);
-            Object[] x = new Object[size];
-            Object[] y = new Object[size];
-            Object[] z = new Object[size];
-            // create new Array model[row][col]
-            // Write header
-            x[0] = getChart().getXYPlot().getDomainAxis().getLabel();
-            y[0] = getChart().getXYPlot().getRangeAxis().getLabel();
-            z[0] = "z-axis";
-            // write data
-            for (int i = 0; i < xyz.getItemCount(s); i++) {
-              x[i + 1] = xyz.getX(s, i);
-              y[i + 1] = xyz.getY(s, i);
-              z[i + 1] = xyz.getZ(s, i);
+        List<Object[]> modelList = new ArrayList<>();
+
+        for (int d = 0; d < getChart().getXYPlot().getDatasetCount(); d++) {
+          XYDataset data = getChart().getXYPlot().getDataset(d);
+          if (data instanceof XYZDataset) {
+            XYZDataset xyz = (XYZDataset) data;
+            int series = data.getSeriesCount();
+            Object[][] model = new Object[series * 3][];
+            for (int s = 0; s < series; s++) {
+              int size = 2 + xyz.getItemCount(s);
+              Object[] x = new Object[size];
+              Object[] y = new Object[size];
+              Object[] z = new Object[size];
+              // create new Array model[row][col]
+              // Write header
+              Comparable title = data.getSeriesKey(series);
+              x[0] = title;
+              y[0] = "";
+              z[0] = "";
+              x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
+              y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
+              z[1] = "z-axis";
+              // write data
+              for (int i = 0; i < xyz.getItemCount(s); i++) {
+                x[i + 2] = xyz.getX(s, i);
+                y[i + 2] = xyz.getY(s, i);
+                z[i + 2] = xyz.getZ(s, i);
+              }
+              model[s * 3] = x;
+              model[s * 3 + 1] = y;
+              model[s * 3 + 2] = z;
             }
-            model[s * 3] = x;
-            model[s * 3 + 1] = y;
-            model[s * 3 + 2] = z;
-          }
-          return model;
-        } else {
-          int series = data.getSeriesCount();
-          Object[][] model = new Object[series * 2][];
-          for (int s = 0; s < series; s++) {
-            int size = 1 + data.getItemCount(s);
-            Object[] x = new Object[size];
-            Object[] y = new Object[size];
-            // create new Array model[row][col]
-            // Write header
-            x[0] = getChart().getXYPlot().getDomainAxis().getLabel();
-            y[0] = getChart().getXYPlot().getRangeAxis().getLabel();
-            // write data
-            for (int i = 0; i < data.getItemCount(s); i++) {
-              x[i + 1] = data.getX(s, i);
-              y[i + 1] = data.getY(s, i);
+
+            for (Object[] o : model)
+              modelList.add(o);
+          } else {
+            int series = data.getSeriesCount();
+            Object[][] model = new Object[series * 2][];
+            for (int s = 0; s < series; s++) {
+              int size = 2 + data.getItemCount(s);
+              Object[] x = new Object[size];
+              Object[] y = new Object[size];
+              // create new Array model[row][col]
+              // Write header
+              Comparable title = data.getSeriesKey(series);
+              x[0] = title;
+              y[0] = "";
+              x[1] = getChart().getXYPlot().getDomainAxis().getLabel();
+              y[1] = getChart().getXYPlot().getRangeAxis().getLabel();
+              // write data
+              for (int i = 0; i < data.getItemCount(s); i++) {
+                x[i + 2] = data.getX(s, i);
+                y[i + 2] = data.getY(s, i);
+              }
+              model[s * 2] = x;
+              model[s * 2 + 1] = y;
             }
-            model[s * 2] = x;
-            model[s * 2 + 1] = y;
+
+            for (Object[] o : model)
+              modelList.add(o);
           }
-          return model;
         }
+
+        return modelList.toArray(new Object[modelList.size()][]);
       } catch (Exception ex) {
         return null;
       }
     }
     return null;
-
   }
 
   /*
