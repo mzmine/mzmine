@@ -112,12 +112,6 @@ public class ResultTableModel extends AbstractTableModel {
         break;
       case PREVIEW_INDEX:
         value = compound.getPreview();
-        if (value != null) {
-          synchronized (table) {
-            table.getColumnModel().getColumn(PREVIEW_INDEX).setWidth(SiriusCompound.PREVIEW_WIDTH);
-            table.setRowHeight(row, SiriusCompound.PREVIEW_HEIGHT);
-          }
-        }
         break;
     }
 

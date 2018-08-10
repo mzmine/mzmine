@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.PREVIEW_INDEX;
+
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -73,6 +75,10 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
      /* Sorter orders by FingerID score by default */
     ResultTableSorter sorter = new ResultTableSorter(listElementModel);
     setRowSorter(sorter);
+
+    /* Configure rows & columns sizes */
+    getColumnModel().getColumn(PREVIEW_INDEX).setWidth(SiriusCompound.PREVIEW_WIDTH);
+    setRowHeight(SiriusCompound.PREVIEW_HEIGHT);
   }
 
   @Override
@@ -81,7 +87,7 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
     int column = columnAtPoint(p);
 
     // Show tooltip iff mouse points on an image preview cell
-    if (column == ResultTableModel.PREVIEW_INDEX) {
+    if (column == PREVIEW_INDEX) {
       return "PRINT_IMAGE";
     }
 
@@ -158,7 +164,7 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
       return;
 
     long hash = compound.getPreview().hashCode();
-    Image image = compound.generateStructureImage(600, 400);
+    Image image = compound.generateStructureImage(SiriusCompound.STRUCTURE_WIDTH, SiriusCompound.STRUCTURE_HEIGHT);
     if (image != null)
       images.put(hash, image);
   }

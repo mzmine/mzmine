@@ -61,8 +61,10 @@ import org.slf4j.LoggerFactory;
  */
 public class SiriusCompound extends SimplePeakIdentity {
   private static final Logger logger = LoggerFactory.getLogger(SiriusCompound.class);
-  public static final int PREVIEW_HEIGHT = 100;
-  public static final int PREVIEW_WIDTH = 150;
+  public static final int PREVIEW_HEIGHT = 150;
+  public static final int PREVIEW_WIDTH = 100;
+  public static final int STRUCTURE_WIDTH = 600;
+  public static final int STRUCTURE_HEIGHT = 600;
 
   private final SiriusIonAnnotation annotation;
   private final ImageIcon preview;
@@ -193,7 +195,7 @@ public class SiriusCompound extends SimplePeakIdentity {
    * @return scaled image
    */
   private ImageIcon generateStructurePreview() {
-    Image image = generateImage(300, 200);
+    Image image = generateImage(PREVIEW_WIDTH * 2, PREVIEW_HEIGHT * 2);
     if (image == null)
       return null;
 
