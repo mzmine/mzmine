@@ -55,6 +55,10 @@ public class EChartPanel extends ChartPanel {
   protected List<AxesRangeChangedListener> axesRangeListener;
   protected AspectRatioListener aspectRatioListener;
   protected boolean isMouseZoomable = true;
+  protected boolean stickyZeroForRangeAxis = false;
+  protected boolean standardGestures = true;
+  // only for XYData (not for categoryPlots)
+  protected boolean addZoomHistory = true;
   protected ChartGestureMouseAdapter mouseAdapter;
 
   /**
@@ -118,18 +122,32 @@ public class EChartPanel extends ChartPanel {
    */
   public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
       boolean dataExportMenu, boolean standardGestures, boolean stickyZeroForRangeAxis) {
+    this(chart, useBuffer, graphicsExportMenu, dataExportMenu, standardGestures, true,
+        stickyZeroForRangeAxis);
+  }
+
+  /**
+   * Enhanced ChartPanel with extra scrolling methods, zoom history, graphics and data export
+   * 
+   * @param chart
+   * @param graphicsExportMenu adds graphics export menu
+   * @param dataExportMenu adds data export menu
+   * @param standardGestures adds the standard ChartGestureHandlers
+   * @param stickyZeroForRangeAxis
+   */
+  public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
+      boolean dataExportMenu, boolean standardGestures, boolean addZoomHistory,
+      boolean stickyZeroForRangeAxis) {
     super(chart, useBuffer);
-    // super(chart, true, false, true, true, true);
+    this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
+    this.standardGestures = standardGestures;
     // setDoubleBuffered(useBuffer);
     // setRefreshBuffer(useBuffer);
-    initChartPanel(stickyZeroForRangeAxis);
+    if (chart != null)
+      initChartPanel(stickyZeroForRangeAxis);
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu)
       addExportMenu(graphicsExportMenu, dataExportMenu);
-
-    // add gestures
-    if (standardGestures)
-      addStandardGestures();
   }
 
   /**
@@ -144,6 +162,17 @@ public class EChartPanel extends ChartPanel {
     }
   }
 
+  @Override
+  public void setChart(JFreeChart chart) {
+    super.setChart(chart);
+    if (chart != null) {
+      initChartPanel(stickyZeroForRangeAxis);
+      // add gestures
+      if (standardGestures)
+        addStandardGestures();
+    }
+  }
+
   /**
    * Init ChartPanel Mouse Listener For MouseDraggedOverAxis event For scrolling X-Axis und zooming
    * Y-Axis0
@@ -151,59 +180,65 @@ public class EChartPanel extends ChartPanel {
   private void initChartPanel(boolean stickyZeroForRangeAxis) {
     final EChartPanel chartPanel = this;
 
-    // set sticky zero
-    if (stickyZeroForRangeAxis) {
-      ValueAxis rangeAxis = chartPanel.getChart().getXYPlot().getRangeAxis();
-      if (rangeAxis instanceof NumberAxis) {
-        NumberAxis axis = (NumberAxis) rangeAxis;
-        axis.setAutoRangeIncludesZero(true);
-        axis.setAutoRange(true);
-        axis.setAutoRangeStickyZero(true);
-        axis.setRangeType(RangeType.POSITIVE);
+    if (chartPanel.getChart().getXYPlot() != null) {
+      // set sticky zero
+      if (stickyZeroForRangeAxis) {
+        ValueAxis rangeAxis = chartPanel.getChart().getXYPlot().getRangeAxis();
+        if (rangeAxis instanceof NumberAxis) {
+          NumberAxis axis = (NumberAxis) rangeAxis;
+          axis.setAutoRangeIncludesZero(true);
+          axis.setAutoRange(true);
+          axis.setAutoRangeStickyZero(true);
+          axis.setRangeType(RangeType.POSITIVE);
+        }
       }
-    }
 
-    // zoom history
-    zoomHistory = new ZoomHistory(this, 20);
+      if (addZoomHistory) {
+        // zoom history
+        zoomHistory = new ZoomHistory(this, 20);
 
-    // axis range changed listener for zooming and more
-    ValueAxis rangeAxis = this.getChart().getXYPlot().getRangeAxis();
-    ValueAxis domainAxis = this.getChart().getXYPlot().getDomainAxis();
-    if (rangeAxis != null) {
-      rangeAxis.addChangeListener(new AxisRangeChangedListener(this) {
-        @Override
-        public void axisRangeChanged(ChartPanel chart, ValueAxis axis, Range lastR, Range newR) {
-          // resize according to aspect ratio of domain to range axis
-          if (aspectRatioListener != null)
-            aspectRatioListener.resize(chartPanel);
-          // notify listeners of changed range
-          if (axesRangeListener != null)
-            for (AxesRangeChangedListener l : axesRangeListener)
-              l.axesRangeChanged(chartPanel, axis, lastR, newR);
+        // axis range changed listener for zooming and more
+        ValueAxis rangeAxis = this.getChart().getXYPlot().getRangeAxis();
+        ValueAxis domainAxis = this.getChart().getXYPlot().getDomainAxis();
+        if (rangeAxis != null) {
+          rangeAxis.addChangeListener(new AxisRangeChangedListener(this) {
+            @Override
+            public void axisRangeChanged(ChartPanel chart, ValueAxis axis, Range lastR,
+                Range newR) {
+              // resize according to aspect ratio of domain to range axis
+              if (aspectRatioListener != null)
+                aspectRatioListener.resize(chartPanel);
+              // notify listeners of changed range
+              if (axesRangeListener != null)
+                for (AxesRangeChangedListener l : axesRangeListener)
+                  l.axesRangeChanged(chartPanel, axis, lastR, newR);
+            }
+          });
         }
-      });
-    }
-    if (domainAxis != null) {
-      domainAxis.addChangeListener(new AxisRangeChangedListener(this) {
-        @Override
-        public void axisRangeChanged(ChartPanel chart, ValueAxis axis, Range lastR, Range newR) {
-          // resize according to aspect ratio of domain to range axis
-          if (aspectRatioListener != null)
-            aspectRatioListener.resize(chartPanel);
-          // notify listeners of changed range
-          if (axesRangeListener != null)
-            for (AxesRangeChangedListener l : axesRangeListener)
-              l.axesRangeChanged(chartPanel, axis, lastR, newR);
+        if (domainAxis != null) {
+          domainAxis.addChangeListener(new AxisRangeChangedListener(this) {
+            @Override
+            public void axisRangeChanged(ChartPanel chart, ValueAxis axis, Range lastR,
+                Range newR) {
+              // resize according to aspect ratio of domain to range axis
+              if (aspectRatioListener != null)
+                aspectRatioListener.resize(chartPanel);
+              // notify listeners of changed range
+              if (axesRangeListener != null)
+                for (AxesRangeChangedListener l : axesRangeListener)
+                  l.axesRangeChanged(chartPanel, axis, lastR, newR);
+            }
+          });
         }
-      });
-    }
+      }
 
-    // mouse adapter for scrolling and zooming
-    mouseAdapter = new ChartGestureMouseAdapter();
-    // mouseAdapter.addDebugHandler();
-    this.addMouseListener(mouseAdapter);
-    this.addMouseMotionListener(mouseAdapter);
-    this.addMouseWheelListener(mouseAdapter);
+      // mouse adapter for scrolling and zooming
+      mouseAdapter = new ChartGestureMouseAdapter();
+      // mouseAdapter.addDebugHandler();
+      this.addMouseListener(mouseAdapter);
+      this.addMouseMotionListener(mouseAdapter);
+      this.addMouseWheelListener(mouseAdapter);
+    }
   }
 
   @Override
