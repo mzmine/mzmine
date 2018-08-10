@@ -315,7 +315,13 @@ public class GraphicsExportDialog extends JFrame {
   protected void openDialogI(JFreeChart chart) {
     try {
       // create new chart to decouple from original chart
-      addChartToPanel(new EChartPanel((JFreeChart) chart.clone()), true);
+      JFreeChart copy = chart;
+      try {
+        copy = (JFreeChart) chart.clone();
+      } catch (Exception e) {
+        LOG.log(Level.WARNING, "Chart cannot be cloned", e);
+      }
+      addChartToPanel(new EChartPanel(copy), true);
       setVisible(true);
     } catch (Exception e) {
       e.printStackTrace();
