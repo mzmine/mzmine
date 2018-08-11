@@ -20,9 +20,13 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import io.github.msdk.MSDKException;
+import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.MsSpectrum;
 import io.github.msdk.datamodel.SimpleMsSpectrum;
 
+import io.github.msdk.util.DataPointSorter;
+import io.github.msdk.util.DataPointSorter.SortingDirection;
+import io.github.msdk.util.DataPointSorter.SortingProperty;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -46,8 +50,8 @@ public class SpectrumScanner {
   private final HashMap<String, int[]> fragmentScans;
   private final String massListName; // Used the value from ExportSirius module.
 
-  private List<MsSpectrum> ms1list;
-  private List<MsSpectrum> ms2list;
+  private final List<MsSpectrum> ms1list;
+  private final List<MsSpectrum> ms2list;
 
   private boolean includeMs1 = true;
 
@@ -173,28 +177,6 @@ public class SpectrumScanner {
   }
 
   /**
-   * Check the existence of spectrum
-   * @param index - equals to -1, if no ms or ms/ms spectra is found
-   * @return
-   */
-  private boolean indexExists(int index) {
-    return index >= 0;
-  }
-
-  /**
-   * Construct MsSpectrum object from Feature object and index of its Scan
-   * @param peak - to retrieve data points from
-   * @param index - index of the scan in the Data File from Feature object
-   * @return new MsSpectrum object
-   */
-  private MsSpectrum buildSpectrum(Feature peak, int index) {
-    Scan scan = peak.getDataFile().getScan(index);
-    DataPoint[] points = scan.getDataPoints();
-
-    return buildSpectrum(points);
-  }
-
-  /**
    * Construct MsSpectrum object from DataPoint array
    * @param points MZ/Intensity pairs
    * @return new MsSpectrum
@@ -209,7 +191,14 @@ public class SpectrumScanner {
       intensity[i] = (float) points[i].getIntensity();
     }
 
-    spectrum.setDataPoints(mz, intensity, points.length);
-    return spectrum;
+    try {
+      spectrum.setDataPoints(mz, intensity, points.length);
+      return spectrum;
+    } catch (MSDKRuntimeException f) {
+      // m/z values must be sorted in ascending order Exception
+      DataPointSorter.sortDataPoints(mz, intensity, points.length, SortingProperty.MZ, SortingDirection.ASCENDING);
+      spectrum.setDataPoints(mz, intensity, points.length);
+      return spectrum;
+    }
   }
 }
