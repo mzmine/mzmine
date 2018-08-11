@@ -24,11 +24,13 @@ import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.Sirius
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.NEUTRAL_MASS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ION_MASS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_CANDIDATES;
 
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
+import io.github.msdk.MSDKException;
+import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
@@ -103,7 +105,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     siriusCandidates = parameters.getParameter(SIRIUS_CANDIDATES).getValue();
     fingerCandidates = parameters.getParameter(FINGERID_CANDIDATES).getValue();
     ionType = parameters.getParameter(ionizationType).getValue();
-    parentMass = parameters.getParameter(NEUTRAL_MASS).getValue();
+    parentMass = parameters.getParameter(ION_MASS).getValue();
     range = parameters.getParameter(ELEMENTS).getValue();
     timer = parameters.getParameter(SIRIUS_TIMEOUT).getValue();
     massListName = parameters.getParameter(MASS_LIST).getValue();
@@ -151,9 +153,26 @@ public class SingleRowIdentificationTask extends AbstractTask {
     window.setTitle("Sirius identifies peak with " + massFormater.format(parentMass) + " amu");
     window.setVisible(true);
 
-    SpectrumScanner scanner = new SpectrumScanner(peakListRow, massListName);
-    List<MsSpectrum> ms1list = scanner.getMsList();
-    List<MsSpectrum> ms2list = scanner.getMsMsList();
+    SpectrumScanner scanner;
+    List<MsSpectrum> ms1list, ms2list;
+    try {
+      scanner = new SpectrumScanner(peakListRow, massListName);
+      ms1list = scanner.getMsList();
+      ms2list = scanner.getMsMsList();
+
+      if (ms1list == null && ms2list == null) {
+        throw new MSDKRuntimeException("There are no scans that satisfy condition");
+      }
+    } catch (MSDKException e) { //todo: throw another Exception
+      showErrorAndCancel(window, "Empty Mass List",
+          String.format("Error during processing [%.2f] row", parentMass) +
+          "Scan does not have the mass list of that name" + String.format(" [%s]", massListName));
+      return;
+    } catch (MSDKRuntimeException f) { //todo: throw another Exception
+      showErrorAndCancel(window, "Scans with precursor mass",
+          "There is no MS2 scans that have a given precursor mass.\nAbort.");
+      return;
+    }
 
     // Use executor to run Sirius Identification Method as an Interruptable thread.
     // Otherwise it may compute for too long (or even forever).
@@ -176,12 +195,12 @@ public class SingleRowIdentificationTask extends AbstractTask {
     } catch (InterruptedException|TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
       ie.printStackTrace();
-      showError(window, "Timer expired", timerErrorMessage);
+      showErrorAndCancel(window, "Timer expired", timerErrorMessage);
       return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
       ce.printStackTrace();
-      showError(window, "Sirius Error", siriusErrorMessage);
+      showErrorAndCancel(window, "Sirius Error", siriusErrorMessage);
       return;
     }
 
@@ -220,8 +239,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private void showError(ResultWindow window, String title, String msg) {
-    MZmineCore.getDesktop().displayErrorMessage(window, "",
+  private void showErrorAndCancel(ResultWindow window, String title, String msg) {
+    MZmineCore.getDesktop().displayErrorMessage(window, title,
         msg);
     this.setStatus(TaskStatus.CANCELED);
   }

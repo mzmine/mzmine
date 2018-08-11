@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
@@ -30,8 +31,10 @@ public class SingleRowIdentificationParameters extends SiriusParameters {
   public static final IntegerParameter FINGERID_CANDIDATES = new IntegerParameter(
       "Number of candidates from FingerId method", "Pass 0 to get all possible results", 5);
 
-  public static final DoubleParameter NEUTRAL_MASS = new DoubleParameter(
-      "Precursor m/z", "Value to use in the search query of precursor ion");
+  public static final DoubleParameter ION_MASS = new DoubleParameter(
+      "Precursor m/z", "Value to use in the search query of precursor ion",
+      MZmineCore.getConfiguration().getMZFormat());
+
 
   public static final IntegerParameter SIRIUS_TIMEOUT =
       new IntegerParameter(
@@ -41,7 +44,7 @@ public class SingleRowIdentificationParameters extends SiriusParameters {
 
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {
-        NEUTRAL_MASS,
+        ION_MASS,
         ionizationType,
         MZ_TOLERANCE,
         SIRIUS_CANDIDATES,

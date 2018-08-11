@@ -75,7 +75,7 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
     final ParameterSet parameters = new SingleRowIdentificationParameters();
 
 //         Set m/z.
-    parameters.getParameter(SingleRowIdentificationParameters.NEUTRAL_MASS)
+    parameters.getParameter(SingleRowIdentificationParameters.ION_MASS)
         .setValue(row.getAverageMZ());
 
     // Run task.

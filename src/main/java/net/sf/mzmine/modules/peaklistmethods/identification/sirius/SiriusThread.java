@@ -25,6 +25,7 @@ import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.Sirius
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 
+import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
@@ -109,9 +110,18 @@ public class SiriusThread implements Runnable {
 
   @Override
   public void run() {
-    SpectrumScanner scanner = new SpectrumScanner(row, massListName);
-    List<MsSpectrum> ms1 = scanner.getMsList();
-    List<MsSpectrum> ms2 = scanner.getMsMsList();
+    List<MsSpectrum> ms1list, ms2list;
+    SpectrumScanner scanner;
+
+    try {
+      scanner = new SpectrumScanner(row, massListName);
+      ms1list = scanner.getMsList();
+      ms2list = scanner.getMsMsList();
+
+    } catch (MSDKException e) { // change exception type
+      releaseResources();
+      return;
+    }
 
     FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
     IonType siriusIon = IonTypeUtil.createIonType(ionType.toString());
@@ -124,7 +134,7 @@ public class SiriusThread implements Runnable {
       if it expires -> log error and continue
     */
     try {
-      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1, ms2, row.getAverageMZ(),
+      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list, row.getAverageMZ(),
           siriusIon, siriusCandidates, constraints, deviationPpm);
 
       // On some spectra it may never stop (halting problem), that's why interruptable thread is used
@@ -165,9 +175,13 @@ public class SiriusThread implements Runnable {
       ce.printStackTrace();
     } finally {
       // Do not forget to release resources!
-      latch.countDown();
-      semaphore.release();
-      logger.debug("Semaphore RELEASED");
+      releaseResources();
     }
+  }
+
+  private void releaseResources() {
+    latch.countDown();
+    semaphore.release();
+    logger.debug("Semaphore RELEASED");
   }
 }

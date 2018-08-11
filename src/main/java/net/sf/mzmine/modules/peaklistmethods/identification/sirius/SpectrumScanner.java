@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.MsSpectrum;
 import io.github.msdk.datamodel.SimpleMsSpectrum;
 
@@ -54,7 +55,7 @@ public class SpectrumScanner {
    * Constructor for SpectrumScanner
    * @param row
    */
-  public SpectrumScanner(@Nonnull PeakListRow row, String massListName) {
+  public SpectrumScanner(@Nonnull PeakListRow row, String massListName) throws MSDKException {
     this.row = row;
     this.massListName = massListName;
     ms1list = new LinkedList<>();
@@ -91,14 +92,12 @@ public class SpectrumScanner {
   /**
    * Method processes a row and construct MS1 MS2 lists
    */
-  private void processRow() {
+  private void processRow() throws MSDKException {
     // Specify the Isotope Pattern (in form of MS1 spectrum)
-    try {
-      IsotopePattern pattern = row.getBestPeak().getIsotopePattern();
+    IsotopePattern pattern = row.getBestPeak().getIsotopePattern();
+    if (pattern != null) {
       MsSpectrum isotopePattern = buildSpectrum(pattern.getDataPoints());
       ms1list.add(isotopePattern);
-    } catch (NullPointerException e) {
-
     }
 
     /*
@@ -106,42 +105,44 @@ public class SpectrumScanner {
       Code taken from SiriusExportTask -> exportPeakListRow(...)
      */
     for (Feature f : row.getPeaks()) {
-        final int[] scanNumbers = f.getScanNumbers().clone();
-        Arrays.sort(scanNumbers);
-        int[] fs = fragmentScans.get(f.getDataFile().getName());
-        int startWith = scanNumbers[0];
-        int j = Arrays.binarySearch(fs, startWith);
-        if (j < 0) j = (-j - 1);
-        for (int k = j; k < fs.length; ++k) {
-          final Scan scan = f.getDataFile().getScan(fs[k]);
-          if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) {
-
-            if (includeMs1) {
-              // find precursor scan
-              int prec = Arrays.binarySearch(scanNumbers, fs[k]);
-              if (prec < 0) prec = -prec - 1;
-              prec = Math.max(0, prec - 1);
-              for (; prec < scanNumbers.length && scanNumbers[prec] < fs[k]; ++prec) {
-                final Scan precursorScan = f.getDataFile().getScan(scanNumbers[prec]);
-                if (precursorScan.getMSLevel() == 1) {
-                  try {
-                    MassList massList = precursorScan.getMassList(massListName);
-                    DataPoint[] points = massListName != null ? massList.getDataPoints(): precursorScan.getDataPoints();
-                    ms1list.add(buildSpectrum(points));
-                  } catch (NullPointerException e) {
-
+      final int[] scanNumbers = f.getScanNumbers().clone();
+      Arrays.sort(scanNumbers);
+      int[] fs = fragmentScans.get(f.getDataFile().getName());
+      int startWith = scanNumbers[0];
+      int j = Arrays.binarySearch(fs, startWith);
+      if (j < 0) j = (-j - 1);
+      for (int k = j; k < fs.length; ++k) {
+        final Scan scan = f.getDataFile().getScan(fs[k]);
+        if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) { //todo: ask about scan.getMSLevel()...
+          if (includeMs1) {
+            // find precursor scan
+            int prec = Arrays.binarySearch(scanNumbers, fs[k]);
+            if (prec < 0) prec = -prec - 1;
+            prec = Math.max(0, prec - 1);
+            for (; prec < scanNumbers.length && scanNumbers[prec] < fs[k]; ++prec) {
+              final Scan precursorScan = f.getDataFile().getScan(scanNumbers[prec]);
+              if (precursorScan.getMSLevel() == 1) {
+                MassList massList = precursorScan.getMassList(massListName);
+                if (massList != null) {
+                  DataPoint[] points = massList.getDataPoints();
+                  if (points.length == 0) {
+                    throw new MSDKException("There are no scans for this Mass List");
                   }
+                  ms1list.add(buildSpectrum(points));
                 }
               }
             }
-
-            // Do not include MS1 scans (except for isotope pattern)
-            MassList massList = scan.getMassList(massListName);
-            DataPoint[] points = massListName != null ?
-                massList.getDataPoints() : scan.getDataPoints();
-            ms2list.add(buildSpectrum(points));
           }
+
+          // Do not include MS1 scans (except for isotope pattern)
+          MassList massList = scan.getMassList(massListName);
+          DataPoint[] points = massList.getDataPoints();
+          if (points.length == 0) {
+            throw new MSDKException("There are no scans for this Mass List");
+          }
+          ms2list.add(buildSpectrum(points));
         }
+      }
 
 //    for (Feature peak: row.getPeaks()) {
 //      int ms1index = peak.getRepresentativeScanNumber();
