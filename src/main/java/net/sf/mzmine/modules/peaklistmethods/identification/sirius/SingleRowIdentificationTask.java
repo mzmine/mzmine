@@ -165,12 +165,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
       }
     } catch (MSDKException e) { //todo: throw another Exception
       showErrorAndCancel(window, "Empty Mass List",
-          String.format("Error during processing [%.2f] row", parentMass) +
+          String.format("Error during processing [%.2f] row\n", parentMass) +
           "Scan does not have the mass list of that name" + String.format(" [%s]", massListName));
       return;
     } catch (MSDKRuntimeException f) { //todo: throw another Exception
-      showErrorAndCancel(window, "Scans with precursor mass",
-          "There is no MS2 scans that have a given precursor mass.\nAbort.");
+      showErrorAndCancel(window, String.format("Empty Mass List for %.2f", parentMass),
+          "There is no MS2 scans that have a given precursor mass.\n" +
+      "MS1 and MS2 lists are empty.");
       return;
     }
 

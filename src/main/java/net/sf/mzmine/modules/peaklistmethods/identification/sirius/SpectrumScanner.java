@@ -114,6 +114,8 @@ public class SpectrumScanner {
       for (int k = j; k < fs.length; ++k) {
         final Scan scan = f.getDataFile().getScan(fs[k]);
         if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) { //todo: ask about scan.getMSLevel()...
+
+          /* Parse MS1 level scans */
           if (includeMs1) {
             // find precursor scan
             int prec = Arrays.binarySearch(scanNumbers, fs[k]);
@@ -134,8 +136,8 @@ public class SpectrumScanner {
             }
           }
 
-          // Do not include MS1 scans (except for isotope pattern)
-          MassList massList = scan.getMassList(massListName);
+          /* Parse ms2 level scans */
+          MassList massList = scan.getMassList(massListName); // todo: is it possible to have massList here == null? Still did not meet this situation
           DataPoint[] points = massList.getDataPoints();
           if (points.length == 0) {
             throw new MSDKException("There are no scans for this Mass List");
@@ -143,16 +145,6 @@ public class SpectrumScanner {
           ms2list.add(buildSpectrum(points));
         }
       }
-
-//    for (Feature peak: row.getPeaks()) {
-//      int ms1index = peak.getRepresentativeScanNumber();
-//      int ms2index = peak.getMostIntenseFragmentScanNumber();
-//      if (indexExists(ms1index))
-//        ms1list.add(buildSpectrum(peak, ms1index));
-//
-//      if (indexExists(ms2index))
-//        ms2list.add(buildSpectrum(peak, ms2index));
-//    }
     }
   }
 
