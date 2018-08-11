@@ -75,7 +75,6 @@ public class PeakListIdentificationTask extends AbstractTask {
     semaphore = new Semaphore(threadsAmount);
     latch = new CountDownLatch(list.getNumberOfRows());
 
-
     int fingerCandidates, siriusCandidates, timer;
     timer = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
     siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();

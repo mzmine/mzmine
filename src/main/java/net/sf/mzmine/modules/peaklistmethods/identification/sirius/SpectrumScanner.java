@@ -40,12 +40,16 @@ import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class SpectrumScanner
  * Allows to process Feature objects (peaks) and return appropriate objects for SiriusIdentificationMethod
  */
 public class SpectrumScanner {
+  private static final Logger logger = LoggerFactory.getLogger(SpectrumScanner.class);
+
   private final PeakListRow row;
   private final HashMap<String, int[]> fragmentScans;
   private final String massListName; // Used the value from ExportSirius module.
@@ -94,7 +98,10 @@ public class SpectrumScanner {
 
 
   /**
-   * Method processes a row and construct MS1 MS2 lists
+   * Method processes a row and constructs CENTROIDED MS1 and MS2 lists
+   * 1) Check existence of IsotopePattern
+   * 2) Go through scans and submit centroided.
+   * @throws MSDKException
    */
   private void processRow() throws MSDKException {
     // Specify the Isotope Pattern (in form of MS1 spectrum)
@@ -132,6 +139,7 @@ public class SpectrumScanner {
                 if (massList != null) {
                   DataPoint[] points = massList.getDataPoints();
                   if (points.length == 0) {
+                    logger.info("Empty mass list was returned from a scan");
                     throw new MSDKException("There are no scans for this Mass List");
                   }
                   ms1list.add(buildSpectrum(points));
@@ -141,12 +149,15 @@ public class SpectrumScanner {
           }
 
           /* Parse ms2 level scans */
-          MassList massList = scan.getMassList(massListName); // todo: is it possible to have massList here == null? Still did not meet this situation
-          DataPoint[] points = massList.getDataPoints();
-          if (points.length == 0) {
-            throw new MSDKException("There are no scans for this Mass List");
+          MassList massList = scan.getMassList(massListName);
+          if (massList != null) {
+            DataPoint[] points = massList.getDataPoints();
+            if (points.length == 0) {
+              logger.info("Empty mass list was returned from a scan");
+              throw new MSDKException("There are no scans for this Mass List");
+            }
+            ms2list.add(buildSpectrum(points));
           }
-          ms2list.add(buildSpectrum(points));
         }
       }
     }

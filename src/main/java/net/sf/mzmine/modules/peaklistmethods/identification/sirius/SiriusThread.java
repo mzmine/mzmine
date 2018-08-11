@@ -118,6 +118,11 @@ public class SiriusThread implements Runnable {
       ms1list = scanner.getMsList();
       ms2list = scanner.getMsMsList();
 
+      if (ms1list == null && ms2list == null) { // Skip this row
+        logger.info("Skipped row [%d], empty lists.", row.getID());
+        throw new MSDKException("Empty spectra lists");
+      }
+
     } catch (MSDKException e) { // change exception type
       releaseResources();
       return;

@@ -71,7 +71,11 @@ public class DBTableModel extends AbstractTableModel {
    */
   public void addElement(SiriusCompound compound) {
     SiriusIonAnnotation annotation = compound.getIonAnnotation();
-    for (DBLink link: annotation.getDBLinks()) {
+    DBLink[] links = annotation.getDBLinks();
+    if (links == null)
+      return;
+
+    for (DBLink link: links) {
       compounds.add(new SiriusDBCompound(link.name, link.id));
       fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
     }
