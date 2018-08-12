@@ -36,12 +36,13 @@ public class PeakListIdentificationParameters extends SiriusParameters {
 
   public static final IntegerParameter THREADS_AMOUNT = new IntegerParameter("Amount of parallel jobs",
           "Specify the amount of parallel processing jobs",
-          4, 1, 20);
+          8);
 
   public static final IntegerParameter SIRIUS_TIMEOUT =
       new IntegerParameter(
-          "Timer for Sirius Identification job (sec)", "Specify the amount of seconds, during which Sirius Identification job should finish processing a row.",
-          10
+          "Timer for Sirius Identification job (sec)",
+          "Specify the amount of seconds, during which Sirius Identification job should finish processing a row.",
+          30
       );
 
 
