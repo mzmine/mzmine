@@ -139,7 +139,7 @@ public class SpectrumScanner {
                 if (massList != null) {
                   DataPoint[] points = massList.getDataPoints();
                   if (points.length == 0) {
-                    logger.info("Empty mass list was returned from a scan");
+                    logger.info("Empty mass list was returned from a scan. Row id = %d", row.getID());
                     throw new MSDKException("There are no scans for this Mass List");
                   }
                   ms1list.add(buildSpectrum(points));
@@ -153,7 +153,7 @@ public class SpectrumScanner {
           if (massList != null) {
             DataPoint[] points = massList.getDataPoints();
             if (points.length == 0) {
-              logger.info("Empty mass list was returned from a scan");
+              logger.info("Empty mass list was returned from a scan. Row id = %d", row.getID());
               throw new MSDKException("There are no scans for this Mass List");
             }
             ms2list.add(buildSpectrum(points));

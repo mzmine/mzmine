@@ -119,7 +119,7 @@ public class SiriusThread implements Runnable {
       ms2list = scanner.getMsMsList();
 
       if (ms1list == null && ms2list == null) { // Skip this row
-        logger.info("Skipped row [%d], empty lists.", row.getID());
+        logger.info("Skipped row %d, empty lists.", row.getID());
         throw new MSDKException("Empty spectra lists");
       }
 
@@ -173,10 +173,10 @@ public class SiriusThread implements Runnable {
         }
       }
     } catch (InterruptedException|TimeoutException ie) {
-      logger.error("Timeout on Sirius method expired, abort.");
+      logger.error("Timeout on Sirius method expired, abort. Row id = %d", row.getID());
       ie.printStackTrace();
     } catch (ExecutionException ce) {
-      logger.error("Concurrency error during Sirius method.");
+      logger.error("Concurrency error during Sirius method.  Row id = %d", row.getID());
       ce.printStackTrace();
     } finally {
       // Do not forget to release resources!
