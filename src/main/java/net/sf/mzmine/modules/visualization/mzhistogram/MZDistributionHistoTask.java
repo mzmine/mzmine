@@ -28,7 +28,6 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.masslistmethods.imagebuilder.ImageBuilderParameters;
 import net.sf.mzmine.modules.visualization.mzhistogram.chart.EHistogramDialog;
 import net.sf.mzmine.modules.visualization.mzhistogram.chart.HistogramData;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -68,10 +67,10 @@ public class MZDistributionHistoTask extends AbstractTask {
     this.massListName = parameters.getParameter(MZDistributionHistoParameters.massList).getValue();
 
     this.mzRange = parameters.getParameter(MZDistributionHistoParameters.mzRange).getValue();
-    this.useRTRange = parameters.getParameter(ImageBuilderParameters.rtRange).getValue();
+    this.useRTRange = parameters.getParameter(MZDistributionHistoParameters.rtRange).getValue();
     if (useRTRange)
-      this.rtRange =
-          parameters.getParameter(ImageBuilderParameters.rtRange).getEmbeddedParameter().getValue();
+      this.rtRange = parameters.getParameter(MZDistributionHistoParameters.rtRange)
+          .getEmbeddedParameter().getValue();
     this.binWidth = parameters.getParameter(MZDistributionHistoParameters.binWidth).getValue();
   }
 
