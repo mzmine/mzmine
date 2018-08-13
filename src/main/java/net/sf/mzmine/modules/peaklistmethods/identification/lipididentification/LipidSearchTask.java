@@ -15,6 +15,7 @@ import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools.FattyAcidTools;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools.MSMSLipidTools;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetectorParameters;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -29,7 +30,7 @@ public class LipidSearchTask extends AbstractTask {
   private double finishedSteps, totalSteps;
   private PeakList peakList;
 
-  private LipidType[] selectedLipids;
+  private LipidClasses[] selectedLipids;
   private int minChainLength, maxChainLength, maxDoubleBonds;
   private MZTolerance mzTolerance, mzToleranceMS2;
   private IonizationType ionizationType;
@@ -51,7 +52,7 @@ public class LipidSearchTask extends AbstractTask {
     maxChainLength = parameters.getParameter(LipidSearchParameters.maxChainLength).getValue();
     maxDoubleBonds = parameters.getParameter(LipidSearchParameters.maxDoubleBonds).getValue();
     mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
-    selectedLipids = parameters.getParameter(LipidSearchParameters.lipidTypes).getValue();
+    selectedLipids = parameters.getParameter(LipidSearchParameters.lipidClasses).getValue();
     ionizationType = parameters.getParameter(LipidSearchParameters.ionizationMethod).getValue();
     searchForFAinMSMS = parameters.getParameter(LipidSearchParameters.searchForFAinMSMS).getValue();
     mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.mzToleranceMS2).getValue();
@@ -92,7 +93,7 @@ public class LipidSearchTask extends AbstractTask {
     totalSteps = ((maxChainLength + 1) * (maxDoubleBonds + 1)) * selectedLipids.length;
 
     // Try all combinations of fatty acid lengths and double bonds
-    for (LipidType lipidType : selectedLipids) {
+    for (LipidClasses lipidClass : selectedLipids) {
       for (int fattyAcidLength = 0; fattyAcidLength <= maxChainLength; fattyAcidLength++) {
         for (int fattyAcidDoubleBonds =
             0; fattyAcidDoubleBonds <= maxDoubleBonds; fattyAcidDoubleBonds++) {
@@ -117,7 +118,7 @@ public class LipidSearchTask extends AbstractTask {
 
           // Prepare a lipid instance
           LipidIdentityChain lipidChain =
-              new LipidIdentityChain(lipidType, fattyAcidLength, fattyAcidDoubleBonds);
+              new LipidIdentityChain(lipidClass, fattyAcidLength, fattyAcidDoubleBonds);
 
           // Find all rows that match this lipid
           findPossibleLipid(lipidChain, rows);

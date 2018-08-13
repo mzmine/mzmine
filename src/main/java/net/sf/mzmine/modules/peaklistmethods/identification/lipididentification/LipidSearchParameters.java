@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification;
 
 import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -33,9 +34,9 @@ public class LipidSearchParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final MultiChoiceParameter<LipidType> lipidTypes =
-      new MultiChoiceParameter<LipidType>("Type of lipids", "Selection of lipid backbones",
-          LipidType.values());
+  public static final MultiChoiceParameter<LipidClasses> lipidClasses =
+      new MultiChoiceParameter<LipidClasses>("Lipid classes", "Selection of lipid backbones",
+          LipidClasses.values());
 
   public static final IntegerParameter minChainLength = new IntegerParameter(
       "Minimum number of Carbon in chains", "Minimum number of Carbon in chains");
@@ -69,7 +70,7 @@ public class LipidSearchParameters extends SimpleParameterSet {
       "Noise level for MS/MS scans", "Intensities less than this value are interpreted as noise.");
 
   public LipidSearchParameters() {
-    super(new Parameter[] {peakLists, lipidTypes, minChainLength, maxChainLength, minDoubleBonds,
+    super(new Parameter[] {peakLists, lipidClasses, minChainLength, maxChainLength, minDoubleBonds,
         maxDoubleBonds, searchForFAinMSMS, mzToleranceMS2, noiseLevel});
   }
 
