@@ -52,6 +52,8 @@ public class ChartParameters extends SimpleParameterSet {
   public static final OptionalParameter<StringParameter> ylabel =
       new OptionalParameter<StringParameter>(new StringParameter("Change y", "", "y"));
 
+  public static final ColorParameter color =
+      new ColorParameter("Background", "Background color", Color.WHITE);
 
   public static final FontParameter masterFont =
       new FontParameter("Master", "Master font changes all fonts",
@@ -75,7 +77,7 @@ public class ChartParameters extends SimpleParameterSet {
 
 
   public ChartParameters() {
-    super(new Parameter[] {showLegends, showTitle, changeTitle, xlabel, ylabel, masterFont,
+    super(new Parameter[] {showLegends, showTitle, changeTitle, xlabel, ylabel,color, masterFont,
         titleFont, captionFont, labelFont, xGridPaint, yGridPaint, showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
@@ -97,6 +99,10 @@ public class ChartParameters extends SimpleParameterSet {
     String xlabel = this.getParameter(ChartParameters.xlabel).getEmbeddedParameter().getValue();
     String ylabel = this.getParameter(ChartParameters.ylabel).getEmbeddedParameter().getValue();
 
+    Color gbColor = this.getParameter(ChartParameters.color).getValue();
+    chart.setBackgroundPaint(gbColor);
+    chart.getPlot().setBackgroundPaint(gbColor);
+    
     if (changeTitle)
       chart.setTitle(title);
     chart.getTitle().setVisible(showTitle);
@@ -144,7 +150,12 @@ public class ChartParameters extends SimpleParameterSet {
     FontSpecs large = this.getParameter(ChartParameters.titleFont).getValue();
     FontSpecs medium = this.getParameter(ChartParameters.captionFont).getValue();
     FontSpecs small = this.getParameter(ChartParameters.labelFont).getValue();
+    
+    Color gbColor = this.getParameter(ChartParameters.color).getValue();
 
+    theme.setChartBackgroundPaint(gbColor);
+    theme.setPlotBackgroundPaint(gbColor);
+    
     theme.setMasterFont(master.getFont());
     theme.setExtraLargeFont(large.getFont());
     theme.setLargeFont(medium.getFont());
@@ -166,6 +177,5 @@ public class ChartParameters extends SimpleParameterSet {
     theme.setShowYGrid(ygrid);
     theme.setDomainGridlinePaint(cxgrid);
     theme.setRangeGridlinePaint(cygrid);
-
   }
 }
