@@ -127,6 +127,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.jfree</groupId>
+			<artifactId>jfreechart-fx</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jfree</groupId>
 			<artifactId>jfreesvg</artifactId>
 			<version>3.2</version>
 		</dependency>
@@ -483,6 +488,7 @@
 			<artifactId>adap</artifactId>
 			<version>3.3.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>gnf</groupId>
 			<artifactId>clustering</artifactId>
