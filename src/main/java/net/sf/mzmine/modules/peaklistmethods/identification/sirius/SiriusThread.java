@@ -25,7 +25,6 @@ import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.Sirius
 import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 
-import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
@@ -119,11 +118,10 @@ public class SiriusThread implements Runnable {
       ms2list = scanner.getMsMsList();
 
       if (ms1list == null && ms2list == null) { // Skip this row
-        logger.info("Skipped row %d, empty lists.", row.getID());
-        throw new MSDKException("Empty spectra lists");
+        logger.info("Skipped row {}, empty lists.", row.getID());
+        throw new MethodRuntimeException("Empty spectra lists");
       }
-
-    } catch (MSDKException e) { // change exception type
+    } catch (MethodRuntimeException e) { // change exception type
       releaseResources();
       return;
     }
@@ -163,7 +161,6 @@ public class SiriusThread implements Runnable {
             Thread.sleep(1000);
           } catch (InterruptedException interrupt) {
             logger.error("Processing of FingerWebMethods were interrupted");
-            interrupt.printStackTrace();
 
             /* If interrupted, store last item */
             List<IonAnnotation> lastItem = new LinkedList<>();
@@ -173,17 +170,20 @@ public class SiriusThread implements Runnable {
         }
       }
     } catch (InterruptedException|TimeoutException ie) {
-      logger.error("Timeout on Sirius method expired, abort. Row id = %d", row.getID());
-      ie.printStackTrace();
+      logger.error("Timeout on Sirius method expired, abort. Row id = {}", row.getID());
     } catch (ExecutionException ce) {
-      logger.error("Concurrency error during Sirius method.  Row id = %d", row.getID());
-      ce.printStackTrace();
+      logger.error("Concurrency error during Sirius method.  Row id = {}", row.getID());
     } finally {
       // Do not forget to release resources!
       releaseResources();
     }
   }
 
+  /**
+   * Method for dealing with multithread resources
+   * 1) Release semaphore
+   * 2) Count down barrier
+   */
   private void releaseResources() {
     latch.countDown();
     semaphore.release();

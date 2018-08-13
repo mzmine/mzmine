@@ -126,7 +126,6 @@ public class PeakListIdentificationTask extends AbstractTask {
             th.start();
           } catch (InterruptedException e) {
             logger.error("The thread was interrupted");
-            e.printStackTrace();
           }
         }
 
@@ -136,7 +135,6 @@ public class PeakListIdentificationTask extends AbstractTask {
           setStatus(TaskStatus.FINISHED);
         }
       } catch (Throwable t) {
-
         final String msg = "Could not search ";
         logger.warn(msg, t);
         setStatus(TaskStatus.ERROR);

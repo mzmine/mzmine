@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import io.github.msdk.MSDKException;
 import io.github.msdk.MSDKRuntimeException;
 import io.github.msdk.datamodel.MsSpectrum;
 import io.github.msdk.datamodel.SimpleMsSpectrum;
@@ -63,7 +62,7 @@ public class SpectrumScanner {
    * Constructor for SpectrumScanner
    * @param row
    */
-  public SpectrumScanner(@Nonnull PeakListRow row, String massListName) throws MSDKException {
+  public SpectrumScanner(@Nonnull PeakListRow row, String massListName) throws MethodRuntimeException {
     this.row = row;
     this.massListName = massListName;
     ms1list = new LinkedList<>();
@@ -100,10 +99,11 @@ public class SpectrumScanner {
   /**
    * Method processes a row and constructs CENTROIDED MS1 and MS2 lists
    * 1) Check existence of IsotopePattern
-   * 2) Go through scans and submit centroided.
-   * @throws MSDKException
+   * 2) Go through scans, receive data points according to Mass List name.
+   * 3) Submit points into a new MsSpectrum
+   * @throws MethodRuntimeException
    */
-  private void processRow() throws MSDKException {
+  private void processRow() throws MethodRuntimeException {
     // Specify the Isotope Pattern (in form of MS1 spectrum)
 
     // todo: do not use it, use just ms1 scans.
@@ -138,8 +138,8 @@ public class SpectrumScanner {
               if (precursorScan.getMSLevel() == 1) {
                 MassList massList = precursorScan.getMassList(massListName);
                 if (massList == null) {
-                  logger.info("%s mass list does not exist in a scan = %d. Row id = %d", massListName, scan.getScanNumber(), row.getID());
-//                  throw new MSDKException("There are no scans for this Mass List"); // Change to non-MSDK exception.
+                  logger.debug("%s mass list does not exist in a scan = {}. Row id = {}", massListName, scan.getScanNumber(), row.getID());
+//                  throw new MethodRuntimeException("There are no scans for this Mass List");
                   continue;
                 }
                 DataPoint[] points = massList.getDataPoints();
@@ -152,8 +152,8 @@ public class SpectrumScanner {
           /* Parse ms2 level scans */
           MassList massList = scan.getMassList(massListName);
           if (massList == null) {
-            logger.info("%s mass list does not exist in a scan = %d. Row id = %d", massListName, scan.getScanNumber(), row.getID());
-//            throw new MSDKException("There are no scans for this Mass List");
+            logger.debug("%s mass list does not exist in a scan = {}. Row id = {}", massListName, scan.getScanNumber(), row.getID());
+//            throw new MethodRuntimeException("There are no scans for this Mass List");
             continue;
           }
           DataPoint[] points = massList.getDataPoints();
@@ -208,6 +208,7 @@ public class SpectrumScanner {
       return spectrum;
     } catch (MSDKRuntimeException f) {
       // m/z values must be sorted in ascending order Exception
+      logger.debug("Unsorted sequence appeared on row id = {}", row.getID());
       DataPointSorter.sortDataPoints(mz, intensity, points.length, SortingProperty.MZ, SortingDirection.ASCENDING);
       spectrum.setDataPoints(mz, intensity, points.length);
       return spectrum;

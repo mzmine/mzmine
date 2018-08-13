@@ -138,11 +138,9 @@ public class FingerIdWebMethodTask extends AbstractTask {
       logger.debug("Successfully processed {} by FingerWebMethod", formula);
     } catch (RuntimeException e) {
       logger.error("Error during processing FingerIdWebMethod --- return initial compound");
-      e.printStackTrace();
       fingerResults = null;
     } catch (MSDKException msdk) {
       logger.error("Internal FingerIdWebMethod error occured.");
-      msdk.printStackTrace();
       fingerResults = null;
     }
 
