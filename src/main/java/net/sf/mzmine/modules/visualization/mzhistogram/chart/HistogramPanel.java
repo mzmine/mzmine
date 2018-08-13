@@ -19,8 +19,10 @@
 package net.sf.mzmine.modules.visualization.mzhistogram.chart;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.util.concurrent.ExecutionException;
 import java.util.function.DoubleFunction;
 import java.util.stream.DoubleStream;
@@ -97,7 +99,8 @@ public class HistogramPanel extends JPanel {
           JPanel pnstats = new JPanel();
           boxSettings.add(pnstats);
           {
-            lbStats = new JLabel("last stats:");
+            lbStats = new JLabel("");
+            lbStats.setFont(new Font("Tahoma", Font.BOLD, 14));
             pnstats.add(lbStats);
           }
         }
@@ -399,6 +402,10 @@ public class HistogramPanel extends JPanel {
       }
       if (!Double.isNaN(binShift2)) {
         try {
+          //
+          lbStats.setText("UPDATING");
+          lbStats.setForeground(Color.RED);
+          //
           final double binwidth = binwidth2;
           final double binShift = Math.abs(binShift2);
           new SwingWorker<JFreeChart, Void>() {
@@ -436,28 +443,38 @@ public class HistogramPanel extends JPanel {
                   y = pnHisto.getChart().getXYPlot().getRangeAxis().getRange();
                 }
                 histo = get();
-                if (x != null)
-                  histo.getXYPlot().getDomainAxis().setRange(x);
-                if (y != null)
-                  histo.getXYPlot().getRangeAxis().setRange(y);
-                pnHisto = new EChartPanel(histo, true, true, true, true, true);
-                histo.getLegend().setVisible(true);
 
-                southwest.removeAll();
-                southwest.add(pnHisto, BorderLayout.CENTER);
-                southwest.getParent().revalidate();
-                southwest.getParent().repaint();
+                if (histo != null) {
+                  if (x != null)
+                    histo.getXYPlot().getDomainAxis().setRange(x);
+                  if (y != null)
+                    histo.getXYPlot().getRangeAxis().setRange(y);
+                  pnHisto = new EChartPanel(histo, true, true, true, true, true);
+                  histo.getLegend().setVisible(true);
+
+                  southwest.removeAll();
+                  southwest.add(pnHisto, BorderLayout.CENTER);
+
+                  lbStats.setText("DONE");
+                  lbStats.setForeground(Color.GREEN);
+
+                  southwest.getParent().revalidate();
+                  southwest.getParent().repaint();
+                } else {
+                  lbStats.setText("ERROR");
+                }
               } catch (InterruptedException e) {
                 logger.error("", e);
+                lbStats.setText("ERROR");
               } catch (ExecutionException e) {
                 logger.error("", e);
+                lbStats.setText("ERROR");
               }
             }
           }.execute();
         } catch (Exception e1) {
           logger.error("", e1);
         }
-
       }
     }
   }
