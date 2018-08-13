@@ -18,12 +18,14 @@
 
 package net.sf.mzmine.framework.listener;
 
+import java.io.Serializable;
+import java.util.EventListener;
+import java.util.function.Consumer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-<<<<<<< tomasmaster_mz_histogram
-public abstract class DelayedDocumentListener implements DocumentListener, Runnable {
-=======
 /**
  * Use a consumer or override documentCHanged method
  *
@@ -32,43 +34,54 @@ public class DelayedDocumentListener
     implements DocumentListener, Runnable, EventListener, Serializable {
   private static final long serialVersionUID = 1L;
   private final Logger logger = LoggerFactory.getLogger(getClass());
->>>>>>> 8cceeb3 License 2 for mz histogram module
 
   private long lastAutoUpdateTime = -1;
   private boolean isAutoUpdateStarted = false;
-  private long dalay = 1500;
+  private long delay = 1500;
   private boolean isActive = true;
   private DocumentEvent lastEvent = null;
   private boolean isStopped = false;
+  private Consumer<DocumentEvent> consumer = null;
 
   public DelayedDocumentListener() {
-    super();
+    this(null);
   }
 
-  public DelayedDocumentListener(long dalay) {
+  public DelayedDocumentListener(Consumer<DocumentEvent> consumer) {
     super();
-    this.dalay = dalay;
+    this.consumer = consumer;
+  }
+
+  public DelayedDocumentListener(long delay) {
+    this(delay, null);
+  }
+
+  public DelayedDocumentListener(long delay, Consumer<DocumentEvent> consumer) {
+    super();
+    this.delay = delay;
+    this.consumer = consumer;
   }
 
   /**
-   * Starts the auto update function. Waits for more events to happen for delay ms. New events reset
-   * the timer. documentChanged method is called if the timer runs out.
+   * starts the auto update function
    */
   public void startAutoUpdater(DocumentEvent e) {
     lastAutoUpdateTime = System.currentTimeMillis();
     lastEvent = e;
     isStopped = false;
     if (!isAutoUpdateStarted) {
+      logger.debug("Auto update started");
       isAutoUpdateStarted = true;
       Thread t = new Thread(this);
       t.start();
-    }
+    } else
+      logger.debug("no auto update this time");
   }
 
   @Override
   public void run() {
     while (!isStopped) {
-      if (lastAutoUpdateTime + dalay <= System.currentTimeMillis()) {
+      if (lastAutoUpdateTime + delay <= System.currentTimeMillis()) {
         documentChanged(lastEvent);
         lastAutoUpdateTime = -1;
         isAutoUpdateStarted = false;
@@ -77,19 +90,22 @@ public class DelayedDocumentListener
       try {
         Thread.currentThread().sleep(80);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        logger.error("", e);
       }
     }
-    isStopped = false;
     isAutoUpdateStarted = false;
+    isStopped = false;
   }
 
   /**
-   * The document was changed
+   * the document was changed
    * 
    * @param e last document event (only)
    */
-  public abstract void documentChanged(DocumentEvent e);
+  public void documentChanged(DocumentEvent e) {
+    if (consumer != null)
+      consumer.accept(e);
+  }
 
   @Override
   public void removeUpdate(DocumentEvent arg0) {
@@ -110,22 +126,17 @@ public class DelayedDocumentListener
   }
 
   public long getDalay() {
-    return dalay;
+    return delay;
   }
 
   public void setDalay(long dalay) {
-    this.dalay = dalay;
+    this.delay = dalay;
   }
 
   public boolean isActive() {
     return isActive;
   }
 
-  /**
-   * Set the active state. Stops an active thread if false.
-   * 
-   * @param isActive
-   */
   public void setActive(boolean isActive) {
     this.isActive = isActive;
     if (!isActive)
