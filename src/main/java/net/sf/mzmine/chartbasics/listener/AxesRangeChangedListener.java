@@ -52,7 +52,7 @@ public abstract class AxesRangeChangedListener implements AxisChangeListener {
   public AxesRangeChangedListener(ChartPanel cp) {
     this(2);
     chart = cp;
-    if (chart != null) {
+    if (chart != null && chart.getChart() != null) {
       chart.getChart().getXYPlot().getDomainAxis().addChangeListener(this);
       chart.getChart().getXYPlot().getRangeAxis().addChangeListener(this);
     }
