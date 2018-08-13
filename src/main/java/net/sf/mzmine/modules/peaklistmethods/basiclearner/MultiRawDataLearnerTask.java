@@ -38,7 +38,6 @@ import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 class MultiRawDataLearnerTask extends AbstractTask {
-
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final MZmineProject project;
@@ -54,7 +53,6 @@ class MultiRawDataLearnerTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
   private boolean removeOriginal;
-  private int maximumCharge;
   private ParameterSet parameters;
 
   /**
@@ -72,7 +70,6 @@ class MultiRawDataLearnerTask extends AbstractTask {
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance).getValue();
-    maximumCharge = parameters.getParameter(LearnerParameters.maximumCharge).getValue();
     removeOriginal = parameters.getParameter(LearnerParameters.autoRemove).getValue();
   }
 

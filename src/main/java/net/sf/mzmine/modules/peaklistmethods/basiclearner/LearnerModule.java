@@ -41,7 +41,6 @@ public class LearnerModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Learner module";
   private static final String MODULE_DESCRIPTION = "This module is for learners only";
 
-
   @Override
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,

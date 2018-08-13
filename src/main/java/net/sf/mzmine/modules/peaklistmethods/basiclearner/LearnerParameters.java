@@ -28,7 +28,6 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class LearnerParameters extends SimpleParameterSet {
-
   /*
    * Define any parameters here (see net.sf.mzmine.parameters for parameter types)
    */

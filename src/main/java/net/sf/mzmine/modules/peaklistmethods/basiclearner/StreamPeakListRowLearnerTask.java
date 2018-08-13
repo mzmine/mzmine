@@ -58,7 +58,6 @@ class StreamPeakListRowLearnerTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
   private boolean removeOriginal;
-  private int maximumCharge;
   private ParameterSet parameters;
 
   /**
@@ -76,7 +75,6 @@ class StreamPeakListRowLearnerTask extends AbstractTask {
     suffix = parameters.getParameter(LearnerParameters.suffix).getValue();
     mzTolerance = parameters.getParameter(LearnerParameters.mzTolerance).getValue();
     rtTolerance = parameters.getParameter(LearnerParameters.rtTolerance).getValue();
-    maximumCharge = parameters.getParameter(LearnerParameters.maximumCharge).getValue();
     removeOriginal = parameters.getParameter(LearnerParameters.autoRemove).getValue();
   }
 
