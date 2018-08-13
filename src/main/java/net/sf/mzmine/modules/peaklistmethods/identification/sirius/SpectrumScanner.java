@@ -105,6 +105,8 @@ public class SpectrumScanner {
    */
   private void processRow() throws MSDKException {
     // Specify the Isotope Pattern (in form of MS1 spectrum)
+
+    // todo: do not use it, use just ms1 scans.
     IsotopePattern pattern = row.getBestPeak().getIsotopePattern();
     if (pattern != null) {
       MsSpectrum isotopePattern = buildSpectrum(pattern.getDataPoints());
@@ -124,10 +126,9 @@ public class SpectrumScanner {
       if (j < 0) j = (-j - 1);
       for (int k = j; k < fs.length; ++k) {
         final Scan scan = f.getDataFile().getScan(fs[k]);
-        if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) { //todo: ask about scan.getMSLevel()...
-
+        if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) {
           /* Parse MS1 level scans */
-          if (includeMs1) {
+          if (includeMs1) { // todo: think about non-existence, find out best ms1 scan with largest intensity.
             // find precursor scan
             int prec = Arrays.binarySearch(scanNumbers, fs[k]);
             if (prec < 0) prec = -prec - 1;
@@ -136,28 +137,28 @@ public class SpectrumScanner {
               final Scan precursorScan = f.getDataFile().getScan(scanNumbers[prec]);
               if (precursorScan.getMSLevel() == 1) {
                 MassList massList = precursorScan.getMassList(massListName);
-                if (massList != null) {
-                  DataPoint[] points = massList.getDataPoints();
-                  if (points.length == 0) {
-                    logger.info("Empty mass list was returned from a scan. Row id = %d", row.getID());
-                    throw new MSDKException("There are no scans for this Mass List");
-                  }
-                  ms1list.add(buildSpectrum(points));
+                if (massList == null) {
+                  logger.info("%s mass list does not exist in a scan = %d. Row id = %d", massListName, scan.getScanNumber(), row.getID());
+//                  throw new MSDKException("There are no scans for this Mass List"); // Change to non-MSDK exception.
+                  continue;
                 }
+                DataPoint[] points = massList.getDataPoints();
+                if (points.length == 0) continue;
+                ms1list.add(buildSpectrum(points));
               }
             }
           }
 
           /* Parse ms2 level scans */
           MassList massList = scan.getMassList(massListName);
-          if (massList != null) {
-            DataPoint[] points = massList.getDataPoints();
-            if (points.length == 0) {
-              logger.info("Empty mass list was returned from a scan. Row id = %d", row.getID());
-              throw new MSDKException("There are no scans for this Mass List");
-            }
-            ms2list.add(buildSpectrum(points));
+          if (massList == null) {
+            logger.info("%s mass list does not exist in a scan = %d. Row id = %d", massListName, scan.getScanNumber(), row.getID());
+//            throw new MSDKException("There are no scans for this Mass List");
+            continue;
           }
+          DataPoint[] points = massList.getDataPoints();
+          if (points.length == 0) continue;
+          ms2list.add(buildSpectrum(points));
         }
       }
     }
