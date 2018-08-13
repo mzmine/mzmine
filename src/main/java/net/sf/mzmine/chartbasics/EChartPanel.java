@@ -158,6 +158,7 @@ public class EChartPanel extends ChartPanel {
     // add ChartGestureHandlers
     ChartGestureMouseAdapter m = getGestureAdapter();
     if (m != null) {
+      m.clearHandlers();
       for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures())
         m.addGestureHandler(f.createHandler());
     }
@@ -168,9 +169,6 @@ public class EChartPanel extends ChartPanel {
     super.setChart(chart);
     if (chart != null) {
       initChartPanel(stickyZeroForRangeAxis);
-      // add gestures
-      if (standardGestures)
-        addStandardGestures();
     }
   }
 
@@ -239,6 +237,11 @@ public class EChartPanel extends ChartPanel {
       this.addMouseListener(mouseAdapter);
       this.addMouseMotionListener(mouseAdapter);
       this.addMouseWheelListener(mouseAdapter);
+
+      // add gestures
+      if (standardGestures) {
+        addStandardGestures();
+      }
     }
   }
 
