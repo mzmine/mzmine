@@ -21,7 +21,18 @@ package net.sf.mzmine.framework.listener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+<<<<<<< tomasmaster_mz_histogram
 public abstract class DelayedDocumentListener implements DocumentListener, Runnable {
+=======
+/**
+ * Use a consumer or override documentCHanged method
+ *
+ */
+public class DelayedDocumentListener
+    implements DocumentListener, Runnable, EventListener, Serializable {
+  private static final long serialVersionUID = 1L;
+  private final Logger logger = LoggerFactory.getLogger(getClass());
+>>>>>>> 8cceeb3 License 2 for mz histogram module
 
   private long lastAutoUpdateTime = -1;
   private boolean isAutoUpdateStarted = false;
