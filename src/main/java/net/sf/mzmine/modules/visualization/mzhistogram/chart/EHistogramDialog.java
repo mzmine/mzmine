@@ -28,6 +28,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
+import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -181,10 +182,6 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
 
 
     XYDataset data = plot.getDataset(0);
-    // auto range y
-    double maxy = data.getYValue(0, i);
-    plot.getRangeAxis().setRange(0, maxy);
-
 
     // keep same domain axis range length
     boolean keepRange = cbKeepSameXaxis.isSelected();
@@ -220,6 +217,13 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
       // find
       getHistoPanel().setGaussianFitRange(lower, upper);
     }
+
+    // auto range y
+    ChartLogics.autoRangeAxis(getChartPanel());
+  }
+
+  private ChartPanel getChartPanel() {
+    return getHistoPanel().getChartPanel();
   }
 
   private XYPlot getXYPlot() {
