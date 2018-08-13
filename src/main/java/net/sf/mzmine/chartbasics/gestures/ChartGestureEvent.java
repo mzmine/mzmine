@@ -106,7 +106,7 @@ public class ChartGestureEvent {
 
   @Override
   public String toString() {
-    return gesture.toString();
+    return gesture.toString() + " " + super.toString();
   }
 
   /**
