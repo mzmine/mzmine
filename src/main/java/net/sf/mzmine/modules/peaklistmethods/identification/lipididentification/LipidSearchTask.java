@@ -15,7 +15,7 @@ import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools.FattyAcidTools;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools.MSMSLipidTools;
-import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClass;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetectorParameters;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -30,7 +30,7 @@ public class LipidSearchTask extends AbstractTask {
   private double finishedSteps, totalSteps;
   private PeakList peakList;
 
-  private LipidClasses[] selectedLipids;
+  private LipidClass[] selectedLipids;
   private int minChainLength, maxChainLength, maxDoubleBonds;
   private MZTolerance mzTolerance, mzToleranceMS2;
   private IonizationType ionizationType;
@@ -93,7 +93,7 @@ public class LipidSearchTask extends AbstractTask {
     totalSteps = ((maxChainLength + 1) * (maxDoubleBonds + 1)) * selectedLipids.length;
 
     // Try all combinations of fatty acid lengths and double bonds
-    for (LipidClasses lipidClass : selectedLipids) {
+    for (LipidClass lipidClass : selectedLipids) {
       for (int fattyAcidLength = 0; fattyAcidLength <= maxChainLength; fattyAcidLength++) {
         for (int fattyAcidDoubleBonds =
             0; fattyAcidDoubleBonds <= maxDoubleBonds; fattyAcidDoubleBonds++) {

@@ -19,7 +19,8 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification;
 
 import net.sf.mzmine.datamodel.IonizationType;
-import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.AbstractLipidClass;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClass;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -34,9 +35,9 @@ public class LipidSearchParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final MultiChoiceParameter<LipidClasses> lipidClasses =
-      new MultiChoiceParameter<LipidClasses>("Lipid classes", "Selection of lipid backbones",
-          LipidClasses.values());
+  public static final MultiChoiceParameter<AbstractLipidClass> lipidClasses =
+      new MultiChoiceParameter<AbstractLipidClass>("Lipid classes", "Selection of lipid backbones",
+          LipidClass.getList());
 
   public static final IntegerParameter minChainLength = new IntegerParameter(
       "Minimum number of Carbon in chains", "Minimum number of Carbon in chains");
