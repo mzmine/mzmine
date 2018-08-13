@@ -20,34 +20,38 @@ package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification
 
 public enum LipidType {
 
-  PC("Phosphatidylcholine", "PC", "C8H17NO8P", 2), //
-  PE("Phosphatidylethanolamine", "PE", "C5H11NO8P", 2), //
-  PI("Phosphatidylinositol", "PI", "C9H16O13P", 2), //
-  PS("Phosphatidylserine", "PS", "C6H11NO10P", 2), //
-  PG("Phosphatidylglycerol", "PG", "C6H12O10P", 2), //
-  BMP("Bis(Monoacylglycero)Phosphate", "BMP", "C6H12O9P", 2), //
-  CL("Cardiolipin", "CL", "C9H15O17P2", 4), //
-  DAG("Diacyglycerol", "DAG", "C3H5O5", 2), //
-  TAG("Triacyglycerol", "TAG", "C3H3O6", 3), //
-  MGDG("Monogalactosyldiacylglycerol", "MGDG", "C9H15O10", 2), //
-  DGDG("Digalactosyldiacylglycerol", "DGDG", "C15H25O15", 2), //
-  SQDG("Sulfoquinovosyldiacylglyerol", "SQDG", "C9H15O12S", 2), //
-  DGTS("Diacylglyceroltrimethylhomoserin", "DGTS", "C10H18O7N", 2), //
-  MELA("Monosylerythrotol lipid A", "MELA", "C14H21O13", 2), //
-  MELBC("Monosylerythrotol lipid B/C", "MELBC", "C12H19O12", 2), //
-  MELD("Monosylerythrotol lipid D", "MELD", "C10H17O11", 2), //
-  mRL("mono-Rhamnolipid", "mRL", "C6H9O9", 2), //
-  diRL("di-Rhamnolipid", "diRL", "C12H19O13", 2), //
-  HAA("HAA", "HAA", "C0H-1O5", 2); //
+  PC("Phosphatidylcholine", "PC", "C8H17NO8P", true, true, false), //
+  PE("Phosphatidylethanolamine", "PE", "C5H11NO8P", true, true, false), //
+  PI("Phosphatidylinositol", "PI", "C9H16O13P", true, true, false), //
+  PS("Phosphatidylserine", "PS", "C6H11NO10P", true, true, false), //
+  PG("Phosphatidylglycerol", "PG", "C6H12O10P", true, true, false), //
+  BMP("Bis(Monoacylglycero)Phosphate", "BMP", "C6H12O9P", true, true, false), //
+  CL("Cardiolipin", "CL", "C9H15O17P2", true, true, false), //
+  DAG("Diacyglycerol", "DAG", "C3H5O5", true, true, false), //
+  TAG("Triacyglycerol", "TAG", "C3H3O6", true, true, false), //
+  MGDG("Monogalactosyldiacylglycerol", "MGDG", "C9H15O10", true, true, false), //
+  DGDG("Digalactosyldiacylglycerol", "DGDG", "C15H25O15", true, true, false), //
+  SQDG("Sulfoquinovosyldiacylglyerol", "SQDG", "C9H15O12S", true, true, false), //
+  DGTS("Diacylglyceroltrimethylhomoserin", "DGTS", "C10H18O7N", true, true, false), //
+  MELA("Monosylerythrotol lipid A", "MELA", "C14H21O13", true, true, false), //
+  MELBC("Monosylerythrotol lipid B/C", "MELBC", "C12H19O12", true, true, false), //
+  MELD("Monosylerythrotol lipid D", "MELD", "C10H17O11", true, true, false), //
+  mRL("mono-Rhamnolipid", "mRL", "C6H9O9", true, true, false), //
+  diRL("di-Rhamnolipid", "diRL", "C12H19O13", true, true, false), //
+  HAA("HAA", "HAA", "C0H-1O5", true, true, false); //
 
   private final String name, abbr, formula;
-  private final int numberOfChains;
+  private boolean hasAlkylChain, hasAcylChain, hasCustomeChain;
 
-  LipidType(String name, String abbr, String formula, int numberOfChains) {
+
+  LipidType(String name, String abbr, String formula, Boolean hasAlkylChain, Boolean hasAcylChain,
+      Boolean hasCustomeChain) {
     this.name = name;
     this.abbr = abbr;
     this.formula = formula;
-    this.numberOfChains = numberOfChains;
+    this.hasAlkylChain = hasAlkylChain;
+    this.hasAlkylChain = hasAcylChain;
+    this.hasAlkylChain = hasCustomeChain;
   }
 
   public String getAbbr() {
@@ -62,8 +66,16 @@ public enum LipidType {
     return this.name;
   }
 
-  public int getNumberOfChains() {
-    return numberOfChains;
+  public boolean hasAlkylChain() {
+    return this.hasAlkylChain;
+  }
+
+  public boolean hasAcylChain() {
+    return this.hasAcylChain;
+  }
+
+  public boolean hasCustomeChain() {
+    return this.hasCustomeChain;
   }
 
   @Override

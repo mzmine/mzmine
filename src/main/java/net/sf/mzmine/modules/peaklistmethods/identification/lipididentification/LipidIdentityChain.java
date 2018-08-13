@@ -9,24 +9,18 @@ public class LipidIdentityChain extends SimplePeakIdentity {
   private final double mass;
   private final String sumFormula;
 
-  public LipidIdentityChain(final LipidType lipidType, final int fattyAcid1Length,
-      final int fattyAcid1DoubleBonds, final int oxidationValue) {
+  public LipidIdentityChain(final LipidType lipidType, final int chain1Length,
+      final int chain1DoubleBonds) {
 
-    this(lipidType.getAbbr() + '(' + fattyAcid1Length + ':' + fattyAcid1DoubleBonds + ')',
-        lipidType.getFormula() + calculateFattyAcidFormula(fattyAcid1Length, fattyAcid1DoubleBonds),
-        oxidationValue);
+    this(lipidType.getAbbr() + '(' + chain1Length + ':' + chain1DoubleBonds + ')',
+        lipidType.getFormula() + calculateChainFormula(chain1Length, chain1DoubleBonds));
   }
 
-  private LipidIdentityChain(final String name, final String formula, final int oxidationValue) {
+  private LipidIdentityChain(final String name, final String formula) {
     super(name);
     mass = FormulaUtils.calculateExactMass(formula);
     sumFormula = formula;
-    if (oxidationValue == 0) {
-      setPropertyValue(PROPERTY_NAME, name);
-    }
-    if (oxidationValue > 0) {
-      setPropertyValue(PROPERTY_NAME, name + " + " + oxidationValue + "O");
-    }
+    setPropertyValue(PROPERTY_NAME, name);
     setPropertyValue(PROPERTY_FORMULA, formula);
     setPropertyValue(PROPERTY_METHOD, "Lipid prediction");
   }
@@ -34,21 +28,20 @@ public class LipidIdentityChain extends SimplePeakIdentity {
   /**
    * Calculate fatty acid formula.
    *
-   * @param fattyAcidLength acid length.
-   * @param fattyAcidDoubleBonds double bond count.
+   * @param chainLength acid length.
+   * @param chainDoubleBonds double bond count.
    * @return fatty acid formula.
    */
-  private static String calculateFattyAcidFormula(final int fattyAcidLength,
-      final int fattyAcidDoubleBonds) {
+  private static String calculateChainFormula(final int chainLength, final int chainDoubleBonds) {
 
-    String fattyAcid1Formula = "H";
-    if (fattyAcidLength > 0) {
+    String chain1Formula = "H";
+    if (chainLength > 0) {
 
-      final int numberOfHydrogens = fattyAcidLength * 2 - fattyAcidDoubleBonds * 2 - 1;
-      fattyAcid1Formula = "C" + fattyAcidLength + 'H' + numberOfHydrogens;
+      final int numberOfHydrogens = chainLength * 2 - chainDoubleBonds * 2 - 1;
+      chain1Formula = "C" + chainLength + 'H' + numberOfHydrogens;
 
     }
-    return fattyAcid1Formula;
+    return chain1Formula;
   }
 
   /**
@@ -71,6 +64,6 @@ public class LipidIdentityChain extends SimplePeakIdentity {
 
   @Override
   public @Nonnull Object clone() {
-    return new LipidIdentityChain(getName(), getPropertyValue(PROPERTY_FORMULA), 0);
+    return new LipidIdentityChain(getName(), getPropertyValue(PROPERTY_FORMULA));
   }
 }

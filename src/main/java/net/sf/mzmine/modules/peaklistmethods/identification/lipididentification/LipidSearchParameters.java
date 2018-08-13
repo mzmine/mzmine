@@ -28,7 +28,6 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class LipidSearchParameters extends SimpleParameterSet {
 
@@ -39,17 +38,16 @@ public class LipidSearchParameters extends SimpleParameterSet {
           LipidType.values());
 
   public static final IntegerParameter minChainLength = new IntegerParameter(
-      "Minimum number of Carbon in fatty acids", "Minimum number of Carbon in fatty acids");
+      "Minimum number of Carbon in chains", "Minimum number of Carbon in chains");
 
   public static final IntegerParameter maxChainLength = new IntegerParameter(
-      "maximum number of Carbon in fatty acids", "Maximum number of Carbon in fatty acids");
+      "maximum number of Carbon in chains", "Maximum number of Carbon in chains");
+
+  public static final IntegerParameter minDoubleBonds = new IntegerParameter(
+      "Minimum number of double bonds", "Minumum number of double bonds in all chains");
 
   public static final IntegerParameter maxDoubleBonds = new IntegerParameter(
-      "Maximum number of double bonds", "Maximum number of double bonds in all fatty acid chains");
-
-  public static final IntegerParameter maxOxidationValue =
-      new IntegerParameter("Maximum number of additional oxygen due to oxidation [M+xO]",
-          "Maximum number of additional oxygen due to oxidation [M+xO]");
+      "Maximum number of double bonds", "Maximum number of double bonds in all chains");
 
   public static final MZToleranceParameter mzTolerance =
       new MZToleranceParameter("m/z tolerance MS1 level:",
@@ -58,17 +56,6 @@ public class LipidSearchParameters extends SimpleParameterSet {
   public static final ComboParameter<IonizationType> ionizationMethod =
       new ComboParameter<IonizationType>("Ionization method",
           "Type of ion used to calculate the ionized mass", IonizationType.values());
-
-  public static final BooleanParameter searchForIsotopes =
-      new BooleanParameter("Search for 13C isotopes", "Search for 13C isotopes");
-
-  public static final RTToleranceParameter isotopeRetentionTimeTolerance = new RTToleranceParameter(
-      "Isotope RT tolerance", "Set the RT tolerance in min to search for lipid 13C isotopes");
-
-  public static final IntegerParameter relativeIsotopeIntensityTolerance =
-      new IntegerParameter("Relative intensity tolerance of 13C isotope [%]",
-          "Relative intensity tolerance of 13C isotope compared to calculated 13C feature intensity"
-              + "of predicted lipid");
 
   public static final BooleanParameter searchForFAinMSMS =
       new BooleanParameter("Search for lipid class specific fragments in MS/MS spectra",
@@ -82,10 +69,8 @@ public class LipidSearchParameters extends SimpleParameterSet {
       "Noise level for MS/MS scans", "Intensities less than this value are interpreted as noise.");
 
   public LipidSearchParameters() {
-    super(new Parameter[] {peakLists, lipidTypes, minChainLength, maxChainLength, maxDoubleBonds,
-        maxOxidationValue, mzTolerance, ionizationMethod, searchForIsotopes,
-        isotopeRetentionTimeTolerance, relativeIsotopeIntensityTolerance, searchForFAinMSMS,
-        mzToleranceMS2, noiseLevel});
+    super(new Parameter[] {peakLists, lipidTypes, minChainLength, maxChainLength, minDoubleBonds,
+        maxDoubleBonds, searchForFAinMSMS, mzToleranceMS2, noiseLevel});
   }
 
 }
