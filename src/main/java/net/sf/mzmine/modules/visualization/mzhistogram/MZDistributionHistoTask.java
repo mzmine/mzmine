@@ -78,7 +78,7 @@ public class MZDistributionHistoTask extends AbstractTask {
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
   public String getTaskDescription() {
-    return "Detecting images in " + dataFile;
+    return "Creating m/z distribution histogram of " + dataFile;
   }
 
   /**
