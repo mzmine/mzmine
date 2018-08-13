@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.Stroke;
+import org.jfree.chart.ChartColor;
 import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.ui.RectangleInsets;
 
@@ -121,14 +122,25 @@ public class ChartThemeFactory {
     theme.setChartBackgroundPaint(Color.white);
     theme.setPlotBackgroundPaint(Color.white);
 
-    theme.setDrawingSupplier(new DefaultDrawingSupplier(
-        new Paint[] {Color.decode("0xFFFF00"), Color.decode("0x0036CC"), Color.decode("0xFF0000"),
-            Color.decode("0xFFFF7F"), Color.decode("0x6681CC"), Color.decode("0xFF7F7F"),
-            Color.decode("0xFFFFBF"), Color.decode("0x99A6CC"), Color.decode("0xFFBFBF"),
-            Color.decode("0xA9A938"), Color.decode("0x2D4587")},
-        new Paint[] {Color.decode("0xFFFF00"), Color.decode("0x0036CC")},
-        new Stroke[] {new BasicStroke(2.0f)}, new Stroke[] {new BasicStroke(0.5f)},
-        DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE));
+    // paint sequence: add black
+    Paint[] colors = new Paint[] {Color.BLACK, new Color(0xFF, 0x55, 0x55),
+        new Color(0x55, 0x55, 0xFF), new Color(0x55, 0xFF, 0x55), new Color(0xFF, 0xFF, 0x55),
+        new Color(0xFF, 0x55, 0xFF), new Color(0x55, 0xFF, 0xFF), Color.pink, Color.gray,
+        ChartColor.DARK_RED, ChartColor.DARK_BLUE, ChartColor.DARK_GREEN, ChartColor.DARK_YELLOW,
+        ChartColor.DARK_MAGENTA, ChartColor.DARK_CYAN, Color.darkGray, ChartColor.LIGHT_RED,
+        ChartColor.LIGHT_BLUE, ChartColor.LIGHT_GREEN, ChartColor.LIGHT_YELLOW,
+        ChartColor.LIGHT_MAGENTA, ChartColor.LIGHT_CYAN, Color.lightGray, ChartColor.VERY_DARK_RED,
+        ChartColor.VERY_DARK_BLUE, ChartColor.VERY_DARK_GREEN, ChartColor.VERY_DARK_YELLOW,
+        ChartColor.VERY_DARK_MAGENTA, ChartColor.VERY_DARK_CYAN, ChartColor.VERY_LIGHT_RED,
+        ChartColor.VERY_LIGHT_BLUE, ChartColor.VERY_LIGHT_GREEN, ChartColor.VERY_LIGHT_YELLOW,
+        ChartColor.VERY_LIGHT_MAGENTA, ChartColor.VERY_LIGHT_CYAN};
+
+    theme.setDrawingSupplier(
+        new DefaultDrawingSupplier(colors, DefaultDrawingSupplier.DEFAULT_FILL_PAINT_SEQUENCE,
+            DefaultDrawingSupplier.DEFAULT_OUTLINE_PAINT_SEQUENCE,
+            DefaultDrawingSupplier.DEFAULT_STROKE_SEQUENCE,
+            DefaultDrawingSupplier.DEFAULT_OUTLINE_STROKE_SEQUENCE,
+            DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE));
     theme.setErrorIndicatorPaint(Color.black);
     theme.setGridBandPaint(new Color(255, 255, 255, 20));
     theme.setGridBandAlternatePaint(new Color(255, 255, 255, 40));
@@ -176,10 +188,10 @@ public class ChartThemeFactory {
     theme.setShadowPaint(Color.darkGray);
     theme.setItemLabelPaint(Color.white);
     theme.setDrawingSupplier(new DefaultDrawingSupplier(
-        new Paint[] {Color.decode("0xFFFF00"), Color.decode("0x0036CC"), Color.decode("0xFF0000"),
-            Color.decode("0xFFFF7F"), Color.decode("0x6681CC"), Color.decode("0xFF7F7F"),
-            Color.decode("0xFFFFBF"), Color.decode("0x99A6CC"), Color.decode("0xFFBFBF"),
-            Color.decode("0xA9A938"), Color.decode("0x2D4587")},
+        new Paint[] {Color.WHITE, Color.decode("0xFFFF00"), Color.decode("0x0036CC"),
+            Color.decode("0xFF0000"), Color.decode("0xFFFF7F"), Color.decode("0x6681CC"),
+            Color.decode("0xFF7F7F"), Color.decode("0xFFFFBF"), Color.decode("0x99A6CC"),
+            Color.decode("0xFFBFBF"), Color.decode("0xA9A938"), Color.decode("0x2D4587")},
         new Paint[] {Color.decode("0xFFFF00"), Color.decode("0x0036CC")},
         new Stroke[] {new BasicStroke(2.0f)}, new Stroke[] {new BasicStroke(0.5f)},
         DefaultDrawingSupplier.DEFAULT_SHAPE_SEQUENCE));

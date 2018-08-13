@@ -342,4 +342,9 @@ public class ChartGestureMouseAdapter extends MouseAdapter {
     );
   }
 
+  public void clearHandlers() {
+    if (gestureHandlers != null)
+      gestureHandlers.clear();
+  }
+
 }
