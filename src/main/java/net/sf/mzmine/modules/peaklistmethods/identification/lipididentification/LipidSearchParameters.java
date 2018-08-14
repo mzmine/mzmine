@@ -26,7 +26,7 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.LipidClassParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -34,8 +34,8 @@ public class LipidSearchParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final MultiChoiceParameter<Object> lipidClasses = new MultiChoiceParameter<Object>(
-      "Lipid classes", "Selection of lipid backbones", AllLipidClasses.getList().toArray());
+  public static final LipidClassParameter lipidClasses = new LipidClassParameter("Lipid classes",
+      "Selection of lipid backbones", AllLipidClasses.getList().toArray());
 
   public static final IntegerParameter minChainLength = new IntegerParameter(
       "Minimum number of Carbon in chains", "Minimum number of Carbon in chains");
@@ -70,7 +70,8 @@ public class LipidSearchParameters extends SimpleParameterSet {
 
   public LipidSearchParameters() {
     super(new Parameter[] {peakLists, lipidClasses, minChainLength, maxChainLength, minDoubleBonds,
-        maxDoubleBonds, searchForFAinMSMS, mzToleranceMS2, noiseLevel});
+        maxDoubleBonds, ionizationMethod, mzTolerance, searchForFAinMSMS, mzToleranceMS2,
+        noiseLevel});
 
   }
 

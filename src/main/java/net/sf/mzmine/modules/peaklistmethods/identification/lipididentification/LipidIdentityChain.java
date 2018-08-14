@@ -10,11 +10,12 @@ public class LipidIdentityChain extends SimplePeakIdentity {
   private final double mass;
   private final String sumFormula;
 
-  public LipidIdentityChain(final LipidClasses lipidClass, final int chain1Length,
-      final int chain1DoubleBonds) {
+  public LipidIdentityChain(final LipidClasses lipidClass, final int chainLength,
+      final int chainDoubleBonds, final int numberOfAcylChains, final int numberOfAlkylChains) {
 
-    this(lipidClass.getAbbr() + '(' + chain1Length + ':' + chain1DoubleBonds + ')',
-        lipidClass.getBackBoneFormula() + calculateChainFormula(chain1Length, chain1DoubleBonds));
+    this(lipidClass.getAbbr() + '(' + chainLength + ':' + chainDoubleBonds + ')',
+        lipidClass.getBackBoneFormula() + calculateTotalChainFormula(chainLength, chainDoubleBonds,
+            numberOfAcylChains, numberOfAlkylChains));
   }
 
   private LipidIdentityChain(final String name, final String formula) {
@@ -33,16 +34,17 @@ public class LipidIdentityChain extends SimplePeakIdentity {
    * @param chainDoubleBonds double bond count.
    * @return fatty acid formula.
    */
-  private static String calculateChainFormula(final int chainLength, final int chainDoubleBonds) {
+  private static String calculateTotalChainFormula(final int chainLength,
+      final int chainDoubleBonds, final int numberOfAcylChains, final int numberOfAlkylChains) {
 
-    String chain1Formula = "H";
+    String chainFormula = "H";
     if (chainLength > 0) {
 
       final int numberOfHydrogens = chainLength * 2 - chainDoubleBonds * 2 - 1;
-      chain1Formula = "C" + chainLength + 'H' + numberOfHydrogens;
+      chainFormula = "C" + chainLength + 'H' + numberOfHydrogens;
 
     }
-    return chain1Formula;
+    return chainFormula;
   }
 
   /**

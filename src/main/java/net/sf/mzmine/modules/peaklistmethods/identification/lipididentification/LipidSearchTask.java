@@ -30,8 +30,9 @@ public class LipidSearchTask extends AbstractTask {
   private double finishedSteps, totalSteps;
   private PeakList peakList;
 
-  private Object[] selectedLipids;
-  private int minChainLength, maxChainLength, maxDoubleBonds;
+  private Object[] selectedObjects;
+  private ArrayList<LipidClasses> selectedLipids = new ArrayList<LipidClasses>();
+  private int minChainLength, maxChainLength, maxDoubleBonds, minDoubleBonds;
   private MZTolerance mzTolerance, mzToleranceMS2;
   private IonizationType ionizationType;
   private Boolean searchForIsotopes, searchForFAinMSMS;
@@ -51,12 +52,22 @@ public class LipidSearchTask extends AbstractTask {
     minChainLength = parameters.getParameter(LipidSearchParameters.minChainLength).getValue();
     maxChainLength = parameters.getParameter(LipidSearchParameters.maxChainLength).getValue();
     maxDoubleBonds = parameters.getParameter(LipidSearchParameters.maxDoubleBonds).getValue();
+    minDoubleBonds = parameters.getParameter(LipidSearchParameters.minDoubleBonds).getValue();
     mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
-    selectedLipids = parameters.getParameter(LipidSearchParameters.lipidClasses).getValue();
+    selectedObjects = parameters.getParameter(LipidSearchParameters.lipidClasses).getValue();
     ionizationType = parameters.getParameter(LipidSearchParameters.ionizationMethod).getValue();
     searchForFAinMSMS = parameters.getParameter(LipidSearchParameters.searchForFAinMSMS).getValue();
     mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.mzToleranceMS2).getValue();
     noiseLevelMSMS = parameters.getParameter(LipidSearchParameters.noiseLevel).getValue();
+
+    // Remove main lipids and core lipids
+    for (int i = 0; i < selectedObjects.length; i++) {
+      for (int j = 0; j < LipidClasses.values().length; j++) {
+        if (selectedObjects[i].toString().equals(LipidClasses.values()[j].toString())) {
+          selectedLipids.add(LipidClasses.values()[j]);
+        }
+      }
+    }
   }
 
   /**
@@ -90,56 +101,54 @@ public class LipidSearchTask extends AbstractTask {
     PeakListRow rows[] = peakList.getRows();
 
     // Calculate how many possible lipids we will try
-    totalSteps = ((maxChainLength + 1) * (maxDoubleBonds + 1)) * selectedLipids.length;
+    totalSteps = ((maxChainLength - minChainLength + 1) * (maxDoubleBonds - minDoubleBonds + 1))
+        * selectedLipids.size();
 
     // Try all combinations of fatty acid lengths and double bonds
-    for (LipidClasses lipidClass : selectedLipids) {
-      for (int fattyAcidLength = 0; fattyAcidLength <= maxChainLength; fattyAcidLength++) {
-        for (int fattyAcidDoubleBonds =
-            0; fattyAcidDoubleBonds <= maxDoubleBonds; fattyAcidDoubleBonds++) {
-
+    for (int i = 0; i < selectedLipids.size(); i++) {
+      int numberOfAcylChains = selectedLipids.get(i).getNumberOfAcylChains();
+      int numberOfAlkylChains = selectedLipids.get(i).getNumberofAlkyChains();
+      for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
+        for (int chainDoubleBonds =
+            minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
           // Task canceled?
           if (isCanceled())
             return;
 
           // If we have non-zero fatty acid, which is shorter
           // than minimal length, skip this lipid
-          if (((fattyAcidLength > 0) && (fattyAcidLength < minChainLength))) {
+          if (((chainLength > 0) && (chainLength < minChainLength))) {
             finishedSteps++;
             continue;
           }
 
           // If we have more double bonds than carbons, it
           // doesn't make sense, so let's skip such lipids
-          if (((fattyAcidDoubleBonds > 0) && (fattyAcidDoubleBonds > fattyAcidLength - 1))) {
+          if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
             finishedSteps++;
             continue;
           }
-
           // Prepare a lipid instance
-          LipidIdentityChain lipidChain =
-              new LipidIdentityChain(lipidClass, fattyAcidLength, fattyAcidDoubleBonds);
-
+          LipidIdentityChain lipidChain = new LipidIdentityChain(selectedLipids.get(i), chainLength,
+              chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
           // Find all rows that match this lipid
           findPossibleLipid(lipidChain, rows);
-
           finishedSteps++;
         }
       }
-      // Add task description to peakList
-      ((SimplePeakList) peakList).addDescriptionOfAppliedTask(
-          new SimplePeakListAppliedMethod("Identification of lipid identification", parameters));
-
-      // Repaint the window to reflect the change in the peak list
-      Desktop desktop = MZmineCore.getDesktop();
-      if (!(desktop instanceof HeadLessDesktop))
-        desktop.getMainWindow().repaint();
-
-      setStatus(TaskStatus.FINISHED);
-
-      logger.info("Finished lipid prediction in " + peakList);
-
     }
+    // Add task description to peakList
+    ((SimplePeakList) peakList).addDescriptionOfAppliedTask(
+        new SimplePeakListAppliedMethod("Identification of lipid identification", parameters));
+
+    // Repaint the window to reflect the change in the peak list
+    Desktop desktop = MZmineCore.getDesktop();
+    if (!(desktop instanceof HeadLessDesktop))
+      desktop.getMainWindow().repaint();
+
+    setStatus(TaskStatus.FINISHED);
+
+    logger.info("Finished lipid prediction in " + peakList);
 
   }
 
@@ -174,15 +183,14 @@ public class LipidSearchTask extends AbstractTask {
         // If search for FA in MSMS is selected search for FA
         if (searchForFAinMSMS == true) {
           searchFAinMSMS(rows, lipidIonMass, rowIndex, lipid);
+          // Notify the GUI about the change in the project
+          MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
+              false);
         }
-
         // Notify the GUI about the change in the project
         MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
             false);
       }
-
-      // Notify the GUI about the change in the project
-      MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex], false);
     }
   }
 

@@ -9,6 +9,7 @@ public class LipidClassComponent extends MultiChoiceComponent {
 
   public LipidClassComponent(Object[] theChoices) {
     super(theChoices);
+
   }
 
 }

@@ -1,10 +1,8 @@
 package net.sf.mzmine.parameters.parametertypes;
 
-import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClass;
+public class LipidClassParameter extends MultiChoiceParameter<Object> {
 
-public class LipidClassParameter extends MultiChoiceParameter<LipidClass> {
-
-  public LipidClassParameter(String name, String description, LipidClass[] choices) {
+  public LipidClassParameter(String name, String description, Object[] choices) {
     super(name, description, choices);
     // TODO Auto-generated constructor stub
   }
@@ -18,13 +16,14 @@ public class LipidClassParameter extends MultiChoiceParameter<LipidClass> {
   @Override
   public void setValueFromComponent(final MultiChoiceComponent component) {
     super.setValueFromComponent(component);
-    setChoices((LipidClass[]) component.getChoices());
+    setChoices((Object[]) component.getChoices());
   }
 
   @Override
-  public void setValueToComponent(MultiChoiceComponent component, LipidClass[] newValue) {
+  public void setValueToComponent(MultiChoiceComponent component, Object[] newValue) {
     super.setValueToComponent(component, newValue);
-    setChoices((LipidClass[]) component.getChoices());
+
+    setChoices((Object[]) component.getChoices());
   }
 
   @Override

@@ -47,7 +47,7 @@ public enum LipidMainClasses {
 
   @Override
   public String toString() {
-    return this.name;
+    return "     " + this.name;
   }
 
 }
