@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -56,6 +58,7 @@ import net.sf.mzmine.util.io.XSSFExcelWriterReader;
  */
 public class EChartPanel extends ChartPanel {
   private static final long serialVersionUID = 1L;
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
@@ -150,8 +153,6 @@ public class EChartPanel extends ChartPanel {
     this.addZoomHistory = addZoomHistory;
     // setDoubleBuffered(useBuffer);
     // setRefreshBuffer(useBuffer);
-    if (chart != null)
-      initChartPanel(stickyZeroForRangeAxis);
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu)
       addExportMenu(graphicsExportMenu, dataExportMenu);
@@ -167,6 +168,8 @@ public class EChartPanel extends ChartPanel {
       m.clearHandlers();
       for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures())
         m.addGestureHandler(f.createHandler());
+
+      logger.log(Level.INFO, "Added standard gestures: " + m.getGestureHandlers().size());
     }
   }
 

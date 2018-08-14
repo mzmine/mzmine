@@ -23,6 +23,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
@@ -41,6 +42,8 @@ import org.jfree.data.Range;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartLogics {
+  private static Logger logger = Logger.getLogger(ChartLogics.class.getName());
+
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
    * 
@@ -614,6 +617,7 @@ public class ChartLogics {
     }
 
     if (lower < upper) {
+      logger.info("Set zoom:" + lower + ", " + upper + " (keep lower:" + holdLowerBound + ")");
       Range range = new Range(lower, upper);
       setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
     }

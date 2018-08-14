@@ -21,6 +21,7 @@ package net.sf.mzmine.chartbasics.gestures;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
@@ -42,6 +43,7 @@ import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartGestureDragDiffHandler extends ChartGestureHandler {
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   public enum Orientation {
     VERTICAL, HORIZONTAL;
@@ -136,8 +138,8 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
             if (last != null) {
               // get data space coordinates
               Point2D released = ChartLogics.mouseXYToPlotXY(chartPanel, e.getX(), e.getY());
-              System.out.print("\n\nLAST: " + last.getX() + "; " + last.getY() + "   ");
-              System.out.println("DRAG: " + released.getX() + "; " + released.getY());
+              logger.info("\n\nLAST: " + last.getX() + "; " + last.getY() + "   ");
+              logger.info("DRAG: " + released.getX() + "; " + released.getY());
               // System.out.println(event);
               if (released != null) {
                 double offset = 0;
@@ -153,7 +155,7 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
                   start = first.getY();
                 }
 
-                System.out.println("offset: " + offset);
+                logger.info("offset: " + offset);
 
                 // new dragdiff event
                 ChartGestureDragDiffEvent dragEvent = new ChartGestureDragDiffEvent(startEvent,
