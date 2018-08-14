@@ -1,6 +1,6 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids;
 
-public class AbstractLipidClass {
+public abstract class AbstractLipidClass {
 
   private final String name;
   private final String abbr;

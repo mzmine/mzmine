@@ -6,12 +6,6 @@ public class LipidCoreClass extends AbstractLipidClass {
     FATTYACYLS, //
     GLYCEROLIPIDS, //
     GLYCEROPHOSPHOLIPIDS;//
-
-    // var
-    CoreClasses() {
-
-    }
-
   }
 
   LipidCoreClass(String name, String abbr) {
