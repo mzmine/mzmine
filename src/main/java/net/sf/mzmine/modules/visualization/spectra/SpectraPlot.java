@@ -111,7 +111,6 @@ public class SpectraPlot extends EChartPanel {
     // initialize the chart by default time series chart from factory
     chart = getChart();
     chart.setBackgroundPaint(Color.white);
-    setChart(chart);
 
     // title
     chartTitle = chart.getTitle();
