@@ -138,7 +138,7 @@ public class SpectrumScanner {
               if (precursorScan.getMSLevel() == 1) {
                 MassList massList = precursorScan.getMassList(massListName);
                 if (massList == null) {
-                  logger.debug("%s mass list does not exist in a scan = {}. Row id = {}", massListName, scan.getScanNumber(), row.getID());
+                  logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}", massListName, scan.getScanNumber(), row.getID());
 //                  throw new MethodRuntimeException("There are no scans for this Mass List");
                   continue;
                 }
@@ -152,7 +152,7 @@ public class SpectrumScanner {
           /* Parse ms2 level scans */
           MassList massList = scan.getMassList(massListName);
           if (massList == null) {
-            logger.debug("%s mass list does not exist in a scan = {}. Row id = {}", massListName, scan.getScanNumber(), row.getID());
+            logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}", massListName, scan.getScanNumber(), row.getID());
 //            throw new MethodRuntimeException("There are no scans for this Mass List");
             continue;
           }
