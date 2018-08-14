@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.TitleEntity;
 import org.jfree.data.Range;
-import org.jmol.util.Logger;
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Button;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
@@ -199,8 +198,6 @@ public class ChartGestureHandler {
           ValueAxis axis = de.getAxis();
           if (axis != null) {
             double diff = de.getDiff() / axis.getRange().getLength() * 4;
-            Logger.info(
-                diff + "  , axis range:" + axis.getRange().getLength() + "   diff:" + de.getDiff());
             ChartLogics.zoomAxis(axis, diff, true);
           }
         };
