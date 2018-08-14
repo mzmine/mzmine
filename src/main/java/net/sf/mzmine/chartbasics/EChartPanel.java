@@ -147,10 +147,11 @@ public class EChartPanel extends ChartPanel {
   public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
       boolean dataExportMenu, boolean standardGestures, boolean addZoomHistory,
       boolean stickyZeroForRangeAxis) {
-    super(chart, useBuffer);
+    super(null, useBuffer);
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
     this.standardGestures = standardGestures;
     this.addZoomHistory = addZoomHistory;
+    setChart(chart);
     // setDoubleBuffered(useBuffer);
     // setRefreshBuffer(useBuffer);
     // Add Export to Excel and graphics export menu
