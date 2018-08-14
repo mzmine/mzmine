@@ -136,6 +136,9 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
             if (last != null) {
               // get data space coordinates
               Point2D released = ChartLogics.mouseXYToPlotXY(chartPanel, e.getX(), e.getY());
+              System.out.print("\n\nLAST: " + last.getX() + "; " + last.getY() + "   ");
+              System.out.println("DRAG: " + released.getX() + "; " + released.getY());
+              // System.out.println(event);
               if (released != null) {
                 double offset = 0;
                 double start = 0;
@@ -149,6 +152,8 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
                   offset = -(released.getY() - last.getY());
                   start = first.getY();
                 }
+
+                System.out.println("offset: " + offset);
 
                 // new dragdiff event
                 ChartGestureDragDiffEvent dragEvent = new ChartGestureDragDiffEvent(startEvent,

@@ -24,6 +24,8 @@ import java.awt.Paint;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.title.PaintScaleLegend;
 import net.sf.mzmine.chartbasics.chartthemes.ChartThemeFactory.THEME;
 
@@ -58,6 +60,9 @@ public class EStandardChartTheme extends StandardChartTheme {
   public EStandardChartTheme(THEME themeID, String name) {
     super(name);
     this.themeID = themeID;
+
+    setBarPainter(new StandardBarPainter());
+    setXYBarPainter(new StandardXYBarPainter());
 
     // in theme
     setAntiAliased(false);

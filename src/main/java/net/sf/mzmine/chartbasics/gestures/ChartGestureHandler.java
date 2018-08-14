@@ -198,6 +198,8 @@ public class ChartGestureHandler {
           ValueAxis axis = de.getAxis();
           if (axis != null) {
             double diff = de.getDiff() / axis.getRange().getLength() * 4;
+            System.out
+                .println(diff + "  , a:" + axis.getRange().getLength() + "   diff:" + de.getDiff());
             ChartLogics.zoomAxis(axis, diff, true);
           }
         };
