@@ -159,12 +159,12 @@ public class SingleRowIdentificationTask extends AbstractTask {
       ms2list = scanner.getMsMsList();
 
       if (ms1list == null && ms2list == null) {
-        throw new MethodRuntimeException("There are no scans that satisfy condition");
+        throw new MethodRuntimeException("There are no scans for requested Mass List name");
       }
     } catch (MethodRuntimeException f) {
       showErrorAndCancel(window, String.format("Empty Mass List for %.2f", parentMass),
           "There is no MS2 scans that have a given precursor mass.\n" +
-      "MS1 and MS2 lists are empty.");
+      "MS1 and MS2 lists are empty.\nCheck the Mass List field.");
       return;
     }
 
