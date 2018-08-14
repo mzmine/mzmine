@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids2;
+package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids;
 
 public enum LipidCoreClasses {
   FATTYACYLS("Fatty Acyls"), //

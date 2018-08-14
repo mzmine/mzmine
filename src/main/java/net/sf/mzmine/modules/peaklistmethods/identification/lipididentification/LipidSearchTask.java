@@ -15,7 +15,8 @@ import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools.FattyAcidTools;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools.MSMSLipidTools;
-import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids2.LipidClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipidutils.LipidIdentity;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetectorParameters;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -129,7 +130,7 @@ public class LipidSearchTask extends AbstractTask {
             continue;
           }
           // Prepare a lipid instance
-          LipidIdentityChain lipidChain = new LipidIdentityChain(selectedLipids.get(i), chainLength,
+          LipidIdentity lipidChain = new LipidIdentity(selectedLipids.get(i), chainLength,
               chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
           // Find all rows that match this lipid
           findPossibleLipid(lipidChain, rows);
@@ -158,7 +159,7 @@ public class LipidSearchTask extends AbstractTask {
    * @param mainPeak
    * @param possibleFragment
    */
-  private void findPossibleLipid(LipidIdentityChain lipid, PeakListRow rows[]) {
+  private void findPossibleLipid(LipidIdentity lipid, PeakListRow rows[]) {
     double lipidIonMass = 0.0;
     double lipidMass = 0.0;
     if (ionizationType.toString().contains("2M")) {
@@ -196,7 +197,7 @@ public class LipidSearchTask extends AbstractTask {
 
 
   private void searchFAinMSMS(PeakListRow rows[], double lipidIonMass, int rowIndex,
-      LipidIdentityChain lipid) {
+      LipidIdentity lipid) {
     ExactMassDetector massDetector = new ExactMassDetector();
     ExactMassDetectorParameters parametersMSMS = new ExactMassDetectorParameters();
     FattyAcidTools fattyAcidTools = new FattyAcidTools();

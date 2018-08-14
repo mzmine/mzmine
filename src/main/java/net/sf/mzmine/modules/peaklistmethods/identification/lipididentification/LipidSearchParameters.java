@@ -19,7 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification;
 
 import net.sf.mzmine.datamodel.IonizationType;
-import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids2.AllLipidClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.AllLipidClasses;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
