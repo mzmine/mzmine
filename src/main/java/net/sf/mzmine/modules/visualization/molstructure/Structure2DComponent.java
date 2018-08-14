@@ -96,6 +96,34 @@ public class Structure2DComponent extends JComponent {
 
     }
 
+    public Structure2DComponent(IAtomContainer container) throws CDKException {
+    	molecule = container;
+
+    	// Suppress the hydrogens
+			AtomContainerManipulator.suppressHydrogens(molecule);
+
+			// If the model has no coordinates, let's generate them
+			if (!GeometryUtil.has2DCoordinates(molecule)) {
+				StructureDiagramGenerator sdg = new StructureDiagramGenerator();
+				sdg.setMolecule(molecule, false);
+				sdg.generateCoordinates();
+			}
+
+			// Generators make the image elements
+			Font font = new Font("Verdana", Font.PLAIN, 14);
+			List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
+			generators.add(new BasicSceneGenerator());
+			generators.add(new StandardGenerator(font));
+
+			// Renderer needs to have a toolkit-specific font manager
+			renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+
+			// Set default atom colors for the renderer
+			RendererModel rendererModel = renderer.getRenderer2DModel();
+			rendererModel.set(StandardGenerator.AtomColor.class,
+					new CDK2DAtomColors());
+		}
+
     @Override
     protected void paintComponent(Graphics g) {
 

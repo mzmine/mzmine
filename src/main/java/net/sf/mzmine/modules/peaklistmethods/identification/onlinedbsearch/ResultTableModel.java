@@ -105,7 +105,9 @@ public class ResultTableModel extends AbstractTableModel {
     }
 
     public void addElement(DBCompound compound) {
-	compounds.add(compound);
+			compound.getAllProperties();
+
+			compounds.add(compound);
 	fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
     }
 

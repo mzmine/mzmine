@@ -15,7 +15,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>2.1.1</cdk.version>
 		<jmztab.version>3.0.7</jmztab.version>
-		<msdk.version>0.0.11</msdk.version>
+		<msdk.version>0.0.14</msdk.version>
 	</properties>
 
 	<mailingLists>
@@ -477,6 +477,11 @@
 			<artifactId>msdk-featuredetection-adap3d</artifactId>
 			<version>${msdk.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>io.github.msdk</groupId>
+			<artifactId>msdk-id-sirius</artifactId>
+			<version>${msdk.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.xerial</groupId>
@@ -587,7 +592,7 @@
 			<artifactId>epsgraphics</artifactId>
 			<version>1.2</version>
 		</dependency>
-		<!-- END of graphics dependencies -->
+		 <!--END of graphics dependencies-->
 
 		<dependency>
 			<groupId>com.miglayout</groupId>
@@ -618,6 +623,31 @@
 			<version>1.2.0</version>
 		</dependency>
 		<!-- jaxb end -->
+
+		<!-- JNA runtime error fix -->
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>4.5.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.openscience.cdk</groupId>
+			<artifactId>cdk-data</artifactId>
+			<version>${cdk.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.openscience.cdk</groupId>
+			<artifactId>cdk-interfaces</artifactId>
+			<version>${cdk.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.openscience.cdk</groupId>
+			<artifactId>cdk-smiles</artifactId>
+			<version>${cdk.version}</version>
+		</dependency>
 
 	</dependencies>
 

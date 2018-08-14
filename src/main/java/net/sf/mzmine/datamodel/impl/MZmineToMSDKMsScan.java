@@ -53,7 +53,7 @@ public class MZmineToMSDKMsScan implements MsScan {
       int precursorCharge = mzmineScan.getPrecursorCharge();
       ActivationInfo activationInfo = null;
       isolations.add(new SimpleIsolationInfo(isolationMzRange, 0f, precursorMz, precursorCharge,
-          activationInfo));
+          activationInfo, null));
     }
   }
 
