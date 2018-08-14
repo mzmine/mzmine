@@ -188,6 +188,13 @@ public class EChartPanel extends ChartPanel {
   private void initChartPanel(boolean stickyZeroForRangeAxis) {
     final EChartPanel chartPanel = this;
 
+    // remove old init
+    if (mouseAdapter != null) {
+      this.removeMouseListener(mouseAdapter);
+      this.removeMouseMotionListener(mouseAdapter);
+      this.removeMouseWheelListener(mouseAdapter);
+    }
+
     if (chartPanel.getChart().getPlot() instanceof XYPlot) {
       // set sticky zero
       if (stickyZeroForRangeAxis) {
