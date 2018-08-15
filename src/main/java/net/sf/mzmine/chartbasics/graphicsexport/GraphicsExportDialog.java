@@ -202,6 +202,7 @@ public class GraphicsExportDialog extends JFrame {
           JButton btnApply2 = new JButton("Apply theme");
           btnApply2.addActionListener(e -> applyTheme());
           pn.add(btnApply2, 0, i, 5, 1, 1, 1, GridBagConstraints.BOTH);
+          i++;
 
           // add chart settings
           param = chartParam.getParameters();
