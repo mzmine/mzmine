@@ -23,7 +23,6 @@ import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromat
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical.HierarAlignerGcModule;
-import net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.IsotopePeakScannerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringModule;
@@ -65,6 +64,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperModule;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.IsotopePeakScannerModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizerModule;
@@ -86,7 +86,6 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.cropper.CropFilterModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFiltersModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scansmoothing.ScanSmoothingModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.adap3d.ADAP3DModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass.GridMassModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectionModule;
@@ -154,7 +153,7 @@ public class MZmineModulesList {
       PeakFinderModule.class, MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class,
 
       // Isotopes
-      IsotopeGrouperModule.class, IsotopePatternCalculator.class,
+      IsotopeGrouperModule.class, IsotopePatternCalculator.class, IsotopePeakScannerModule.class,
 
       // Peak detection
       SmoothingModule.class, DeconvolutionModule.class, ShapeModelerModule.class,
@@ -178,9 +177,7 @@ public class MZmineModulesList {
       AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
       GPLipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
       FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
-
-      //MYMODULE
-      IsotopePeakScannerModule.class,
+      
       
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,

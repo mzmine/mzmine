@@ -44,9 +44,7 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopeP
 public class Tests {
 
 	public static void main(String[] args) {
-		//isotopePatternTest();
 		exIPT("Cl");
-		//isotopePatternTest();
 	}
 		
 	private static void isotopePatternTest(String formula)

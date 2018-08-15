@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
+package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -65,8 +65,8 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
       "Minimum peak height to be considered as an isotope peak.",
       NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
 
-  public static final DoubleParameter mergeFWHM = new DoubleParameter("Merge width(m/z)",
-      " Full width at half maximun of the relevant peaks.\nThis will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum.\n",
+  public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width(m/z)",
+      "This will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum. Specify in m/z, this depends on the resolution of your mass spectrometer.",
       NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0005, 0.00001, 10.0);
 
   public static final DoubleParameter minPatternIntensity = new DoubleParameter(
@@ -85,7 +85,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public static final ComboParameter<String> ratingChoices = new ComboParameter<String>(
       "Rating type",
-      "Method to calculate the rating with.\nHighest Intensity is the standard method and faster.\nAverage is slower but might be more accurate for more intense peaks. Select a masslist.",
+      "Method to calculate the rating with.\nHighest Intensity is the standard method and faster.\nAverage is slower but could be more accurate for more intense peaks. Select a masslist.",
       ratingTypeChoices);
 
   public static final StringParameter suffix =
@@ -105,7 +105,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public IsotopePeakScannerParameters() {
     super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, charge,
-        minAbundance, minPatternIntensity, mergeFWHM, minHeight, checkIntensity, minRating,
+        minAbundance, minPatternIntensity, mergeWidth, minHeight, checkIntensity, minRating,
         ratingChoices, massList, suffix, neutralLoss});
   }
 }

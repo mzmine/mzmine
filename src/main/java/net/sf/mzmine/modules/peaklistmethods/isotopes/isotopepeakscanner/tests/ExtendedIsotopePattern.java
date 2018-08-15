@@ -17,32 +17,13 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.tests;
+package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.tests;
 
 import java.io.IOException;
 import java.util.ArrayList;
-/*
- * Copyright 2006-2015 The MZmine 2 Development Team
- * 
- * This file is part of MZmine 2.
- * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
- */
 import javax.annotation.Nonnull;
-import org.kohsuke.rngom.digested.DPattern;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
-import org.openscience.cdk.interfaces.IElement;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
@@ -52,7 +33,6 @@ import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.util.ScanUtils;
 import com.google.common.collect.Range;
 
 /**
@@ -135,7 +115,11 @@ public class ExtendedIsotopePattern implements IsotopePattern {
       addIsotopes(isotopes);
     // System.out.println(element.getSymbol() + "added");
   }
-
+  
+  /**
+   * Will add an array of isotopes of the same element to the pattern. Called by addElement. 
+   * @param isotopes Array of isotopes of an element to be added.
+   */
   private void addIsotopes(IIsotope[] isotopes) {
     ArrayList<DataPoint> newDp = new ArrayList<DataPoint>();
     ArrayList<String> newDpDescr = new ArrayList<String>();

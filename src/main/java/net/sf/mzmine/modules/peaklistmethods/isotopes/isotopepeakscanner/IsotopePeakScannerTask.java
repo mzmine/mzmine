@@ -17,38 +17,36 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
+package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import org.apache.poi.ss.formula.functions.Rows;
-import org.openscience.cdk.config.Isotopes;
+
 import org.openscience.cdk.interfaces.IIsotope;
+
 import com.google.common.collect.Range;
+
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.tests.ExtendedIsotopePattern;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.tests.ExtendedIsotopePattern;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -74,7 +72,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
   private double minPatternIntensity;
-  private double mergeFWHM;
+  private double mergeWidth;
   private String message;
   private int totalRows, finishedRows;
   private PeakList resultPeakList;
@@ -120,7 +118,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
     minAbundance = parameters.getParameter(IsotopePeakScannerParameters.minAbundance).getValue();
     // intensityDeviation =
     // parameters.getParameter(IsotopePeakScannerParameters.intensityDeviation).getValue() / 100;
-    mergeFWHM = parameters.getParameter(IsotopePeakScannerParameters.mergeFWHM).getValue();
+    mergeWidth = parameters.getParameter(IsotopePeakScannerParameters.mergeWidth).getValue();
     minPatternIntensity =
         parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity).getValue();
     element = parameters.getParameter(IsotopePeakScannerParameters.element).getValue();
@@ -467,8 +465,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
       case pattern:
 
         pattern = new ExtendedIsotopePattern();
-        pattern.setUpFromFormula(element, minAbundance, mergeFWHM, minPatternIntensity);
-        // pattern.mergePeaks(mergeFWHM);
+        pattern.setUpFromFormula(element, minAbundance, mergeWidth, minPatternIntensity);
         pattern.normalizePatternToHighestPeak();
         pattern.print();
         pattern.applyCharge(charge, polarityType);

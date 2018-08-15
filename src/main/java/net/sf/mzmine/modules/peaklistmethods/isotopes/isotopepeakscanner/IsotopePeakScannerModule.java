@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
+package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
@@ -25,8 +25,6 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpeaklist.FormulaPredictionPeakListParameters;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpeaklist.FormulaPredictionPeakListTask;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -34,7 +32,7 @@ import net.sf.mzmine.util.ExitCode;
 public class IsotopePeakScannerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Isotope Peak Scanner";
-  private static final String MODULE_DESCRIPTION = "Compares a peak list with an isotope pattern.";
+  private static final String MODULE_DESCRIPTION = "Searches for m/z and intensity distribution of a calculated isotope pattern within a peak list.";
 
   @Override
   public @Nonnull String getName() {
@@ -42,7 +40,7 @@ public class IsotopePeakScannerModule implements MZmineProcessingModule {
   }
 
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
+    return MZmineModuleCategory.ISOTOPES;
   }
 
   @Override

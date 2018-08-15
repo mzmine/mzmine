@@ -17,10 +17,12 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner;
+package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
 
 import java.util.Arrays;
+
 import com.google.common.collect.Range;
+
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -29,7 +31,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.IsotopePeakScannerTask.RatingType;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.IsotopePeakScannerTask.RatingType;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
 public class Candidates {
