@@ -2,6 +2,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -35,7 +36,7 @@ public class LipidSearchTask extends AbstractTask {
   private PeakList peakList;
 
   private Object[] selectedObjects;
-  private ArrayList<LipidClasses> selectedLipids = new ArrayList<LipidClasses>();
+  private LipidClasses[] selectedLipids;
   private int minChainLength, maxChainLength, maxDoubleBonds, minDoubleBonds;
   private MZTolerance mzTolerance, mzToleranceMS2;
   private IonizationType ionizationType;
@@ -70,14 +71,15 @@ public class LipidSearchTask extends AbstractTask {
     mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.mzToleranceMS2).getValue();
     noiseLevelMSMS = parameters.getParameter(LipidSearchParameters.noiseLevel).getValue();
     lipidModification = parameters.getParameter(LipidSearchParameters.modification).getChoices();
+
     // Remove main lipids and core lipids
-    for (int i = 0; i < selectedObjects.length; i++) {
-      for (int j = 0; j < LipidClasses.values().length; j++) {
-        if (selectedObjects[i].toString().equals(LipidClasses.values()[j].toString())) {
-          selectedLipids.add(LipidClasses.values()[j]);
-        }
-      }
-    }
+    selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
+        .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
+
+    // for (int i = 0; i < selectedObjects.length; i++) {
+    // if (selectedObjects[i] instanceof LipidClasses)
+    // selectedLipids.add((LipidClasses) selectedObjects[i]);
+    // }
   }
 
   /**
@@ -115,13 +117,13 @@ public class LipidSearchTask extends AbstractTask {
       lipidModificationMasses = getLipidModificationMasses(lipidModification);
     }
     // Calculate how many possible lipids we will try
-    totalSteps = ((maxChainLength - minChainLength + 1) * (maxDoubleBonds - minDoubleBonds + 1)
-        * lipidModification.length) * selectedLipids.size();
+    totalSteps = ((maxChainLength - minChainLength + 1) * (maxDoubleBonds - minDoubleBonds + 1))
+        * selectedLipids.length;
 
     // Try all combinations of fatty acid lengths and double bonds
-    for (int i = 0; i < selectedLipids.size(); i++) {
-      int numberOfAcylChains = selectedLipids.get(i).getNumberOfAcylChains();
-      int numberOfAlkylChains = selectedLipids.get(i).getNumberofAlkyChains();
+    for (int i = 0; i < selectedLipids.length; i++) {
+      int numberOfAcylChains = selectedLipids[i].getNumberOfAcylChains();
+      int numberOfAlkylChains = selectedLipids[i].getNumberofAlkyChains();
       for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
         for (int chainDoubleBonds =
             minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
@@ -143,7 +145,7 @@ public class LipidSearchTask extends AbstractTask {
             continue;
           }
           // Prepare a lipid instance
-          LipidIdentity lipidChain = new LipidIdentity(selectedLipids.get(i), chainLength,
+          LipidIdentity lipidChain = new LipidIdentity(selectedLipids[i], chainLength,
               chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
           // Find all rows that match this lipid
           findPossibleLipid(lipidChain, rows);

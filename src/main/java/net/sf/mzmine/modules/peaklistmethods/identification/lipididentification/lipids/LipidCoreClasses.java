@@ -3,7 +3,8 @@ package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification
 public enum LipidCoreClasses {
   FATTYACYLS("Fatty Acyls"), //
   GLYCEROLIPIDS("Glycerolipids"), //
-  GLYCEROPHOSPHOLIPIDS("Glycerophospholipids");//
+  GLYCEROPHOSPHOLIPIDS("Glycerophospholipids"), //
+  SPHINGOLIPIDS("Sphingolipids");//
   private String name;
 
   LipidCoreClasses(String name) {

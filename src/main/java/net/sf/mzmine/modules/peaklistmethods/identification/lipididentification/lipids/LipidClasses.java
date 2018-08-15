@@ -234,6 +234,6 @@ public enum LipidClasses {
 
   @Override
   public String toString() {
-    return "         " + this.abbr + " " + this.name;
+    return this.abbr + " " + this.name;
   }
 }

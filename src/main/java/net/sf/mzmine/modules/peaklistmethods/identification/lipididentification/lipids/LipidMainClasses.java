@@ -23,7 +23,11 @@ public enum LipidMainClasses {
   GLYCEROPHOSPHOINOSITOLS("Glycerophosphoinositols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHATES("Glycerophosphates", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
   CARDIOLIPIN("Cardiolipin", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
-  CDPGLYCEROLS("CDP-Glycerols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS);//
+  CDPGLYCEROLS("CDP-Glycerols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+
+  CERAMIDES("Ceramides", LipidCoreClasses.SPHINGOLIPIDS), //
+  PHOSPHOSPHINGOLIPIDS("Phosphosphingolipids", LipidCoreClasses.SPHINGOLIPIDS);//
+
 
   private String name;
   private LipidCoreClasses coreClass;
@@ -47,7 +51,7 @@ public enum LipidMainClasses {
 
   @Override
   public String toString() {
-    return "     " + this.name;
+    return this.name;
   }
 
 }
