@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification
 
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.AllLipidClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.LipidModification;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -27,6 +28,7 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.LipidClassParameter;
+import net.sf.mzmine.parameters.parametertypes.LipidModificationChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -57,7 +59,7 @@ public class LipidSearchParameters extends SimpleParameterSet {
       new ComboParameter<IonizationType>("Ionization method",
           "Type of ion used to calculate the ionized mass", IonizationType.values());
 
-  public static final BooleanParameter searchForFAinMSMS =
+  public static final BooleanParameter searchForMSMSFragments =
       new BooleanParameter("Search for lipid class specific fragments in MS/MS spectra",
           "Search for lipid class specific fragments in MS/MS spectra");
 
@@ -68,10 +70,17 @@ public class LipidSearchParameters extends SimpleParameterSet {
   public static final DoubleParameter noiseLevel = new DoubleParameter(
       "Noise level for MS/MS scans", "Intensities less than this value are interpreted as noise.");
 
+  public static final BooleanParameter useModification = new BooleanParameter(
+      "Search for lipid modification", "If checked the algorithm searches for lipid modifications");
+
+  public static final LipidModificationChoiceParameter modification =
+      new LipidModificationChoiceParameter("Lipid modifications", "Add lipid modifications",
+          new LipidModification[0], 0);
+
   public LipidSearchParameters() {
     super(new Parameter[] {peakLists, lipidClasses, minChainLength, maxChainLength, minDoubleBonds,
-        maxDoubleBonds, ionizationMethod, mzTolerance, searchForFAinMSMS, mzToleranceMS2,
-        noiseLevel});
+        maxDoubleBonds, ionizationMethod, mzTolerance, searchForMSMSFragments, mzToleranceMS2,
+        noiseLevel, useModification, modification});
 
   }
 

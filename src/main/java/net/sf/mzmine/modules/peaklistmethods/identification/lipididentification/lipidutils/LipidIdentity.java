@@ -1,5 +1,6 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipidutils;
 
+import java.util.Map;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
@@ -15,17 +16,20 @@ public class LipidIdentity extends SimplePeakIdentity {
       final int chainDoubleBonds, final int numberOfAcylChains, final int numberOfAlkylChains) {
 
     this(lipidClass.getAbbr() + '(' + chainLength + ':' + chainDoubleBonds + ')',
-        lipidClass.getBackBoneFormula() + chainBuilder.calculateTotalChainFormula(chainLength,
+        lipidClass.getBackBoneFormula() + chainBuilder.calculateChainFormula(chainLength,
             chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains));
 
   }
 
   private LipidIdentity(final String name, final String formula) {
     super(name);
-    exactMass = FormulaUtils.calculateExactMass(formula);
-    sumFormula = formula;
+    // Parse formula
+    Map<String, Integer> parsedFormula = FormulaUtils.parseFormula(formula);
+    // Rearrange formula
+    sumFormula = FormulaUtils.formatFormula(parsedFormula);
+    exactMass = FormulaUtils.calculateExactMass(sumFormula);
     setPropertyValue(PROPERTY_NAME, name);
-    setPropertyValue(PROPERTY_FORMULA, formula);
+    setPropertyValue(PROPERTY_FORMULA, sumFormula);
     setPropertyValue(PROPERTY_METHOD, "Lipid identification");
   }
 

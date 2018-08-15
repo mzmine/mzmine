@@ -1,5 +1,6 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
@@ -8,6 +9,7 @@ import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.PolarityType;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
@@ -16,6 +18,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools.FattyAcidTools;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools.MSMSLipidTools;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.LipidModification;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipidutils.LipidIdentity;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetectorParameters;
@@ -36,8 +39,11 @@ public class LipidSearchTask extends AbstractTask {
   private int minChainLength, maxChainLength, maxDoubleBonds, minDoubleBonds;
   private MZTolerance mzTolerance, mzToleranceMS2;
   private IonizationType ionizationType;
-  private Boolean searchForIsotopes, searchForFAinMSMS;
+  private Boolean searchForMSMSFragments;
+  private Boolean searchForModifications;
   private double noiseLevelMSMS;
+  private double[] lipidModificationMasses;
+  private LipidModification[] lipidModification;
 
   private ParameterSet parameters;
 
@@ -57,10 +63,13 @@ public class LipidSearchTask extends AbstractTask {
     mzTolerance = parameters.getParameter(LipidSearchParameters.mzTolerance).getValue();
     selectedObjects = parameters.getParameter(LipidSearchParameters.lipidClasses).getValue();
     ionizationType = parameters.getParameter(LipidSearchParameters.ionizationMethod).getValue();
-    searchForFAinMSMS = parameters.getParameter(LipidSearchParameters.searchForFAinMSMS).getValue();
+    searchForMSMSFragments =
+        parameters.getParameter(LipidSearchParameters.searchForMSMSFragments).getValue();
+    searchForModifications =
+        parameters.getParameter(LipidSearchParameters.useModification).getValue();
     mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.mzToleranceMS2).getValue();
     noiseLevelMSMS = parameters.getParameter(LipidSearchParameters.noiseLevel).getValue();
-
+    lipidModification = parameters.getParameter(LipidSearchParameters.modification).getChoices();
     // Remove main lipids and core lipids
     for (int i = 0; i < selectedObjects.length; i++) {
       for (int j = 0; j < LipidClasses.values().length; j++) {
@@ -101,9 +110,13 @@ public class LipidSearchTask extends AbstractTask {
 
     PeakListRow rows[] = peakList.getRows();
 
+    // Check if lipids should be modified
+    if (searchForModifications == true) {
+      lipidModificationMasses = getLipidModificationMasses(lipidModification);
+    }
     // Calculate how many possible lipids we will try
-    totalSteps = ((maxChainLength - minChainLength + 1) * (maxDoubleBonds - minDoubleBonds + 1))
-        * selectedLipids.size();
+    totalSteps = ((maxChainLength - minChainLength + 1) * (maxDoubleBonds - minDoubleBonds + 1)
+        * lipidModification.length) * selectedLipids.size();
 
     // Try all combinations of fatty acid lengths and double bonds
     for (int i = 0; i < selectedLipids.size(); i++) {
@@ -172,22 +185,33 @@ public class LipidSearchTask extends AbstractTask {
     } else {
       lipidIonMass = lipidMass + ionizationType.getAddedMass();
     }
-    logger.finest("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
+    logger.info("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
     for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       if (isCanceled())
         return;
       Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(rows[rowIndex].getAverageMZ());
       if (mzTolRange12C.contains(lipidIonMass)) {
+        // Calc rel mass deviation;
+        double relMassDev =
+            ((lipidIonMass - rows[rowIndex].getAverageMZ()) / lipidIonMass) * 1000000;
         rows[rowIndex].addPeakIdentity(lipid, false);
-        rows[rowIndex].setComment("Ionization: " + ionizationType.getAdduct());
-
+        rows[rowIndex].setComment("Ionization: " + ionizationType.getAdduct() + ", Δ "
+            + NumberFormat.getInstance().format(relMassDev) + " ppm"); // Calc relativ mass
+        // deviation
         // If search for FA in MSMS is selected search for FA
-        if (searchForFAinMSMS == true) {
+        if (searchForMSMSFragments == true) {
           searchFAinMSMS(rows, lipidIonMass, rowIndex, lipid);
-          // Notify the GUI about the change in the project
-          MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
-              false);
         }
+        // Notify the GUI about the change in the project
+        MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
+            false);
+        logger.info("Found lipid: " + lipid.getName() + ", Δ "
+            + NumberFormat.getInstance().format(relMassDev) + " ppm");
+      }
+      // If search for modifications is selected search for modifications in MS1
+      if (searchForModifications == true) {
+        searchModifications(rows[rowIndex], lipidIonMass, lipid, lipidModificationMasses,
+            mzTolRange12C);
         // Notify the GUI about the change in the project
         MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
             false);
@@ -293,6 +317,35 @@ public class LipidSearchTask extends AbstractTask {
 
   }
 
+  private void searchModifications(PeakListRow rows, double lipidIonMass, LipidIdentity lipid,
+      double[] lipidModificationMasses, Range<Double> mzTolModification) {
+    int charge = 0;
+    if (ionizationType.toString().contains("2-")) {
+      charge = 2;
+    } else {
+      charge = 1;
+    }
+    for (int j = 0; j < lipidModificationMasses.length; j++) {
+      if (mzTolModification.contains(lipidIonMass + (lipidModificationMasses[j] / charge))) {
+        // Calc relativ mass deviation
+        double relMassDev =
+            (((lipidIonMass + (lipidModificationMasses[j] / charge)) - rows.getAverageMZ())
+                / (lipidIonMass + (lipidModificationMasses[j] / charge))) * 1000000;
+        // Add row identity
+        rows.addPeakIdentity(new SimplePeakIdentity(lipid + " " + lipidModification[j]), false);
+        rows.setComment("Ionization: " + ionizationType.getAdduct() + " " + lipidModification[j]
+            + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm");
+        logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "
+            + NumberFormat.getInstance().format(relMassDev) + " ppm");
+      }
+    }
+  }
 
-
+  private double[] getLipidModificationMasses(LipidModification[] lipidModification) {
+    double[] lipidModificationMasses = new double[lipidModification.length];
+    for (int i = 0; i < lipidModification.length; i++) {
+      lipidModificationMasses[i] = lipidModification[i].getModificationMass();
+    }
+    return lipidModificationMasses;
+  }
 }

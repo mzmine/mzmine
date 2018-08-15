@@ -1,8 +1,6 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids;
 
 public enum LipidClasses {
-  // enum
-
   FATTYACIDS("Fatty acids", "FA", LipidCoreClasses.FATTYACYLS, LipidMainClasses.FATTYACIDS, "CHO2",
       1, 0), //
   FATTYALCOHOLS("Fatty alcohols", "Alcohols", LipidCoreClasses.FATTYACYLS,
@@ -158,10 +156,6 @@ public enum LipidClasses {
   CDPMONOALKYLGLYCEROLS("CDP-Monoalkylglycerols", "CDP-DG", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS,
       LipidMainClasses.CDPGLYCEROLS, "C12H18O13P2N3", 0, 1);//
 
-
-
-  // static
-  // var
   private String name;
   private String abbr;
   private LipidCoreClasses coreClass;
