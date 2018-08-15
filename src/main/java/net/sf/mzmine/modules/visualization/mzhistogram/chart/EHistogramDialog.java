@@ -84,7 +84,7 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
     pnJump.add(btnPrevious);
 
     JButton btnNext = new JButton(">");
-    btnPrevious.setToolTipText("Jump to previous distribution (use right arrow");
+    btnNext.setToolTipText("Jump to previous distribution (use right arrow");
     btnNext.addActionListener(e -> jumpToNextPeak());
     pnJump.add(btnNext);
   }

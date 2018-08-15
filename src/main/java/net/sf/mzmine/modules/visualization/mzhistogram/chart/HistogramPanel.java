@@ -199,7 +199,8 @@ public class HistogramPanel extends JPanel {
           }
           {
             txtPrecision = new JTextField();
-            txtPrecision.setText("4");
+            txtPrecision.setToolTipText("Change number of significant figures and press update");
+            txtPrecision.setText("6");
             secondGaussian.add(txtPrecision);
             txtPrecision.setColumns(3);
           }
