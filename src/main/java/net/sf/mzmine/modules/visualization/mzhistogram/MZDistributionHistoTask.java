@@ -141,7 +141,7 @@ public class MZDistributionHistoTask extends AbstractTask {
 
       // create histogram dialog
       EHistogramDialog dialog =
-          new EHistogramDialog("m/z distribution", new HistogramData(histo), binWidth);
+          new EHistogramDialog("m/z distribution", "m/z", new HistogramData(histo), binWidth);
       dialog.setVisible(true);
     } else {
       throw new MSDKRuntimeException("Data was empty. Review your selected filters.");

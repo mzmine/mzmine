@@ -29,8 +29,8 @@ public class HistogramDialog extends JFrame {
   /**
    * Create the dialog. Bin width is automatically chosen
    */
-  public HistogramDialog(String title, HistogramData data) {
-    this(title, data, 0);
+  public HistogramDialog(String title, String xLabel, HistogramData data) {
+    this(title, xLabel, data, 0);
   }
 
   /**
@@ -39,12 +39,12 @@ public class HistogramDialog extends JFrame {
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
    */
-  public HistogramDialog(String title, HistogramData data, double binWidth) {
+  public HistogramDialog(String title, String xLabel, HistogramData data, double binWidth) {
     this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     setTitle(title);
     setBounds(100, 100, 1000, 800);
     getContentPane().setLayout(new BorderLayout());
-    histo = new HistogramPanel(data, binWidth);
+    histo = new HistogramPanel(xLabel, data, binWidth);
     getContentPane().add(histo, BorderLayout.CENTER);
     this.setTitle(title);
   }

@@ -65,6 +65,7 @@ public class HistogramPanel extends JPanel {
   private JCheckBox cbGaussianFit;
 
   private EChartPanel pnHisto;
+  private String xLabel;
   private HistogramData data;
   private JPanel boxSettings;
 
@@ -281,9 +282,10 @@ public class HistogramPanel extends JPanel {
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
    */
-  public HistogramPanel(HistogramData data, double binWidth) {
+  public HistogramPanel(String xLabel, HistogramData data, double binWidth) {
     this();
     setData(data, binWidth);
+    this.xLabel = xLabel;
   }
 
 
@@ -424,7 +426,7 @@ public class HistogramPanel extends JPanel {
               DoubleFunction<Double> f =
                   cbThirdSQRT.isSelected() ? val -> Math.cbrt(val) : val -> val;
 
-              JFreeChart chart = EChartFactory.createHistogram(dat, "I", binwidth,
+              JFreeChart chart = EChartFactory.createHistogram(dat, xLabel, binwidth,
                   r.getLowerBound() - binShift, r.getUpperBound(), f);
               // add gaussian?
               if (cbGaussianFit.isSelected()) {

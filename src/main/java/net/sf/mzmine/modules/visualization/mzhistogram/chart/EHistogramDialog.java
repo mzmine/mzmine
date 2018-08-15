@@ -46,8 +46,8 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
    * 
    * @wbp.parser.constructor
    */
-  public EHistogramDialog(String title, HistogramData data) {
-    this(title, data, 0);
+  public EHistogramDialog(String title, String xLabel, HistogramData data) {
+    this(title, xLabel, data, 0);
   }
 
   /**
@@ -56,8 +56,8 @@ public class EHistogramDialog extends HistogramDialog implements ActionListener 
    * @param data
    * @param binWidth zero (0) for auto detection, -1 to keep last binWidth
    */
-  public EHistogramDialog(String title, HistogramData data, double binWidth) {
-    super(title, data, binWidth);
+  public EHistogramDialog(String title, String xLabel, HistogramData data, double binWidth) {
+    super(title, xLabel, data, binWidth);
     addKeyBindings();
   }
 
