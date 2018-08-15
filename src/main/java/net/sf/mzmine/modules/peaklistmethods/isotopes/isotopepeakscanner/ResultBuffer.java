@@ -55,7 +55,7 @@ public class ResultBuffer {
     return ID.get(i).intValue();
   }
 
-  ResultBuffer() {
+  public ResultBuffer() {
     found = 0;
     row = new ArrayList<Integer>();
     ID = new ArrayList<Integer>();

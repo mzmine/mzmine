@@ -30,11 +30,11 @@ public class PeakListHandler {
 
   private TreeMap<Integer, PeakListRow> map;
 
-  PeakListHandler() {
+  public PeakListHandler() {
     map = new TreeMap<Integer, PeakListRow>();
   }
   
-  PeakListHandler(PeakList pL){
+  public PeakListHandler(PeakList pL){
     map = new TreeMap<Integer, PeakListRow>();
     setUp(pL);
   }

@@ -64,7 +64,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private Range<Double> massRange;
   private Range<Double> rtRange;
   private boolean checkIntensity;
-  // private double intensityDeviation;
   private double minAbundance;
   private double minRating;
   private double minHeight;
@@ -126,23 +125,12 @@ public class IsotopePeakScannerTask extends AbstractTask {
     suffix = parameters.getParameter(IsotopePeakScannerParameters.suffix).getValue();
     checkRT = parameters.getParameter(IsotopePeakScannerParameters.checkRT).getValue();
     minHeight = parameters.getParameter(IsotopePeakScannerParameters.minHeight).getValue();
-    dMassLoss = parameters.getParameter(IsotopePeakScannerParameters.neutralLoss).getValue();
     charge = parameters.getParameter(IsotopePeakScannerParameters.charge).getValue();
     accurateAvgIntensity =
         parameters.getParameter(IsotopePeakScannerParameters.massList).getValue();
     massListName = parameters.getParameter(IsotopePeakScannerParameters.massList)
         .getEmbeddedParameter().getValue();
     ratingChoice = parameters.getParameter(IsotopePeakScannerParameters.ratingChoices).getValue();
-
-
-    /*
-     * RawDataFile[] raws = peakList.getRawDataFiles(); Scan scan = raws[0].getScan(1); MassList[]
-     * lists = scan.getMassLists(); for(MassList list : lists) System.out.println("MassList: " +
-     * list.getName());
-     * if(!peakList.getRawDataFiles()[0].getScan(0).getMassLists().toString().contains(massListName)
-     * ) throw new MSDKRuntimeException("massList " + massListName + " not within: " +
-     * peakList.getRawDataFiles()[0].getScan(0).getMassLists().toString());
-     */
 
     if (accurateAvgIntensity && !checkIntensity) {
       accurateAvgIntensity = false;
@@ -287,32 +275,11 @@ public class IsotopePeakScannerTask extends AbstractTask {
           // k represents index resultBuffer[k] and thereby the isotope number
           // l represents the number of results in resultBuffer[k]
           if (scanType == ScanType.pattern) {
-            // if(candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l),
-            // pattern, k, minRating, checkIntensity))
-            // {
-            // logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() +
-            // "\t->\t" +
-            // groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " +
-            // candidates[k].getRating() +
-            // "\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) -
-            // groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
-            // }
-
             candidates.checkForBetterRating(k, groupedPeaks.get(0),
                 groupedPeaks.get(resultBuffer[k].getRow(l)), minRating, checkIntensity);
           } else if (scanType == ScanType.neutralLoss) {
             candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l),
                 diff.get(k), minRating);
-            // if(candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l),
-            // diff.get(k), minRating))
-            // {
-            // logger.info("New best rating for parent m/z: " + groupedPeaks.get(0).getAverageMZ() +
-            // "\t->\t" +
-            // groupedPeaks.get(resultBuffer[k].getRow(l)).getAverageMZ() + "\tRating: " +
-            // candidates[k].getRating() +
-            // "\tDeviation: " + (groupedPeaks.get(0).getAverageMZ() + diff.get(k) -
-            // groupedPeaks.get(candidates[k].getRow()).getAverageMZ()));
-            // }
           }
         }
       }
@@ -367,7 +334,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
           String average = "";
           if (accurateAvgIntensity) {
             average = " AvgRating: " + round(candidates.getAvgRating(k),
-                3) /* + " TempAvg: " + round(candidates.calcTemporaryAvgRating(plh, k), 3) */;
+                3);
           }
 
           addComment(parent,
@@ -389,10 +356,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
           addComment(child, comChild);
 
           resultMap.addRow(child);
-        } else if (scanType == ScanType.neutralLoss) // For neutral loss child and parent are
-                                                     // inverted. since child=higher m/z we set the
-                                                     // comments differently
-        {
+        } else if (scanType == ScanType.neutralLoss) { // For neutral loss child and parent are
+                                                       // inverted. since child=higher m/z we set the
+                                                       // comments differently
           if (resultMap.containsID(child.getID()))
             comChild += resultMap.getRowByID(child.getID()).getComment();
 

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.IsotopePeakScanner.tests;
+package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.tests;
 
 import java.io.IOException;
 import java.math.BigDecimal;

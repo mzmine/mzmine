@@ -91,21 +91,16 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to peak list name", "auto");
 
-  public static final DoubleParameter neutralLoss =
-      new DoubleParameter("Neutral loss? (Y/N)", "Enter exact mass if yes else leave 0.0",
-          NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
-
   public static final IntegerParameter charge =
       new IntegerParameter("Charge", "Amount and polarity (e.g.: [M+]=+1 / [M-]=-1");
 
-
   public static final OptionalParameter<MassListParameter> massList =
       new OptionalParameter<MassListParameter>(new MassListParameter("Calculate accurate average",
-          "Please select a mass list.\nThis method will use averaged intensitys over all mass lists in which ALL relevant masses were detected in.\nThis will only be done for peaks that match the defined rating-calculation with the given rating.\nMake sure the mass list is contained in the peak list."));
+          "Please select a mass list.\nThis method will use averaged intensitys over all mass lists in which ALL relevant masses were detected in.\nThis will only be done for peaks that match the defined rating-calculation with the given rating.\nMake sure the mass list is contained in the peak list.\nIf there are no Scans that match all criteria avg rating will be -1.0."));
 
   public IsotopePeakScannerParameters() {
     super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, charge,
         minAbundance, minPatternIntensity, mergeWidth, minHeight, checkIntensity, minRating,
-        ratingChoices, massList, suffix, neutralLoss});
+        ratingChoices, massList, suffix});
   }
 }

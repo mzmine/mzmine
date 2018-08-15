@@ -31,6 +31,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.IsotopePeakScannerTask.RatingType;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
@@ -62,6 +63,29 @@ public class Candidates {
     this.plh = plh;
     this.ratingType = ratingType;
   }
+  
+  /**
+   * Contstructor for neutral loss scans, no need for pattern and mass last
+   * @param size
+   * @param minHeight
+   * @param mzTolerance
+   * @param plh
+   */
+  public Candidates(int size, double minHeight, MZTolerance mzTolerance,
+	      PeakListHandler plh) {
+	    this.candidate = new Candidate[size];
+	    for (int i = 0; i < size; i++)
+	      candidate[i] = new Candidate();
+	    avgRating = new double[size];
+	    Arrays.fill(avgRating, -1.0);
+	    avgHeight = new double[size];
+	    this.minHeight = minHeight;
+	    this.mzTolerance = mzTolerance;
+	    this.massListName = "";
+	    this.pattern = null;
+	    this.plh = plh;
+	    this.ratingType = RatingType.HIGHEST;
+	  }
 
   /**
    * 
@@ -80,6 +104,9 @@ public class Candidates {
    * @return average rating of specified peak. -1 if not set
    */
   public double getAvgRating(int index) {
+	if(pattern == null) //if we run a neutral loss scan this doesnt exist
+	  return -1.0;  
+	  
     if (index >= candidate.length)
       throw new MSDKRuntimeException("Candidates.get(index) - index > length");
     return avgRating[index];
@@ -90,6 +117,9 @@ public class Candidates {
    * @return total average rating of all data points in the detected pattern
    */
   public double getAvgAvgRatings() {
+    if(pattern == null) //if we run a neutral loss scan this doesnt exist
+      return -1.0;  
+	  
     if (avgRating.length == 0)
       return 0.0;
 
@@ -136,13 +166,16 @@ public class Candidates {
    * @return
    */
   public double getAvgHeight(int index) {
+	if(pattern == null) //if we run a neutral loss scan this doesnt exist
+	  return -1.0;  	  
+	
     if (index > candidate.length || avgHeight == null)
       return 0.0;
     return avgHeight[index];
   }
 
   /**
-   * 
+   * For isotope pattern searches
    * @param index
    * @param parent row of monoisotopic mass
    * @param cand row of candidate peak
@@ -171,6 +204,9 @@ public class Candidates {
    * @return average peak intensity over all mass lists it is contained in
    */
   public double calcTemporaryAvgRating(int index) {
+	  if(pattern == null) //if we run a neutral loss scan this doesnt exist
+	       return -1.0;    
+	  
     if (index > candidate.length)
       return 0.0;
 
@@ -190,6 +226,9 @@ public class Candidates {
    * @return array of all avg ratings
    */
   public double[] calcAvgRatings() {
+	    if(pattern == null) //if we run a neutral loss scan this doesnt exist
+	        return new double[candidate.length];    
+	  
     int[] ids = new int[candidate.length];
 
     for (int i = 0; i < candidate.length; i++)
