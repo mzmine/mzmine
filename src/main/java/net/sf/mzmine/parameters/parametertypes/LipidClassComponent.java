@@ -28,6 +28,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.TreeSet;
 import javax.swing.BorderFactory;
@@ -54,14 +55,13 @@ public class LipidClassComponent extends JPanel implements ActionListener {
    * 
    */
   private static final long serialVersionUID = 1L;
-  private Object[] choices;
+  private LipidClasses[] choices;
   private ArrayList<JCheckBox> checkBoxes;
   private final JScrollPane choicesPanel;
 
   private final JButton selectAllButton;
   private final JButton selectNoneButton;
   private final JPanel buttonsPanel;
-  private final JPanel headerPanel;
 
   /**
    * Create the component.
@@ -74,13 +74,10 @@ public class LipidClassComponent extends JPanel implements ActionListener {
 
     setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
-    // Create headerPanel
-    headerPanel = new JPanel();
-    headerPanel.setLayout(new GridBagLayout());
-    add(headerPanel, BorderLayout.NORTH);
     // Create choices panel.
-    choices = theChoices.clone();
-    choicesPanel = new JScrollPane(new CheckBoxPanel(choices),
+    choices = Arrays.stream(theChoices).filter(o -> o instanceof LipidClasses)
+        .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
+    choicesPanel = new JScrollPane(new CheckBoxPanel(theChoices),
         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
         ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     choicesPanel.getViewport().setBackground(Color.WHITE);
@@ -178,8 +175,7 @@ public class LipidClassComponent extends JPanel implements ActionListener {
     final Object[] value = getValue();
 
     // Update choices.
-    choices = newChoices.clone();
-    choicesPanel.setViewportView(new CheckBoxPanel(choices));
+    choicesPanel.setViewportView(new CheckBoxPanel(newChoices.clone()));
     validate();
 
     // Restore user's selection.
@@ -228,7 +224,9 @@ public class LipidClassComponent extends JPanel implements ActionListener {
 
       int choiceCount = theChoices.length;
       setLayout(new GridBagLayout());
-      GridBagConstraints constraints = new GridBagConstraints();
+      GridBagConstraints constraintsClasses = new GridBagConstraints();
+      GridBagConstraints constraintsMainClasses = new GridBagConstraints();
+      GridBagConstraints constraintsCoreClasses = new GridBagConstraints();
       setOpaque(false);
 
       checkBoxes = new ArrayList<JCheckBox>();
@@ -251,10 +249,10 @@ public class LipidClassComponent extends JPanel implements ActionListener {
           };
           checkBox.setFont(CHECKBOX_FONT);
           checkBox.setOpaque(false);
-          constraints.fill = GridBagConstraints.HORIZONTAL;
-          constraints.gridx = 3;
-          constraints.gridy = i;
-          add(checkBox, constraints);
+          constraintsClasses.fill = GridBagConstraints.HORIZONTAL;
+          constraintsClasses.gridx = 3;
+          constraintsClasses.gridy = i;
+          add(checkBox, constraintsClasses);
           ToolTipManager.sharedInstance().registerComponent(checkBox);
           checkBoxes.add(checkBox);
         }
@@ -276,10 +274,10 @@ public class LipidClassComponent extends JPanel implements ActionListener {
           };
           label.setFont(CHECKBOX_FONT);
           label.setOpaque(false);
-          constraints.fill = GridBagConstraints.HORIZONTAL;
-          constraints.gridx = 1;
-          constraints.gridy = i;
-          add(label, constraints);
+          constraintsCoreClasses.fill = GridBagConstraints.HORIZONTAL;
+          constraintsCoreClasses.gridx = 1;
+          constraintsCoreClasses.gridy = i;
+          add(label, constraintsCoreClasses);
         }
         if (theChoices[i] instanceof LipidMainClasses) {
           // Create a check box (inherit tooltip text).
@@ -298,38 +296,12 @@ public class LipidClassComponent extends JPanel implements ActionListener {
           };
           label.setFont(CHECKBOX_FONT);
           label.setOpaque(false);
-          constraints.fill = GridBagConstraints.HORIZONTAL;
-          constraints.gridx = 2;
-          constraints.gridy = i;
-          add(label, constraints);
+          constraintsMainClasses.fill = GridBagConstraints.HORIZONTAL;
+          constraintsMainClasses.gridx = 2;
+          constraintsMainClasses.gridy = i;
+          add(label, constraintsMainClasses);
         }
-
       }
-
-      // Create header
-      JLabel coreClassLabel = new JLabel("Core classes");
-      GridBagConstraints constraintsCoreClassLabel = new GridBagConstraints();
-      constraintsCoreClassLabel.fill = GridBagConstraints.HORIZONTAL;
-      constraintsCoreClassLabel.gridx = 1;
-      constraintsCoreClassLabel.gridy = 1;
-      constraintsCoreClassLabel.gridwidth = 100;
-      headerPanel.add(coreClassLabel, constraintsCoreClassLabel);
-
-      JLabel mainClassLabel = new JLabel("Main classes");
-      GridBagConstraints constraintsmainClassLabel = new GridBagConstraints();
-      constraintsmainClassLabel.fill = GridBagConstraints.HORIZONTAL;
-      constraintsmainClassLabel.gridx = 2;
-      constraintsmainClassLabel.gridy = 1;
-      constraintsCoreClassLabel.gridwidth = 100;
-      headerPanel.add(mainClassLabel, constraintsmainClassLabel);
-
-      JLabel lipidClassLabel = new JLabel("Lipid classes");
-      GridBagConstraints constraintslipidClassLabel = new GridBagConstraints();
-      constraintslipidClassLabel.fill = GridBagConstraints.HORIZONTAL;
-      constraintslipidClassLabel.gridx = 3;
-      constraintslipidClassLabel.gridy = 1;
-      constraintsCoreClassLabel.gridwidth = 100;
-      headerPanel.add(lipidClassLabel, constraintslipidClassLabel);
     }
 
     @Override

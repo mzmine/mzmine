@@ -72,14 +72,9 @@ public class LipidSearchTask extends AbstractTask {
     noiseLevelMSMS = parameters.getParameter(LipidSearchParameters.noiseLevel).getValue();
     lipidModification = parameters.getParameter(LipidSearchParameters.modification).getChoices();
 
-    // Remove main lipids and core lipids
+    // Convert Objects to LipidClasses
     selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
         .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
-
-    // for (int i = 0; i < selectedObjects.length; i++) {
-    // if (selectedObjects[i] instanceof LipidClasses)
-    // selectedLipids.add((LipidClasses) selectedObjects[i]);
-    // }
   }
 
   /**
@@ -214,9 +209,6 @@ public class LipidSearchTask extends AbstractTask {
       if (searchForModifications == true) {
         searchModifications(rows[rowIndex], lipidIonMass, lipid, lipidModificationMasses,
             mzTolRange12C);
-        // Notify the GUI about the change in the project
-        MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
-            false);
       }
     }
   }
@@ -339,6 +331,8 @@ public class LipidSearchTask extends AbstractTask {
             + ", Δ " + NumberFormat.getInstance().format(relMassDev) + " ppm");
         logger.info("Found modified lipid: " + lipid.getName() + " " + lipidModification[j] + ", Δ "
             + NumberFormat.getInstance().format(relMassDev) + " ppm");
+        // Notify the GUI about the change in the project
+        MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows, false);
       }
     }
   }

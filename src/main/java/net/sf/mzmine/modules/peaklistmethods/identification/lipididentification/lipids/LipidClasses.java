@@ -3,20 +3,21 @@ package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification
 public enum LipidClasses {
   FATTYACIDS("Fatty acids", "FA", LipidCoreClasses.FATTYACYLS, LipidMainClasses.FATTYACIDS, "CHO2",
       1, 0), //
-  FATTYALCOHOLS("Fatty alcohols", "Alcohols", LipidCoreClasses.FATTYACYLS,
+  FATTYALCOHOLS("Fatty alcohols", "Alcohol", LipidCoreClasses.FATTYACYLS,
       LipidMainClasses.FATTYALCOHOLS, "HO", 0, 1), //
-  FATTYALDEHYDES("Fatty aldehydes", "Aldehydes", LipidCoreClasses.FATTYACYLS,
+  FATTYALDEHYDES("Fatty aldehydes", "Aldehyde", LipidCoreClasses.FATTYACYLS,
       LipidMainClasses.FATTYALDEHYDES, "CHO", 1, 0), //
-  FATTYESTERS("Fatty Esters", "Esters", LipidCoreClasses.FATTYACYLS, LipidMainClasses.FATTYESTERS,
+  FATTYESTERS("Fatty esters", "Ester", LipidCoreClasses.FATTYACYLS, LipidMainClasses.FATTYESTERS,
       "CO2", 1, 1), //
-  FATTYAMIDS("Fatty Amids", "Amids", LipidCoreClasses.FATTYACYLS, LipidMainClasses.FATTYAMIDS,
+  FATTYAMIDS("Fatty amids", "Amid", LipidCoreClasses.FATTYACYLS, LipidMainClasses.FATTYAMIDS,
       "CH2ON", 1, 0), //
-  FATTYNITRILES("Fatty Nitriles", "Nitriles", LipidCoreClasses.FATTYACYLS,
+  FATTYNITRILES("Fatty nitriles", "Nitrile", LipidCoreClasses.FATTYACYLS,
       LipidMainClasses.FATTYNITRILES, "CN", 1, 0), //
   FATTYETHERS("Fatty ethers", "Ethers", LipidCoreClasses.FATTYACYLS, LipidMainClasses.FATTYETHERS,
       "O", 0, 2), //
-  HYDROCARBONS("Hydrocarbons", "Hydrocarbons", LipidCoreClasses.FATTYACYLS,
+  HYDROCARBONS("Hydrocarbons", "Hydrocarbon", LipidCoreClasses.FATTYACYLS,
       LipidMainClasses.HYDROCARBONS, "", 0, 1), //
+
   MONOACYLGLYCEROLS("Monoacylglycerols", "MG", LipidCoreClasses.GLYCEROLIPIDS,
       LipidMainClasses.MONORADYLGLYCEROLS, "C4H7O4", 1, 0), //
   MONOALKYLGLYCEROLS("Monoalkylglycerols", "MG", LipidCoreClasses.GLYCEROLIPIDS,
@@ -33,6 +34,9 @@ public enum LipidClasses {
       LipidMainClasses.TRIRADYLGLYCEROLS, "C5H5O5", 2, 1), //
   DIALKYLMONOACYLGLYCEROLS("Dialkylmonoacylglycerols", "TG", LipidCoreClasses.GLYCEROLIPIDS,
       LipidMainClasses.TRIRADYLGLYCEROLS, "C4H5O4", 1, 2), //
+  DIACYLGLYCEROLTRIMETHYLHOMOSERIN("Diacylglyceroltrimethylhomoserin", "DGTS",
+      LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.OTHERGLYCEROLIPIDS, "C12H18O7N", 2, 1), //
+
   DIACYLGLYCEROPHOSPHOCHOLINES("Diacylglycerophosphocholines", "PC",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C10H18O8PN", 2,
       0), //
@@ -154,7 +158,17 @@ public enum LipidClasses {
   CDPMONOACYLGLYCEROLS("CDP-Monoacylglycerols", "CDP-DG", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS,
       LipidMainClasses.CDPGLYCEROLS, "C13H18O14P2N3", 1, 0), //
   CDPMONOALKYLGLYCEROLS("CDP-Monoalkylglycerols", "CDP-DG", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS,
-      LipidMainClasses.CDPGLYCEROLS, "C12H18O13P2N3", 0, 1);//
+      LipidMainClasses.CDPGLYCEROLS, "C12H18O13P2N3", 0, 1), //
+
+  NACYLSPHINGOSINES("N-acylsphingosines (ceramides)", "Cer", LipidCoreClasses.SPHINGOLIPIDS,
+      LipidMainClasses.CERAMIDES, "CHO3N", 1, 1), //
+  NACYL4HYDROXYSPHINGANINES("N-acyl-4-hydroxysphinganines (phytoceramides)", "Cer",
+      LipidCoreClasses.SPHINGOLIPIDS, LipidMainClasses.CERAMIDES, "CHO4N", 1, 1), //
+  ACYLCERAMIDES("Acylceramides", "Cer", LipidCoreClasses.SPHINGOLIPIDS, LipidMainClasses.CERAMIDES,
+      "C2O4N", 2, 1), //
+  CERAMIDE1PHOSPHATES("Ceramide 1-phosphates", "CerP", LipidCoreClasses.SPHINGOLIPIDS,
+      LipidMainClasses.CERAMIDES, "CH2O6PN", 1, 1); //
+
 
   private String name;
   private String abbr;
@@ -174,7 +188,6 @@ public enum LipidClasses {
     this.numberOfAcylChains = numberOfAcylChains;
     this.numberofAlkyChains = numberOfAlkylChains;
   }
-
 
   public String getName() {
     return name;

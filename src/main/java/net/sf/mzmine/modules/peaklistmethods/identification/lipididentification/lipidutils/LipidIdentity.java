@@ -15,7 +15,9 @@ public class LipidIdentity extends SimplePeakIdentity {
   public LipidIdentity(final LipidClasses lipidClass, final int chainLength,
       final int chainDoubleBonds, final int numberOfAcylChains, final int numberOfAlkylChains) {
 
-    this(lipidClass.getAbbr() + '(' + chainLength + ':' + chainDoubleBonds + ')',
+    this(
+        lipidClass.getName() + " " + lipidClass.getAbbr() + '(' + chainLength + ':'
+            + chainDoubleBonds + ')',
         lipidClass.getBackBoneFormula() + chainBuilder.calculateChainFormula(chainLength,
             chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains));
 

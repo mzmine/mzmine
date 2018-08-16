@@ -36,8 +36,8 @@ public class LipidSearchParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final LipidClassParameter lipidClasses = new LipidClassParameter("Lipid classes",
-      "Selection of lipid backbones", AllLipidClasses.getList().toArray());
+  public static final LipidClassParameter<Object> lipidClasses = new LipidClassParameter<Object>(
+      "Lipid classes", "Selection of lipid backbones", AllLipidClasses.getList().toArray());
 
   public static final IntegerParameter minChainLength = new IntegerParameter(
       "Minimum number of Carbon in chains", "Minimum number of Carbon in chains");
