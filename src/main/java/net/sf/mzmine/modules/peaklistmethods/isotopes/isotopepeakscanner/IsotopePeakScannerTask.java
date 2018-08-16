@@ -3,18 +3,17 @@
  * 
  * This file is part of MZmine 2.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
@@ -24,11 +23,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
-
 import org.openscience.cdk.interfaces.IIsotope;
-
 import com.google.common.collect.Range;
-
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -89,13 +85,14 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private enum ScanType {
     neutralLoss, pattern
   };
+
   public enum RatingType {
     HIGHEST, TEMPAVG
   };
 
   ScanType scanType;
   RatingType ratingType;
-  private double dMassLoss;
+
   IIsotope[] el;
 
   /**
@@ -116,7 +113,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         parameters.getParameter(IsotopePeakScannerParameters.checkIntensity).getValue();
     minAbundance = parameters.getParameter(IsotopePeakScannerParameters.minAbundance).getValue();
     // intensityDeviation =
-    // parameters.getParameter(IsotopePeakScannerParameters.intensityDeviation).getValue() / 100;
+    // parameters.getParameter(IsotopePeakScannerParameters.intensityDeviation).getValue()
+    // / 100;
     mergeWidth = parameters.getParameter(IsotopePeakScannerParameters.mergeWidth).getValue();
     minPatternIntensity =
         parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity).getValue();
@@ -152,19 +150,11 @@ public class IsotopePeakScannerTask extends AbstractTask {
       logger.warning("PeakList.polarityType does not match selected polarity. "
           + getPeakListPolarity(peakList).toString() + "!=" + polarityType.toString());
 
-    if (dMassLoss != 0.0)
-      scanType = ScanType.neutralLoss;
-    else
-      scanType = ScanType.pattern;
+    scanType = ScanType.pattern;
 
     if (suffix.equals("auto")) {
-
-      if (scanType == ScanType.pattern)
-        suffix = "_-Pat_" + element + "-RT" + checkRT + "-INT" + checkIntensity + "-R" + minRating
-            + "_results";
-      else
-        suffix = "_NL: " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + " minRating: "
-            + minRating + "_results";
+      suffix = "_-Pat_" + element + "-RT" + checkRT + "-INT" + checkIntensity + "-R" + minRating
+          + "_results";
     }
 
     message = "Got paramenters..."; // TODO
@@ -211,10 +201,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
-      if (peakList.getRow(i).getPeakIdentities().length > 0
-      /* || peakList.getRow(i).getRowCharge() != this.charge */) {
-        // logger.info("Charge of row " + i + " is not " + charge + ". Charge of row " + i + " is "
-        // + peakList.getRow(i).getRowCharge());
+      if (peakList.getRow(i).getPeakIdentities().length > 0) {
         finishedRows++;
         continue;
       }
@@ -233,7 +220,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         continue;
       }
       // else
-      // logger.info("groupedPeaks.size > 2 in row: " + i + " size: " + groupedPeaks.size());
+      // logger.info("groupedPeaks.size > 2 in row: " + i + " size: " +
+      // groupedPeaks.size());
 
       ResultBuffer[] resultBuffer = new ResultBuffer[diff.size()]; // this will store row indexes of
                                                                    // all features with fitting rt
@@ -251,7 +239,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
           // k represents the isotope number the peak will be a candidate for
           if (mzTolerance.checkWithinTolerance(groupedPeaks.get(0).getAverageMZ() + diff.get(k),
               groupedPeaks.get(j).getAverageMZ())) {
-            // this will automatically add groupedPeaks[0] to the list -> isotope with lowest mass
+            // this will automatically add groupedPeaks[0] to the list -> isotope with
+            // lowest mass
             resultBuffer[k].addFound(); // +1 result for isotope k
             resultBuffer[k].addRow(j); // row in groupedPeaks[]
             resultBuffer[k].addID(groupedPeaks.get(j).getID());
@@ -274,13 +263,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
         for (int l = 0; l < resultBuffer[k].getFoundCount(); l++) {
           // k represents index resultBuffer[k] and thereby the isotope number
           // l represents the number of results in resultBuffer[k]
-          if (scanType == ScanType.pattern) {
-            candidates.checkForBetterRating(k, groupedPeaks.get(0),
-                groupedPeaks.get(resultBuffer[k].getRow(l)), minRating, checkIntensity);
-          } else if (scanType == ScanType.neutralLoss) {
-            candidates.get(k).checkForBetterRating(groupedPeaks, 0, resultBuffer[k].getRow(l),
-                diff.get(k), minRating);
-          }
+          candidates.checkForBetterRating(k, groupedPeaks.get(0),
+              groupedPeaks.get(resultBuffer[k].getRow(l)), minRating, checkIntensity);
+
         }
       }
 
@@ -291,27 +276,21 @@ public class IsotopePeakScannerTask extends AbstractTask {
         continue; // jump to next i
       }
 
-
       String comParent = "", comChild = "";
       PeakListRow parent = copyPeakRow(peakList.getRow(i));
+      
+      if(resultMap.containsID(parent.getID())) // if we can assign this row multiple times we have to copy the comment, because adding it to the map twice will overwrite the results
+        comParent += resultMap.getRowByID(parent.getID()).getComment();
 
-      if (scanType == ScanType.pattern) {
-        comParent = /* parent.getID() + */ "--IS PARENT--";
-        addComment(parent, comParent);
-      } else if (scanType == ScanType.neutralLoss) {
-        if (resultMap.containsID(parent.getID()))
-          comParent += resultMap.getRowByID(parent.getID()).getComment();
-
-        comParent += candidates.get(1).getCandID() + "<-ParentID";
-        addComment(parent, comParent);
-      }
+      comParent += parent.getID() + "--IS PARENT--"; // ID is added to be able to sort by comment to bring all isotope patterns together
+      addComment(parent, comParent);
 
       resultMap.addRow(parent); // add results to resultPeakList
 
       DataPoint[] dp = new DataPoint[candidates.size()]; // we need this to add the IsotopePattern
                                                          // later on
 
-      if (accurateAvgIntensity && scanType != ScanType.neutralLoss) {
+      if (accurateAvgIntensity) {
         candidates.calcAvgRatings(); // this is a final rating, with averaged intensities in all
                                      // mass lists that contain EVERY peak that was selected.
                                      // thats why we can only do it after ALL peaks have been found
@@ -320,72 +299,49 @@ public class IsotopePeakScannerTask extends AbstractTask {
         dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
       }
 
-      for (int k = 1; k < candidates.size(); k++) // we skip k=0 because == groupedPeaks[0] which we
+      for (int k = 1; k < candidates.size(); k++) // we skip k=0 because == groupedPeaks[0]/ ==candidates.get(0) which we
                                                   // added before
       {
         PeakListRow child = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));
-        if (accurateAvgIntensity && scanType != ScanType.neutralLoss) {
+        if (accurateAvgIntensity) {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(), candidates.getAvgHeight(k));
-        } else if (!accurateAvgIntensity && scanType != ScanType.neutralLoss) {
+        } else {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(), child.getAverageHeight());
         }
 
-        if (scanType == ScanType.pattern) {
-          String average = "";
-          if (accurateAvgIntensity) {
-            average = " AvgRating: " + round(candidates.getAvgRating(k),
-                3);
-          }
-
-          addComment(parent,
-              "Intensity ratios: " + getIntensityRatios(pattern, pattern.getHighestDataPointIndex())
-                  + " Identity: " + pattern.getDetailedPeakDescription(0));
-          if (accurateAvgIntensity)
-            addComment(parent, " Avg pattern Rating: " + round(candidates.getAvgAvgRatings(), 3));
-
-          comChild = (parent.getID() + "-Parent ID" + " m/z-shift(ppm): "
-              + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff.get(k))
-                  / child.getAverageMZ() * 1E6, 2)
-              + " I(c)/I(p): "
-              + round(child.getAverageHeight()
-                  / plh.getRowByID(candidates.get(pattern.getHighestDataPointIndex()).getCandID())
-                      .getAverageHeight(),
-                  2)
-              + " Identity: " + pattern.getDetailedPeakDescription(k) + " Rating: "
-              + round(candidates.get(k).getRating(), 3) + average);
-          addComment(child, comChild);
-
-          resultMap.addRow(child);
-        } else if (scanType == ScanType.neutralLoss) { // For neutral loss child and parent are
-                                                       // inverted. since child=higher m/z we set the
-                                                       // comments differently
-          if (resultMap.containsID(child.getID()))
-            comChild += resultMap.getRowByID(child.getID()).getComment();
-
-
-          comChild +=
-              (/* child.getID() + */ "[--IS PARENT-- child ID: " + parent.getID() + " ] | ");
-          addComment(child, comChild);
-
-          addComment(parent,
-              " m/z shift(ppm): "
-                  + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff.get(1))
-                      / child.getAverageMZ() * 1E6, 2)
-                  + " Rating: " + round(candidates.get(k).getRating(), 7) + " ");
-
-          resultMap.addRow(child);
+        String average = "";
+        if (accurateAvgIntensity) {
+          average = " AvgRating: " + round(candidates.getAvgRating(k), 3);
         }
+
+        addComment(parent,
+            "Intensity ratios: " + getIntensityRatios(pattern, pattern.getHighestDataPointIndex())
+                + " Identity: " + pattern.getDetailedPeakDescription(0));
+        if (accurateAvgIntensity)
+          addComment(parent, " Avg pattern rating: " + round(candidates.getAvgAvgRatings(), 3));
+
+        comChild = (parent.getID() + "-Parent ID" + " m/z-shift(ppm): "
+            + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff.get(k))
+                / child.getAverageMZ() * 1E6, 2)
+            + " I(c)/I(p): "
+            + round(child.getAverageHeight()
+                / plh.getRowByID(candidates.get(pattern.getHighestDataPointIndex()).getCandID())
+                    .getAverageHeight(),
+                2)
+            + " Identity: " + pattern.getDetailedPeakDescription(k) + " Rating: "
+            + round(candidates.get(k).getRating(), 3) + average);
+        addComment(child, comChild);
+
+        resultMap.addRow(child);
       }
 
-      if (scanType == ScanType.pattern) {
-        IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED,
-            "Monoisotopic mass: " + parent.getAverageMZ());
-        parent.getBestPeak().setIsotopePattern(resultPattern);
+      IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED,
+          element + " monoisotopic mass: " + parent.getAverageMZ());
+      parent.getBestPeak().setIsotopePattern(resultPattern);
 
-        for (int j = 1; j < candidates.size(); j++)
-          resultMap.getRowByID(candidates.get(j).getCandID()).getBestPeak()
-              .setIsotopePattern(resultPattern);
-      }
+      for (int j = 1; j < candidates.size(); j++)
+        resultMap.getRowByID(candidates.get(j).getCandID()).getBestPeak()
+            .setIsotopePattern(resultPattern);
 
       if (isCanceled())
         return;
@@ -396,7 +352,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
     ArrayList<Integer> keys = resultMap.getAllKeys();
     for (int j = 0; j < keys.size(); j++)
       resultPeakList.addRow(resultMap.getRowByID(keys.get(j)));
-
 
     if (resultPeakList.getNumberOfRows() > 1)
       addResultToProject(/* resultPeakList */);
@@ -427,28 +382,17 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private ArrayList<Double> setUpDiff(ScanType scanType) {
     ArrayList<Double> diff = new ArrayList<Double>(2);
 
-    switch (scanType) {
-      case pattern:
+    pattern = new ExtendedIsotopePattern();
+    pattern.setUpFromFormula(element, minAbundance, mergeWidth, minPatternIntensity);
+    pattern.normalizePatternToHighestPeak();
+    pattern.print();
+    pattern.applyCharge(charge, polarityType);
 
-        pattern = new ExtendedIsotopePattern();
-        pattern.setUpFromFormula(element, minAbundance, mergeWidth, minPatternIntensity);
-        pattern.normalizePatternToHighestPeak();
-        pattern.print();
-        pattern.applyCharge(charge, polarityType);
-
-        DataPoint[] points = pattern.getDataPoints();
-        logger.info("DataPoints in Pattern: " + points.length);
-        for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
-          diff.add(i, points[i].getMZ() - points[0].getMZ());
-        }
-        break;
-        
-      case neutralLoss:
-        diff.add(0.0);
-        diff.add(dMassLoss);
-        break;
+    DataPoint[] points = pattern.getDataPoints();
+    logger.info("DataPoints in Pattern: " + points.length);
+    for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
+      diff.add(i, points[i].getMZ() - points[0].getMZ());
     }
-
     return diff;
   }
 
@@ -577,5 +521,3 @@ public class IsotopePeakScannerTask extends AbstractTask {
     return raw.getScan(scans[0]).getPolarity();
   }
 }
-
-

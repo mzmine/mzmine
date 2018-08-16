@@ -31,8 +31,8 @@ import net.sf.mzmine.util.ExitCode;
 
 public class NeutralLossFilterModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Isotope Peak Scanner";
-  private static final String MODULE_DESCRIPTION = "Searches for m/z and intensity distribution of a calculated isotope pattern within a peak list.";
+  private static final String MODULE_NAME = "Neutral loss filter";
+  private static final String MODULE_DESCRIPTION = "Searches for neutral losses within a peak list.";
 
   @Override
   public @Nonnull String getName() {
@@ -40,7 +40,7 @@ public class NeutralLossFilterModule implements MZmineProcessingModule {
   }
 
   public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.ISOTOPES;
+    return MZmineModuleCategory.PEAKLISTFILTERING;
   }
 
   @Override

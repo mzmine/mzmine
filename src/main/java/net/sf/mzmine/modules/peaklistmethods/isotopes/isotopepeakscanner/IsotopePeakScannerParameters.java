@@ -71,11 +71,11 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public static final DoubleParameter minPatternIntensity = new DoubleParameter(
       "Min. pattern intensity",
-      "The minimum intensity of a peak in the final calculated isotope pattern. Depends on the sensitivity of your MS.\nMin = 0.0, Max = 0.99...",
+      "The minimum normalized intensity of a peak in the final calculated isotope pattern. Depends on the sensitivity of your MS.\nMin = 0.0, Max = 0.99...",
       NumberFormat.getNumberInstance(Locale.ENGLISH), 0.01, 0.0, 0.99999);
 
   public static final BooleanParameter checkIntensity = new BooleanParameter("Check intensity",
-      "Compare intesity of peaks to the natural abundance.", true);
+      "Compare intensity of peaks to the calculated abundance.", true);
 
   public static final DoubleParameter minRating = new DoubleParameter("Minimun rating",
       "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0",
@@ -89,10 +89,10 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
       ratingTypeChoices);
 
   public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "auto");
+      new StringParameter("Name suffix", "Suffix to be added to peak list name. If \"auto\" then this module will create a suffix.", "auto");
 
   public static final IntegerParameter charge =
-      new IntegerParameter("Charge", "Amount and polarity (e.g.: [M+]=+1 / [M-]=-1");
+      new IntegerParameter("Charge", "Amount and polarity (e.g.: [M]+=+1 / [M]-=-1");
 
   public static final OptionalParameter<MassListParameter> massList =
       new OptionalParameter<MassListParameter>(new MassListParameter("Calculate accurate average",

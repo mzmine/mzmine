@@ -31,7 +31,7 @@ import net.sf.mzmine.util.ExitCode;
 
 public class IsotopePeakScannerModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Isotope Peak Scanner";
+  private static final String MODULE_NAME = "Isotope peak scanner";
   private static final String MODULE_DESCRIPTION = "Searches for m/z and intensity distribution of a calculated isotope pattern within a peak list.";
 
   @Override
