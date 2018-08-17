@@ -79,11 +79,6 @@ public class NeutralLossFilterTask extends AbstractTask {
   private PeakList peakList;
   private boolean checkRT;
 
-  public enum RatingType {
-    HIGHEST, TEMPAVG
-  };
-
-  RatingType ratingType;
   private double dMassLoss;
   IIsotope[] el;
 
@@ -107,7 +102,7 @@ public class NeutralLossFilterTask extends AbstractTask {
     suffix = parameters.getParameter(NeutralLossFilterParameters.suffix).getValue();
     checkRT = parameters.getParameter(NeutralLossFilterParameters.checkRT).getValue();
 
-    message = "Got paramenters..."; // TODO
+    message = "Got paramenters...";
   }
 
   /**
@@ -150,18 +145,13 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     PeakListHandler plh = new PeakListHandler();
     plh.setUp(peakList);
-    // totalRows = rows.length;
 
     resultPeakList = new SimplePeakList(peakList.getName() + suffix, peakList.getRawDataFiles());
     PeakListHandler resultMap = new PeakListHandler();
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
-      if (peakList.getRow(i).getPeakIdentities().length > 0
-      /* || peakList.getRow(i).getRowCharge() != this.charge */) {
-        // logger.info("Charge of row " + i + " is not " + charge + ". Charge of row " +
-        // i + " is "
-        // + peakList.getRow(i).getRowCharge());
+      if (peakList.getRow(i).getPeakIdentities().length > 0) {
         finishedRows++;
         continue;
       }
@@ -401,7 +391,7 @@ public class NeutralLossFilterTask extends AbstractTask {
    * @param row PeakListRow to add the comment to
    * @param str comment to be added
    */
-  public static void addComment(PeakListRow row, String str) {
+  public static void addComment(PeakListRow row, String str) {  // maybe add this to PeakListRow class?
     String current = row.getComment();
     if (current == null)
       row.setComment(str);
@@ -425,6 +415,6 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("IsotopePeakScanner", parameters));
+        new SimplePeakListAppliedMethod("NeutralLossFilter", parameters));
   }
 }
