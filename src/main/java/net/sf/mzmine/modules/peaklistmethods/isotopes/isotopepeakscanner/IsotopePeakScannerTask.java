@@ -134,6 +134,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
       accurateAvgIntensity = false;
     }
 
+    if(charge == 0)
+      throw new MSDKRuntimeException("Error: Charge may not be 0!");
+    
     if (ratingChoice.equals("Temporary average"))
       ratingType = RatingType.TEMPAVG;
     else

@@ -45,8 +45,6 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-
-
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final BooleanParameter checkRT =
@@ -63,11 +61,11 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum height",
       "Minimum peak height to be considered as an isotope peak.",
-      NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
+      NumberFormat.getNumberInstance(Locale.ENGLISH), 1E4);
 
   public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width(m/z)",
       "This will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum. Specify in m/z, this depends on the resolution of your mass spectrometer.",
-      NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0005, 0.00001, 10.0);
+      NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0005, 1E-7, 10.0);
 
   public static final DoubleParameter minPatternIntensity = new DoubleParameter(
       "Min. pattern intensity",
@@ -79,20 +77,20 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public static final DoubleParameter minRating = new DoubleParameter("Minimun rating",
       "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0",
-      NumberFormat.getNumberInstance(Locale.ENGLISH), 0.95, 0.0, 1.0);
+      NumberFormat.getNumberInstance(Locale.ENGLISH), 0.90, 0.0, 1.0);
 
   public static final String[] ratingTypeChoices = {"Highest intensity", "Temporary average"};
 
   public static final ComboParameter<String> ratingChoices = new ComboParameter<String>(
       "Rating type",
-      "Method to calculate the rating with.\nHighest Intensity is the standard method and faster.\nAverage is slower but could be more accurate for more intense peaks. Select a masslist.",
+      "Method to calculate the rating with.\nHighest Intensity is the standard method and faster.\nAverage is slower but could be more accurate for some peaks. Select a masslist.",
       ratingTypeChoices);
 
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to peak list name. If \"auto\" then this module will create a suffix.", "auto");
 
   public static final IntegerParameter charge =
-      new IntegerParameter("Charge", "Amount and polarity (e.g.: [M]+=+1 / [M]-=-1");
+      new IntegerParameter("Charge", "Amount and polarity (e.g.: [M]+=+1 / [M]-=-1", 1, true);
 
   public static final OptionalParameter<MassListParameter> massList =
       new OptionalParameter<MassListParameter>(new MassListParameter("Calculate accurate average",
