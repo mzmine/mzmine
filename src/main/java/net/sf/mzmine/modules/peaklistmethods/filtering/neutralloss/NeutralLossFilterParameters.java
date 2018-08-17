@@ -56,7 +56,7 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
       NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
 
   public static final DoubleParameter neutralLoss =
-      new DoubleParameter("Neutral loss", "Enter exact mass of neutral loss.",
+      new DoubleParameter("Neutral loss (m/z)", "Enter exact mass of neutral loss.",
           NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
   
   public static final StringParameter molecule =

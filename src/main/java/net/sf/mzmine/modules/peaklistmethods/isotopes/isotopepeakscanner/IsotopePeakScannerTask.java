@@ -42,7 +42,6 @@ import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.tests.ExtendedIsotopePattern;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -134,9 +133,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
       accurateAvgIntensity = false;
     }
 
-    if(charge == 0)
+    if (charge == 0)
       throw new MSDKRuntimeException("Error: Charge may not be 0!");
-    
+
     if (ratingChoice.equals("Temporary average"))
       ratingType = RatingType.TEMPAVG;
     else
@@ -156,11 +155,11 @@ public class IsotopePeakScannerTask extends AbstractTask {
     scanType = ScanType.pattern;
 
     if (suffix.equals("auto")) {
-      suffix = "_-Pat_" + element + "-RT" + checkRT + "-INT" + checkIntensity + "-R" + minRating
-          + "_results";
+      suffix = "_-Pat=" + element + "-RT=" + checkRT + "-INT=" + checkIntensity + "-minR=" + minRating
+          + "-minH=" + minHeight + "_results";
     }
 
-    message = "Got paramenters..."; // TODO
+    message = "Got paramenters...";
   }
 
   /**
@@ -281,11 +280,14 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
       String comParent = "", comChild = "";
       PeakListRow parent = copyPeakRow(peakList.getRow(i));
-      
-      if(resultMap.containsID(parent.getID())) // if we can assign this row multiple times we have to copy the comment, because adding it to the map twice will overwrite the results
+
+      if (resultMap.containsID(parent.getID())) // if we can assign this row multiple times we have
+                                                // to copy the comment, because adding it to the map
+                                                // twice will overwrite the results
         comParent += resultMap.getRowByID(parent.getID()).getComment();
 
-      comParent += parent.getID() + "--IS PARENT--"; // ID is added to be able to sort by comment to bring all isotope patterns together
+      comParent += parent.getID() + "--IS PARENT--"; // ID is added to be able to sort by comment to
+                                                     // bring all isotope patterns together
       addComment(parent, comParent);
 
       resultMap.addRow(parent); // add results to resultPeakList
@@ -302,7 +304,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         dp[0] = new SimpleDataPoint(parent.getAverageMZ(), parent.getAverageHeight());
       }
 
-      for (int k = 1; k < candidates.size(); k++) // we skip k=0 because == groupedPeaks[0]/ ==candidates.get(0) which we
+      for (int k = 1; k < candidates.size(); k++) // we skip k=0 because == groupedPeaks[0]/
+                                                  // ==candidates.get(0) which we
                                                   // added before
       {
         PeakListRow child = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));

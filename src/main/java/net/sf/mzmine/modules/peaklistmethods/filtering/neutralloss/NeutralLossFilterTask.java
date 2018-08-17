@@ -223,36 +223,35 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       String comParent = "", comChild = "";
-      PeakListRow parent = copyPeakRow(peakList.getRow(i));
+      PeakListRow child = copyPeakRow(peakList.getRow(i));
 
-      if (resultMap.containsID(parent.getID()))
-        comParent += resultMap.getRowByID(parent.getID()).getComment();
+      if (resultMap.containsID(child.getID()))
+        comChild += resultMap.getRowByID(child.getID()).getComment();
 
-      comParent += candidates.get(1).getCandID() + "<-ParentID";
-      addComment(parent, comParent);
+      comChild += "Parent ID: " + candidates.get(1).getCandID();
+      addComment(child, comChild);
 
-      resultMap.addRow(parent); // add results to resultPeakList
+      resultMap.addRow(child); // add results to resultPeakList
 
       for (int k = 1; k < candidates.size(); k++) // we skip k=0 because == groupedPeaks[0] which we
                                                   // added before
       {
-        PeakListRow child = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));
+        PeakListRow parent = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));
         // For neutral loss child and parent are
-        // inverted. since child=higher m/z we set the
-        // comments differently
+        // inverted. since child=higher m/z
 
-        if (resultMap.containsID(child.getID()))
-          comChild += resultMap.getRowByID(child.getID()).getComment();
+        if (resultMap.containsID(parent.getID()))
+          comParent += resultMap.getRowByID(parent.getID()).getComment();
 
-        comChild += (/* child.getID() + */ "[--IS PARENT-- child ID: " + parent.getID() + " ] | ");
-        addComment(child, comChild);
+        comParent += ("[--IS PARENT-- child ID: " + child.getID() + " ] | ");
+        addComment(parent, comParent);
 
-        addComment(parent,
+        addComment(child,
             " m/z shift(ppm): "
-                + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff.get(1))
-                    / child.getAverageMZ() * 1E6, 2) + " ");
+                + round(((parent.getAverageMZ() - child.getAverageMZ()) - diff.get(1))
+                    / parent.getAverageMZ() * 1E6, 2) + " ");
 
-        resultMap.addRow(child);
+        resultMap.addRow(parent);
       }
 
       if (isCanceled())
