@@ -81,12 +81,12 @@ public class LipidClassComponent extends JPanel implements ActionListener {
         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
         ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     choicesPanel.getViewport().setBackground(Color.WHITE);
-    add(choicesPanel, BorderLayout.CENTER);
+    add(choicesPanel, BorderLayout.WEST);
 
-    // Buttons panel.
+    // Create Buttons panel.
     buttonsPanel = new JPanel();
     buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-    add(buttonsPanel, BorderLayout.EAST);
+    add(buttonsPanel, BorderLayout.CENTER);
 
     // Add buttons.
     selectAllButton = new JButton("All");
@@ -303,6 +303,7 @@ public class LipidClassComponent extends JPanel implements ActionListener {
         }
       }
     }
+
 
     @Override
     public Dimension getPreferredScrollableViewportSize() {

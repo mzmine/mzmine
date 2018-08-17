@@ -18,7 +18,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification;
 
+import java.awt.Window;
 import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.AllLipidClasses;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.LipidModification;
 import net.sf.mzmine.parameters.Parameter;
@@ -31,6 +33,7 @@ import net.sf.mzmine.parameters.parametertypes.LipidClassParameter;
 import net.sf.mzmine.parameters.parametertypes.LipidModificationChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import net.sf.mzmine.util.ExitCode;
 
 public class LipidSearchParameters extends SimpleParameterSet {
 
@@ -68,7 +71,8 @@ public class LipidSearchParameters extends SimpleParameterSet {
           "Enter m/z tolerance for exact mass database matching on MS2 level");
 
   public static final DoubleParameter noiseLevel = new DoubleParameter(
-      "Noise level for MS/MS scans", "Intensities less than this value are interpreted as noise.");
+      "Noise level for MS/MS scans", "Intensities less than this value are interpreted as noise.",
+      MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
 
   public static final BooleanParameter useModification = new BooleanParameter(
       "Search for lipid modification", "If checked the algorithm searches for lipid modifications");
@@ -82,6 +86,14 @@ public class LipidSearchParameters extends SimpleParameterSet {
         maxDoubleBonds, ionizationMethod, mzTolerance, searchForMSMSFragments, mzToleranceMS2,
         noiseLevel, useModification, modification});
 
+  }
+
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    LipidSearchParameterSetupDialog dialog =
+        new LipidSearchParameterSetupDialog(parent, valueCheckRequired, this);
+    dialog.setVisible(true);
+    return dialog.getExitCode();
   }
 
 }

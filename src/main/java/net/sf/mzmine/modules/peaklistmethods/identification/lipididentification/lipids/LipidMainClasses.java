@@ -14,6 +14,8 @@ public enum LipidMainClasses {
   MONORADYLGLYCEROLS("Monoradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
   DIRADYLGLYCEROLS("Diradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
   TRIRADYLGLYCEROLS("Triradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
+  GLYCOSYLDIACYLGLYCEROLS("Glycosyldiacylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
+  GLYCOSYLMONOACYLGLYCEROLS("Glycosylmonoacylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //
   OTHERGLYCEROLIPIDS("Other glycerolipids", LipidCoreClasses.GLYCEROLIPIDS), //
 
   PHOSPHATIDYLCHOLINE("Phosphatidylcholine", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
