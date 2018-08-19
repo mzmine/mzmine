@@ -23,6 +23,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
@@ -41,6 +42,8 @@ import org.jfree.data.Range;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartLogics {
+  private static Logger logger = Logger.getLogger(ChartLogics.class.getName());
+
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
    * 
@@ -586,8 +589,10 @@ public class ChartLogics {
       upper += dist * yzoom / 2;
     }
 
-    Range range = new Range(lower, upper);
-    setZoomAxis(rangeAxis, keepRangeWithinAutoBounds(rangeAxis, range));
+    if (lower < upper) {
+      Range range = new Range(lower, upper);
+      setZoomAxis(rangeAxis, keepRangeWithinAutoBounds(rangeAxis, range));
+    }
   }
 
   /**
@@ -603,14 +608,19 @@ public class ChartLogics {
     double dist = upper - lower;
 
     if (holdLowerBound) {
+      if (zoom == 0)
+        return;
       upper += dist * zoom;
     } else {
       lower -= dist * zoom / 2;
       upper += dist * zoom / 2;
     }
 
-    Range range = new Range(lower, upper);
-    setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
+    if (lower < upper) {
+      logger.info("Set zoom:" + lower + ", " + upper + " (keep lower:" + holdLowerBound + ")");
+      Range range = new Range(lower, upper);
+      setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
+    }
   }
 
   /**
@@ -629,10 +639,10 @@ public class ChartLogics {
     lower -= dist * zoom * f;
     upper += dist * zoom * (1 - f);
 
-    if (upper < lower)
-      lower = upper;
-    Range range = new Range(lower, upper);
-    setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
+    if (lower < upper) {
+      Range range = new Range(lower, upper);
+      setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
+    }
   }
 
   /**

@@ -1,0 +1,64 @@
+<html>
+	<head>
+		<title>Visualization - m/z histogram</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>m/z distribution histogram</h1>
+
+<h2>Description</h2>
+
+<p>
+This module creates m/z distribution histograms of all m/z values in mass lists across specified scans. 
+The binning width, in which the m/z values are counted, can be changed dynamically. 
+The number of scans that contain a specific m/z value (bin) are plotted.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Raw data file, scans filter and mass list</dt>
+<dd>Specify the scans and mass lists</dd>
+
+<dt>m/z range</dt>
+<dd>Limit the range of the histogram to save performance</dd>
+
+<dt>Retention time range (optional)</dt>
+<dd>Limit the scans to a specific retention time range</dd>
+
+<dt>m/z bin width</dt>
+<dd>The binning width to count m/z value occurance in scans (can be changed dynamically in the dialog)</dd>
+
+</dl>
+
+<h2>The dialog</h2>
+
+<p>
+The "bin width" and "shift bins by" parameter automatically listens for changes and updates the chart (indicated by red/green label above).
+Apply a Gaussian fit to a distribution.
+</p>
+
+<h3>Key bindings</h3>
+<p>
+Use the arrow keys (left/right) or buttons to jump to the previous or next distribution.
+</p>
+
+<h3>Mouse gestures</h3>
+
+<p>
+As in most of the other charts, mouse gestures are available to facilitate the chart control. 
+<ul>
+<li>Use modifier keys (SHIFT/CTRL) and drag the mouse over the axes to zoom, translate and auto zoom the opposite axis </li>
+<li>Double click on the plot to jump back in the zoom history (CTRL+double click to jump forward) </li>
+<li>Double click on a axis to auto zoom </li>
+</ul>
+</p>
+
+<p>
+<img src="dialog.PNG">
+</p>
+
+</body>
+</html>

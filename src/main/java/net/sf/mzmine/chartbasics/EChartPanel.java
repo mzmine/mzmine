@@ -18,22 +18,17 @@
 
 package net.sf.mzmine.chartbasics;
 
-import java.awt.Insets;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartRenderingInfo;
-import org.jfree.chart.ChartTransferable;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -63,6 +58,7 @@ import net.sf.mzmine.util.io.XSSFExcelWriterReader;
  */
 public class EChartPanel extends ChartPanel {
   private static final long serialVersionUID = 1L;
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
@@ -151,13 +147,13 @@ public class EChartPanel extends ChartPanel {
   public EChartPanel(JFreeChart chart, boolean useBuffer, boolean graphicsExportMenu,
       boolean dataExportMenu, boolean standardGestures, boolean addZoomHistory,
       boolean stickyZeroForRangeAxis) {
-    super(chart, useBuffer);
+    super(null, useBuffer);
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
     this.standardGestures = standardGestures;
+    this.addZoomHistory = addZoomHistory;
+    setChart(chart);
     // setDoubleBuffered(useBuffer);
     // setRefreshBuffer(useBuffer);
-    if (chart != null)
-      initChartPanel(stickyZeroForRangeAxis);
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu)
       addExportMenu(graphicsExportMenu, dataExportMenu);
@@ -170,8 +166,11 @@ public class EChartPanel extends ChartPanel {
     // add ChartGestureHandlers
     ChartGestureMouseAdapter m = getGestureAdapter();
     if (m != null) {
+      m.clearHandlers();
       for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures())
         m.addGestureHandler(f.createHandler());
+
+      logger.log(Level.INFO, "Added standard gestures: " + m.getGestureHandlers().size());
     }
   }
 
@@ -180,9 +179,6 @@ public class EChartPanel extends ChartPanel {
     super.setChart(chart);
     if (chart != null) {
       initChartPanel(stickyZeroForRangeAxis);
-      // add gestures
-      if (standardGestures)
-        addStandardGestures();
     }
   }
 
@@ -192,6 +188,13 @@ public class EChartPanel extends ChartPanel {
    */
   private void initChartPanel(boolean stickyZeroForRangeAxis) {
     final EChartPanel chartPanel = this;
+
+    // remove old init
+    if (mouseAdapter != null) {
+      this.removeMouseListener(mouseAdapter);
+      this.removeMouseMotionListener(mouseAdapter);
+      this.removeMouseWheelListener(mouseAdapter);
+    }
 
     if (chartPanel.getChart().getPlot() instanceof XYPlot) {
       // set sticky zero
@@ -251,6 +254,11 @@ public class EChartPanel extends ChartPanel {
       this.addMouseListener(mouseAdapter);
       this.addMouseMotionListener(mouseAdapter);
       this.addMouseWheelListener(mouseAdapter);
+
+      // add gestures
+      if (standardGestures) {
+        addStandardGestures();
+      }
     }
   }
 
@@ -376,32 +384,31 @@ public class EChartPanel extends ChartPanel {
   public void addPopupMenu(JMenu menu) {
     this.getPopupMenu().add(menu);
   }
-  
+
   /**
-   * Opens a file chooser and gives the user an opportunity to save the chart
-   * in PNG format.
+   * Opens a file chooser and gives the user an opportunity to save the chart in PNG format.
    *
    * @throws IOException if there is an I/O error.
    */
   public void doSaveAs() throws IOException {
-      JFileChooser fileChooser = new JFileChooser();
-      fileChooser.setCurrentDirectory(this.getDefaultDirectoryForSaveAs());
-      FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                  localizationResources.getString("PNG_Image_Files"), "png");
-      fileChooser.addChoosableFileFilter(filter);
-      fileChooser.setFileFilter(filter);
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setCurrentDirectory(this.getDefaultDirectoryForSaveAs());
+    FileNameExtensionFilter filter =
+        new FileNameExtensionFilter(localizationResources.getString("PNG_Image_Files"), "png");
+    fileChooser.addChoosableFileFilter(filter);
+    fileChooser.setFileFilter(filter);
 
-      int option = fileChooser.showSaveDialog(this);
-      if (option == JFileChooser.APPROVE_OPTION) {
-          String filename = fileChooser.getSelectedFile().getPath();
-          if (isEnforceFileExtensions()) {
-              if (!filename.endsWith(".png")) {
-                  filename = filename + ".png";
-              }
-          }
-          ChartUtils.saveChartAsPNG(new File(filename), getChart(),
-                  getWidth(), getHeight(), getChartRenderingInfo());
+    int option = fileChooser.showSaveDialog(this);
+    if (option == JFileChooser.APPROVE_OPTION) {
+      String filename = fileChooser.getSelectedFile().getPath();
+      if (isEnforceFileExtensions()) {
+        if (!filename.endsWith(".png")) {
+          filename = filename + ".png";
+        }
       }
+      ChartUtils.saveChartAsPNG(new File(filename), getChart(), getWidth(), getHeight(),
+          getChartRenderingInfo());
+    }
   }
 
   /**

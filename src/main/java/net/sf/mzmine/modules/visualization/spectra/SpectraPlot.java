@@ -103,7 +103,7 @@ public class SpectraPlot extends EChartPanel {
         true, // isotopeFlag, // create legend?
         true, // generate tooltips?
         false // generate URLs?
-    ), true, true, true, true, false);
+    ));
 
     setBackground(Color.white);
     setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -111,7 +111,6 @@ public class SpectraPlot extends EChartPanel {
     // initialize the chart by default time series chart from factory
     chart = getChart();
     chart.setBackgroundPaint(Color.white);
-    setChart(chart);
 
     // title
     chartTitle = chart.getTitle();
