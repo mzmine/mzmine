@@ -32,6 +32,7 @@ import org.jfree.chart.entity.XYAnnotationEntity;
 import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
+import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
 
 /**
  * {@link ChartGesture}s are part of {@link ChartGestureEvent} which are generated and processed by
@@ -381,7 +382,7 @@ public class ChartGesture {
      * @param e
      * @return
      */
-    public boolean filter(MouseEvent e) {
+    public boolean filter(MouseEventWrapper e) {
       switch (this) {
         case ALL:
           return true;

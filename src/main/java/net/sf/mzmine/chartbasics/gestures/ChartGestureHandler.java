@@ -18,8 +18,6 @@
 
 package net.sf.mzmine.chartbasics.gestures;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +34,7 @@ import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler.Orientatio
 import net.sf.mzmine.chartbasics.gestures.interf.GestureHandlerFactory;
 import net.sf.mzmine.chartbasics.gestures.standard.DragGestureHandlerDef;
 import net.sf.mzmine.chartbasics.gestures.standard.GestureHandlerDef;
+import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 
 /**
@@ -305,9 +304,8 @@ public class ChartGestureHandler {
           ValueAxis axis = e.getAxis();
           if (axis != null) {
             double diff = 0.03;
-            if (e.getMouseEvent() instanceof MouseWheelEvent) {
-              MouseWheelEvent we = (MouseWheelEvent) e.getMouseEvent();
-              diff = -0.10 * we.getPreciseWheelRotation();
+            if (e.getMouseEvent().isMouseWheelEvent()) {
+              diff = -0.10 * e.getMouseEvent().getWheelRotation();
             }
             ChartLogics.offsetAxis(axis, diff);
           }
@@ -318,9 +316,8 @@ public class ChartGestureHandler {
           ValueAxis axis = e.getAxis();
           if (axis != null) {
             double diff = 0.03;
-            if (e.getMouseEvent() instanceof MouseWheelEvent) {
-              MouseWheelEvent we = (MouseWheelEvent) e.getMouseEvent();
-              diff = -0.10 * we.getPreciseWheelRotation();
+            if (e.getMouseEvent().isMouseWheelEvent()) {
+              diff = -0.10 * e.getMouseEvent().getWheelRotation();
             }
             ChartLogics.offsetAxis(axis, diff);
 
@@ -336,9 +333,8 @@ public class ChartGestureHandler {
           ValueAxis axis = e.getAxis();
           if (axis != null) {
             double diff = 0.05;
-            if (e.getMouseEvent() instanceof MouseWheelEvent) {
-              MouseWheelEvent we = (MouseWheelEvent) e.getMouseEvent();
-              diff = -0.10 * we.getPreciseWheelRotation();
+            if (e.getMouseEvent().isMouseWheelEvent()) {
+              diff = -0.10 * e.getMouseEvent().getWheelRotation();
             }
             ChartLogics.zoomAxis(axis, diff, true);
           }
@@ -348,11 +344,10 @@ public class ChartGestureHandler {
         newHandler = e -> {
           ValueAxis axis = e.getAxis();
           if (axis != null) {
-            MouseEvent p = e.getMouseEvent();
+            MouseEventWrapper p = e.getMouseEvent();
             double diff = 0.05;
-            if (e.getMouseEvent() instanceof MouseWheelEvent) {
-              MouseWheelEvent we = (MouseWheelEvent) e.getMouseEvent();
-              diff = -0.10 * we.getPreciseWheelRotation();
+            if (e.getMouseEvent().isMouseWheelEvent()) {
+              diff = -0.10 * p.getWheelRotation();
             }
 
             // get data space coordinates

@@ -18,7 +18,6 @@
 
 package net.sf.mzmine.chartbasics.gestures;
 
-import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -33,6 +32,7 @@ import net.sf.mzmine.chartbasics.gestures.ChartGesture.Button;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
+import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
 
 /**
  * The {@link ChartGestureDragDiffHandler} consumes primary mouse events to generate
@@ -116,7 +116,7 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
       public void accept(ChartGestureEvent event) {
         ChartPanel chartPanel = event.getChartPanel();
         JFreeChart chart = chartPanel.getChart();
-        MouseEvent e = event.getMouseEvent();
+        MouseEventWrapper e = event.getMouseEvent();
         ValueAxis axis = event.getAxis();
 
         if (axis != null) {

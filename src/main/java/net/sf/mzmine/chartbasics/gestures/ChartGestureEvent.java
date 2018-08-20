@@ -26,11 +26,14 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.fx.ChartCanvas;
 import org.jfree.chart.plot.PlotOrientation;
+import javafx.scene.input.ScrollEvent;
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
+import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
 
 /**
  * {@link ChartGesture}s are part of {@link ChartGestureEvent} which are generated and processed by
@@ -44,18 +47,33 @@ import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ChartGestureEvent {
+public class ChartGestureEvent<T> { // ChartPanel or ChartCanvas
+  // ChartPanel or ChartCanvas
+  private T cp;
 
-  private ChartPanel cp;
-  private MouseEvent mouseEvent;
+  //
+  private MouseEventWrapper mouseEvent;
   private ChartGesture gesture;
   private ChartEntity entity;
 
-  public ChartGestureEvent(ChartPanel cp, MouseEvent mouseEvent, ChartEntity entity,
+  public ChartGestureEvent(T cp, MouseEvent mEvent, ChartEntity entity, ChartGesture gesture) {
+    this(cp, new MouseEventWrapper(mEvent), entity, gesture);
+  }
+
+  public ChartGestureEvent(T cp, javafx.scene.input.MouseEvent mEvent, ChartEntity entity,
+      ChartGesture gesture) {
+    this(cp, new MouseEventWrapper(mEvent), entity, gesture);
+  }
+
+  public ChartGestureEvent(T cp, ScrollEvent mEvent, ChartEntity entity, ChartGesture gesture) {
+    this(cp, new MouseEventWrapper(mEvent), entity, gesture);
+  }
+
+  public ChartGestureEvent(T cp, MouseEventWrapper mEvent, ChartEntity entity,
       ChartGesture gesture) {
     super();
     this.cp = cp;
-    this.mouseEvent = mouseEvent;
+    this.mouseEvent = mEvent;
     this.gesture = gesture;
     this.entity = entity;
 
@@ -76,20 +94,35 @@ public class ChartGestureEvent {
     return gesture;
   }
 
-  public ChartPanel getChartPanel() {
+  /**
+   * ChartPanel or ChartCanvas
+   * 
+   * @return
+   */
+  public T getChartPanel() {
     return cp;
   }
 
-  public MouseEvent getMouseEvent() {
+
+  public JFreeChart getChart() {
+    if (isChartPanel())
+      return ((ChartPanel) cp).getChart();
+    else if (isChartCanvas())
+      return ((ChartCanvas) cp).getChart();
+    // should not happen
+    return null;
+  }
+
+  public boolean isChartPanel() {
+    return cp instanceof ChartPanel;
+  }
+
+  public boolean isChartCanvas() {
+    return cp instanceof ChartCanvas;
+  }
+
+  public MouseEventWrapper getMouseEvent() {
     return mouseEvent;
-  }
-
-  public void setChartPanel(ChartPanel cp) {
-    this.cp = cp;
-  }
-
-  public void setMouseEvent(MouseEvent mouseEvent) {
-    this.mouseEvent = mouseEvent;
   }
 
   public void setGesture(ChartGesture gesture) {
@@ -98,10 +131,6 @@ public class ChartGestureEvent {
 
   public ChartEntity getEntity() {
     return entity;
-  }
-
-  public void setEntity(ChartEntity entity) {
-    this.entity = entity;
   }
 
   @Override
@@ -141,6 +170,18 @@ public class ChartGestureEvent {
    * @param e
    * @return
    */
+  public Point2D getCoordinates(ChartPanel chartPanel, double x, double y) {
+    return ChartLogics.mouseXYToPlotXY(chartPanel, (int) x, (int) y);
+  }
+
+  /**
+   * Transforms mouse coordinates to data space coordinates. Same as
+   * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
+   * 
+   * @param chartPanel
+   * @param e
+   * @return
+   */
   public Point2D getCoordinates(ChartPanel chartPanel, int x, int y) {
     return ChartLogics.mouseXYToPlotXY(chartPanel, x, y);
   }
@@ -151,10 +192,10 @@ public class ChartGestureEvent {
    * @param axis
    * @return
    */
-  public Boolean isVerticalAxis(ChartPanel cp, ValueAxis axis) {
+  public Boolean isVerticalAxis(JFreeChart chart, ValueAxis axis) {
     if (axis == null)
       return null;
-    JFreeChart chart = cp.getChart();
+
     PlotOrientation orient = PlotOrientation.HORIZONTAL;
     if (chart.getXYPlot() != null)
       orient = chart.getXYPlot().getOrientation();

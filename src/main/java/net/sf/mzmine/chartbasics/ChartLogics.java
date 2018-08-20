@@ -52,6 +52,18 @@ public class ChartLogics {
    * @param mouseY
    * @return Range as chart coordinates
    */
+  public static Point2D mouseXYToPlotXY(ChartPanel myChart, double mouseX, double mouseY) {
+    return mouseXYToPlotXY(myChart, (int) mouseX, (int) mouseY);
+  }
+
+  /**
+   * Translates mouse coordinates to chart coordinates (xy-axis)
+   * 
+   * @param myChart
+   * @param mouseX
+   * @param mouseY
+   * @return Range as chart coordinates
+   */
   public static Point2D mouseXYToPlotXY(ChartPanel myChart, int mouseX, int mouseY) {
     Point2D p = myChart.translateScreenToJava2D(new Point(mouseX, mouseY));
 
