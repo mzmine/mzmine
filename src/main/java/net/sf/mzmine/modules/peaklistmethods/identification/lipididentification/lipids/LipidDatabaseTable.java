@@ -6,7 +6,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -37,7 +39,8 @@ public class LipidDatabaseTable extends JFrame {
   public LipidDatabaseTable(LipidClasses[] choices) {
     this.selectedLipids = choices;
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    setBounds(100, 100, 800, 600);
+    setBounds(100, 100, 600, 800);
+    // setExtendedState(JFrame.MAXIMIZED_BOTH);
     contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     setContentPane(contentPane);
@@ -47,6 +50,7 @@ public class LipidDatabaseTable extends JFrame {
     contentPane.add(scrollPane, "cell 0 0,grow");
 
     databaseTable = new JTable();
+    databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
     databaseTable.setFont(new Font("SansSerif", Font.PLAIN, 12));
     databaseTable.setModel(new DefaultTableModel(new Object[][] {}, new String[] {"ID", //
         "Lipid core class", //
@@ -62,6 +66,32 @@ public class LipidDatabaseTable extends JFrame {
     databaseTable.setCellSelectionEnabled(true);
     scrollPane.setViewportView(databaseTable);
     addDataToTable();
+
+    // resize columns
+    // databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    //
+    // for (int column = 0; column < databaseTable.getColumnCount(); column++) {
+    // TableColumn tableColumn = databaseTable.getColumnModel().getColumn(column);
+    // int preferredWidth = tableColumn.getMinWidth();
+    // int maxWidth = tableColumn.getMaxWidth();
+    //
+    // for (int row = 0; row < databaseTable.getRowCount(); row++) {
+    // TableCellRenderer cellRenderer = databaseTable.getCellRenderer(row, column);
+    // Component c = databaseTable.prepareRenderer(cellRenderer, row, column);
+    // int width = c.getPreferredSize().width + databaseTable.getIntercellSpacing().width;
+    // preferredWidth = Math.max(preferredWidth, width);
+    //
+    // // We've exceeded the maximum width, no need to check other rows
+    //
+    // if (preferredWidth >= maxWidth) {
+    // preferredWidth = maxWidth;
+    // break;
+    // }
+    // }
+    //
+    // tableColumn.setPreferredWidth(preferredWidth);
+    // }
+
     validate();
   }
 
@@ -123,6 +153,11 @@ public class LipidDatabaseTable extends JFrame {
           }
         }
       }
+    }
+    DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+    renderer.setHorizontalAlignment(SwingConstants.CENTER);
+    for (int i = 0; i < databaseTable.getColumnCount(); i++) {
+      databaseTable.getColumnModel().getColumn(i).setCellRenderer(renderer);
     }
   }
 

@@ -2,7 +2,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification
 
 /**
  * This enum contains specific fragments of a lipid class apart from fatty acids If no specific
- * fragment is listed in Lipid Maps, the enum is null sn1 represents fatty acid chains
+ * fragment is listed in Lipid Blast, the enum is null sn1 represents fatty acid chains
  */
 
 public enum MSMSLibrary {

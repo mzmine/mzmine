@@ -37,7 +37,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
   private final JPanel buttonsPanel;
   private final JButton showKendrickDatabasePlot;
   private final JButton showDatabaseTable;
-  private final XYDataset dataset = null;
+
   /**
    * 
    */
@@ -49,8 +49,8 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
     // Create Buttons panel.
     buttonsPanel = new JPanel();
-    buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-    add(buttonsPanel, BorderLayout.SOUTH);
+    buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.X_AXIS));
+    add(buttonsPanel, BorderLayout.NORTH);
 
     // Add buttons.
     showDatabaseTable = new JButton("Show database");
@@ -60,6 +60,8 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
     showKendrickDatabasePlot = new JButton("Show database plot");
     showKendrickDatabasePlot.setToolTipText("Show a Kendrick mass defect plot of the database");
     addButton(showKendrickDatabasePlot);
+
+    // Add table to buttons panel
   }
 
   /**
@@ -79,6 +81,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
     updateParameterSetFromComponents();
 
+
     final Object src = e.getSource();
 
     // Create database
@@ -92,8 +95,8 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
               .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
 
       LipidDatabaseTable databaseTable = new LipidDatabaseTable(selectedLipids);
+
       databaseTable.setVisible(true);
-      validate();
     }
 
     // create database plot
@@ -173,7 +176,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
       @Override
       public int getSeriesCount() {
-        return 4;
+        return 1;
       }
     };
     // create chart
