@@ -26,6 +26,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
@@ -89,6 +90,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private final JMenuItem clearIdsItem;
     private final JMenuItem dbSearchItem;
     private final JMenuItem formulaItem;
+    private final JMenuItem siriusItem;
     private final JMenuItem nistSearchItem;
     private final JMenuItem copyIdsItem;
     private final JMenuItem pasteIdsItem;
@@ -140,6 +142,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 this);
         formulaItem = GUIUtils.addMenuItem(searchMenu,
                 "Predict molecular formula", this);
+        siriusItem = GUIUtils.addMenuItem(searchMenu,
+                    "SIRIUS structure prediction", this);
 
         exportMenu = new JMenu("Export");
         add(exportMenu);
@@ -511,6 +515,19 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 public void run() {
                     FormulaPredictionModule
                     .showSingleRowIdentificationDialog(clickedPeakListRow);                }
+            });
+
+        }
+
+//        //TODO: what is going on here?
+        //TODO: probably remove singlerowidentificationDialog as Sirius works with spectrum, not 1 peak.
+        if (siriusItem != null && siriusItem.equals(src)) {
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    SiriusProcessingModule
+                        .showSingleRowIdentificationDialog(clickedPeakListRow);                }
             });
 
         }

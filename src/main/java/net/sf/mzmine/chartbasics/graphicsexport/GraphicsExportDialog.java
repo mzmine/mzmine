@@ -198,6 +198,12 @@ public class GraphicsExportDialog extends JFrame {
           // add separator
           pn.add(new JSeparator(), 0, i, 5, 1, 1, 1, GridBagConstraints.BOTH);
           i++;
+          // add Apply theme button
+          JButton btnApply2 = new JButton("Apply theme");
+          btnApply2.addActionListener(e -> applyTheme());
+          pn.add(btnApply2, 0, i, 5, 1, 1, 1, GridBagConstraints.BOTH);
+          i++;
+
           // add chart settings
           param = chartParam.getParameters();
           for (int pi = 0; pi < param.length; pi++) {
@@ -242,41 +248,24 @@ public class GraphicsExportDialog extends JFrame {
       getContentPane().add(buttonPane, BorderLayout.SOUTH);
       {
         JButton okButton = new JButton("Save");
-        okButton.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            // Save as
-            saveGraphicsAs();
-          }
-        });
+        okButton.addActionListener(e -> saveGraphicsAs());
         okButton.setActionCommand("OK");
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
       }
       {
         btnRenewPreview = new JButton("Renew Preview");
-        btnRenewPreview.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            renewPreview();
-          }
-        });
+        btnRenewPreview.addActionListener(e -> renewPreview());
         buttonPane.add(btnRenewPreview);
       }
       {
         btnApply = new JButton("Apply theme");
-        btnApply.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            applyTheme();
-          }
-        });
+        btnApply.addActionListener(e -> applyTheme());
         buttonPane.add(btnApply);
       }
       {
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            setVisible(false);
-          }
-        });
+        cancelButton.addActionListener(e -> setVisible(false));
         cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton);
       }
@@ -343,10 +332,13 @@ public class GraphicsExportDialog extends JFrame {
    * Applies the theme defined as ChartParameters
    */
   protected void applyTheme() {
+    // update param
+    updateParameterSetFromComponents();
     // apply settings
     chartParam.applyToChartTheme(theme);
     chartParam.applyToChart(chartPanel.getChart());
     theme.apply(chartPanel.getChart());
+    // renewPreview();
   }
 
   /**

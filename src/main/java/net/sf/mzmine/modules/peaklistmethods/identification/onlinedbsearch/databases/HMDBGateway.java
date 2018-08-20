@@ -50,9 +50,9 @@ public class HMDBGateway implements DBGateway {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+		public static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
     private static final String hmdbSeachAddress = "http://www.hmdb.ca/structures/search/metabolites/mass?search_type=monoisotopic&";
     private static final String hmdbStructureAddress = "http://www.hmdb.ca/structures/metabolites/";
-    private static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
