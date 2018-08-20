@@ -153,7 +153,7 @@ public class MZmineModulesList {
       PeakFinderModule.class, MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class,
 
       // Isotopes
-      IsotopeGrouperModule.class, IsotopePatternCalculator.class,
+      IsotopeGrouperModule.class, IsotopePatternCalculator.class,IsotopePeakScannerModule.class,
 
       // Peak detection
       SmoothingModule.class, DeconvolutionModule.class, ShapeModelerModule.class,
@@ -162,7 +162,7 @@ public class MZmineModulesList {
 
       // Peak list filtering
       DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-      PeakFilterModule.class, PeaklistClearAnnotationsModule.class,
+      PeakFilterModule.class, PeaklistClearAnnotationsModule.class,NeutralLossFilterModule.class,
 
       // Normalization
       RTNormalizerModule.class, LinearNormalizerModule.class,

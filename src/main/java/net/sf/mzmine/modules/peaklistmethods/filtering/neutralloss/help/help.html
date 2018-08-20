@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<title>Isotopes - Isotope peak scanner</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Neutral loss filter</h1>
+
+<h2>Description</h2>
+
+<p>
+This module can scan acquired MS-Data for neutral losses. The result is a new peak list containing only features and their neutral-loss equivalents. 
+The results will be displayed in the following manner:</p>
+
+<p>The feature with higher mass, without the neutral loss will be named "Parent". The description will contain the ID of the corresponding feature with the neutral loss.</p>
+
+<p>The feature with lower mass will be named child. The description of the child feature will contain the ID of the parent feature and a ppm-shift relative to the calculated mass.</p>
+
+<h2>Parameters</h2>
+  <p>Peak list - select the peak list(s) to scan for a neutral loss.</p>
+
+  <p>m/z tolerance - m/z window size around the expected features.</p>
+  
+  <p>Check RT - Specify whether the algorithm should check for RT differences in found peaks or not. We recommend to not use it for direct infusion. If evaluating chromatographic data we recommend to use this parameter.</p>
+  
+  <p>RT tolerance - Tolerance range of the retention time.</p>
+  
+  <p>Minimum height - Minimium height of a feature to be considered a parent or child.</p>
+  
+  <p>Neutral loss (m/z) - m/z ratio of the neutral loss to be detected. If the text box of "Molecule" is not left blank, this parameter will be ignored.</p>
+  
+  <p>Molecule - Element combination/Molecule of the neutral loss (e.g. HI) This module will calculate the mass of the given molecule and ignore the input in the "Neutral loss" text box.</p>
+  
+</body>
+</html>
