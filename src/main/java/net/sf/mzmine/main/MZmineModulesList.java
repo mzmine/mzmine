@@ -34,6 +34,7 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVPlo
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot.LogratioPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.clearannotations.PeaklistClearAnnotationsModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterModule;
+import net.sf.mzmine.modules.peaklistmethods.filtering.neutralloss.NeutralLossFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.peakcomparisonrowfilter.PeakComparisonRowFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter.PeakFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterModule;
@@ -65,6 +66,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperModule;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.IsotopePeakScannerModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizerModule;
@@ -153,7 +155,7 @@ public class MZmineModulesList {
       PeakFinderModule.class, MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class,
 
       // Isotopes
-      IsotopeGrouperModule.class, IsotopePatternCalculator.class,IsotopePeakScannerModule.class,
+      IsotopeGrouperModule.class, IsotopePatternCalculator.class, IsotopePeakScannerModule.class,
 
       // Peak detection
       SmoothingModule.class, DeconvolutionModule.class, ShapeModelerModule.class,
@@ -162,7 +164,7 @@ public class MZmineModulesList {
 
       // Peak list filtering
       DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-      PeakFilterModule.class, PeaklistClearAnnotationsModule.class,NeutralLossFilterModule.class,
+      PeakFilterModule.class, PeaklistClearAnnotationsModule.class, NeutralLossFilterModule.class,
 
       // Normalization
       RTNormalizerModule.class, LinearNormalizerModule.class,
@@ -181,8 +183,8 @@ public class MZmineModulesList {
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
       ThreeDVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
-      MZDistributionHistoModule.class, PeakListTableModule.class, IsotopePatternExportModule.class, MSMSExportModule.class,
-      ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
+      MZDistributionHistoModule.class, PeakListTableModule.class, IsotopePatternExportModule.class,
+      MSMSExportModule.class, ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
       InfoVisualizerModule.class, IntensityPlotModule.class, KendrickMassPlotModule.class,
       VanKrevelenDiagramModule.class,
 
