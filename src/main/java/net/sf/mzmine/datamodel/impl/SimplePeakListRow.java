@@ -100,18 +100,16 @@ public class SimplePeakListRow implements PeakListRow {
     return peaks.get(rawData);
   }
 
-  public void addPeak(RawDataFile rawData, Feature peak) {
+  public synchronized void addPeak(RawDataFile rawData, Feature peak) {
     if (peak == null)
       throw new IllegalArgumentException("Cannot add null peak to a peak list row");
 
     // ConcurrentHashMap is already synchronized
     peaks.put(rawData, peak);
 
-    synchronized (this) {
-      if (peak.getRawDataPointsIntensityRange().upperEndpoint() > maxDataPointIntensity)
-        maxDataPointIntensity = peak.getRawDataPointsIntensityRange().upperEndpoint();
-      calculateAverageValues();
-    }
+    if (peak.getRawDataPointsIntensityRange().upperEndpoint() > maxDataPointIntensity)
+      maxDataPointIntensity = peak.getRawDataPointsIntensityRange().upperEndpoint();
+    calculateAverageValues();
   }
 
   public double getAverageMZ() {
