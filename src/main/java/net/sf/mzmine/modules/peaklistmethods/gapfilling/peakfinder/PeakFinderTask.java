@@ -18,8 +18,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -50,9 +54,11 @@ class PeakFinderTask extends AbstractTask {
   private RTTolerance rtTolerance;
   private boolean rtCorrection;
   private ParameterSet parameters;
-  private int processedScans, totalScans;
+  private int totalScans;
+  private AtomicInteger processedScans;
   private boolean MASTERLIST = true, removeOriginal;
   private int masterSample = 0;
+  private boolean useParallelStream = false;
 
   PeakFinderTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
 
@@ -66,6 +72,7 @@ class PeakFinderTask extends AbstractTask {
     rtTolerance = parameters.getParameter(PeakFinderParameters.RTTolerance).getValue();
     rtCorrection = parameters.getParameter(PeakFinderParameters.RTCorrection).getValue();
     removeOriginal = parameters.getParameter(PeakFinderParameters.autoRemove).getValue();
+    useParallelStream = parameters.getParameter(PeakFinderParameters.useParallel).getValue();
   }
 
   public void run() {
@@ -77,6 +84,7 @@ class PeakFinderTask extends AbstractTask {
     for (RawDataFile dataFile : peakList.getRawDataFiles()) {
       totalScans += dataFile.getNumOfScans(1);
     }
+    processedScans = new AtomicInteger();
 
     // Create new peak list
     processedPeakList = new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
@@ -109,19 +117,30 @@ class PeakFinderTask extends AbstractTask {
     } else {
 
       // Process all raw data files
-      for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+      IntStream rawStream = IntStream.range(0, peakList.getNumberOfRawDataFiles());
+      if (useParallelStream)
+        rawStream = rawStream.parallel();
 
+      rawStream.forEach(i -> {
         // Canceled?
         if (isCanceled()) {
+          // inside stream - only skips this element
           return;
         }
+        RawDataFile dataFile = peakList.getRawDataFile(i);
 
-        Vector<Gap> gaps = new Vector<Gap>();
+        List<Gap> gaps = new ArrayList<Gap>();
 
         // Fill each row of this raw data file column, create new empty
         // gaps
         // if necessary
         for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+          // Canceled?
+          if (isCanceled()) {
+            // inside stream - only skips this element
+            return;
+          }
+
           PeakListRow sourceRow = peakList.getRow(row);
           PeakListRow newRow = processedPeakList.getRow(row);
 
@@ -141,13 +160,12 @@ class PeakFinderTask extends AbstractTask {
           } else {
             newRow.addPeak(dataFile, sourcePeak);
           }
-
         }
 
         // Stop processing this file if there are no gaps
         if (gaps.size() == 0) {
-          processedScans += dataFile.getNumOfScans();
-          continue;
+          processedScans.addAndGet(dataFile.getNumOfScans());
+          return;
         }
 
         // Get all scans of this data file
@@ -155,9 +173,9 @@ class PeakFinderTask extends AbstractTask {
 
         // Process each scan
         for (int scanNumber : scanNumbers) {
-
           // Canceled?
           if (isCanceled()) {
+            // inside stream - only skips this element
             return;
           }
 
@@ -169,16 +187,18 @@ class PeakFinderTask extends AbstractTask {
             gap.offerNextScan(scan);
           }
 
-          processedScans++;
+          processedScans.incrementAndGet();
         }
 
         // Finalize gaps
         for (Gap gap : gaps) {
           gap.noMoreOffers();
         }
-
-      }
+      });
     }
+    // terminate - stream only skips all elements
+    if (isCanceled())
+      return;
 
     // Append processed peak list to the project
     project.addPeakList(processedPeakList);
@@ -280,7 +300,7 @@ class PeakFinderTask extends AbstractTask {
 
         // Stop processing this file if there are no gaps
         if (gaps.size() == 0) {
-          processedScans += datafile1.getNumOfScans();
+          processedScans.addAndGet(datafile1.getNumOfScans());
           continue;
         }
 
@@ -302,7 +322,7 @@ class PeakFinderTask extends AbstractTask {
           for (Gap gap : gaps) {
             gap.offerNextScan(scan);
           }
-          processedScans++;
+          processedScans.incrementAndGet();
         }
 
         // Finalize gaps
@@ -314,11 +334,10 @@ class PeakFinderTask extends AbstractTask {
   }
 
   public double getFinishedPercentage() {
-    if (totalScans == 0) {
+    if (totalScans == 0 || processedScans == null) {
       return 0;
     }
-    return (double) processedScans / (double) totalScans;
-
+    return (double) processedScans.get() / (double) totalScans;
   }
 
   public String getTaskDescription() {
