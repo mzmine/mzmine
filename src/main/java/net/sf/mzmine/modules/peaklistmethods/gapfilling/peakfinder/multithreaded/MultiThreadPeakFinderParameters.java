@@ -41,15 +41,11 @@ public class MultiThreadPeakFinderParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-  public static final BooleanParameter useLock =
-      new BooleanParameter("Use lock for multi threading", "");
-
   public static final BooleanParameter autoRemove = new BooleanParameter(
       "Remove original peak list", "If checked, the original peak list will be removed");
 
   public MultiThreadPeakFinderParameters() {
-    super(new Parameter[] {peakLists, suffix, intTolerance, MZTolerance, RTTolerance, useLock,
-        autoRemove});
+    super(new Parameter[] {peakLists, suffix, intTolerance, MZTolerance, RTTolerance, autoRemove});
   }
 
 }
