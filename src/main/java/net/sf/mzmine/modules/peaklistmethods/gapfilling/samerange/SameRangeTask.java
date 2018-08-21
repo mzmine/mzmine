@@ -118,7 +118,6 @@ class SameRangeTask extends AbstractTask {
 
       // Copy each peaks and fill gaps
       for (RawDataFile column : columns) {
-
         // Canceled?
         if (isCanceled())
           return;
@@ -182,6 +181,9 @@ class SameRangeTask extends AbstractTask {
      * }
      */
 
+    // Canceled?
+    if (isCanceled())
+      return;
     // Append processed peak list to the project
     project.addPeakList(processedPeakList);
 
