@@ -90,11 +90,6 @@ class SameRangeTask extends AbstractTask {
     /*************************************************************
      * Creating a stream to process the data in parallel
      */
-    // IntStream.range(0, totalRows).parallel()
-    // List<Integer> rowList = new ArrayList<Integer>();
-    // for (int row = 0; row < totalRows; row++) {
-    // rowList.add(new Integer(row));
-    // }
 
     processedRowsAtomic = new AtomicInteger(0);
 
@@ -145,41 +140,6 @@ class SameRangeTask extends AbstractTask {
 
     /* End Parallel Implementation */
     /*******************************************************************************/
-
-
-    // Fill gaps in given column
-    /*
-     * for (int row = 0; row < totalRows; row++) { // Canceled? if (isCanceled()) return;
-     * 
-     * PeakListRow sourceRow = peakList.getRow(row); PeakListRow newRow = new
-     * SimplePeakListRow(sourceRow.getID());
-     * 
-     * // Copy comment newRow.setComment(sourceRow.getComment());
-     * 
-     * // Copy identities for (PeakIdentity ident : sourceRow.getPeakIdentities())
-     * newRow.addPeakIdentity(ident, false); if (sourceRow.getPreferredPeakIdentity() != null)
-     * newRow.setPreferredPeakIdentity(sourceRow .getPreferredPeakIdentity());
-     * 
-     * // Copy each peaks and fill gaps for (RawDataFile column : columns) {
-     * 
-     * // Canceled? if (isCanceled()) return;
-     * 
-     * // Get current peak Feature currentPeak = sourceRow.getPeak(column);
-     * 
-     * // If there is a gap, try to fill it if (currentPeak == null) currentPeak =
-     * fillGap(sourceRow, column);
-     * 
-     * // If a peak was found or created, add it if (currentPeak != null) newRow.addPeak(column,
-     * currentPeak);
-     * 
-     * }
-     * 
-     * processedPeakList.addRow(newRow);
-     * 
-     * processedRows++;
-     * 
-     * }
-     */
 
     // Canceled?
     if (isCanceled())
