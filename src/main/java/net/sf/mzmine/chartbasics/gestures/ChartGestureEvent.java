@@ -26,13 +26,13 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.fx.ChartCanvas;
 import org.jfree.chart.plot.PlotOrientation;
 import javafx.scene.input.ScrollEvent;
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
+import net.sf.mzmine.chartbasics.javafx.mouse.ChartViewWrapper;
 import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
 
 /**
@@ -47,29 +47,31 @@ import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ChartGestureEvent<T> { // ChartPanel or ChartCanvas
+public class ChartGestureEvent { // ChartPanel or ChartCanvas
   // ChartPanel or ChartCanvas
-  private T cp;
+  private ChartViewWrapper cp;
 
   //
   private MouseEventWrapper mouseEvent;
   private ChartGesture gesture;
   private ChartEntity entity;
 
-  public ChartGestureEvent(T cp, MouseEvent mEvent, ChartEntity entity, ChartGesture gesture) {
-    this(cp, new MouseEventWrapper(mEvent), entity, gesture);
-  }
-
-  public ChartGestureEvent(T cp, javafx.scene.input.MouseEvent mEvent, ChartEntity entity,
+  public ChartGestureEvent(ChartViewWrapper cp, MouseEvent mEvent, ChartEntity entity,
       ChartGesture gesture) {
     this(cp, new MouseEventWrapper(mEvent), entity, gesture);
   }
 
-  public ChartGestureEvent(T cp, ScrollEvent mEvent, ChartEntity entity, ChartGesture gesture) {
+  public ChartGestureEvent(ChartViewWrapper cp, javafx.scene.input.MouseEvent mEvent,
+      ChartEntity entity, ChartGesture gesture) {
     this(cp, new MouseEventWrapper(mEvent), entity, gesture);
   }
 
-  public ChartGestureEvent(T cp, MouseEventWrapper mEvent, ChartEntity entity,
+  public ChartGestureEvent(ChartViewWrapper cp, ScrollEvent mEvent, ChartEntity entity,
+      ChartGesture gesture) {
+    this(cp, new MouseEventWrapper(mEvent), entity, gesture);
+  }
+
+  public ChartGestureEvent(ChartViewWrapper cp, MouseEventWrapper mEvent, ChartEntity entity,
       ChartGesture gesture) {
     super();
     this.cp = cp;
@@ -99,26 +101,20 @@ public class ChartGestureEvent<T> { // ChartPanel or ChartCanvas
    * 
    * @return
    */
-  public T getChartPanel() {
+  public ChartViewWrapper getChartWrapper() {
     return cp;
   }
 
-
   public JFreeChart getChart() {
-    if (isChartPanel())
-      return ((ChartPanel) cp).getChart();
-    else if (isChartCanvas())
-      return ((ChartCanvas) cp).getChart();
-    // should not happen
-    return null;
+    return cp.getChart();
   }
 
   public boolean isChartPanel() {
-    return cp instanceof ChartPanel;
+    return cp.isSwing();
   }
 
   public boolean isChartCanvas() {
-    return cp instanceof ChartCanvas;
+    return cp.isSwing();
   }
 
   public MouseEventWrapper getMouseEvent() {
@@ -160,6 +156,17 @@ public class ChartGestureEvent<T> { // ChartPanel or ChartCanvas
       return (ValueAxis) ((AxisEntity) entity).getAxis();
     else
       return null;
+  }
+
+  /**
+   * Transforms mouse coordinates to data space coordinates. Same as
+   * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
+   * 
+   * @param e
+   * @return
+   */
+  public Point2D getCoordinates(double x, double y) {
+    return cp.mouseXYToPlotXY(x, y);
   }
 
   /**

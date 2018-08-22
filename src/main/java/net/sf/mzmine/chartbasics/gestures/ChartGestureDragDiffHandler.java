@@ -21,17 +21,16 @@ package net.sf.mzmine.chartbasics.gestures;
 import java.awt.geom.Point2D;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.plot.PlotOrientation;
-import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Button;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
+import net.sf.mzmine.chartbasics.javafx.mouse.ChartViewWrapper;
 import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
 
 /**
@@ -83,7 +82,7 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
   public Orientation getOrientation(ChartGestureEvent event) {
     ChartEntity ce = event.getEntity();
     if (ce instanceof AxisEntity) {
-      JFreeChart chart = event.getChartPanel().getChart();
+      JFreeChart chart = event.getChart();
       PlotOrientation orient = PlotOrientation.HORIZONTAL;
       if (chart.getXYPlot() != null)
         orient = chart.getXYPlot().getOrientation();
@@ -114,7 +113,7 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
 
       @Override
       public void accept(ChartGestureEvent event) {
-        ChartPanel chartPanel = event.getChartPanel();
+        ChartViewWrapper chartPanel = event.getChartWrapper();
         JFreeChart chart = chartPanel.getChart();
         MouseEventWrapper e = event.getMouseEvent();
         ValueAxis axis = event.getAxis();
@@ -126,18 +125,18 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
             last = null;
           } else if (event.checkEvent(Event.PRESSED)) {
             // get data space coordinates
-            last = ChartLogics.mouseXYToPlotXY(chartPanel, e.getX(), e.getY());
+            last = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
             first = last;
             startEvent = event;
             lastEvent = event;
             if (last != null) {
-              wasMouseZoomable = ChartLogics.isMouseZoomable(chartPanel);
+              wasMouseZoomable = chartPanel.isMouseZoomable();
               chartPanel.setMouseZoomable(false);
             }
           } else if (event.checkEvent(Event.DRAGGED)) {
             if (last != null) {
               // get data space coordinates
-              Point2D released = ChartLogics.mouseXYToPlotXY(chartPanel, e.getX(), e.getY());
+              Point2D released = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
               // System.out.println(event);
               if (released != null) {
                 double offset = 0;
@@ -164,7 +163,7 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
                 // set last event
                 lastEvent = event;
                 // save updated last
-                last = ChartLogics.mouseXYToPlotXY(chartPanel, e.getX(), e.getY());
+                last = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
               }
             }
           }

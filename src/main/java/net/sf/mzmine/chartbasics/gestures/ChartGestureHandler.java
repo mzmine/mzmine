@@ -167,9 +167,9 @@ public class ChartGestureHandler {
           if (axis != null) {
             ChartLogics.offsetAxisAbsolute(axis, de.getDiff());
             if (de.getEntity().equals(Entity.DOMAIN_AXIS))
-              ChartLogics.autoRangeAxis(de.getChartPanel());
+              de.getChartWrapper().autoRangeAxis();
             else
-              ChartLogics.autoDomainAxis(de.getChartPanel());
+              de.getChartWrapper().autoDomainAxis();
           }
         };
       case AUTO_ZOOM_AXIS:
@@ -177,9 +177,9 @@ public class ChartGestureHandler {
           ValueAxis axis = de.getAxis();
           if (axis != null) {
             if (de.getEntity().equals(Entity.DOMAIN_AXIS))
-              ChartLogics.autoDomainAxis(de.getChartPanel());
+              de.getChartWrapper().autoDomainAxis();
             else
-              ChartLogics.autoRangeAxis(de.getChartPanel());
+              de.getChartWrapper().autoRangeAxis();
           }
         };
       case AUTO_ZOOM_OPPOSITE_AXIS:
@@ -187,9 +187,9 @@ public class ChartGestureHandler {
           ValueAxis axis = de.getAxis();
           if (axis != null) {
             if (de.getEntity().equals(Entity.DOMAIN_AXIS))
-              ChartLogics.autoRangeAxis(de.getChartPanel());
+              de.getChartWrapper().autoRangeAxis();
             else
-              ChartLogics.autoDomainAxis(de.getChartPanel());
+              de.getChartWrapper().autoDomainAxis();
           }
         };
       case ZOOM_AXIS_INCLUDE_ZERO:
@@ -280,23 +280,23 @@ public class ChartGestureHandler {
       case AUTO_ZOOM_AXIS:
         newHandler = e -> {
           if (e.getGesture().getEntity().equals(Entity.AXIS)) {
-            ChartLogics.autoRangeAxis(e.getChartPanel());
-            ChartLogics.autoDomainAxis(e.getChartPanel());
+            e.getChartWrapper().autoRangeAxis();
+            e.getChartWrapper().autoDomainAxis();
           } else if (e.getGesture().getEntity().equals(Entity.RANGE_AXIS))
-            ChartLogics.autoRangeAxis(e.getChartPanel());
+            e.getChartWrapper().autoRangeAxis();
           else
-            ChartLogics.autoDomainAxis(e.getChartPanel());
+            e.getChartWrapper().autoDomainAxis();
         };
         break;
       case AUTO_ZOOM_OPPOSITE_AXIS:
         newHandler = e -> {
           if (e.getGesture().getEntity().equals(Entity.AXIS)) {
-            ChartLogics.autoRangeAxis(e.getChartPanel());
-            ChartLogics.autoDomainAxis(e.getChartPanel());
+            e.getChartWrapper().autoRangeAxis();
+            e.getChartWrapper().autoDomainAxis();
           } else if (e.getGesture().getEntity().equals(Entity.DOMAIN_AXIS))
-            ChartLogics.autoRangeAxis(e.getChartPanel());
+            e.getChartWrapper().autoRangeAxis();
           else
-            ChartLogics.autoDomainAxis(e.getChartPanel());
+            e.getChartWrapper().autoDomainAxis();
         };
         break;
       case SCROLL_AXIS:
