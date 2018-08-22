@@ -18,8 +18,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.multithreaded;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakIdentity;
@@ -64,16 +62,12 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     this.parameters = parameters;
 
     suffix = parameters.getParameter(MultiThreadPeakFinderParameters.suffix).getValue();
-    useLock = parameters.getParameter(MultiThreadPeakFinderParameters.useLock).getValue();
     removeOriginal = parameters.getParameter(MultiThreadPeakFinderParameters.autoRemove).getValue();
   }
 
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running multithreaded gap filler on " + peakList);
-
-    // create lock to synchronize addPeak to processedPeakList in sub tasks
-    Lock lock = useLock ? new ReentrantLock() : null;
 
     // Create new results peak list
     processedPeakList = createResultsPeakList();
@@ -91,7 +85,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
         new SubTaskFinishListener(project, parameters, peakList, removeOriginal, maxRunningThreads);
 
     // Submit the tasks to the task controller for processing
-    Task[] tasks = createSubTasks(lock, raw, maxRunningThreads, listener);
+    Task[] tasks = createSubTasks(raw, maxRunningThreads, listener);
 
     // listener for status change: Cancel / error
     TaskStatusListener list = new TaskStatusListener() {
@@ -173,8 +167,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
    * @param listener
    * @return
    */
-  private Task[] createSubTasks(Lock lock, int raw, int maxRunningThreads,
-      SubTaskFinishListener listener) {
+  private Task[] createSubTasks(int raw, int maxRunningThreads, SubTaskFinishListener listener) {
     int numPerTask = raw / maxRunningThreads;
     int rest = raw % maxRunningThreads;
     Task[] tasks = new Task[maxRunningThreads];
@@ -192,7 +185,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
 
       // create task
       tasks[i] = new MultiThreadPeakFinderTask(project, peakList, processedPeakList, parameters,
-          start, endexcl, lock, listener, i);
+          start, endexcl, listener, i);
     }
     return tasks;
   }

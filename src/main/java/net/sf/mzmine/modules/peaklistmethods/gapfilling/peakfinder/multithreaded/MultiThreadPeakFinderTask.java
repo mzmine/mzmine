@@ -20,7 +20,6 @@ package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.multithreade
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.Feature;
@@ -50,19 +49,15 @@ class MultiThreadPeakFinderTask extends AbstractTask {
   private int start;
   private int endexcl;
 
-  private Lock lock;
-
   // takes care of adding the final result
   private SubTaskFinishListener listener;
 
   private int taskIndex;
 
   MultiThreadPeakFinderTask(MZmineProject project, PeakList peakList, PeakList processedPeakList,
-      ParameterSet parameters, int start, int endexcl, Lock lock, SubTaskFinishListener listener,
+      ParameterSet parameters, int start, int endexcl, SubTaskFinishListener listener,
       int taskIndex) {
 
-    // central lock that blocks only when peaks are added to the processedPeakList
-    this.lock = lock;
     this.listener = listener;
     this.taskIndex = taskIndex;
 
@@ -123,7 +118,6 @@ class MultiThreadPeakFinderTask extends AbstractTask {
         } else {
           newRow.addPeak(dataFile, sourcePeak);
         }
-
       }
 
       // Stop processing this file if there are no gaps
@@ -137,7 +131,6 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
       // Process each scan
       for (int scanNumber : scanNumbers) {
-
         // Canceled?
         if (isCanceled()) {
           return;
@@ -156,7 +149,7 @@ class MultiThreadPeakFinderTask extends AbstractTask {
 
       // Finalize gaps
       for (Gap gap : gaps) {
-        gap.noMoreOffers(lock);
+        gap.noMoreOffers();
       }
     }
 
