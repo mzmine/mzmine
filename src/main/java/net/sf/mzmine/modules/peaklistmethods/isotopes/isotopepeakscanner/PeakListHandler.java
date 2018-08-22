@@ -25,6 +25,14 @@ import java.util.TreeMap;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 
+/**
+ * This class can be used to handle peak lists by ID rather than row indices. Set up via the
+ * constructor by passing a peak list or via setUp(PeakList) Rows can also be added manually, for
+ * example if you want to create a result peak list that does not contain duplicates. Since this
+ * class uses a tree map the results will be in order and duplicates will be overwritten, which is
+ * why it has the method containsID to check.
+ *
+ */
 public class PeakListHandler {
 
   private TreeMap<Integer, PeakListRow> map;

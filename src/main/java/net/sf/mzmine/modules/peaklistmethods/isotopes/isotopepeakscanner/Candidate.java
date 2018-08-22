@@ -3,36 +3,39 @@
  * 
  * This file is part of MZmine 2.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
 
 import java.util.ArrayList;
-import org.jmol.util.Logger;
-import org.openscience.cdk.interfaces.IIsotope;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakListRow;
 
+/**
+ * This class is used to calculate ratings and store the peak with the best rating. Intensities and
+ * m/z are either taken directly from the peakListRow or given to this class by the Candidates class.
+ * 
+ * @author Steffen
+ *
+ */
 public class Candidate {
 
   private int candID; // row represents index in groupedPeaks list, candID is ID in original
                       // PeakList
   private double rating;
   private double mz;
-  private double height;
   private PeakListRow row;
 
   Candidate() {
@@ -76,7 +79,7 @@ public class Candidate {
   /**
    * for RatingType.HIGHEST
    * 
-   * @param parent 
+   * @param parent
    * @param candidate
    * @param pattern
    * @param peakNum
@@ -105,8 +108,6 @@ public class Candidate {
     }
 
     if (intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0) {
-      Logger.debug("ERROR: tempRating or deviation > 1 or < 0.\ttempRating: " + tempRating
-          + "\tintensAcc: " + intensAcc); // TODO: can you do this without creating a new logger?
       return false;
     }
 
@@ -118,7 +119,7 @@ public class Candidate {
 
       row = candidate;
       mz = row.getAverageMZ();
-      height = row.getAverageHeight();
+      row.getAverageHeight();
 
       this.setCandID(candidate.getID());
       // this.setIsotope(isotopes[isotopenum]);
@@ -161,8 +162,6 @@ public class Candidate {
     }
 
     if (intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0) {
-      Logger.debug("ERROR: tempRating or deviation > 1 or < 0.\ttempRating: " + tempRating
-          + "\tintensAcc: " + intensAcc); // TODO: can you do this without creating a new logger?
       return false;
     }
 
@@ -174,8 +173,6 @@ public class Candidate {
 
       row = candidate;
       mz = row.getAverageMZ();
-      height = candidateIntensity;
-
       this.setCandID(candidate.getID());
       // this.setIsotope(isotopes[isotopenum]);
       return true;
@@ -208,10 +205,6 @@ public class Candidate {
     }
 
     if (intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0) {
-      Logger.debug("ERROR: tempRating > 1 or < 0.\ttempRating: " + tempRating); // TODO: can you do
-                                                                                // this without
-                                                                                // creating a new
-                                                                                // logger?
       return false;
     }
 
@@ -220,7 +213,7 @@ public class Candidate {
 
       row = pL.get(candindex);
       mz = row.getAverageMZ();
-      height = row.getAverageHeight();
+      row.getAverageHeight();
 
       this.setCandID(pL.get(candindex).getID());
       return true;
@@ -256,8 +249,6 @@ public class Candidate {
       intensAcc = 1 / intensAcc;
 
     if (intensAcc > 1.0 || intensAcc < 0.0 || tempRating > 1.0 || tempRating < 0.0) {
-      Logger.debug("ERROR: tempRating or deviation > 1 or < 0.\ttempRating: " + tempRating
-          + "\tintensAcc: " + intensAcc); // TODO: can you do this without creating a new logger?
       return 0;
     }
 

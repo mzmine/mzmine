@@ -28,21 +28,12 @@ import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import com.google.common.collect.Range;
-import io.github.msdk.MSDKRuntimeException;
-import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.PolarityType;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
@@ -60,14 +51,16 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
+/**
+ * This module will scan for neutral losses in a very similar way to IsotopePeakScanner. 
+ *
+ */
 public class NeutralLossFilterTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private ParameterSet parameters;
-  private Range<Double> massRange;
-  private Range<Double> rtRange;
   private double minRating;
-  private String element, suffix;
+  private String suffix;
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
   private String message;
@@ -82,13 +75,6 @@ public class NeutralLossFilterTask extends AbstractTask {
   private double dMassLoss;
   IIsotope[] el;
 
-  /**
-   *
-   * @param parameters
-   * @param peakList
-   * @param peakListRow
-   * @param peak
-   */
   NeutralLossFilterTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
     this.parameters = parameters;
     this.project = project;
@@ -157,8 +143,6 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       message = "Row " + i + "/" + totalRows;
-      massRange = mzTolerance.getToleranceRange(peakList.getRow(i).getAverageMZ());
-      rtRange = rtTolerance.getToleranceRange(peakList.getRow(i).getAverageRT());
 
       // now get all peaks that lie within RT and maxIsotopeMassRange: pL[index].mz ->
       // pL[index].mz+maxMass

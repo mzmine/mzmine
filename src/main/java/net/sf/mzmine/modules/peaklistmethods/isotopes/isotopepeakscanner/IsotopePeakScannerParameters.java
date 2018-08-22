@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 import java.util.Locale;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import net.sf.mzmine.parameters.Parameter;
@@ -61,11 +62,11 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum height",
       "Minimum peak height to be considered as an isotope peak.",
-      NumberFormat.getNumberInstance(Locale.ENGLISH), 1E4);
+      MZmineCore.getConfiguration().getIntensityFormat(), 1E4);
 
   public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width(m/z)",
       "This will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum. Specify in m/z, this depends on the resolution of your mass spectrometer.",
-      NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0005, 1E-7, 10.0);
+      MZmineCore.getConfiguration().getMZFormat(), 0.0005, 1E-7, 10.0);
 
   public static final DoubleParameter minPatternIntensity = new DoubleParameter(
       "Min. pattern intensity",

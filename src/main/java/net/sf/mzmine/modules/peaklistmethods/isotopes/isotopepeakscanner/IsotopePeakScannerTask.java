@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import org.openscience.cdk.interfaces.IIsotope;
-import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -52,12 +51,24 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
+
+/**
+ * This will scan a peak list for calculated isotope patterns. This class loops through every peak
+ * and checks if there are peaks within a specified RT and m/z window. The m/z window is calculated
+ * by the maximum mass shift caused by the isotope pattern. Every peak that fits the m/z window is
+ * also checked for RT if specified => groupedPeaks. The next step checks for peaks inside the
+ * specified m/z window around the expected isotope-pattern m/zs (current peak mass +
+ * (isotope[i]-isotope[0])). Every peak that fits the criteria is added to resultBuffer.
+ * Furthermore, every peak in the resultBuffer is rated by m/z and intensity, if the rating is
+ * better that the previous one the peak will be added as a candidate (by Candidates.java). If the
+ * algorithm was able to find a peak inside the peak list for every expected isotope peak the result
+ * will be added to a result peak list including a description.
+ * 
+ */
 public class IsotopePeakScannerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private ParameterSet parameters;
-  private Range<Double> massRange;
-  private Range<Double> rtRange;
   private boolean checkIntensity;
   private double minAbundance;
   private double minRating;
@@ -81,15 +92,11 @@ public class IsotopePeakScannerTask extends AbstractTask {
   private String ratingChoice;
   private double minAccurateAvgIntensity;
 
-  private enum ScanType {
-    neutralLoss, pattern
-  };
 
   public enum RatingType {
     HIGHEST, TEMPAVG
   };
 
-  ScanType scanType;
   RatingType ratingType;
 
   IIsotope[] el;
@@ -111,9 +118,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
     checkIntensity =
         parameters.getParameter(IsotopePeakScannerParameters.checkIntensity).getValue();
     minAbundance = parameters.getParameter(IsotopePeakScannerParameters.minAbundance).getValue();
-    // intensityDeviation =
-    // parameters.getParameter(IsotopePeakScannerParameters.intensityDeviation).getValue()
-    // / 100;
     mergeWidth = parameters.getParameter(IsotopePeakScannerParameters.mergeWidth).getValue();
     minPatternIntensity =
         parameters.getParameter(IsotopePeakScannerParameters.minPatternIntensity).getValue();
@@ -152,11 +156,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
       logger.warning("PeakList.polarityType does not match selected polarity. "
           + getPeakListPolarity(peakList).toString() + "!=" + polarityType.toString());
 
-    scanType = ScanType.pattern;
-
     if (suffix.equals("auto")) {
-      suffix = "_-Pat=" + element + "-RT=" + checkRT + "-INT=" + checkIntensity + "-minR=" + minRating
-          + "-minH=" + minHeight + "_results";
+      suffix = "_-Pat=" + element + "-RT=" + checkRT + "-INT=" + checkIntensity + "-minR="
+          + minRating + "-minH=" + minHeight + "_results";
     }
 
     message = "Got paramenters...";
@@ -184,7 +186,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
     totalRows = peakList.getNumberOfRows();
 
-    ArrayList<Double> diff = setUpDiff(scanType);
+    ArrayList<Double> diff = setUpDiff();
     if (diff == null) {
       message = "ERROR: could not set up diff.";
       return;
@@ -209,8 +211,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
       }
 
       message = "Row " + i + "/" + totalRows;
-      massRange = mzTolerance.getToleranceRange(peakList.getRow(i).getAverageMZ());
-      rtRange = rtTolerance.getToleranceRange(peakList.getRow(i).getAverageRT());
 
       // now get all peaks that lie within RT and maxIsotopeMassRange: pL[index].mz ->
       // pL[index].mz+maxMass
@@ -369,7 +369,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   /**
    * 
    * @param b
-   * @return true if every
+   * @return true if every b[i].getFoundCount != 0
    */
   private boolean checkIfAllTrue(ResultBuffer[] b) {
     for (int i = 0; i < b.length; i++)
@@ -385,7 +385,14 @@ public class IsotopePeakScannerTask extends AbstractTask {
     return true;
   }
 
-  private ArrayList<Double> setUpDiff(ScanType scanType) {
+  /**
+   * This calculates the isotope pattern using ExtendedIsotopePattern and creates an
+   * ArrayList<Double> that will contain the mass shift for every expected isotope peak relative to
+   * the one with the lowest mass.
+   * 
+   * @return
+   */
+  private ArrayList<Double> setUpDiff() {
     ArrayList<Double> diff = new ArrayList<Double>(2);
 
     pattern = new ExtendedIsotopePattern();

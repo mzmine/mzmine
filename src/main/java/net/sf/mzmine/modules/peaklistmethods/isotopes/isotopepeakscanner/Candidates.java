@@ -3,26 +3,23 @@
  * 
  * This file is part of MZmine 2.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
 
 import java.util.Arrays;
-
 import com.google.common.collect.Range;
-
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -31,10 +28,17 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.IsotopePeakScannerTask.RatingType;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
+/**
+ * This class is used to manage objects of the Candidate class and to calculate an average rating if
+ * specified, after all peaks have been assigned. This methods use an instance of a PeakListHandler
+ * since its easier to handle row ids than row indexes.
+ * 
+ * @author Steffen
+ *
+ */
 public class Candidates {
 
   private IsotopePattern pattern;
@@ -63,29 +67,29 @@ public class Candidates {
     this.plh = plh;
     this.ratingType = ratingType;
   }
-  
+
   /**
    * Contstructor for neutral loss scans, no need for pattern and mass last
+   * 
    * @param size
    * @param minHeight
    * @param mzTolerance
    * @param plh
    */
-  public Candidates(int size, double minHeight, MZTolerance mzTolerance,
-	      PeakListHandler plh) {
-	    this.candidate = new Candidate[size];
-	    for (int i = 0; i < size; i++)
-	      candidate[i] = new Candidate();
-	    avgRating = new double[size];
-	    Arrays.fill(avgRating, -1.0);
-	    avgHeight = new double[size];
-	    this.minHeight = minHeight;
-	    this.mzTolerance = mzTolerance;
-	    this.massListName = "";
-	    this.pattern = null;
-	    this.plh = plh;
-	    this.ratingType = RatingType.HIGHEST;
-	  }
+  public Candidates(int size, double minHeight, MZTolerance mzTolerance, PeakListHandler plh) {
+    this.candidate = new Candidate[size];
+    for (int i = 0; i < size; i++)
+      candidate[i] = new Candidate();
+    avgRating = new double[size];
+    Arrays.fill(avgRating, -1.0);
+    avgHeight = new double[size];
+    this.minHeight = minHeight;
+    this.mzTolerance = mzTolerance;
+    this.massListName = "";
+    this.pattern = null;
+    this.plh = plh;
+    this.ratingType = RatingType.HIGHEST;
+  }
 
   /**
    * 
@@ -104,9 +108,9 @@ public class Candidates {
    * @return average rating of specified peak. -1 if not set
    */
   public double getAvgRating(int index) {
-	if(pattern == null) //if we run a neutral loss scan this doesnt exist
-	  return -1.0;  
-	  
+    if (pattern == null) // if we run a neutral loss scan this doesn't exist
+      return -1.0;
+
     if (index >= candidate.length)
       throw new MSDKRuntimeException("Candidates.get(index) - index > length");
     return avgRating[index];
@@ -117,9 +121,9 @@ public class Candidates {
    * @return total average rating of all data points in the detected pattern
    */
   public double getAvgAvgRatings() {
-    if(pattern == null) //if we run a neutral loss scan this doesnt exist
-      return -1.0;  
-	  
+    if (pattern == null) // if we run a neutral loss scan this doesn't exist
+      return -1.0;
+
     if (avgRating.length == 0)
       return 0.0;
 
@@ -151,8 +155,8 @@ public class Candidates {
   }
 
   /**
-   * sets isotope pattern, should not be used when there are different numbers of data points in the
-   * pattern.
+   * sets isotope pattern, should not be used when there is a different number of data points in the
+   * new pattern.
    * 
    * @param pattern
    */
@@ -162,13 +166,13 @@ public class Candidates {
 
   /**
    * 
-   * @param indexreturns average intensity of a signle peak
-   * @return
+   * @param index 
+   * @return returns average intensity of a single peak. -1.0 if calculation failed.
    */
   public double getAvgHeight(int index) {
-	if(pattern == null) //if we run a neutral loss scan this doesnt exist
-	  return -1.0;  	  
-	
+    if (pattern == null) // if we run a neutral loss scan this doesnt exist
+      return -1.0;
+
     if (index > candidate.length || avgHeight == null)
       return 0.0;
     return avgHeight[index];
@@ -176,6 +180,7 @@ public class Candidates {
 
   /**
    * For isotope pattern searches
+   * 
    * @param index
    * @param parent row of monoisotopic mass
    * @param cand row of candidate peak
@@ -192,6 +197,10 @@ public class Candidates {
       DataPoint dpParent =
           new SimpleDataPoint(parent.getAverageMZ(), calcAvgPeakHeight(parent.getID()));
       double candidateIntensity = calcAvgPeakHeight(cand.getID());
+
+      if (candidateIntensity == -1.0)
+        return false;
+
       return candidate[index].checkForBetterRating(dpParent, candidateIntensity, cand, pattern,
           index, minRating, checkIntensity);
     } else
@@ -204,9 +213,9 @@ public class Candidates {
    * @return average peak intensity over all mass lists it is contained in
    */
   public double calcTemporaryAvgRating(int index) {
-	  if(pattern == null) //if we run a neutral loss scan this doesnt exist
-	       return -1.0;    
-	  
+    if (pattern == null) // if we run a neutral loss scan this doesn't exist
+      return -1.0;
+
     if (index > candidate.length)
       return 0.0;
 
@@ -226,9 +235,9 @@ public class Candidates {
    * @return array of all avg ratings
    */
   public double[] calcAvgRatings() {
-	    if(pattern == null) //if we run a neutral loss scan this doesnt exist
-	        return new double[candidate.length];    
-	  
+    if (pattern == null) // if we run a neutral loss scan this doesn't exist
+      return new double[candidate.length];
+
     int[] ids = new int[candidate.length];
 
     for (int i = 0; i < candidate.length; i++)
@@ -291,7 +300,11 @@ public class Candidates {
         }
       }
     }
-    return avgIntensity / pointsAdded;
+
+    if (pointsAdded != 0)
+      return avgIntensity / pointsAdded;
+    else
+      return -1.0;
   }
 
   /**
@@ -380,8 +393,7 @@ public class Candidates {
    * @return closest data point to given mz above minimum intensity in a given set of data points;
    *         null if no DataPoint over given intensity
    */
-  private DataPoint getClosestDataPoint(DataPoint[] dp, double mz, double minHeight) 
-  {
+  private DataPoint getClosestDataPoint(DataPoint[] dp, double mz, double minHeight) {
     if (dp == null || dp[0] == null || dp.length == 0)
       return null;
 
