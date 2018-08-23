@@ -36,7 +36,6 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  * specified, after all peaks have been assigned. This methods use an instance of a PeakListHandler
  * since its easier to handle row ids than row indexes.
  * 
- * @author Steffen
  *
  */
 public class Candidates {

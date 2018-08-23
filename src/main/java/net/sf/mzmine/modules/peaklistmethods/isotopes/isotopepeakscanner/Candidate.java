@@ -27,7 +27,6 @@ import net.sf.mzmine.datamodel.PeakListRow;
  * This class is used to calculate ratings and store the peak with the best rating. Intensities and
  * m/z are either taken directly from the peakListRow or given to this class by the Candidates class.
  * 
- * @author Steffen
  *
  */
 public class Candidate {

@@ -35,10 +35,8 @@ public class MassListParameter implements UserParameter<String, MassListComponen
    * @param description1 Description of the parameter.
    */
   public MassListParameter(String name1, String description1) {
-    this.name = name1; // i added this to make it possible to change the description of the mass
-                       // list parameter
-    this.description = description1; // because cloneParameter made the strings "mass list" and
-                                     // "please select..." again
+    this.name = name1;
+    this.description = description1;
   }
 
   public MassListParameter() {
