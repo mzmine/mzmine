@@ -505,6 +505,11 @@ public class ChartLogics {
     myChart.restoreAutoDomainBounds();
   }
 
+  public static void autoAxes(ChartPanel cp) {
+    autoRangeAxis(cp);
+    autoDomainAxis(cp);
+  }
+
   /**
    * Move a chart by a percentage x-offset if xoffset is <0 the shift will be negativ (xoffset>0
    * results in a positive shift)
@@ -650,4 +655,5 @@ public class ChartLogics {
     return chartPanel instanceof EChartPanel ? ((EChartPanel) chartPanel).isMouseZoomable()
         : chartPanel.isRangeZoomable() && chartPanel.isDomainZoomable();
   }
+
 }

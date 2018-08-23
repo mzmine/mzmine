@@ -322,9 +322,9 @@ public class ChartGestureHandler {
             ChartLogics.offsetAxis(axis, diff);
 
             if (e.getGesture().getEntity().equals(Entity.DOMAIN_AXIS))
-              ChartLogics.autoRangeAxis(e.getChartPanel());
+              e.getChartWrapper().autoRangeAxis();
             else
-              ChartLogics.autoDomainAxis(e.getChartPanel());
+              e.getChartWrapper().autoDomainAxis();
           }
         };
         break;
@@ -351,10 +351,10 @@ public class ChartGestureHandler {
             }
 
             // get data space coordinates
-            Point2D point = e.getCoordinates(e.getChartPanel(), p.getX(), p.getY());
+            Point2D point = e.getCoordinates(p.getX(), p.getY());
             if (point != null) {
               // vertical ?
-              Boolean orient = e.isVerticalAxis(e.getChartPanel(), axis);
+              Boolean orient = e.isVerticalAxis(axis);
               if (orient == null)
                 return;
               else if (orient)

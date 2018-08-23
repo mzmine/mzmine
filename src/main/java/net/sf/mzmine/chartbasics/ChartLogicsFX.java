@@ -23,10 +23,11 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartRenderingInfo;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.fx.ChartCanvas;
+import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.Zoomable;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
 
@@ -444,14 +445,35 @@ public class ChartLogicsFX {
    * @param zoom
    * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
+  public static void autoAxes(ChartCanvas myChart) {
+    XYPlot plot = (XYPlot) myChart.getChart().getPlot();
+    if (plot instanceof Zoomable) {
+      Zoomable z = (Zoomable) plot;
+      Point2D endPoint = new Point2D.Double(0, 0);
+      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      boolean saved = plot.isNotify();
+      plot.setNotify(false);
+      z.zoomDomainAxes(0, pri, endPoint);
+      z.zoomRangeAxes(0, pri, endPoint);
+      plot.setNotify(saved);
+    }
+  }
+
+  /**
+   * Auto range the range axis
+   * 
+   * @param myChart
+   * @param zoom
+   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
+   */
   public static void autoRangeAxis(ChartCanvas myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-    // trick. Otherwise auto range will fail sometimes
-    rangeAxis.setRange(rangeAxis.getRange());
-    rangeAxis.setAutoRangeIncludesZero(true);
-    // TODO
-    // myChart.restoreAutoRangeBounds();
+    if (plot instanceof Zoomable) {
+      Zoomable z = (Zoomable) plot;
+      Point2D endPoint = new Point2D.Double(0, 0);
+      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      z.zoomRangeAxes(0, pri, endPoint);
+    }
   }
 
   /**
@@ -463,13 +485,12 @@ public class ChartLogicsFX {
    */
   public static void autoDomainAxis(ChartCanvas myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    NumberAxis axis = (NumberAxis) plot.getDomainAxis();
-    // trick. Otherwise auto range will fail sometimes
-    axis.setRange(axis.getRange());
-    axis.setAutoRangeIncludesZero(false);
-    ValueAxis a;
-    // TODO
-    // myChart.restoreAutoDomainBounds();
+    if (plot instanceof Zoomable) {
+      Zoomable z = (Zoomable) plot;
+      Point2D endPoint = new Point2D.Double(0, 0);
+      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      z.zoomDomainAxes(0, pri, endPoint);
+    }
   }
 
   /**
@@ -630,8 +651,8 @@ public class ChartLogicsFX {
    * @param ChartCanvas
    * @return
    */
+  // TODO
   public static boolean isMouseZoomable(ChartCanvas chart) {
-    // TODO
     // return chartPanel instanceof EChartPanel ? ((EChartPanel) chartPanel).isMouseZoomable()
     // : chartPanel.isRangeZoomable() && chartPanel.isDomainZoomable();
     return chart.isRangeZoomable() && chart.isDomainZoomable();

@@ -68,4 +68,48 @@ public class ChartViewWrapper {
       cc.setRangeZoomable(zoomable);
     }
   }
+
+
+
+  /**
+   * Auto range the range axis
+   * 
+   * @param myChart
+   * @param zoom
+   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
+   */
+  public void autoAxes(ChartCanvas myChart) {
+    if (cp != null)
+      ChartLogics.autoAxes(cp);
+    else
+      ChartLogicsFX.autoAxes(cc);
+  }
+
+  /**
+   * Auto range the range axis
+   * 
+   * @param myChart
+   * @param zoom
+   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
+   */
+  public void autoRangeAxis(ChartCanvas myChart) {
+    if (cp != null)
+      ChartLogics.autoRangeAxis(cp);
+    else
+      ChartLogicsFX.autoRangeAxis(cc);
+  }
+
+  /**
+   * Auto range the range axis
+   * 
+   * @param myChart
+   * @param zoom
+   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
+   */
+  public void autoDomainAxis(ChartCanvas myChart) {
+    if (cp != null)
+      ChartLogics.autoDomainAxis(cp);
+    else
+      ChartLogicsFX.autoDomainAxis(cc);
+  }
 }

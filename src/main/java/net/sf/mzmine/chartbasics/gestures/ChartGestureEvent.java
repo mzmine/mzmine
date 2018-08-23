@@ -177,20 +177,8 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
    * @param e
    * @return
    */
-  public Point2D getCoordinates(ChartPanel chartPanel, double x, double y) {
-    return ChartLogics.mouseXYToPlotXY(chartPanel, (int) x, (int) y);
-  }
-
-  /**
-   * Transforms mouse coordinates to data space coordinates. Same as
-   * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
-   * 
-   * @param chartPanel
-   * @param e
-   * @return
-   */
-  public Point2D getCoordinates(ChartPanel chartPanel, int x, int y) {
-    return ChartLogics.mouseXYToPlotXY(chartPanel, x, y);
+  public Point2D getCoordinates(int x, int y) {
+    return cp.mouseXYToPlotXY(x, y);
   }
 
   /**
@@ -199,10 +187,10 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
    * @param axis
    * @return
    */
-  public Boolean isVerticalAxis(JFreeChart chart, ValueAxis axis) {
+  public Boolean isVerticalAxis(ValueAxis axis) {
     if (axis == null)
       return null;
-
+    JFreeChart chart = getChart();
     PlotOrientation orient = PlotOrientation.HORIZONTAL;
     if (chart.getXYPlot() != null)
       orient = chart.getXYPlot().getOrientation();
