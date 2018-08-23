@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -71,14 +72,14 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
   public static final DoubleParameter minPatternIntensity = new DoubleParameter(
       "Min. pattern intensity",
       "The minimum normalized intensity of a peak in the final calculated isotope pattern. Depends on the sensitivity of your MS.\nMin = 0.0, Max = 0.99...",
-      NumberFormat.getNumberInstance(Locale.ENGLISH), 0.01, 0.0, 0.99999);
+      new DecimalFormat("0.####"), 0.01, 0.0, 0.99999);
 
   public static final BooleanParameter checkIntensity = new BooleanParameter("Check intensity",
       "Compare intensity of peaks to the calculated abundance.", true);
 
   public static final DoubleParameter minRating = new DoubleParameter("Minimun rating",
       "Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0",
-      NumberFormat.getNumberInstance(Locale.ENGLISH), 0.90, 0.0, 1.0);
+      new DecimalFormat("0.####"), 0.90, 0.0, 1.0);
 
   public static final String[] ratingTypeChoices = {"Highest intensity", "Temporary average"};
 
