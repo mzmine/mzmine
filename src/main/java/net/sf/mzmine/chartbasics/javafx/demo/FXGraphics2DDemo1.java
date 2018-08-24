@@ -38,7 +38,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import net.sf.mzmine.chartbasics.javafx.charts.EChartViewer;
+import net.sf.mzmine.chartbasics.javafx.EChartViewer;
 
 /**
  * A demo showing the display of JFreeChart within a JavaFX application. Note that this demo is for

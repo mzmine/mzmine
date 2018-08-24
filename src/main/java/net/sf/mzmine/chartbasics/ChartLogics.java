@@ -33,6 +33,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
+import net.sf.mzmine.chartbasics.swing.EChartPanel;
 
 /**
  * Collection of methods for JFreeCharts <br>

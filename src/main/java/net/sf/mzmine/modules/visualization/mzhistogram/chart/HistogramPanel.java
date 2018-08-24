@@ -42,7 +42,7 @@ import org.jfree.data.xy.XYDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.sf.mzmine.chartbasics.EChartFactory;
-import net.sf.mzmine.chartbasics.EChartPanel;
+import net.sf.mzmine.chartbasics.swing.EChartPanel;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.util.maths.Precision;
 

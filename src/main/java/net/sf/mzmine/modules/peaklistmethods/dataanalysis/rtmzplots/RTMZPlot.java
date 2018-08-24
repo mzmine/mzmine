@@ -33,8 +33,8 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.AbstractXYZDataset;
-import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
+import net.sf.mzmine.chartbasics.swing.EChartPanel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 

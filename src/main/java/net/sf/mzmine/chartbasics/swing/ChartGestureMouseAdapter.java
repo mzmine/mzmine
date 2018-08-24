@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.gestures;
+package net.sf.mzmine.chartbasics.swing;
 
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
@@ -29,6 +29,10 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
+import net.sf.mzmine.chartbasics.gestures.ChartGesture;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureEvent;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Button;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;

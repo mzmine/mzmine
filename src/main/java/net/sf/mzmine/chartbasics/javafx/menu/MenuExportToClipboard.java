@@ -19,8 +19,8 @@
 package net.sf.mzmine.chartbasics.javafx.menu;
 
 import javafx.scene.control.MenuItem;
-import net.sf.mzmine.chartbasics.javafx.charts.EChartViewer;
-import net.sf.mzmine.chartbasics.menu.MenuExport;
+import net.sf.mzmine.chartbasics.javafx.EChartViewer;
+import net.sf.mzmine.chartbasics.swing.menu.MenuExport;
 import net.sf.mzmine.util.io.ClipboardWriter;
 
 

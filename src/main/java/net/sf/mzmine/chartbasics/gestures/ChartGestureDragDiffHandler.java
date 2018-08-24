@@ -30,8 +30,8 @@ import net.sf.mzmine.chartbasics.gestures.ChartGesture.Button;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
-import net.sf.mzmine.chartbasics.javafx.mouse.ChartViewWrapper;
-import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
+import net.sf.mzmine.chartbasics.wrapper.ChartViewWrapper;
+import net.sf.mzmine.chartbasics.wrapper.MouseEventWrapper;
 
 /**
  * The {@link ChartGestureDragDiffHandler} consumes primary mouse events to generate

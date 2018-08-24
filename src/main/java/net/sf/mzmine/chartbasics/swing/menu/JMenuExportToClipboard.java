@@ -16,12 +16,12 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.menu;
+package net.sf.mzmine.chartbasics.swing.menu;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JMenuItem;
-import net.sf.mzmine.chartbasics.EChartPanel;
+import net.sf.mzmine.chartbasics.swing.EChartPanel;
 import net.sf.mzmine.util.io.ClipboardWriter;
 
 

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.menu;
+package net.sf.mzmine.chartbasics.swing.menu;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,7 +26,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import net.sf.mzmine.chartbasics.EChartPanel;
+import net.sf.mzmine.chartbasics.swing.EChartPanel;
 import net.sf.mzmine.util.files.FileAndPathUtil;
 import net.sf.mzmine.util.io.XSSFExcelWriterReader;
 

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.javafx.mouse;
+package net.sf.mzmine.chartbasics.wrapper;
 
 import java.awt.Component;
 import java.awt.Toolkit;

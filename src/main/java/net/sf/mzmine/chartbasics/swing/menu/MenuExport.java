@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.menu;
+package net.sf.mzmine.chartbasics.swing.menu;
 
 public interface MenuExport {
 

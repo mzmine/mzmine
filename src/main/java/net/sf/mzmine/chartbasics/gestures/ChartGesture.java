@@ -32,7 +32,8 @@ import org.jfree.chart.entity.XYAnnotationEntity;
 import org.jfree.chart.entity.XYItemEntity;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
-import net.sf.mzmine.chartbasics.javafx.mouse.MouseEventWrapper;
+import net.sf.mzmine.chartbasics.swing.ChartGestureMouseAdapter;
+import net.sf.mzmine.chartbasics.wrapper.MouseEventWrapper;
 
 /**
  * {@link ChartGesture}s are part of {@link ChartGestureEvent} which are generated and processed by

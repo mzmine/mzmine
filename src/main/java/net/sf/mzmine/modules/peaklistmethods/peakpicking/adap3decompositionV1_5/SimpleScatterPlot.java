@@ -25,8 +25,8 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.data.xy.DefaultXYZDataset;
-import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
+import net.sf.mzmine.chartbasics.swing.EChartPanel;
 
 /**
  *

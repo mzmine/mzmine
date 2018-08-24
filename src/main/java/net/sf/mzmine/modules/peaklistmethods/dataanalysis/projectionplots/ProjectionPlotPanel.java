@@ -30,8 +30,8 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
-import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
+import net.sf.mzmine.chartbasics.swing.EChartPanel;
 import net.sf.mzmine.parameters.ParameterSet;
 
 public class ProjectionPlotPanel extends EChartPanel {

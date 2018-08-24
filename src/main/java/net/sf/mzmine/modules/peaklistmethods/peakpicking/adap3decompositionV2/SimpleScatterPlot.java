@@ -34,8 +34,8 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import com.google.common.collect.Range;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
-import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
+import net.sf.mzmine.chartbasics.swing.EChartPanel;
 
 /**
  *
