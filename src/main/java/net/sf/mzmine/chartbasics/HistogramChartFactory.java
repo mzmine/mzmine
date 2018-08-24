@@ -50,8 +50,8 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.util.maths.Precision;
 
-public class EChartFactory {
-  private static final Logger logger = LoggerFactory.getLogger(EChartFactory.class);
+public class HistogramChartFactory {
+  private static final Logger logger = LoggerFactory.getLogger(HistogramChartFactory.class);
 
   private static GaussianCurveFitter fitter = GaussianCurveFitter.create().withMaxIterations(10000);
 

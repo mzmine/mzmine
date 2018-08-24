@@ -41,7 +41,7 @@ import org.jfree.data.Range;
 import org.jfree.data.xy.XYDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.sf.mzmine.chartbasics.EChartFactory;
+import net.sf.mzmine.chartbasics.HistogramChartFactory;
 import net.sf.mzmine.chartbasics.swing.EChartPanel;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.util.maths.Precision;
@@ -422,12 +422,12 @@ public class HistogramPanel extends JPanel {
                 dat = DoubleStream.of(dat).filter(d -> d > noise).toArray();
               }
 
-              Range r = EChartFactory.getBounds(dat);
+              Range r = HistogramChartFactory.getBounds(dat);
 
               DoubleFunction<Double> f =
                   cbThirdSQRT.isSelected() ? val -> Math.cbrt(val) : val -> val;
 
-              JFreeChart chart = EChartFactory.createHistogram(dat, xLabel, binwidth,
+              JFreeChart chart = HistogramChartFactory.createHistogram(dat, xLabel, binwidth,
                   r.getLowerBound() - binShift, r.getUpperBound(), f);
               // add gaussian?
               if (cbGaussianFit.isSelected()) {
@@ -508,7 +508,7 @@ public class HistogramPanel extends JPanel {
       XYDataset data = p.getDataset(0);
       hideGaussianCurve(p);
 
-      EChartFactory.addGaussianFit(p, data, 0, gMin, gMax, sigDigits, true);
+      HistogramChartFactory.addGaussianFit(p, data, 0, gMin, gMax, sigDigits, true);
     } catch (Exception ex) {
       logger.error("", ex);
     }
