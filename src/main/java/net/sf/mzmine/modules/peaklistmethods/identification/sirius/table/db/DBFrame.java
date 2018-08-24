@@ -3,18 +3,17 @@
  *
  * This file is part of MZmine 2.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.db;
@@ -50,10 +49,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class DBFrame
- * Creates a new window with Database links (e.g.: Pubchem: 1520)
- * New window is created on a position of `Display DB links` button (it is parent JFrame)
- * Opens new window in a browser if entry point is known, otherwise shows dialogue window.
+ * Class DBFrame Creates a new window with Database links (e.g.: Pubchem: 1520) New window is
+ * created on a position of `Display DB links` button (it is parent JFrame) Opens new window in a
+ * browser if entry point is known, otherwise shows dialogue window.
  */
 public class DBFrame extends JFrame implements ActionListener {
   private static final Logger logger = LoggerFactory.getLogger(DBFrame.class);
@@ -119,7 +117,8 @@ public class DBFrame extends JFrame implements ActionListener {
       int index = dbTable.getSelectedRow();
 
       if (index < 0) {
-        MZmineCore.getDesktop().displayMessage(this, "Select one result to add as compound identity");
+        MZmineCore.getDesktop().displayMessage(this,
+            "Select one result to add as compound identity");
         return;
       }
       int realIndex = dbTable.convertRowIndexToModel(index);
@@ -137,7 +136,8 @@ public class DBFrame extends JFrame implements ActionListener {
       } catch (RuntimeException f) {
         MZmineCore.getDesktop().displayMessage(this, "Not supported Database");
       } catch (URISyntaxException | IOException d) {
-        logger.error("Error happened on opening db link for {} : {}", compound.getDB(), compound.getID());
+        logger.error("Error happened on opening db link for {} : {}", compound.getDB(),
+            compound.getID());
       }
     }
   }

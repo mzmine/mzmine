@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -68,7 +68,7 @@ public class RawDataExportModule implements MZmineProcessingModule {
           "Unknown file type - please include either .mzML or .cdf extension in the filename");
       return ExitCode.ERROR;
     }
-    
+
     if (!(MZmineCore.getDesktop() instanceof HeadLessDesktop) && fileName.exists()) {
       String msg = "The file already exists. Do you want to overwrite the file?";
       int confirmResult =

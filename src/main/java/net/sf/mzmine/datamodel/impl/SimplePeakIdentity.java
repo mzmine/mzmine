@@ -1,20 +1,19 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.datamodel.impl;
@@ -32,131 +31,126 @@ import net.sf.mzmine.datamodel.PeakIdentity;
  */
 public class SimplePeakIdentity implements PeakIdentity {
 
-    private Hashtable<String, String> properties;
+  private Hashtable<String, String> properties;
 
-    /**
-     * This constructor is protected so only derived classes can use it. Other
-     * modules using this class should always set the name by default.
-     */
-    protected SimplePeakIdentity() {
+  /**
+   * This constructor is protected so only derived classes can use it. Other modules using this
+   * class should always set the name by default.
+   */
+  protected SimplePeakIdentity() {
 
-	this("Unknown name");
+    this("Unknown name");
+  }
+
+  public SimplePeakIdentity(final String name) {
+
+    // Check name.
+    if (name == null) {
+      throw new IllegalArgumentException("Identity properties must contain name");
     }
 
-    public SimplePeakIdentity(final String name) {
+    properties = new Hashtable<String, String>();
 
-	// Check name.
-	if (name == null) {
-	    throw new IllegalArgumentException(
-		    "Identity properties must contain name");
-	}
+    properties.put(PROPERTY_NAME, name);
 
-	properties = new Hashtable<String, String>();
+  }
 
-	properties.put(PROPERTY_NAME, name);
+  public SimplePeakIdentity(final String name, final String formula, final String method,
+      final String id, final String url) {
 
+    // Check name
+    if (name == null) {
+      throw new IllegalArgumentException("Identity properties must contain name");
     }
 
-    public SimplePeakIdentity(final String name, final String formula,
-	    final String method, final String id, final String url) {
+    properties = new Hashtable<String, String>();
 
-	// Check name
-	if (name == null) {
-	    throw new IllegalArgumentException(
-		    "Identity properties must contain name");
-	}
+    properties.put(PROPERTY_NAME, name);
 
-	properties = new Hashtable<String, String>();
+    if (formula != null) {
+      properties.put(PROPERTY_FORMULA, formula);
+    }
+    if (method != null) {
+      properties.put(PROPERTY_METHOD, method);
+    }
+    if (id != null) {
+      properties.put(PROPERTY_ID, id);
+    }
+    if (url != null) {
+      properties.put(PROPERTY_URL, url);
+    }
+  }
 
-	properties.put(PROPERTY_NAME, name);
+  public SimplePeakIdentity(final Hashtable<String, String> prop) {
 
-	if (formula != null) {
-	    properties.put(PROPERTY_FORMULA, formula);
-	}
-	if (method != null) {
-	    properties.put(PROPERTY_METHOD, method);
-	}
-	if (id != null) {
-	    properties.put(PROPERTY_ID, id);
-	}
-	if (url != null) {
-	    properties.put(PROPERTY_URL, url);
-	}
+    // Check for name .
+    if (prop.get(PROPERTY_NAME) == null) {
+
+      throw new IllegalArgumentException("Identity properties must contain name");
     }
 
-    public SimplePeakIdentity(final Hashtable<String, String> prop) {
+    properties = prop;
+  }
 
-	// Check for name .
-	if (prop.get(PROPERTY_NAME) == null) {
+  @Override
+  public @Nonnull String getName() {
 
-	    throw new IllegalArgumentException(
-		    "Identity properties must contain name");
-	}
+    return properties.get(PROPERTY_NAME);
+  }
 
-	properties = prop;
+  public String toString() {
+
+    return getName();
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+
+    final StringBuilder description = new StringBuilder();
+    for (final Entry<String, String> entry : properties.entrySet()) {
+
+      if (description.length() > 0) {
+        description.append('\n');
+      }
+      description.append(entry.getKey());
+      description.append(": ");
+      description.append(entry.getValue());
     }
 
-    @Override
-    public @Nonnull String getName() {
+    return description.toString();
+  }
 
-	return properties.get(PROPERTY_NAME);
+  @Override
+  public @Nonnull Map<String, String> getAllProperties() {
+
+    return new Hashtable<String, String>(properties);
+  }
+
+  @Override
+  // Removed @Nonnull in front because the function may return null
+  public String getPropertyValue(final String property) {
+    return properties.get(property);
+  }
+
+  public void setPropertyValue(final String property, final String value) {
+
+    // Check name.
+    if (property.equals(PROPERTY_NAME) && value == null) {
+
+      throw new IllegalArgumentException("Identity properties must contain name");
     }
 
-    public String toString() {
+    properties.put(property, value);
+  }
 
-	return getName();
-    }
-
-    @Override
-    public @Nonnull String getDescription() {
-
-	final StringBuilder description = new StringBuilder();
-	for (final Entry<String, String> entry : properties.entrySet()) {
-
-	    if (description.length() > 0) {
-		description.append('\n');
-	    }
-	    description.append(entry.getKey());
-	    description.append(": ");
-	    description.append(entry.getValue());
-	}
-
-	return description.toString();
-    }
-
-    @Override
-    public @Nonnull Map<String, String> getAllProperties() {
-
-	return new Hashtable<String, String>(properties);
-    }
-
-    @Override
-    // Removed @Nonnull in front because the function may return null
-    public String getPropertyValue(final String property) {
-	return properties.get(property);
-    }
-
-    public void setPropertyValue(final String property, final String value) {
-
-	// Check name.
-	if (property.equals(PROPERTY_NAME) && value == null) {
-
-	    throw new IllegalArgumentException(
-		    "Identity properties must contain name");
-	}
-
-	properties.put(property, value);
-    }
-
-    /**
-     * Copy the identity.
-     *
-     * @return the new copy.
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public synchronized @Nonnull Object clone() {
-	return new SimplePeakIdentity(
-		(Hashtable<String, String>) properties.clone());
-    }
+  /**
+   * Copy the identity.
+   *
+   * @return the new copy.
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public synchronized @Nonnull Object clone() {
+    return new SimplePeakIdentity((Hashtable<String, String>) properties.clone());
+  }
 }

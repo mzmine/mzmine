@@ -3,18 +3,17 @@
  * 
  * This file is part of MZmine 2.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.visualization.molstructure;
@@ -53,6 +52,7 @@ public class MolStructureViewer extends JFrame {
 
   /**
    * Constructor of MolStructureViewer, loads 2d and 3d structures into JPanel specified by urls
+   * 
    * @param name
    * @param structure2DAddress
    * @param structure3DAddress
@@ -88,8 +88,9 @@ public class MolStructureViewer extends JFrame {
   }
 
   /**
-   * Constructor for MolStructureViewer from AtomContainer and only for 2D object
-   * The 3D view will be unavailable
+   * Constructor for MolStructureViewer from AtomContainer and only for 2D object The 3D view will
+   * be unavailable
+   * 
    * @param name
    * @param structure2D AtomContainer
    */
@@ -111,6 +112,7 @@ public class MolStructureViewer extends JFrame {
 
   /**
    * Load initial parameters for JPanel
+   * 
    * @param name
    */
   private void setupViewer(String name) {
@@ -130,17 +132,14 @@ public class MolStructureViewer extends JFrame {
     labelName.setFont(new Font("SansSerif", Font.BOLD, 18));
     mainPanel.add(labelName, BorderLayout.NORTH);
 
-    loading2Dlabel = new JLabel("Loading 2D structure...",
-        SwingConstants.CENTER);
+    loading2Dlabel = new JLabel("Loading 2D structure...", SwingConstants.CENTER);
     loading2Dlabel.setOpaque(true);
     loading2Dlabel.setBackground(Color.white);
-    loading3Dlabel = new JLabel("Loading 3D structure...",
-        SwingConstants.CENTER);
+    loading3Dlabel = new JLabel("Loading 3D structure...", SwingConstants.CENTER);
     loading3Dlabel.setOpaque(true);
     loading3Dlabel.setBackground(Color.white);
 
-    splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, loading2Dlabel,
-        loading3Dlabel);
+    splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, loading2Dlabel, loading3Dlabel);
     splitPane.setResizeWeight(0.5);
 
     mainPanel.add(splitPane, BorderLayout.CENTER);
@@ -174,8 +173,8 @@ public class MolStructureViewer extends JFrame {
       }
       newComponent = new Structure2DComponent(structure2D);
     } catch (Exception e) {
-      String errorMessage = "Could not load 2D structure\n"
-          + "Exception: " + ExceptionUtils.exceptionToString(e);
+      String errorMessage =
+          "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       newComponent = new MultiLineLabel(errorMessage);
     }
     splitPane.setLeftComponent(newComponent);
@@ -184,6 +183,7 @@ public class MolStructureViewer extends JFrame {
 
   /**
    * Load the AtomContainer passed as parameter in JChemViewer
+   * 
    * @param container
    */
   private void load2DStructure(IAtomContainer container) {
@@ -191,8 +191,8 @@ public class MolStructureViewer extends JFrame {
     try {
       newComponent = new Structure2DComponent(container);
     } catch (Exception e) {
-      String errorMessage = "Could not load 2D structure\n"
-          + "Exception: " + ExceptionUtils.exceptionToString(e);
+      String errorMessage =
+          "Could not load 2D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       newComponent = new MultiLineLabel(errorMessage);
     }
     splitPane.setLeftComponent(newComponent);
@@ -230,8 +230,8 @@ public class MolStructureViewer extends JFrame {
       new3DComponent.loadStructure(structure3D);
 
     } catch (Exception e) {
-      String errorMessage = "Could not load 3D structure\n"
-          + "Exception: " + ExceptionUtils.exceptionToString(e);
+      String errorMessage =
+          "Could not load 3D structure\n" + "Exception: " + ExceptionUtils.exceptionToString(e);
       MultiLineLabel label = new MultiLineLabel(errorMessage, 10);
       splitPane.setRightComponent(label);
       splitPane.setDividerLocation(500);

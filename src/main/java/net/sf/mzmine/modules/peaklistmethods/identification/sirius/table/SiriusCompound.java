@@ -3,18 +3,17 @@
  *
  * This file is part of MZmine 2.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
@@ -54,10 +53,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class SiriusCompound
- * May contain different amount of properties
- * 1) if the IonAnnotation is from SiriusIdentificationMethod, then there will be Sirius Score, formula, name == formula
- * 2) if FingerIdWebMethod is used, then name may differ, added SMILES & Inchi and links to DBs
+ * Class SiriusCompound May contain different amount of properties 1) if the IonAnnotation is from
+ * SiriusIdentificationMethod, then there will be Sirius Score, formula, name == formula 2) if
+ * FingerIdWebMethod is used, then name may differ, added SMILES & Inchi and links to DBs
  */
 public class SiriusCompound extends SimplePeakIdentity {
   private static final Logger logger = LoggerFactory.getLogger(SiriusCompound.class);
@@ -71,6 +69,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * Constructor for SiriusCompound
+   * 
    * @param annotation
    */
   public SiriusCompound(@Nonnull final SiriusIonAnnotation annotation) {
@@ -81,6 +80,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * Copy constructor
+   * 
    * @param master - SiriusCompound to copy from
    */
   public SiriusCompound(final SiriusCompound master) {
@@ -90,8 +90,9 @@ public class SiriusCompound extends SimplePeakIdentity {
   }
 
   /**
-   * Construct parameters from SiriusIonAnnotation
-   * Amount of params differ, either it is identified by SiriusIdentificationMethod, or also by FingerIdWebMethod
+   * Construct parameters from SiriusIonAnnotation Amount of params differ, either it is identified
+   * by SiriusIdentificationMethod, or also by FingerIdWebMethod
+   * 
    * @param annotation
    * @return constructed Hashtable
    */
@@ -121,15 +122,15 @@ public class SiriusCompound extends SimplePeakIdentity {
       Set<String> dbnames = new HashSet<>();
 
       /*
-        DBLinks may contain several links to Pubchem (for example)
-      */
+       * DBLinks may contain several links to Pubchem (for example)
+       */
       for (DBLink link : links) {
         dbnames.add(link.name);
       }
 
       String[] dbs = new String[dbnames.size()];
       dbs = dbnames.toArray(dbs);
-      for (String db: dbs)
+      for (String db : dbs)
         props.put(db, "FOUND");
     }
 
@@ -181,7 +182,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
     Set<String> dbNames = new TreeSet<String>();
 
-    for (DBLink link: dblinks)
+    for (DBLink link : dblinks)
       dbNames.add(link.name);
 
     String[] dbs = new String[dbNames.size()];
@@ -192,6 +193,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * Method generates preview image of the sirius compound
+   * 
    * @return scaled image
    */
   private ImageIcon generateStructurePreview() {
@@ -206,6 +208,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * Getter for preview ImageIcon object
+   * 
    * @return shortcut ImageIcon object
    */
   public ImageIcon getPreview() {
@@ -214,6 +217,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * Generates Image of the Chemical Structure
+   * 
    * @param width of the image
    * @param height of the image
    * @return new Image, returns null if used on non-processed by FingerId SiriusCompound
@@ -223,8 +227,9 @@ public class SiriusCompound extends SimplePeakIdentity {
   }
 
   /**
-   * Method returns image generated from Chemical Structure IAtomContainer
-   * Better to use 3:2 relation of width:height
+   * Method returns image generated from Chemical Structure IAtomContainer Better to use 3:2
+   * relation of width:height
+   * 
    * @param width of the image
    * @param height of the image
    * @return new Image object
@@ -278,6 +283,7 @@ public class SiriusCompound extends SimplePeakIdentity {
 
   /**
    * FingerId score had negative value, the closer it is to 0, the better result is (Ex.: -115.23)
+   * 
    * @return FingerId score, if exists
    */
   public String getFingerIdScore() {

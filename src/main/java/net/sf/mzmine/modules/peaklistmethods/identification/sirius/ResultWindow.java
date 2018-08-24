@@ -3,18 +3,17 @@
  *
  * This file is part of MZmine 2.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
@@ -54,14 +53,11 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * ResultWindow object for Sirius module
- * Appears when SingleIdentificationTask is called
- * Shows results of Sirius module, default sort by FingerId score.
- * 1) Processing by SiriusIdentificationMethod
- * 2) Processing by FingerIdIdentificationMethod (using parallel threads)
+ * ResultWindow object for Sirius module Appears when SingleIdentificationTask is called Shows
+ * results of Sirius module, default sort by FingerId score. 1) Processing by
+ * SiriusIdentificationMethod 2) Processing by FingerIdIdentificationMethod (using parallel threads)
  *
- * FingerId score is negative, the closer it to 0, the better it is.
- * Sirius score
+ * FingerId score is negative, the closer it to 0, the better it is. Sirius score
  */
 public class ResultWindow extends JFrame implements ActionListener {
   private static final long serialVersionUID = 1L;
@@ -129,16 +125,15 @@ public class ResultWindow extends JFrame implements ActionListener {
       int index = compoundsTable.getSelectedRow();
 
       if (index < 0) {
-        MZmineCore.getDesktop().displayMessage(this, "Select one result to add as compound identity");
+        MZmineCore.getDesktop().displayMessage(this,
+            "Select one result to add as compound identity");
         return;
       }
       index = compoundsTable.convertRowIndexToModel(index);
-      peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
-          false);
+      peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index), false);
 
       // Notify the GUI about the change in the project
-      MZmineCore.getProjectManager().getCurrentProject()
-          .notifyObjectChanged(peakListRow, false);
+      MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(peakListRow, false);
 
       // Repaint the window to reflect the change in the peak list
       MZmineCore.getDesktop().getMainWindow().repaint();
@@ -189,6 +184,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
   /**
    * Method sets value of clipboard to `content`
+   * 
    * @param content - Formula or SMILES string
    * @param errorMessage - to print in a message if value of `content` is null
    */
@@ -205,6 +201,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
   /**
    * Update content of a table using swing-thread
+   * 
    * @param compound
    */
   public void addNewListItem(@Nonnull final SiriusCompound compound) {
@@ -219,10 +216,11 @@ public class ResultWindow extends JFrame implements ActionListener {
 
   /**
    * Method adds a new SiriusCompound to a table
+   * 
    * @param annotations - SiriusIonAnnotation results processed by Sirius/FingerId methods
    */
   public void addListofItems(@Nonnull final List<IonAnnotation> annotations) {
-    for (IonAnnotation ann: annotations) {
+    for (IonAnnotation ann : annotations) {
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) ann;
       SiriusCompound compound = new SiriusCompound(annotation);
       addNewListItem(compound);
@@ -235,8 +233,7 @@ public class ResultWindow extends JFrame implements ActionListener {
   public void dispose() {
     // Cancel the search task if it is still running
     TaskStatus searchStatus = searchTask.getStatus();
-    if ((searchStatus == TaskStatus.WAITING)
-        || (searchStatus == TaskStatus.PROCESSING)) {
+    if ((searchStatus == TaskStatus.WAITING) || (searchStatus == TaskStatus.PROCESSING)) {
       searchTask.cancel();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -342,4 +342,12 @@ public class ChartGestureMouseAdapter extends MouseAdapter {
     );
   }
 
+  public void clearHandlers() {
+    if (gestureHandlers != null)
+      gestureHandlers.clear();
+  }
+
+  public List<ChartGestureHandler> getGestureHandlers() {
+    return gestureHandlers;
+  }
 }

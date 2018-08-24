@@ -46,7 +46,8 @@ import org.slf4j.LoggerFactory;
 public class PeakListIdentificationTask extends AbstractTask {
 
   // Logger.
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PeakListIdentificationTask.class);
+  private static final org.slf4j.Logger logger =
+      LoggerFactory.getLogger(PeakListIdentificationTask.class);
 
   // Counters.
   private int numItems;
@@ -71,14 +72,17 @@ public class PeakListIdentificationTask extends AbstractTask {
     currentRow = null;
     this.parameters = parameters;
 
-    int threadsAmount = parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
+    int threadsAmount =
+        parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
     semaphore = new Semaphore(threadsAmount);
     latch = new CountDownLatch(list.getNumberOfRows());
 
     int fingerCandidates, siriusCandidates, timer;
     timer = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
-    siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
-    fingerCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
+    siriusCandidates =
+        parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
+    fingerCandidates =
+        parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
 
     if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0 || threadsAmount <= 0) {
       MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
@@ -145,11 +149,13 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   /**
    * Adds peak identities to requested row
+   * 
    * @param annotations list of IonAnnotations
    * @param row to add identities
    * @param amount of identities to be added from list
    */
-  public synchronized static void addSiriusCompounds(@Nonnull List<IonAnnotation> annotations, @Nonnull PeakListRow row, int amount) {
+  public synchronized static void addSiriusCompounds(@Nonnull List<IonAnnotation> annotations,
+      @Nonnull PeakListRow row, int amount) {
     for (int i = 0; i < amount; i++) {
       SiriusIonAnnotation annotation = (SiriusIonAnnotation) annotations.get(i);
       SiriusCompound compound = new SiriusCompound(annotation);
@@ -160,6 +166,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   /**
    * Method notifies object about content update
+   * 
    * @param row to be notified
    */
   private static void notifyRow(PeakListRow row) {

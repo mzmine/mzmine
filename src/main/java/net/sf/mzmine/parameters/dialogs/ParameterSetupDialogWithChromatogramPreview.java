@@ -1,20 +1,19 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.parameters.dialogs;
@@ -47,239 +46,231 @@ import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeComponent;
 import com.google.common.collect.Range;
 
 /**
- * This class extends ParameterSetupDialog class, including a TICPlot. This is
- * used to preview how the selected raw data filters work.
+ * This class extends ParameterSetupDialog class, including a TICPlot. This is used to preview how
+ * the selected raw data filters work.
  * 
- * Slightly modified to add the possibility of switching to TIC (versus Base
- * Peak) preview.
+ * Slightly modified to add the possibility of switching to TIC (versus Base Peak) preview.
  */
-public abstract class ParameterSetupDialogWithChromatogramPreview extends
-	ParameterSetupDialog {
+public abstract class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupDialog {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    private RawDataFile[] dataFiles;
-    private RawDataFile previewDataFile;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private RawDataFile[] dataFiles;
+  private RawDataFile previewDataFile;
 
-    // Dialog components
-    private JPanel pnlPreviewFields;
-    private JComboBox<RawDataFile> comboDataFileName;
-    private DoubleRangeComponent rtRangeBox, mzRangeBox;
-    private JCheckBox previewCheckBox;
+  // Dialog components
+  private JPanel pnlPreviewFields;
+  private JComboBox<RawDataFile> comboDataFileName;
+  private DoubleRangeComponent rtRangeBox, mzRangeBox;
+  private JCheckBox previewCheckBox;
 
-    // Show as TIC
-    private JComboBox<TICPlotType> ticViewComboBox;
+  // Show as TIC
+  private JComboBox<TICPlotType> ticViewComboBox;
 
-    // XYPlot
-    private TICPlot ticPlot;
+  // XYPlot
+  private TICPlot ticPlot;
 
-    public ParameterSetupDialogWithChromatogramPreview(Window parent,
-	    boolean valueCheckRequired, ParameterSet parameters) {
-	super(parent, valueCheckRequired, parameters);
+  public ParameterSetupDialogWithChromatogramPreview(Window parent, boolean valueCheckRequired,
+      ParameterSet parameters) {
+    super(parent, valueCheckRequired, parameters);
+  }
+
+  /**
+   * Get the parameters related to the plot and call the function addRawDataFile() to add the data
+   * file to the plot
+   * 
+   * @param dataFile
+   */
+  protected abstract void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range<Double> rtRange,
+      Range<Double> mzRange);
+
+  private void updateTitle() {
+
+    NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+    NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+
+    Range<Double> rtRange = rtRangeBox.getValue();
+    Range<Double> mzRange = mzRangeBox.getValue();
+
+    String title = "m/z: " + mzFormat.format(mzRange.lowerEndpoint()) + " - "
+        + mzFormat.format(mzRange.upperEndpoint()) + ", RT: "
+        + rtFormat.format(rtRange.lowerEndpoint()) + " - "
+        + rtFormat.format(rtRange.upperEndpoint());
+
+    // update plot title
+    ticPlot.setTitle(previewDataFile.getName(), title);
+  }
+
+  public void actionPerformed(ActionEvent event) {
+
+    Object src = event.getSource();
+
+    // Avoid calling twice "parametersChanged()" for the widgets specific to
+    // this inherited dialog class
+    if (src != comboDataFileName && src != previewCheckBox && src != ticViewComboBox) {
+      super.actionPerformed(event);
     }
 
-    /**
-     * Get the parameters related to the plot and call the function
-     * addRawDataFile() to add the data file to the plot
-     * 
-     * @param dataFile
-     */
-    protected abstract void loadPreview(TICPlot ticPlot, RawDataFile dataFile,
-	    Range<Double> rtRange, Range<Double> mzRange);
+    // Specific widgets
 
-    private void updateTitle() {
-
-	NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-	NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-
-	Range<Double> rtRange = rtRangeBox.getValue();
-	Range<Double> mzRange = mzRangeBox.getValue();
-
-	String title = "m/z: " + mzFormat.format(mzRange.lowerEndpoint())
-		+ " - " + mzFormat.format(mzRange.upperEndpoint()) + ", RT: "
-		+ rtFormat.format(rtRange.lowerEndpoint()) + " - "
-		+ rtFormat.format(rtRange.upperEndpoint());
-
-	// update plot title
-	ticPlot.setTitle(previewDataFile.getName(), title);
+    if (src == comboDataFileName) {
+      int ind = comboDataFileName.getSelectedIndex();
+      if (ind >= 0) {
+        previewDataFile = dataFiles[ind];
+        parametersChanged();
+      }
     }
 
-    public void actionPerformed(ActionEvent event) {
-
-	Object src = event.getSource();
-
-	// Avoid calling twice "parametersChanged()" for the widgets specific to
-	// this inherited dialog class
-	if (src != comboDataFileName && src != previewCheckBox
-		&& src != ticViewComboBox) {
-	    super.actionPerformed(event);
-	}
-
-	// Specific widgets
-
-	if (src == comboDataFileName) {
-	    int ind = comboDataFileName.getSelectedIndex();
-	    if (ind >= 0) {
-		previewDataFile = dataFiles[ind];
-		parametersChanged();
-	    }
-	}
-
-	if (src == previewCheckBox) {
-	    if (previewCheckBox.isSelected()) {
-		showPreview();
-	    } else {
-		hidePreview();
-	    }
-	}
-
-	if (src == ticViewComboBox) {
-	    parametersChanged();
-	}
-
+    if (src == previewCheckBox) {
+      if (previewCheckBox.isSelected()) {
+        showPreview();
+      } else {
+        hidePreview();
+      }
     }
 
-    public void showPreview() {
-	// Set the height of the preview to 200 cells, so it will span
-	// the whole vertical length of the dialog (buttons are at row
-	// no 100). Also, we set the weight to 10, so the preview
-	// component will consume most of the extra available space.
-	mainPanel.add(ticPlot, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
-	pnlPreviewFields.setVisible(true);
-	updateMinimumSize();
-	pack();
-	parametersChanged();
-	// previewCheckBox.setSelected(true);
+    if (src == ticViewComboBox) {
+      parametersChanged();
     }
 
-    public void hidePreview() {
-	mainPanel.remove(ticPlot);
-	pnlPreviewFields.setVisible(false);
-	updateMinimumSize();
-	pack();
-	previewCheckBox.setSelected(false);
-    }
+  }
 
-    public TICPlotType getPlotType() {
-	return (TICPlotType) (ticViewComboBox.getSelectedItem());
-    }
+  public void showPreview() {
+    // Set the height of the preview to 200 cells, so it will span
+    // the whole vertical length of the dialog (buttons are at row
+    // no 100). Also, we set the weight to 10, so the preview
+    // component will consume most of the extra available space.
+    mainPanel.add(ticPlot, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
+    pnlPreviewFields.setVisible(true);
+    updateMinimumSize();
+    pack();
+    parametersChanged();
+    // previewCheckBox.setSelected(true);
+  }
 
-    public void setPlotType(TICPlotType plotType) {
-	ticViewComboBox.setSelectedItem(plotType);
-    }
+  public void hidePreview() {
+    mainPanel.remove(ticPlot);
+    pnlPreviewFields.setVisible(false);
+    updateMinimumSize();
+    pack();
+    previewCheckBox.setSelected(false);
+  }
 
-    public RawDataFile getPreviewDataFile() {
-	return this.previewDataFile;
-    }
+  public TICPlotType getPlotType() {
+    return (TICPlotType) (ticViewComboBox.getSelectedItem());
+  }
 
-    protected void parametersChanged() {
+  public void setPlotType(TICPlotType plotType) {
+    ticViewComboBox.setSelectedItem(plotType);
+  }
 
-	// Update preview as parameters have changed
-	if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
-	    return;
+  public RawDataFile getPreviewDataFile() {
+    return this.previewDataFile;
+  }
 
-	Range<Double> rtRange = rtRangeBox.getValue();
-	Range<Double> mzRange = mzRangeBox.getValue();
-	updateParameterSetFromComponents();
+  protected void parametersChanged() {
 
-	loadPreview(ticPlot, previewDataFile, rtRange, mzRange);
+    // Update preview as parameters have changed
+    if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
+      return;
 
-	updateTitle();
+    Range<Double> rtRange = rtRangeBox.getValue();
+    Range<Double> mzRange = mzRangeBox.getValue();
+    updateParameterSetFromComponents();
 
-    }
+    loadPreview(ticPlot, previewDataFile, rtRange, mzRange);
 
-    /**
-     * This function add all the additional components for this dialog over the
-     * original ParameterSetupDialog.
-     * 
-     */
-    @Override
-    protected void addDialogComponents() {
+    updateTitle();
 
-	super.addDialogComponents();
+  }
 
-	dataFiles = MZmineCore.getProjectManager().getCurrentProject()
-		.getDataFiles();
+  /**
+   * This function add all the additional components for this dialog over the original
+   * ParameterSetupDialog.
+   * 
+   */
+  @Override
+  protected void addDialogComponents() {
 
-	if (dataFiles.length == 0)
-	    return;
+    super.addDialogComponents();
 
-	RawDataFile selectedFiles[] = MZmineCore.getDesktop()
-		.getSelectedDataFiles();
+    dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
 
-	if (selectedFiles.length > 0)
-	    previewDataFile = selectedFiles[0];
-	else
-	    previewDataFile = dataFiles[0];
+    if (dataFiles.length == 0)
+      return;
 
-	previewCheckBox = new JCheckBox("Show preview");
-	previewCheckBox.addActionListener(this);
-	previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+    RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
 
-	mainPanel.add(new JSeparator(), 0, getNumberOfParameters() + 1, 3, 1);
-	mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2, 3, 1);
+    if (selectedFiles.length > 0)
+      previewDataFile = selectedFiles[0];
+    else
+      previewDataFile = dataFiles[0];
 
-	// Elements of pnlLab
-	JPanel pnlLab = new JPanel();
-	pnlLab.setLayout(new BoxLayout(pnlLab, BoxLayout.Y_AXIS));
-	pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    previewCheckBox = new JCheckBox("Show preview");
+    previewCheckBox.addActionListener(this);
+    previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
 
-	pnlLab.add(Box.createVerticalStrut(5));
-	pnlLab.add(new JLabel("Data file "));
-	pnlLab.add(Box.createVerticalStrut(20));
-	pnlLab.add(new JLabel("Plot Type "));
-	pnlLab.add(Box.createVerticalStrut(25));
-	pnlLab.add(new JLabel("RT range "));
-	pnlLab.add(Box.createVerticalStrut(15));
-	pnlLab.add(new JLabel("m/z range "));
+    mainPanel.add(new JSeparator(), 0, getNumberOfParameters() + 1, 3, 1);
+    mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2, 3, 1);
 
-	// Elements of pnlFlds
-	JPanel pnlFlds = new JPanel();
-	pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
-	pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    // Elements of pnlLab
+    JPanel pnlLab = new JPanel();
+    pnlLab.setLayout(new BoxLayout(pnlLab, BoxLayout.Y_AXIS));
+    pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-	comboDataFileName = new JComboBox<RawDataFile>(dataFiles);
-	comboDataFileName.setSelectedItem(previewDataFile);
-	comboDataFileName.addActionListener(this);
+    pnlLab.add(Box.createVerticalStrut(5));
+    pnlLab.add(new JLabel("Data file "));
+    pnlLab.add(Box.createVerticalStrut(20));
+    pnlLab.add(new JLabel("Plot Type "));
+    pnlLab.add(Box.createVerticalStrut(25));
+    pnlLab.add(new JLabel("RT range "));
+    pnlLab.add(Box.createVerticalStrut(15));
+    pnlLab.add(new JLabel("m/z range "));
 
-	ticViewComboBox = new JComboBox<TICPlotType>(TICPlotType.values());
-	ticViewComboBox.setSelectedItem(TICPlotType.TIC);
-	ticViewComboBox.addActionListener(this);
+    // Elements of pnlFlds
+    JPanel pnlFlds = new JPanel();
+    pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
+    pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-	rtRangeBox = new DoubleRangeComponent(MZmineCore.getConfiguration()
-		.getRTFormat());
-	rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
+    comboDataFileName = new JComboBox<RawDataFile>(dataFiles);
+    comboDataFileName.setSelectedItem(previewDataFile);
+    comboDataFileName.addActionListener(this);
 
-	mzRangeBox = new DoubleRangeComponent(MZmineCore.getConfiguration()
-		.getMZFormat());
-	mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
+    ticViewComboBox = new JComboBox<TICPlotType>(TICPlotType.values());
+    ticViewComboBox.setSelectedItem(TICPlotType.TIC);
+    ticViewComboBox.addActionListener(this);
 
-	pnlFlds.add(comboDataFileName);
-	pnlFlds.add(Box.createVerticalStrut(10));
-	pnlFlds.add(ticViewComboBox);
-	pnlFlds.add(Box.createVerticalStrut(20));
-	pnlFlds.add(rtRangeBox);
-	pnlFlds.add(Box.createVerticalStrut(5));
-	pnlFlds.add(mzRangeBox);
+    rtRangeBox = new DoubleRangeComponent(MZmineCore.getConfiguration().getRTFormat());
+    rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
 
-	// Put all together
-	pnlPreviewFields = new JPanel(new BorderLayout());
+    mzRangeBox = new DoubleRangeComponent(MZmineCore.getConfiguration().getMZFormat());
+    mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 
-	pnlPreviewFields.add(pnlLab, BorderLayout.WEST);
-	pnlPreviewFields.add(pnlFlds, BorderLayout.CENTER);
-	pnlPreviewFields.setVisible(false);
+    pnlFlds.add(comboDataFileName);
+    pnlFlds.add(Box.createVerticalStrut(10));
+    pnlFlds.add(ticViewComboBox);
+    pnlFlds.add(Box.createVerticalStrut(20));
+    pnlFlds.add(rtRangeBox);
+    pnlFlds.add(Box.createVerticalStrut(5));
+    pnlFlds.add(mzRangeBox);
 
-	ticPlot = new TICPlot(this);
-	ticPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-	ticPlot.setMinimumSize(new Dimension(400, 300));
+    // Put all together
+    pnlPreviewFields = new JPanel(new BorderLayout());
 
-	mainPanel.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 3, 1,
-		0, 0);
+    pnlPreviewFields.add(pnlLab, BorderLayout.WEST);
+    pnlPreviewFields.add(pnlFlds, BorderLayout.CENTER);
+    pnlPreviewFields.setVisible(false);
 
-	updateMinimumSize();
-	pack();
-    }
+    ticPlot = new TICPlot(this);
+    ticPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+    ticPlot.setMinimumSize(new Dimension(400, 300));
+
+    mainPanel.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 3, 1, 0, 0);
+
+    updateMinimumSize();
+    pack();
+  }
 
 }

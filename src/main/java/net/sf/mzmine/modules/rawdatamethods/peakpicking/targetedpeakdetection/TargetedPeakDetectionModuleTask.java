@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -65,8 +65,8 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   private int ID = 1;
   private double noiseLevel;
 
-  TargetedPeakDetectionModuleTask(
-      MZmineProject project, ParameterSet parameters, RawDataFile dataFile) {
+  TargetedPeakDetectionModuleTask(MZmineProject project, ParameterSet parameters,
+      RawDataFile dataFile) {
 
     this.project = project;
     this.parameters = parameters;

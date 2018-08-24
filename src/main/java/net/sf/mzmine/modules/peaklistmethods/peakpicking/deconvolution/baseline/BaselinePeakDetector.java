@@ -1,20 +1,19 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
- * St, Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline;
@@ -40,120 +39,111 @@ import net.sf.mzmine.util.R.RSessionWrapper;
 import com.google.common.collect.Range;
 
 /**
- * This class implements a simple peak deconvolution algorithm. Continuous peaks
- * above a given baseline threshold level are detected.
+ * This class implements a simple peak deconvolution algorithm. Continuous peaks above a given
+ * baseline threshold level are detected.
  */
 public class BaselinePeakDetector implements PeakResolver {
 
-    public @Nonnull
-    String getName() {
-        return "Baseline cut-off";
+  public @Nonnull String getName() {
+    return "Baseline cut-off";
+  }
+
+  @Override
+  public Feature[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
+      RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
+
+    int scanNumbers[] = chromatogram.getScanNumbers();
+    final int scanCount = scanNumbers.length;
+    double retentionTimes[] = new double[scanCount];
+    double intensities[] = new double[scanCount];
+    RawDataFile dataFile = chromatogram.getDataFile();
+    for (int i = 0; i < scanCount; i++) {
+      final int scanNum = scanNumbers[i];
+      retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
+      DataPoint dp = chromatogram.getDataPoint(scanNum);
+      if (dp != null)
+        intensities[i] = dp.getIntensity();
+      else
+        intensities[i] = 0.0;
     }
 
-    @Override
-    public Feature[] resolvePeaks(final Feature chromatogram,
-            ParameterSet parameters,
-            RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
+    // Get parameters.
+    final double minimumPeakHeight = parameters.getParameter(MIN_PEAK_HEIGHT).getValue();
+    final double baselineLevel = parameters.getParameter(BASELINE_LEVEL).getValue();
+    final Range<Double> durationRange = parameters.getParameter(PEAK_DURATION).getValue();
 
-        int scanNumbers[] = chromatogram.getScanNumbers();
-        final int scanCount = scanNumbers.length;
-        double retentionTimes[] = new double[scanCount];
-        double intensities[] = new double[scanCount];
-        RawDataFile dataFile = chromatogram.getDataFile();
-        for (int i = 0; i < scanCount; i++) {
-            final int scanNum = scanNumbers[i];
-            retentionTimes[i] = dataFile.getScan(scanNum).getRetentionTime();
-            DataPoint dp = chromatogram.getDataPoint(scanNum);
-            if (dp != null)
-                intensities[i] = dp.getIntensity();
-            else
-                intensities[i] = 0.0;
-        }
-        
-        // Get parameters.
-        final double minimumPeakHeight = parameters.getParameter(
-                MIN_PEAK_HEIGHT).getValue();
-        final double baselineLevel = parameters.getParameter(BASELINE_LEVEL)
-                .getValue();
-        final Range<Double> durationRange = parameters.getParameter(
-                PEAK_DURATION).getValue();
+    final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);
 
-        final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);
+    // Current region is a region of consecutive scans which all have
+    // intensity above baseline level.
+    for (int currentRegionStart = 0; currentRegionStart < scanCount; currentRegionStart++) {
 
-        // Current region is a region of consecutive scans which all have
-        // intensity above baseline level.
-        for (int currentRegionStart = 0; currentRegionStart < scanCount; currentRegionStart++) {
+      // Find a start of the region.
+      final DataPoint startPeak = chromatogram.getDataPoint(scanNumbers[currentRegionStart]);
+      if (startPeak != null && startPeak.getIntensity() >= baselineLevel) {
 
-            // Find a start of the region.
-            final DataPoint startPeak = chromatogram
-                    .getDataPoint(scanNumbers[currentRegionStart]);
-            if (startPeak != null && startPeak.getIntensity() >= baselineLevel) {
+        double currentRegionHeight = startPeak.getIntensity();
 
-                double currentRegionHeight = startPeak.getIntensity();
+        // Search for end of the region
+        int currentRegionEnd;
+        for (currentRegionEnd =
+            currentRegionStart + 1; currentRegionEnd < scanCount; currentRegionEnd++) {
 
-                // Search for end of the region
-                int currentRegionEnd;
-                for (currentRegionEnd = currentRegionStart + 1; currentRegionEnd < scanCount; currentRegionEnd++) {
+          final DataPoint endPeak = chromatogram.getDataPoint(scanNumbers[currentRegionEnd]);
+          if (endPeak == null || endPeak.getIntensity() < baselineLevel) {
 
-                    final DataPoint endPeak = chromatogram
-                            .getDataPoint(scanNumbers[currentRegionEnd]);
-                    if (endPeak == null
-                            || endPeak.getIntensity() < baselineLevel) {
+            break;
+          }
 
-                        break;
-                    }
-
-                    currentRegionHeight = Math.max(currentRegionHeight,
-                            endPeak.getIntensity());
-                }
-
-                // Subtract one index, so the end index points at the last data
-                // point of current region.
-                currentRegionEnd--;
-
-                // Check current region, if it makes a good peak.
-                if (durationRange.contains(retentionTimes[currentRegionEnd]
-                        - retentionTimes[currentRegionStart])
-                        && currentRegionHeight >= minimumPeakHeight) {
-
-                    // Create a new ResolvedPeak and add it.
-                    resolvedPeaks.add(new ResolvedPeak(chromatogram,
-                            currentRegionStart, currentRegionEnd, msmsRange, rTRangeMSMS));
-                }
-
-                // Find next peak region, starting from next data point.
-                currentRegionStart = currentRegionEnd;
-
-            }
+          currentRegionHeight = Math.max(currentRegionHeight, endPeak.getIntensity());
         }
 
-        return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
+        // Subtract one index, so the end index points at the last data
+        // point of current region.
+        currentRegionEnd--;
+
+        // Check current region, if it makes a good peak.
+        if (durationRange
+            .contains(retentionTimes[currentRegionEnd] - retentionTimes[currentRegionStart])
+            && currentRegionHeight >= minimumPeakHeight) {
+
+          // Create a new ResolvedPeak and add it.
+          resolvedPeaks.add(new ResolvedPeak(chromatogram, currentRegionStart, currentRegionEnd,
+              msmsRange, rTRangeMSMS));
+        }
+
+        // Find next peak region, starting from next data point.
+        currentRegionStart = currentRegionEnd;
+
+      }
     }
 
-    @Override
-    public @Nonnull
-    Class<? extends ParameterSet> getParameterSetClass() {
-        return BaselinePeakDetectorParameters.class;
-    }
+    return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
+  }
 
-    @Override
-    public boolean getRequiresR() {
-        return false;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return BaselinePeakDetectorParameters.class;
+  }
 
-    @Override
-    public String[] getRequiredRPackages() {
-        return null;
-    }
+  @Override
+  public boolean getRequiresR() {
+    return false;
+  }
 
-    @Override
-    public String[] getRequiredRPackagesVersions() {
-        return null;
-    }
+  @Override
+  public String[] getRequiredRPackages() {
+    return null;
+  }
 
-    @Override
-    public REngineType getREngineType(ParameterSet parameters) {
-        return null;
-    }
+  @Override
+  public String[] getRequiredRPackagesVersions() {
+    return null;
+  }
+
+  @Override
+  public REngineType getREngineType(ParameterSet parameters) {
+    return null;
+  }
 
 }
