@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics;
+package net.sf.mzmine.chartbasics.chartthemes;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -24,7 +24,6 @@ import java.util.List;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.Title;
-import net.sf.mzmine.chartbasics.chartthemes.EStandardChartTheme;
 import net.sf.mzmine.framework.fontspecs.FontSpecs;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
