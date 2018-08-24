@@ -26,6 +26,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.fx.ChartCanvas;
 import org.jfree.chart.plot.PlotOrientation;
 import javafx.scene.input.ScrollEvent;
 import net.sf.mzmine.chartbasics.ChartLogics;
@@ -56,19 +57,19 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
   private ChartGesture gesture;
   private ChartEntity entity;
 
-  public ChartGestureEvent(ChartViewWrapper cp, MouseEvent mEvent, ChartEntity entity,
+  public ChartGestureEvent(ChartPanel cp, MouseEvent mEvent, ChartEntity entity,
       ChartGesture gesture) {
-    this(cp, new MouseEventWrapper(mEvent), entity, gesture);
+    this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
   }
 
-  public ChartGestureEvent(ChartViewWrapper cp, javafx.scene.input.MouseEvent mEvent,
-      ChartEntity entity, ChartGesture gesture) {
-    this(cp, new MouseEventWrapper(mEvent), entity, gesture);
+  public ChartGestureEvent(ChartCanvas cp, javafx.scene.input.MouseEvent mEvent, ChartEntity entity,
+      ChartGesture gesture) {
+    this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
   }
 
-  public ChartGestureEvent(ChartViewWrapper cp, ScrollEvent mEvent, ChartEntity entity,
+  public ChartGestureEvent(ChartCanvas cp, ScrollEvent mEvent, ChartEntity entity,
       ChartGesture gesture) {
-    this(cp, new MouseEventWrapper(mEvent), entity, gesture);
+    this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
   }
 
   public ChartGestureEvent(ChartViewWrapper cp, MouseEventWrapper mEvent, ChartEntity entity,

@@ -7,6 +7,9 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.fx.ChartCanvas;
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.ChartLogicsFX;
+import net.sf.mzmine.chartbasics.EChartPanel;
+import net.sf.mzmine.chartbasics.javafx.charts.EChartCanvas;
+import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 
 public class ChartViewWrapper {
 
@@ -74,11 +77,8 @@ public class ChartViewWrapper {
   /**
    * Auto range the range axis
    * 
-   * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
-  public void autoAxes(ChartCanvas myChart) {
+  public void autoAxes() {
     if (cp != null)
       ChartLogics.autoAxes(cp);
     else
@@ -88,11 +88,8 @@ public class ChartViewWrapper {
   /**
    * Auto range the range axis
    * 
-   * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
-  public void autoRangeAxis(ChartCanvas myChart) {
+  public void autoRangeAxis() {
     if (cp != null)
       ChartLogics.autoRangeAxis(cp);
     else
@@ -102,14 +99,52 @@ public class ChartViewWrapper {
   /**
    * Auto range the range axis
    * 
-   * @param myChart
-   * @param zoom
-   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
-  public void autoDomainAxis(ChartCanvas myChart) {
+  public void autoDomainAxis() {
     if (cp != null)
       ChartLogics.autoDomainAxis(cp);
     else
       ChartLogicsFX.autoDomainAxis(cc);
+  }
+
+  /**
+   * The ZoomHistory of this ChartPanel/ChartCanvas
+   * 
+   * @return
+   */
+  public ZoomHistory getZoomHistory() {
+    if (cp != null) {
+      if (cp instanceof EChartPanel)
+        return ((EChartPanel) cp).getZoomHistory();
+      else {
+        Object o = cp.getClientProperty(ZoomHistory.PROPERTY_NAME);
+        if (o != null && o instanceof ZoomHistory)
+          return (ZoomHistory) o;
+        else
+          return null;
+      }
+    } else {
+      // fx TODO
+      if (cc instanceof EChartCanvas)
+        return ((EChartCanvas) cc).getZoomHistory();
+      else
+        return null;
+    }
+  }
+
+  public void setZoomHistory(ZoomHistory h) {
+    if (cp != null) {
+      if (cp instanceof EChartPanel)
+        ((EChartPanel) cp).setZoomHistory(h);
+      else {
+        cp.putClientProperty(h, ZoomHistory.PROPERTY_NAME);
+      }
+    } else {
+      // TODO
+
+      if (cc instanceof EChartCanvas)
+        ((EChartCanvas) cc).setZoomHistory(h);
+    }
+
   }
 }

@@ -33,8 +33,6 @@ import java.awt.Font;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.fx.ChartCanvas;
-import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -48,6 +46,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import net.sf.mzmine.chartbasics.javafx.charts.EChartCanvas;
 
 /**
  * A demo showing the display of JFreeChart within a JavaFX application. Note that this demo is for
@@ -65,10 +64,10 @@ public class FXGraphics2DDemo1 extends Application {
   public void start(Stage stage) throws Exception {
     XYDataset dataset = createDataset();
     JFreeChart chart = createChart(dataset);
-    ChartViewer viewer = new ChartViewer(chart, true);
-    ChartCanvas canvas = new ChartCanvas(chart);
+    // ChartViewer viewer = new ChartViewer(chart, true);
+    EChartCanvas canvas = new EChartCanvas(chart);
     StackPane stackPane = new StackPane();
-    stackPane.getChildren().add(viewer);
+    stackPane.getChildren().add(canvas);
     // stackPane.getChildren().add(canvas);
     // Bind canvas size to stack pane size.
     canvas.widthProperty().bind(stackPane.widthProperty());

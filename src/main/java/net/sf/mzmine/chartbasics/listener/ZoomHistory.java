@@ -21,7 +21,9 @@ package net.sf.mzmine.chartbasics.listener;
 import java.util.LinkedList;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.fx.ChartCanvas;
 import org.jfree.data.Range;
+import net.sf.mzmine.chartbasics.javafx.mouse.ChartViewWrapper;
 
 /**
  * The ZoomHistory stores all zoom states which are active for at least 1 second. It allows to jump
@@ -65,15 +67,47 @@ public class ZoomHistory extends AxesRangeChangedListener implements Runnable {
    * @param maxSize
    */
   public ZoomHistory(ChartPanel cp, int maxSize) {
+    this(new ChartViewWrapper(cp), maxSize);
+  }
+
+  /**
+   * Creates a ZoomHistory for the given ChartPanel as a ClientProperty. The history collects all
+   * zoom states that are active for at least 1 second. It allows to jump to previous and next zoom
+   * states. To obtain the ZoomHistory object from any ChartPanel use:
+   * 
+   * <pre>
+   * {@code (ZoomHistory) chartPanel.getClientProperty(ZoomHistory.PROPERTY_NAME)}
+   * </pre>
+   * 
+   * @param cp
+   * @param maxSize
+   */
+  public ZoomHistory(ChartCanvas cp, int maxSize) {
+    this(new ChartViewWrapper(cp), maxSize);
+  }
+
+  /**
+   * Creates a ZoomHistory for the given ChartPanel as a ClientProperty. The history collects all
+   * zoom states that are active for at least 1 second. It allows to jump to previous and next zoom
+   * states. To obtain the ZoomHistory object from any ChartPanel use:
+   * 
+   * <pre>
+   * {@code (ZoomHistory) chartPanel.getClientProperty(ZoomHistory.PROPERTY_NAME)}
+   * </pre>
+   * 
+   * @param cp
+   * @param maxSize
+   */
+  public ZoomHistory(ChartViewWrapper cp, int maxSize) {
     super(cp);
-    cp.putClientProperty(PROPERTY_NAME, this);
+    cp.setZoomHistory(this);
     history = new LinkedList<Range[]>();
     // max
     this.maxSize = maxSize;
   }
 
   @Override
-  public void axesRangeChanged(ChartPanel chart, ValueAxis axis, Range lastR, Range newR) {
+  public void axesRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR, Range newR) {
     // ranges
     Range dom = chart.getChart().getXYPlot().getDomainAxis().getRange();
     Range ran = chart.getChart().getXYPlot().getRangeAxis().getRange();

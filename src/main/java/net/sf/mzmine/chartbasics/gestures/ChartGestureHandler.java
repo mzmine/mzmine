@@ -241,13 +241,12 @@ public class ChartGestureHandler {
         break;
       case PREVIOUS_ZOOM_HISTORY:
         newHandler = e -> {
-          Object o = e.getChartPanel().getClientProperty(ZoomHistory.PROPERTY_NAME);
-          if (o != null && o instanceof ZoomHistory) {
-            ZoomHistory h = (ZoomHistory) o;
+          ZoomHistory h = e.getChartWrapper().getZoomHistory();
+          if (h != null) {
             Range[] range = h.setPreviousPoint();
             if (range != null && range.length > 0 && range[0] != null) {
-              ValueAxis dom = e.getChartPanel().getChart().getXYPlot().getDomainAxis();
-              ValueAxis ran = e.getChartPanel().getChart().getXYPlot().getRangeAxis();
+              ValueAxis dom = e.getChart().getXYPlot().getDomainAxis();
+              ValueAxis ran = e.getChart().getXYPlot().getRangeAxis();
               ChartLogics.setZoomAxis(dom, range[0]);
               ChartLogics.setZoomAxis(ran, range[1]);
             }
@@ -256,13 +255,12 @@ public class ChartGestureHandler {
         break;
       case NEXT_ZOOM_HISTORY:
         newHandler = e -> {
-          Object o = e.getChartPanel().getClientProperty(ZoomHistory.PROPERTY_NAME);
-          if (o != null && o instanceof ZoomHistory) {
-            ZoomHistory h = (ZoomHistory) o;
+          ZoomHistory h = e.getChartWrapper().getZoomHistory();
+          if (h != null) {
             Range[] range = h.setNextPoint();
             if (range != null && range.length > 0 && range[0] != null) {
-              ValueAxis dom = e.getChartPanel().getChart().getXYPlot().getDomainAxis();
-              ValueAxis ran = e.getChartPanel().getChart().getXYPlot().getRangeAxis();
+              ValueAxis dom = e.getChart().getXYPlot().getDomainAxis();
+              ValueAxis ran = e.getChart().getXYPlot().getRangeAxis();
               ChartLogics.setZoomAxis(dom, range[0]);
               ChartLogics.setZoomAxis(ran, range[1]);
             }

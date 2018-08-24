@@ -25,12 +25,12 @@ import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.util.io.ClipboardWriter;
 
 
-public class MenuExportToClipboard extends JMenuItem implements MenuExport {
+public class JMenuExportToClipboard extends JMenuItem implements MenuExport {
   private static final long serialVersionUID = 1L;
 
   private EChartPanel chart;
 
-  public MenuExportToClipboard(String menuTitle, EChartPanel chart) {
+  public JMenuExportToClipboard(String menuTitle, EChartPanel chart) {
     super(menuTitle);
     this.chart = chart;
     this.addActionListener(new ActionListener() {

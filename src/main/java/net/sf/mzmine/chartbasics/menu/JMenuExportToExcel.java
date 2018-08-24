@@ -31,13 +31,13 @@ import net.sf.mzmine.util.files.FileAndPathUtil;
 import net.sf.mzmine.util.io.XSSFExcelWriterReader;
 
 
-public class MenuExportToExcel extends JMenuItem implements MenuExport {
+public class JMenuExportToExcel extends JMenuItem implements MenuExport {
   private static final long serialVersionUID = 1L;
 
   private XSSFExcelWriterReader excelWriter;
   private EChartPanel chart;
 
-  public MenuExportToExcel(XSSFExcelWriterReader excelWriter, String menuTitle, EChartPanel chart) {
+  public JMenuExportToExcel(XSSFExcelWriterReader excelWriter, String menuTitle, EChartPanel chart) {
     super(menuTitle);
     this.excelWriter = excelWriter;
     this.chart = chart;
