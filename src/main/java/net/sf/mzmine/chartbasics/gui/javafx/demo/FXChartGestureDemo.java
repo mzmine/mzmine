@@ -31,16 +31,6 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import net.sf.mzmine.chartbasics.gui.javafx.EChartViewer;
 
-/**
- * A demo showing the display of JFreeChart within a JavaFX application. Note that this demo is for
- * illustration only...the JFreeChart distribution (from version 1.0.18 onwards) incorporates
- * FXGraphics2D directly and provides a {@code ChartViewer} control that supports tooltips, panning,
- * zooming, mouse events and a context menu.
- * 
- * The ChartCanvas code is based on:
- * http://dlemmermann.wordpress.com/2014/04/10/javafx-tip-1-resizable-canvas/
- * 
- */
 public class FXChartGestureDemo extends Application {
 
   @Override
