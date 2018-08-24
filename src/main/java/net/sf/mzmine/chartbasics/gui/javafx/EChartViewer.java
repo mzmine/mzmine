@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.javafx;
+package net.sf.mzmine.chartbasics.gui.javafx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,13 +40,13 @@ import javafx.scene.control.MenuItem;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.interf.GestureHandlerFactory;
 import net.sf.mzmine.chartbasics.graphicsexport.GraphicsExportDialog;
-import net.sf.mzmine.chartbasics.javafx.menu.MenuExportToClipboard;
-import net.sf.mzmine.chartbasics.javafx.menu.MenuExportToExcel;
+import net.sf.mzmine.chartbasics.gui.javafx.menu.MenuExportToClipboard;
+import net.sf.mzmine.chartbasics.gui.javafx.menu.MenuExportToExcel;
+import net.sf.mzmine.chartbasics.gui.swing.ChartGestureMouseAdapter;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 import net.sf.mzmine.chartbasics.listener.AxesRangeChangedListener;
 import net.sf.mzmine.chartbasics.listener.AxisRangeChangedListener;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
-import net.sf.mzmine.chartbasics.swing.ChartGestureMouseAdapter;
-import net.sf.mzmine.chartbasics.wrapper.ChartViewWrapper;
 import net.sf.mzmine.util.io.XSSFExcelWriterReader;
 
 /**

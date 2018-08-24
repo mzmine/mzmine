@@ -22,7 +22,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.AxisChangeEvent;
 import org.jfree.chart.event.AxisChangeListener;
 import org.jfree.data.Range;
-import net.sf.mzmine.chartbasics.wrapper.ChartViewWrapper;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 
 /**
  * Listener for multiple axes

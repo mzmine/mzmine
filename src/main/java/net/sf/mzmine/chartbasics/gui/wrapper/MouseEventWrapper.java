@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.wrapper;
+package net.sf.mzmine.chartbasics.gui.wrapper;
 
 import java.awt.Component;
 import java.awt.Toolkit;

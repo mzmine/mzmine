@@ -23,7 +23,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.data.Range;
-import net.sf.mzmine.chartbasics.wrapper.ChartViewWrapper;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 
 /**
  * The ZoomHistory stores all zoom states which are active for at least 1 second. It allows to jump

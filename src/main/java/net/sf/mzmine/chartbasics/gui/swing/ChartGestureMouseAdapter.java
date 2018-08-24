@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.swing;
+package net.sf.mzmine.chartbasics.gui.swing;
 
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;

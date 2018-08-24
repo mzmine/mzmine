@@ -45,8 +45,8 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
-import net.sf.mzmine.chartbasics.swing.EChartPanel;
 import net.sf.mzmine.main.MZmineCore;
 
 public class AlignmentRansacPlot extends EChartPanel {

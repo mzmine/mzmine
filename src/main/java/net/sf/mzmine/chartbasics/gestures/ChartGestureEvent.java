@@ -33,9 +33,9 @@ import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
-import net.sf.mzmine.chartbasics.swing.ChartGestureMouseAdapter;
-import net.sf.mzmine.chartbasics.wrapper.ChartViewWrapper;
-import net.sf.mzmine.chartbasics.wrapper.MouseEventWrapper;
+import net.sf.mzmine.chartbasics.gui.swing.ChartGestureMouseAdapter;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
+import net.sf.mzmine.chartbasics.gui.wrapper.MouseEventWrapper;
 
 /**
  * {@link ChartGesture}s are part of {@link ChartGestureEvent} which are generated and processed by

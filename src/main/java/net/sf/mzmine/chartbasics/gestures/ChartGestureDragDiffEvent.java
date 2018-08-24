@@ -21,7 +21,7 @@ package net.sf.mzmine.chartbasics.gestures;
 import org.jfree.chart.axis.ValueAxis;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler.Orientation;
-import net.sf.mzmine.chartbasics.wrapper.ChartViewWrapper;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 
 /**
  * This event gets consumed by a {@link ChartGestureDragDiffHandler}

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.wrapper;
+package net.sf.mzmine.chartbasics.gui.wrapper;
 
 import java.awt.geom.Point2D;
 import org.jfree.chart.ChartPanel;
@@ -25,9 +25,9 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.fx.ChartViewer;
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.ChartLogicsFX;
-import net.sf.mzmine.chartbasics.javafx.EChartViewer;
+import net.sf.mzmine.chartbasics.gui.javafx.EChartViewer;
+import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
-import net.sf.mzmine.chartbasics.swing.EChartPanel;
 
 public class ChartViewWrapper {
 

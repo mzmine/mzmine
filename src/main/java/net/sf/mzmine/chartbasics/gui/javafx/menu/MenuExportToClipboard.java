@@ -16,29 +16,23 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.swing.menu;
+package net.sf.mzmine.chartbasics.gui.javafx.menu;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.JMenuItem;
-import net.sf.mzmine.chartbasics.swing.EChartPanel;
+import javafx.scene.control.MenuItem;
+import net.sf.mzmine.chartbasics.gui.javafx.EChartViewer;
+import net.sf.mzmine.chartbasics.gui.swing.menu.MenuExport;
 import net.sf.mzmine.util.io.ClipboardWriter;
 
 
-public class JMenuExportToClipboard extends JMenuItem implements MenuExport {
+public class MenuExportToClipboard extends MenuItem implements MenuExport {
   private static final long serialVersionUID = 1L;
 
-  private EChartPanel chart;
+  private EChartViewer chart;
 
-  public JMenuExportToClipboard(String menuTitle, EChartPanel chart) {
+  public MenuExportToClipboard(String menuTitle, EChartViewer chart) {
     super(menuTitle);
     this.chart = chart;
-    this.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        exportDataToClipboard();
-      }
-    });
+    setOnAction(e -> exportDataToClipboard());
   }
 
   public void exportDataToClipboard() {

@@ -34,8 +34,8 @@ import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler.Orientatio
 import net.sf.mzmine.chartbasics.gestures.interf.GestureHandlerFactory;
 import net.sf.mzmine.chartbasics.gestures.standard.DragGestureHandlerDef;
 import net.sf.mzmine.chartbasics.gestures.standard.GestureHandlerDef;
+import net.sf.mzmine.chartbasics.gui.wrapper.MouseEventWrapper;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
-import net.sf.mzmine.chartbasics.wrapper.MouseEventWrapper;
 
 /**
  * The handler processes {@link ChartGestureEvent}s in a {@link Consumer}. Pre-defined handlers and

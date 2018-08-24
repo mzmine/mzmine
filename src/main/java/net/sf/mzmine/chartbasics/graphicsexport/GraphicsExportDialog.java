@@ -50,7 +50,7 @@ import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.chartthemes.ChartThemeFactory;
 import net.sf.mzmine.chartbasics.chartthemes.ChartThemeParameters;
 import net.sf.mzmine.chartbasics.chartthemes.EStandardChartTheme;
-import net.sf.mzmine.chartbasics.swing.EChartPanel;
+import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.framework.fontspecs.FontSpecs;
 import net.sf.mzmine.framework.fontspecs.JFontSpecs;
 import net.sf.mzmine.parameters.Parameter;

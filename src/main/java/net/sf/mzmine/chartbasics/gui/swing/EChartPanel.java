@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.swing;
+package net.sf.mzmine.chartbasics.gui.swing;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,12 +41,12 @@ import org.jfree.data.xy.XYZDataset;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.interf.GestureHandlerFactory;
 import net.sf.mzmine.chartbasics.graphicsexport.ChartExportUtil;
+import net.sf.mzmine.chartbasics.gui.swing.menu.JMenuExportToClipboard;
+import net.sf.mzmine.chartbasics.gui.swing.menu.JMenuExportToExcel;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 import net.sf.mzmine.chartbasics.listener.AxesRangeChangedListener;
 import net.sf.mzmine.chartbasics.listener.AxisRangeChangedListener;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
-import net.sf.mzmine.chartbasics.swing.menu.JMenuExportToClipboard;
-import net.sf.mzmine.chartbasics.swing.menu.JMenuExportToExcel;
-import net.sf.mzmine.chartbasics.wrapper.ChartViewWrapper;
 import net.sf.mzmine.util.io.XSSFExcelWriterReader;
 
 /**

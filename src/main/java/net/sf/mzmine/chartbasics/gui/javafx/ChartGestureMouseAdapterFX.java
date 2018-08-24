@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.javafx;
+package net.sf.mzmine.chartbasics.gui.javafx;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -39,8 +39,8 @@ import net.sf.mzmine.chartbasics.gestures.ChartGestureEvent;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler.DragHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler.Handler;
-import net.sf.mzmine.chartbasics.wrapper.ChartViewWrapper;
-import net.sf.mzmine.chartbasics.wrapper.MouseEventWrapper;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
+import net.sf.mzmine.chartbasics.gui.wrapper.MouseEventWrapper;
 
 /**
  * Handles drag zooming of charts on a {@link ChartCanvas}. This handler should be configured with
