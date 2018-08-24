@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -183,8 +183,8 @@ public class MZmineModulesList {
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
       ThreeDVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
-      MZDistributionHistoModule.class, PeakListTableModule.class, IsotopePatternExportModule.class, MSMSExportModule.class,
-      ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
+      MZDistributionHistoModule.class, PeakListTableModule.class, IsotopePatternExportModule.class,
+      MSMSExportModule.class, ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
       InfoVisualizerModule.class, IntensityPlotModule.class, KendrickMassPlotModule.class,
       VanKrevelenDiagramModule.class,
 

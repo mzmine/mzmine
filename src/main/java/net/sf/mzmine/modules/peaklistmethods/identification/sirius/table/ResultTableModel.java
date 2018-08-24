@@ -3,18 +3,17 @@
  *
  * This file is part of MZmine 2.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
@@ -29,8 +28,8 @@ import net.sf.mzmine.main.MZmineCore;
 public class ResultTableModel extends AbstractTableModel {
 
   private static final long serialVersionUID = 1L;
-  private static final String[] columnNames = {"Name",
-      "Formula", "DBs", "Sirius score", "FingerId Score", "Chemical structure"};
+  private static final String[] columnNames =
+      {"Name", "Formula", "DBs", "Sirius score", "FingerId Score", "Chemical structure"};
   public static final int NAME_INDEX = 0;
   public static final int FORMULA_INDEX = 1;
   public static final int DBS_INDEX = 2;
@@ -66,8 +65,9 @@ public class ResultTableModel extends AbstractTableModel {
   }
 
   /**
-   * There was used Double.class for score fields, but it did not work properly
-   * Now it processes Double values from String
+   * There was used Double.class for score fields, but it did not work properly Now it processes
+   * Double values from String
+   * 
    * @param column
    * @return
    */
@@ -85,6 +85,7 @@ public class ResultTableModel extends AbstractTableModel {
 
   /**
    * Returns an object from a row by column
+   * 
    * @param row index
    * @param col index
    * @return Object from a SiriusCompound

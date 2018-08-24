@@ -3,18 +3,17 @@
  *
  * This file is part of MZmine 2.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
@@ -43,8 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class SpectrumScanner
- * Allows to process Feature objects (peaks) and return appropriate objects for SiriusIdentificationMethod
+ * Class SpectrumScanner Allows to process Feature objects (peaks) and return appropriate objects
+ * for SiriusIdentificationMethod
  */
 public class SpectrumScanner {
   private static final Logger logger = LoggerFactory.getLogger(SpectrumScanner.class);
@@ -60,9 +59,11 @@ public class SpectrumScanner {
 
   /**
    * Constructor for SpectrumScanner
+   * 
    * @param row
    */
-  public SpectrumScanner(@Nonnull PeakListRow row, String massListName) throws MethodRuntimeException {
+  public SpectrumScanner(@Nonnull PeakListRow row, String massListName)
+      throws MethodRuntimeException {
     this.row = row;
     this.massListName = massListName;
     ms1list = new LinkedList<>();
@@ -74,10 +75,11 @@ public class SpectrumScanner {
 
   /**
    * Function taken from SiriusExportTask class, getFragmentScans()
+   * 
    * @param rawDataFiles
    * @return
    */
-  private HashMap<String,int[]> getFragmentScans(RawDataFile[] rawDataFiles) {
+  private HashMap<String, int[]> getFragmentScans(RawDataFile[] rawDataFiles) {
     final HashMap<String, int[]> fragmentScans = new HashMap<>();
     for (RawDataFile r : rawDataFiles) {
       int[] scans = new int[0];
@@ -97,10 +99,10 @@ public class SpectrumScanner {
 
 
   /**
-   * Method processes a row and constructs CENTROIDED MS1 and MS2 lists
-   * 1) Check existence of IsotopePattern
-   * 2) Go through scans, receive data points according to Mass List name.
-   * 3) Submit points into a new MsSpectrum
+   * Method processes a row and constructs CENTROIDED MS1 and MS2 lists 1) Check existence of
+   * IsotopePattern 2) Go through scans, receive data points according to Mass List name. 3) Submit
+   * points into a new MsSpectrum
+   * 
    * @throws MethodRuntimeException
    */
   private void processRow() throws MethodRuntimeException {
@@ -114,8 +116,8 @@ public class SpectrumScanner {
     }
 
     /*
-      Process features, retrieve scans and write spectra. Only MS level 2.
-      Code taken from SiriusExportTask -> exportPeakListRow(...)
+     * Process features, retrieve scans and write spectra. Only MS level 2. Code taken from
+     * SiriusExportTask -> exportPeakListRow(...)
      */
     for (Feature f : row.getPeaks()) {
       final int[] scanNumbers = f.getScanNumbers().clone();
@@ -123,27 +125,32 @@ public class SpectrumScanner {
       int[] fs = fragmentScans.get(f.getDataFile().getName());
       int startWith = scanNumbers[0];
       int j = Arrays.binarySearch(fs, startWith);
-      if (j < 0) j = (-j - 1);
+      if (j < 0)
+        j = (-j - 1);
       for (int k = j; k < fs.length; ++k) {
         final Scan scan = f.getDataFile().getScan(fs[k]);
         if (scan.getMSLevel() > 1 && Math.abs(scan.getPrecursorMZ() - f.getMZ()) < 0.1) {
           /* Parse MS1 level scans */
-          if (includeMs1) { // todo: think about non-existence, find out best ms1 scan with largest intensity.
+          if (includeMs1) { // todo: think about non-existence, find out best ms1 scan with largest
+                            // intensity.
             // find precursor scan
             int prec = Arrays.binarySearch(scanNumbers, fs[k]);
-            if (prec < 0) prec = -prec - 1;
+            if (prec < 0)
+              prec = -prec - 1;
             prec = Math.max(0, prec - 1);
             for (; prec < scanNumbers.length && scanNumbers[prec] < fs[k]; ++prec) {
               final Scan precursorScan = f.getDataFile().getScan(scanNumbers[prec]);
               if (precursorScan.getMSLevel() == 1) {
                 MassList massList = precursorScan.getMassList(massListName);
                 if (massList == null) {
-                  logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}", massListName, scan.getScanNumber(), row.getID());
-//                  throw new MethodRuntimeException("There are no scans for this Mass List");
+                  logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}",
+                      massListName, scan.getScanNumber(), row.getID());
+                  // throw new MethodRuntimeException("There are no scans for this Mass List");
                   continue;
                 }
                 DataPoint[] points = massList.getDataPoints();
-                if (points.length == 0) continue;
+                if (points.length == 0)
+                  continue;
                 ms1list.add(buildSpectrum(points));
               }
             }
@@ -152,12 +159,14 @@ public class SpectrumScanner {
           /* Parse ms2 level scans */
           MassList massList = scan.getMassList(massListName);
           if (massList == null) {
-            logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}", massListName, scan.getScanNumber(), row.getID());
-//            throw new MethodRuntimeException("There are no scans for this Mass List");
+            logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}", massListName,
+                scan.getScanNumber(), row.getID());
+            // throw new MethodRuntimeException("There are no scans for this Mass List");
             continue;
           }
           DataPoint[] points = massList.getDataPoints();
-          if (points.length == 0) continue;
+          if (points.length == 0)
+            continue;
           ms2list.add(buildSpectrum(points));
         }
       }
@@ -166,6 +175,7 @@ public class SpectrumScanner {
 
   /**
    * Process RawDataFile and return list with one MsSpectrum of level 1.
+   * 
    * @return MS spectra list
    */
   public List<MsSpectrum> getMsList() {
@@ -176,6 +186,7 @@ public class SpectrumScanner {
 
   /**
    * Process RawDataFile and return list with one MsSpectrum of level 2.
+   * 
    * @return MSMS spectra list
    */
   public List<MsSpectrum> getMsMsList() {
@@ -190,6 +201,7 @@ public class SpectrumScanner {
 
   /**
    * Construct MsSpectrum object from DataPoint array
+   * 
    * @param points MZ/Intensity pairs
    * @return new MsSpectrum
    */
@@ -209,7 +221,8 @@ public class SpectrumScanner {
     } catch (MSDKRuntimeException f) {
       // m/z values must be sorted in ascending order Exception
       logger.debug("Unsorted sequence appeared on row id = {}", row.getID());
-      DataPointSorter.sortDataPoints(mz, intensity, points.length, SortingProperty.MZ, SortingDirection.ASCENDING);
+      DataPointSorter.sortDataPoints(mz, intensity, points.length, SortingProperty.MZ,
+          SortingDirection.ASCENDING);
       spectrum.setDataPoints(mz, intensity, points.length);
       return spectrum;
     }

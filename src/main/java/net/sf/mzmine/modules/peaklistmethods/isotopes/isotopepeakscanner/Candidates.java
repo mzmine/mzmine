@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -165,7 +165,7 @@ public class Candidates {
 
   /**
    * 
-   * @param index 
+   * @param index
    * @return returns average intensity of a single peak. -1.0 if calculation failed.
    */
   public double getAvgHeight(int index) {

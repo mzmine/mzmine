@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,7 +25,8 @@ import net.sf.mzmine.datamodel.PeakListRow;
 
 /**
  * This class is used to calculate ratings and store the peak with the best rating. Intensities and
- * m/z are either taken directly from the peakListRow or given to this class by the Candidates class.
+ * m/z are either taken directly from the peakListRow or given to this class by the Candidates
+ * class.
  * 
  *
  */

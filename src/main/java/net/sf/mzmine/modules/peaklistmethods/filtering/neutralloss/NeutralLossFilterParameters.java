@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -55,18 +55,19 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
       "Minimum peak height to be considered as an isotope peak.",
       NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
 
-  public static final DoubleParameter neutralLoss =
-      new DoubleParameter("Neutral loss (m/z)", "Enter exact mass of neutral loss.",
-          NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
-  
-  public static final StringParameter molecule =
-      new StringParameter("Molecule", "String of a neutral loss compound (e.g. HI). If this textbox is not empty, the \"Neutral loss\" field will be ignored.", "");
-  
-  public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name. If \"auto\" then this module will create a suffix.", "auto");
+  public static final DoubleParameter neutralLoss = new DoubleParameter("Neutral loss (m/z)",
+      "Enter exact mass of neutral loss.", NumberFormat.getNumberInstance(Locale.ENGLISH), 0.0);
+
+  public static final StringParameter molecule = new StringParameter("Molecule",
+      "String of a neutral loss compound (e.g. HI). If this textbox is not empty, the \"Neutral loss\" field will be ignored.",
+      "");
+
+  public static final StringParameter suffix = new StringParameter("Name suffix",
+      "Suffix to be added to peak list name. If \"auto\" then this module will create a suffix.",
+      "auto");
 
   public NeutralLossFilterParameters() {
-    super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, minHeight, neutralLoss, molecule,
-        suffix});
+    super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, minHeight, neutralLoss,
+        molecule, suffix});
   }
 }

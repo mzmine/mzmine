@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -52,7 +52,7 @@ import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 /**
- * This module will scan for neutral losses in a very similar way to IsotopePeakScanner. 
+ * This module will scan for neutral losses in a very similar way to IsotopePeakScanner.
  *
  */
 public class NeutralLossFilterTask extends AbstractTask {
@@ -119,10 +119,11 @@ public class NeutralLossFilterTask extends AbstractTask {
       return;
     }
     if (suffix.equals("auto")) {
-      if(molecule.equals(""))
-          suffix = " NL: " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + "_results";
+      if (molecule.equals(""))
+        suffix = " NL: " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + "_results";
       else
-        suffix = " NL (" + molecule + "): " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + "_results";
+        suffix = " NL (" + molecule + "): " + dMassLoss + " RTtol: " + rtTolerance.getTolerance()
+            + "_results";
     }
 
     // get all rows and sort by m/z
@@ -233,7 +234,8 @@ public class NeutralLossFilterTask extends AbstractTask {
         addComment(child,
             " m/z shift(ppm): "
                 + round(((parent.getAverageMZ() - child.getAverageMZ()) - diff.get(1))
-                    / parent.getAverageMZ() * 1E6, 2) + " ");
+                    / parent.getAverageMZ() * 1E6, 2)
+                + " ");
 
         resultMap.addRow(parent);
       }
@@ -374,7 +376,8 @@ public class NeutralLossFilterTask extends AbstractTask {
    * @param row PeakListRow to add the comment to
    * @param str comment to be added
    */
-  public static void addComment(PeakListRow row, String str) {  // maybe add this to PeakListRow class?
+  public static void addComment(PeakListRow row, String str) { // maybe add this to PeakListRow
+                                                               // class?
     String current = row.getComment();
     if (current == null)
       row.setComment(str);

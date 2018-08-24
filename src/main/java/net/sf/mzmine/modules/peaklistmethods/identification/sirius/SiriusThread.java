@@ -3,18 +3,17 @@
  *
  * This file is part of MZmine 2.
  *
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  *
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
@@ -56,8 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * SiriusThread class
- * Allows to process PeakListIdentificationTask faster by subthreading it.
+ * SiriusThread class Allows to process PeakListIdentificationTask faster by subthreading it.
  */
 public class SiriusThread implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(SiriusThread.class);
@@ -84,24 +82,30 @@ public class SiriusThread implements Runnable {
 
   /**
    * Constructor for SiriusThread - initializes params
+   * 
    * @param row
    * @param semaphore
    * @param parameters
    * @param latch
    */
-  public SiriusThread(PeakListRow row, ParameterSet parameters, Semaphore semaphore, CountDownLatch latch) {
+  public SiriusThread(PeakListRow row, ParameterSet parameters, Semaphore semaphore,
+      CountDownLatch latch) {
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
     range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
-    siriusCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
-    fingeridCandidates = parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
-    siriusTimer = parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
+    siriusCandidates =
+        parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_AMOUNT).getValue();
+    fingeridCandidates =
+        parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
+    siriusTimer =
+        parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
     massListName = parameters.getParameter(MASS_LIST).getValue();
 
     this.semaphore = semaphore;
     this.row = row;
     this.latch = latch;
 
-    MZTolerance mzTolerance = parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
+    MZTolerance mzTolerance =
+        parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
     double mz = row.getAverageMZ();
     double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
     deviationPpm = (upperPoint - mz) / (mz * 1E-6);
@@ -133,14 +137,15 @@ public class SiriusThread implements Runnable {
     SiriusIdentificationMethod siriusMethod = null;
 
     /*
-      Code block below gives SiriusMethod specific amount of time to be executed,
-      if it expires -> log error and continue
-    */
+     * Code block below gives SiriusMethod specific amount of time to be executed, if it expires ->
+     * log error and continue
+     */
     try {
-      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list, row.getAverageMZ(),
-          siriusIon, siriusCandidates, constraints, deviationPpm);
+      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list,
+          row.getAverageMZ(), siriusIon, siriusCandidates, constraints, deviationPpm);
 
-      // On some spectra it may never stop (halting problem), that's why interruptable thread is used
+      // On some spectra it may never stop (halting problem), that's why interruptable thread is
+      // used
       final Future<List<IonAnnotation>> f = service.submit(() -> {
         return method.execute();
       });
@@ -156,7 +161,8 @@ public class SiriusThread implements Runnable {
         for (int index = 0; index < siriusCandidates; index++) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(index);
           try {
-            FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
+            FingerIdWebMethodTask task =
+                new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
             MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
             Thread.sleep(1000);
           } catch (InterruptedException interrupt) {
@@ -169,7 +175,7 @@ public class SiriusThread implements Runnable {
           }
         }
       }
-    } catch (InterruptedException|TimeoutException ie) {
+    } catch (InterruptedException | TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort. Row id = {}", row.getID());
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.  Row id = {}", row.getID());
@@ -180,9 +186,7 @@ public class SiriusThread implements Runnable {
   }
 
   /**
-   * Method for dealing with multithread resources
-   * 1) Release semaphore
-   * 2) Count down barrier
+   * Method for dealing with multithread resources 1) Release semaphore 2) Count down barrier
    */
   private void releaseResources() {
     latch.countDown();

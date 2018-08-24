@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -133,10 +133,10 @@ public class ChartExportUtil {
    * 
    * @param chart
    * @param sett
- * @param chartRenderingInfo 
+   * @param chartRenderingInfo
    */
-  private static void writeChartToImage(JFreeChart chart, GraphicsExportParameters sett, ChartRenderingInfo info)
-      throws Exception {
+  private static void writeChartToImage(JFreeChart chart, GraphicsExportParameters sett,
+      ChartRenderingInfo info) throws Exception {
     // Background color
     Paint saved = chart.getBackgroundPaint();
     chart.setBackgroundPaint(sett.getColorWithAlpha());
@@ -237,20 +237,20 @@ public class ChartExportUtil {
 
   // ######################################################################################
   // PIXELS: JPG PNG
-  public static void writeChartToPNG(JFreeChart chart, ChartRenderingInfo info, int width, int height, File fileName)
-      throws IOException {
+  public static void writeChartToPNG(JFreeChart chart, ChartRenderingInfo info, int width,
+      int height, File fileName) throws IOException {
     ChartUtils.saveChartAsPNG(fileName, chart, width, height, info);
   }
 
-  public static void writeChartToPNG(JFreeChart chart, ChartRenderingInfo info, int width, int height, File fileName,
-      int resolution) throws IOException {
+  public static void writeChartToPNG(JFreeChart chart, ChartRenderingInfo info, int width,
+      int height, File fileName, int resolution) throws IOException {
     if (resolution == 72)
       writeChartToPNG(chart, info, width, height, fileName);
     else {
       OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName));
       try {
-        BufferedImage image = paintScaledChartToBufferedImage(chart, info, out, width, height, resolution,
-            BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image = paintScaledChartToBufferedImage(chart, info, out, width, height,
+            resolution, BufferedImage.TYPE_INT_ARGB);
         out.write(ChartUtils.encodeAsPNG(image));
       } finally {
         out.close();
@@ -263,8 +263,8 @@ public class ChartExportUtil {
     ChartUtils.saveChartAsJPEG(fileName, chart, width, height);
   }
 
-  public static void writeChartToJPEG(JFreeChart chart, ChartRenderingInfo info, int width, int height, File fileName,
-      int resolution) throws IOException {
+  public static void writeChartToJPEG(JFreeChart chart, ChartRenderingInfo info, int width,
+      int height, File fileName, int resolution) throws IOException {
     // Background color
     Paint saved = chart.getBackgroundPaint();
     if (((Color) saved).getAlpha() == 0) {
@@ -286,8 +286,8 @@ public class ChartExportUtil {
     else {
       OutputStream out = new BufferedOutputStream(new FileOutputStream(fileName));
       try {
-        BufferedImage image = paintScaledChartToBufferedImage(chart, info, out, width, height, resolution,
-            BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = paintScaledChartToBufferedImage(chart, info, out, width, height,
+            resolution, BufferedImage.TYPE_INT_RGB);
         EncoderUtil.writeBufferedImage(image, ImageFormat.JPEG, out, 1.f);
       } finally {
         out.close();
@@ -300,7 +300,7 @@ public class ChartExportUtil {
    * Paints a chart with scaling options
    * 
    * @param chart
- * @param info 
+   * @param info
    * @param out
    * @param width
    * @param height
@@ -308,8 +308,9 @@ public class ChartExportUtil {
    * @return BufferedImage of a given chart with scaling to resolution
    * @throws IOException
    */
-  private static BufferedImage paintScaledChartToBufferedImage(JFreeChart chart, ChartRenderingInfo info, OutputStream out,
-      int width, int height, int resolution, int bufferedIType) throws IOException {
+  private static BufferedImage paintScaledChartToBufferedImage(JFreeChart chart,
+      ChartRenderingInfo info, OutputStream out, int width, int height, int resolution,
+      int bufferedIType) throws IOException {
     Args.nullNotPermitted(out, "out");
     Args.nullNotPermitted(chart, "chart");
 

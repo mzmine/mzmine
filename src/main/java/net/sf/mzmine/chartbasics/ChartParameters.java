@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -77,7 +77,7 @@ public class ChartParameters extends SimpleParameterSet {
 
 
   public ChartParameters() {
-    super(new Parameter[] {showLegends, showTitle, changeTitle, xlabel, ylabel,color, masterFont,
+    super(new Parameter[] {showLegends, showTitle, changeTitle, xlabel, ylabel, color, masterFont,
         titleFont, captionFont, labelFont, xGridPaint, yGridPaint, showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
@@ -102,7 +102,7 @@ public class ChartParameters extends SimpleParameterSet {
     Color gbColor = this.getParameter(ChartParameters.color).getValue();
     chart.setBackgroundPaint(gbColor);
     chart.getPlot().setBackgroundPaint(gbColor);
-    
+
     if (changeTitle)
       chart.setTitle(title);
     chart.getTitle().setVisible(showTitle);
@@ -150,12 +150,12 @@ public class ChartParameters extends SimpleParameterSet {
     FontSpecs large = this.getParameter(ChartParameters.titleFont).getValue();
     FontSpecs medium = this.getParameter(ChartParameters.captionFont).getValue();
     FontSpecs small = this.getParameter(ChartParameters.labelFont).getValue();
-    
+
     Color gbColor = this.getParameter(ChartParameters.color).getValue();
 
     theme.setChartBackgroundPaint(gbColor);
     theme.setPlotBackgroundPaint(gbColor);
-    
+
     theme.setMasterFont(master.getFont());
     theme.setExtraLargeFont(large.getFont());
     theme.setLargeFont(medium.getFont());

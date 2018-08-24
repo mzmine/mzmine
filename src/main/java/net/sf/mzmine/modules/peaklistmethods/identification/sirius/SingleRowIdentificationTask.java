@@ -113,9 +113,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
     double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
     deviationPpm = (upperPoint - mz) / (mz * 1E-6);
 
-    timerErrorMessage = String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n", parentMass) +
-        "Reinitialize the task with larger Sirius Timer value.";
-    siriusErrorMessage = String.format("Sirius failed to predict compounds from row with id = %d", peakListRow.getID());
+    timerErrorMessage =
+        String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
+            parentMass) + "Reinitialize the task with larger Sirius Timer value.";
+    siriusErrorMessage = String.format("Sirius failed to predict compounds from row with id = %d",
+        peakListRow.getID());
   }
 
   /**
@@ -127,7 +129,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     else if (fingerTasks != null) {
       int amount = fingerTasks.size();
       double value = 0;
-      for (FingerIdWebMethodTask t: fingerTasks)
+      for (FingerIdWebMethodTask t : fingerTasks)
         value += t.getFinishedPercentage();
       value /= amount;
 
@@ -163,8 +165,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
       }
     } catch (MethodRuntimeException f) {
       showErrorAndCancel(window, String.format("Empty Mass List for %.2f", parentMass),
-          "There is no MS2 scans that have a given precursor mass.\n" +
-      "MS1 and MS2 lists are empty.\nCheck the Mass List field.");
+          "There is no MS2 scans that have a given precursor mass.\n"
+              + "MS1 and MS2 lists are empty.\nCheck the Mass List field.");
       return;
     }
 
@@ -186,7 +188,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
       });
       siriusResults = f.get(timer, TimeUnit.SECONDS);
       siriusMethod = method;
-    } catch (InterruptedException|TimeoutException ie) {
+    } catch (InterruptedException | TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
       showErrorAndCancel(window, "Timer expired", timerErrorMessage);
       return;
@@ -206,7 +208,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
         /* Create a new FingerIdWebTask for each Sirius result */
         for (IonAnnotation ia : siriusResults) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-          FingerIdWebMethodTask task = new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
+          FingerIdWebMethodTask task =
+              new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
           task.setLatch(latch);
           fingerTasks.add(task);
           MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
@@ -226,13 +229,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
     try {
       if (latch != null)
         latch.await();
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
     setStatus(TaskStatus.FINISHED);
   }
 
   private void showErrorAndCancel(ResultWindow window, String title, String msg) {
-    MZmineCore.getDesktop().displayErrorMessage(window, title,
-        msg);
+    MZmineCore.getDesktop().displayErrorMessage(window, title, msg);
     this.setStatus(TaskStatus.CANCELED);
   }
 }
