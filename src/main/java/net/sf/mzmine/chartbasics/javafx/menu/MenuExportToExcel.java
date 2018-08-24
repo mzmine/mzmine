@@ -27,7 +27,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import javafx.scene.control.MenuItem;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import net.sf.mzmine.chartbasics.javafx.charts.EChartCanvas;
+import net.sf.mzmine.chartbasics.javafx.charts.EChartViewer;
 import net.sf.mzmine.chartbasics.menu.MenuExport;
 import net.sf.mzmine.util.files.FileAndPathUtil;
 import net.sf.mzmine.util.io.XSSFExcelWriterReader;
@@ -40,10 +40,10 @@ public class MenuExportToExcel extends MenuItem implements MenuExport {
   private FileChooser fc;
 
   private XSSFExcelWriterReader excelWriter;
-  private EChartCanvas chart;
+  private EChartViewer chart;
 
   public MenuExportToExcel(XSSFExcelWriterReader excelWriter, String menuTitle,
-      EChartCanvas chart) {
+      EChartViewer chart) {
     super(menuTitle);
     this.excelWriter = excelWriter;
     this.chart = chart;

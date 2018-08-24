@@ -30,6 +30,8 @@ import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler.Handler;
  */
 public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
 
+  private ChartViewer chartViewer;
+  private ChartViewWrapper cw;
   private int lastEntityX = -1, lastEntityY = -1;
   private ChartEntity lastEntity = null;
   private ChartGestureEvent lastDragEvent = null;
@@ -48,8 +50,10 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
    * @param id the handler ID ({@code null} not permitted).
    * @param parent the chart viewer.
    */
-  public ChartGestureMouseAdapterFX(String id) {
+  public ChartGestureMouseAdapterFX(String id, ChartViewer chartViewer) {
     this.id = id;
+    this.chartViewer = chartViewer;
+    cw = new ChartViewWrapper(chartViewer);
   }
 
   @Override
@@ -167,16 +171,16 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
    * @param y
    * @return
    */
-  private ChartEntity findChartEntity(ChartCanvas chartPanel, MouseEventWrapper e) {
+  private ChartEntity findChartEntity(MouseEventWrapper e) {
     // TODO check if insets were needed
     // coordinates to find chart entities
-    int x = (int) ((e.getX()) / chartPanel.getScaleX());
-    int y = (int) ((e.getY()) / chartPanel.getScaleY());
+    int x = (int) ((e.getX()) / chartViewer.getCanvas().getScaleX());
+    int y = (int) ((e.getY()) / chartViewer.getCanvas().getScaleY());
 
     if (lastEntity != null && x == lastEntityX && y == lastEntityY)
       return lastEntity;
     else {
-      ChartRenderingInfo info = chartPanel.getRenderingInfo();
+      ChartRenderingInfo info = chartViewer.getCanvas().getRenderingInfo();
       ChartEntity entity = null;
       if (info != null) {
         EntityCollection entities = info.getEntityCollection();
@@ -220,8 +224,8 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
       return;
 
     MouseEventWrapper e = new MouseEventWrapper(eOrig);
-    ChartViewWrapper cw = new ChartViewWrapper(chartPanel);
-    ChartEntity entity = findChartEntity(chartPanel, e);
+    ChartViewWrapper cw = new ChartViewWrapper(chartViewer);
+    ChartEntity entity = findChartEntity(e);
     ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
     Button button = Button.getButton(e.getButton());
 
@@ -244,8 +248,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
       return;
 
     MouseEventWrapper e = new MouseEventWrapper(eOrig);
-    ChartViewWrapper cw = new ChartViewWrapper(chartPanel);
-    ChartEntity entity = findChartEntity(chartPanel, e);
+    ChartEntity entity = findChartEntity(e);
     ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
     Button button = Button.getButton(e.getButton());
 
@@ -276,9 +279,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
       return;
 
     MouseEventWrapper e = new MouseEventWrapper(eOrig);
-    ChartViewWrapper cw = new ChartViewWrapper(chartPanel);
-
-    ChartEntity entity = findChartEntity(chartPanel, e);
+    ChartEntity entity = findChartEntity(e);
     ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
     Button button = Button.getButton(e.getButton());
 
@@ -308,9 +309,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
       return;
 
     MouseEventWrapper e = new MouseEventWrapper(eOrig);
-    ChartViewWrapper cw = new ChartViewWrapper(chartPanel);
-
-    ChartEntity entity = findChartEntity(chartPanel, e);
+    ChartEntity entity = findChartEntity(e);
     ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
     Button button = Button.getButton(e.getButton());
     // handle event
@@ -332,7 +331,6 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
       return;
 
     MouseEventWrapper e = new MouseEventWrapper(eOrig);
-    ChartViewWrapper cw = new ChartViewWrapper(chartPanel);
     // keep the same chartEntity
     ChartEntity entity = lastDragEvent.getEntity();
     ChartGesture.Entity gestureEntity = lastDragEvent.getGesture().getEntity();
@@ -357,8 +355,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
       return;
 
     MouseEventWrapper e = new MouseEventWrapper(eOrig);
-    ChartViewWrapper cw = new ChartViewWrapper(chartPanel);
-    ChartEntity entity = findChartEntity(chartPanel, e);
+    ChartEntity entity = findChartEntity(e);
     ChartGesture.Entity gestureEntity = ChartGesture.getGestureEntity(entity);
     Button button = Button.getButton(e.getButton());
 

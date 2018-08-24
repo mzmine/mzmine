@@ -21,7 +21,7 @@ package net.sf.mzmine.chartbasics.listener;
 import java.util.LinkedList;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.fx.ChartCanvas;
+import org.jfree.chart.fx.ChartViewer;
 import org.jfree.data.Range;
 import net.sf.mzmine.chartbasics.javafx.mouse.ChartViewWrapper;
 
@@ -82,7 +82,7 @@ public class ZoomHistory extends AxesRangeChangedListener implements Runnable {
    * @param cp
    * @param maxSize
    */
-  public ZoomHistory(ChartCanvas cp, int maxSize) {
+  public ZoomHistory(ChartViewer cp, int maxSize) {
     this(new ChartViewWrapper(cp), maxSize);
   }
 

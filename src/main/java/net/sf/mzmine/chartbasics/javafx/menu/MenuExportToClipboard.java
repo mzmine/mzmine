@@ -19,7 +19,7 @@
 package net.sf.mzmine.chartbasics.javafx.menu;
 
 import javafx.scene.control.MenuItem;
-import net.sf.mzmine.chartbasics.javafx.charts.EChartCanvas;
+import net.sf.mzmine.chartbasics.javafx.charts.EChartViewer;
 import net.sf.mzmine.chartbasics.menu.MenuExport;
 import net.sf.mzmine.util.io.ClipboardWriter;
 
@@ -27,9 +27,9 @@ import net.sf.mzmine.util.io.ClipboardWriter;
 public class MenuExportToClipboard extends MenuItem implements MenuExport {
   private static final long serialVersionUID = 1L;
 
-  private EChartCanvas chart;
+  private EChartViewer chart;
 
-  public MenuExportToClipboard(String menuTitle, EChartCanvas chart) {
+  public MenuExportToClipboard(String menuTitle, EChartViewer chart) {
     super(menuTitle);
     this.chart = chart;
     setOnAction(e -> exportDataToClipboard());

@@ -46,7 +46,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import net.sf.mzmine.chartbasics.javafx.charts.EChartCanvas;
+import net.sf.mzmine.chartbasics.javafx.charts.EChartViewer;
 
 /**
  * A demo showing the display of JFreeChart within a JavaFX application. Note that this demo is for
@@ -65,13 +65,13 @@ public class FXGraphics2DDemo1 extends Application {
     XYDataset dataset = createDataset();
     JFreeChart chart = createChart(dataset);
     // ChartViewer viewer = new ChartViewer(chart, true);
-    EChartCanvas canvas = new EChartCanvas(chart);
+    EChartViewer canvas = new EChartViewer(chart);
     StackPane stackPane = new StackPane();
     stackPane.getChildren().add(canvas);
     // stackPane.getChildren().add(canvas);
     // Bind canvas size to stack pane size.
-    canvas.widthProperty().bind(stackPane.widthProperty());
-    canvas.heightProperty().bind(stackPane.heightProperty());
+    // canvas.widthProperty().bind(stackPane.widthProperty());
+    // canvas.heightProperty().bind(stackPane.heightProperty());
     stage.setScene(new Scene(stackPane));
     stage.setTitle("FXGraphics2DDemo1.java");
     stage.setWidth(700);

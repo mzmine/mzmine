@@ -26,7 +26,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.fx.ChartCanvas;
+import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.PlotOrientation;
 import javafx.scene.input.ScrollEvent;
 import net.sf.mzmine.chartbasics.ChartLogics;
@@ -62,12 +62,12 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
     this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
   }
 
-  public ChartGestureEvent(ChartCanvas cp, javafx.scene.input.MouseEvent mEvent, ChartEntity entity,
+  public ChartGestureEvent(ChartViewer cp, javafx.scene.input.MouseEvent mEvent, ChartEntity entity,
       ChartGesture gesture) {
     this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
   }
 
-  public ChartGestureEvent(ChartCanvas cp, ScrollEvent mEvent, ChartEntity entity,
+  public ChartGestureEvent(ChartViewer cp, ScrollEvent mEvent, ChartEntity entity,
       ChartGesture gesture) {
     this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
   }

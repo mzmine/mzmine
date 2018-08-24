@@ -4,30 +4,30 @@ import java.awt.geom.Point2D;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.fx.ChartCanvas;
+import org.jfree.chart.fx.ChartViewer;
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.ChartLogicsFX;
 import net.sf.mzmine.chartbasics.EChartPanel;
-import net.sf.mzmine.chartbasics.javafx.charts.EChartCanvas;
+import net.sf.mzmine.chartbasics.javafx.charts.EChartViewer;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 
 public class ChartViewWrapper {
 
   // only one is initialised
   private ChartPanel cp;
-  private ChartCanvas cc;
+  private ChartViewer cc;
 
   public ChartViewWrapper(ChartPanel cp) {
     super();
     this.cp = cp;
   }
 
-  public ChartViewWrapper(ChartCanvas cc) {
+  public ChartViewWrapper(ChartViewer cc) {
     super();
     this.cc = cc;
   }
 
-  public ChartCanvas getChartFX() {
+  public ChartViewer getChartFX() {
     return cc;
   }
 
@@ -67,8 +67,12 @@ public class ChartViewWrapper {
     if (cp != null)
       cp.setMouseZoomable(zoomable);
     else {
-      cc.setDomainZoomable(zoomable);
-      cc.setRangeZoomable(zoomable);
+      if (cc instanceof EChartViewer)
+        ((EChartViewer) cc).setMouseZoomable(zoomable);
+      else {
+        cc.getCanvas().setDomainZoomable(zoomable);
+        cc.getCanvas().setRangeZoomable(zoomable);
+      }
     }
   }
 
@@ -125,8 +129,8 @@ public class ChartViewWrapper {
       }
     } else {
       // fx TODO
-      if (cc instanceof EChartCanvas)
-        return ((EChartCanvas) cc).getZoomHistory();
+      if (cc instanceof EChartViewer)
+        return ((EChartViewer) cc).getZoomHistory();
       else
         return null;
     }
@@ -142,8 +146,8 @@ public class ChartViewWrapper {
     } else {
       // TODO
 
-      if (cc instanceof EChartCanvas)
-        ((EChartCanvas) cc).setZoomHistory(h);
+      if (cc instanceof EChartViewer)
+        ((EChartViewer) cc).setZoomHistory(h);
     }
 
   }

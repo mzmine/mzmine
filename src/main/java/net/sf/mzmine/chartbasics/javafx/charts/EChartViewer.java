@@ -1,7 +1,5 @@
 package net.sf.mzmine.chartbasics.javafx.charts;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -9,10 +7,9 @@ import java.util.logging.Logger;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.chart.fx.ChartCanvas;
-import org.jfree.chart.fx.interaction.ZoomHandlerFX;
+import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.fx.interaction.MouseHandlerFX;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.util.ExportUtils;
 import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
@@ -22,9 +19,6 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.ContextMenuEvent;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.FileChooser;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureMouseAdapter;
 import net.sf.mzmine.chartbasics.gestures.interf.GestureHandlerFactory;
@@ -38,17 +32,16 @@ import net.sf.mzmine.chartbasics.listener.AxisRangeChangedListener;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 import net.sf.mzmine.util.io.XSSFExcelWriterReader;
 
-public class EChartCanvas extends ChartCanvas {
+/**
+ * This is an extended version of the ChartViewer (JFreeChartFX). it Adds: ChartGestures (with a set
+ * of standard chart gestures), ZoomHistory, AxesRangeChangeListener, data export, graphics export,
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
+public class EChartViewer extends ChartViewer {
   private static final long serialVersionUID = 1L;
   private Logger logger = Logger.getLogger(this.getClass().getName());
-
-  // popup
-  protected ContextMenu menu;
-  /**
-   * The zoom rectangle is used to display the zooming region when doing a drag-zoom with the mouse.
-   * Most of the time this rectangle is not visible.
-   */
-  private Rectangle zoomRectangle;
 
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
@@ -67,7 +60,7 @@ public class EChartCanvas extends ChartCanvas {
    * 
    * @param chart
    */
-  public EChartCanvas(JFreeChart chart) {
+  public EChartViewer(JFreeChart chart) {
     this(chart, true, true, true, true, false);
   }
 
@@ -80,7 +73,7 @@ public class EChartCanvas extends ChartCanvas {
    * @param standardGestures adds the standard ChartGestureHandlers
    * @param dataExportMenu adds data export menu
    */
-  public EChartCanvas(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
+  public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures) {
     this(chart, graphicsExportMenu, dataExportMenu, standardGestures, false);
   }
@@ -94,7 +87,7 @@ public class EChartCanvas extends ChartCanvas {
    * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
-  public EChartCanvas(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
+  public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures, boolean stickyZeroForRangeAxis) {
     this(chart, graphicsExportMenu, dataExportMenu, standardGestures, true, stickyZeroForRangeAxis);
   }
@@ -108,7 +101,7 @@ public class EChartCanvas extends ChartCanvas {
    * @param standardGestures adds the standard ChartGestureHandlers
    * @param stickyZeroForRangeAxis
    */
-  public EChartCanvas(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
+  public EChartViewer(JFreeChart chart, boolean graphicsExportMenu, boolean dataExportMenu,
       boolean standardGestures, boolean addZoomHistory, boolean stickyZeroForRangeAxis) {
     super(null);
     this.stickyZeroForRangeAxis = stickyZeroForRangeAxis;
@@ -116,32 +109,9 @@ public class EChartCanvas extends ChartCanvas {
     this.addZoomHistory = addZoomHistory;
     setChart(chart);
 
-    // create menu and add basic graphics export
-    createMenu();
     // Add Export to Excel and graphics export menu
     if (graphicsExportMenu || dataExportMenu)
       addExportMenu(graphicsExportMenu, dataExportMenu);
-  }
-
-  private void createMenu() {
-    this.menu = new ContextMenu();
-    menu.setAutoHide(true);
-    Menu export = new Menu("Export graphics as");
-    addMenuItem(export, "PNG...", e -> handleExportToPNG());
-    addMenuItem(export, "JPEG...", e -> handleExportToJPEG());
-    if (ExportUtils.isOrsonPDFAvailable())
-      addMenuItem(export, "PDF...", e -> handleExportToPDF());
-    if (ExportUtils.isJFreeSVGAvailable())
-      addMenuItem(export, "SVG...", e -> handleExportToSVG());
-    addMenu(menu, export);
-    // finished add items
-
-    // show and hide
-    setOnContextMenuRequested((ContextMenuEvent event) -> {
-      menu.show(this.getScene().getWindow(), event.getScreenX(), event.getScreenY());
-    });
-    this.menu.setOnShowing(e -> setTooltipEnabled(false));
-    this.menu.setOnHiding(e -> setTooltipEnabled(true));
   }
 
   protected void addMenuItem(Menu parent, String title, EventHandler<ActionEvent> al) {
@@ -173,11 +143,11 @@ public class EChartCanvas extends ChartCanvas {
    * Y-Axis0
    */
   private void initChartPanel() {
-    final EChartCanvas chartPanel = this;
+    final EChartViewer chartPanel = this;
 
     // remove old init
     if (mouseAdapter != null) {
-      this.removeMouseHandler(mouseAdapter);
+      this.getCanvas().removeMouseHandler(mouseAdapter);
     }
 
     if (chartPanel.getChart().getPlot() instanceof XYPlot) {
@@ -227,15 +197,20 @@ public class EChartCanvas extends ChartCanvas {
       }
 
       // mouse adapter for scrolling and zooming
-      mouseAdapter = new ChartGestureMouseAdapterFX("gestures");
+      mouseAdapter = new ChartGestureMouseAdapterFX("gestures", this);
       // mouseAdapter.addDebugHandler();
-      this.addMouseHandler(mouseAdapter);
+      addMouseHandler(mouseAdapter);
 
       // add gestures
       if (standardGestures) {
         addStandardGestures();
       }
     }
+  }
+
+
+  public void addMouseHandler(MouseHandlerFX handler) {
+    this.getCanvas().addAuxiliaryMouseHandler(handler);
   }
 
   /**
@@ -259,7 +234,8 @@ public class EChartCanvas extends ChartCanvas {
   protected void addExportMenu(boolean graphics, boolean data) {
     if (graphics) {
       // Graphics Export
-      addMenuItem(menu, "Export graphics...", e -> GraphicsExportDialog.openDialog(getChart()));
+      addMenuItem(getContextMenu(), "Export graphics...",
+          e -> GraphicsExportDialog.openDialog(getChart()));
     }
     if (data) {
       // General data export
@@ -272,7 +248,7 @@ public class EChartCanvas extends ChartCanvas {
       MenuExportToClipboard exportXYClipboard = new MenuExportToClipboard("to Clipboard", this);
       export.getItems().add(exportXYClipboard);
       // add to panel
-      addMenu(menu, export);
+      addMenu(getContextMenu(), export);
     }
   }
 
@@ -376,13 +352,30 @@ public class EChartCanvas extends ChartCanvas {
   }
 
   public void setMouseZoomable(boolean flag) {
-    super.setDomainZoomable(flag);
-    super.setRangeZoomable(flag);
+    setDomainZoomable(flag);
+    setRangeZoomable(flag);
     isMouseZoomable = flag;
+  }
+
+
+  public void setRangeZoomable(boolean flag) {
+    getCanvas().setRangeZoomable(flag);
+  }
+
+  public void setDomainZoomable(boolean flag) {
+    getCanvas().setDomainZoomable(flag);
   }
 
   public boolean isMouseZoomable() {
     return isMouseZoomable;
+  }
+
+  public boolean isDomainZoomable() {
+    return getCanvas().isDomainZoomable();
+  }
+
+  public boolean isRangeZoomable() {
+    return getCanvas().isRangeZoomable();
   }
 
   public ZoomHistory getZoomHistory() {
@@ -410,109 +403,5 @@ public class EChartCanvas extends ChartCanvas {
 
   public void setGestureAdapter(ChartGestureMouseAdapterFX mouseAdapter) {
     this.mouseAdapter = mouseAdapter;
-  }
-
-  /**
-   * Returns the context menu for this component.
-   * 
-   * @return The context menu for this component.
-   */
-  public ContextMenu getContextMenu() {
-    return this.menu;
-  }
-
-  /**
-   * A handler for the export to PDF option in the context menu.
-   */
-  private void handleExportToPDF() {
-    FileChooser chooser = new FileChooser();
-    chooser.setTitle("Export to PDF");
-    FileChooser.ExtensionFilter filter =
-        new FileChooser.ExtensionFilter("Portable Document Format (PDF)", "pdf");
-    chooser.getExtensionFilters().add(filter);
-    File file = chooser.showSaveDialog(getScene().getWindow());
-    if (file != null) {
-      ExportUtils.writeAsPDF(this.getChart(), (int) getWidth(), (int) getHeight(), file);
-    }
-  }
-
-  /**
-   * A handler for the export to SVG option in the context menu.
-   */
-  private void handleExportToSVG() {
-    FileChooser chooser = new FileChooser();
-    chooser.setTitle("Export to SVG");
-    FileChooser.ExtensionFilter filter =
-        new FileChooser.ExtensionFilter("Scalable Vector Graphics (SVG)", "svg");
-    chooser.getExtensionFilters().add(filter);
-    File file = chooser.showSaveDialog(getScene().getWindow());
-    if (file != null) {
-      ExportUtils.writeAsSVG(this.getChart(), (int) getWidth(), (int) getHeight(), file);
-    }
-  }
-
-  /**
-   * A handler for the export to PNG option in the context menu.
-   */
-  private void handleExportToPNG() {
-    FileChooser chooser = new FileChooser();
-    chooser.setTitle("Export to PNG");
-    FileChooser.ExtensionFilter filter =
-        new FileChooser.ExtensionFilter("Portable Network Graphics (PNG)", "png");
-    chooser.getExtensionFilters().add(filter);
-    File file = chooser.showSaveDialog(getScene().getWindow());
-    if (file != null) {
-      try {
-        ExportUtils.writeAsPNG(this.getChart(), (int) getWidth(), (int) getHeight(), file);
-      } catch (IOException ex) {
-        // FIXME: show a dialog with the error
-        throw new RuntimeException(ex);
-      }
-    }
-  }
-
-  /**
-   * A handler for the export to JPEG option in the context menu.
-   */
-  private void handleExportToJPEG() {
-    FileChooser chooser = new FileChooser();
-    chooser.setTitle("Export to JPEG");
-    FileChooser.ExtensionFilter filter = new FileChooser.ExtensionFilter("JPEG", "jpg");
-    chooser.getExtensionFilters().add(filter);
-    File file = chooser.showSaveDialog(getScene().getWindow());
-    if (file != null) {
-      try {
-        ExportUtils.writeAsJPEG(this.getChart(), (int) getWidth(), (int) getHeight(), file);
-      } catch (IOException ex) {
-        // FIXME: show a dialog with the error
-        throw new RuntimeException(ex);
-      }
-    }
-  }
-
-  /**
-   * Sets the size and location of the zoom rectangle and makes it visible if it wasn't already
-   * visible.. This method is provided for the use of the {@link ZoomHandlerFX} class, you won't
-   * normally need to call it directly.
-   * 
-   * @param x the x-location.
-   * @param y the y-location.
-   * @param w the width.
-   * @param h the height.
-   */
-  public void showZoomRectangle(double x, double y, double w, double h) {
-    this.zoomRectangle.setX(x);
-    this.zoomRectangle.setY(y);
-    this.zoomRectangle.setWidth(w);
-    this.zoomRectangle.setHeight(h);
-    this.zoomRectangle.setVisible(true);
-  }
-
-  /**
-   * Hides the zoom rectangle. This method is provided for the use of the {@link ZoomHandlerFX}
-   * class, you won't normally need to call it directly.
-   */
-  public void hideZoomRectangle() {
-    this.zoomRectangle.setVisible(false);
   }
 }
