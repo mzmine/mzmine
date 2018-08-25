@@ -114,7 +114,9 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
   private void handleEvent(final ChartGestureEvent e) {
     if (gestureHandlers != null)
       gestureHandlers.stream().filter(handler -> handler.getGesture().filter(e.getGesture()))
-          .forEach(handler -> handler.accept(e));
+          .forEach(handler -> {
+        	  handler.accept(e);  
+          });
   }
 
   /**

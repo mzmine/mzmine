@@ -22,16 +22,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.fx.interaction.MouseHandlerFX;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
@@ -60,6 +65,7 @@ public class EChartViewer extends ChartViewer {
   private static final long serialVersionUID = 1L;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
+  // one history for each plot/subplot
   protected ZoomHistory zoomHistory;
   protected List<AxesRangeChangedListener> axesRangeListener;
   protected boolean isMouseZoomable = true;
@@ -180,7 +186,13 @@ public class EChartViewer extends ChartViewer {
         }
       }
 
-      if (addZoomHistory) {
+	  Plot p = getChart().getPlot();
+      if (addZoomHistory && !(p instanceof CombinedDomainXYPlot || p instanceof CombinedRangeXYPlot)) {
+    	  List<XYPlot> sub = null;
+  	    if(p instanceof CombinedDomainXYPlot)
+	    	sub = ((CombinedDomainXYPlot)p).getSubplots();
+	    if(p instanceof CombinedRangeXYPlot)
+	    	sub = ((CombinedRangeXYPlot)p).getSubplots();
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -215,13 +227,13 @@ public class EChartViewer extends ChartViewer {
 
       // mouse adapter for scrolling and zooming
       mouseAdapter = new ChartGestureMouseAdapterFX("gestures", this);
-      // mouseAdapter.addDebugHandler();
       addMouseHandler(mouseAdapter);
 
       // add gestures
       if (standardGestures) {
         addStandardGestures();
       }
+      mouseAdapter.addDebugHandler();
     }
   }
 

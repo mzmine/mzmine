@@ -23,8 +23,11 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.logging.Logger;
 import org.jfree.chart.ChartRenderingInfo;
+import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.plot.Zoomable;
@@ -63,12 +66,21 @@ public class ChartLogicsFX {
    * @return Range as chart coordinates
    */
   public static Point2D mouseXYToPlotXY(ChartViewer myChart, int mouseX, int mouseY) {
-    XYPlot plot = (XYPlot) myChart.getChart().getPlot();
     ChartRenderingInfo info = myChart.getRenderingInfo();
+    int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
+    if(subplot!=-1)
+    	dataArea = info.getPlotInfo().getSubplotInfo(subplot).getDataArea();
 
+    XYPlot plot = findXYSubplot(myChart.getChart(), info, mouseX, mouseY); 
     ValueAxis domainAxis = plot.getDomainAxis();
     ValueAxis rangeAxis = plot.getRangeAxis();
+    // parent?
+    if(domainAxis==null && plot.getParent()!=null && plot.getParent() instanceof XYPlot)
+    	domainAxis = ((XYPlot) plot.getParent()).getDomainAxis();
+    if(rangeAxis==null && plot.getParent()!=null && plot.getParent() instanceof XYPlot)
+    	rangeAxis = ((XYPlot) plot.getParent()).getRangeAxis();
+    
     if (domainAxis != null && rangeAxis != null) {
       RectangleEdge domainAxisEdge = plot.getDomainAxisEdge();
       RectangleEdge rangeAxisEdge = plot.getRangeAxisEdge();
@@ -79,6 +91,28 @@ public class ChartLogicsFX {
     } else
       return null;
   }
+  
+  /**
+   * Subplot or main plot at point
+   * @param chart
+   * @param info
+   * @param mouseX
+   * @param mouseY
+   * @return
+   */
+  private static XYPlot findXYSubplot(JFreeChart chart, ChartRenderingInfo info, int mouseX, int mouseY) {
+	    int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
+	    XYPlot plot = null;
+	    if(subplot!=-1) {
+	    if(chart.getPlot() instanceof CombinedDomainXYPlot)
+	    	plot = (XYPlot) ((CombinedDomainXYPlot)chart.getPlot()).getSubplots().get(subplot);
+	    else if(chart.getPlot() instanceof CombinedRangeXYPlot)
+	    	plot = (XYPlot) ((CombinedRangeXYPlot)chart.getPlot()).getSubplots().get(subplot);
+	    }
+	    else if(chart.getPlot() instanceof XYPlot)
+	    	plot = (XYPlot) chart.getPlot();
+	    return plot;
+}
 
   /**
    * Translates screen (pixel) values to plot values
