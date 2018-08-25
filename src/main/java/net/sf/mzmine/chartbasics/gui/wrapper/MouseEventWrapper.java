@@ -23,6 +23,8 @@ import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Point2D;
+
 import javafx.scene.input.ScrollEvent;
 
 public class MouseEventWrapper {
@@ -328,6 +330,10 @@ public class MouseEventWrapper {
     }
 
   }
+
+public Point2D getPoint() {
+	return new Point2D.Double(getX(), getY());
+}
 
 
 }

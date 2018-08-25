@@ -182,6 +182,31 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
   public Point2D getCoordinates(int x, int y) {
     return cp.mouseXYToPlotXY(x, y);
   }
+  
+  /**
+   * Mouse event point
+   * @param x
+   * @param y
+   * @return 
+   */
+  public Point2D getPoint() {
+	    return mouseEvent.getPoint();
+}
+  /**
+   * Returns the index of the subplot that contains the specified
+   * (x, y) point (the "source" point).  The source point will usually
+   * come from a mouse click on a {@link org.jfree.chart.ChartPanel},
+   * and this method is then used to determine the subplot that
+   * contains the source point.
+   *
+   * @param source  the source point (in Java2D space, {@code null} not
+   * permitted).
+   *
+   * @return The subplot index (or -1 if no subplot contains {@code source}).
+   */
+  public int getSubplotIndex() {
+	  return cp.getRenderingInfo().getPlotInfo().getSubplotIndex(getPoint());
+  }
 
   /**
    * True if axis is vertical, false if horizontal, null if there was an error
