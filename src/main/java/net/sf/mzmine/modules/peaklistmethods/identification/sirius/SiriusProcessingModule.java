@@ -90,7 +90,7 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
       int fingerCandidates, siriusCandidates, timer;
       timer = parameters.getParameter(SingleRowIdentificationParameters.SIRIUS_TIMEOUT).getValue();
       siriusCandidates =
-          parameters.getParameter(SingleRowIdentificationParameters.SIRIUS_CANDIDATES).getValue();
+          parameters.getParameter(SingleRowIdentificationParameters.SIRIUS_CANDIDATES).getValue()
       fingerCandidates =
           parameters.getParameter(SingleRowIdentificationParameters.FINGERID_CANDIDATES).getValue();
 

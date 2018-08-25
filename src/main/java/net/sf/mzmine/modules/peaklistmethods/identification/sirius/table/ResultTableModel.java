@@ -45,7 +45,7 @@ public class ResultTableModel extends AbstractTableModel {
   private JTable table;
 
   public ResultTableModel() {
-    mzFormat.setMaximumFractionDigits(1);
+
   }
 
   public void setTable(JTable table) {
