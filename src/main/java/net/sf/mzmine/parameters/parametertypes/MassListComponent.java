@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JMenuItem;
@@ -77,20 +78,7 @@ public class MassListComponent extends JPanel implements ActionListener {
     Object src = e.getSource();
 
     if (src == lookupButton) {
-      ArrayList<String> currentNames = new ArrayList<String>();
-      RawDataFile dataFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
-      for (RawDataFile dataFile : dataFiles) {
-        int scanNums[] = dataFile.getScanNumbers();
-        for (int scanNum : scanNums) {
-          Scan scan = dataFile.getScan(scanNum);
-          MassList massLists[] = scan.getMassLists();
-          for (MassList massList : massLists) {
-            String name = massList.getName();
-            if (!currentNames.contains(name))
-              currentNames.add(name);
-          }
-        }
-      }
+      List<String> currentNames = getMassListNames();
 
       lookupMenu.removeAll();
       for (String name : currentNames) {
@@ -115,4 +103,22 @@ public class MassListComponent extends JPanel implements ActionListener {
     nameField.setToolTipText(toolTip);
   }
 
+  public static List<String> getMassListNames() {
+    ArrayList<String> names = new ArrayList<>();
+    RawDataFile dataFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    for (RawDataFile dataFile : dataFiles) {
+      int scanNums[] = dataFile.getScanNumbers();
+      for (int scanNum : scanNums) {
+        Scan scan = dataFile.getScan(scanNum);
+        MassList massLists[] = scan.getMassLists();
+        for (MassList massList : massLists) {
+          String name = massList.getName();
+          if (!names.contains(name))
+            names.add(name);
+        }
+      }
+    }
+
+    return names;
+  }
 }

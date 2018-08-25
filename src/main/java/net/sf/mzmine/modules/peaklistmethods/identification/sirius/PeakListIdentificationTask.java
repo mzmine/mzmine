@@ -34,6 +34,7 @@ import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.SiriusCompound;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MassListComponent;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -84,9 +85,17 @@ public class PeakListIdentificationTask extends AbstractTask {
     fingerCandidates =
         parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
 
+    String massListName = parameters.getParameter(SingleRowIdentificationParameters.MASS_LIST).getValue();
+    List<String> massLists = MassListComponent.getMassListNames();
+
     if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0 || threadsAmount <= 0) {
       MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
           "Sirius parameters can't be negative");
+      cancel();
+    } else if (!massLists.contains(massListName)) {
+      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+          "Mass List parameter",
+          String.format("Mass List parameter is set wrong [%s]", massListName));
       cancel();
     }
   }

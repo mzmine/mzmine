@@ -18,7 +18,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.DBS_INDEX;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.FINGERID_SCORE_INDEX;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.FORMULA_INDEX;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.NAME_INDEX;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.PREVIEW_INDEX;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.SIRIUS_SCORE_INDEX;
 
 import java.awt.Image;
 import java.awt.Point;
@@ -73,8 +78,14 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
     setRowSorter(sorter);
 
     /* Configure rows & columns sizes */
-    getColumnModel().getColumn(PREVIEW_INDEX).setWidth(SiriusCompound.PREVIEW_WIDTH);
     setRowHeight(SiriusCompound.PREVIEW_HEIGHT);
+    getColumnModel().getColumn(PREVIEW_INDEX).setWidth(SiriusCompound.PREVIEW_WIDTH);
+    getColumnModel().getColumn(SIRIUS_SCORE_INDEX).setWidth(50);
+    getColumnModel().getColumn(FINGERID_SCORE_INDEX).setWidth(50);
+    getColumnModel().getColumn(DBS_INDEX).setWidth(50);
+    getColumnModel().getColumn(FORMULA_INDEX).setWidth(75);
+    getColumnModel().getColumn(NAME_INDEX).setWidth(75);
+//    setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
   }
 
   @Override
