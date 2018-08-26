@@ -18,8 +18,6 @@
 
 package net.sf.mzmine.chartbasics.gestures;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +34,7 @@ import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler.Orientatio
 import net.sf.mzmine.chartbasics.gestures.interf.GestureHandlerFactory;
 import net.sf.mzmine.chartbasics.gestures.standard.DragGestureHandlerDef;
 import net.sf.mzmine.chartbasics.gestures.standard.GestureHandlerDef;
+import net.sf.mzmine.chartbasics.gui.wrapper.MouseEventWrapper;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 
 /**
@@ -50,16 +49,16 @@ public class ChartGestureHandler {
    * Some standard handlers
    */
   public enum Handler {
-    DEBUG, // Prints out the gesture
-    PREVIOUS_ZOOM_HISTORY, // Jump back in the zoom history
-    NEXT_ZOOM_HISTORY, // Jump forward in the zoom history
-    TITLE_REMOVER, // Remove titles (setVisible false)
-    AUTO_ZOOM_AXIS, // Auto zoom axis
-    AUTO_ZOOM_OPPOSITE_AXIS, // Auto zoom opposite axis (domain<->range axis)
-    SCROLL_AXIS, // Scroll an axis while retaining the zoom
-    SCROLL_AXIS_AND_AUTO_ZOOM, // Scroll an axis and auto zoom the other
-    ZOOM_AXIS_INCLUDE_ZERO, // Zoom an axis while holding the lowerBound
-    ZOOM_AXIS_CENTER; // Zoom and axis centered to the start gesture
+  DEBUG, // Prints out the gesture
+  PREVIOUS_ZOOM_HISTORY, // Jump back in the zoom history
+  NEXT_ZOOM_HISTORY, // Jump forward in the zoom history
+  TITLE_REMOVER, // Remove titles (setVisible false)
+  AUTO_ZOOM_AXIS, // Auto zoom axis
+  AUTO_ZOOM_OPPOSITE_AXIS, // Auto zoom opposite axis (domain<->range axis)
+  SCROLL_AXIS, // Scroll an axis while retaining the zoom
+  SCROLL_AXIS_AND_AUTO_ZOOM, // Scroll an axis and auto zoom the other
+  ZOOM_AXIS_INCLUDE_ZERO, // Zoom an axis while holding the lowerBound
+  ZOOM_AXIS_CENTER; // Zoom and axis centered to the start gesture
 
     @Override
     public String toString() {
@@ -131,8 +130,7 @@ public class ChartGestureHandler {
    */
   public static ChartGestureHandler createDragDiffHandler(DragHandler[] handler, Key[] key,
       Entity entity, Button button, Orientation orient, Object[] param) {
-    Consumer<ChartGestureDragDiffEvent>[] consumer =
-        (Consumer<ChartGestureDragDiffEvent>[]) new Consumer[handler.length];
+    Consumer<ChartGestureDragDiffEvent>[] consumer = new Consumer[handler.length];
     // create all consumers for all keys
     try {
       for (int i = 0; i < consumer.length; i++) {
@@ -168,29 +166,25 @@ public class ChartGestureHandler {
           if (axis != null) {
             ChartLogics.offsetAxisAbsolute(axis, de.getDiff());
             if (de.getEntity().equals(Entity.DOMAIN_AXIS))
-              ChartLogics.autoRangeAxis(de.getChartPanel());
+              de.getChartWrapper().autoRangeAxis();
             else
-              ChartLogics.autoDomainAxis(de.getChartPanel());
+              de.getChartWrapper().autoDomainAxis();
           }
         };
       case AUTO_ZOOM_AXIS:
         return de -> {
           ValueAxis axis = de.getAxis();
-          if (axis != null) {
-            if (de.getEntity().equals(Entity.DOMAIN_AXIS))
-              ChartLogics.autoDomainAxis(de.getChartPanel());
-            else
-              ChartLogics.autoRangeAxis(de.getChartPanel());
-          }
+          if (axis != null)
+            ChartLogics.autoAxis(axis);
         };
       case AUTO_ZOOM_OPPOSITE_AXIS:
         return de -> {
           ValueAxis axis = de.getAxis();
           if (axis != null) {
             if (de.getEntity().equals(Entity.DOMAIN_AXIS))
-              ChartLogics.autoRangeAxis(de.getChartPanel());
+              de.getChartWrapper().autoRangeAxis();
             else
-              ChartLogics.autoDomainAxis(de.getChartPanel());
+              de.getChartWrapper().autoDomainAxis();
           }
         };
       case ZOOM_AXIS_INCLUDE_ZERO:
@@ -242,13 +236,12 @@ public class ChartGestureHandler {
         break;
       case PREVIOUS_ZOOM_HISTORY:
         newHandler = e -> {
-          Object o = e.getChartPanel().getClientProperty(ZoomHistory.PROPERTY_NAME);
-          if (o != null && o instanceof ZoomHistory) {
-            ZoomHistory h = (ZoomHistory) o;
+          ZoomHistory h = e.getChartWrapper().getZoomHistory();
+          if (h != null) {
             Range[] range = h.setPreviousPoint();
             if (range != null && range.length > 0 && range[0] != null) {
-              ValueAxis dom = e.getChartPanel().getChart().getXYPlot().getDomainAxis();
-              ValueAxis ran = e.getChartPanel().getChart().getXYPlot().getRangeAxis();
+              ValueAxis dom = e.getChart().getXYPlot().getDomainAxis();
+              ValueAxis ran = e.getChart().getXYPlot().getRangeAxis();
               ChartLogics.setZoomAxis(dom, range[0]);
               ChartLogics.setZoomAxis(ran, range[1]);
             }
@@ -257,13 +250,12 @@ public class ChartGestureHandler {
         break;
       case NEXT_ZOOM_HISTORY:
         newHandler = e -> {
-          Object o = e.getChartPanel().getClientProperty(ZoomHistory.PROPERTY_NAME);
-          if (o != null && o instanceof ZoomHistory) {
-            ZoomHistory h = (ZoomHistory) o;
+          ZoomHistory h = e.getChartWrapper().getZoomHistory();
+          if (h != null) {
             Range[] range = h.setNextPoint();
             if (range != null && range.length > 0 && range[0] != null) {
-              ValueAxis dom = e.getChartPanel().getChart().getXYPlot().getDomainAxis();
-              ValueAxis ran = e.getChartPanel().getChart().getXYPlot().getRangeAxis();
+              ValueAxis dom = e.getChart().getXYPlot().getDomainAxis();
+              ValueAxis ran = e.getChart().getXYPlot().getRangeAxis();
               ChartLogics.setZoomAxis(dom, range[0]);
               ChartLogics.setZoomAxis(ran, range[1]);
             }
@@ -280,24 +272,20 @@ public class ChartGestureHandler {
         break;
       case AUTO_ZOOM_AXIS:
         newHandler = e -> {
-          if (e.getGesture().getEntity().equals(Entity.AXIS)) {
-            ChartLogics.autoRangeAxis(e.getChartPanel());
-            ChartLogics.autoDomainAxis(e.getChartPanel());
-          } else if (e.getGesture().getEntity().equals(Entity.RANGE_AXIS))
-            ChartLogics.autoRangeAxis(e.getChartPanel());
-          else
-            ChartLogics.autoDomainAxis(e.getChartPanel());
+          ValueAxis a = e.getAxis();
+          if (a != null)
+            ChartLogics.autoAxis(a);
         };
         break;
       case AUTO_ZOOM_OPPOSITE_AXIS:
         newHandler = e -> {
           if (e.getGesture().getEntity().equals(Entity.AXIS)) {
-            ChartLogics.autoRangeAxis(e.getChartPanel());
-            ChartLogics.autoDomainAxis(e.getChartPanel());
+            e.getChartWrapper().autoRangeAxis();
+            e.getChartWrapper().autoDomainAxis();
           } else if (e.getGesture().getEntity().equals(Entity.DOMAIN_AXIS))
-            ChartLogics.autoRangeAxis(e.getChartPanel());
+            e.getChartWrapper().autoRangeAxis();
           else
-            ChartLogics.autoDomainAxis(e.getChartPanel());
+            e.getChartWrapper().autoDomainAxis();
         };
         break;
       case SCROLL_AXIS:
@@ -305,9 +293,8 @@ public class ChartGestureHandler {
           ValueAxis axis = e.getAxis();
           if (axis != null) {
             double diff = 0.03;
-            if (e.getMouseEvent() instanceof MouseWheelEvent) {
-              MouseWheelEvent we = (MouseWheelEvent) e.getMouseEvent();
-              diff = -0.10 * we.getPreciseWheelRotation();
+            if (e.getMouseEvent().isMouseWheelEvent()) {
+              diff = -0.10 * e.getMouseEvent().getWheelRotation();
             }
             ChartLogics.offsetAxis(axis, diff);
           }
@@ -318,16 +305,15 @@ public class ChartGestureHandler {
           ValueAxis axis = e.getAxis();
           if (axis != null) {
             double diff = 0.03;
-            if (e.getMouseEvent() instanceof MouseWheelEvent) {
-              MouseWheelEvent we = (MouseWheelEvent) e.getMouseEvent();
-              diff = -0.10 * we.getPreciseWheelRotation();
+            if (e.getMouseEvent().isMouseWheelEvent()) {
+              diff = -0.10 * e.getMouseEvent().getWheelRotation();
             }
             ChartLogics.offsetAxis(axis, diff);
 
             if (e.getGesture().getEntity().equals(Entity.DOMAIN_AXIS))
-              ChartLogics.autoRangeAxis(e.getChartPanel());
+              e.getChartWrapper().autoRangeAxis();
             else
-              ChartLogics.autoDomainAxis(e.getChartPanel());
+              e.getChartWrapper().autoDomainAxis();
           }
         };
         break;
@@ -336,9 +322,8 @@ public class ChartGestureHandler {
           ValueAxis axis = e.getAxis();
           if (axis != null) {
             double diff = 0.05;
-            if (e.getMouseEvent() instanceof MouseWheelEvent) {
-              MouseWheelEvent we = (MouseWheelEvent) e.getMouseEvent();
-              diff = -0.10 * we.getPreciseWheelRotation();
+            if (e.getMouseEvent().isMouseWheelEvent()) {
+              diff = -0.10 * e.getMouseEvent().getWheelRotation();
             }
             ChartLogics.zoomAxis(axis, diff, true);
           }
@@ -348,18 +333,17 @@ public class ChartGestureHandler {
         newHandler = e -> {
           ValueAxis axis = e.getAxis();
           if (axis != null) {
-            MouseEvent p = e.getMouseEvent();
+            MouseEventWrapper p = e.getMouseEvent();
             double diff = 0.05;
-            if (e.getMouseEvent() instanceof MouseWheelEvent) {
-              MouseWheelEvent we = (MouseWheelEvent) e.getMouseEvent();
-              diff = -0.10 * we.getPreciseWheelRotation();
+            if (e.getMouseEvent().isMouseWheelEvent()) {
+              diff = -0.10 * p.getWheelRotation();
             }
 
             // get data space coordinates
-            Point2D point = e.getCoordinates(e.getChartPanel(), p.getX(), p.getY());
+            Point2D point = e.getCoordinates(p.getX(), p.getY());
             if (point != null) {
               // vertical ?
-              Boolean orient = e.isVerticalAxis(e.getChartPanel(), axis);
+              Boolean orient = e.isVerticalAxis(axis);
               if (orient == null)
                 return;
               else if (orient)

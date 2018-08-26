@@ -26,11 +26,16 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.PlotOrientation;
+import javafx.scene.input.ScrollEvent;
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
+import net.sf.mzmine.chartbasics.gui.swing.ChartGestureMouseAdapter;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
+import net.sf.mzmine.chartbasics.gui.wrapper.MouseEventWrapper;
 
 /**
  * {@link ChartGesture}s are part of {@link ChartGestureEvent} which are generated and processed by
@@ -44,18 +49,35 @@ import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ChartGestureEvent {
+public class ChartGestureEvent { // ChartPanel or ChartCanvas
+  // ChartPanel or ChartCanvas
+  private ChartViewWrapper cp;
 
-  private ChartPanel cp;
-  private MouseEvent mouseEvent;
+  //
+  private MouseEventWrapper mouseEvent;
   private ChartGesture gesture;
   private ChartEntity entity;
 
-  public ChartGestureEvent(ChartPanel cp, MouseEvent mouseEvent, ChartEntity entity,
+  public ChartGestureEvent(ChartPanel cp, MouseEvent mEvent, ChartEntity entity,
+      ChartGesture gesture) {
+    this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
+  }
+
+  public ChartGestureEvent(ChartViewer cp, javafx.scene.input.MouseEvent mEvent, ChartEntity entity,
+      ChartGesture gesture) {
+    this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
+  }
+
+  public ChartGestureEvent(ChartViewer cp, ScrollEvent mEvent, ChartEntity entity,
+      ChartGesture gesture) {
+    this(new ChartViewWrapper(cp), new MouseEventWrapper(mEvent), entity, gesture);
+  }
+
+  public ChartGestureEvent(ChartViewWrapper cp, MouseEventWrapper mEvent, ChartEntity entity,
       ChartGesture gesture) {
     super();
     this.cp = cp;
-    this.mouseEvent = mouseEvent;
+    this.mouseEvent = mEvent;
     this.gesture = gesture;
     this.entity = entity;
 
@@ -76,20 +98,29 @@ public class ChartGestureEvent {
     return gesture;
   }
 
-  public ChartPanel getChartPanel() {
+  /**
+   * ChartPanel or ChartCanvas
+   * 
+   * @return
+   */
+  public ChartViewWrapper getChartWrapper() {
     return cp;
   }
 
-  public MouseEvent getMouseEvent() {
+  public JFreeChart getChart() {
+    return cp.getChart();
+  }
+
+  public boolean isChartPanel() {
+    return cp.isSwing();
+  }
+
+  public boolean isChartCanvas() {
+    return cp.isSwing();
+  }
+
+  public MouseEventWrapper getMouseEvent() {
     return mouseEvent;
-  }
-
-  public void setChartPanel(ChartPanel cp) {
-    this.cp = cp;
-  }
-
-  public void setMouseEvent(MouseEvent mouseEvent) {
-    this.mouseEvent = mouseEvent;
   }
 
   public void setGesture(ChartGesture gesture) {
@@ -98,10 +129,6 @@ public class ChartGestureEvent {
 
   public ChartEntity getEntity() {
     return entity;
-  }
-
-  public void setEntity(ChartEntity entity) {
-    this.entity = entity;
   }
 
   @Override
@@ -137,12 +164,48 @@ public class ChartGestureEvent {
    * Transforms mouse coordinates to data space coordinates. Same as
    * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
    * 
+   * @param e
+   * @return
+   */
+  public Point2D getCoordinates(double x, double y) {
+    return cp.mouseXYToPlotXY(x, y);
+  }
+
+  /**
+   * Transforms mouse coordinates to data space coordinates. Same as
+   * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
+   * 
    * @param chartPanel
    * @param e
    * @return
    */
-  public Point2D getCoordinates(ChartPanel chartPanel, int x, int y) {
-    return ChartLogics.mouseXYToPlotXY(chartPanel, x, y);
+  public Point2D getCoordinates(int x, int y) {
+    return cp.mouseXYToPlotXY(x, y);
+  }
+  
+  /**
+   * Mouse event point
+   * @param x
+   * @param y
+   * @return 
+   */
+  public Point2D getPoint() {
+	    return mouseEvent.getPoint();
+}
+  /**
+   * Returns the index of the subplot that contains the specified
+   * (x, y) point (the "source" point).  The source point will usually
+   * come from a mouse click on a {@link org.jfree.chart.ChartPanel},
+   * and this method is then used to determine the subplot that
+   * contains the source point.
+   *
+   * @param source  the source point (in Java2D space, {@code null} not
+   * permitted).
+   *
+   * @return The subplot index (or -1 if no subplot contains {@code source}).
+   */
+  public int getSubplotIndex() {
+	  return cp.getRenderingInfo().getPlotInfo().getSubplotIndex(getPoint());
   }
 
   /**
@@ -151,10 +214,10 @@ public class ChartGestureEvent {
    * @param axis
    * @return
    */
-  public Boolean isVerticalAxis(ChartPanel cp, ValueAxis axis) {
+  public Boolean isVerticalAxis(ValueAxis axis) {
     if (axis == null)
       return null;
-    JFreeChart chart = cp.getChart();
+    JFreeChart chart = getChart();
     PlotOrientation orient = PlotOrientation.HORIZONTAL;
     if (chart.getXYPlot() != null)
       orient = chart.getXYPlot().getOrientation();
