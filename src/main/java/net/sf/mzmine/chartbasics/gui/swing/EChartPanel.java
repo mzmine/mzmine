@@ -33,6 +33,9 @@ import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
 import org.jfree.data.RangeType;
@@ -207,7 +210,9 @@ public class EChartPanel extends ChartPanel {
         }
       }
 
-      if (addZoomHistory) {
+      Plot p = getChart().getPlot();
+      if (addZoomHistory && (p instanceof XYPlot)
+          && !(p instanceof CombinedDomainXYPlot || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -382,6 +387,7 @@ public class EChartPanel extends ChartPanel {
    *
    * @throws IOException if there is an I/O error.
    */
+  @Override
   public void doSaveAs() throws IOException {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setCurrentDirectory(this.getDefaultDirectoryForSaveAs());

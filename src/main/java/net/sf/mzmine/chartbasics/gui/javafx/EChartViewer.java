@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
@@ -36,7 +35,6 @@ import org.jfree.data.Range;
 import org.jfree.data.RangeType;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
-
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
@@ -186,13 +184,9 @@ public class EChartViewer extends ChartViewer {
         }
       }
 
-	  Plot p = getChart().getPlot();
-      if (addZoomHistory && !(p instanceof CombinedDomainXYPlot || p instanceof CombinedRangeXYPlot)) {
-    	  List<XYPlot> sub = null;
-  	    if(p instanceof CombinedDomainXYPlot)
-	    	sub = ((CombinedDomainXYPlot)p).getSubplots();
-	    if(p instanceof CombinedRangeXYPlot)
-	    	sub = ((CombinedRangeXYPlot)p).getSubplots();
+      Plot p = getChart().getPlot();
+      if (addZoomHistory && p instanceof XYPlot
+          && !(p instanceof CombinedDomainXYPlot || p instanceof CombinedRangeXYPlot)) {
         // zoom history
         zoomHistory = new ZoomHistory(this, 20);
 
@@ -233,7 +227,7 @@ public class EChartViewer extends ChartViewer {
       if (standardGestures) {
         addStandardGestures();
       }
-      mouseAdapter.addDebugHandler();
+      // mouseAdapter.addDebugHandler();
     }
   }
 
