@@ -22,7 +22,6 @@ import java.awt.geom.Point2D;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.plot.PlotOrientation;
@@ -83,18 +82,18 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
     ChartEntity ce = event.getEntity();
     if (ce instanceof AxisEntity) {
       JFreeChart chart = event.getChart();
-      PlotOrientation orient = PlotOrientation.HORIZONTAL;
+      PlotOrientation plotorient = PlotOrientation.HORIZONTAL;
       if (chart.getXYPlot() != null)
-        orient = chart.getXYPlot().getOrientation();
+        plotorient = chart.getXYPlot().getOrientation();
       else if (chart.getCategoryPlot() != null)
-        orient = chart.getCategoryPlot().getOrientation();
+        plotorient = chart.getCategoryPlot().getOrientation();
 
       Entity entity = event.getGesture().getEntity();
-      if ((entity.equals(Entity.DOMAIN_AXIS) && orient.equals(PlotOrientation.VERTICAL))
-          || (entity.equals(Entity.RANGE_AXIS) && orient.equals(PlotOrientation.HORIZONTAL)))
-        return Orientation.HORIZONTAL;
+      if ((entity.equals(Entity.DOMAIN_AXIS) && plotorient.equals(PlotOrientation.VERTICAL))
+          || (entity.equals(Entity.RANGE_AXIS) && plotorient.equals(PlotOrientation.HORIZONTAL)))
+        orient = Orientation.HORIZONTAL;
       else
-        return Orientation.VERTICAL;
+        orient = Orientation.VERTICAL;
     }
     return orient;
   }
@@ -116,55 +115,51 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
         ChartViewWrapper chartPanel = event.getChartWrapper();
         JFreeChart chart = chartPanel.getChart();
         MouseEventWrapper e = event.getMouseEvent();
-        ValueAxis axis = event.getAxis();
 
-        if (axis != null) {
-          // released?
-          if (event.checkEvent(Event.RELEASED)) {
-            chartPanel.setMouseZoomable(wasMouseZoomable);
-            last = null;
-          } else if (event.checkEvent(Event.PRESSED)) {
+        // released?
+        if (event.checkEvent(Event.RELEASED)) {
+          chartPanel.setMouseZoomable(wasMouseZoomable);
+          last = null;
+        } else if (event.checkEvent(Event.PRESSED)) {
+          // get data space coordinates
+          last = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
+          first = last;
+          startEvent = event;
+          lastEvent = event;
+          if (last != null) {
+            wasMouseZoomable = chartPanel.isMouseZoomable();
+            chartPanel.setMouseZoomable(false);
+          }
+        } else if (event.checkEvent(Event.DRAGGED)) {
+          if (last != null) {
             // get data space coordinates
-            last = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
-            first = last;
-            startEvent = event;
-            lastEvent = event;
-            if (last != null) {
-              wasMouseZoomable = chartPanel.isMouseZoomable();
-              chartPanel.setMouseZoomable(false);
-            }
-          } else if (event.checkEvent(Event.DRAGGED)) {
-            if (last != null) {
-              // get data space coordinates
-              Point2D released = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
-              // System.out.println(event);
-              if (released != null) {
-                double offset = 0;
-                double start = 0;
-                // scroll x
-                if (getOrientation(event).equals(Orientation.HORIZONTAL)) {
-                  offset = -(released.getX() - last.getX());
-                  start = first.getX();
-                }
-                // scroll y
-                else {
-                  offset = -(released.getY() - last.getY());
-                  start = first.getY();
-                }
-
-                // new dragdiff event
-                ChartGestureDragDiffEvent dragEvent = new ChartGestureDragDiffEvent(startEvent,
-                    lastEvent, event, start, offset, orient);
-                // scroll / zoom / do anything with this new event
-                // choose handler by key filter
-                for (int i = 0; i < dragDiffHandler.length; i++)
-                  if (key[i].filter(event.getMouseEvent()))
-                    dragDiffHandler[i].accept(dragEvent);
-                // set last event
-                lastEvent = event;
-                // save updated last
-                last = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
+            Point2D released = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
+            if (released != null) {
+              double offset = 0;
+              double start = 0;
+              // scroll x
+              if (getOrientation(event).equals(Orientation.HORIZONTAL)) {
+                offset = -(released.getX() - last.getX());
+                start = first.getX();
               }
+              // scroll y
+              else {
+                offset = -(released.getY() - last.getY());
+                start = first.getY();
+              }
+
+              // new dragdiff event
+              ChartGestureDragDiffEvent dragEvent = new ChartGestureDragDiffEvent(startEvent,
+                  lastEvent, event, start, offset, orient);
+              // scroll / zoom / do anything with this new event
+              // choose handler by key filter
+              for (int i = 0; i < dragDiffHandler.length; i++)
+                if (key[i].filter(event.getMouseEvent()))
+                  dragDiffHandler[i].accept(dragEvent);
+              // set last event
+              lastEvent = event;
+              // save updated last
+              last = chartPanel.mouseXYToPlotXY(e.getX(), e.getY());
             }
           }
         }

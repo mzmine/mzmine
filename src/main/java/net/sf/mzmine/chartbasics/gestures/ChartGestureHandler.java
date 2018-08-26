@@ -49,16 +49,16 @@ public class ChartGestureHandler {
    * Some standard handlers
    */
   public enum Handler {
-    DEBUG, // Prints out the gesture
-    PREVIOUS_ZOOM_HISTORY, // Jump back in the zoom history
-    NEXT_ZOOM_HISTORY, // Jump forward in the zoom history
-    TITLE_REMOVER, // Remove titles (setVisible false)
-    AUTO_ZOOM_AXIS, // Auto zoom axis
-    AUTO_ZOOM_OPPOSITE_AXIS, // Auto zoom opposite axis (domain<->range axis)
-    SCROLL_AXIS, // Scroll an axis while retaining the zoom
-    SCROLL_AXIS_AND_AUTO_ZOOM, // Scroll an axis and auto zoom the other
-    ZOOM_AXIS_INCLUDE_ZERO, // Zoom an axis while holding the lowerBound
-    ZOOM_AXIS_CENTER; // Zoom and axis centered to the start gesture
+  DEBUG, // Prints out the gesture
+  PREVIOUS_ZOOM_HISTORY, // Jump back in the zoom history
+  NEXT_ZOOM_HISTORY, // Jump forward in the zoom history
+  TITLE_REMOVER, // Remove titles (setVisible false)
+  AUTO_ZOOM_AXIS, // Auto zoom axis
+  AUTO_ZOOM_OPPOSITE_AXIS, // Auto zoom opposite axis (domain<->range axis)
+  SCROLL_AXIS, // Scroll an axis while retaining the zoom
+  SCROLL_AXIS_AND_AUTO_ZOOM, // Scroll an axis and auto zoom the other
+  ZOOM_AXIS_INCLUDE_ZERO, // Zoom an axis while holding the lowerBound
+  ZOOM_AXIS_CENTER; // Zoom and axis centered to the start gesture
 
     @Override
     public String toString() {
@@ -130,8 +130,7 @@ public class ChartGestureHandler {
    */
   public static ChartGestureHandler createDragDiffHandler(DragHandler[] handler, Key[] key,
       Entity entity, Button button, Orientation orient, Object[] param) {
-    Consumer<ChartGestureDragDiffEvent>[] consumer =
-        (Consumer<ChartGestureDragDiffEvent>[]) new Consumer[handler.length];
+    Consumer<ChartGestureDragDiffEvent>[] consumer = new Consumer[handler.length];
     // create all consumers for all keys
     try {
       for (int i = 0; i < consumer.length; i++) {
@@ -176,7 +175,7 @@ public class ChartGestureHandler {
         return de -> {
           ValueAxis axis = de.getAxis();
           if (axis != null)
-        	  ChartLogics.autoAxis(axis);
+            ChartLogics.autoAxis(axis);
         };
       case AUTO_ZOOM_OPPOSITE_AXIS:
         return de -> {
@@ -273,9 +272,9 @@ public class ChartGestureHandler {
         break;
       case AUTO_ZOOM_AXIS:
         newHandler = e -> {
-        	ValueAxis a = e.getAxis();
-        	if(a!=null)
-          	  ChartLogics.autoAxis(a);
+          ValueAxis a = e.getAxis();
+          if (a != null)
+            ChartLogics.autoAxis(a);
         };
         break;
       case AUTO_ZOOM_OPPOSITE_AXIS:

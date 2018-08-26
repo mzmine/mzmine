@@ -18,18 +18,13 @@
 
 package net.sf.mzmine.chartbasics.gui.wrapper;
 
-import java.awt.Insets;
 import java.awt.geom.Point2D;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.fx.ChartViewer;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.chart.plot.CombinedRangeXYPlot;
 import org.jfree.chart.plot.XYPlot;
-
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.ChartLogicsFX;
 import net.sf.mzmine.chartbasics.gui.javafx.EChartViewer;
@@ -80,8 +75,13 @@ public class ChartViewWrapper {
 
   // logics
   public Point2D mouseXYToPlotXY(double x, double y) {
-    return cp != null ? ChartLogics.mouseXYToPlotXY(cp, x, y)
-        : ChartLogicsFX.mouseXYToPlotXY(cc, x, y);
+    try {
+      return cp != null ? ChartLogics.mouseXYToPlotXY(cp, x, y)
+          : ChartLogicsFX.mouseXYToPlotXY(cc, x, y);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new Point2D.Double(0, 0);
+    }
   }
 
   public boolean isMouseZoomable() {
@@ -175,10 +175,11 @@ public class ChartViewWrapper {
         ((EChartViewer) cc).setZoomHistory(h);
     }
   }
-  
+
 
   /**
    * Subplot or main plot at point
+   * 
    * @param chart
    * @param info
    * @param mouseX
@@ -186,9 +187,9 @@ public class ChartViewWrapper {
    * @return
    */
   public XYPlot findXYSubplot(double mouseX, double mouseY) {
-	    return cp!=null? ChartLogics.findXYSubplot(getChart(), getRenderingInfo(), mouseX, mouseY) : 
-	    	ChartLogicsFX.findXYSubplot(getChart(), getRenderingInfo(), mouseX, mouseY);
-}
+    return cp != null ? ChartLogics.findXYSubplot(getChart(), getRenderingInfo(), mouseX, mouseY)
+        : ChartLogicsFX.findXYSubplot(getChart(), getRenderingInfo(), mouseX, mouseY);
+  }
 
   /**
    * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
@@ -199,7 +200,7 @@ public class ChartViewWrapper {
    * @return
    */
   public ChartEntity findChartEntity(double mx, double my) {
-    return cp!=null? ChartLogics.findChartEntity(cp, mx, my) :
-    	ChartLogicsFX.findChartEntity(cc.getCanvas(), mx, my);
+    return cp != null ? ChartLogics.findChartEntity(cp, mx, my)
+        : ChartLogicsFX.findChartEntity(cc.getCanvas(), mx, my);
   }
 }

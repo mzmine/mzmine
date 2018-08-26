@@ -60,8 +60,10 @@ public class ChartLogics {
    * @param mouseX
    * @param mouseY
    * @return Range as chart coordinates
+   * @throws Exception
    */
-  public static Point2D mouseXYToPlotXY(ChartPanel myChart, double mouseX, double mouseY) {
+  public static Point2D mouseXYToPlotXY(ChartPanel myChart, double mouseX, double mouseY)
+      throws Exception {
     return mouseXYToPlotXY(myChart, (int) mouseX, (int) mouseY);
   }
 
@@ -72,8 +74,10 @@ public class ChartLogics {
    * @param mouseX
    * @param mouseY
    * @return Range as chart coordinates
+   * @throws Exception
    */
-  public static Point2D mouseXYToPlotXY(ChartPanel myChart, int mouseX, int mouseY) {
+  public static Point2D mouseXYToPlotXY(ChartPanel myChart, int mouseX, int mouseY)
+      throws Exception {
     Point2D p = myChart.translateScreenToJava2D(new Point(mouseX, mouseY));
 
     XYPlot plot = null;
@@ -91,7 +95,7 @@ public class ChartLogics {
     if (subplot != -1)
       dataArea = info.getPlotInfo().getSubplotInfo(subplot).getDataArea();
 
-    if (plot != null)
+    if (plot == null)
       plot = findXYSubplot(myChart.getChart(), info, p.getX(), p.getY());
 
     // coordinates
@@ -119,6 +123,8 @@ public class ChartLogics {
         cx = domainAxis.java2DToValue(p.getX(), dataArea, domainAxisEdge);
       if (rangeAxis != null)
         cy = rangeAxis.java2DToValue(p.getY(), dataArea, rangeAxisEdge);
+    } else {
+      throw new Exception("no xyplot found");
     }
     return new Point2D.Double(cx, cy);
 
@@ -146,6 +152,7 @@ public class ChartLogics {
 
     if (plot == null && chart.getPlot() instanceof XYPlot)
       plot = (XYPlot) chart.getPlot();
+
     return plot;
   }
 
@@ -180,8 +187,9 @@ public class ChartLogics {
    * 
    * @param myChart
    * @return width in data space for x and y
+   * @throws Exception
    */
-  public static Point2D screenValueToPlotValue(ChartPanel myChart, int val) {
+  public static Point2D screenValueToPlotValue(ChartPanel myChart, int val) throws Exception {
     Point2D p = mouseXYToPlotXY(myChart, 0, 0);
     Point2D p2 = mouseXYToPlotXY(myChart, val, val);
     // inverted y
