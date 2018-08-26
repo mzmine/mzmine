@@ -149,7 +149,7 @@ public class ChartLogicsFX {
    * @param mouseY
    * @return
    */
-  private static XYPlot findXYSubplot(JFreeChart chart, ChartRenderingInfo info, int mouseX, int mouseY) {
+  public static XYPlot findXYSubplot(JFreeChart chart, ChartRenderingInfo info, double mouseX, double mouseY) {
 	    int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
 	    XYPlot plot = null;
 	    if(subplot!=-1) {
@@ -574,6 +574,15 @@ public class ChartLogicsFX {
       PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
       z.zoomDomainAxes(0, pri, endPoint);
     }
+  }
+  
+  /**
+   * Auto range the axis
+   * 
+   * @param axis 
+   */
+  public static void autoAxis(ValueAxis axis) {
+	  axis.resizeRange(0);
   }
 
   /**

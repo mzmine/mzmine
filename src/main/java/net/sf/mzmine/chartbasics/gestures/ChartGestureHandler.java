@@ -175,12 +175,8 @@ public class ChartGestureHandler {
       case AUTO_ZOOM_AXIS:
         return de -> {
           ValueAxis axis = de.getAxis();
-          if (axis != null) {
-            if (de.getEntity().equals(Entity.DOMAIN_AXIS))
-              de.getChartWrapper().autoDomainAxis();
-            else
-              de.getChartWrapper().autoRangeAxis();
-          }
+          if (axis != null)
+        	  ChartLogics.autoAxis(axis);
         };
       case AUTO_ZOOM_OPPOSITE_AXIS:
         return de -> {
@@ -277,13 +273,9 @@ public class ChartGestureHandler {
         break;
       case AUTO_ZOOM_AXIS:
         newHandler = e -> {
-          if (e.getGesture().getEntity().equals(Entity.AXIS)) {
-            e.getChartWrapper().autoRangeAxis();
-            e.getChartWrapper().autoDomainAxis();
-          } else if (e.getGesture().getEntity().equals(Entity.RANGE_AXIS))
-            e.getChartWrapper().autoRangeAxis();
-          else
-            e.getChartWrapper().autoDomainAxis();
+        	ValueAxis a = e.getAxis();
+        	if(a!=null)
+          	  ChartLogics.autoAxis(a);
         };
         break;
       case AUTO_ZOOM_OPPOSITE_AXIS:

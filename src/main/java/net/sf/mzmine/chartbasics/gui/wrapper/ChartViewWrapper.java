@@ -18,11 +18,18 @@
 
 package net.sf.mzmine.chartbasics.gui.wrapper;
 
+import java.awt.Insets;
 import java.awt.geom.Point2D;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.fx.ChartViewer;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.XYPlot;
+
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.ChartLogicsFX;
 import net.sf.mzmine.chartbasics.gui.javafx.EChartViewer;
@@ -167,6 +174,32 @@ public class ChartViewWrapper {
       if (cc instanceof EChartViewer)
         ((EChartViewer) cc).setZoomHistory(h);
     }
+  }
+  
 
+  /**
+   * Subplot or main plot at point
+   * @param chart
+   * @param info
+   * @param mouseX
+   * @param mouseY
+   * @return
+   */
+  public XYPlot findXYSubplot(double mouseX, double mouseY) {
+	    return cp!=null? ChartLogics.findXYSubplot(getChart(), getRenderingInfo(), mouseX, mouseY) : 
+	    	ChartLogicsFX.findXYSubplot(getChart(), getRenderingInfo(), mouseX, mouseY);
+}
+
+  /**
+   * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
+   * 
+   * @param chart
+   * @param mx mouse coordinates
+   * @param my mouse coordinates
+   * @return
+   */
+  public ChartEntity findChartEntity(double mx, double my) {
+    return cp!=null? ChartLogics.findChartEntity(cp, mx, my) :
+    	ChartLogicsFX.findChartEntity(cc.getCanvas(), mx, my);
   }
 }
