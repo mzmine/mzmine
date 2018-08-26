@@ -22,9 +22,15 @@ import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.logging.Logger;
+
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.entity.AxisEntity;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.fx.ChartCanvas;
 import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
@@ -63,33 +69,76 @@ public class ChartLogicsFX {
    * @param myChart
    * @param mouseX
    * @param mouseY
-   * @return Range as chart coordinates
+   * @return Range as chart coordinates (never null)
    */
   public static Point2D mouseXYToPlotXY(ChartViewer myChart, int mouseX, int mouseY) {
+	  XYPlot plot = null;
+	  // find plot as parent of axis
+	  ChartEntity entity = findChartEntity(myChart.getCanvas(), mouseX, mouseY);
+	  if(entity instanceof AxisEntity) {
+		  Axis a = ((AxisEntity)entity).getAxis();
+		  if(a.getPlot() instanceof XYPlot)
+			  plot = (XYPlot) a.getPlot();
+	  }
+	  
     ChartRenderingInfo info = myChart.getRenderingInfo();
     int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     if(subplot!=-1)
     	dataArea = info.getPlotInfo().getSubplotInfo(subplot).getDataArea();
 
-    XYPlot plot = findXYSubplot(myChart.getChart(), info, mouseX, mouseY); 
+    // find subplot or plot
+    if(plot==null)
+    plot = findXYSubplot(myChart.getChart(), info, mouseX, mouseY);
+    
+    // find axis
     ValueAxis domainAxis = plot.getDomainAxis();
     ValueAxis rangeAxis = plot.getRangeAxis();
+    RectangleEdge domainAxisEdge = plot.getDomainAxisEdge();
+    RectangleEdge rangeAxisEdge = plot.getRangeAxisEdge();
     // parent?
-    if(domainAxis==null && plot.getParent()!=null && plot.getParent() instanceof XYPlot)
-    	domainAxis = ((XYPlot) plot.getParent()).getDomainAxis();
-    if(rangeAxis==null && plot.getParent()!=null && plot.getParent() instanceof XYPlot)
-    	rangeAxis = ((XYPlot) plot.getParent()).getRangeAxis();
+    if(domainAxis==null && plot.getParent()!=null && plot.getParent() instanceof XYPlot) {
+    	XYPlot pp = ((XYPlot) plot.getParent());
+    	domainAxis = pp.getDomainAxis();
+        domainAxisEdge = pp.getDomainAxisEdge();
+    }
+    if(rangeAxis==null && plot.getParent()!=null && plot.getParent() instanceof XYPlot) {
+    	XYPlot pp = ((XYPlot) plot.getParent());
+    	rangeAxis = pp.getRangeAxis();
+        rangeAxisEdge = pp.getRangeAxisEdge();
+    }
     
-    if (domainAxis != null && rangeAxis != null) {
-      RectangleEdge domainAxisEdge = plot.getDomainAxisEdge();
-      RectangleEdge rangeAxisEdge = plot.getRangeAxisEdge();
-      double chartX = domainAxis.java2DToValue(mouseX, dataArea, domainAxisEdge);
-      double chartY = rangeAxis.java2DToValue(mouseY, dataArea, rangeAxisEdge);
+    double cx = 0;
+    double cy = 0;
+    if (domainAxis != null) 
+      cx = domainAxis.java2DToValue(mouseX, dataArea, domainAxisEdge);
+    if (rangeAxis != null) 
+      cy = rangeAxis.java2DToValue(mouseY, dataArea, rangeAxisEdge);
 
-      return new Point2D.Double(chartX, chartY);
-    } else
-      return null;
+      return new Point2D.Double(cx,cy);
+  }
+
+  /**
+   * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
+   * 
+   * @param chart
+   * @return
+   */
+  public static ChartEntity findChartEntity(ChartCanvas chart, double mx, double my) {
+    // TODO check if insets were needed
+    // coordinates to find chart entities
+    int x = (int) (mx/ chart.getScaleX());
+    int y = (int) (my / chart.getScaleY());
+
+      ChartRenderingInfo info = chart.getRenderingInfo();
+      ChartEntity entity = null;
+      if (info != null) {
+        EntityCollection entities = info.getEntityCollection();
+        if (entities != null) {
+          entity = entities.getEntity(x, y);
+        }
+      }
+      return entity;
   }
   
   /**
