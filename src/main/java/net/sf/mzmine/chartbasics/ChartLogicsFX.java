@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -18,29 +18,26 @@
 
 package net.sf.mzmine.chartbasics;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.logging.Logger;
-import javax.swing.JPanel;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.Axis;
-import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.AxisEntity;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.fx.ChartCanvas;
+import org.jfree.chart.fx.ChartViewer;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.CombinedRangeXYPlot;
+import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.plot.Zoomable;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
-import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 
 /**
  * Collection of methods for JFreeCharts <br>
@@ -50,8 +47,8 @@ import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ChartLogics {
-  private static Logger logger = Logger.getLogger(ChartLogics.class.getName());
+public class ChartLogicsFX {
+  private static Logger logger = Logger.getLogger(ChartLogicsFX.class.getName());
 
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
@@ -60,10 +57,8 @@ public class ChartLogics {
    * @param mouseX
    * @param mouseY
    * @return Range as chart coordinates
-   * @throws Exception
    */
-  public static Point2D mouseXYToPlotXY(ChartPanel myChart, double mouseX, double mouseY)
-      throws Exception {
+  public static Point2D mouseXYToPlotXY(ChartViewer myChart, double mouseX, double mouseY) {
     return mouseXYToPlotXY(myChart, (int) mouseX, (int) mouseY);
   }
 
@@ -73,30 +68,27 @@ public class ChartLogics {
    * @param myChart
    * @param mouseX
    * @param mouseY
-   * @return Range as chart coordinates
-   * @throws Exception
+   * @return Range as chart coordinates (never null)
    */
-  public static Point2D mouseXYToPlotXY(ChartPanel myChart, int mouseX, int mouseY)
-      throws Exception {
-    Point2D p = myChart.translateScreenToJava2D(new Point(mouseX, mouseY));
-
+  public static Point2D mouseXYToPlotXY(ChartViewer myChart, int mouseX, int mouseY) {
     XYPlot plot = null;
     // find plot as parent of axis
-    ChartEntity entity = findChartEntity(myChart, mouseX, mouseY);
+    ChartEntity entity = findChartEntity(myChart.getCanvas(), mouseX, mouseY);
     if (entity instanceof AxisEntity) {
       Axis a = ((AxisEntity) entity).getAxis();
       if (a.getPlot() instanceof XYPlot)
         plot = (XYPlot) a.getPlot();
     }
 
-    ChartRenderingInfo info = myChart.getChartRenderingInfo();
-    int subplot = info.getPlotInfo().getSubplotIndex(p);
+    ChartRenderingInfo info = myChart.getRenderingInfo();
+    int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     if (subplot != -1)
       dataArea = info.getPlotInfo().getSubplotInfo(subplot).getDataArea();
 
+    // find subplot or plot
     if (plot == null)
-      plot = findXYSubplot(myChart.getChart(), info, p.getX(), p.getY());
+      plot = findXYSubplot(myChart.getChart(), info, mouseX, mouseY);
 
     // coordinates
     double cx = 0;
@@ -120,14 +112,34 @@ public class ChartLogics {
       }
 
       if (domainAxis != null)
-        cx = domainAxis.java2DToValue(p.getX(), dataArea, domainAxisEdge);
+        cx = domainAxis.java2DToValue(mouseX, dataArea, domainAxisEdge);
       if (rangeAxis != null)
-        cy = rangeAxis.java2DToValue(p.getY(), dataArea, rangeAxisEdge);
-    } else {
-      throw new Exception("no xyplot found");
+        cy = rangeAxis.java2DToValue(mouseY, dataArea, rangeAxisEdge);
     }
     return new Point2D.Double(cx, cy);
+  }
 
+  /**
+   * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
+   * 
+   * @param chart
+   * @return
+   */
+  public static ChartEntity findChartEntity(ChartCanvas chart, double mx, double my) {
+    // TODO check if insets were needed
+    // coordinates to find chart entities
+    int x = (int) (mx / chart.getScaleX());
+    int y = (int) (my / chart.getScaleY());
+
+    ChartRenderingInfo info = chart.getRenderingInfo();
+    ChartEntity entity = null;
+    if (info != null) {
+      EntityCollection entities = info.getEntityCollection();
+      if (entities != null) {
+        entity = entities.getEntity(x, y);
+      }
+    }
+    return entity;
   }
 
   /**
@@ -149,37 +161,9 @@ public class ChartLogics {
       else if (chart.getPlot() instanceof CombinedRangeXYPlot)
         plot = (XYPlot) ((CombinedRangeXYPlot) chart.getPlot()).getSubplots().get(subplot);
     }
-
     if (plot == null && chart.getPlot() instanceof XYPlot)
       plot = (XYPlot) chart.getPlot();
-
     return plot;
-  }
-
-  /**
-   * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
-   * 
-   * @param chart
-   * @param mx mouse coordinates
-   * @param my mouse coordinates
-   * @return
-   */
-  public static ChartEntity findChartEntity(ChartPanel chart, double mx, double my) {
-    // TODO check if insets were needed
-    // coordinates to find chart entities
-    Insets insets = chart.getInsets();
-    int x = (int) ((mx - insets.left) / chart.getScaleX());
-    int y = (int) ((my - insets.top) / chart.getScaleY());
-
-    ChartRenderingInfo info = chart.getChartRenderingInfo();
-    ChartEntity entity = null;
-    if (info != null) {
-      EntityCollection entities = info.getEntityCollection();
-      if (entities != null) {
-        entity = entities.getEntity(x, y);
-      }
-    }
-    return entity;
   }
 
   /**
@@ -187,9 +171,8 @@ public class ChartLogics {
    * 
    * @param myChart
    * @return width in data space for x and y
-   * @throws Exception
    */
-  public static Point2D screenValueToPlotValue(ChartPanel myChart, int val) throws Exception {
+  public static Point2D screenValueToPlotValue(ChartViewer myChart, int val) {
     Point2D p = mouseXYToPlotXY(myChart, 0, 0);
     Point2D p2 = mouseXYToPlotXY(myChart, val, val);
     // inverted y
@@ -205,15 +188,14 @@ public class ChartLogics {
    * @param axis for width calculation
    * @return
    */
-  public static double calcWidthOnScreen(ChartPanel myChart, double dataWidth, ValueAxis axis,
+  public static double calcWidthOnScreen(ChartViewer myChart, double dataWidth, ValueAxis axis,
       RectangleEdge axisEdge) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    ChartRenderingInfo info = myChart.getChartRenderingInfo();
+    ChartRenderingInfo info = myChart.getRenderingInfo();
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
 
-    double width2D = axis.lengthToJava2D(dataWidth, dataArea, axisEdge);
-
-    return width2D;
+    // width 2D
+    return axis.lengthToJava2D(dataWidth, dataArea, axisEdge);
   }
 
 
@@ -225,7 +207,7 @@ public class ChartLogics {
    * @param width
    * @return
    */
-  public static Dimension calcSizeForPlotWidth(ChartPanel myChart, double plotWidth) {
+  public static Dimension calcSizeForPlotWidth(ChartViewer myChart, double plotWidth) {
     return calcSizeForPlotWidth(myChart, plotWidth, 4);
   }
 
@@ -237,7 +219,7 @@ public class ChartLogics {
    * @param plotWidth
    * @return
    */
-  public static Dimension calcSizeForPlotWidth(ChartPanel myChart, double plotWidth,
+  public static Dimension calcSizeForPlotWidth(ChartViewer myChart, double plotWidth,
       int iterations) {
     // ranges
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
@@ -258,7 +240,7 @@ public class ChartLogics {
    * @param plotWidth
    * @return
    */
-  public static Dimension calcSizeForPlotSize(ChartPanel myChart, double plotWidth,
+  public static Dimension calcSizeForPlotSize(ChartViewer myChart, double plotWidth,
       double plotHeight) {
     return calcSizeForPlotSize(myChart, plotWidth, plotHeight, 4);
   }
@@ -270,7 +252,7 @@ public class ChartLogics {
    * @param plotWidth
    * @return
    */
-  public static Dimension calcSizeForPlotSize(ChartPanel myChart, double plotWidth,
+  public static Dimension calcSizeForPlotSize(ChartViewer myChart, double plotWidth,
       double plotHeight, int iterations) {
     makeChartResizable(myChart);
 
@@ -285,11 +267,12 @@ public class ChartLogics {
     try {
       for (int i = 0; i < iterations; i++) {
         // paint on ghost panel with estimated height (if copy panel==true)
-        myChart.setSize((int) estimatedChartWidth, (int) estimatedChartHeight);
-        myChart.paintImmediately(myChart.getBounds());
+        myChart.getCanvas().setWidth((int) estimatedChartWidth);
+        myChart.getCanvas().setHeight((int) estimatedChartHeight);
+        myChart.getCanvas().draw();
 
         // rendering info
-        ChartRenderingInfo info = myChart.getChartRenderingInfo();
+        ChartRenderingInfo info = myChart.getRenderingInfo();
         Rectangle2D dataArea = info.getPlotInfo().getDataArea();
         Rectangle2D chartArea = info.getChartArea();
 
@@ -320,14 +303,12 @@ public class ChartLogics {
    * Range axes need to share the same unit (e.g. mm)
    * 
    * @param myChart
-   * @param copyToNewPanel
    * @param dataWidth width of data
    * @param axis for width calculation
    * @return
    */
-  public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
-      boolean copyToNewPanel) {
-    return calcHeightToWidth(myChart, chartWidth, chartWidth * 3, 4, copyToNewPanel);
+  public static double calcHeightToWidth(ChartViewer myChart, double chartWidth) {
+    return calcHeightToWidth(myChart, chartWidth, chartWidth * 3, 4);
   }
 
   /**
@@ -335,13 +316,12 @@ public class ChartLogics {
    * same unit (e.g. mm)
    * 
    * @param myChart
-   * @param copyToNewPanel
    * @param dataWidth width of data
    * @param axis for width calculation
    * @return
    */
-  public static double calcHeightToWidth(ChartPanel myChart, double chartWidth,
-      double estimatedHeight, int iterations, boolean copyToNewPanel) {
+  public static double calcHeightToWidth(ChartViewer myChart, double chartWidth,
+      double estimatedHeight, int iterations) {
     // if(myChart.getChartRenderingInfo()==null ||
     // myChart.getChartRenderingInfo().getChartArea()==null ||
     // myChart.getChartRenderingInfo().getChartArea().getWidth()==0)
@@ -351,19 +331,15 @@ public class ChartLogics {
 
     makeChartResizable(myChart);
 
-    // paint on a ghost panel
-    JPanel parent = (JPanel) myChart.getParent();
-    JPanel p = copyToNewPanel ? new JPanel() : parent;
-    if (copyToNewPanel)
-      p.add(myChart, BorderLayout.CENTER);
     try {
       for (int i = 0; i < iterations; i++) {
         // paint on ghost panel with estimated height (if copy panel==true)
-        myChart.setSize((int) chartWidth, (int) estimatedHeight);
-        myChart.paintImmediately(myChart.getBounds());
+        myChart.getCanvas().setWidth((int) chartWidth);
+        myChart.getCanvas().setHeight((int) estimatedHeight);
+        myChart.getCanvas().draw();
 
         XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-        ChartRenderingInfo info = myChart.getChartRenderingInfo();
+        ChartRenderingInfo info = myChart.getRenderingInfo();
         Rectangle2D dataArea = info.getPlotInfo().getDataArea();
         Rectangle2D chartArea = info.getChartArea();
 
@@ -398,12 +374,6 @@ public class ChartLogics {
       ex.printStackTrace();
     }
 
-    if (copyToNewPanel) {
-      // reset to frame
-      p.removeAll();
-      parent.add(myChart);
-    }
-
     return height;
   }
 
@@ -412,11 +382,8 @@ public class ChartLogics {
    * 
    * @param myChart
    */
-  public static void makeChartResizable(ChartPanel myChart) {
-    myChart.setMaximumDrawWidth(1000000000);
-    myChart.setMinimumDrawWidth(0);
-    myChart.setMaximumDrawHeight(1000000000);
-    myChart.setMinimumDrawHeight(0);
+  public static void makeChartResizable(ChartViewer myChart) {
+    // TODO set max and min sizes
   }
 
   /**
@@ -426,20 +393,13 @@ public class ChartLogics {
    * @param myChart
    * @return
    */
-  public static double calcWidthToHeight(ChartPanel myChart, double chartHeight) {
+  public static double calcWidthToHeight(ChartViewer myChart, double chartHeight) {
     makeChartResizable(myChart);
-    // paint on a ghost panel
-    JPanel parent = (JPanel) myChart.getParent();
-    JPanel p = new JPanel();
-    p.removeAll();
-    p.add(myChart, BorderLayout.CENTER);
-    p.setBounds(myChart.getBounds());
-    myChart.paintImmediately(myChart.getBounds());
-    p.removeAll();
-    parent.add(myChart);
+
+    myChart.getCanvas().draw();
 
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    ChartRenderingInfo info = myChart.getChartRenderingInfo();
+    ChartRenderingInfo info = myChart.getRenderingInfo();
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     Rectangle2D chartArea = info.getChartArea();
 
@@ -472,20 +432,13 @@ public class ChartLogics {
    * @param myChart
    * @return
    */
-  public static Dimension calcMaxSize(ChartPanel myChart, double chartWidth, double chartHeight) {
+  public static Dimension calcMaxSize(ChartViewer myChart, double chartWidth, double chartHeight) {
     makeChartResizable(myChart);
     // paint on a ghost panel
-    JPanel parent = (JPanel) myChart.getParent();
-    JPanel p = new JPanel();
-    p.removeAll();
-    p.add(myChart, BorderLayout.CENTER);
-    p.setBounds(myChart.getBounds());
-    myChart.paintImmediately(myChart.getBounds());
-    p.removeAll();
-    parent.add(myChart);
+    myChart.getCanvas().draw();
 
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    ChartRenderingInfo info = myChart.getChartRenderingInfo();
+    ChartRenderingInfo info = myChart.getRenderingInfo();
     Rectangle2D dataArea = info.getPlotInfo().getDataArea();
     Rectangle2D chartArea = info.getChartArea();
 
@@ -535,7 +488,7 @@ public class ChartLogics {
    * @param myChart
    * @return Range the domainAxis zoom (X-axis)
    */
-  public static Range getZoomDomainAxis(ChartPanel myChart) {
+  public static Range getZoomDomainAxis(ChartViewer myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
     ValueAxis domainAxis = plot.getDomainAxis();
 
@@ -549,7 +502,7 @@ public class ChartLogics {
    * @param zoom
    * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
-  public static void setZoomDomainAxis(ChartPanel myChart, Range zoom, boolean autoRangeY) {
+  public static void setZoomDomainAxis(ChartViewer myChart, Range zoom, boolean autoRangeY) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
     ValueAxis domainAxis = plot.getDomainAxis();
     setZoomAxis(domainAxis, keepRangeWithinAutoBounds(domainAxis, zoom));
@@ -578,13 +531,18 @@ public class ChartLogics {
    * @param zoom
    * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
-  public static void autoRangeAxis(ChartPanel myChart) {
+  public static void autoAxes(ChartViewer myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-    // trick. Otherwise auto range will fail sometimes
-    rangeAxis.setRange(rangeAxis.getRange());
-    rangeAxis.setAutoRangeIncludesZero(true);
-    myChart.restoreAutoRangeBounds();
+    if (plot instanceof Zoomable) {
+      Zoomable z = plot;
+      Point2D endPoint = new Point2D.Double(0, 0);
+      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      boolean saved = plot.isNotify();
+      plot.setNotify(false);
+      z.zoomDomainAxes(0, pri, endPoint);
+      z.zoomRangeAxes(0, pri, endPoint);
+      plot.setNotify(saved);
+    }
   }
 
   /**
@@ -594,13 +552,31 @@ public class ChartLogics {
    * @param zoom
    * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
-  public static void autoDomainAxis(ChartPanel myChart) {
+  public static void autoRangeAxis(ChartViewer myChart) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    NumberAxis axis = (NumberAxis) plot.getDomainAxis();
-    // trick. Otherwise auto range will fail sometimes
-    axis.setRange(axis.getRange());
-    axis.setAutoRangeIncludesZero(false);
-    myChart.restoreAutoDomainBounds();
+    if (plot instanceof Zoomable) {
+      Zoomable z = plot;
+      Point2D endPoint = new Point2D.Double(0, 0);
+      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      z.zoomRangeAxes(0, pri, endPoint);
+    }
+  }
+
+  /**
+   * Auto range the range axis
+   * 
+   * @param myChart
+   * @param zoom
+   * @param autoRangeY if true the range (Y) axis auto bounds will be restored
+   */
+  public static void autoDomainAxis(ChartViewer myChart) {
+    XYPlot plot = (XYPlot) myChart.getChart().getPlot();
+    if (plot instanceof Zoomable) {
+      Zoomable z = plot;
+      Point2D endPoint = new Point2D.Double(0, 0);
+      PlotRenderingInfo pri = myChart.getRenderingInfo().getPlotInfo();
+      z.zoomDomainAxes(0, pri, endPoint);
+    }
   }
 
   /**
@@ -612,11 +588,6 @@ public class ChartLogics {
     axis.resizeRange(0);
   }
 
-  public static void autoAxes(ChartPanel cp) {
-    autoRangeAxis(cp);
-    autoDomainAxis(cp);
-  }
-
   /**
    * Move a chart by a percentage x-offset if xoffset is <0 the shift will be negativ (xoffset>0
    * results in a positive shift)
@@ -625,7 +596,7 @@ public class ChartLogics {
    * @param xoffset in percent
    * @param autoRangeY if true the range (Y) axis auto bounds will be restored
    */
-  public static void offsetDomainAxis(ChartPanel myChart, double xoffset, boolean autoRangeY) {
+  public static void offsetDomainAxis(ChartViewer myChart, double xoffset, boolean autoRangeY) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
     ValueAxis domainAxis = plot.getDomainAxis();
     // apply offset on x
@@ -643,7 +614,7 @@ public class ChartLogics {
    * @param xoffset
    * @param autoRangeY
    */
-  public static void offsetDomainAxisAbsolute(ChartPanel myChart, double xoffset,
+  public static void offsetDomainAxisAbsolute(ChartViewer myChart, double xoffset,
       boolean autoRangeY) {
     XYPlot plot = (XYPlot) myChart.getChart().getPlot();
     ValueAxis domainAxis = plot.getDomainAxis();
@@ -699,8 +670,25 @@ public class ChartLogics {
    * @param yzoom percentage zoom factor
    * @param holdLowerBound if true only the upper bound will be zoomed
    */
-  public static void zoomRangeAxis(JFreeChart myChart, double yzoom, boolean holdLowerBound) {
-    zoomAxis(myChart.getXYPlot().getRangeAxis(), yzoom, holdLowerBound);
+  public static void zoomRangeAxis(ChartViewer myChart, double yzoom, boolean holdLowerBound) {
+    XYPlot plot = (XYPlot) myChart.getChart().getPlot();
+    ValueAxis rangeAxis = plot.getRangeAxis();
+
+    double lower = rangeAxis.getLowerBound();
+    double upper = rangeAxis.getUpperBound();
+    double dist = upper - lower;
+
+    if (holdLowerBound) {
+      upper += dist * yzoom;
+    } else {
+      lower -= dist * yzoom / 2;
+      upper += dist * yzoom / 2;
+    }
+
+    if (lower < upper) {
+      Range range = new Range(lower, upper);
+      setZoomAxis(rangeAxis, keepRangeWithinAutoBounds(rangeAxis, range));
+    }
   }
 
   /**
@@ -755,12 +743,13 @@ public class ChartLogics {
 
   /**
    * 
-   * @param chartPanel
+   * @param ChartViewer
    * @return
    */
-  public static boolean isMouseZoomable(ChartPanel chartPanel) {
-    return chartPanel instanceof EChartPanel ? ((EChartPanel) chartPanel).isMouseZoomable()
-        : chartPanel.isRangeZoomable() && chartPanel.isDomainZoomable();
+  // TODO
+  public static boolean isMouseZoomable(ChartViewer chart) {
+    // return chartPanel instanceof EChartPanel ? ((EChartPanel) chartPanel).isMouseZoomable()
+    // : chartPanel.isRangeZoomable() && chartPanel.isDomainZoomable();
+    return chart.getCanvas().isRangeZoomable() && chart.getCanvas().isDomainZoomable();
   }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.gestures;
+package net.sf.mzmine.chartbasics.gui.swing;
 
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
@@ -29,6 +29,10 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
+import net.sf.mzmine.chartbasics.gestures.ChartGesture;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureEvent;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Button;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;

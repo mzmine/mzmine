@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics;
+package net.sf.mzmine.chartbasics.chartthemes;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -24,7 +24,6 @@ import java.util.List;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.Title;
-import net.sf.mzmine.chartbasics.chartthemes.EStandardChartTheme;
 import net.sf.mzmine.framework.fontspecs.FontSpecs;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -39,7 +38,7 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ChartParameters extends SimpleParameterSet {
+public class ChartThemeParameters extends SimpleParameterSet {
 
   public static final BooleanParameter showTitle = new BooleanParameter("Show title", "", false);
   public static final OptionalParameter<StringParameter> changeTitle =
@@ -76,8 +75,8 @@ public class ChartParameters extends SimpleParameterSet {
   public static final BooleanParameter showYAxis = new BooleanParameter("Show y axis", "", true);
 
 
-  public ChartParameters() {
-    super(new Parameter[] {showLegends, showTitle, changeTitle, xlabel, ylabel, color, masterFont,
+  public ChartThemeParameters() {
+    super(new Parameter[] {showLegends, showTitle, changeTitle, xlabel, ylabel,color, masterFont,
         titleFont, captionFont, labelFont, xGridPaint, yGridPaint, showXAxis, showYAxis});
     changeTitle.setValue(false);
     xlabel.setValue(false);
@@ -89,20 +88,20 @@ public class ChartParameters extends SimpleParameterSet {
 
   public void applyToChart(JFreeChart chart) {
     // apply chart settings
-    boolean showTitle = this.getParameter(ChartParameters.showTitle).getValue();
-    boolean changeTitle = this.getParameter(ChartParameters.changeTitle).getValue();
-    String title = this.getParameter(ChartParameters.changeTitle).getEmbeddedParameter().getValue();
-    boolean showLegends = this.getParameter(ChartParameters.showLegends).getValue();
+    boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
+    boolean changeTitle = this.getParameter(ChartThemeParameters.changeTitle).getValue();
+    String title = this.getParameter(ChartThemeParameters.changeTitle).getEmbeddedParameter().getValue();
+    boolean showLegends = this.getParameter(ChartThemeParameters.showLegends).getValue();
 
-    boolean usexlabel = this.getParameter(ChartParameters.xlabel).getValue();
-    boolean useylabel = this.getParameter(ChartParameters.ylabel).getValue();
-    String xlabel = this.getParameter(ChartParameters.xlabel).getEmbeddedParameter().getValue();
-    String ylabel = this.getParameter(ChartParameters.ylabel).getEmbeddedParameter().getValue();
+    boolean usexlabel = this.getParameter(ChartThemeParameters.xlabel).getValue();
+    boolean useylabel = this.getParameter(ChartThemeParameters.ylabel).getValue();
+    String xlabel = this.getParameter(ChartThemeParameters.xlabel).getEmbeddedParameter().getValue();
+    String ylabel = this.getParameter(ChartThemeParameters.ylabel).getEmbeddedParameter().getValue();
 
-    Color gbColor = this.getParameter(ChartParameters.color).getValue();
+    Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
     chart.setBackgroundPaint(gbColor);
     chart.getPlot().setBackgroundPaint(gbColor);
-
+    
     if (changeTitle)
       chart.setTitle(title);
     chart.getTitle().setVisible(showTitle);
@@ -116,46 +115,46 @@ public class ChartParameters extends SimpleParameterSet {
         p.getRangeAxis().setLabel(ylabel);
 
 
-      boolean xgrid = this.getParameter(ChartParameters.xGridPaint).getValue();
-      boolean ygrid = this.getParameter(ChartParameters.yGridPaint).getValue();
+      boolean xgrid = this.getParameter(ChartThemeParameters.xGridPaint).getValue();
+      boolean ygrid = this.getParameter(ChartThemeParameters.yGridPaint).getValue();
       Color cxgrid =
-          this.getParameter(ChartParameters.xGridPaint).getEmbeddedParameter().getValue();
+          this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter().getValue();
       Color cygrid =
-          this.getParameter(ChartParameters.yGridPaint).getEmbeddedParameter().getValue();
+          this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
       p.setDomainGridlinesVisible(xgrid);
       p.setDomainGridlinePaint(cxgrid);
       p.setRangeGridlinesVisible(ygrid);
       p.setRangeGridlinePaint(cygrid);
 
-      p.getDomainAxis().setVisible(this.getParameter(ChartParameters.showXAxis).getValue());
-      p.getRangeAxis().setVisible(this.getParameter(ChartParameters.showYAxis).getValue());
+      p.getDomainAxis().setVisible(this.getParameter(ChartThemeParameters.showXAxis).getValue());
+      p.getRangeAxis().setVisible(this.getParameter(ChartThemeParameters.showYAxis).getValue());
     }
   }
 
   public void applyToChartTheme(EStandardChartTheme theme) {
     // apply chart settings
-    boolean showTitle = this.getParameter(ChartParameters.showTitle).getValue();
-    boolean showLegends = this.getParameter(ChartParameters.showLegends).getValue();
-    boolean showXAxis = this.getParameter(ChartParameters.showXAxis).getValue();
-    boolean showYAxis = this.getParameter(ChartParameters.showYAxis).getValue();
-    boolean xgrid = this.getParameter(ChartParameters.xGridPaint).getValue();
-    boolean ygrid = this.getParameter(ChartParameters.yGridPaint).getValue();
-    Color cxgrid = this.getParameter(ChartParameters.xGridPaint).getEmbeddedParameter().getValue();
-    Color cygrid = this.getParameter(ChartParameters.yGridPaint).getEmbeddedParameter().getValue();
+    boolean showTitle = this.getParameter(ChartThemeParameters.showTitle).getValue();
+    boolean showLegends = this.getParameter(ChartThemeParameters.showLegends).getValue();
+    boolean showXAxis = this.getParameter(ChartThemeParameters.showXAxis).getValue();
+    boolean showYAxis = this.getParameter(ChartThemeParameters.showYAxis).getValue();
+    boolean xgrid = this.getParameter(ChartThemeParameters.xGridPaint).getValue();
+    boolean ygrid = this.getParameter(ChartThemeParameters.yGridPaint).getValue();
+    Color cxgrid = this.getParameter(ChartThemeParameters.xGridPaint).getEmbeddedParameter().getValue();
+    Color cygrid = this.getParameter(ChartThemeParameters.yGridPaint).getEmbeddedParameter().getValue();
 
     theme.setShowTitle(showTitle);
     theme.getShowSubtitles(showLegends);
 
-    FontSpecs master = this.getParameter(ChartParameters.masterFont).getValue();
-    FontSpecs large = this.getParameter(ChartParameters.titleFont).getValue();
-    FontSpecs medium = this.getParameter(ChartParameters.captionFont).getValue();
-    FontSpecs small = this.getParameter(ChartParameters.labelFont).getValue();
-
-    Color gbColor = this.getParameter(ChartParameters.color).getValue();
+    FontSpecs master = this.getParameter(ChartThemeParameters.masterFont).getValue();
+    FontSpecs large = this.getParameter(ChartThemeParameters.titleFont).getValue();
+    FontSpecs medium = this.getParameter(ChartThemeParameters.captionFont).getValue();
+    FontSpecs small = this.getParameter(ChartThemeParameters.labelFont).getValue();
+    
+    Color gbColor = this.getParameter(ChartThemeParameters.color).getValue();
 
     theme.setChartBackgroundPaint(gbColor);
     theme.setPlotBackgroundPaint(gbColor);
-
+    
     theme.setMasterFont(master.getFont());
     theme.setExtraLargeFont(large.getFont());
     theme.setLargeFont(medium.getFont());

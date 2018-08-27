@@ -83,6 +83,7 @@ public class ChartExportUtil {
     cp.getPopupMenu().add(exportGraphics);
   }
 
+
   /**
    * takes Only Width in account
    * 

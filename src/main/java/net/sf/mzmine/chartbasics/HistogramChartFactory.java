@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -50,8 +50,8 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.util.maths.Precision;
 
-public class EChartFactory {
-  private static final Logger logger = LoggerFactory.getLogger(EChartFactory.class);
+public class HistogramChartFactory {
+  private static final Logger logger = LoggerFactory.getLogger(HistogramChartFactory.class);
 
   private static GaussianCurveFitter fitter = GaussianCurveFitter.create().withMaxIterations(10000);
 

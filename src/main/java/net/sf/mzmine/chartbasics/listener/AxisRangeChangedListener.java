@@ -18,19 +18,19 @@
 
 package net.sf.mzmine.chartbasics.listener;
 
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.AxisChangeEvent;
 import org.jfree.chart.event.AxisChangeListener;
 import org.jfree.data.Range;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 
 public abstract class AxisRangeChangedListener implements AxisChangeListener {
 
   // last lower / upper range
   private Range lastRange = null;
-  private ChartPanel chart;
+  private ChartViewWrapper chart;
 
-  public AxisRangeChangedListener(ChartPanel cp) {
+  public AxisRangeChangedListener(ChartViewWrapper cp) {
     chart = cp;
   }
 
@@ -53,5 +53,6 @@ public abstract class AxisRangeChangedListener implements AxisChangeListener {
    * @param lastR
    * @param newR
    */
-  public abstract void axisRangeChanged(ChartPanel chart, ValueAxis axis, Range lastR, Range newR);
+  public abstract void axisRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR,
+      Range newR);
 }

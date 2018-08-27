@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -16,29 +16,23 @@
  * USA
  */
 
-package net.sf.mzmine.chartbasics.menu;
+package net.sf.mzmine.chartbasics.gui.javafx.menu;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.JMenuItem;
-import net.sf.mzmine.chartbasics.EChartPanel;
+import javafx.scene.control.MenuItem;
+import net.sf.mzmine.chartbasics.gui.javafx.EChartViewer;
+import net.sf.mzmine.chartbasics.gui.swing.menu.MenuExport;
 import net.sf.mzmine.util.io.ClipboardWriter;
 
 
-public class MenuExportToClipboard extends JMenuItem implements MenuExport {
+public class MenuExportToClipboard extends MenuItem implements MenuExport {
   private static final long serialVersionUID = 1L;
 
-  private EChartPanel chart;
+  private EChartViewer chart;
 
-  public MenuExportToClipboard(String menuTitle, EChartPanel chart) {
+  public MenuExportToClipboard(String menuTitle, EChartViewer chart) {
     super(menuTitle);
     this.chart = chart;
-    this.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        exportDataToClipboard();
-      }
-    });
+    setOnAction(e -> exportDataToClipboard());
   }
 
   public void exportDataToClipboard() {
