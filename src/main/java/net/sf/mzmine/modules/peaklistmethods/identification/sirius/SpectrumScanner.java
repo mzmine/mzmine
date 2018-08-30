@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -175,10 +176,10 @@ public class SpectrumScanner {
 
   /**
    * Process RawDataFile and return list with one MsSpectrum of level 1.
-   * 
+   * Returns null if ms1list is empty
    * @return MS spectra list
    */
-  public List<MsSpectrum> getMsList() {
+  public @Nullable List<MsSpectrum> getMsList() {
     if (ms1list.size() == 0)
       return null;
     return ms1list;
@@ -186,15 +187,19 @@ public class SpectrumScanner {
 
   /**
    * Process RawDataFile and return list with one MsSpectrum of level 2.
-   * 
+   * Returns null if ms2list is empty
    * @return MSMS spectra list
    */
-  public List<MsSpectrum> getMsMsList() {
+  public @Nullable List<MsSpectrum> getMsMsList() {
     if (ms2list.size() == 0)
       return null;
     return ms2list;
   }
 
+  /**
+   *
+   * @return ms2list contains items or not
+   */
   public boolean peakContainsMsMs() {
     return ms2list.size() > 0;
   }

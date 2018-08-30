@@ -85,7 +85,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     fingerCandidates =
         parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
 
-    String massListName = parameters.getParameter(SingleRowIdentificationParameters.MASS_LIST).getValue();
+    String massListName = parameters.getParameter(PeakListIdentificationParameters.MASS_LIST).getValue();
     List<String> massLists = MassListComponent.getMassListNames();
 
     if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0 || threadsAmount <= 0) {

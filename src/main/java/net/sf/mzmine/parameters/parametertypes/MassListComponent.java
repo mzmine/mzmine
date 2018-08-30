@@ -103,6 +103,10 @@ public class MassListComponent extends JPanel implements ActionListener {
     nameField.setToolTipText(toolTip);
   }
 
+  /**
+   * Method returns the list of all identified MassList names in scans
+   * @return unique MassList names
+   */
   public static List<String> getMassListNames() {
     ArrayList<String> names = new ArrayList<>();
     RawDataFile dataFiles[] = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();

@@ -209,7 +209,7 @@ public class ResultWindow extends JFrame implements ActionListener {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         listElementModel.addElement(compound);
-        compoundsTable.generateIconImage(compound);
+        compoundsTable.generateIconImage(compound); //todo: add here link to cell, then I will get sizes from it
       }
     });
   }
