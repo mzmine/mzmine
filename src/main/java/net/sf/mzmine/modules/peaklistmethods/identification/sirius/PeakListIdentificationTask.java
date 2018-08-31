@@ -91,12 +91,12 @@ public class PeakListIdentificationTask extends AbstractTask {
     if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0 || threadsAmount <= 0) {
       MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
           "Sirius parameters can't be negative");
-      cancel();
+      setStatus(TaskStatus.ERROR);
     } else if (!massLists.contains(massListName)) {
       MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
           "Mass List parameter",
           String.format("Mass List parameter is set wrong [%s]", massListName));
-      cancel();
+      setStatus(TaskStatus.ERROR);
     }
   }
 

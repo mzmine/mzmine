@@ -164,7 +164,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
         throw new MethodRuntimeException("There are no scans for requested Mass List name");
       }
     } catch (MethodRuntimeException f) {
-      showErrorAndCancel(window, String.format("Empty Mass List for %.2f", parentMass),
+      showError(window, String.format("Empty Mass List for %.2f", parentMass),
           "There is no MS2 scans that have a given precursor mass.\n"
               + "MS1 and MS2 lists are empty.\nCheck the Mass List field."); //todo: read carefully
       return;
@@ -190,11 +190,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
       siriusMethod = method;
     } catch (InterruptedException | TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
-      showErrorAndCancel(window, "Timer expired", timerErrorMessage);
+      showError(window, "Timer expired", timerErrorMessage);
       return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
-      showErrorAndCancel(window, "Sirius Error", siriusErrorMessage);
+      showError(window, "Sirius Error", siriusErrorMessage);
       return;
     }
 
@@ -234,8 +234,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private void showErrorAndCancel(ResultWindow window, String title, String msg) {
+  /**
+   * Shows error dialogue window and sets task status as ERROR
+   * @param window - where to create dialogue
+   * @param title of the dialogue window
+   * @param msg of the dialogue window
+   */
+  private void showError(ResultWindow window, String title, String msg) {
     MZmineCore.getDesktop().displayErrorMessage(window, title, msg);
-    this.setStatus(TaskStatus.CANCELED);
+    this.setStatus(TaskStatus.ERROR);
   }
 }

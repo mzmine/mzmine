@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import java.awt.Component;
 
 import javax.swing.JComponent;
