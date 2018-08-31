@@ -166,7 +166,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     } catch (MethodRuntimeException f) {
       showErrorAndCancel(window, String.format("Empty Mass List for %.2f", parentMass),
           "There is no MS2 scans that have a given precursor mass.\n"
-              + "MS1 and MS2 lists are empty.\nCheck the Mass List field.");
+              + "MS1 and MS2 lists are empty.\nCheck the Mass List field."); //todo: read carefully
       return;
     }
 

@@ -86,7 +86,6 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     listElementModel = new ResultTableModel();
     compoundsTable = new ResultTable(listElementModel);
-    listElementModel.setTable(compoundsTable);
 
     // Specify content position
     JScrollPane listScroller = new JScrollPane(compoundsTable);

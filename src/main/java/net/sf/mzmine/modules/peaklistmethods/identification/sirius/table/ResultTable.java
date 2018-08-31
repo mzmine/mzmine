@@ -18,12 +18,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.DBS_INDEX;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.FINGERID_SCORE_INDEX;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.FORMULA_INDEX;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.NAME_INDEX;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.PREVIEW_INDEX;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.ResultTableModel.SIRIUS_SCORE_INDEX;
 
 import java.awt.Image;
 import java.awt.Point;
@@ -42,13 +37,14 @@ import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.util.components.ComponentToolTipManager;
 import net.sf.mzmine.util.components.ComponentToolTipProvider;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 /**
  * Class ResultTable for SingleIdentificationTask results Implements ComponentToolTipProvider in
  * order to provide specific tooltip on a cells. Images of chemical structures
  */
 public class ResultTable extends JTable implements ComponentToolTipProvider {
-  private final Hashtable<Long, Image> images;
+  private final Hashtable<IAtomContainer, Image> images;
   private final ComponentToolTipManager ttm;
   private final ResultTableModel listElementModel;
 
@@ -72,6 +68,7 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
     getTableHeader().setReorderingAllowed(false);
     // Special configuration of multiline cell
     setDefaultRenderer(String[].class, new MultiLineTableCellRenderer());
+    setDefaultRenderer(IAtomContainer.class, new PreviewCellRenderer());
 
     /* Sorter orders by FingerID score by default */
     ResultTableSorter sorter = new ResultTableSorter(listElementModel);
@@ -79,13 +76,6 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
 
     /* Configure rows & columns sizes */
     setRowHeight(SiriusCompound.PREVIEW_HEIGHT);
-    getColumnModel().getColumn(PREVIEW_INDEX).setWidth(SiriusCompound.PREVIEW_WIDTH);
-    getColumnModel().getColumn(SIRIUS_SCORE_INDEX).setWidth(50);
-    getColumnModel().getColumn(FINGERID_SCORE_INDEX).setWidth(50);
-    getColumnModel().getColumn(DBS_INDEX).setWidth(50);
-    getColumnModel().getColumn(FORMULA_INDEX).setWidth(75);
-    getColumnModel().getColumn(NAME_INDEX).setWidth(75);
-//    setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
   }
 
   @Override
@@ -126,11 +116,10 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
       SiriusCompound compound = model.getCompoundAt(realRow);
 
       // Obtain a preview from the compound, if it is null -> it is not processed by fingerId
-      Object shortcut = compound.getPreview();
+      IAtomContainer shortcut = compound.getContainer();
       if (shortcut != null) {
         // Using hash of the image, retrieve a large image
-        long hash = shortcut.hashCode();
-        Image img = getIconImage(hash);
+        Image img = getIconImage(shortcut);
 
         // Construct new tooltip
         JLabel label = new JLabel();
@@ -151,31 +140,31 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
   }
 
   /**
-   * Identify Image by its' preview hash code
+   * Identify Image by its' non-null IAtomContainer object
    * 
-   * @param hash code of the preview
+   * @param container IAtomContainer of the image
    * @return null, if there is no such image and large version otherwise.
    */
-  private @Nullable Image getIconImage(Long hash) {
-    return images.get(hash);
+  private @Nullable Image getIconImage(IAtomContainer container) {
+    return images.get(container);
   }
 
   /**
-   * Generate large image and store <hash of the preview, Image> pairs in the dictionary.
+   * Generate large image and store <IAtomContainer, Image> pairs in the dictionary.
    * 
    * @param compound
    */
   public void generateIconImage(SiriusCompound compound) {
-    Object preview = compound.getPreview();
+    Object preview = compound.getContainer();
 
     // If there is no preview - no large image should be generated
     if (preview == null)
       return;
 
-    long hash = compound.getPreview().hashCode();
+    IAtomContainer container = compound.getContainer();
     Image image = compound.generateStructureImage(SiriusCompound.STRUCTURE_WIDTH,
         SiriusCompound.STRUCTURE_HEIGHT);
     if (image != null)
-      images.put(hash, image);
+      images.put(container, image);
   }
 }
