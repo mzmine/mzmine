@@ -215,17 +215,6 @@ public class SiriusCompound extends SimplePeakIdentity {
   }
 
   /**
-   * Generates Image of the Chemical Structure
-   * 
-   * @param width of the image
-   * @param height of the image
-   * @return new Image, returns null if used on non-processed by FingerId SiriusCompound
-   */
-  public @Nullable Image generateStructureImage(int width, int height) {
-    return generateImage(width, height);
-  }
-
-  /**
    * Method returns image generated from Chemical Structure IAtomContainer Better to use 3:2
    * relation of width:height
    * 
@@ -233,7 +222,7 @@ public class SiriusCompound extends SimplePeakIdentity {
    * @param height of the image
    * @return new Image object
    */
-  private Image generateImage(int width, int height) {
+  public Image generateImage(int width, int height) {
     IAtomContainer molecule = this.annotation.getChemicalStructure();
     if (molecule == null)
       return null;

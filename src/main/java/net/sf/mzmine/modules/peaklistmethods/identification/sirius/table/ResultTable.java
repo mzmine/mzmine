@@ -162,7 +162,7 @@ public class ResultTable extends JTable implements ComponentToolTipProvider {
       return;
 
     IAtomContainer container = compound.getContainer();
-    Image image = compound.generateStructureImage(SiriusCompound.STRUCTURE_WIDTH,
+    Image image = compound.generateImage(SiriusCompound.STRUCTURE_WIDTH,
         SiriusCompound.STRUCTURE_HEIGHT);
     if (image != null)
       images.put(container, image);
