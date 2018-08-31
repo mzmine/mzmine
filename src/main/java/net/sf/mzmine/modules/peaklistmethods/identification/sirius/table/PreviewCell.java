@@ -45,7 +45,18 @@ import org.openscience.cdk.renderer.visitor.AWTDrawVisitor;
  */
 public class PreviewCell extends JComponent {
   private final IAtomContainer molecule;
-  private final AtomContainerRenderer renderer;
+  private static final AtomContainerRenderer renderer;
+
+  static {
+    // Generators make the image elements
+    Font font = new Font("Verdana", Font.PLAIN, 14);
+    List<IGenerator<IAtomContainer>> generators = new ArrayList<>();
+    generators.add(new BasicSceneGenerator());
+    generators.add(new StandardGenerator(font));
+
+    // Renderer needs to have a toolkit-specific font manager
+    renderer = new AtomContainerRenderer(generators, new AWTFontManager());
+  }
 
   /**
    * Define renderers and save molecule`s container
@@ -53,15 +64,6 @@ public class PreviewCell extends JComponent {
    */
   public PreviewCell(IAtomContainer molecule) {
     this.molecule = molecule;
-
-    // Generators make the image elements
-    Font font = new Font("Verdana", Font.PLAIN, 14);
-    List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
-    generators.add(new BasicSceneGenerator());
-    generators.add(new StandardGenerator(font));
-
-    // Renderer needs to have a toolkit-specific font manager
-    renderer = new AtomContainerRenderer(generators, new AWTFontManager());
   }
 
   @Override

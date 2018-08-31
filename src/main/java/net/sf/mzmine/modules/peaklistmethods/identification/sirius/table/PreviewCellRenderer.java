@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
 import java.awt.Component;
 
+import java.util.Hashtable;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
@@ -31,7 +32,12 @@ import org.openscience.cdk.interfaces.IAtomContainer;
  * Renderer for PreviewCell compounds
  */
 public class PreviewCellRenderer implements TableCellRenderer {
-  private JComponent component;
+  // Store created PreviewCells and reuse later
+  private Hashtable<IAtomContainer, PreviewCell> components;
+
+  public PreviewCellRenderer() {
+    components = new Hashtable<>(10);
+  }
 
   /**
    * Render PreviewCell component that contains image
@@ -49,9 +55,10 @@ public class PreviewCellRenderer implements TableCellRenderer {
     if (value == null)
       return null;
 
-    IAtomContainer container = (IAtomContainer) value;
-    component = new PreviewCell(container);
-
-    return component;
+    if (!components.contains(value)) {
+      IAtomContainer container = (IAtomContainer) value;
+      components.put(container, new PreviewCell(container));
+    }
+    return components.get(value);
   }
 }
