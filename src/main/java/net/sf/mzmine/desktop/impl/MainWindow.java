@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 import javax.help.HelpBroker;
 import javax.imageio.ImageIO;
@@ -40,12 +39,13 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
-
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
 import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
+import net.sf.mzmine.desktop.preferences.ErrorMail;
+import net.sf.mzmine.desktop.preferences.ErrorMailSettings;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
@@ -79,6 +79,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
 
   private HelpImpl help;
 
+  private int mailCounter;
+
   public MainMenu getMainMenu() {
     return menuBar;
   }
@@ -90,47 +92,75 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
   /**
    * WindowListener interface implementation
    */
+  @Override
   public void windowOpened(WindowEvent e) {}
 
+  @Override
   public void windowClosing(WindowEvent e) {
     exitMZmine();
   }
 
+  @Override
   public void windowClosed(WindowEvent e) {}
 
+  @Override
   public void windowIconified(WindowEvent e) {}
 
+  @Override
   public void windowDeiconified(WindowEvent e) {}
 
+  @Override
   public void windowActivated(WindowEvent e) {}
 
+  @Override
   public void windowDeactivated(WindowEvent e) {}
 
+  @Override
   public void setStatusBarText(String text) {
     setStatusBarText(text, Color.black);
   }
 
   /**
    */
+  @Override
   public void displayMessage(Window window, String msg) {
     displayMessage(window, "Message", msg, JOptionPane.INFORMATION_MESSAGE);
   }
 
   /**
    */
+  @Override
   public void displayMessage(Window window, String title, String msg) {
     displayMessage(window, title, msg, JOptionPane.INFORMATION_MESSAGE);
   }
 
+  @Override
   public void displayErrorMessage(Window window, String msg) {
     displayMessage(window, "Error", msg);
   }
 
+  @Override
   public void displayErrorMessage(Window window, String title, String msg) {
     displayMessage(window, title, msg, JOptionPane.ERROR_MESSAGE);
   }
 
   public void displayMessage(Window window, String title, String msg, int type) {
+
+    // sending error message with a maximum of 5
+    if (MZminePreferences.sendErrorEMail.getValue() != null
+        && MZminePreferences.sendErrorEMail.getValue() && mailCounter < 5) {
+      ErrorMail errorMail = new ErrorMail();
+      try {
+        errorMail.sendErrorEmail(ErrorMailSettings.eMailAddress.getValue(),
+            ErrorMailSettings.eMailAddress.getValue(), ErrorMailSettings.smtpHost.getValue(),
+            "MZmine 2 error! ", msg, ErrorMailSettings.eMailPassword.getValue(),
+            ErrorMailSettings.smtpPort.getValue());
+        mailCounter++;
+      } catch (IOException e) {
+        e.printStackTrace();
+        logger.info("Sending mail error");
+      }
+    }
 
     assert msg != null;
 
@@ -152,10 +182,12 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
   /**
    * @see net.sf.mzmine.desktop.Desktop#getSelectedDataFiles()
    */
+  @Override
   public RawDataFile[] getSelectedDataFiles() {
     return mainPanel.getRawDataTree().getSelectedObjects(RawDataFile.class);
   }
 
+  @Override
   public PeakList[] getSelectedPeakLists() {
     return mainPanel.getPeakListTree().getSelectedObjects(PeakList.class);
   }
@@ -225,6 +257,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
   /**
    * @see net.sf.mzmine.desktop.Desktop#getMainFrame()
    */
+  @Override
   public JFrame getMainWindow() {
     return this;
   }
@@ -232,6 +265,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
   /**
    * @see net.sf.mzmine.desktop.Desktop#setStatusBarText(java.lang.String, java.awt.Color)
    */
+  @Override
   public void setStatusBarText(String text, Color textColor) {
 
     // If the request was caused by exception during MZmine startup, desktop
@@ -242,6 +276,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
     statusBar.setStatusText(text, textColor);
   }
 
+  @Override
   public void displayException(Window window, Exception e) {
     displayErrorMessage(window, ExceptionUtils.exceptionToString(e));
   }
