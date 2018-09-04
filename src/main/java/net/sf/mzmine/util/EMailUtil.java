@@ -46,7 +46,6 @@ public class EMailUtil {
       msg.addHeader("Content-Transfer-Encoding", "8bit");
 
       msg.setFrom(new InternetAddress(toEmail, "MZmine"));
-      msg.setReplyTo(InternetAddress.parse("aiden.organa@gmail.com", false));
 
       msg.setSubject(subject, "UTF-8");
 
