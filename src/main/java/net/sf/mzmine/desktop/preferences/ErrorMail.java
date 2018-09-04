@@ -51,7 +51,7 @@ public class ErrorMail {
       }
     };
     Session session = Session.getDefaultInstance(props, auth);
-    EMailUtil.sendEmail(session, emailTo, subject, msg);
-
+    Thread eMailThread = new Thread(new EMailUtil(session, emailTo, subject, msg));
+	eMailThread.start();
   }
 }

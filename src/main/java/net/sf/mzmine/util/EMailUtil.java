@@ -31,12 +31,25 @@ import javax.mail.internet.MimeMessage;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class EMailUtil {
+public class EMailUtil implements Runnable {
+
+  private Session session;
+  private String toEmail;
+  private String subject;
+  private String body;
+
+  public EMailUtil(Session session, String toEmail, String subject, String body) {
+    this.session = session;
+    this.toEmail = toEmail;
+    this.subject = subject;
+    this.body = body;
+  }
 
   /**
    * Method to send simple HTML email
    */
-  public static void sendEmail(Session session, String toEmail, String subject, String body) {
+  private void sendEmail() {
+
     Logger logger = Logger.getLogger("Mail Error");
     try {
       MimeMessage msg = new MimeMessage(session);
@@ -62,6 +75,11 @@ public class EMailUtil {
       logger.info("Failed sending error mail:" + subject + "\n" + body);
       e.printStackTrace();
     }
+  }
+
+  @Override
+  public void run() {
+    sendEmail();
   }
 
 }
