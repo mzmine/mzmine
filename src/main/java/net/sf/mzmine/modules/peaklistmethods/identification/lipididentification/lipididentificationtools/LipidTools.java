@@ -62,12 +62,12 @@ public class LipidTools {
     return numberOfDoubleBonds;
   }
 
-  public String getSumFormulaOfFragment(String classSpecificFragment) {
+  public String getSumFormulaOfFragmentContainingFA(String classSpecificFragment) {
     String sumFormula = null;
 
     // filter out sum formulas
     String[] sumFormulasToAdd = classSpecificFragment.split("\\+");
-    String[] sumFormulasToSubstract = classSpecificFragment.split("\\-");
+    String[] sumFormulasToSubstract = classSpecificFragment.split("\\-"); // to do!!!
 
     // only keep sum formulas
     String unsortedSumFormula = "";
@@ -79,6 +79,19 @@ public class LipidTools {
       }
     }
     sumFormula = FormulaUtils.formatFormula(FormulaUtils.parseFormula(unsortedSumFormula));
+    return sumFormula;
+  }
+
+  public String getSumFormulaOfSumFormulaFragment(String classSpecificFragment) {
+    String sumFormula = null;
+    // filter out sum formulas of fragments
+    String[] sumFormulasOfFragments = classSpecificFragment.split("fragment ");
+
+    for (int i = 0; i < sumFormulasOfFragments.length; i++) {
+      if (sumFormulasOfFragments[i].contains("C")) {
+        sumFormula = sumFormulasOfFragments[i];
+      }
+    }
     return sumFormula;
   }
 

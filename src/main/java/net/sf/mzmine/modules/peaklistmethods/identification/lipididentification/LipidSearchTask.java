@@ -230,31 +230,44 @@ public class LipidSearchTask extends AbstractTask {
 
       // check for negative polarity
       if (peakList.getRow(rowIndex).getBestFragmentation().getPolarity() == PolarityType.NEGATIVE) {
+
         // check if lipid class has set negative fragments
         String[] fragments = lipid.getLipidClass().getMsmsFragmentsNegativeIonization();
-
+        ArrayList<String> listOfAnnotatedNegativeFragments = new ArrayList<String>();
         for (int i = 0; i < massList.length; i++) {
           Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(massList[i].getMZ());
-          ArrayList<String> listOfNegativeFragments =
-              msmsLipidTools.checkForNegativeClassSpecificFragments(mzTolRangeMSMS,
-                  rows[rowIndex].getPreferredPeakIdentity(), lipidIonMass, fragments);
+          String annotatedNegativeFragment = msmsLipidTools.checkForNegativeClassSpecificFragment(
+              mzTolRangeMSMS, rows[rowIndex].getPreferredPeakIdentity(), lipidIonMass, fragments);
+          if (annotatedNegativeFragment.equals("") == false) {
+            listOfAnnotatedNegativeFragments.add(annotatedNegativeFragment);
+          }
+        }
+
+        if (listOfAnnotatedNegativeFragments.isEmpty() == false) {
+
+          // predict lipid fatty acid composition if possible
           ArrayList<String> listOfPossibleFattyAcidCompositions =
-              msmsLipidTools.predictFattyAcidComposition(listOfNegativeFragments,
+              msmsLipidTools.predictFattyAcidComposition(listOfAnnotatedNegativeFragments,
                   rows[rowIndex].getPreferredPeakIdentity());
-          if (listOfNegativeFragments.isEmpty() == false) {
-            for (int j = 0; j < listOfPossibleFattyAcidCompositions.size(); j++) {
-              // Add masses to comment
-              // if (rows[rowIndex].getComment().equals(null)) {
-              // rows[rowIndex].setComment(" " + listOfNegativeFragments.get(j));
-              // } else {
-              // rows[rowIndex].setComment(
-              // rows[rowIndex].getComment() + ";" + " " + listOfNegativeFragments.get(j));
-              // }
+          for (int i = 0; i < listOfPossibleFattyAcidCompositions.size(); i++) {
+            // Add possible composition to comment
+            if (rows[rowIndex].getComment().equals(null)) {
+              rows[rowIndex].setComment(" " + listOfPossibleFattyAcidCompositions.get(i));
+            } else {
+              rows[rowIndex].setComment(rows[rowIndex].getComment() + ";" + " "
+                  + listOfPossibleFattyAcidCompositions.get(i));
+            }
+          }
+
+          // add class specific fragments
+          for (int i = 0; i < listOfAnnotatedNegativeFragments.size(); i++) {
+            if (listOfAnnotatedNegativeFragments.contains("C")) {
+              // Add fragment to comment
               if (rows[rowIndex].getComment().equals(null)) {
-                rows[rowIndex].setComment(" " + listOfPossibleFattyAcidCompositions.get(j));
+                rows[rowIndex].setComment(" " + listOfPossibleFattyAcidCompositions.get(i));
               } else {
                 rows[rowIndex].setComment(rows[rowIndex].getComment() + ";" + " "
-                    + listOfPossibleFattyAcidCompositions.get(j));
+                    + listOfPossibleFattyAcidCompositions.get(i));
               }
             }
           }

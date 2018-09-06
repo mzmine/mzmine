@@ -14,9 +14,9 @@ public class MSMSLipidTools {
    * 
    * returns a list of annotated fragments
    */
-  public ArrayList<String> checkForNegativeClassSpecificFragments(Range<Double> mzTolRangeMSMS,
+  public String checkForNegativeClassSpecificFragment(Range<Double> mzTolRangeMSMS,
       PeakIdentity peakIdentity, double lipidIonMass, String[] classSpecificFragments) {
-    ArrayList<String> listOfDetectedFragments = new ArrayList<String>();
+    String annotatedFragment = "";
 
     // load lipid tools to get information of annotations
     LipidTools lipidTools = new LipidTools();
@@ -27,8 +27,8 @@ public class MSMSLipidTools {
     ArrayList<String> fattyAcidNames = fattyAcidTools.getFattyAcidNames(peakIdentity);
 
     for (int i = 0; i < classSpecificFragments.length; i++) {
-      double massOfFragment = FormulaUtils
-          .calculateExactMass(lipidTools.getSumFormulaOfFragment(classSpecificFragments[i]));
+      double massOfFragment = FormulaUtils.calculateExactMass(
+          lipidTools.getSumFormulaOfFragmentContainingFA(classSpecificFragments[i]));
 
       // check for FA residues
       if (classSpecificFragments[i].equals("FA")) {
@@ -36,7 +36,7 @@ public class MSMSLipidTools {
           double mass = IonizationType.NEGATIVE_HYDROGEN.getAddedMass()
               + FormulaUtils.calculateExactMass((fattyAcidFormulas.get(j)));
           if (mzTolRangeMSMS.contains(mass)) {
-            listOfDetectedFragments.add("FA" + fattyAcidNames.get(j));
+            annotatedFragment = "FA" + fattyAcidNames.get(j);
           }
         }
       }
@@ -47,8 +47,7 @@ public class MSMSLipidTools {
           double massFattyAcid = FormulaUtils.calculateExactMass((fattyAcidFormulas.get(j)));
           if (mzTolRangeMSMS
               .contains(lipidIonMass - massFattyAcid - FormulaUtils.calculateExactMass("H"))) {
-            System.out.println(lipidIonMass);
-            listOfDetectedFragments.add("M-FA" + fattyAcidNames.get(j) + massFattyAcid);
+            annotatedFragment = "M-FA" + fattyAcidNames.get(j) + massFattyAcid;
           }
         }
       }
@@ -78,22 +77,24 @@ public class MSMSLipidTools {
           double accurateMass = IonizationType.NEGATIVE_HYDROGEN.getAddedMass()
               + FormulaUtils.calculateExactMass((fattyAcidFormulas.get(j))) + massOfFragment;
           if (mzTolRangeMSMS.contains(accurateMass)) {
-            listOfDetectedFragments.add("FA" + fattyAcidNames.get(j) + "+"
-                + lipidTools.getSumFormulaOfFragment(classSpecificFragments[i]) + " "
-                + accurateMass);
+            annotatedFragment = "FA" + fattyAcidNames.get(j) + "+"
+                + lipidTools.getSumFormulaOfFragmentContainingFA(classSpecificFragments[i]) + " "
+                + accurateMass;
           }
         }
       }
 
       // check for specific sum formula fragment
       else if (classSpecificFragments[i].contains("C")) {
-        if (mzTolRangeMSMS.contains(FormulaUtils.calculateExactMass(classSpecificFragments[i]))) {
-          listOfDetectedFragments.add(classSpecificFragments[i]);
+        System.out.println("hi");
+        if (mzTolRangeMSMS.contains(FormulaUtils.calculateExactMass(
+            lipidTools.getSumFormulaOfSumFormulaFragment(classSpecificFragments[i])))) {
+          annotatedFragment = classSpecificFragments[i];
         }
       }
 
     }
-    return listOfDetectedFragments;
+    return annotatedFragment;
   }
 
   /**
@@ -113,20 +114,27 @@ public class MSMSLipidTools {
     int testNumberOfDoubleBonds = 0;
 
     // combine all fragments with each other to check for a matching composition
-    for (String fragment : listOfDetectedFragments) {
-      int numberOfCAtomsInFragment = lipidTools.getNumberOfCAtoms(fragment);
-      int numberOfDBInFragment = lipidTools.getNumberOfDB(fragment);
+    for (int i = 0; i < listOfDetectedFragments.size(); i++) {
+      if (listOfDetectedFragments.get(i).contains("FA")) {
+        int numberOfCAtomsInFragment = lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i));
+        int numberOfDBInFragment = lipidTools.getNumberOfDB(listOfDetectedFragments.get(i));
 
-      for (int i = 0; i < listOfDetectedFragments.size(); i++) {
-        // check if number of C atoms is equal
-        testNumberOfCAtoms =
-            numberOfCAtomsInFragment + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i));
-        if (testNumberOfCAtoms == totalNumberOfCAtoms) {
-          // check number of double bonds
-          testNumberOfDoubleBonds =
-              numberOfDBInFragment + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i));
-          if (testNumberOfDoubleBonds == totalNumberOfDB) {
-            fattyAcidComposition.add(fragment + "_" + listOfDetectedFragments.get(i));
+        for (int j = 0; j < listOfDetectedFragments.size(); j++) {
+
+          // only check for annotated fragments with information on FA composition
+          if (listOfDetectedFragments.get(j).contains("FA")) {
+            // check if number of C atoms is equal
+            testNumberOfCAtoms = numberOfCAtomsInFragment
+                + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j));
+            if (testNumberOfCAtoms == totalNumberOfCAtoms) {
+              // check number of double bonds
+              testNumberOfDoubleBonds =
+                  numberOfDBInFragment + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j));
+              if (testNumberOfDoubleBonds == totalNumberOfDB) {
+                fattyAcidComposition
+                    .add(listOfDetectedFragments.get(i) + "/" + listOfDetectedFragments.get(j));
+              }
+            }
           }
         }
       }

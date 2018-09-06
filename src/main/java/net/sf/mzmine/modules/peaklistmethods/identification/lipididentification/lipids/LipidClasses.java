@@ -51,7 +51,7 @@ public enum LipidClasses {
       new String[] {"FA"}), //
   SULFOQUINOVOSYLDIACYLGLYCEROLS("Sulfoquinovosyldiacylglycerols", "SQDG",
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.GLYCOSYLDIACYLGLYCEROLS, "C11H16O12S", 2, 0,
-      new String[] {null}, new String[] {"FA"}),
+      new String[] {null}, new String[] {"FA", "fragment C6H9O7S"}),
 
 
 
