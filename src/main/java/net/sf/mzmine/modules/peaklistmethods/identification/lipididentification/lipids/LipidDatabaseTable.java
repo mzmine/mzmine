@@ -59,38 +59,16 @@ public class LipidDatabaseTable extends JFrame {
         "Sum formula", //
         "Abbreviation", //
         "Ionization", //
-        "Exact mass"}));
+        "Exact mass", //
+        "MS/MS fragments positive ionization", //
+        "MS/MS fragments negative ionization", //
+    }));
     databaseTable.setSurrendersFocusOnKeystroke(true);
     databaseTable.setFillsViewportHeight(true);
     databaseTable.setColumnSelectionAllowed(true);
     databaseTable.setCellSelectionEnabled(true);
     scrollPane.setViewportView(databaseTable);
     addDataToTable();
-
-    // resize columns
-    // databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-    //
-    // for (int column = 0; column < databaseTable.getColumnCount(); column++) {
-    // TableColumn tableColumn = databaseTable.getColumnModel().getColumn(column);
-    // int preferredWidth = tableColumn.getMinWidth();
-    // int maxWidth = tableColumn.getMaxWidth();
-    //
-    // for (int row = 0; row < databaseTable.getRowCount(); row++) {
-    // TableCellRenderer cellRenderer = databaseTable.getCellRenderer(row, column);
-    // Component c = databaseTable.prepareRenderer(cellRenderer, row, column);
-    // int width = c.getPreferredSize().width + databaseTable.getIntercellSpacing().width;
-    // preferredWidth = Math.max(preferredWidth, width);
-    //
-    // // We've exceeded the maximum width, no need to check other rows
-    //
-    // if (preferredWidth >= maxWidth) {
-    // preferredWidth = maxWidth;
-    // break;
-    // }
-    // }
-    //
-    // tableColumn.setPreferredWidth(preferredWidth);
-    // }
 
     validate();
   }
@@ -130,8 +108,14 @@ public class LipidDatabaseTable extends JFrame {
               lipidChain.getFormula(), // sum formula
               selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")", // abbr
               ionizationType, // ionization type
-              numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass())});// exact
-                                                                                          // mass
+              numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass()), // exact
+                                                                                         // mass
+              String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
+                                                                                         // fragments
+                                                                                         // postive
+              String.join(", ", selectedLipids[i].getMsmsFragmentsNegativeIonization())}); // msms
+                                                                                           // fragments
+                                                                                           // negative
           id++;
           if (lipidModification.length > 0) {
             for (int j = 0; j < lipidModification.length; j++) {
@@ -147,7 +131,14 @@ public class LipidDatabaseTable extends JFrame {
                   ionizationType, // ionization type
                   numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
                                                                                            // mass
-                      + lipidModification[j].getModificationMass())});
+                      + lipidModification[j].getModificationMass()),
+                  String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
+                                                                                             // fragments
+                                                                                             // postive
+                  String.join(", ", selectedLipids[i].getMsmsFragmentsNegativeIonization())}); //
+                                                                                               // msms
+                                                                                               // fragments
+                                                                                               // negative
               id++;
             }
           }

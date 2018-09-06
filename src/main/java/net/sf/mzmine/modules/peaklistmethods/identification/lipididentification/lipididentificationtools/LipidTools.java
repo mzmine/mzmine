@@ -1,5 +1,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools;
 
+import net.sf.mzmine.util.FormulaUtils;
+
 public class LipidTools {
 
   private int numberOfCAtoms;
@@ -7,49 +9,77 @@ public class LipidTools {
 
   public int getNumberOfCAtoms(String lipidAnnotation) {
 
-    // int counterFirstBracket = 0;
-    // int counterSecondBracket = 0;
-    // int indexFirstNumber = 0;
-    // int indexLastNumber = 0;
-    //
-    // // Loop through every char and check for "C"
-    // for (int i = 0; i < lipidAnnotation.length(); i++) {
-    // // get first Bracket
-    // if (lipidAnnotation.charAt(i) == '(' && counterFirstBracket == 0) {
-    // indexFirstNumber = counterFirstBracket++;
-    // for (int j = 0; j < lipidAnnotation.length(); j++) {
-    // if (lipidAnnotation.charAt(j) == 'H' && counterH == 0) {
-    // counterH++;
-    // if (counterH == 1) {
-    // indexFirstH = j;
-    // }
-    //
-    // }
-    // }
-    // }
-    // // get second C
-    // if (formula.charAt(i) == 'C' && i != indexFirstC) {
-    // counterC++;
-    // if (counterC == 2) {
-    // indexSecondC = i;
-    // }
-    // for (int j = 0; j < formula.length(); j++) {
-    // if (formula.charAt(j) == 'H' && j != indexFirstH) {
-    // counterH++;
-    // if (counterH == 2) {
-    // indexSecondH = j;
-    // }
-    //
-    // }
-    // }
-    // }
-    //
-    // }
-    //
-    // // Combine to total number of C
-    // firstCNumbers = formula.substring(indexFirstC + 1, indexFirstH);
-    // secondCNumbers = formula.substring(indexSecondC + 1, indexSecondH);
-    // numberOfCAtoms = Integer.parseInt(firstCNumbers) + Integer.parseInt(secondCNumbers);
+    int counterFirstBracket = 0;
+    int indexFirstNumber = 0;
+    int indexLastNumber = 0;
+
+    // Loop through every char and check for "C"
+    for (int i = 0; i < lipidAnnotation.length(); i++) {
+      // get first Bracket
+      if (lipidAnnotation.charAt(i) == '(') {
+        indexFirstNumber = i + 1;
+        counterFirstBracket++;
+      }
+      if (lipidAnnotation.charAt(i) == ':' && counterFirstBracket == 1) {
+        indexLastNumber = i - 1;
+      }
+    }
+    if (indexFirstNumber == indexLastNumber) {
+      numberOfCAtoms = Integer.parseInt(String.valueOf(lipidAnnotation.charAt(indexFirstNumber)));
+    } else {
+      numberOfCAtoms = Integer.parseInt(String.valueOf(lipidAnnotation.charAt(indexFirstNumber))
+          + String.valueOf(lipidAnnotation.charAt(indexLastNumber)));
+    }
+
     return numberOfCAtoms;
   }
+
+  public int getNumberOfDB(String lipidAnnotation) {
+
+    int counterFirstBracket = 0;
+    int indexFirstNumber = 0;
+    int indexLastNumber = 0;
+
+    // Loop through every char and check for "C"
+    for (int i = 0; i < lipidAnnotation.length(); i++) {
+      // get first Bracket
+      if (lipidAnnotation.charAt(i) == ':') {
+        indexFirstNumber = i + 1;
+        counterFirstBracket++;
+      }
+      if (lipidAnnotation.charAt(i) == ')' && counterFirstBracket == 1) {
+        indexLastNumber = i - 1;
+      }
+    }
+    if (indexFirstNumber == indexLastNumber) {
+      numberOfDoubleBonds =
+          Integer.parseInt(String.valueOf(lipidAnnotation.charAt(indexFirstNumber)));
+    } else {
+      numberOfDoubleBonds =
+          Integer.parseInt(String.valueOf(lipidAnnotation.charAt(indexFirstNumber))
+              + String.valueOf(lipidAnnotation.charAt(indexLastNumber)));
+    }
+    return numberOfDoubleBonds;
+  }
+
+  public String getSumFormulaOfFragment(String classSpecificFragment) {
+    String sumFormula = null;
+
+    // filter out sum formulas
+    String[] sumFormulasToAdd = classSpecificFragment.split("\\+");
+    String[] sumFormulasToSubstract = classSpecificFragment.split("\\-");
+
+    // only keep sum formulas
+    String unsortedSumFormula = "";
+    for (int i = 0; i < sumFormulasToAdd.length; i++) {
+      if (sumFormulasToAdd[i].contains("M") || sumFormulasToAdd[i].contains("FA")) {
+        continue;
+      } else {
+        unsortedSumFormula = unsortedSumFormula + sumFormulasToAdd[i];
+      }
+    }
+    sumFormula = FormulaUtils.formatFormula(FormulaUtils.parseFormula(unsortedSumFormula));
+    return sumFormula;
+  }
+
 }
