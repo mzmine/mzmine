@@ -57,6 +57,10 @@ public class PeakListIdentificationTask extends AbstractTask {
   // Thread controller
   private final Semaphore semaphore;
 
+  // Remote cancel variables
+  private final Object cancelLock; //lock
+  private boolean cancelled;
+
   private final ParameterSet parameters;
   private final PeakList peakList;
   private PeakListRow currentRow;
@@ -72,6 +76,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     numItems = 0;
     currentRow = null;
     this.parameters = parameters;
+    cancelLock = new Object();
 
     int threadsAmount =
         parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
@@ -134,7 +139,7 @@ public class PeakListIdentificationTask extends AbstractTask {
           try {
             semaphore.acquire();
             logger.debug("Semaphore ACQUIRED");
-            Thread th = new Thread(new SiriusThread(rows[index++], parameters, semaphore, latch));
+            Thread th = new Thread(new SiriusThread(rows[index++], parameters, semaphore, latch, this));
             th.setDaemon(true);
             th.start();
           } catch (InterruptedException e) {
@@ -184,5 +189,19 @@ public class PeakListIdentificationTask extends AbstractTask {
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
       desktop.getMainWindow().repaint();
+  }
+
+  /**
+   *
+   */
+  public void remoteCancel(String context) {
+    synchronized (cancelLock) {
+      if (!cancelled) {
+        cancelled = true;
+        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+            "Scan error", context);
+        setStatus(TaskStatus.ERROR);
+      }
+    }
   }
 }

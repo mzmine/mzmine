@@ -164,9 +164,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
         throw new MethodRuntimeException("There are no scans for requested Mass List name");
       }
     } catch (MethodRuntimeException f) {
-      showError(window, String.format("Empty Mass List for %.2f", parentMass),
-          "There is no MS2 scans that have a given precursor mass.\n"
-              + "MS1 and MS2 lists are empty.\nCheck the Mass List field."); //todo: read carefully
+      showError(window, String.format("Scan error for %.2f", parentMass),
+          "Scan does not contain Mass List with requested name.\n");
       return;
     }
 

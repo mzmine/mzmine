@@ -117,7 +117,7 @@ public class SpectrumScanner {
     }
 
     /*
-     * Process features, retrieve scans and write spectra. Only MS level 2. Code taken from
+     * Process features, retrieve scans and write spectra. Centroided spectra of level 1&2. Code taken from
      * SiriusExportTask -> exportPeakListRow(...)
      */
     for (Feature f : row.getPeaks()) {
@@ -146,10 +146,9 @@ public class SpectrumScanner {
                 if (massList == null) {
                   logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}",
                       massListName, scan.getScanNumber(), row.getID());
-                  // throw new MethodRuntimeException("There are no scans for this Mass List");
-                  continue;
+                  throw new MethodRuntimeException("There are no scans for this Mass List");
                 }
-                DataPoint[] points = massList.getDataPoints();
+                DataPoint[] points = massList.getDataPoints(); //todo: update this
                 if (points.length == 0)
                   continue;
                 ms1list.add(buildSpectrum(points));
@@ -162,10 +161,9 @@ public class SpectrumScanner {
           if (massList == null) {
             logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}", massListName,
                 scan.getScanNumber(), row.getID());
-            // throw new MethodRuntimeException("There are no scans for this Mass List");
-            continue;
+            throw new MethodRuntimeException("There are no scans for this Mass List");
           }
-          DataPoint[] points = massList.getDataPoints();
+          DataPoint[] points = massList.getDataPoints(); //todo: update this
           if (points.length == 0)
             continue;
           ms2list.add(buildSpectrum(points));
