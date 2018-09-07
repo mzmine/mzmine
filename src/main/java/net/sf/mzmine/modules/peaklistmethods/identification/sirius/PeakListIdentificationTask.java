@@ -122,8 +122,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   @Override
   public void run() {
-
-    exit1: if (!isCanceled()) {
+    if (!isCanceled()) {
       try {
         setStatus(TaskStatus.PROCESSING);
 
@@ -148,7 +147,7 @@ public class PeakListIdentificationTask extends AbstractTask {
         }
 
         if (isCanceled())
-          break exit1;
+          return;
 
         // Wait till all rows are processed
         latch.await();

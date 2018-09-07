@@ -148,90 +148,88 @@ public class SingleRowIdentificationTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    exit1: if (!isCanceled()) {
-      NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
-      ResultWindow window = new ResultWindow(peakListRow, this);
-      window.setTitle("Sirius identifies peak with " + massFormater.format(parentMass) + " amu");
-      window.setVisible(true);
+    NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
+    ResultWindow window = new ResultWindow(peakListRow, this);
+    window.setTitle("Sirius identifies peak with " + massFormater.format(parentMass) + " amu");
+    window.setVisible(true);
 
-      SpectrumScanner scanner;
-      List<MsSpectrum> ms1list, ms2list;
-      try {
-        scanner = new SpectrumScanner(peakListRow, massListName);
-        ms1list = scanner.getMsList();
-        ms2list = scanner.getMsMsList();
+    SpectrumScanner scanner;
+    List<MsSpectrum> ms1list, ms2list;
+    try {
+      scanner = new SpectrumScanner(peakListRow, massListName);
+      ms1list = scanner.getMsList();
+      ms2list = scanner.getMsMsList();
 
-        if (ms1list == null && ms2list == null) {
-          throw new MethodRuntimeException("There are no scans for requested Mass List name");
-        }
-      } catch (MethodRuntimeException f) {
-        showError(window, String.format("Scan error for %.2f", parentMass),
-            "Scan does not contain Mass List with requested name. [" + massListName + "]");
-        break exit1;
+      if (ms1list == null && ms2list == null) {
+        throw new MethodRuntimeException("There are no scans for requested Mass List name");
       }
-
-      // Use executor to run Sirius Identification Method as an Interruptable thread.
-      // Otherwise it may compute for too long (or even forever).
-      final ExecutorService service = Executors.newSingleThreadExecutor();
-      SiriusIdentificationMethod siriusMethod = null;
-      List<IonAnnotation> siriusResults = null;
-
-    /* Sirius processing */
-      try {
-        FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
-        IonType type = IonTypeUtil.createIonType(ionType.toString());
-
-        final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list,
-            parentMass, type, siriusCandidates, constraints, deviationPpm);
-        final Future<List<IonAnnotation>> f = service.submit(() -> {
-          return method.execute();
-        });
-        siriusResults = f.get(timer, TimeUnit.SECONDS);
-        siriusMethod = method;
-      } catch (InterruptedException | TimeoutException ie) {
-        logger.error("Timeout on Sirius method expired, abort.");
-        showError(window, "Timer expired", timerErrorMessage);
-        break exit1;
-      } catch (ExecutionException ce) {
-        logger.error("Concurrency error during Sirius method.");
-        showError(window, "Sirius Error", siriusErrorMessage);
-        break exit1;
-      }
-
-    /* FingerId processing */
-      if (scanner.peakContainsMsMs()) {
-        try {
-          latch = new CountDownLatch(siriusResults.size());
-          Ms2Experiment experiment = siriusMethod.getExperiment();
-          fingerTasks = new LinkedList<>();
-
-        /* Create a new FingerIdWebTask for each Sirius result */
-          for (IonAnnotation ia : siriusResults) {
-            SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
-            FingerIdWebMethodTask task =
-                new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
-            task.setLatch(latch);
-            fingerTasks.add(task);
-            MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
-          }
-
-          // Sleep for not overloading boecker-labs servers
-          Thread.sleep(1000);
-        } catch (InterruptedException interrupt) {
-          logger.error("Processing of FingerWebMethods were interrupted");
-        }
-      } else {
-      /* MS/MS spectrum is not present */
-        window.addListofItems(siriusMethod.getResult());
-      }
-
-      // If there was a FingerId processing, wait until subtasks finish
-      try {
-        if (latch != null)
-          latch.await();
-      } catch (InterruptedException e) {}
-      setStatus(TaskStatus.FINISHED);
+    } catch (MethodRuntimeException f) {
+      showError(window, String.format("Scan error for %.2f", parentMass),
+          "Scan does not contain Mass List with requested name. [" + massListName + "]");
+      return;
     }
+
+    // Use executor to run Sirius Identification Method as an Interruptable thread.
+    // Otherwise it may compute for too long (or even forever).
+    final ExecutorService service = Executors.newSingleThreadExecutor();
+    SiriusIdentificationMethod siriusMethod = null;
+    List<IonAnnotation> siriusResults = null;
+
+  /* Sirius processing */
+    try {
+      FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
+      IonType type = IonTypeUtil.createIonType(ionType.toString());
+
+      final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list,
+          parentMass, type, siriusCandidates, constraints, deviationPpm);
+      final Future<List<IonAnnotation>> f = service.submit(() -> {
+        return method.execute();
+      });
+      siriusResults = f.get(timer, TimeUnit.SECONDS);
+      siriusMethod = method;
+    } catch (InterruptedException | TimeoutException ie) {
+      logger.error("Timeout on Sirius method expired, abort.");
+      showError(window, "Timer expired", timerErrorMessage);
+      return;
+    } catch (ExecutionException ce) {
+      logger.error("Concurrency error during Sirius method.");
+      showError(window, "Sirius Error", siriusErrorMessage);
+      return;
+    }
+
+  /* FingerId processing */
+    if (scanner.peakContainsMsMs()) {
+      try {
+        latch = new CountDownLatch(siriusResults.size());
+        Ms2Experiment experiment = siriusMethod.getExperiment();
+        fingerTasks = new LinkedList<>();
+
+      /* Create a new FingerIdWebTask for each Sirius result */
+        for (IonAnnotation ia : siriusResults) {
+          SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
+          FingerIdWebMethodTask task =
+              new FingerIdWebMethodTask(annotation, experiment, fingerCandidates, window);
+          task.setLatch(latch);
+          fingerTasks.add(task);
+          MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+        }
+
+        // Sleep for not overloading boecker-labs servers
+        Thread.sleep(1000);
+      } catch (InterruptedException interrupt) {
+        logger.error("Processing of FingerWebMethods were interrupted");
+      }
+    } else {
+    /* MS/MS spectrum is not present */
+      window.addListofItems(siriusMethod.getResult());
+    }
+
+    // If there was a FingerId processing, wait until subtasks finish
+    try {
+      if (latch != null)
+        latch.await();
+    } catch (InterruptedException e) {}
+    setStatus(TaskStatus.FINISHED);
   }
 
   /**
