@@ -123,7 +123,7 @@ public class PeakListIdentificationTask extends AbstractTask {
   @Override
   public void run() {
 
-    if (!isCanceled()) {
+    exit1: if (!isCanceled()) {
       try {
         setStatus(TaskStatus.PROCESSING);
 
@@ -146,6 +146,9 @@ public class PeakListIdentificationTask extends AbstractTask {
             logger.error("The thread was interrupted");
           }
         }
+
+        if (isCanceled())
+          break exit1;
 
         // Wait till all rows are processed
         latch.await();
@@ -198,8 +201,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     synchronized (cancelLock) {
       if (!cancelled) {
         cancelled = true;
-        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-            "Scan error", context);
+        setErrorMessage(context);
         setStatus(TaskStatus.ERROR);
       }
     }
