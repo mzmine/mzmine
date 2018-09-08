@@ -74,10 +74,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private final Double parentMass;
   private final Double deviationPpm;
 
-  // Error messages
-  private final String siriusErrorMessage;
-  private final String timerErrorMessage;
-
   // Amount of components to show
   private final Integer fingerCandidates;
   private final Integer siriusCandidates;
@@ -112,12 +108,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     double mz = peakListRow.getAverageMZ();
     double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
     deviationPpm = (upperPoint - mz) / (mz * 1E-6);
-
-    timerErrorMessage =
-        String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
-            parentMass) + "Reinitialize the task with larger Sirius Timer value.";
-    siriusErrorMessage = String.format("Sirius failed to predict compounds from row with id = %d",
-        peakListRow.getID());
   }
 
   /**
@@ -161,11 +151,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
       ms2list = scanner.getMsMsList();
 
       if (ms1list == null && ms2list == null) {
-        throw new MethodRuntimeException("There are no scans for requested Mass List name");
+        throw new EmptyListsException("Empty lists for requested Mass List name");
       }
-    } catch (MethodRuntimeException f) {
-      showError(window, String.format("Scan error for %.2f", parentMass),
-          "Scan does not contain Mass List with requested name. [" + massListName + "]");
+    } catch (EmptyListsException e) {
+      showError(window,"Empty lists returned for requested Mass List. [" + massListName + "]");
+      return;
+    } catch (ScanMassListException f) {
+      showError(window,"Scan does not contain Mass List with requested name. [" + massListName + "]");
       return;
     }
 
@@ -189,11 +181,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
       siriusMethod = method;
     } catch (InterruptedException | TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
-      showError(window, "Timer expired", timerErrorMessage);
+      showError(window, String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
+          parentMass) + "Reinitialize the task with larger Sirius Timer value.");
       return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
-      showError(window, "Sirius Error", siriusErrorMessage);
+      showError(window, String.format("Sirius failed to predict compounds from row with id = %d",
+          peakListRow.getID()));
       return;
     }
 
@@ -220,7 +214,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
         logger.error("Processing of FingerWebMethods were interrupted");
       }
     } else {
-    /* MS/MS spectrum is not present */
+      /* MS/MS spectrum is not present */
       window.addListofItems(siriusMethod.getResult());
     }
 
@@ -235,10 +229,9 @@ public class SingleRowIdentificationTask extends AbstractTask {
   /**
    * Shows error dialogue window and sets task status as ERROR
    * @param window - where to create dialogue
-   * @param title of the dialogue window
-   * @param msg of the dialogue window
+   * @param msg of the error window
    */
-  private void showError(ResultWindow window, String title, String msg) {
+  private void showError(ResultWindow window, String msg) {
     window.dispose();
     setErrorMessage(msg);
     this.setStatus(TaskStatus.ERROR);

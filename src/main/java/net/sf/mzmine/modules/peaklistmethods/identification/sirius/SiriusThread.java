@@ -126,10 +126,13 @@ public class SiriusThread implements Runnable {
       ms2list = scanner.getMsMsList();
 
       if (ms1list == null && ms2list == null) { // Skip this row
-        logger.info("Skipped row {}, empty lists.", row.getID());
-        throw new MethodRuntimeException("Empty spectra lists");
+        throw new EmptyListsException("Empty spectra lists");
       }
-    } catch (MethodRuntimeException e) {
+    } catch (EmptyListsException el) {
+      logger.info("Skipped row {}, empty lists.", row.getID());
+      releaseResources();
+      return;
+    } catch (ScanMassListException e) {
       releaseResources();
       task.remoteCancel("Scan does not have requested Mass List name [" + massListName + "]");
       return;

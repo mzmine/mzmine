@@ -64,7 +64,7 @@ public class SpectrumScanner {
    * @param row
    */
   public SpectrumScanner(@Nonnull PeakListRow row, String massListName)
-      throws MethodRuntimeException {
+      throws ScanMassListException {
     this.row = row;
     this.massListName = massListName;
     ms1list = new LinkedList<>();
@@ -104,9 +104,9 @@ public class SpectrumScanner {
    * IsotopePattern 2) Go through scans, receive data points according to Mass List name. 3) Submit
    * points into a new MsSpectrum
    * 
-   * @throws MethodRuntimeException
+   * @throws ScanMassListException
    */
-  private void processRow() throws MethodRuntimeException {
+  private void processRow() throws ScanMassListException {
     // Specify the Isotope Pattern (in form of MS1 spectrum)
 
     // todo: do not use it, use just ms1 scans.
@@ -146,9 +146,10 @@ public class SpectrumScanner {
                 if (massList == null) {
                   logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}",
                       massListName, scan.getScanNumber(), row.getID());
-                  throw new MethodRuntimeException("There are no scans for this Mass List");
+                  throw new ScanMassListException(String.format("[%d] scan does not contain mass list [%s], row ID = %d",
+                      scan.getScanNumber(), massListName, row.getID()));
                 }
-                DataPoint[] points = massList.getDataPoints(); //todo: update this
+                DataPoint[] points = massList.getDataPoints();
                 if (points.length == 0)
                   continue;
                 ms1list.add(buildSpectrum(points));
@@ -161,9 +162,10 @@ public class SpectrumScanner {
           if (massList == null) {
             logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}", massListName,
                 scan.getScanNumber(), row.getID());
-            throw new MethodRuntimeException("There are no scans for this Mass List");
+            throw new ScanMassListException(String.format("[%d] scan does not contain mass list [%s], row ID = %d",
+                scan.getScanNumber(), massListName, row.getID()));
           }
-          DataPoint[] points = massList.getDataPoints(); //todo: update this
+          DataPoint[] points = massList.getDataPoints();
           if (points.length == 0)
             continue;
           ms2list.add(buildSpectrum(points));
