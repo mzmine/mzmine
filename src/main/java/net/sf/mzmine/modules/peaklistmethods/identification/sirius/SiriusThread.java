@@ -80,6 +80,9 @@ public class SiriusThread implements Runnable {
   private final Semaphore semaphore;
   private final int siriusTimer;
 
+  // Cancel link
+  private final PeakListIdentificationTask task;
+
   /**
    * Constructor for SiriusThread - initializes params
    * 
@@ -89,7 +92,7 @@ public class SiriusThread implements Runnable {
    * @param latch
    */
   public SiriusThread(PeakListRow row, ParameterSet parameters, Semaphore semaphore,
-      CountDownLatch latch) {
+      CountDownLatch latch, PeakListIdentificationTask task) {
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
     range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
     siriusCandidates =
@@ -99,6 +102,7 @@ public class SiriusThread implements Runnable {
     siriusTimer =
         parameters.getParameter(PeakListIdentificationParameters.SIRIUS_TIMEOUT).getValue();
     massListName = parameters.getParameter(MASS_LIST).getValue();
+    this.task = task;
 
     this.semaphore = semaphore;
     this.row = row;
@@ -122,11 +126,15 @@ public class SiriusThread implements Runnable {
       ms2list = scanner.getMsMsList();
 
       if (ms1list == null && ms2list == null) { // Skip this row
-        logger.info("Skipped row {}, empty lists.", row.getID());
-        throw new MethodRuntimeException("Empty spectra lists");
+        throw new EmptyListsException("Empty spectra lists");
       }
-    } catch (MethodRuntimeException e) { // change exception type
+    } catch (EmptyListsException el) {
+      logger.info("Skipped row {}, empty lists.", row.getID());
       releaseResources();
+      return;
+    } catch (ScanMassListException e) {
+      releaseResources();
+      task.remoteCancel("Scan does not have requested Mass List name [" + massListName + "]");
       return;
     }
 

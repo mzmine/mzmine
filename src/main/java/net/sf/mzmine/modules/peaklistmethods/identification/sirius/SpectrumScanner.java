@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -63,7 +64,7 @@ public class SpectrumScanner {
    * @param row
    */
   public SpectrumScanner(@Nonnull PeakListRow row, String massListName)
-      throws MethodRuntimeException {
+      throws ScanMassListException {
     this.row = row;
     this.massListName = massListName;
     ms1list = new LinkedList<>();
@@ -103,9 +104,9 @@ public class SpectrumScanner {
    * IsotopePattern 2) Go through scans, receive data points according to Mass List name. 3) Submit
    * points into a new MsSpectrum
    * 
-   * @throws MethodRuntimeException
+   * @throws ScanMassListException
    */
-  private void processRow() throws MethodRuntimeException {
+  private void processRow() throws ScanMassListException {
     // Specify the Isotope Pattern (in form of MS1 spectrum)
 
     // todo: do not use it, use just ms1 scans.
@@ -116,7 +117,7 @@ public class SpectrumScanner {
     }
 
     /*
-     * Process features, retrieve scans and write spectra. Only MS level 2. Code taken from
+     * Process features, retrieve scans and write spectra. Centroided spectra of level 1&2. Code taken from
      * SiriusExportTask -> exportPeakListRow(...)
      */
     for (Feature f : row.getPeaks()) {
@@ -145,8 +146,8 @@ public class SpectrumScanner {
                 if (massList == null) {
                   logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}",
                       massListName, scan.getScanNumber(), row.getID());
-                  // throw new MethodRuntimeException("There are no scans for this Mass List");
-                  continue;
+                  throw new ScanMassListException(String.format("[%d] scan does not contain mass list [%s], row ID = %d",
+                      scan.getScanNumber(), massListName, row.getID()));
                 }
                 DataPoint[] points = massList.getDataPoints();
                 if (points.length == 0)
@@ -161,8 +162,8 @@ public class SpectrumScanner {
           if (massList == null) {
             logger.debug("[{}] mass list does not exist in a scan = {}. Row id = {}", massListName,
                 scan.getScanNumber(), row.getID());
-            // throw new MethodRuntimeException("There are no scans for this Mass List");
-            continue;
+            throw new ScanMassListException(String.format("[%d] scan does not contain mass list [%s], row ID = %d",
+                scan.getScanNumber(), massListName, row.getID()));
           }
           DataPoint[] points = massList.getDataPoints();
           if (points.length == 0)
@@ -175,10 +176,10 @@ public class SpectrumScanner {
 
   /**
    * Process RawDataFile and return list with one MsSpectrum of level 1.
-   * 
+   * Returns null if ms1list is empty
    * @return MS spectra list
    */
-  public List<MsSpectrum> getMsList() {
+  public @Nullable List<MsSpectrum> getMsList() {
     if (ms1list.size() == 0)
       return null;
     return ms1list;
@@ -186,15 +187,19 @@ public class SpectrumScanner {
 
   /**
    * Process RawDataFile and return list with one MsSpectrum of level 2.
-   * 
+   * Returns null if ms2list is empty
    * @return MSMS spectra list
    */
-  public List<MsSpectrum> getMsMsList() {
+  public @Nullable List<MsSpectrum> getMsMsList() {
     if (ms2list.size() == 0)
       return null;
     return ms2list;
   }
 
+  /**
+   *
+   * @return ms2list contains items or not
+   */
   public boolean peakContainsMsMs() {
     return ms2list.size() > 0;
   }

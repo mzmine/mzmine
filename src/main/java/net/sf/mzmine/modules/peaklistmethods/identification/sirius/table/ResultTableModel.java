@@ -18,12 +18,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius.table;
 
-import java.text.NumberFormat;
 import java.util.Vector;
-import javax.swing.ImageIcon;
-import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import net.sf.mzmine.main.MZmineCore;
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class ResultTableModel extends AbstractTableModel {
 
@@ -38,19 +35,7 @@ public class ResultTableModel extends AbstractTableModel {
   public static final int PREVIEW_INDEX = 5;
 
 
-  private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private Vector<SiriusCompound> compounds = new Vector<SiriusCompound>();
-
-  // JTable object is used to resize the row height to show image
-  private JTable table;
-
-  public ResultTableModel() {
-    mzFormat.setMaximumFractionDigits(1);
-  }
-
-  public void setTable(JTable table) {
-    this.table = table;
-  }
 
   public String getColumnName(int col) {
     return columnNames[col];
@@ -77,7 +62,7 @@ public class ResultTableModel extends AbstractTableModel {
       case DBS_INDEX: // Multiline content cell
         return String[].class;
       case PREVIEW_INDEX: // Cell with image
-        return ImageIcon.class;
+        return IAtomContainer.class;
       default:
         return String.class;
     }
@@ -112,7 +97,7 @@ public class ResultTableModel extends AbstractTableModel {
         value = compound.getFingerIdScore();
         break;
       case PREVIEW_INDEX:
-        value = compound.getPreview();
+        value = compound.getContainer();
         break;
     }
 

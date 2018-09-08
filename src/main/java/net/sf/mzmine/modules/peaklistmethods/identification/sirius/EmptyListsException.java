@@ -18,16 +18,16 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-public class MethodRuntimeException extends RuntimeException {
-  public MethodRuntimeException(String msg) {
+public class EmptyListsException extends RuntimeException {
+  public EmptyListsException(String msg) {
     super(msg);
   }
 
-  public MethodRuntimeException(Throwable t) {
+  public EmptyListsException(Throwable t) {
     super(t);
   }
 
-  public MethodRuntimeException(String msg, Throwable t) {
+  public EmptyListsException(String msg, Throwable t) {
     super(msg, t);
   }
 }

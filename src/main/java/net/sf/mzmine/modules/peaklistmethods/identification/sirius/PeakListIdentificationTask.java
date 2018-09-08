@@ -34,6 +34,7 @@ import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.table.SiriusCompound;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MassListComponent;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -56,6 +57,10 @@ public class PeakListIdentificationTask extends AbstractTask {
   // Thread controller
   private final Semaphore semaphore;
 
+  // Remote cancel variables
+  private final Object cancelLock; //lock
+  private boolean cancelled;
+
   private final ParameterSet parameters;
   private final PeakList peakList;
   private PeakListRow currentRow;
@@ -71,6 +76,7 @@ public class PeakListIdentificationTask extends AbstractTask {
     numItems = 0;
     currentRow = null;
     this.parameters = parameters;
+    cancelLock = new Object();
 
     int threadsAmount =
         parameters.getParameter(PeakListIdentificationParameters.THREADS_AMOUNT).getValue();
@@ -84,10 +90,18 @@ public class PeakListIdentificationTask extends AbstractTask {
     fingerCandidates =
         parameters.getParameter(PeakListIdentificationParameters.CANDIDATES_FINGERID).getValue();
 
+    String massListName = parameters.getParameter(PeakListIdentificationParameters.MASS_LIST).getValue();
+    List<String> massLists = MassListComponent.getMassListNames();
+
     if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0 || threadsAmount <= 0) {
       MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
           "Sirius parameters can't be negative");
-      cancel();
+      setStatus(TaskStatus.ERROR);
+    } else if (!massLists.contains(massListName)) {
+      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+          "Mass List parameter",
+          String.format("Mass List parameter is set wrong [%s]", massListName));
+      setStatus(TaskStatus.ERROR);
     }
   }
 
@@ -108,7 +122,6 @@ public class PeakListIdentificationTask extends AbstractTask {
 
   @Override
   public void run() {
-
     if (!isCanceled()) {
       try {
         setStatus(TaskStatus.PROCESSING);
@@ -125,13 +138,16 @@ public class PeakListIdentificationTask extends AbstractTask {
           try {
             semaphore.acquire();
             logger.debug("Semaphore ACQUIRED");
-            Thread th = new Thread(new SiriusThread(rows[index++], parameters, semaphore, latch));
+            Thread th = new Thread(new SiriusThread(rows[index++], parameters, semaphore, latch, this));
             th.setDaemon(true);
             th.start();
           } catch (InterruptedException e) {
             logger.error("The thread was interrupted");
           }
         }
+
+        if (isCanceled())
+          return;
 
         // Wait till all rows are processed
         latch.await();
@@ -175,5 +191,18 @@ public class PeakListIdentificationTask extends AbstractTask {
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
       desktop.getMainWindow().repaint();
+  }
+
+  /**
+   *
+   */
+  public void remoteCancel(String context) {
+    synchronized (cancelLock) {
+      if (!cancelled) {
+        cancelled = true;
+        setErrorMessage(context);
+        setStatus(TaskStatus.ERROR);
+      }
+    }
   }
 }

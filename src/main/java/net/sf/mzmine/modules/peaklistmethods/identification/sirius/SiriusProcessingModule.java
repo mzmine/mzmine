@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
 import java.util.Collection;
+import java.util.List;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -28,6 +29,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MassListComponent;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
@@ -74,8 +76,10 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
     parameters.getParameter(SingleRowIdentificationParameters.ION_MASS)
         .setValue(row.getAverageMZ());
 
-    // Run task.
+
     if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+      String massListName = parameters.getParameter(SingleRowIdentificationParameters.MASS_LIST).getValue();
+      List<String> massLists = MassListComponent.getMassListNames();
 
       int fingerCandidates, siriusCandidates, timer;
       timer = parameters.getParameter(SingleRowIdentificationParameters.SIRIUS_TIMEOUT).getValue();
@@ -87,7 +91,10 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
       if (timer <= 0 || siriusCandidates <= 0 || fingerCandidates <= 0) {
         MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
             "Sirius parameters can't be negative");
-      } else {
+      } else if (!massLists.contains(massListName)) {
+        MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+            "Mass List parameter", String.format("Mass List parameter is set wrong [%s]", massListName));
+      } else {     // Run task.
         MZmineCore.getTaskController()
             .addTask(new SingleRowIdentificationTask(parameters.cloneParameterSet(), row));
       }
