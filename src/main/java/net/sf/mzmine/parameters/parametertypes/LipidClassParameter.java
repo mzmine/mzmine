@@ -26,11 +26,9 @@ import org.w3c.dom.NodeList;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.util.CollectionUtils;
 
-
 /**
- * Simple Parameter implementation
  * 
- * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class LipidClassParameter<ValueType>
     implements UserParameter<ValueType[], LipidClassComponent> {

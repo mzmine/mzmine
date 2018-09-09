@@ -94,7 +94,7 @@ public class LipidSearchTask extends AbstractTask {
         parameters.getParameter(LipidSearchParameters.useModification).getValue();
     mzToleranceMS2 = parameters.getParameter(LipidSearchParameters.mzToleranceMS2).getValue();
     noiseLevelMSMS = parameters.getParameter(LipidSearchParameters.noiseLevel).getValue();
-    lipidModification = parameters.getParameter(LipidSearchParameters.modification).getChoices();
+    lipidModification = parameters.getParameter(LipidSearchParameters.modification).getValue();
 
     // Convert Objects to LipidClasses
     selectedLipids = Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)

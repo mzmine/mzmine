@@ -48,12 +48,11 @@ import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidMainClasses;
 
 /**
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class LipidClassComponent extends JPanel implements ActionListener {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
   private LipidClasses[] choices;
   private ArrayList<JCheckBox> checkBoxes;
