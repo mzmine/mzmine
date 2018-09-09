@@ -41,15 +41,13 @@ import net.sf.mzmine.parameters.parametertypes.LipidModificationChoiceComponent;
 import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
 
 /**
- * An action to handle exporting adducts to a file.
+ * An action to handle exporting lipid modifications to a file.
  *
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 
 public class ExportLipidModificationsAction extends AbstractAction {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
 
   // Logger.

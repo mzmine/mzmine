@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2015 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids;
 
 import java.awt.Font;
@@ -17,11 +35,14 @@ import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.LipidModification;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipidutils.LipidIdentity;
 
+/**
+ * This class creates a frame with a table that contains all information of the created lipid
+ * database, based on the user selected parameters
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class LipidDatabaseTable extends JFrame {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
 
   private JPanel contentPane;
@@ -73,8 +94,10 @@ public class LipidDatabaseTable extends JFrame {
     validate();
   }
 
+  /**
+   * This method writes all lipid information to the table
+   */
   private void addDataToTable() {
-
     DefaultTableModel model = (DefaultTableModel) databaseTable.getModel();
     NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
     int id = 1;

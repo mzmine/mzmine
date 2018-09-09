@@ -1,3 +1,21 @@
+/*
+ * Copyright 2006-2015 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification;
 
 import java.awt.BorderLayout;
@@ -32,15 +50,17 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.FormulaUtils;
 
+/**
+ * Parameter setup dialog for lipid search module
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
   private final JPanel buttonsPanel;
   private final JButton showKendrickDatabasePlot;
   private final JButton showDatabaseTable;
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
 
   public LipidSearchParameterSetupDialog(Window parent, boolean valueCheckRequired,
@@ -57,11 +77,9 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
     showDatabaseTable
         .setToolTipText("Show a database table for the selected classes and parameters");
     addButton(showDatabaseTable);
-    showKendrickDatabasePlot = new JButton("Show database plot");
+    showKendrickDatabasePlot = new JButton("Show database Kendrick plot");
     showKendrickDatabasePlot.setToolTipText("Show a Kendrick mass defect plot of the database");
     addButton(showKendrickDatabasePlot);
-
-    // Add table to buttons panel
   }
 
   /**
@@ -70,7 +88,6 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
    * @param button the button to add.
    */
   public void addButton(final JButton button) {
-
     buttonsPanel.add(button);
     buttonsPanel.add(Box.createHorizontalBox());
     button.addActionListener(this);
@@ -78,9 +95,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
   @Override
   public void actionPerformed(final ActionEvent e) {
-
     updateParameterSetFromComponents();
-
 
     final Object src = e.getSource();
 
@@ -99,7 +114,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
       databaseTable.setVisible(true);
     }
 
-    // create database plot
+    // create database Kendrick plot
     if (showKendrickDatabasePlot.equals(src)) {
       Object[] selectedObjects = LipidSearchParameters.lipidClasses.getValue();
       // Convert Objects to LipidClasses
@@ -124,7 +139,6 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
       frame.setBackground(Color.white);
       frame.setVisible(true);
       frame.pack();
-
     }
 
     if (btnOK.equals(src)) {
@@ -141,12 +155,8 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
   }
 
   private JFreeChart create2DKendrickMassDatabasePlot(DefaultTableModel model) {
-    // load dataset
+    // load data set
     XYDataset dataset = new AbstractXYDataset() {
-
-      /**
-       * 
-       */
       private static final long serialVersionUID = 1L;
 
       @Override
@@ -179,10 +189,12 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
         return 1;
       }
     };
+
     // create chart
     JFreeChart chart = ChartFactory.createScatterPlot("Database plot", "m/z", "KMD (CH2)", dataset,
         PlotOrientation.VERTICAL, true, true, false);
 
+    // create plot
     XYPlot plot = (XYPlot) chart.getPlot();
     plot.setBackgroundPaint(Color.WHITE);
 
@@ -196,6 +208,5 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
     renderer.setDefaultItemLabelsVisible(false);
     return chart;
-
   }
 }

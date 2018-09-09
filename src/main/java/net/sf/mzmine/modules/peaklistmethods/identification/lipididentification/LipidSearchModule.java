@@ -28,11 +28,16 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
+/**
+ * Module to search and annotate peaks as potential lipids
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class LipidSearchModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Lipid prediction";
+  private static final String MODULE_NAME = "Lipid search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches for peaks whose m/z value matches a predicted mass of lipids.";
+      "This method searches and annotates peaks whose m/z value matches a predicted mass of selected lipids.";
 
   @Override
   public @Nonnull String getName() {

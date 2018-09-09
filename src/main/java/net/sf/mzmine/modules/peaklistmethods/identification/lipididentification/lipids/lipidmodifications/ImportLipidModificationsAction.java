@@ -45,15 +45,11 @@ import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
 /**
  * An action to handle importing lipid modifications from a file.
  *
- * @author $Author$
- * @version $Revision$
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 
 public class ImportLipidModificationsAction extends AbstractAction {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
 
   // Logger.
@@ -124,12 +120,9 @@ public class ImportLipidModificationsAction extends AbstractAction {
   }
 
   /**
-   * Load the adducts into the list of adduct choices.
+   * Load the lipid modificatons into the list
    *
    * @param lines CSV lines to parse.
-   * @param adducts the current adduct choices.
-   * @return a new list of adduct choices that includes the original choices plus any new ones found
-   *         by parsing the CSV lines.
    */
   private static LipidModification[] loadLipidModificationsIntoChoices(final String[][] lines,
       final LipidModification[] modifications) {
