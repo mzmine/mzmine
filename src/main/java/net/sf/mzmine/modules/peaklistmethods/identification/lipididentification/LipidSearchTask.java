@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.PolarityType;
@@ -38,6 +39,9 @@ import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.LipidModification;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipidutils.LipidIdentity;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetectorParameters;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -189,33 +193,25 @@ public class LipidSearchTask extends AbstractTask {
    */
   private void findPossibleLipid(LipidIdentity lipid, PeakListRow rows[]) {
     double lipidIonMass = 0.0;
-    double lipidMass = 0.0;
-    if (ionizationType.toString().contains("2M")) {
-      lipidMass = lipid.getMass() * 2;
-    } else {
-      lipidMass = lipid.getMass();
-    }
-    if (ionizationType.toString().contains("2-")) {
-      lipidIonMass = (lipidMass + ionizationType.getAddedMass()) / 2;
-    } else {
-      lipidIonMass = lipidMass + ionizationType.getAddedMass();
-    }
+    double lipidMass = lipid.getMass();
+    lipidIonMass = lipidMass + ionizationType.getAddedMass();
     logger.info("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
     for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       if (isCanceled())
         return;
       Range<Double> mzTolRange12C = mzTolerance.getToleranceRange(rows[rowIndex].getAverageMZ());
       if (mzTolRange12C.contains(lipidIonMass)) {
+
         // Calc rel mass deviation;
         double relMassDev =
             ((lipidIonMass - rows[rowIndex].getAverageMZ()) / lipidIonMass) * 1000000;
         rows[rowIndex].addPeakIdentity(lipid, false);
         rows[rowIndex].setComment("Ionization: " + ionizationType.getAdduct() + ", Δ "
-            + NumberFormat.getInstance().format(relMassDev) + " ppm"); // Calc relativ mass
-        // deviation
+            + NumberFormat.getInstance().format(relMassDev) + " ppm"); // Format relativ mass
+                                                                       // deviation
         // If search for MSMS fragments is selected search for fragments
         if (searchForMSMSFragments == true) {
-          searchMsmsFragments(rows, lipidIonMass, rowIndex, lipid);
+          searchMsmsFragments(rows[rowIndex], lipidIonMass, lipid);
         }
         // Notify the GUI about the change in the project
         MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(rows[rowIndex],
@@ -231,24 +227,40 @@ public class LipidSearchTask extends AbstractTask {
     }
   }
 
+  /**
+   * This method searches for MS/MS fragments. A mass list for MS2 scans will be used if present. If
+   * no mass list is present for MS2 scans it will create one using centroid or exact mass detection
+   * algorithm
+   */
+  private void searchMsmsFragments(PeakListRow row, double lipidIonMass, LipidIdentity lipid) {
 
-  private void searchMsmsFragments(PeakListRow rows[], double lipidIonMass, int rowIndex,
-      LipidIdentity lipid) {
-    ExactMassDetector massDetector = new ExactMassDetector(); // other mass detectors!
-    ExactMassDetectorParameters parametersMSMS = new ExactMassDetectorParameters();
-    ExactMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
+    MassDetector massDetector = null;
 
     // Check if selected feature has MSMS spectra
-    if (rows[rowIndex].getBestFragmentation() != null) {
-      DataPoint[] massList =
-          massDetector.getMassValues(rows[rowIndex].getBestFragmentation(), parametersMSMS);
-      /**
-       * Check for lipid class specific fragment lipid class fragments are derived from lipid blast
-       */
+    if (row.getBestFragmentation() != null) {
+
+      DataPoint[] massList = null;
+      // check if MS/MS scan already has a mass list
+      if (row.getBestFragmentation().getMassLists().length != 0) {
+        massList = row.getBestFragmentation().getMassLists()[0].getDataPoints();
+      } else {
+        // Create a new mass list for MS/MS scan. Check if sprectrum is profile or centroid mode
+        if (row.getBestFragmentation().getSpectrumType() == MassSpectrumType.CENTROIDED) {
+          massDetector = new CentroidMassDetector();
+          CentroidMassDetectorParameters parametersMSMS = new CentroidMassDetectorParameters();
+          CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
+          massList = massDetector.getMassValues(row.getBestFragmentation(), parametersMSMS);
+        } else {
+          massDetector = new ExactMassDetector();
+          ExactMassDetectorParameters parametersMSMS = new ExactMassDetectorParameters();
+          ExactMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
+          massList = massDetector.getMassValues(row.getBestFragmentation(), parametersMSMS);
+        }
+      }
       MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
 
       // check for negative polarity
-      if (peakList.getRow(rowIndex).getBestFragmentation().getPolarity() == PolarityType.NEGATIVE) {
+      if (row.getBestFragmentation().getPolarity() == PolarityType.NEGATIVE) {
 
         // check if lipid class has set negative fragments
         String[] fragments = lipid.getLipidClass().getMsmsFragmentsNegativeIonization();
@@ -257,7 +269,7 @@ public class LipidSearchTask extends AbstractTask {
           for (int i = 0; i < massList.length; i++) {
             Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(massList[i].getMZ());
             String annotatedNegativeFragment = msmsLipidTools.checkForNegativeClassSpecificFragment(
-                mzTolRangeMSMS, rows[rowIndex].getPreferredPeakIdentity(), lipidIonMass, fragments);
+                mzTolRangeMSMS, row.getPreferredPeakIdentity(), lipidIonMass, fragments);
             if (annotatedNegativeFragment.equals("") == false) {
               listOfAnnotatedNegativeFragments.add(annotatedNegativeFragment);
             }
@@ -268,14 +280,14 @@ public class LipidSearchTask extends AbstractTask {
             // predict lipid fatty acid composition if possible
             ArrayList<String> listOfPossibleFattyAcidCompositions =
                 msmsLipidTools.predictFattyAcidComposition(listOfAnnotatedNegativeFragments,
-                    rows[rowIndex].getPreferredPeakIdentity());
+                    row.getPreferredPeakIdentity());
             for (int i = 0; i < listOfPossibleFattyAcidCompositions.size(); i++) {
               // Add possible composition to comment
-              if (rows[rowIndex].getComment().equals(null)) {
-                rows[rowIndex].setComment(" " + listOfPossibleFattyAcidCompositions.get(i));
+              if (row.getComment().equals(null)) {
+                row.setComment(" " + listOfPossibleFattyAcidCompositions.get(i));
               } else {
-                rows[rowIndex].setComment(rows[rowIndex].getComment() + ";" + " "
-                    + listOfPossibleFattyAcidCompositions.get(i));
+                row.setComment(
+                    row.getComment() + ";" + " " + listOfPossibleFattyAcidCompositions.get(i));
               }
             }
 
@@ -283,11 +295,11 @@ public class LipidSearchTask extends AbstractTask {
             for (int i = 0; i < listOfAnnotatedNegativeFragments.size(); i++) {
               if (listOfAnnotatedNegativeFragments.get(i).contains("C")) {
                 // Add fragment to comment
-                if (rows[rowIndex].getComment().equals(null)) {
-                  rows[rowIndex].setComment(" " + listOfAnnotatedNegativeFragments.get(i));
+                if (row.getComment().equals(null)) {
+                  row.setComment(" " + listOfAnnotatedNegativeFragments.get(i));
                 } else {
-                  rows[rowIndex].setComment(rows[rowIndex].getComment() + ";" + " "
-                      + listOfAnnotatedNegativeFragments.get(i));
+                  row.setComment(
+                      row.getComment() + ";" + " " + listOfAnnotatedNegativeFragments.get(i));
                 }
               }
             }
@@ -296,7 +308,7 @@ public class LipidSearchTask extends AbstractTask {
       }
 
       // check if lipid class has positive fragments
-      if (peakList.getRow(rowIndex).getBestFragmentation().getPolarity() == PolarityType.POSITIVE) {
+      if (row.getBestFragmentation().getPolarity() == PolarityType.POSITIVE) {
 
         // check if lipid class has set postiev fragments
         String[] fragments = lipid.getLipidClass().getMsmsFragmentsPositiveIonization();
@@ -305,7 +317,7 @@ public class LipidSearchTask extends AbstractTask {
           for (int i = 0; i < massList.length; i++) {
             Range<Double> mzTolRangeMSMS = mzToleranceMS2.getToleranceRange(massList[i].getMZ());
             String annotatedPositiveFragment = msmsLipidTools.checkForPositiveClassSpecificFragment(
-                mzTolRangeMSMS, rows[rowIndex].getPreferredPeakIdentity(), lipidIonMass, fragments);
+                mzTolRangeMSMS, row.getPreferredPeakIdentity(), lipidIonMass, fragments);
             if (annotatedPositiveFragment.equals("") == false) {
               listOfAnnotatedPositiveFragments.add(annotatedPositiveFragment);
             }
@@ -314,14 +326,14 @@ public class LipidSearchTask extends AbstractTask {
           // predict lipid fatty acid composition if possible
           ArrayList<String> listOfPossibleFattyAcidCompositions =
               msmsLipidTools.predictFattyAcidComposition(listOfAnnotatedPositiveFragments,
-                  rows[rowIndex].getPreferredPeakIdentity());
+                  row.getPreferredPeakIdentity());
           for (int i = 0; i < listOfPossibleFattyAcidCompositions.size(); i++) {
             // Add possible composition to comment
-            if (rows[rowIndex].getComment().equals(null)) {
-              rows[rowIndex].setComment(" " + listOfPossibleFattyAcidCompositions.get(i));
+            if (row.getComment().equals(null)) {
+              row.setComment(" " + listOfPossibleFattyAcidCompositions.get(i));
             } else {
-              rows[rowIndex].setComment(rows[rowIndex].getComment() + ";" + " "
-                  + listOfPossibleFattyAcidCompositions.get(i));
+              row.setComment(
+                  row.getComment() + ";" + " " + listOfPossibleFattyAcidCompositions.get(i));
             }
           }
 
@@ -329,11 +341,11 @@ public class LipidSearchTask extends AbstractTask {
           for (int i = 0; i < listOfAnnotatedPositiveFragments.size(); i++) {
             if (listOfAnnotatedPositiveFragments.get(i).contains("C")) {
               // Add fragment to comment
-              if (rows[rowIndex].getComment().equals(null)) {
-                rows[rowIndex].setComment(" " + listOfAnnotatedPositiveFragments.get(i));
+              if (row.getComment().equals(null)) {
+                row.setComment(" " + listOfAnnotatedPositiveFragments.get(i));
               } else {
-                rows[rowIndex].setComment(rows[rowIndex].getComment() + ";" + " "
-                    + listOfAnnotatedPositiveFragments.get(i));
+                row.setComment(
+                    row.getComment() + ";" + " " + listOfAnnotatedPositiveFragments.get(i));
               }
             }
           }
@@ -345,18 +357,11 @@ public class LipidSearchTask extends AbstractTask {
 
   private void searchModifications(PeakListRow rows, double lipidIonMass, LipidIdentity lipid,
       double[] lipidModificationMasses, Range<Double> mzTolModification) {
-    int charge = 0;
-    if (ionizationType.toString().contains("2-")) {
-      charge = 2;
-    } else {
-      charge = 1;
-    }
     for (int j = 0; j < lipidModificationMasses.length; j++) {
-      if (mzTolModification.contains(lipidIonMass + (lipidModificationMasses[j] / charge))) {
+      if (mzTolModification.contains(lipidIonMass + (lipidModificationMasses[j]))) {
         // Calc relativ mass deviation
-        double relMassDev =
-            (((lipidIonMass + (lipidModificationMasses[j] / charge)) - rows.getAverageMZ())
-                / (lipidIonMass + (lipidModificationMasses[j] / charge))) * 1000000;
+        double relMassDev = ((lipidIonMass + (lipidModificationMasses[j]) - rows.getAverageMZ())
+            / (lipidIonMass + lipidModificationMasses[j])) * 1000000;
         // Add row identity
         rows.addPeakIdentity(new SimplePeakIdentity(lipid + " " + lipidModification[j]), false);
         rows.setComment("Ionization: " + ionizationType.getAdduct() + " " + lipidModification[j]

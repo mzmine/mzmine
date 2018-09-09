@@ -68,7 +68,7 @@ public class MSMSLipidTools {
           double massFattyAcid = FormulaUtils.calculateExactMass((fattyAcidFormulas.get(j)));
           if (mzTolRangeMSMS
               .contains(lipidIonMass - massFattyAcid - FormulaUtils.calculateExactMass("H"))) {
-            annotatedFragment = "M-FA" + fattyAcidNames.get(j) + massFattyAcid;
+            annotatedFragment = "M-FA" + fattyAcidNames.get(j);
           }
         }
       }
@@ -223,14 +223,33 @@ public class MSMSLipidTools {
                   numberOfDBInFragment + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j));
               if (testNumberOfDoubleBonds == totalNumberOfDB) {
                 fattyAcidComposition
-                    .add(listOfDetectedFragments.get(i) + "/" + listOfDetectedFragments.get(j));
+                    .add(listOfDetectedFragments.get(i) + "_" + listOfDetectedFragments.get(j));
               }
             }
           }
         }
       }
     }
+    fattyAcidComposition = removeDoubleEntries(fattyAcidComposition);
     return fattyAcidComposition;
   }
 
+  private ArrayList<String> removeDoubleEntries(ArrayList<String> fattyAcidComposition) {
+    for (int i = 0; i < fattyAcidComposition.size(); i++) {
+      System.out.println("hi");
+      String[] oneFattyAcidComposition = fattyAcidComposition.get(i).split("_");
+      // only remove ones
+      int ctr = 0;
+      for (int j = 0; j < fattyAcidComposition.size(); j++) {
+        String[] compareFattyAcidComposition = fattyAcidComposition.get(j).split("_");
+        if (oneFattyAcidComposition[0].equals(compareFattyAcidComposition[1])
+            && oneFattyAcidComposition[1].equals(compareFattyAcidComposition[0]) && ctr == 0) {
+          System.out.println("hit");
+          fattyAcidComposition.remove(j);
+          ctr++;
+        }
+      }
+    }
+    return fattyAcidComposition;
+  }
 }

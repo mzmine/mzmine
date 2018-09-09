@@ -32,7 +32,6 @@ public class FattyAcidTools {
    * This method calculates all possible fatty acids formulas for a selected annotated lipid
    */
   public ArrayList<String> calculateFattyAcidFormulas(PeakIdentity peakIdentity) {
-
     ArrayList<String> fattyAcidFormulas = new ArrayList<String>();
     LipidTools lipidTools = new LipidTools();
     int minFattyAcidLength = 1;

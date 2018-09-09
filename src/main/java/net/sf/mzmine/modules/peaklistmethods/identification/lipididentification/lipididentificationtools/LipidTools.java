@@ -42,7 +42,7 @@ public class LipidTools {
     // Loop through every char and check for "C"
     for (int i = 0; i < lipidAnnotation.length(); i++) {
       // get first Bracket
-      if (lipidAnnotation.charAt(i) == '(') {
+      if (lipidAnnotation.charAt(i) == '(' && counterFirstBracket < 1) {
         indexFirstNumber = i + 1;
         counterFirstBracket++;
       }
