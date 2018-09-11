@@ -30,7 +30,7 @@ public class LipidChainBuilder {
   }
 
   /**
-   * This method builds rady chains for lipids based on the user set parameters chain length, chain
+   * This method builds radyl chains for lipids based on the user set parameters chain length, chain
    * double bonds, number of acyl chains and number of alky chains
    */
   public String calculateChainFormula(final int chainLength, final int chainDoubleBonds,

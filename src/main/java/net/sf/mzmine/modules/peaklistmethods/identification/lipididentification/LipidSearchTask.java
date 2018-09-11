@@ -293,7 +293,9 @@ public class LipidSearchTask extends AbstractTask {
 
             // add class specific fragments
             for (int i = 0; i < listOfAnnotatedNegativeFragments.size(); i++) {
-              if (listOfAnnotatedNegativeFragments.get(i).contains("C")) {
+              if (listOfAnnotatedNegativeFragments.get(i).contains("C")
+                  || listOfAnnotatedNegativeFragments.get(i).contains("H")
+                  || listOfAnnotatedNegativeFragments.get(i).contains("O")) {
                 // Add fragment to comment
                 if (row.getComment().equals(null)) {
                   row.setComment(" " + listOfAnnotatedNegativeFragments.get(i));

@@ -35,6 +35,8 @@ public enum LipidMainClasses {
   FATTYNITRILES("Fatty esters", LipidCoreClasses.FATTYACYLS), //
   FATTYETHERS("Fatty ehters", LipidCoreClasses.FATTYACYLS), //
   HYDROCARBONS("Hydrocarbons", LipidCoreClasses.FATTYACYLS), //
+  RHAMNOLIPIDS("Rhamnolipids", LipidCoreClasses.FATTYACYLS), //
+  SOPHOROLIPIDS("Sophorolipds", LipidCoreClasses.FATTYACYLS), //
 
   // Glycerolipids
   MONORADYLGLYCEROLS("Monoradylglycerols", LipidCoreClasses.GLYCEROLIPIDS), //

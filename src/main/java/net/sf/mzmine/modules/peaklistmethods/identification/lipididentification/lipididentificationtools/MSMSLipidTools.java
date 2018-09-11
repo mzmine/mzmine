@@ -88,6 +88,26 @@ public class MSMSLipidTools {
         }
       }
 
+      // check for fragments with M-FA and + sum formula
+      else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
+          && classSpecificFragments[i].contains("+")) {
+        if (classSpecificFragments[i].contains("FA")) {
+          for (int j = 0; j < fattyAcidFormulas.size(); j++) {
+            double massOfSumFormulasToSubstract = FormulaUtils.calculateExactMass(
+                lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]));
+            double massOfSumFormulasToAdd = FormulaUtils.calculateExactMass(
+                lipidTools.getSumFormulasToAddOfFragmentContainingFA(classSpecificFragments[i]));
+            if (mzTolRangeMSMS
+                .contains(lipidIonMass - FormulaUtils.calculateExactMass(fattyAcidFormulas.get(j))
+                    + massOfSumFormulasToAdd - massOfSumFormulasToSubstract)) {
+              annotatedFragment = "M-FA" + fattyAcidNames.get(j)
+                  + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]) + "+"
+                  + lipidTools.getSumFormulasToAddOfFragmentContainingFA(classSpecificFragments[i]);
+            }
+          }
+        }
+      }
+
       // check for fragments with M-FA and - sum formula or M - sum formula
       else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")) {
         if (classSpecificFragments[i].contains("FA")) {
@@ -152,6 +172,28 @@ public class MSMSLipidTools {
           }
         }
       }
+
+
+      // check for fragments with M-FA and + sum formula
+      else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
+          && classSpecificFragments[i].contains("+")) {
+        if (classSpecificFragments[i].contains("FA")) {
+          for (int j = 0; j < fattyAcidFormulas.size(); j++) {
+            double massOfSumFormulasToSubstract = FormulaUtils.calculateExactMass(
+                lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]));
+            double massOfSumFormulasToAdd = FormulaUtils.calculateExactMass(
+                lipidTools.getSumFormulasToAddOfFragmentContainingFA(classSpecificFragments[i]));
+            if (mzTolRangeMSMS
+                .contains(lipidIonMass - FormulaUtils.calculateExactMass(fattyAcidFormulas.get(j))
+                    + massOfSumFormulasToAdd - massOfSumFormulasToSubstract)) {
+              annotatedFragment = "M-FA" + fattyAcidNames.get(j)
+                  + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]) + "+"
+                  + lipidTools.getSumFormulasToAddOfFragmentContainingFA(classSpecificFragments[i]);
+            }
+          }
+        }
+      }
+
 
       // check for fragments with M-FA and - sum formula or M - sum formula
       else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")) {
@@ -222,7 +264,10 @@ public class MSMSLipidTools {
                   numberOfDBInFragment + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j));
               if (testNumberOfDoubleBonds == totalNumberOfDB) {
                 fattyAcidComposition
-                    .add(listOfDetectedFragments.get(i) + "_" + listOfDetectedFragments.get(j));
+                    .add("FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
+                        + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
+                        + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j)) + ":"
+                        + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")");
               }
             }
           }

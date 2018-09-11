@@ -44,6 +44,13 @@ public enum LipidClasses {
       "O", 0, 2, new String[] {""}, new String[] {""}), //
   HYDROCARBONS("Hydrocarbons", "Hydrocarbon", LipidCoreClasses.FATTYACYLS,
       LipidMainClasses.HYDROCARBONS, "", 0, 1, new String[] {""}, new String[] {""}), //
+  MONORHAMNOLIPIDS("mono-Rhamnolipid", "mRL", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.RHAMNOLIPIDS, "C8H10O9", 2, 0, new String[] {""},
+      new String[] {"M-FA+H2", "FA+H2", "fragment M-C6H12O6", "fragment C6H11O5"}), //
+  DIRHAMNOLIPIDS("di-Rhamnolipid", "diRL", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.RHAMNOLIPIDS, "C14H20O13", 2, 0, new String[] {""},
+      new String[] {"M-FA+H2", "FA+H2", "fragment M-C12H22O9", "fragment M-C6H12O6",
+          "fragment C12H21O9", "fragment C6H11O5"}), //
 
   // Glycerolipids
   MONOACYLGLYCEROLS("Monoacylglycerols", "MG", LipidCoreClasses.GLYCEROLIPIDS,
