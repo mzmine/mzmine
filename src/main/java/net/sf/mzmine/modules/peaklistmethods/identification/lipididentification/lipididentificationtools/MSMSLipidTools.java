@@ -163,7 +163,6 @@ public class MSMSLipidTools {
             if (mzTolRangeMSMS
                 .contains(lipidIonMass - FormulaUtils.calculateExactMass(fattyAcidFormulas.get(j))
                     - massOfSumFormulasToSubstract)) {
-              System.out.println("hit");
               annotatedFragment = "M-FA-"
                   + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]);
             }
@@ -206,14 +205,14 @@ public class MSMSLipidTools {
     int testNumberOfDoubleBonds = 0;
     // combine all fragments with each other to check for a matching composition
     for (int i = 0; i < listOfDetectedFragments.size(); i++) {
-      if (listOfDetectedFragments.get(i).contains("FA")) {
+      if (listOfDetectedFragments.get(i).contains("FA(")) {
         int numberOfCAtomsInFragment = lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i));
         int numberOfDBInFragment = lipidTools.getNumberOfDB(listOfDetectedFragments.get(i));
 
         for (int j = 0; j < listOfDetectedFragments.size(); j++) {
 
           // only check for annotated fragments with information on FA composition
-          if (listOfDetectedFragments.get(j).contains("FA")) {
+          if (listOfDetectedFragments.get(j).contains("FA(")) {
             // check if number of C atoms is equal
             testNumberOfCAtoms = numberOfCAtomsInFragment
                 + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j));
@@ -236,7 +235,6 @@ public class MSMSLipidTools {
 
   private ArrayList<String> removeDoubleEntries(ArrayList<String> fattyAcidComposition) {
     for (int i = 0; i < fattyAcidComposition.size(); i++) {
-      System.out.println("hi");
       String[] oneFattyAcidComposition = fattyAcidComposition.get(i).split("_");
       // only remove ones
       int ctr = 0;
@@ -244,7 +242,6 @@ public class MSMSLipidTools {
         String[] compareFattyAcidComposition = fattyAcidComposition.get(j).split("_");
         if (oneFattyAcidComposition[0].equals(compareFattyAcidComposition[1])
             && oneFattyAcidComposition[1].equals(compareFattyAcidComposition[0]) && ctr == 0) {
-          System.out.println("hit");
           fattyAcidComposition.remove(j);
           ctr++;
         }

@@ -56,7 +56,6 @@ public class LipidTools {
       numberOfCAtoms = Integer.parseInt(String.valueOf(lipidAnnotation.charAt(indexFirstNumber))
           + String.valueOf(lipidAnnotation.charAt(indexLastNumber)));
     }
-
     return numberOfCAtoms;
   }
 
