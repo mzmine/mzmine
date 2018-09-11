@@ -121,7 +121,9 @@ public class MSMSLipidTools {
                   + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]);
             }
           }
-        } else {
+        }
+        // only substract sum formula
+        else {
           double massOfSumFormulasToSubstract = FormulaUtils.calculateExactMass(
               lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]));
           if (mzTolRangeMSMS.contains(lipidIonMass - massOfSumFormulasToSubstract)) {
@@ -209,7 +211,9 @@ public class MSMSLipidTools {
                   + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]);
             }
           }
-        } else {
+        }
+        // only substract sum formula
+        else {
           double massOfSumFormulasToSubstract = FormulaUtils.calculateExactMass(
               lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]));
           if (mzTolRangeMSMS.contains(lipidIonMass - massOfSumFormulasToSubstract)) {
