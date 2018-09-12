@@ -51,6 +51,10 @@ public enum LipidClasses {
       LipidMainClasses.RHAMNOLIPIDS, "C14H20O13", 2, 0, new String[] {""},
       new String[] {"M-FA+H2", "FA+H2", "fragment M-C12H22O9", "fragment M-C6H12O6",
           "fragment C12H21O9", "fragment C6H11O5"}), //
+  SOPHOROLIPIDACID("Sophorolipid acid form", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C13H21O13", 1, 0, new String[] {""}, new String[] {""}), //
+  SOPHOROLIPIDLACTON("Sophorolipid lacton form", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C13H19O12", 1, 0, new String[] {""}, new String[] {""}), //
 
   // Glycerolipids
   MONOACYLGLYCEROLS("Monoacylglycerols", "MG", LipidCoreClasses.GLYCEROLIPIDS,
@@ -84,7 +88,7 @@ public enum LipidClasses {
       new String[] {"FA"}), //
   SULFOQUINOVOSYLDIACYLGLYCEROLS("Sulfoquinovosyldiacylglycerols", "SQDG",
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.GLYCOSYLDIACYLGLYCEROLS, "C11H16O12S", 2, 0,
-      new String[] {""}, new String[] {"FA", "M-FA", "fragment C6H9O7S"}),
+      new String[] {""}, new String[] {"FA", "M-FA", "fragment C6H9O7S"}), //
 
   // Glycerophospholipids
   DIACYLGLYCEROPHOSPHOCHOLINES("Diacylglycerophosphocholines", "PC",
