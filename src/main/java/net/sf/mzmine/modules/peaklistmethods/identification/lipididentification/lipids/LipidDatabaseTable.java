@@ -18,8 +18,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.text.NumberFormat;
 import javax.swing.JFrame;
@@ -29,7 +29,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -47,6 +46,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipidutils.LipidIdentity;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.FormulaUtils;
+import net.sf.mzmine.util.components.ColorCircle;
 
 /**
  * This class creates a frame with a table that contains all information of the created lipid
@@ -79,11 +79,10 @@ public class LipidDatabaseTable extends JFrame {
     contentPane = new JPanel();
     contentPane.setBorder(new LineBorder(Color.BLACK));
     setContentPane(contentPane);
-    contentPane.setLayout(new MigLayout("", "[grow]", "[grow]"));
 
     // add scroll pane for table
     scrollPane = new JScrollPane();
-    contentPane.add(scrollPane, "cell 0 0,grow, grow");
+    contentPane.add(scrollPane, BorderLayout.NORTH);
 
     // add panel for legend
     JPanel legendPanel = new JPanel();
@@ -111,38 +110,39 @@ public class LipidDatabaseTable extends JFrame {
     redPanel.add(redColorLabel, "cell 3 0,grow");
     legendPanel.add(redPanel, "cell 3 0");
 
-    databaseTable = new JTable() {
+    databaseTable = new JTable();
+    // {
 
-      private static final long serialVersionUID = 1L;
-
-      public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-        Component c = super.prepareRenderer(renderer, row, column);
-
-        try {
-          for (int j = 0; j < this.getRowCount(); j++) {
-            double valueOne = Double.parseDouble(this.getModel().getValueAt(j, 7).toString());
-            double valueTwo = Double.parseDouble(this.getModel().getValueAt(row, 7).toString());
-            if (valueOne == valueTwo && j != row) {
-              c.setBackground(Color.RED);
-              this.getModel().setValueAt(
-                  "Interference with: " + this.getModel().getValueAt(row, 5).toString(), j, 8);
-            } else if (mzTolerance.checkWithinTolerance(
-                Double.parseDouble(this.getModel().getValueAt(j, 7).toString()),
-                Double.parseDouble(this.getModel().getValueAt(row, 7).toString())) && j != row) {
-              c.setBackground(Color.YELLOW);
-              this.getModel().setValueAt(
-                  "Possible interference with: " + this.getModel().getValueAt(row, 5).toString(), j,
-                  8);
-            } else if (this.getModel().getValueAt(j, 8).equals("")) {
-              c.setBackground(Color.WHITE);
-            }
-          }
-        } catch (Exception e) {
-          // TODO: handle exception
-        }
-        return c;
-      }
-    };
+    // private static final long serialVersionUID = 1L;
+    //
+    // public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+    // Component c = super.prepareRenderer(renderer, row, column);
+    // try {
+    // for (int j = 0; j < this.getRowCount(); j++) {
+    // double valueOne = Double.parseDouble(this.getModel().getValueAt(j, 7).toString());
+    // double valueTwo = Double.parseDouble(this.getModel().getValueAt(row, 7).toString());
+    // if (valueOne == valueTwo && j != row) {
+    // c.setBackground(Color.RED);
+    // this.getModel().setValueAt(
+    // "Interference with: " + this.getModel().getValueAt(row, 5).toString(), j, 8);
+    // } else if (mzTolerance.checkWithinTolerance(
+    // Double.parseDouble(this.getModel().getValueAt(j, 7).toString()),
+    // Double.parseDouble(this.getModel().getValueAt(row, 7).toString())) && j != row) {
+    // c.setBackground(Color.YELLOW);
+    // this.getModel().setValueAt(
+    // "Possible interference with: " + this.getModel().getValueAt(row, 5).toString(), j,
+    // 8);
+    // }
+    // // else if (this.getModel().getValueAt(j, 8).equals("")) {
+    // // c.setBackground(Color.WHITE);
+    // // }
+    // }
+    // } catch (Exception e) {
+    // // TODO: handle exception
+    // }
+    // return c;
+    // }
+    // };
 
     databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
     databaseTable.setFont(new Font("SansSerif", Font.PLAIN, 12));
@@ -155,6 +155,7 @@ public class LipidDatabaseTable extends JFrame {
         "Ionization", //
         "Exact mass", //
         "Info", //
+        "Status", //
         "MS/MS fragments positive ionization", //
         "MS/MS fragments negative ionization", //
     }));
@@ -164,6 +165,7 @@ public class LipidDatabaseTable extends JFrame {
     databaseTable.setCellSelectionEnabled(true);
     scrollPane.setViewportView(databaseTable);
     addDataToTable();
+    checkInterferences(databaseTable);
 
     // add Kendrick plot CH2
     JFreeChart chartCH2 =
@@ -223,6 +225,7 @@ public class LipidDatabaseTable extends JFrame {
               numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass()), // exact
                                                                                          // mass
               "", // info
+              "", // status
               String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
                                                                                          // fragments
                                                                                          // postive
@@ -246,6 +249,7 @@ public class LipidDatabaseTable extends JFrame {
                                                                                            // mass
                       + lipidModification[j].getModificationMass()),
                   "", // info
+                  "", // status
                   String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
                                                                                              // fragments
                                                                                              // postive
@@ -330,7 +334,39 @@ public class LipidDatabaseTable extends JFrame {
     return chart;
   }
 
+  private void checkInterferences(JTable table) {
 
+    ColorCircle greenCircle = new ColorCircle(Color.GREEN);
+    ColorCircle yellowCircle = new ColorCircle(Color.YELLOW);
+    ColorCircle redCircle = new ColorCircle(Color.RED);
+
+    InterferenceTableCellRenderer renderer = new InterferenceTableCellRenderer();
+    table.getColumnModel().getColumn(9).setCellRenderer(renderer);
+
+    for (int i = 0; i < table.getRowCount(); i++) {
+
+      for (int j = 0; j < table.getRowCount(); j++) {
+        double valueOne = Double.parseDouble(table.getModel().getValueAt(j, 7).toString());
+        double valueTwo = Double.parseDouble(table.getModel().getValueAt(i, 7).toString());
+        if (valueOne == valueTwo && j != i) {
+          renderer.circle.add(redCircle);
+          table.getModel().setValueAt(
+              "Interference with: " + table.getModel().getValueAt(i, 5).toString(), j, 8);
+          table.getModel().setValueAt(renderer.circle.get(0), j, 9);
+        } else if (mzTolerance.checkWithinTolerance(
+            Double.parseDouble(table.getModel().getValueAt(j, 7).toString()),
+            Double.parseDouble(table.getModel().getValueAt(i, 7).toString())) && j != i) {
+          table.getModel().setValueAt(
+              "Possible interference with: " + table.getModel().getValueAt(i, 5).toString(), j, 8);
+          table.getModel().setValueAt(yellowCircle, j, 9);
+          renderer.circle.add(yellowCircle);
+        } else {
+          table.getModel().setValueAt(greenCircle, j, 9);
+          renderer.circle.add(greenCircle);
+        }
+      }
+    }
+  }
 
   public JTable getDatabaseTable() {
     return databaseTable;
