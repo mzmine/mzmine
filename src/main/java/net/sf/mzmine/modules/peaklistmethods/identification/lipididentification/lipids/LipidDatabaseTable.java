@@ -20,13 +20,16 @@ package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.text.NumberFormat;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import org.jfree.chart.ChartFactory;
@@ -59,6 +62,10 @@ public class LipidDatabaseTable extends JFrame {
   private static final long serialVersionUID = 1L;
 
   private JPanel contentPane;
+  private JPanel mainPanel;
+  private JPanel chartPanel;
+  private JSplitPane splitPane;
+  private JPanel legendPanel;
   public JScrollPane scrollPane;
   public JTable databaseTable;
   private LipidClasses[] selectedLipids;
@@ -77,38 +84,52 @@ public class LipidDatabaseTable extends JFrame {
     setBounds(100, 100, 600, 800);
     // setExtendedState(JFrame.MAXIMIZED_BOTH);
     contentPane = new JPanel();
-    contentPane.setBorder(new LineBorder(Color.BLACK));
-    setContentPane(contentPane);
+    contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));;
 
-    // add scroll pane for table
+    mainPanel = new JPanel();
+    mainPanel.setLayout(new BorderLayout());
+    mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+    setContentPane(mainPanel);
+    // add mainPanel to content pane
+    // contentPane.add(mainPanel, BorderLayout.CENTER);
+    mainPanel.setLayout(new BorderLayout());
+
+    // create scrollPane
     scrollPane = new JScrollPane();
-    contentPane.add(scrollPane, BorderLayout.NORTH);
+    scrollPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+    // create chart panel
+    chartPanel = new JPanel();
+    chartPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+    // create split pane
+    splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPane, chartPanel);
+    splitPane.setBorder(new LineBorder(Color.BLACK));
+    mainPanel.add(splitPane, BorderLayout.CENTER);
 
-    // add panel for legend
-    JPanel legendPanel = new JPanel();
-    contentPane.add(legendPanel, "cell 0 1,grow");
-    legendPanel.setBorder(new LineBorder(Color.BLACK));
-    legendPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
+    legendPanel = new JPanel();
+    mainPanel.add(legendPanel, BorderLayout.NORTH);
+    legendPanel.setBorder(new LineBorder(Color.BLACK));;
+    legendPanel.setLayout(new FlowLayout());
+
     JLabel legendTitel = new JLabel("Legend: ");
-    legendPanel.add(legendTitel, "cell 0 0,grow");
+    legendPanel.add(legendTitel);
 
-    JLabel whiteColorLabel = new JLabel("No interference: ");
-    JPanel whitePanel = new JPanel();
-    whitePanel.setBackground(Color.WHITE);
-    whitePanel.add(whiteColorLabel, "cell 1 0,grow");
-    legendPanel.add(whitePanel, "cell 1 0");
+    JLabel greenColorLabel = new JLabel("No interference: ");
+    JPanel greenPanel = new JPanel();
+    greenPanel.setBackground(Color.green);
+    greenPanel.add(greenColorLabel);
+    legendPanel.add(greenPanel);
 
     JLabel yellowColorLabel = new JLabel("Possible isobaric interference: ");
     JPanel yellowPanel = new JPanel();
     yellowPanel.setBackground(Color.yellow);
-    yellowPanel.add(yellowColorLabel, "cell 2 0,grow");
-    legendPanel.add(yellowPanel, "cell 2 0");
+    yellowPanel.add(yellowColorLabel);
+    legendPanel.add(yellowPanel);
 
     JLabel redColorLabel = new JLabel("Isobaric interference: ");
     JPanel redPanel = new JPanel();
     redPanel.setBackground(Color.red);
-    redPanel.add(redColorLabel, "cell 3 0,grow");
-    legendPanel.add(redPanel, "cell 3 0");
+    redPanel.add(redColorLabel);
+    legendPanel.add(redPanel);
 
     databaseTable = new JTable();
     // {
@@ -174,15 +195,14 @@ public class LipidDatabaseTable extends JFrame {
     JFreeChart chartH =
         create2DKendrickMassDatabasePlot((DefaultTableModel) databaseTable.getModel(), "H");
 
-    // create Panel for both charts
-    JPanel chartPanel = new JPanel();
     chartPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
-    contentPane.add(chartPanel, "cell 0 3, grow");
+    chartPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     EChartPanel chartPanelCH2 = new EChartPanel(chartCH2, true, true, true, true, false);
     EChartPanel chartPanelH = new EChartPanel(chartH, true, true, true, true, false);
-    chartPanel.add(chartPanelCH2, "cell 0 0, grow");
-    chartPanel.add(chartPanelH, "cell 1 0, grow");
+    chartPanel.add(chartPanelCH2, BorderLayout.WEST);
+    chartPanel.add(chartPanelH, BorderLayout.EAST);
     validate();
+    pack();
   }
 
   /**
@@ -337,35 +357,39 @@ public class LipidDatabaseTable extends JFrame {
   private void checkInterferences(JTable table) {
 
     ColorCircle greenCircle = new ColorCircle(Color.GREEN);
+    greenCircle.setSize(5, 5);
     ColorCircle yellowCircle = new ColorCircle(Color.YELLOW);
     ColorCircle redCircle = new ColorCircle(Color.RED);
 
+    // get table cell renderer for cells with status
     InterferenceTableCellRenderer renderer = new InterferenceTableCellRenderer();
-    table.getColumnModel().getColumn(9).setCellRenderer(renderer);
 
     for (int i = 0; i < table.getRowCount(); i++) {
-
       for (int j = 0; j < table.getRowCount(); j++) {
         double valueOne = Double.parseDouble(table.getModel().getValueAt(j, 7).toString());
         double valueTwo = Double.parseDouble(table.getModel().getValueAt(i, 7).toString());
         if (valueOne == valueTwo && j != i) {
-          renderer.circle.add(redCircle);
           table.getModel().setValueAt(
               "Interference with: " + table.getModel().getValueAt(i, 5).toString(), j, 8);
-          table.getModel().setValueAt(renderer.circle.get(0), j, 9);
         } else if (mzTolerance.checkWithinTolerance(
             Double.parseDouble(table.getModel().getValueAt(j, 7).toString()),
             Double.parseDouble(table.getModel().getValueAt(i, 7).toString())) && j != i) {
           table.getModel().setValueAt(
               "Possible interference with: " + table.getModel().getValueAt(i, 5).toString(), j, 8);
-          table.getModel().setValueAt(yellowCircle, j, 9);
-          renderer.circle.add(yellowCircle);
-        } else {
-          table.getModel().setValueAt(greenCircle, j, 9);
-          renderer.circle.add(greenCircle);
         }
       }
     }
+
+    for (int i = 0; i < table.getRowCount(); i++) {
+      if (table.getModel().getValueAt(i, 8).toString().contains("Possible interference")) {
+        renderer.circle.add(yellowCircle);
+      } else if (table.getModel().getValueAt(i, 8).toString().contains("interference")) {
+        renderer.circle.add(redCircle);
+      } else {
+        renderer.circle.add(greenCircle);
+      }
+    }
+    table.getColumnModel().getColumn(9).setCellRenderer(renderer);
   }
 
   public JTable getDatabaseTable() {
