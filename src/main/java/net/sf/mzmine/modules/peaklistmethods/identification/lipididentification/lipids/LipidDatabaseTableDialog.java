@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.text.NumberFormat;
@@ -32,14 +33,16 @@ import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
-import org.jfree.data.xy.AbstractXYDataset;
-import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -53,11 +56,12 @@ import net.sf.mzmine.util.components.ColorCircle;
 
 /**
  * This class creates a frame with a table that contains all information of the created lipid
- * database, based on the user selected parameters
+ * database, based on the user selected parameters. The database is also presented in two Kendrick
+ * plots (CH2 and H as KMD base) for fast interference spotting
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class LipidDatabaseTable extends JFrame {
+public class LipidDatabaseTableDialog extends JFrame {
 
   private static final long serialVersionUID = 1L;
 
@@ -78,7 +82,7 @@ public class LipidDatabaseTable extends JFrame {
   private MZTolerance mzTolerance = LipidSearchParameters.mzTolerance.getValue();
 
 
-  public LipidDatabaseTable(LipidClasses[] choices) {
+  public LipidDatabaseTableDialog(LipidClasses[] choices) {
     this.selectedLipids = choices;
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setBounds(100, 100, 600, 800);
@@ -95,7 +99,8 @@ public class LipidDatabaseTable extends JFrame {
     mainPanel.setLayout(new BorderLayout());
 
     // create scrollPane
-    scrollPane = new JScrollPane();
+    scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+        JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
     scrollPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     // create chart panel
     chartPanel = new JPanel();
@@ -113,59 +118,25 @@ public class LipidDatabaseTable extends JFrame {
     JLabel legendTitel = new JLabel("Legend: ");
     legendPanel.add(legendTitel);
 
-    JLabel greenColorLabel = new JLabel("No interference: ");
+    JLabel greenColorLabel = new JLabel("No interference");
     JPanel greenPanel = new JPanel();
     greenPanel.setBackground(Color.green);
     greenPanel.add(greenColorLabel);
     legendPanel.add(greenPanel);
 
-    JLabel yellowColorLabel = new JLabel("Possible isobaric interference: ");
+    JLabel yellowColorLabel = new JLabel("Possible interference");
     JPanel yellowPanel = new JPanel();
     yellowPanel.setBackground(Color.yellow);
     yellowPanel.add(yellowColorLabel);
     legendPanel.add(yellowPanel);
 
-    JLabel redColorLabel = new JLabel("Isobaric interference: ");
+    JLabel redColorLabel = new JLabel("Isobaric interference");
     JPanel redPanel = new JPanel();
     redPanel.setBackground(Color.red);
     redPanel.add(redColorLabel);
     legendPanel.add(redPanel);
 
     databaseTable = new JTable();
-    // {
-
-    // private static final long serialVersionUID = 1L;
-    //
-    // public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-    // Component c = super.prepareRenderer(renderer, row, column);
-    // try {
-    // for (int j = 0; j < this.getRowCount(); j++) {
-    // double valueOne = Double.parseDouble(this.getModel().getValueAt(j, 7).toString());
-    // double valueTwo = Double.parseDouble(this.getModel().getValueAt(row, 7).toString());
-    // if (valueOne == valueTwo && j != row) {
-    // c.setBackground(Color.RED);
-    // this.getModel().setValueAt(
-    // "Interference with: " + this.getModel().getValueAt(row, 5).toString(), j, 8);
-    // } else if (mzTolerance.checkWithinTolerance(
-    // Double.parseDouble(this.getModel().getValueAt(j, 7).toString()),
-    // Double.parseDouble(this.getModel().getValueAt(row, 7).toString())) && j != row) {
-    // c.setBackground(Color.YELLOW);
-    // this.getModel().setValueAt(
-    // "Possible interference with: " + this.getModel().getValueAt(row, 5).toString(), j,
-    // 8);
-    // }
-    // // else if (this.getModel().getValueAt(j, 8).equals("")) {
-    // // c.setBackground(Color.WHITE);
-    // // }
-    // }
-    // } catch (Exception e) {
-    // // TODO: handle exception
-    // }
-    // return c;
-    // }
-    // };
-
-    databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
     databaseTable.setFont(new Font("SansSerif", Font.PLAIN, 12));
     databaseTable.setModel(new DefaultTableModel(new Object[][] {}, new String[] {"ID", //
         "Lipid core class", //
@@ -180,6 +151,7 @@ public class LipidDatabaseTable extends JFrame {
         "MS/MS fragments positive ionization", //
         "MS/MS fragments negative ionization", //
     }));
+    databaseTable.setRowHeight(30);
     databaseTable.setSurrendersFocusOnKeystroke(true);
     databaseTable.setFillsViewportHeight(true);
     databaseTable.setColumnSelectionAllowed(true);
@@ -187,6 +159,8 @@ public class LipidDatabaseTable extends JFrame {
     scrollPane.setViewportView(databaseTable);
     addDataToTable();
     checkInterferences(databaseTable);
+    resizeColumnWidth(databaseTable);
+    databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
     // add Kendrick plot CH2
     JFreeChart chartCH2 =
@@ -270,13 +244,8 @@ public class LipidDatabaseTable extends JFrame {
                       + lipidModification[j].getModificationMass()),
                   "", // info
                   "", // status
-                  String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
-                                                                                             // fragments
-                                                                                             // postive
-                  String.join(", ", selectedLipids[i].getMsmsFragmentsNegativeIonization())}); //
-                                                                                               // msms
-                                                                                               // fragments
-                                                                                               // negative
+                  "", // msms fragments postive
+                  ""}); // msms fragments negative
               id++;
             }
           }
@@ -285,79 +254,88 @@ public class LipidDatabaseTable extends JFrame {
     }
   }
 
+  /**
+   * This method creates Kendrick database plots to visualize the database and possible
+   * interferences
+   */
   private JFreeChart create2DKendrickMassDatabasePlot(DefaultTableModel model, String base) {
-    // load data set
-    XYDataset dataset = new AbstractXYDataset() {
-      private static final long serialVersionUID = 1L;
 
-      @Override
-      public Number getY(int series, int item) {
-        double yValue = 0;
-        if (base.equals("CH2")) {
-          double exactMassFormula = FormulaUtils.calculateExactMass("CH2");
-          yValue = ((int) (Double.parseDouble(model.getValueAt(item, 7).toString())
-              * (14 / exactMassFormula) + 1))
-              - Double.parseDouble(model.getValueAt(item, 7).toString()) * (14 / exactMassFormula);
-        } else if (base.equals("H")) {
-          double exactMassFormula = FormulaUtils.calculateExactMass("H");
-          yValue = ((int) (Double.parseDouble(model.getValueAt(item, 7).toString())
-              * (1 / exactMassFormula) + 1))
-              - Double.parseDouble(model.getValueAt(item, 7).toString()) * (1 / exactMassFormula);
-        } else {
-          yValue = 0;
-        }
-        return yValue;
+    XYSeriesCollection datasetCollection = new XYSeriesCollection();
+    XYSeries noInterferenceSeries = new XYSeries("No interference");
+    XYSeries possibleInterferenceSeries = new XYSeries("Possible interference");
+    XYSeries interferenceSeries = new XYSeries("Isobaric interference");
 
+    // add data to all series
+    double yValue = 0;
+    double xValue = 0;
+
+    for (int i = 0; i < model.getRowCount(); i++) {
+
+      // calc y value depending on KMD base
+      if (base.equals("CH2")) {
+        double exactMassFormula = FormulaUtils.calculateExactMass("CH2");
+        yValue =
+            ((int) (Double.parseDouble(model.getValueAt(i, 7).toString()) * (14 / exactMassFormula)
+                + 1))
+                - Double.parseDouble(model.getValueAt(i, 7).toString()) * (14 / exactMassFormula);
+      } else if (base.equals("H")) {
+        double exactMassFormula = FormulaUtils.calculateExactMass("H");
+        yValue =
+            ((int) (Double.parseDouble(model.getValueAt(i, 7).toString()) * (1 / exactMassFormula)
+                + 1))
+                - Double.parseDouble(model.getValueAt(i, 7).toString()) * (1 / exactMassFormula);
+      } else {
+        yValue = 0;
       }
 
-      @Override
-      public Number getX(int series, int item) {
-        double xValue = Double.parseDouble(model.getValueAt(item, 7).toString());
-        return xValue;
-      }
+      // get x value from table
+      xValue = Double.parseDouble(model.getValueAt(i, 7).toString());
 
-      @Override
-      public int getItemCount(int series) {
-        return model.getRowCount();
+      // add xy values to series based on interference status
+      if (model.getValueAt(i, 8).toString().contains("Possible interference")) {
+        possibleInterferenceSeries.add(xValue, yValue);
+      } else if (model.getValueAt(i, 8).toString().contains("interference")) {
+        interferenceSeries.add(xValue, yValue);
+      } else {
+        noInterferenceSeries.add(xValue, yValue);
       }
+    }
 
-      @Override
-      public Comparable<?> getSeriesKey(int item) {
-        return model.getValueAt(item, 1).toString();
-      }
-
-      @Override
-      public int getSeriesCount() {
-        return 1;
-      }
-    };
+    datasetCollection.addSeries(noInterferenceSeries);
+    datasetCollection.addSeries(possibleInterferenceSeries);
+    datasetCollection.addSeries(interferenceSeries);
 
     // create chart
     JFreeChart chart = ChartFactory.createScatterPlot("Database plot KMD base " + base, "m/z",
-        "KMD (" + base + ")", dataset, PlotOrientation.VERTICAL, false, true, false);
+        "KMD (" + base + ")", datasetCollection, PlotOrientation.VERTICAL, true, true, false);
     // create plot
     XYPlot plot = (XYPlot) chart.getPlot();
-    plot.setBackgroundPaint(Color.WHITE);
-
+    plot.setBackgroundPaint(Color.BLACK);
+    plot.setRangeGridlinesVisible(false);
+    plot.setDomainGridlinesVisible(false);
     // set axis
     NumberAxis range = (NumberAxis) plot.getRangeAxis();
     range.setRange(0, 1);
 
     // set renderer
     XYDotRenderer renderer = new XYDotRenderer();
-    renderer.setSeriesPaint(0, Color.BLACK);
-    renderer.setDotHeight(2);
-    renderer.setDotWidth(2);
+    renderer.setSeriesPaint(0, Color.GREEN);
+    renderer.setSeriesPaint(1, Color.YELLOW);
+    renderer.setSeriesPaint(2, Color.RED);
+    renderer.setDotHeight(3);
+    renderer.setDotWidth(3);
     plot.setRenderer(renderer);
 
-    renderer.setDefaultItemLabelsVisible(false);
     return chart;
   }
 
+  /**
+   * This method checks for m/z interferences in the generated database table using the user set m/z
+   * window
+   */
   private void checkInterferences(JTable table) {
 
     ColorCircle greenCircle = new ColorCircle(Color.GREEN);
-    greenCircle.setSize(5, 5);
     ColorCircle yellowCircle = new ColorCircle(Color.YELLOW);
     ColorCircle redCircle = new ColorCircle(Color.RED);
 
@@ -390,6 +368,30 @@ public class LipidDatabaseTable extends JFrame {
       }
     }
     table.getColumnModel().getColumn(9).setCellRenderer(renderer);
+  }
+
+  /**
+   * This method resizes the columns
+   */
+  private void resizeColumnWidth(JTable table) {
+    final TableColumnModel columnModel = table.getColumnModel();
+    for (int column = 0; column < table.getColumnCount(); column++) {
+      Object headerValue = columnModel.getColumn(column).getHeaderValue();
+      TableCellRenderer headerRenderer = columnModel.getColumn(column).getHeaderRenderer();
+      if (headerRenderer == null) {
+        headerRenderer = table.getTableHeader().getDefaultRenderer();
+      }
+      Component headerComp =
+          headerRenderer.getTableCellRendererComponent(table, headerValue, false, false, 0, column);
+      int width = 30; // Min width
+      width = Math.max(width, headerComp.getPreferredSize().width + 10);
+      for (int row = 0; row < table.getRowCount(); row++) {
+        TableCellRenderer renderer = table.getCellRenderer(row, column);
+        Component comp = table.prepareRenderer(renderer, row, column);
+        width = Math.max(comp.getPreferredSize().width + 10, width);
+      }
+      columnModel.getColumn(column).setPreferredWidth(width);
+    }
   }
 
   public JTable getDatabaseTable() {

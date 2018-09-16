@@ -42,7 +42,7 @@ import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
-import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidDatabaseTable;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidDatabaseTableDialog;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotWindow;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -109,7 +109,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
           Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
               .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
 
-      LipidDatabaseTable databaseTable = new LipidDatabaseTable(selectedLipids);
+      LipidDatabaseTableDialog databaseTable = new LipidDatabaseTableDialog(selectedLipids);
 
       databaseTable.setVisible(true);
     }
@@ -121,7 +121,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
       LipidClasses[] selectedLipids =
           Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
               .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
-      LipidDatabaseTable databaseTable = new LipidDatabaseTable(selectedLipids);
+      LipidDatabaseTableDialog databaseTable = new LipidDatabaseTableDialog(selectedLipids);
       DefaultTableModel model = (DefaultTableModel) databaseTable.getDatabaseTable().getModel();
       JFreeChart chart = create2DKendrickMassDatabasePlot(model);
       KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart);
