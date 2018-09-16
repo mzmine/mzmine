@@ -294,7 +294,7 @@ public class LipidDatabaseTableDialog extends JFrame {
       // add xy values to series based on interference status
       if (model.getValueAt(i, 8).toString().contains("Possible interference")) {
         possibleInterferenceSeries.add(xValue, yValue);
-      } else if (model.getValueAt(i, 8).toString().contains("interference")) {
+      } else if (model.getValueAt(i, 8).toString().contains("Interference")) {
         interferenceSeries.add(xValue, yValue);
       } else {
         noInterferenceSeries.add(xValue, yValue);
@@ -361,7 +361,7 @@ public class LipidDatabaseTableDialog extends JFrame {
     for (int i = 0; i < table.getRowCount(); i++) {
       if (table.getModel().getValueAt(i, 8).toString().contains("Possible interference")) {
         renderer.circle.add(yellowCircle);
-      } else if (table.getModel().getValueAt(i, 8).toString().contains("interference")) {
+      } else if (table.getModel().getValueAt(i, 8).toString().contains("Interference")) {
         renderer.circle.add(redCircle);
       } else {
         renderer.circle.add(greenCircle);

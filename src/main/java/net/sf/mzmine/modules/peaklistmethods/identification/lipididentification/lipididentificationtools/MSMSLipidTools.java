@@ -242,7 +242,7 @@ public class MSMSLipidTools {
   public ArrayList<String> predictFattyAcidComposition(ArrayList<String> listOfDetectedFragments,
       PeakIdentity peakIdentity) {
     ArrayList<String> fattyAcidComposition = new ArrayList<String>();
-    // get number of total C atoms and double bonds
+    // get number of total C atoms, double bonds and number of chains
     LipidTools lipidTools = new LipidTools();
     int totalNumberOfCAtoms = lipidTools.getNumberOfCAtoms(peakIdentity.getName());
     int totalNumberOfDB = lipidTools.getNumberOfDB(peakIdentity.getName());

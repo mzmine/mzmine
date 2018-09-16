@@ -48,10 +48,10 @@ public class LipidSearchParameters extends SimpleParameterSet {
       "Lipid classes", "Selection of lipid backbones", AllLipidClasses.getList().toArray());
 
   public static final IntegerParameter minChainLength = new IntegerParameter(
-      "Minimum number of Carbon in chains", "Minimum number of Carbon in chains");
+      "Minimum number of carbon in chains", "Minimum number of carbon in chains");
 
   public static final IntegerParameter maxChainLength = new IntegerParameter(
-      "maximum number of Carbon in chains", "Maximum number of Carbon in chains");
+      "Maximum number of carbon in chains", "Maximum number of carbon in chains");
 
   public static final IntegerParameter minDoubleBonds = new IntegerParameter(
       "Minimum number of double bonds", "Minumum number of double bonds in all chains");
@@ -76,7 +76,7 @@ public class LipidSearchParameters extends SimpleParameterSet {
           "Enter m/z tolerance for exact mass database matching on MS2 level");
 
   public static final DoubleParameter noiseLevel = new DoubleParameter(
-      "Noise level for MS/MS scans", "Intensities less than this value are interpreted as noise.",
+      "Noise level for MS/MS scans", "Intensities less than this value are interpreted as noise",
       MZmineCore.getConfiguration().getIntensityFormat(), 0.0);
 
   public static final BooleanParameter useModification = new BooleanParameter(

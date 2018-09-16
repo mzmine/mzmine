@@ -1,44 +1,88 @@
 <html>
 	<head>
-		<title>Identification - Glycerophospholipid prediction</title>
+		<title>Identification of lipids - Lipid search</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
     </head>
 
 <body>
 
-<h1>Glycerophospholipid prediction</h1>
+<h1>Lipid search</h1>
 
 <h2>Description</h2>
 
 <p>
-Glycerophospholipids are compounds with a well-defined structure (see <a href="http://en.wikipedia.org/wiki/Glycerophospholipid">http://en.wikipedia.org/wiki/Glycerophospholipid</a>).
-This method calculates all possible m/z values of single-charged ions of phospholipids according to given restrictions. 
-If a peak with any of these m/z values is present in the peak list, it is identified as the predicted phospholipid peak.
-Retention time is not considered in this method.
+This module holds methods to search for lipids in peak lists. Potential lipids will be 
+annotated according to there accurate mass on MS1 level. If MS/MS data is available an 
+identification on fatty acid residue level is also possible.  
+
 </p>
 
 <h4>Method parameters</h4>
 <dl>
-<dt>Type of lipids</dt>
-<dd>Selection of glycerophospholipis to consider</dd>
+<dt>Lipid classes</dt>
+<dd>Selection of lipid classes to consider for annotation. Lipid classes are classified in
+three groups. From left to right: Lipid core class, lipid main class and lipid class. Simply
+check the classes to consider for annotation. More classes can be added as desired 
+(contact "ansgar.korf@wwu.de" or write an issue at the MZmine homepage).</dd>
 
-<dt>Minimum fatty acid length</dt>
-<dd>Minimum length of the fatty acid chain</dd>
+<dt>Minimum number of carbon in chains</dt>
+<dd>Set the minimum number of carbon in chains</dd>
 
-<dt>Maximum fatty acid length</dt>
-<dd>Maximum length of the fatty acid chain</dd>
+<dt>Maximum number of carbon in chains</dt>
+<dd>Set the maximum number of carbon in chains</dd>
+
+<dt>Minimum number of double bonds</dt>
+<dd>Set the minimum number of double bonds in chain</dd>
 
 <dt>Maximum number of double bonds</dt>
-<dd>Maximum number of double bonds in one fatty acid chain</dd>
+<dd>Set the maximum number of double bonds in chains</dd>
 
-<dt>m/z tolerance</dt>
-<dd>Maximum allowed m/z difference</dd>
+<dt>m/z tolerance MS1 level</dt>
+<dd>Enter m/z tolerance for exact mass database matching on MS1 level</dd>
 
 <dt>Ionization method</dt>
 <dd>Type of ion used to calculate the ionized mass</dd>
 
+<dt>Search for lipid class specific fragments in MS/MS spectra</dt>
+<dd>Check if you want to earch for lipid class specific fragments in MS/MS spectra. 
+To see which lipid class has a MS/MS library check out the database table.</dd>
+
+<dt>m/z tolerance MS2 level</dt>
+<dd>Enter m/z tolerance for exact mass database matching on MS2 level</dd>
+
+<dt>Noise level for MS/MS scans</dt>
+<dd>Intensities less than this value are interpreted as noise</dd>
+
+<dt>Search for lipid modification</dt>
+<dd>If checked the user can add masses to all selected lipids. Click "Add" button
+on the right and enter "+" plus any sum formula, and/or "-" plus any sum formula. Example: 
+"+O2-H". Numbers have to be entered AFTER the element. This feature allows the user
+to build any possible lipid, based on the already implemented lipids. This also allows 
+the annotation of lipid derivatization products. Entered modifications can be exported 
+and/or imported using the buttons on the right side.</dd>
+
 </dl>
+
+<p>
+<img src="Parameters_Example.png">
+</p>
+<p>
+
+<h4>Database table</h4>
+<dl>
+<dd>By clicking the button "Show database" at the bottom of the window, the user can browse through 
+a database table which holds a lot of information of the created lipid database. All lipids are displayed 
+in two Kendrick mass plots (KMD CH2 left, KMD H right). Lipids that interfere in the selcted m/z window are 
+marked yellow, isobaric lipids are marked red. The others are displayed green.</dd>
+
+</dl>
+
+<p>
+<img src="Show_Database.png">
+</p>
+<p>
+<dl>
 
 </body>
 </html>

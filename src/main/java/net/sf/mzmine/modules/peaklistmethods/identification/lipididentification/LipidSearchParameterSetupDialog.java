@@ -19,36 +19,20 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.table.DefaultTableModel;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.title.LegendTitle;
-import org.jfree.chart.title.TextTitle;
-import org.jfree.data.xy.AbstractXYDataset;
-import org.jfree.data.xy.XYDataset;
-import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidDatabaseTableDialog;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotWindow;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.FormulaUtils;
+import net.sf.mzmine.util.GUIUtils;
 
 /**
  * Parameter setup dialog for lipid search module
@@ -58,7 +42,6 @@ import net.sf.mzmine.util.FormulaUtils;
 public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
   private final JPanel buttonsPanel;
-  private final JButton showKendrickDatabasePlot;
   private final JButton showDatabaseTable;
 
   private static final long serialVersionUID = 1L;
@@ -70,27 +53,13 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
     // Create Buttons panel.
     buttonsPanel = new JPanel();
     buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.X_AXIS));
-    add(buttonsPanel, BorderLayout.NORTH);
+    add(buttonsPanel, BorderLayout.SOUTH);
 
-    // Add buttons.
-    showDatabaseTable = new JButton("Show database");
+    // Add buttons
+    showDatabaseTable = GUIUtils.addButton(buttonsPanel, "Show database", null, this);
+    this.mainPanel.addCenter(showDatabaseTable, 0, 110, 3, 1);
     showDatabaseTable
         .setToolTipText("Show a database table for the selected classes and parameters");
-    addButton(showDatabaseTable);
-    showKendrickDatabasePlot = new JButton("Show database Kendrick plot");
-    showKendrickDatabasePlot.setToolTipText("Show a Kendrick mass defect plot of the database");
-    addButton(showKendrickDatabasePlot);
-  }
-
-  /**
-   * Add a button to the buttons panel.
-   *
-   * @param button the button to add.
-   */
-  public void addButton(final JButton button) {
-    buttonsPanel.add(button);
-    buttonsPanel.add(Box.createHorizontalBox());
-    button.addActionListener(this);
   }
 
   @Override
@@ -114,33 +83,6 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
       databaseTable.setVisible(true);
     }
 
-    // create database Kendrick plot
-    if (showKendrickDatabasePlot.equals(src)) {
-      Object[] selectedObjects = LipidSearchParameters.lipidClasses.getValue();
-      // Convert Objects to LipidClasses
-      LipidClasses[] selectedLipids =
-          Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
-              .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
-      LipidDatabaseTableDialog databaseTable = new LipidDatabaseTableDialog(selectedLipids);
-      DefaultTableModel model = (DefaultTableModel) databaseTable.getDatabaseTable().getModel();
-      JFreeChart chart = create2DKendrickMassDatabasePlot(model);
-      KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart);
-      // create chart JPanel
-      EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
-      frame.add(chartPanel, BorderLayout.CENTER);
-
-      // set title properties
-      TextTitle chartTitle = chart.getTitle();
-      chartTitle.setMargin(5, 0, 0, 0);
-      LegendTitle legend = chart.getLegend();
-      legend.setVisible(false);
-      frame.setTitle("Database plot");
-      frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-      frame.setBackground(Color.white);
-      frame.setVisible(true);
-      frame.pack();
-    }
-
     if (btnOK.equals(src)) {
       closeDialog(ExitCode.OK);
     }
@@ -152,61 +94,5 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
     if ((src instanceof JCheckBox) || (src instanceof JComboBox)) {
       parametersChanged();
     }
-  }
-
-  private JFreeChart create2DKendrickMassDatabasePlot(DefaultTableModel model) {
-    // load data set
-    XYDataset dataset = new AbstractXYDataset() {
-      private static final long serialVersionUID = 1L;
-
-      @Override
-      public Number getY(int series, int item) {
-        double exactMassFormula = FormulaUtils.calculateExactMass("CH2");
-        double yValue = ((int) (Double.parseDouble(model.getValueAt(item, 7).toString())
-            * (14 / exactMassFormula) + 1))
-            - Double.parseDouble(model.getValueAt(item, 7).toString()) * (14 / exactMassFormula);
-        return yValue;
-      }
-
-      @Override
-      public Number getX(int series, int item) {
-        double xValue = Double.parseDouble(model.getValueAt(item, 7).toString());
-        return xValue;
-      }
-
-      @Override
-      public int getItemCount(int series) {
-        return model.getRowCount();
-      }
-
-      @Override
-      public Comparable<?> getSeriesKey(int item) {
-        return model.getValueAt(item, 1).toString();
-      }
-
-      @Override
-      public int getSeriesCount() {
-        return 1;
-      }
-    };
-
-    // create chart
-    JFreeChart chart = ChartFactory.createScatterPlot("Database plot", "m/z", "KMD (CH2)", dataset,
-        PlotOrientation.VERTICAL, true, true, false);
-
-    // create plot
-    XYPlot plot = (XYPlot) chart.getPlot();
-    plot.setBackgroundPaint(Color.WHITE);
-
-    // set axis
-    NumberAxis range = (NumberAxis) plot.getRangeAxis();
-    range.setRange(0, 1);
-
-    // set renderer
-    XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
-    plot.setRenderer(renderer);
-
-    renderer.setDefaultItemLabelsVisible(false);
-    return chart;
   }
 }
