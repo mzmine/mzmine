@@ -81,11 +81,11 @@ public class LipidDatabaseTableDialog extends JFrame {
   private LipidModification[] lipidModification = LipidSearchParameters.modification.getChoices();
   private MZTolerance mzTolerance = LipidSearchParameters.mzTolerance.getValue();
 
-
   public LipidDatabaseTableDialog(LipidClasses[] choices) {
     this.selectedLipids = choices;
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setBounds(100, 100, 600, 800);
+    setTitle("Lipid database");
     // setExtendedState(JFrame.MAXIMIZED_BOTH);
     contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));;
@@ -108,6 +108,7 @@ public class LipidDatabaseTableDialog extends JFrame {
     // create split pane
     splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPane, chartPanel);
     splitPane.setBorder(new LineBorder(Color.BLACK));
+    splitPane.setDividerLocation(600);
     mainPanel.add(splitPane, BorderLayout.CENTER);
 
     legendPanel = new JPanel();
@@ -157,11 +158,10 @@ public class LipidDatabaseTableDialog extends JFrame {
     databaseTable.setColumnSelectionAllowed(true);
     databaseTable.setCellSelectionEnabled(true);
     scrollPane.setViewportView(databaseTable);
+    databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     addDataToTable();
     checkInterferences(databaseTable);
     resizeColumnWidth(databaseTable);
-    databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
     // add Kendrick plot CH2
     JFreeChart chartCH2 =
         create2DKendrickMassDatabasePlot((DefaultTableModel) databaseTable.getModel(), "CH2");
@@ -308,11 +308,15 @@ public class LipidDatabaseTableDialog extends JFrame {
     // create chart
     JFreeChart chart = ChartFactory.createScatterPlot("Database plot KMD base " + base, "m/z",
         "KMD (" + base + ")", datasetCollection, PlotOrientation.VERTICAL, true, true, false);
+
+    chart.setBackgroundPaint(null);
+    chart.getLegend().setBackgroundPaint(null);
     // create plot
     XYPlot plot = (XYPlot) chart.getPlot();
     plot.setBackgroundPaint(Color.BLACK);
     plot.setRangeGridlinesVisible(false);
     plot.setDomainGridlinesVisible(false);
+
     // set axis
     NumberAxis range = (NumberAxis) plot.getRangeAxis();
     range.setRange(0, 1);

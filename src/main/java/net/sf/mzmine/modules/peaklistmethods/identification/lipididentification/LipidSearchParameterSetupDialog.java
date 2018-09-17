@@ -43,6 +43,7 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
   private final JPanel buttonsPanel;
   private final JButton showDatabaseTable;
+  private Object[] selectedObjects;
 
   private static final long serialVersionUID = 1L;
 
@@ -70,17 +71,17 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
     // Create database
     if (showDatabaseTable.equals(src)) {
-      // commit the changes to the parameter set
-
-      Object[] selectedObjects = LipidSearchParameters.lipidClasses.getValue();
-      // Convert Objects to LipidClasses
-      LipidClasses[] selectedLipids =
-          Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
-              .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
-
-      LipidDatabaseTableDialog databaseTable = new LipidDatabaseTableDialog(selectedLipids);
-
-      databaseTable.setVisible(true);
+      try {
+        // commit the changes to the parameter set
+        selectedObjects = LipidSearchParameters.lipidClasses.getValue();
+        // Convert Objects to LipidClasses
+        LipidClasses[] selectedLipids =
+            Arrays.stream(selectedObjects).filter(o -> o instanceof LipidClasses)
+                .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
+        LipidDatabaseTableDialog databaseTable = new LipidDatabaseTableDialog(selectedLipids);
+        databaseTable.setVisible(true);
+      } catch (Exception t) {
+      }
     }
 
     if (btnOK.equals(src)) {
