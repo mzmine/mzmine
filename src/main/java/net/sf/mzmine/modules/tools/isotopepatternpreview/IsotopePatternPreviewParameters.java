@@ -39,7 +39,11 @@ public class IsotopePatternPreviewParameters extends SimpleParameterSet {
 
   public static final OptionalModuleParameter optionals =
       new OptionalModuleParameter("Use custom paramters",
-          "If not checked, default parameters will be used to calculate the isotope pattern",
+          "If not checked, default parameters will be used to calculate the isotope pattern.\n"
+          + "The standard values are:\n"
+          + "  minimum Abundance = 1.0 %\n"
+          + "  minimum Intensity = 0.05 / 1\n"
+          + "  merge width = 0.0005 Da",
           new IsotopePatternPreviewCustomParameters());
 
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
