@@ -24,12 +24,15 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.text.NumberFormat;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
@@ -94,8 +97,8 @@ public class LipidDatabaseTableDialog extends JFrame {
     mainPanel.setLayout(new BorderLayout());
     mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     setContentPane(mainPanel);
+
     // add mainPanel to content pane
-    // contentPane.add(mainPanel, BorderLayout.CENTER);
     mainPanel.setLayout(new BorderLayout());
 
     // create scrollPane
@@ -159,100 +162,182 @@ public class LipidDatabaseTableDialog extends JFrame {
     databaseTable.setCellSelectionEnabled(true);
     scrollPane.setViewportView(databaseTable);
     databaseTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-    addDataToTable();
-    checkInterferences(databaseTable);
-    resizeColumnWidth(databaseTable);
-    // add Kendrick plot CH2
-    JFreeChart chartCH2 =
-        create2DKendrickMassDatabasePlot((DefaultTableModel) databaseTable.getModel(), "CH2");
-    // add Kendrick plot H
-    JFreeChart chartH =
-        create2DKendrickMassDatabasePlot((DefaultTableModel) databaseTable.getModel(), "H");
 
-    chartPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
-    chartPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-    EChartPanel chartPanelCH2 = new EChartPanel(chartCH2, true, true, true, true, false);
-    EChartPanel chartPanelH = new EChartPanel(chartH, true, true, true, true, false);
-    chartPanel.add(chartPanelCH2, BorderLayout.WEST);
-    chartPanel.add(chartPanelH, BorderLayout.EAST);
+    new SwingWorker<DefaultTableModel, String>() {
+      InterferenceTableCellRenderer renderer;
+
+      @Override
+      protected DefaultTableModel doInBackground() throws Exception {
+        DefaultTableModel model = addDataToTable();
+        if (model != null)
+          checkInterferences(model);
+        return model;
+      }
+
+      @Override
+      protected void process(List<String> chunks) {}
+
+      @Override
+      protected void done() {
+        try {
+          DefaultTableModel model = get();
+          if (model != null) {
+            databaseTable.setModel(model);
+            databaseTable.getColumnModel().getColumn(9).setCellRenderer(renderer);
+
+            resizeColumnWidth(databaseTable);
+            // add Kendrick plot CH2
+            JFreeChart chartCH2 = create2DKendrickMassDatabasePlot(
+                (DefaultTableModel) databaseTable.getModel(), "CH2");
+            // add Kendrick plot H
+            JFreeChart chartH =
+                create2DKendrickMassDatabasePlot((DefaultTableModel) databaseTable.getModel(), "H");
+
+            chartPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
+            chartPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+            EChartPanel chartPanelCH2 = new EChartPanel(chartCH2, true, true, true, true, false);
+            EChartPanel chartPanelH = new EChartPanel(chartH, true, true, true, true, false);
+            chartPanel.add(chartPanelCH2, BorderLayout.WEST);
+            chartPanel.add(chartPanelH, BorderLayout.EAST);
+
+            revalidate();
+            pack();
+          }
+        } catch (InterruptedException | ExecutionException e) {
+          e.printStackTrace();
+        }
+      }
+
+      /**
+       * This method writes all lipid information to the table
+       */
+      private DefaultTableModel addDataToTable() {
+        DefaultTableModel model = (DefaultTableModel) databaseTable.getModel();
+        NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
+        int id = 1;
+
+        for (int i = 0; i < selectedLipids.length; i++) {
+          int numberOfAcylChains = selectedLipids[i].getNumberOfAcylChains();
+          int numberOfAlkylChains = selectedLipids[i].getNumberofAlkyChains();
+          for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
+            for (int chainDoubleBonds =
+                minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
+              if (isCancelled())
+                return null;
+
+              // If we have non-zero fatty acid, which is shorter
+              // than minimal length, skip this lipid
+              if (((chainLength > 0) && (chainLength < minChainLength))) {
+                continue;
+              }
+
+              // If we have more double bonds than carbons, it
+              // doesn't make sense, so let's skip such lipids
+              if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
+                continue;
+              }
+              // Prepare a lipid instance
+              LipidIdentity lipidChain = new LipidIdentity(selectedLipids[i], chainLength,
+                  chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
+
+              model.addRow(new Object[] {id, // id
+                  selectedLipids[i].getCoreClass().getName(), // core class
+                  selectedLipids[i].getMainClass().getName(), // main class
+                  selectedLipids[i].getName(), // lipid class
+                  lipidChain.getFormula(), // sum formula
+                  selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")", // abbr
+                  ionizationType, // ionization type
+                  numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass()), // exact
+                                                                                             // mass
+                  "", // info
+                  "", // status
+                  String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
+                                                                                             // fragments
+                                                                                             // postive
+                  String.join(", ", selectedLipids[i].getMsmsFragmentsNegativeIonization())}); // msms
+                                                                                               // fragments
+                                                                                               // negative
+              id++;
+              if (lipidModification.length > 0) {
+                for (int j = 0; j < lipidModification.length; j++) {
+                  model.addRow(new Object[] {id, // id
+                      selectedLipids[i].getCoreClass().getName(), // core class
+                      selectedLipids[i].getMainClass().getName(), // main class
+                      selectedLipids[i].getName() + " " + lipidModification[j].toString(), // lipid
+                                                                                           // class
+                      lipidChain.getFormula() + lipidModification[j].getLipidModificatio(), // sum
+                                                                                            // formula
+                      selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds
+                          + ")"// abbr
+                          + lipidModification[j].getLipidModificatio(),
+                      ionizationType, // ionization type
+                      numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
+                                                                                               // mass
+                          + lipidModification[j].getModificationMass()),
+                      "", // info
+                      "", // status
+                      "", // msms fragments postive
+                      ""}); // msms fragments negative
+                  id++;
+                }
+              }
+            }
+          }
+        }
+        return model;
+      }
+
+
+      /**
+       * This method checks for m/z interferences in the generated database table using the user set
+       * m/z window
+       */
+      private void checkInterferences(DefaultTableModel table) {
+
+        ColorCircle greenCircle = new ColorCircle(Color.GREEN);
+        ColorCircle yellowCircle = new ColorCircle(Color.YELLOW);
+        ColorCircle redCircle = new ColorCircle(Color.RED);
+
+        // get table cell renderer for cells with status
+        renderer = new InterferenceTableCellRenderer();
+
+        for (int i = 0; i < table.getRowCount(); i++) {
+          for (int j = 0; j < table.getRowCount(); j++) {
+            if (isCancelled())
+              return;
+
+            double valueOne = Double.parseDouble(table.getValueAt(j, 7).toString());
+            double valueTwo = Double.parseDouble(table.getValueAt(i, 7).toString());
+            if (valueOne == valueTwo && j != i) {
+              table.setValueAt("Interference with: " + table.getValueAt(i, 5).toString(), j, 8);
+            } else if (mzTolerance.checkWithinTolerance(
+                Double.parseDouble(table.getValueAt(j, 7).toString()),
+                Double.parseDouble(table.getValueAt(i, 7).toString())) && j != i) {
+              table.setValueAt("Possible interference with: " + table.getValueAt(i, 5).toString(),
+                  j, 8);
+            }
+          }
+        }
+
+        for (int i = 0; i < table.getRowCount(); i++) {
+          if (isCancelled())
+            return;
+
+          if (table.getValueAt(i, 8).toString().contains("Possible interference")) {
+            renderer.circle.add(yellowCircle);
+          } else if (table.getValueAt(i, 8).toString().contains("Interference")) {
+            renderer.circle.add(redCircle);
+          } else {
+            renderer.circle.add(greenCircle);
+          }
+        }
+      }
+    }.execute();
+
     validate();
     pack();
   }
 
-  /**
-   * This method writes all lipid information to the table
-   */
-  private void addDataToTable() {
-    DefaultTableModel model = (DefaultTableModel) databaseTable.getModel();
-    NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
-    int id = 1;
-
-    for (int i = 0; i < selectedLipids.length; i++) {
-      int numberOfAcylChains = selectedLipids[i].getNumberOfAcylChains();
-      int numberOfAlkylChains = selectedLipids[i].getNumberofAlkyChains();
-      for (int chainLength = minChainLength; chainLength <= maxChainLength; chainLength++) {
-        for (int chainDoubleBonds =
-            minDoubleBonds; chainDoubleBonds <= maxDoubleBonds; chainDoubleBonds++) {
-
-          // If we have non-zero fatty acid, which is shorter
-          // than minimal length, skip this lipid
-          if (((chainLength > 0) && (chainLength < minChainLength))) {
-            continue;
-          }
-
-          // If we have more double bonds than carbons, it
-          // doesn't make sense, so let's skip such lipids
-          if (((chainDoubleBonds > 0) && (chainDoubleBonds > chainLength - 1))) {
-            continue;
-          }
-          // Prepare a lipid instance
-          LipidIdentity lipidChain = new LipidIdentity(selectedLipids[i], chainLength,
-              chainDoubleBonds, numberOfAcylChains, numberOfAlkylChains);
-
-          model.addRow(new Object[] {id, // id
-              selectedLipids[i].getCoreClass().getName(), // core class
-              selectedLipids[i].getMainClass().getName(), // main class
-              selectedLipids[i].getName(), // lipid class
-              lipidChain.getFormula(), // sum formula
-              selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")", // abbr
-              ionizationType, // ionization type
-              numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass()), // exact
-                                                                                         // mass
-              "", // info
-              "", // status
-              String.join(", ", selectedLipids[i].getMsmsFragmentsPositiveIonization()), // msms
-                                                                                         // fragments
-                                                                                         // postive
-              String.join(", ", selectedLipids[i].getMsmsFragmentsNegativeIonization())}); // msms
-                                                                                           // fragments
-                                                                                           // negative
-          id++;
-          if (lipidModification.length > 0) {
-            for (int j = 0; j < lipidModification.length; j++) {
-              model.addRow(new Object[] {id, // id
-                  selectedLipids[i].getCoreClass().getName(), // core class
-                  selectedLipids[i].getMainClass().getName(), // main class
-                  selectedLipids[i].getName() + " " + lipidModification[j].toString(), // lipid
-                                                                                       // class
-                  lipidChain.getFormula() + lipidModification[j].getLipidModificatio(), // sum
-                                                                                        // formula
-                  selectedLipids[i].getAbbr() + " (" + chainLength + ":" + chainDoubleBonds + ")"// abbr
-                      + lipidModification[j].getLipidModificatio(),
-                  ionizationType, // ionization type
-                  numberFormat.format(lipidChain.getMass() + ionizationType.getAddedMass() // exact
-                                                                                           // mass
-                      + lipidModification[j].getModificationMass()),
-                  "", // info
-                  "", // status
-                  "", // msms fragments postive
-                  ""}); // msms fragments negative
-              id++;
-            }
-          }
-        }
-      }
-    }
-  }
 
   /**
    * This method creates Kendrick database plots to visualize the database and possible
@@ -331,47 +416,6 @@ public class LipidDatabaseTableDialog extends JFrame {
     plot.setRenderer(renderer);
 
     return chart;
-  }
-
-  /**
-   * This method checks for m/z interferences in the generated database table using the user set m/z
-   * window
-   */
-  private void checkInterferences(JTable table) {
-
-    ColorCircle greenCircle = new ColorCircle(Color.GREEN);
-    ColorCircle yellowCircle = new ColorCircle(Color.YELLOW);
-    ColorCircle redCircle = new ColorCircle(Color.RED);
-
-    // get table cell renderer for cells with status
-    InterferenceTableCellRenderer renderer = new InterferenceTableCellRenderer();
-
-    for (int i = 0; i < table.getRowCount(); i++) {
-      for (int j = 0; j < table.getRowCount(); j++) {
-        double valueOne = Double.parseDouble(table.getModel().getValueAt(j, 7).toString());
-        double valueTwo = Double.parseDouble(table.getModel().getValueAt(i, 7).toString());
-        if (valueOne == valueTwo && j != i) {
-          table.getModel().setValueAt(
-              "Interference with: " + table.getModel().getValueAt(i, 5).toString(), j, 8);
-        } else if (mzTolerance.checkWithinTolerance(
-            Double.parseDouble(table.getModel().getValueAt(j, 7).toString()),
-            Double.parseDouble(table.getModel().getValueAt(i, 7).toString())) && j != i) {
-          table.getModel().setValueAt(
-              "Possible interference with: " + table.getModel().getValueAt(i, 5).toString(), j, 8);
-        }
-      }
-    }
-
-    for (int i = 0; i < table.getRowCount(); i++) {
-      if (table.getModel().getValueAt(i, 8).toString().contains("Possible interference")) {
-        renderer.circle.add(yellowCircle);
-      } else if (table.getModel().getValueAt(i, 8).toString().contains("Interference")) {
-        renderer.circle.add(redCircle);
-      } else {
-        renderer.circle.add(greenCircle);
-      }
-    }
-    table.getColumnModel().getColumn(9).setCellRenderer(renderer);
   }
 
   /**
