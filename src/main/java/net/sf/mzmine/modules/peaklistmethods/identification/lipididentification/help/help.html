@@ -45,7 +45,7 @@ check the classes to consider for annotation. More classes can be added as desir
 <dd>Type of ion used to calculate the ionized mass</dd>
 
 <dt>Search for lipid class specific fragments in MS/MS spectra</dt>
-<dd>Check if you want to earch for lipid class specific fragments in MS/MS spectra. 
+<dd>Check if you want to search for lipid class specific fragments in MS/MS spectra. 
 To see which lipid class has a MS/MS library check out the database table.</dd>
 
 <dt>m/z tolerance MS2 level</dt>
@@ -83,6 +83,22 @@ marked yellow, isobaric lipids are marked red. The others are displayed green.</
 </p>
 <p>
 <dl>
+
+<h4>Results</h4>
+<dl>
+<dd> Peaks will be annotated as potential lipids by setting its peak identity. Always check for multiple assignments 
+and compare the status with the database table and Kendrick plots! The comment holds information on the utilized ionization 
+method, mass accuracy and MS/MS annotation. An MS/MS annotation will be added if MS/MS data was acquired and fragmentation information is 
+listed in the database. More MS/MS data will be added in the future. If you have data on lipid class specific fragmentation 
+you can contact "ansgar.korf@wwu.de" or write an issue at the MZmine homepage. The information can then possibly be added.
+</dd>
+</dl>
+
+<p>
+<img src="Result_Example.png">
+</p>
+<p>
+
 
 </body>
 </html>
