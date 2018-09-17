@@ -24,6 +24,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 
 /**
@@ -31,22 +32,26 @@ import net.sf.mzmine.parameters.parametertypes.PercentParameter;
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class IsotopePatternPreviewCustomParameters  extends SimpleParameterSet{
+public class IsotopePatternPreviewCustomParameters extends SimpleParameterSet {
 
-  public static final PercentParameter minAbundance = new PercentParameter("Minimum abundance",
-      "The minimum abundance (%) of Isotopes", 0.01);
-  
+  public static final PercentParameter minAbundance =
+      new PercentParameter("Minimum abundance", "The minimum abundance (%) of Isotopes", 0.01);
+
   public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width(Da)",
       "This will be used to merge isotope compositions in the calculated isotope pattern if they overlap.",
       MZmineCore.getConfiguration().getMZFormat(), 0.0005, 0.0d, 10.0d);
-  
+
   public static final DoubleParameter minPatternIntensity =
-      new DoubleParameter("Min. pattern intensity",
+      new DoubleParameter("Min. relative pattern intensity",
           "The minimum normalized intensity of a peak in the final calculated isotope pattern.\n"
               + "Min = 0.0, Max = 0.99...",
           new DecimalFormat("0.####"), 0.01, 0.0d, 0.99999);
-  
-  public IsotopePatternPreviewCustomParameters(){
-    super( new Parameter[] {minAbundance, mergeWidth, minPatternIntensity});
+
+  public static final IntegerParameter charge = new IntegerParameter("Charge",
+      "Enter a charge to apply to the molecule. (e.g. [M]+ = +1 / [M]- = -1\n"
+      + "This can also be set to 0 for the uncharged molecule.", 1, true);
+
+  public IsotopePatternPreviewCustomParameters() {
+    super(new Parameter[] {minAbundance, mergeWidth, minPatternIntensity, charge});
   }
 }

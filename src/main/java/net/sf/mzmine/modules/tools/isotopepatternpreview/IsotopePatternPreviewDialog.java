@@ -58,6 +58,7 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithEmptyPreview;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleComponent;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentComponent;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
@@ -76,6 +77,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private NumberFormat relFormat = new DecimalFormat("0.0000");
 
   private double minAbundance, minIntensity, mergeWidth;
+  private int charge;
+  private PolarityType pol;
   private String molecule;
 
   private EChartPanel pnlChart;
@@ -94,11 +97,13 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private PercentParameter pMinAbundance;
   private StringParameter pMolecule;
   private OptionalModuleParameter pCustom;
+  private IntegerParameter pCharge;
 
   private ExtendedIsotopePatternDataSet dataset;
   private SpectraToolTipGenerator ttGen;
 
-  String[] columns = {"Exact Mass / Da", "Intensity", "Isotope composition"};
+  String[][] columns = {{"Exact Mass / Da", "Intensity", "Isotope composition"},
+      {"m/z", "Intensity", "Isotope composition"}};
 
   Color aboveMin, belowMin;
 
@@ -117,6 +122,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     pMinAbundance =
         customParameters.getParameter(IsotopePatternPreviewCustomParameters.minAbundance);
     pMergeWidth = customParameters.getParameter(IsotopePatternPreviewCustomParameters.mergeWidth);
+    pCharge = customParameters.getParameter(IsotopePatternPreviewCustomParameters.charge);
 
     aboveMin = new Color(30, 180, 30);
     belowMin = new Color(200, 30, 30);
@@ -195,7 +201,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private void updatePreview() {
     if (!updateParameters()) {
       logger.warning(
-          "updatePreview() failed. Could not update parameters or parameters are invalid. Please check the parameters.");
+          "updatePreview() failed. Could not update parameters or parameters are invalid."
+          + "\nPlease check the parameters.");
       return;
     }
 
@@ -213,16 +220,26 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       data[i][1] = relFormat.format(dp[i].getIntensity());
       data[i][2] = pattern.getDetailedPeakDescription(i);
     }
-    table = new JTable(data, columns);
+
+    if (pol == PolarityType.NEUTRAL)
+      table = new JTable(data, columns[0]); // column 1 = "Exact mass / Da"
+    else
+      table = new JTable(data, columns[1]); // column 2 = "m/z"
+
     pnText.setViewportView(table);
-    table.setDefaultEditor(Object.class, null);
+    table.setDefaultEditor(Object.class, null); // make editing impossible
     updateChart(pattern);
   }
 
   private void updateChart(ExtendedIsotopePattern pattern) {
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
-    chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
-        dataset);
+    if (pol == PolarityType.NEUTRAL)
+      chart = ChartFactory.createXYBarChart("Isotope pattern preview", "Exact mass / Da", false,
+          "Abundance", dataset);
+    else
+      chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
+          dataset);
+
     theme.apply(chart);
     plot = chart.getXYPlot();
     plot.addRangeMarker(new ValueMarker(minIntensity, belowMin, new BasicStroke(1.0f)));
@@ -245,11 +262,23 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       minAbundance = pMinAbundance.getValue();
       mergeWidth = pMergeWidth.getValue();
       minIntensity = pMinIntensity.getValue();
+      charge = pCharge.getValue();
     } else {
       minAbundance = 0.01;
       mergeWidth = 0.0005;
       minIntensity = 0.05;
+      charge = 1;
     }
+
+    if (charge > 0) {
+      pol = PolarityType.POSITIVE;
+    } else if (charge < 0) {
+      pol = PolarityType.NEGATIVE;
+      charge *= -1;
+    } else {
+      pol = PolarityType.NEUTRAL;
+    }
+
     return true;
   }
 
@@ -289,13 +318,15 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
     logger.info("Calculating isotope pattern: " + molecule);
 
-    // *0.2 so the user can see the peaks below the threshold
     try {
       pattern.setUpFromFormula(molecule, minAbundance, mergeWidth, minIntensity);
     } catch (Exception e) {
       logger.warning("The entered Sum formula is invalid. Canceling.");
       return null;
     }
+    if (pol != PolarityType.NEUTRAL)
+      pattern.applyCharge(charge, pol);
+
     return pattern;
   }
 }

@@ -38,7 +38,7 @@ public class IsotopePatternPreviewParameters extends SimpleParameterSet {
       "The element/molecule to calculate the isotope pattern of. Enter a sum formula.");
 
   public static final OptionalModuleParameter optionals =
-      new OptionalModuleParameter("Use custom paramters",
+      new OptionalModuleParameter("Use custom parameters",
           "If not checked, default parameters will be used to calculate the isotope pattern.\n"
           + "The standard values are:\n"
           + "  minimum Abundance = 1.0 %\n"
