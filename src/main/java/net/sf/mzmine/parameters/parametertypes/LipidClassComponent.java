@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,10 +22,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.TreeSet;
 import javax.swing.BorderFactory;
@@ -33,23 +36,26 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidCoreClasses;
+import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidMainClasses;
 
 /**
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class MultiChoiceComponent extends JPanel implements ActionListener {
+public class LipidClassComponent extends JPanel implements ActionListener {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
-  private Object[] choices;
-  private JCheckBox[] checkBoxes;
+  private LipidClasses[] choices;
+  private ArrayList<JCheckBox> checkBoxes;
   private final JScrollPane choicesPanel;
 
   private final JButton selectAllButton;
@@ -61,24 +67,25 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
    *
    * @param theChoices the choices available to the user.
    */
-  public MultiChoiceComponent(final Object[] theChoices) {
+  public LipidClassComponent(final Object[] theChoices) {
 
     super(new BorderLayout());
 
     setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 0));
 
     // Create choices panel.
-    choices = theChoices.clone();
-    choicesPanel = new JScrollPane(new CheckBoxPanel(choices),
+    choices = Arrays.stream(theChoices).filter(o -> o instanceof LipidClasses)
+        .map(o -> (LipidClasses) o).toArray(LipidClasses[]::new);
+    choicesPanel = new JScrollPane(new CheckBoxPanel(theChoices),
         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
         ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     choicesPanel.getViewport().setBackground(Color.WHITE);
-    add(choicesPanel, BorderLayout.CENTER);
+    add(choicesPanel, BorderLayout.WEST);
 
-    // Buttons panel.
+    // Create Buttons panel.
     buttonsPanel = new JPanel();
     buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-    add(buttonsPanel, BorderLayout.EAST);
+    add(buttonsPanel, BorderLayout.CENTER);
 
     // Add buttons.
     selectAllButton = new JButton("All");
@@ -110,10 +117,10 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
    */
   public Object[] getValue() {
 
-    final int length = checkBoxes.length;
+    final int length = checkBoxes.size();
     final Collection<Object> selectedObjects = new ArrayList<Object>(length);
     for (int i = 0; i < length; i++) {
-      if (checkBoxes[i].isSelected()) {
+      if (checkBoxes.get(i).isSelected()) {
 
         selectedObjects.add(choices[i]);
       }
@@ -137,12 +144,12 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
     }
 
     // Set check-boxes according to selections.
-    for (int i = 0; i < checkBoxes.length; i++) {
+    for (int i = 0; i < checkBoxes.size(); i++) {
 
       // We compare the string representations, not the actual objects,
       // because when a project is saved,
       // only the string representation is saved to the configuration file
-      checkBoxes[i].setSelected(selections.contains(choices[i].toString()));
+      checkBoxes.get(i).setSelected(selections.contains(choices[i].toString()));
     }
   }
 
@@ -167,8 +174,7 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
     final Object[] value = getValue();
 
     // Update choices.
-    choices = newChoices.clone();
-    choicesPanel.setViewportView(new CheckBoxPanel(choices));
+    choicesPanel.setViewportView(new CheckBoxPanel(newChoices.clone()));
     validate();
 
     // Restore user's selection.
@@ -187,8 +193,8 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
     button.addActionListener(this);
   }
 
-  // Font for check boxes.
-  private static final Font CHECKBOX_FONT = new Font("SansSerif", Font.PLAIN, 11);
+  // Fonts for check boxes and labels.
+  private static final Font CHECKBOX_FONT = new Font("SansSerif", Font.PLAIN, 12);
 
   /**
    * A panel holding a check box for each choice.
@@ -201,56 +207,110 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
     private static final long serialVersionUID = 1L;
 
     // Number of visible rows to show in scrollable containers.
-    private static final int VISIBLE_ROWS = 7;
+    private static final int VISIBLE_ROWS = 10;
 
     // Width.
-    private static final int MIN_PREFERRED_WIDTH = 150;
+    private static final int MIN_PREFERRED_WIDTH = 100;
     private static final int HORIZONTAL_PADDING = 50;
 
     /**
-     * Create the pane with a checkbox for each choice.
+     * Create the pane with a checkbox for each choice. Create a label for every core and main
+     * class.
      *
      * @param theChoices the available choices.
      */
     private CheckBoxPanel(final Object[] theChoices) {
 
-      setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+      int choiceCount = theChoices.length;
+      setLayout(new GridBagLayout());
+      GridBagConstraints constraintsClasses = new GridBagConstraints();
+      GridBagConstraints constraintsMainClasses = new GridBagConstraints();
+      GridBagConstraints constraintsCoreClasses = new GridBagConstraints();
       setOpaque(false);
 
-      final int choiceCount = theChoices.length;
-      checkBoxes = new JCheckBox[choiceCount];
+      checkBoxes = new ArrayList<JCheckBox>();
 
       for (int i = 0; i < choiceCount; i++) {
+        if (theChoices[i] instanceof LipidClasses) {
+          // Create a check box (inherit tooltip text).
+          final JCheckBox checkBox = new JCheckBox(theChoices[i].toString()) {
 
-        // Create a check box (inherit tooltip text.
-        final JCheckBox checkBox = new JCheckBox(theChoices[i].toString()) {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
 
-          /**
-           * 
-           */
-          private static final long serialVersionUID = 1L;
+            @Override
+            public String getToolTipText() {
 
-          @Override
-          public String getToolTipText() {
+              return LipidClassComponent.this.getToolTipText();
+            }
+          };
+          checkBox.setFont(CHECKBOX_FONT);
+          checkBox.setOpaque(false);
+          constraintsClasses.fill = GridBagConstraints.HORIZONTAL;
+          constraintsClasses.gridx = 3;
+          constraintsClasses.gridy = i;
+          add(checkBox, constraintsClasses);
+          ToolTipManager.sharedInstance().registerComponent(checkBox);
+          checkBoxes.add(checkBox);
+        }
 
-            return MultiChoiceComponent.this.getToolTipText();
-          }
-        };
-        checkBox.setFont(CHECKBOX_FONT);
-        checkBox.setOpaque(false);
-        add(checkBox);
-        ToolTipManager.sharedInstance().registerComponent(checkBox);
-        checkBoxes[i] = checkBox;
+        if (theChoices[i] instanceof LipidCoreClasses) {
+          // Create a check box (inherit tooltip text).
+          final JLabel label = new JLabel(theChoices[i].toString()) {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getToolTipText() {
+
+              return LipidClassComponent.this.getToolTipText();
+            }
+          };
+          label.setFont(CHECKBOX_FONT);
+          label.setOpaque(false);
+          constraintsCoreClasses.fill = GridBagConstraints.HORIZONTAL;
+          constraintsCoreClasses.gridx = 1;
+          constraintsCoreClasses.gridy = i;
+          add(label, constraintsCoreClasses);
+        }
+        if (theChoices[i] instanceof LipidMainClasses) {
+          // Create a check box (inherit tooltip text).
+          final JLabel label = new JLabel(theChoices[i].toString()) {
+
+            /**
+             * 
+             */
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getToolTipText() {
+
+              return LipidClassComponent.this.getToolTipText();
+            }
+          };
+          label.setFont(CHECKBOX_FONT);
+          label.setOpaque(false);
+          constraintsMainClasses.fill = GridBagConstraints.HORIZONTAL;
+          constraintsMainClasses.gridx = 2;
+          constraintsMainClasses.gridy = i;
+          add(label, constraintsMainClasses);
+        }
       }
     }
+
 
     @Override
     public Dimension getPreferredScrollableViewportSize() {
 
       final Dimension preferredSize = getPreferredSize();
-      final int length = checkBoxes.length;
+      final int length = checkBoxes.size();
       return new Dimension(Math.max(MIN_PREFERRED_WIDTH, HORIZONTAL_PADDING + preferredSize.width),
-          length > 0 ? checkBoxes[0].getHeight() * Math.min(VISIBLE_ROWS, length)
+          length > 0 ? checkBoxes.get(0).getHeight() * Math.min(VISIBLE_ROWS, length)
               : preferredSize.height);
     }
 
@@ -258,8 +318,8 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
     public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation,
         final int direction) {
 
-      return orientation == SwingConstants.VERTICAL && checkBoxes.length > 0
-          ? checkBoxes[0].getHeight()
+      return orientation == SwingConstants.VERTICAL && checkBoxes.size() > 0
+          ? checkBoxes.get(0).getHeight()
           : 1;
     }
 

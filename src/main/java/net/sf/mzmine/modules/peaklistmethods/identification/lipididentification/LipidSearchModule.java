@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -16,12 +16,10 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification;
 
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -30,11 +28,16 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class GPLipidSearchModule implements MZmineProcessingModule {
+/**
+ * Module to search and annotate peaks as potential lipids
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
+public class LipidSearchModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Glycerophospholipid prediction";
+  private static final String MODULE_NAME = "Lipid search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches for peaks whose m/z value matches a predicted mass of glycerophospholipids.";
+      "This method searches and annotates peaks whose m/z value matches a predicted mass of selected lipids.";
 
   @Override
   public @Nonnull String getName() {
@@ -51,11 +54,11 @@ public class GPLipidSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(GPLipidSearchParameters.peakLists).getValue()
-        .getMatchingPeakLists();
+    PeakList peakLists[] =
+        parameters.getParameter(LipidSearchParameters.peakLists).getValue().getMatchingPeakLists();
 
     for (PeakList peakList : peakLists) {
-      Task newTask = new GPLipidSearchTask(parameters, peakList);
+      Task newTask = new LipidSearchTask(parameters, peakList);
       tasks.add(newTask);
     }
 
@@ -69,7 +72,7 @@ public class GPLipidSearchModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return GPLipidSearchParameters.class;
+    return LipidSearchParameters.class;
   }
 
 }
