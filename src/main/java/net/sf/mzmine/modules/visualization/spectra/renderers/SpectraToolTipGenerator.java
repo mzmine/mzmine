@@ -36,7 +36,7 @@ import org.jfree.data.xy.XYDataset;
 /**
  * Tooltip generator for raw data points
  */
-class SpectraToolTipGenerator implements XYToolTipGenerator {
+public class SpectraToolTipGenerator implements XYToolTipGenerator {
 
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
