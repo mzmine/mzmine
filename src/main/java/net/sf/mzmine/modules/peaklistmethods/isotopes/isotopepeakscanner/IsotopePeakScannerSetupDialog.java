@@ -22,6 +22,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
@@ -121,7 +122,11 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
   protected void addDialogComponents() {
     super.addDialogComponents();
 
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
     pnlChart = new EChartPanel(chart);
+    pnlChart.setPreferredSize(
+        new Dimension((int) (screenSize.getWidth() / 2), (int) (screenSize.getHeight() / 3)));
     pnlPreview.add(pnlChart, BorderLayout.CENTER);
 
 
