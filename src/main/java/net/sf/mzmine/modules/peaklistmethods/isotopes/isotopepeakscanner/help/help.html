@@ -35,6 +35,10 @@ Furthermore, the isotope features will be registered as an isotope pattern in MZ
 
   <p>Element pattern - Element (combination) whose isotope pattern to be searched for. Please enter the two letter Symbol of the elements. (e.g. \"Gd\", \"Cl2Br\")</p>
   
+  <p>Auto carbon - If activated, Isotope peak scanner will calculate isotope patterns with variable numbers of carbon specified below.
+          The pattern with the best fitting number of carbon atoms will be chosen for every detected pattern.
+           This will greatly increase computation time but help with unknown-compound-identification. Please note that 13C isotope peaks might overlap with hetero atom isotope peaks depending on the resolution of your MS. This influences intensity ratios and will yield wrong results, since this prediction is based on intensity ratios of isotope peaks. Also note that this is by no means exact, but will give you a good hint.</p> 
+  
   <p>Charge - Amount (e.g.: [M]+=+1 / [M]-=-1). This is important for multiply charged molecules because the m/z offset between isotope peaks will halve for molecules with a charge of two.</p>
   
   <p>Minimum abundance - The minimum abundance (%) of isotopes. Small values might increase accuracy but will decrease sensitivity if less abundant isotope combinations are not detected. Please note that the calculated isotope pattern will also be filtered via "Min. pattern intensity" parameter removing isotope combinations below a given abundance/intensity.</p>
@@ -42,12 +46,14 @@ Furthermore, the isotope features will be registered as an isotope pattern in MZ
   <p>Min. pattern intensity - The minimum normalized intensity of a peak in the final calculated isotope pattern. Depends on the sensitivity of your MS. This differs from minimum abundance. Min = 0.0, Max = 0.99...</p> 
 
   <p>Merge width(m/z) - This will be used to merge peaks in the calculated isotope pattern if they overlap in the spectrum. Specify in m/z, this depends on the resolution of your mass spectrometer.</p>
+  
+  <p>Show pattern preview - If selected this will add a preview chart of the calculated isotope pattern with the current settings. </p>
 
   <p>Minimum height - Minimum peak height to be considered as an isotope peak. This is crucial if you use the "Accurate average" parameter. (see below)</p>
 
-  <p>Check intensity - Compare intensity of peaks to the calculated abundance of the isotope pattern. It's recommended to check this parameter for more accurate results. However, when processing fragment data and it's unknown how much of an isotope pattern remains charged it might be reasonable to uncheck this. (e.g.: Fragmenting a Cl8-isotope-pattern-molecule -> If "Element pattern" = Cl4 this module will recognize everything with Cl4 or more Cl. However, this will lead to a messy result peak list)</p>
+  <p>Check intensity ratios - Compare intensity of peaks to the calculated abundance of the isotope pattern. It's recommended to check this parameter for more accurate results. However, when processing fragment data and it's unknown how much of an isotope pattern remains charged it might be reasonable to uncheck this. (e.g.: Fragmenting a Cl8-isotope-pattern-molecule -> If "Element pattern" = Cl4 this module will recognize everything with Cl4 or more Cl. However, this will lead to a messy result peak list)</p>
 
-  <p>Minimun rating - Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0</p>
+  <p>Minimum rating - Minimum rating to be considered as an isotope peak. min = 0.0, max = 1.0</p>
 
   <p>Rating type - Method to calculate the rating with. Highest Intensity is the standard method and faster. Average is slower but could be more accurate for more intense peaks. Select a masslist.</p>
 
@@ -87,6 +93,10 @@ This figure shows the results of the sum formula prediction for the compound Pig
 
 <p>Error: I'm using "Calculate accurate average" but the average rating is always -1.0!</p>
 <p>Solution: All isotope features have been detected in the peak list. But they are not in the same mass lists at the same time which makes them incomparable since isotope features should be detected simultaneously, or they might me less intense than the specified "Minimum height".</p>
+
+<p>Error: I'm not getting any results, although I'm sure a specific element is in the scan!</p>
+<p>Solution 1: Are you sure every isotope has been detected? How sensitive is you MS? Try to increase values for minimum abundance or minimum pattern intensity. You might need low minimum abundance but high minimum intensity, because a peak of a specific isotope composition might not been detected due to low relative intensity in the pattern. Check our preview function!</p>
+<p>Solution 2: Another solution might be changing the merge width. Check how good the resolution of your MS data is and adjust the merge width to that. If (several) isotope compositions overlap, the intensities have to be merged. You can see a preview in the preview window!</p>
 
 <p>Error: I'm getting a runtime exception!</p>
 <p>Solution: Please report the error and your parameters so we are able to recreate and fix your problem. E-Mail: s_heuc03@uni-muenster.de</p>  
