@@ -102,7 +102,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private ExtendedIsotopePatternDataSet dataset;
   private SpectraToolTipGenerator ttGen;
 
-  String[][] columns = {{"Exact Mass / Da", "Intensity", "Isotope composition"},
+  String[][] columns = {{"Exact mass / Da", "Intensity", "Isotope composition"},
       {"m/z", "Intensity", "Isotope composition"}};
 
   Color aboveMin, belowMin;
