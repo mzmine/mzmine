@@ -25,6 +25,8 @@ import java.util.ArrayList;
  * matching peaks for every expected isotope peak. The row index (addRow), row ID (addID) are also
  * stored so you can either manage via id or row index.
  *
+ * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
  */
 public class ResultBuffer {
   private int found;
