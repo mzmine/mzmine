@@ -126,7 +126,7 @@ public class MZmineModulesList {
       BatchModeModule.class,
 
       // Raw data methods
-      RawDataImportModule.class, RawDataExportModule.class, MassDetectionModule.class,
+      RawDataImportModule.class, RawDataExportModule.class, ExtractScansModule.class, MassDetectionModule.class,
       ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
       ADAPChromatogramBuilderModule.class,
       // Not ready for prime time: ADAP3DModule.class,
@@ -147,10 +147,10 @@ public class MZmineModulesList {
       GNPSExportModule.class, SiriusExportModule.class,
 
       // Gap filling
-      PeakFinderModule.class, SameRangeGapFillerModule.class,
+      PeakFinderModule.class,MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class,
 
       // Isotopes
-      IsotopeGrouperModule.class, IsotopePatternCalculator.class,
+      IsotopeGrouperModule.class, IsotopePatternCalculator.class,IsotopePeakScannerModule.class,
 
       // Peak detection
       SmoothingModule.class, DeconvolutionModule.class, ShapeModelerModule.class,
@@ -159,7 +159,7 @@ public class MZmineModulesList {
 
       // Peak list filtering
       DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-      PeakFilterModule.class, PeaklistClearAnnotationsModule.class,
+      PeakFilterModule.class, PeaklistClearAnnotationsModule.class,NeutralLossFilterModule.class,
 
       // Normalization
       RTNormalizerModule.class, LinearNormalizerModule.class,
@@ -173,12 +173,12 @@ public class MZmineModulesList {
       CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
       AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
       GPLipidSearchModule.class, LipidSearchModule.class, CameraSearchModule.class,
-      NistMsSearchModule.class, FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
+      NistMsSearchModule.class, FormulaPredictionPeakListModule.class, Ms2SearchModule.class, SiriusProcessingModule.class,
 
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
       ThreeDVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
-      PeakListTableModule.class, IsotopePatternExportModule.class, MSMSExportModule.class,
+      MZDistributionHistoModule.class, PeakListTableModule.class, IsotopePatternExportModule.class, MSMSExportModule.class,
       ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
       InfoVisualizerModule.class, IntensityPlotModule.class, KendrickMassPlotModule.class,
       VanKrevelenDiagramModule.class,

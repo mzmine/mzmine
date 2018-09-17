@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -151,12 +151,12 @@ public class SimpleFeature implements Feature {
     final float rtValues[] = msdkFeatureChromatogram.getRetentionTimes();
     final float intensityValues[] = msdkFeatureChromatogram.getIntensityValues();
 
-    this.rtRange = Range.closed(
-        msdkFeatureChromatogram.getRtRange().lowerEndpoint().doubleValue() / 60.0,
-        msdkFeatureChromatogram.getRtRange().upperEndpoint().doubleValue() / 60.0);
-    this.mzRange = Range.encloseAll(Doubles.asList(mzValues));    
+    this.rtRange =
+        Range.closed(msdkFeatureChromatogram.getRtRange().lowerEndpoint().doubleValue() / 60.0,
+            msdkFeatureChromatogram.getRtRange().upperEndpoint().doubleValue() / 60.0);
+    this.mzRange = Range.encloseAll(Doubles.asList(mzValues));
     this.intensityRange = Range.closed(0.0, msdkFeature.getHeight().doubleValue());
-    
+
     this.scanNumbers = new int[rtValues.length];
     this.dataPointsPerScan = new DataPoint[scanNumbers.length];
     for (int i = 0; i < scanNumbers.length; i++) {
@@ -167,14 +167,13 @@ public class SimpleFeature implements Feature {
     this.peakStatus = status;
 
     this.representativeScan = RawDataFileUtils.getClosestScanNumber(dataFile, this.rt);
-    this.fragmentScanNumber = ScanUtils.findBestFragmentScan(dataFile,
-        this.rtRange, this.mzRange);
-    
-    for (int i = 0; i < scanNumbers.length; i++) {   
+    this.fragmentScanNumber = ScanUtils.findBestFragmentScan(dataFile, this.rtRange, this.mzRange);
+
+    for (int i = 0; i < scanNumbers.length; i++) {
       if (height < dataPointsPerScan[i].getIntensity()) {
-          representativeScan = scanNumbers[i];
+        representativeScan = scanNumbers[i];
       }
-  }
+    }
 
   }
 
@@ -368,7 +367,7 @@ public class SimpleFeature implements Feature {
 
   // dulab Edit
   public void outputChromToFile() {
-  
+
   }
 
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {

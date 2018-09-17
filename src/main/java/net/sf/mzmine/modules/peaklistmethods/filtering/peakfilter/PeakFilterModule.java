@@ -1,20 +1,19 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
- * MZmine 2 is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
  * 
- * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
  */
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter;
@@ -32,50 +31,50 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
 /**
- * Implements a filter for alignment results. The filter removes rows that have
- * fewer than a defined number of peaks detected and other conditions.
+ * Implements a filter for alignment results. The filter removes rows that have fewer than a defined
+ * number of peaks detected and other conditions.
  */
 public class PeakFilterModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Peak filter";
-    private static final String MODULE_DESCRIPTION = "This method removes certain peak entries based on given restrictions.";
+  private static final String MODULE_NAME = "Peak filter";
+  private static final String MODULE_DESCRIPTION =
+      "This method removes certain peak entries based on given restrictions.";
 
-    @Override
-    public @Nonnull String getName() {
-        return MODULE_NAME;
+  @Override
+  public @Nonnull String getName() {
+    return MODULE_NAME;
+  }
+
+  @Override
+  public @Nonnull String getDescription() {
+    return MODULE_DESCRIPTION;
+  }
+
+  @Override
+  @Nonnull
+  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+      @Nonnull Collection<Task> tasks) {
+
+    final PeakList[] peakLists =
+        parameters.getParameter(PeakFilterParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+
+    for (PeakList peakList : peakLists) {
+
+      Task newTask = new PeakFilterTask(project, peakList, parameters);
+      tasks.add(newTask);
+
     }
 
-    @Override
-    public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
-    }
+    return ExitCode.OK;
+  }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull MZmineProject project,
-            @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
+  @Override
+  public @Nonnull MZmineModuleCategory getModuleCategory() {
+    return MZmineModuleCategory.PEAKLISTFILTERING;
+  }
 
-        final PeakList[] peakLists = parameters
-                .getParameter(PeakFilterParameters.PEAK_LISTS).getValue()
-                .getMatchingPeakLists();
-
-        for (PeakList peakList : peakLists) {
-
-            Task newTask = new PeakFilterTask(project, peakList, parameters);
-            tasks.add(newTask);
-
-        }
-
-        return ExitCode.OK;
-    }
-
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.PEAKLISTFILTERING;
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return PeakFilterParameters.class;
-    }
+  @Override
+  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    return PeakFilterParameters.class;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -42,7 +42,7 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
-import net.sf.mzmine.chartbasics.EChartPanel;
+import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Scan;
@@ -103,7 +103,7 @@ public class SpectraPlot extends EChartPanel {
         true, // isotopeFlag, // create legend?
         true, // generate tooltips?
         false // generate URLs?
-    ), true, true, true, true, false);
+    ));
 
     setBackground(Color.white);
     setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -111,7 +111,6 @@ public class SpectraPlot extends EChartPanel {
     // initialize the chart by default time series chart from factory
     chart = getChart();
     chart.setBackgroundPaint(Color.white);
-    setChart(chart);
 
     // title
     chartTitle = chart.getTitle();

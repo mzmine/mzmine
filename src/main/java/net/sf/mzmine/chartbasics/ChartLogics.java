@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,17 +20,27 @@ package net.sf.mzmine.chartbasics;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.logging.Logger;
 import javax.swing.JPanel;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.Axis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.entity.AxisEntity;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.CombinedRangeXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.data.Range;
+import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 
 /**
  * Collection of methods for JFreeCharts <br>
@@ -41,6 +51,8 @@ import org.jfree.data.Range;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
 public class ChartLogics {
+  private static Logger logger = Logger.getLogger(ChartLogics.class.getName());
+
   /**
    * Translates mouse coordinates to chart coordinates (xy-axis)
    * 
@@ -48,25 +60,126 @@ public class ChartLogics {
    * @param mouseX
    * @param mouseY
    * @return Range as chart coordinates
+   * @throws Exception
    */
-  public static Point2D mouseXYToPlotXY(ChartPanel myChart, int mouseX, int mouseY) {
+  public static Point2D mouseXYToPlotXY(ChartPanel myChart, double mouseX, double mouseY)
+      throws Exception {
+    return mouseXYToPlotXY(myChart, (int) mouseX, (int) mouseY);
+  }
+
+  /**
+   * Translates mouse coordinates to chart coordinates (xy-axis)
+   * 
+   * @param myChart
+   * @param mouseX
+   * @param mouseY
+   * @return Range as chart coordinates
+   * @throws Exception
+   */
+  public static Point2D mouseXYToPlotXY(ChartPanel myChart, int mouseX, int mouseY)
+      throws Exception {
     Point2D p = myChart.translateScreenToJava2D(new Point(mouseX, mouseY));
 
-    XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    ChartRenderingInfo info = myChart.getChartRenderingInfo();
-    Rectangle2D dataArea = info.getPlotInfo().getDataArea();
+    XYPlot plot = null;
+    // find plot as parent of axis
+    ChartEntity entity = findChartEntity(myChart, mouseX, mouseY);
+    if (entity instanceof AxisEntity) {
+      Axis a = ((AxisEntity) entity).getAxis();
+      if (a.getPlot() instanceof XYPlot)
+        plot = (XYPlot) a.getPlot();
+    }
 
-    ValueAxis domainAxis = plot.getDomainAxis();
-    ValueAxis rangeAxis = plot.getRangeAxis();
-    if (domainAxis != null && rangeAxis != null) {
+    ChartRenderingInfo info = myChart.getChartRenderingInfo();
+    int subplot = info.getPlotInfo().getSubplotIndex(p);
+    Rectangle2D dataArea = info.getPlotInfo().getDataArea();
+    if (subplot != -1)
+      dataArea = info.getPlotInfo().getSubplotInfo(subplot).getDataArea();
+
+    if (plot == null)
+      plot = findXYSubplot(myChart.getChart(), info, p.getX(), p.getY());
+
+    // coordinates
+    double cx = 0;
+    double cy = 0;
+    if (plot != null) {
+      // find axis
+      ValueAxis domainAxis = plot.getDomainAxis();
+      ValueAxis rangeAxis = plot.getRangeAxis();
       RectangleEdge domainAxisEdge = plot.getDomainAxisEdge();
       RectangleEdge rangeAxisEdge = plot.getRangeAxisEdge();
-      double chartX = domainAxis.java2DToValue(p.getX(), dataArea, domainAxisEdge);
-      double chartY = rangeAxis.java2DToValue(p.getY(), dataArea, rangeAxisEdge);
+      // parent?
+      if (domainAxis == null && plot.getParent() != null && plot.getParent() instanceof XYPlot) {
+        XYPlot pp = ((XYPlot) plot.getParent());
+        domainAxis = pp.getDomainAxis();
+        domainAxisEdge = pp.getDomainAxisEdge();
+      }
+      if (rangeAxis == null && plot.getParent() != null && plot.getParent() instanceof XYPlot) {
+        XYPlot pp = ((XYPlot) plot.getParent());
+        rangeAxis = pp.getRangeAxis();
+        rangeAxisEdge = pp.getRangeAxisEdge();
+      }
 
-      return new Point2D.Double(chartX, chartY);
-    } else
-      return null;
+      if (domainAxis != null)
+        cx = domainAxis.java2DToValue(p.getX(), dataArea, domainAxisEdge);
+      if (rangeAxis != null)
+        cy = rangeAxis.java2DToValue(p.getY(), dataArea, rangeAxisEdge);
+    } else {
+      throw new Exception("no xyplot found");
+    }
+    return new Point2D.Double(cx, cy);
+
+  }
+
+  /**
+   * Subplot or main plot at point
+   * 
+   * @param chart
+   * @param info
+   * @param mouseX
+   * @param mouseY
+   * @return
+   */
+  public static XYPlot findXYSubplot(JFreeChart chart, ChartRenderingInfo info, double mouseX,
+      double mouseY) {
+    int subplot = info.getPlotInfo().getSubplotIndex(new Point2D.Double(mouseX, mouseY));
+    XYPlot plot = null;
+    if (subplot != -1) {
+      if (chart.getPlot() instanceof CombinedDomainXYPlot)
+        plot = (XYPlot) ((CombinedDomainXYPlot) chart.getPlot()).getSubplots().get(subplot);
+      else if (chart.getPlot() instanceof CombinedRangeXYPlot)
+        plot = (XYPlot) ((CombinedRangeXYPlot) chart.getPlot()).getSubplots().get(subplot);
+    }
+
+    if (plot == null && chart.getPlot() instanceof XYPlot)
+      plot = (XYPlot) chart.getPlot();
+
+    return plot;
+  }
+
+  /**
+   * Find chartentities like JFreeChartEntity, AxisEntity, PlotEntity, TitleEntity, XY...
+   * 
+   * @param chart
+   * @param mx mouse coordinates
+   * @param my mouse coordinates
+   * @return
+   */
+  public static ChartEntity findChartEntity(ChartPanel chart, double mx, double my) {
+    // TODO check if insets were needed
+    // coordinates to find chart entities
+    Insets insets = chart.getInsets();
+    int x = (int) ((mx - insets.left) / chart.getScaleX());
+    int y = (int) ((my - insets.top) / chart.getScaleY());
+
+    ChartRenderingInfo info = chart.getChartRenderingInfo();
+    ChartEntity entity = null;
+    if (info != null) {
+      EntityCollection entities = info.getEntityCollection();
+      if (entities != null) {
+        entity = entities.getEntity(x, y);
+      }
+    }
+    return entity;
   }
 
   /**
@@ -74,8 +187,9 @@ public class ChartLogics {
    * 
    * @param myChart
    * @return width in data space for x and y
+   * @throws Exception
    */
-  public static Point2D screenValueToPlotValue(ChartPanel myChart, int val) {
+  public static Point2D screenValueToPlotValue(ChartPanel myChart, int val) throws Exception {
     Point2D p = mouseXYToPlotXY(myChart, 0, 0);
     Point2D p2 = mouseXYToPlotXY(myChart, val, val);
     // inverted y
@@ -490,6 +604,20 @@ public class ChartLogics {
   }
 
   /**
+   * Auto range the axis
+   * 
+   * @param axis
+   */
+  public static void autoAxis(ValueAxis axis) {
+    axis.resizeRange(0);
+  }
+
+  public static void autoAxes(ChartPanel cp) {
+    autoRangeAxis(cp);
+    autoDomainAxis(cp);
+  }
+
+  /**
    * Move a chart by a percentage x-offset if xoffset is <0 the shift will be negativ (xoffset>0
    * results in a positive shift)
    * 
@@ -571,23 +699,8 @@ public class ChartLogics {
    * @param yzoom percentage zoom factor
    * @param holdLowerBound if true only the upper bound will be zoomed
    */
-  public static void zoomRangeAxis(ChartPanel myChart, double yzoom, boolean holdLowerBound) {
-    XYPlot plot = (XYPlot) myChart.getChart().getPlot();
-    ValueAxis rangeAxis = plot.getRangeAxis();
-
-    double lower = rangeAxis.getLowerBound();
-    double upper = rangeAxis.getUpperBound();
-    double dist = upper - lower;
-
-    if (holdLowerBound) {
-      upper += dist * yzoom;
-    } else {
-      lower -= dist * yzoom / 2;
-      upper += dist * yzoom / 2;
-    }
-
-    Range range = new Range(lower, upper);
-    setZoomAxis(rangeAxis, keepRangeWithinAutoBounds(rangeAxis, range));
+  public static void zoomRangeAxis(JFreeChart myChart, double yzoom, boolean holdLowerBound) {
+    zoomAxis(myChart.getXYPlot().getRangeAxis(), yzoom, holdLowerBound);
   }
 
   /**
@@ -603,14 +716,19 @@ public class ChartLogics {
     double dist = upper - lower;
 
     if (holdLowerBound) {
+      if (zoom == 0)
+        return;
       upper += dist * zoom;
     } else {
       lower -= dist * zoom / 2;
       upper += dist * zoom / 2;
     }
 
-    Range range = new Range(lower, upper);
-    setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
+    if (lower < upper) {
+      logger.info("Set zoom:" + lower + ", " + upper + " (keep lower:" + holdLowerBound + ")");
+      Range range = new Range(lower, upper);
+      setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
+    }
   }
 
   /**
@@ -629,10 +747,10 @@ public class ChartLogics {
     lower -= dist * zoom * f;
     upper += dist * zoom * (1 - f);
 
-    if (upper < lower)
-      lower = upper;
-    Range range = new Range(lower, upper);
-    setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
+    if (lower < upper) {
+      Range range = new Range(lower, upper);
+      setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
+    }
   }
 
   /**
@@ -644,4 +762,5 @@ public class ChartLogics {
     return chartPanel instanceof EChartPanel ? ((EChartPanel) chartPanel).isMouseZoomable()
         : chartPanel.isRangeZoomable() && chartPanel.isDomainZoomable();
   }
+
 }

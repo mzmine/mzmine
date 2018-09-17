@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -72,7 +72,8 @@ public class MetaCycGateway implements DBGateway {
     String line;
     while ((line = lineReader.readLine()) != null) {
       String split[] = line.split("\\t");
-      if (split.length < 5) continue;
+      if (split.length < 5)
+        continue;
       String id = split[4];
       results.add(id);
       if (results.size() == numOfResults)

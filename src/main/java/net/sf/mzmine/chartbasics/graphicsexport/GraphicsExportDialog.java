@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -47,10 +47,10 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.chartbasics.ChartLogics;
-import net.sf.mzmine.chartbasics.ChartParameters;
-import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.chartbasics.chartthemes.ChartThemeFactory;
+import net.sf.mzmine.chartbasics.chartthemes.ChartThemeParameters;
 import net.sf.mzmine.chartbasics.chartthemes.EStandardChartTheme;
+import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.framework.fontspecs.FontSpecs;
 import net.sf.mzmine.framework.fontspecs.JFontSpecs;
 import net.sf.mzmine.parameters.Parameter;
@@ -69,7 +69,7 @@ import net.sf.mzmine.util.files.FileTypeFilter;
 
 /**
  * A graphics export dialog with preview and a panel for {@link GraphicsExportParameters} and
- * {@link ChartParameters} to set teh chart theme previous to export
+ * {@link ChartThemeParameters} to set teh chart theme previous to export
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
@@ -85,7 +85,7 @@ public class GraphicsExportDialog extends JFrame {
   private JFileChooser chooser = new JFileChooser();
   // parameters
   private GraphicsExportParameters parameters;
-  private ChartParameters chartParam;
+  private ChartThemeParameters chartParam;
   // map all components and parameter names
   private final Map<String, JComponent> parametersAndComponents;
 
@@ -123,7 +123,7 @@ public class GraphicsExportDialog extends JFrame {
     final JFrame thisframe = this;
     //
     parameters = new GraphicsExportParameters();
-    chartParam = new ChartParameters();
+    chartParam = new ChartThemeParameters();
     parametersAndComponents = new HashMap<String, JComponent>();
 
     String[] formats = parameters.getParameter(GraphicsExportParameters.exportFormat).getChoices();
@@ -198,6 +198,12 @@ public class GraphicsExportDialog extends JFrame {
           // add separator
           pn.add(new JSeparator(), 0, i, 5, 1, 1, 1, GridBagConstraints.BOTH);
           i++;
+          // add Apply theme button
+          JButton btnApply2 = new JButton("Apply theme");
+          btnApply2.addActionListener(e -> applyTheme());
+          pn.add(btnApply2, 0, i, 5, 1, 1, 1, GridBagConstraints.BOTH);
+          i++;
+
           // add chart settings
           param = chartParam.getParameters();
           for (int pi = 0; pi < param.length; pi++) {
@@ -214,7 +220,7 @@ public class GraphicsExportDialog extends JFrame {
 
           // add listener to master font
           JFontSpecs master = (JFontSpecs) parametersAndComponents
-              .get(chartParam.getParameter(ChartParameters.masterFont).getName());
+              .get(chartParam.getParameter(ChartThemeParameters.masterFont).getName());
           master.addListener(fspec -> {
             if (listenersEnabled)
               handleMasterFontChanged(fspec);
@@ -242,41 +248,24 @@ public class GraphicsExportDialog extends JFrame {
       getContentPane().add(buttonPane, BorderLayout.SOUTH);
       {
         JButton okButton = new JButton("Save");
-        okButton.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            // Save as
-            saveGraphicsAs();
-          }
-        });
+        okButton.addActionListener(e -> saveGraphicsAs());
         okButton.setActionCommand("OK");
         buttonPane.add(okButton);
         getRootPane().setDefaultButton(okButton);
       }
       {
         btnRenewPreview = new JButton("Renew Preview");
-        btnRenewPreview.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            renewPreview();
-          }
-        });
+        btnRenewPreview.addActionListener(e -> renewPreview());
         buttonPane.add(btnRenewPreview);
       }
       {
         btnApply = new JButton("Apply theme");
-        btnApply.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            applyTheme();
-          }
-        });
+        btnApply.addActionListener(e -> applyTheme());
         buttonPane.add(btnApply);
       }
       {
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-            setVisible(false);
-          }
-        });
+        cancelButton.addActionListener(e -> setVisible(false));
         cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton);
       }
@@ -315,7 +304,13 @@ public class GraphicsExportDialog extends JFrame {
   protected void openDialogI(JFreeChart chart) {
     try {
       // create new chart to decouple from original chart
-      addChartToPanel(new EChartPanel((JFreeChart) chart.clone()), true);
+      JFreeChart copy = chart;
+      try {
+        copy = (JFreeChart) chart.clone();
+      } catch (Exception e) {
+        LOG.log(Level.WARNING, "Chart cannot be cloned", e);
+      }
+      addChartToPanel(new EChartPanel(copy), true);
       setVisible(true);
     } catch (Exception e) {
       e.printStackTrace();
@@ -337,10 +332,13 @@ public class GraphicsExportDialog extends JFrame {
    * Applies the theme defined as ChartParameters
    */
   protected void applyTheme() {
+    // update param
+    updateParameterSetFromComponents();
     // apply settings
     chartParam.applyToChartTheme(theme);
     chartParam.applyToChart(chartPanel.getChart());
     theme.apply(chartPanel.getChart());
+    // renewPreview();
   }
 
   /**
@@ -431,7 +429,7 @@ public class GraphicsExportDialog extends JFrame {
    * @param font
    */
   private void handleMasterFontChanged(FontSpecs font) {
-    String master = ChartParameters.masterFont.getName();
+    String master = ChartThemeParameters.masterFont.getName();
     for (Parameter<?> p : chartParam.getParameters()) {
       if (!(p instanceof FontParameter) || master.equals(p.getName()))
         continue;
