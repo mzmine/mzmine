@@ -89,6 +89,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
 
   protected JButton btnHelp;
 
+  //Button panel - added here so it is possible to move buttons as a whole, if needed.
+  protected JPanel pnlButtons;
+  
   // Footer message
   protected String footerMessage;
 
@@ -213,7 +216,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
     // mainPanel.add(emptySpace, 0, 99, 3, 1, 0, 1);
 
     // Create a separate panel for the buttons
-    JPanel pnlButtons = new JPanel();
+    pnlButtons = new JPanel();
 
     btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
     btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
