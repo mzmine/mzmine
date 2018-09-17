@@ -96,6 +96,7 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.msms.MsMsPeakPickerModul
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection.TargetedPeakDetectionModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
+import net.sf.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
 import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
@@ -189,7 +190,7 @@ public class MZmineModulesList {
       VanKrevelenDiagramModule.class,
 
       // Tools
-      MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class
+      MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class, IsotopePatternPreviewModule.class
 
   };
 }
