@@ -27,7 +27,11 @@ import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
-
+/**
+ * 
+ * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class IsotopePeakScannerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Isotope peak scanner";
