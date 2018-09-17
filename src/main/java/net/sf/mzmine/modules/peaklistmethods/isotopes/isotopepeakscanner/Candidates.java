@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -37,9 +38,12 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  * since its easier to handle row ids than row indexes.
  * 
  *
+ * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
  */
 public class Candidates {
 
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   private IsotopePattern pattern;
   private MZTolerance mzTolerance;
   private String massListName;
@@ -65,6 +69,10 @@ public class Candidates {
     this.pattern = pattern;
     this.plh = plh;
     this.ratingType = ratingType;
+    
+    for(Candidate c : candidate)
+      if(c == null)
+        logger.info("failed to initialize candidate");
   }
 
   /**
@@ -97,7 +105,7 @@ public class Candidates {
    */
   public Candidate get(int index) {
     if (index >= candidate.length)
-      throw new MSDKRuntimeException("Candidates.get(index) - index > length");
+      throw new MSDKRuntimeException("Candidates.get(index): index > length");
     return candidate[index];
   }
 
@@ -111,7 +119,7 @@ public class Candidates {
       return -1.0;
 
     if (index >= candidate.length)
-      throw new MSDKRuntimeException("Candidates.get(index) - index > length");
+      throw new MSDKRuntimeException("Candidates.get(index): index > length");
     return avgRating[index];
   }
 
@@ -119,7 +127,7 @@ public class Candidates {
    * 
    * @return total average rating of all data points in the detected pattern
    */
-  public double getAvgAvgRatings() {
+  public double getAvgAccAvgRating() {
     if (pattern == null) // if we run a neutral loss scan this doesn't exist
       return -1.0;
 
@@ -131,6 +139,17 @@ public class Candidates {
       buffer += rating;
 
     return buffer / avgRating.length;
+  }
+  
+  public double getSimpleAvgRating() {
+    if (pattern == null) // if we run a neutral loss scan this doesn't exist
+      return -1.0;
+    
+    double buffer = 0.0;
+    for(int i = 0; i < candidate.length; i++) 
+      buffer += candidate[i].getRating();
+    
+    return buffer/candidate.length;
   }
 
 
