@@ -713,7 +713,7 @@ public class ChartLogicsFX {
     }
 
     if (lower < upper) {
-      logger.info("Set zoom:" + lower + ", " + upper + " (keep lower:" + holdLowerBound + ")");
+      logger.finest("Set zoom:" + lower + ", " + upper + " (keep lower:" + holdLowerBound + ")");
       Range range = new Range(lower, upper);
       setZoomAxis(axis, keepRangeWithinAutoBounds(axis, range));
     }
