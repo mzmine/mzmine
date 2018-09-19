@@ -663,7 +663,7 @@
 			<version>4.5.2</version>
 		</dependency>
 
-		<!--  JavaFx has been removed from JDK 11 and is a separate module now -->
+		<!--  JavaFX has been removed from JDK 11 and is a separate module now -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
