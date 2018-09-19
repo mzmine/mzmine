@@ -648,14 +648,14 @@
 			<version>1.2.0</version>
 		</dependency>
 		<!-- jaxb end -->
-		
+
 		<!-- /javax.mail/javax.mail-api -->
 		<dependency>
-		    <groupId>javax.mail</groupId>
-		    <artifactId>javax.mail-api</artifactId>
-		    <version>1.6.0</version>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api</artifactId>
+			<version>1.6.0</version>
 		</dependency>
-		
+
 		<!-- JNA runtime error fix -->
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
@@ -663,6 +663,12 @@
 			<version>4.5.2</version>
 		</dependency>
 
+		<!--  JavaFx has been removed from JDK 11 and is a separate module now -->
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>11</version>
+		</dependency>
 
 	</dependencies>
 
