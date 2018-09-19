@@ -15,7 +15,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>2.1.1</cdk.version>
 		<jmztab.version>3.0.7</jmztab.version>
-		<msdk.version>0.0.15</msdk.version>
+		<msdk.version>0.0.16</msdk.version>
 	</properties>
 
 	<mailingLists>
@@ -133,17 +133,17 @@
 		<dependency>
 			<groupId>org.jfree</groupId>
 			<artifactId>jfreesvg</artifactId>
-			<version>3.2</version>
+			<version>3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.orsonpdf</groupId>
 			<artifactId>orsonpdf</artifactId>
-			<version>1.7</version>
+			<version>1.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>25.1-jre</version>
+			<version>26.0-jre</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -173,12 +173,12 @@
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
 			<artifactId>weka-stable</artifactId>
-			<version>3.8.2</version>
+			<version>3.8.3</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
 			<artifactId>jmol</artifactId>
-			<version>14.15.2</version>
+			<version>14.29.17</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -195,12 +195,12 @@
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
-			<version>3.11</version>
+			<version>4.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
-			<version>3.10-FINAL</version>
+			<version>4.0.0</version>
 		</dependency>
 		<!-- END EXCEL -->
 
@@ -292,6 +292,21 @@
 					<artifactId>vecmath</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.openscience.cdk</groupId>
+			<artifactId>cdk-data</artifactId>
+			<version>${cdk.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openscience.cdk</groupId>
+			<artifactId>cdk-interfaces</artifactId>
+			<version>${cdk.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openscience.cdk</groupId>
+			<artifactId>cdk-smiles</artifactId>
+			<version>${cdk.version}</version>
 		</dependency>
 
 		<!-- End of CDK dependencies -->
@@ -514,7 +529,7 @@
 		<dependency>
 			<groupId>com.itextpdf</groupId>
 			<artifactId>itextpdf</artifactId>
-			<version>5.5.6</version>
+			<version>5.5.13</version>
 		</dependency>
 
 		<!-- Export eps svg batik -->
@@ -645,26 +660,9 @@
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
-			<version>4.5.0</version>
+			<version>4.5.2</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.openscience.cdk</groupId>
-			<artifactId>cdk-data</artifactId>
-			<version>${cdk.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.openscience.cdk</groupId>
-			<artifactId>cdk-interfaces</artifactId>
-			<version>${cdk.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.openscience.cdk</groupId>
-			<artifactId>cdk-smiles</artifactId>
-			<version>${cdk.version}</version>
-		</dependency>
 
 	</dependencies>
 
