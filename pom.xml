@@ -16,6 +16,11 @@
 		<cdk.version>2.1.1</cdk.version>
 		<jmztab.version>3.0.7</jmztab.version>
 		<msdk.version>0.0.16</msdk.version>
+		<gson-fire-version>1.8.0</gson-fire-version>
+		<swagger-core-version>1.5.15</swagger-core-version>
+		<okhttp-version>2.7.5</okhttp-version>
+		<gson-version>2.8.1</gson-version>
+		<threetenbp-version>1.3.5</threetenbp-version>
 	</properties>
 
 	<mailingLists>
@@ -327,31 +332,6 @@
 			</exclusions>
 		</dependency>
 
-		<!-- Start of Apache Axis 1.4 -->
-
-		<dependency>
-			<groupId>org.apache.axis</groupId>
-			<artifactId>axis</artifactId>
-			<version>1.4</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-discovery</groupId>
-			<artifactId>commons-discovery</artifactId>
-			<version>0.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.axis</groupId>
-			<artifactId>axis-jaxrpc</artifactId>
-			<version>1.4</version>
-		</dependency>
-		<dependency>
-			<groupId>wsdl4j</groupId>
-			<artifactId>wsdl4j</artifactId>
-			<version>1.6.2</version>
-		</dependency>
-
-		<!-- End of Apache Axis -->
-
 		<!-- Start of JDBC drivers -->
 
 		<dependency>
@@ -370,9 +350,9 @@
 		<!-- Start of jars included with MZmine (internal repository) -->
 
 		<dependency>
-			<groupId>soap-apis</groupId>
+			<groupId>org.rsc.chemspider</groupId>
 			<artifactId>chemspider-api</artifactId>
-			<version>1.0</version>
+			<version>1.0.0</version>
 		</dependency>
 
 		<!-- REngine/Rserve/RCaller -->
@@ -538,80 +518,66 @@
 			<artifactId>batik-util</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>xmlgraphics-commons</artifactId>
 			<version>2.0</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-transcoder</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-awt-util</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-dom</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-svggen</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-svg-dom</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-anim</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-rasterizer</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-swing</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-gui-util</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-ttf2svg</artifactId>
 			<version>1.8</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-parser</artifactId>
 			<version>1.8</version>
 		</dependency>
-
-
 		<dependency>
 			<groupId>net.sf.epsgraphics</groupId>
 			<artifactId>epsgraphics</artifactId>
@@ -663,12 +629,46 @@
 			<version>4.5.2</version>
 		</dependency>
 
-		<!--  JavaFX has been removed from JDK 11 and is a separate module now -->
+		<!-- JavaFX has been removed from JDK 11 and is a separate module now -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
 			<version>11</version>
 		</dependency>
+
+		<!-- Dependencies for swagger, which was used to generate the Chemspider 
+			API code -->
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>${swagger-core-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>${okhttp-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp</groupId>
+			<artifactId>logging-interceptor</artifactId>
+			<version>${okhttp-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>${gson-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.gsonfire</groupId>
+			<artifactId>gson-fire</artifactId>
+			<version>${gson-fire-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.threeten</groupId>
+			<artifactId>threetenbp</artifactId>
+			<version>${threetenbp-version}</version>
+		</dependency>
+		<!-- End of swagger dependencies -->
 
 	</dependencies>
 

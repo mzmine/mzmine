@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.logging.Logger;
@@ -31,6 +32,12 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+import com.google.common.base.Strings;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -45,13 +52,6 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CompressionUtils;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
-
-import org.apache.axis.encoding.Base64;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import com.google.common.base.Strings;
 
 /**
  * 
@@ -325,7 +325,7 @@ public class MzXMLReadTask extends AbstractTask {
       // <peaks>
       if (qName.equalsIgnoreCase("peaks")) {
 
-        byte[] peakBytes = Base64.decode(charBuffer.toString());
+        byte[] peakBytes = Base64.getDecoder().decode(charBuffer.toString());
 
         if (compressFlag) {
           try {

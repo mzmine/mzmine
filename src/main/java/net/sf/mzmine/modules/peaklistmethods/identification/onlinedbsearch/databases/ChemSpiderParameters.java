@@ -31,17 +31,14 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 /**
  * Set of parameters specific to ChemSpider searches.
  *
- * @author $Author$
- * @version $Revision$
  */
 public class ChemSpiderParameters extends SimpleParameterSet {
 
   /**
    * Search API security token.
    */
-  public static final StringParameter SECURITY_TOKEN =
-      new StringParameter("ChemSpider security token",
-          "Security token from your ChemSpider account - register at ChemSpider.com");
+  public static final StringParameter SECURITY_TOKEN = new StringParameter("ChemSpider API key",
+      "Security key from your ChemSpider API account - register at https://developer.rsc.org");
 
   /**
    * Create the parameter set.
