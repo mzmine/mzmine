@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.multithreaded;
 
+import java.util.Collection;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakIdentity;
@@ -52,19 +53,27 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
   private boolean removeOriginal;
 
   private double progress = 0;
+  private Collection<Task> batchTasks;
 
-  private boolean useLock;
-
+  /**
+   * 
+   * @param project
+   * @param peakList
+   * @param parameters
+   * @param batchTasks all sub tasks are registered to the batchtasks list
+   */
   public MultiThreadPeakFinderMainTask(MZmineProject project, PeakList peakList,
-      ParameterSet parameters) {
+      ParameterSet parameters, Collection<Task> batchTasks) {
     this.project = project;
     this.peakList = peakList;
     this.parameters = parameters;
+    this.batchTasks = batchTasks;
 
     suffix = parameters.getParameter(MultiThreadPeakFinderParameters.suffix).getValue();
     removeOriginal = parameters.getParameter(MultiThreadPeakFinderParameters.autoRemove).getValue();
   }
 
+  @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running multithreaded gap filler on " + peakList);
@@ -107,9 +116,13 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     };
 
     // add listener to all sub tasks
-    for (Task t : tasks)
+    for (Task t : tasks) {
       if (t instanceof AbstractTask)
         ((AbstractTask) t).addTaskStatusListener(list);
+      // add to batchMode collection
+      if (batchTasks != null)
+        batchTasks.add(t);
+    }
 
     // start
     MZmineCore.getTaskController().addTasks(tasks);
@@ -190,11 +203,13 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     return tasks;
   }
 
+  @Override
   public double getFinishedPercentage() {
     return progress;
 
   }
 
+  @Override
   public String getTaskDescription() {
     return "Main task: Gap filling " + peakList;
   }
