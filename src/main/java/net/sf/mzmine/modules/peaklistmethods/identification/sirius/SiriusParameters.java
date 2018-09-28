@@ -21,20 +21,19 @@ package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 import java.awt.Window;
 import java.io.IOException;
 
+import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import org.openscience.cdk.config.IsotopeFactory;
-import org.openscience.cdk.config.Isotopes;
-import org.openscience.cdk.formula.MolecularFormulaRange;
 
 public abstract class SiriusParameters extends SimpleParameterSet {
   private static final int ISOTOPE_MAX = 100;
@@ -74,7 +73,7 @@ public abstract class SiriusParameters extends SimpleParameterSet {
     ELEMENTS.setValue(createDefaultElements());
   }
 
-  public SiriusParameters(Parameter[] params) {
+  public SiriusParameters(Parameter<?>[] params) {
     super(params);
   }
 

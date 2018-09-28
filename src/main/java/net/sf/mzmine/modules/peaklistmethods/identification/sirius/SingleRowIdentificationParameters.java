@@ -25,10 +25,10 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 
 public class SingleRowIdentificationParameters extends SiriusParameters {
   public static final IntegerParameter SIRIUS_CANDIDATES = new IntegerParameter(
-      "Number of candidates from Sirius method", "Maximum number of results to display", 5);
+      "Number of candidates from Sirius method", "Maximum number of results to display", 1);
 
   public static final IntegerParameter FINGERID_CANDIDATES = new IntegerParameter(
-      "Number of candidates from FingerId method", "Pass 0 to get all possible results", 5);
+      "Number of candidates from FingerId method", "Pass 0 to get all possible results", 10);
 
   public static final DoubleParameter ION_MASS =
       new DoubleParameter("Precursor m/z", "Value to use in the search query of precursor ion",

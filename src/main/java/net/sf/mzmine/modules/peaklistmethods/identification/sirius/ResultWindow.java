@@ -86,11 +86,10 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     listElementModel = new ResultTableModel();
     compoundsTable = new ResultTable(listElementModel);
-    listElementModel.setTable(compoundsTable);
 
     // Specify content position
     JScrollPane listScroller = new JScrollPane(compoundsTable);
-    listScroller.setPreferredSize(new Dimension(800, 400));
+    listScroller.setPreferredSize(new Dimension(1000, 450));
     listScroller.setAlignmentX(LEFT_ALIGNMENT);
     JPanel listPanel = new JPanel();
     listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
@@ -209,7 +208,7 @@ public class ResultWindow extends JFrame implements ActionListener {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         listElementModel.addElement(compound);
-        compoundsTable.generateIconImage(compound);
+        compoundsTable.generateIconImage(compound); //todo: add here link to cell, then I will get sizes from it
       }
     });
   }

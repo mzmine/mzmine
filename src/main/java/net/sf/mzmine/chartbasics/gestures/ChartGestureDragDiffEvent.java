@@ -18,10 +18,10 @@
 
 package net.sf.mzmine.chartbasics.gestures;
 
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler.Orientation;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 
 /**
  * This event gets consumed by a {@link ChartGestureDragDiffHandler}
@@ -95,8 +95,8 @@ public class ChartGestureDragDiffEvent {
     return firstEvent.getGesture().getEntity();
   }
 
-  public ChartPanel getChartPanel() {
-    return firstEvent.getChartPanel();
+  public ChartViewWrapper getChartWrapper() {
+    return firstEvent.getChartWrapper();
   }
 
   /**

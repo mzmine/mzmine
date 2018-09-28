@@ -20,7 +20,7 @@ package net.sf.mzmine.desktop.preferences;
 
 import java.awt.Window;
 import java.text.DecimalFormat;
-
+import org.w3c.dom.Element;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -30,8 +30,6 @@ import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import org.w3c.dom.Element;
 
 public class MZminePreferences extends SimpleParameterSet {
 
@@ -57,11 +55,15 @@ public class MZminePreferences extends SimpleParameterSet {
       new BooleanParameter("Send anonymous statistics",
           "Allow MZmine to send anonymous statistics on the module usage?", true);
 
+  public static final OptionalModuleParameter sendErrorEMail =
+      new OptionalModuleParameter("Send error e-Mail notifications",
+          "Send error e-Mail notifications", new ErrorMailSettings());
+
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
   public MZminePreferences() {
     super(new Parameter[] {mzFormat, rtFormat, intensityFormat, numOfThreads, proxySettings,
-        rExecPath, sendStatistics, windowSetttings});
+        rExecPath, sendStatistics, windowSetttings, sendErrorEMail});
   }
 
   @Override
@@ -81,6 +83,7 @@ public class MZminePreferences extends SimpleParameterSet {
     return retVal;
   }
 
+  @Override
   public void loadValuesFromXML(Element xmlElement) {
     super.loadValuesFromXML(xmlElement);
     updateSystemProxySettings();

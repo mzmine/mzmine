@@ -26,8 +26,11 @@ import java.io.IOException;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 
 import javax.annotation.Nonnull;
+
+import com.google.common.collect.Range;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
@@ -35,10 +38,6 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
-
-import org.apache.axis.encoding.Base64;
-
-import com.google.common.collect.Range;
 
 /**
  * Scan related utilities
@@ -524,7 +523,7 @@ public class ScanUtils {
     return Range.closed(lowRt, highRt);
   }
 
-  public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {
+   public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     DataOutputStream peakStream = new DataOutputStream(byteStream);
     for (int i = 0; i < dataPoints.length; i++) {
@@ -542,7 +541,7 @@ public class ScanUtils {
 
   public static char[] encodeDataPointsBase64(DataPoint dataPoints[]) {
     byte peakBytes[] = encodeDataPointsToBytes(dataPoints);
-    char encodedData[] = Base64.encode(peakBytes).toCharArray();
+    char encodedData[] = Base64.getEncoder().encodeToString(peakBytes).toCharArray();
     return encodedData;
   }
 
@@ -570,7 +569,7 @@ public class ScanUtils {
   }
 
   public static DataPoint[] decodeDataPointsBase64(char encodedData[]) {
-    byte[] bytes = Base64.decode(new String(encodedData));
+    byte[] bytes = Base64.getDecoder().decode(new String(encodedData));
     DataPoint dataPoints[] = decodeDataPointsFromBytes(bytes);
     return dataPoints;
   }

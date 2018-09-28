@@ -74,10 +74,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
   private final Double parentMass;
   private final Double deviationPpm;
 
-  // Error messages
-  private final String siriusErrorMessage;
-  private final String timerErrorMessage;
-
   // Amount of components to show
   private final Integer fingerCandidates;
   private final Integer siriusCandidates;
@@ -112,12 +108,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
     double mz = peakListRow.getAverageMZ();
     double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
     deviationPpm = (upperPoint - mz) / (mz * 1E-6);
-
-    timerErrorMessage =
-        String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
-            parentMass) + "Reinitialize the task with larger Sirius Timer value.";
-    siriusErrorMessage = String.format("Sirius failed to predict compounds from row with id = %d",
-        peakListRow.getID());
   }
 
   /**
@@ -161,12 +151,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
       ms2list = scanner.getMsMsList();
 
       if (ms1list == null && ms2list == null) {
-        throw new MethodRuntimeException("There are no scans for requested Mass List name");
+        throw new EmptyListsException("Empty lists for requested Mass List name");
       }
-    } catch (MethodRuntimeException f) {
-      showErrorAndCancel(window, String.format("Empty Mass List for %.2f", parentMass),
-          "There is no MS2 scans that have a given precursor mass.\n"
-              + "MS1 and MS2 lists are empty.\nCheck the Mass List field.");
+    } catch (EmptyListsException e) {
+      showError(window,"Empty lists returned for requested Mass List. [" + massListName + "]");
+      return;
+    } catch (ScanMassListException f) {
+      showError(window,"Scan does not contain Mass List with requested name. [" + massListName + "]");
       return;
     }
 
@@ -176,7 +167,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     SiriusIdentificationMethod siriusMethod = null;
     List<IonAnnotation> siriusResults = null;
 
-    /* Sirius processing */
+  /* Sirius processing */
     try {
       FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
       IonType type = IonTypeUtil.createIonType(ionType.toString());
@@ -190,22 +181,24 @@ public class SingleRowIdentificationTask extends AbstractTask {
       siriusMethod = method;
     } catch (InterruptedException | TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
-      showErrorAndCancel(window, "Timer expired", timerErrorMessage);
+      showError(window, String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
+          parentMass) + "Reinitialize the task with larger Sirius Timer value.");
       return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
-      showErrorAndCancel(window, "Sirius Error", siriusErrorMessage);
+      showError(window, String.format("Sirius failed to predict compounds from row with id = %d",
+          peakListRow.getID()));
       return;
     }
 
-    /* FingerId processing */
+  /* FingerId processing */
     if (scanner.peakContainsMsMs()) {
       try {
         latch = new CountDownLatch(siriusResults.size());
         Ms2Experiment experiment = siriusMethod.getExperiment();
         fingerTasks = new LinkedList<>();
 
-        /* Create a new FingerIdWebTask for each Sirius result */
+      /* Create a new FingerIdWebTask for each Sirius result */
         for (IonAnnotation ia : siriusResults) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
           FingerIdWebMethodTask task =
@@ -229,13 +222,18 @@ public class SingleRowIdentificationTask extends AbstractTask {
     try {
       if (latch != null)
         latch.await();
-    } catch (Exception e) {
-    }
+    } catch (InterruptedException e) {}
     setStatus(TaskStatus.FINISHED);
   }
 
-  private void showErrorAndCancel(ResultWindow window, String title, String msg) {
-    MZmineCore.getDesktop().displayErrorMessage(window, title, msg);
-    this.setStatus(TaskStatus.CANCELED);
+  /**
+   * Shows error dialogue window and sets task status as ERROR
+   * @param window - where to create dialogue
+   * @param msg of the error window
+   */
+  private void showError(ResultWindow window, String msg) {
+    window.dispose();
+    setErrorMessage(msg);
+    this.setStatus(TaskStatus.ERROR);
   }
 }

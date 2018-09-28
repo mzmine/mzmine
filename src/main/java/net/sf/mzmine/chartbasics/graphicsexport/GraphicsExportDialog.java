@@ -47,10 +47,10 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.chartbasics.ChartLogics;
-import net.sf.mzmine.chartbasics.ChartParameters;
-import net.sf.mzmine.chartbasics.EChartPanel;
 import net.sf.mzmine.chartbasics.chartthemes.ChartThemeFactory;
+import net.sf.mzmine.chartbasics.chartthemes.ChartThemeParameters;
 import net.sf.mzmine.chartbasics.chartthemes.EStandardChartTheme;
+import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.framework.fontspecs.FontSpecs;
 import net.sf.mzmine.framework.fontspecs.JFontSpecs;
 import net.sf.mzmine.parameters.Parameter;
@@ -69,7 +69,7 @@ import net.sf.mzmine.util.files.FileTypeFilter;
 
 /**
  * A graphics export dialog with preview and a panel for {@link GraphicsExportParameters} and
- * {@link ChartParameters} to set teh chart theme previous to export
+ * {@link ChartThemeParameters} to set teh chart theme previous to export
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
@@ -85,7 +85,7 @@ public class GraphicsExportDialog extends JFrame {
   private JFileChooser chooser = new JFileChooser();
   // parameters
   private GraphicsExportParameters parameters;
-  private ChartParameters chartParam;
+  private ChartThemeParameters chartParam;
   // map all components and parameter names
   private final Map<String, JComponent> parametersAndComponents;
 
@@ -123,7 +123,7 @@ public class GraphicsExportDialog extends JFrame {
     final JFrame thisframe = this;
     //
     parameters = new GraphicsExportParameters();
-    chartParam = new ChartParameters();
+    chartParam = new ChartThemeParameters();
     parametersAndComponents = new HashMap<String, JComponent>();
 
     String[] formats = parameters.getParameter(GraphicsExportParameters.exportFormat).getChoices();
@@ -220,7 +220,7 @@ public class GraphicsExportDialog extends JFrame {
 
           // add listener to master font
           JFontSpecs master = (JFontSpecs) parametersAndComponents
-              .get(chartParam.getParameter(ChartParameters.masterFont).getName());
+              .get(chartParam.getParameter(ChartThemeParameters.masterFont).getName());
           master.addListener(fspec -> {
             if (listenersEnabled)
               handleMasterFontChanged(fspec);
@@ -429,7 +429,7 @@ public class GraphicsExportDialog extends JFrame {
    * @param font
    */
   private void handleMasterFontChanged(FontSpecs font) {
-    String master = ChartParameters.masterFont.getName();
+    String master = ChartThemeParameters.masterFont.getName();
     for (Parameter<?> p : chartParam.getParameters()) {
       if (!(p instanceof FontParameter) || master.equals(p.getName()))
         continue;

@@ -40,6 +40,7 @@ import javax.swing.ImageIcon;
 
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.layout.StructureDiagramGenerator;
 import org.openscience.cdk.renderer.AtomContainerRenderer;
@@ -60,12 +61,12 @@ import org.slf4j.LoggerFactory;
 public class SiriusCompound extends SimplePeakIdentity {
   private static final Logger logger = LoggerFactory.getLogger(SiriusCompound.class);
   public static final int PREVIEW_HEIGHT = 150;
-  public static final int PREVIEW_WIDTH = 100;
+  public static final int PREVIEW_WIDTH = 150;
   public static final int STRUCTURE_WIDTH = 600;
   public static final int STRUCTURE_HEIGHT = 600;
 
   private final SiriusIonAnnotation annotation;
-  private final ImageIcon preview;
+  private final IAtomContainer container;
 
   /**
    * Constructor for SiriusCompound
@@ -75,7 +76,7 @@ public class SiriusCompound extends SimplePeakIdentity {
   public SiriusCompound(@Nonnull final SiriusIonAnnotation annotation) {
     super(loadProps(annotation));
     this.annotation = annotation;
-    this.preview = generateStructurePreview();
+    container = getChemicalStructure();
   }
 
   /**
@@ -86,7 +87,7 @@ public class SiriusCompound extends SimplePeakIdentity {
   public SiriusCompound(final SiriusCompound master) {
     super((Hashtable<String, String>) master.getAllProperties());
     this.annotation = master.annotation;
-    preview = master.preview;
+    container = master.container;
   }
 
   /**
@@ -192,38 +193,25 @@ public class SiriusCompound extends SimplePeakIdentity {
   }
 
   /**
-   * Method generates preview image of the sirius compound
-   * 
-   * @return scaled image
+   * Method returns AtomContainer of the compound (if exists)
+   *
+   * @return IAtomContainer object
    */
-  private ImageIcon generateStructurePreview() {
-    Image image = generateImage(PREVIEW_WIDTH * 2, PREVIEW_HEIGHT * 2);
-    if (image == null)
+  private IAtomContainer getChemicalStructure() {
+    IAtomContainer container = getIonAnnotation().getChemicalStructure();
+    if (container == null)
       return null;
 
-    image = image.getScaledInstance(PREVIEW_WIDTH, PREVIEW_HEIGHT, Image.SCALE_DEFAULT);
-    ImageIcon ic = new ImageIcon(image);
-    return ic;
+    return container;
   }
 
   /**
-   * Getter for preview ImageIcon object
-   * 
-   * @return shortcut ImageIcon object
+   * Getter for container Object (IAtomContainer)
+   *
+   * @return marker of existence of IAtomContainer object
    */
-  public ImageIcon getPreview() {
-    return preview;
-  }
-
-  /**
-   * Generates Image of the Chemical Structure
-   * 
-   * @param width of the image
-   * @param height of the image
-   * @return new Image, returns null if used on non-processed by FingerId SiriusCompound
-   */
-  public @Nullable Image generateStructureImage(int width, int height) {
-    return generateImage(width, height);
+  public IAtomContainer getContainer() {
+    return container;
   }
 
   /**
@@ -234,7 +222,7 @@ public class SiriusCompound extends SimplePeakIdentity {
    * @param height of the image
    * @return new Image object
    */
-  private Image generateImage(int width, int height) {
+  public Image generateImage(int width, int height) {
     IAtomContainer molecule = this.annotation.getChemicalStructure();
     if (molecule == null)
       return null;
