@@ -54,7 +54,7 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
 
     for (PeakList peakList : peakLists) {
       // start tasks
-      Task newTask = new MultiThreadPeakFinderMainTask(project, peakList, parameters);
+      Task newTask = new MultiThreadPeakFinderMainTask(project, peakList, parameters, tasks);
       tasks.add(newTask);
     }
     return ExitCode.OK;
