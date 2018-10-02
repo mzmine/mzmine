@@ -205,6 +205,9 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         else  if (source.equals(btnRefresh))
             refresh();
 
+        else if (source.equals(cboPeakLists))
+            retTimeCluster();
+
         else if (source.equals(cboClusters))
             shapeCluster();
     }
