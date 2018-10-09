@@ -20,20 +20,19 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.Collection;
-
 import javax.swing.JFrame;
-
-import net.sf.mzmine.parameters.Parameter;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import net.sf.mzmine.parameters.Parameter;
 
 public class WindowSettingsParameter implements Parameter<Object>, ComponentListener {
 
@@ -162,6 +161,29 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
     if (isMaximized) {
       frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
     }
+
+    if (!isOnScreen(frame)) {
+      frame.setLocation(0, 0);
+      frame.setSize(1024, 800);
+      frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
+    }
+  }
+
+
+
+  public boolean isOnScreen(JFrame frame) {
+    Rectangle virtualBounds = getVirtualBounds();
+    return virtualBounds.contains(frame.getBounds());
+  }
+
+  public static Rectangle getVirtualBounds() {
+    Rectangle bounds = new Rectangle(0, 0, 0, 0);
+    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice lstGDs[] = ge.getScreenDevices();
+    for (GraphicsDevice gd : lstGDs) {
+      bounds.add(gd.getDefaultConfiguration().getBounds());
+    }
+    return bounds;
   }
 
   @Override
