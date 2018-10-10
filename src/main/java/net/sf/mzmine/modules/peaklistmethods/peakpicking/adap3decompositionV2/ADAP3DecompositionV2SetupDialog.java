@@ -23,6 +23,8 @@ import dulab.adap.datamodel.BetterPeak;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -244,10 +246,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
             cboPeakLists.addItem(p);
         cboPeakLists.addActionListener(this);
-        if (cboPeakLists.getItemCount() > 0)
-            cboPeakLists.setSelectedIndex(0);
 
-        retTimeCluster();
+        if (cboPeakLists.getItemCount() > 0) cboPeakLists.setSelectedIndex(0);
     }
 
     /**
@@ -267,10 +267,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         if (minDistance == null || minSize == null) return;
 
         // Convert peakList into ranges
-        RetTimeClusterer.Item[] ranges = Arrays.stream(peakList.getRows())
+        List<RetTimeClusterer.Interval> ranges = Arrays.stream(peakList.getRows())
                 .map(PeakListRow::getBestPeak)
-                .map(p -> new RetTimeClusterer.Item(p.getRT(), p.getRawDataPointsRTRange(), p.getMZ()))
-                .toArray(RetTimeClusterer.Item[]::new);
+                .map(p -> new RetTimeClusterer.Interval(p.getRawDataPointsRTRange(), p.getMZ()))
+                .collect(Collectors.toList());
 
         // Form clusters of ranges
         List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize).execute(ranges);
@@ -331,8 +331,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             e.printStackTrace();
         }
 
-        Set<Double> mzSet = cluster.ranges.stream()
-                .map(RetTimeClusterer.Item::getMZ).collect(Collectors.toSet());
+        Set<Double> mzSet = cluster.intervals
+                .stream()
+                .map(RetTimeClusterer.Interval::getMz)
+                .collect(Collectors.toSet());
 
         chromatograms = chromatograms.stream()
                 .filter(c -> mzSet.contains(c.mzValue)).collect(Collectors.toList());

@@ -23,6 +23,7 @@ import dulab.adap.datamodel.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import dulab.adap.workflow.decomposition.Decomposition;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
@@ -115,16 +116,20 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                 } catch (IllegalArgumentException e) {
                     errorMsg = "Incorrect Peak List selected:\n"
                             + e.getMessage();
+                    e.printStackTrace();
                 } catch (IllegalStateException e) {
                     errorMsg = "Peak decompostion error:\n"
                             + e.getMessage();
+                    e.printStackTrace();
                 } catch (Exception e) {
                     errorMsg = "'Unknown error' during peak decomposition. \n"
                             + e.getMessage();
+                    e.printStackTrace();
                 } catch (Throwable t) {
 
                     setStatus(TaskStatus.ERROR);
                     setErrorMessage(t.getMessage());
+                    t.printStackTrace();
                     LOG.log(Level.SEVERE, "Peak decompostion error", t);
                 }
 
@@ -156,10 +161,10 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         
         // Collect peak information
         List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(lists.chromatograms);
-        RetTimeClusterer.Item[] ranges = Arrays.stream(lists.peaks.getRows())
+        List<RetTimeClusterer.Interval> ranges = Arrays.stream(lists.peaks.getRows())
                 .map(PeakListRow::getBestPeak)
-                .map(p -> new RetTimeClusterer.Item(p.getRT(), p.getRawDataPointsRTRange(), p.getMZ()))
-                .toArray(RetTimeClusterer.Item[]::new);
+                .map(p -> new RetTimeClusterer.Interval(p.getRawDataPointsRTRange(), p.getMZ()))
+                .collect(Collectors.toList());
 
         // Find components (a.k.a. clusters of peaks with fragmentation spectra)
         List<BetterComponent> components = getComponents(chromatograms, ranges);
@@ -226,7 +231,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
      * @return Collection of dulab.adap.Component objects
      */
     
-    private List<BetterComponent> getComponents(List<BetterPeak> chromatograms, RetTimeClusterer.Item[] ranges)
+    private List<BetterComponent> getComponents(List<BetterPeak> chromatograms, List<RetTimeClusterer.Interval> ranges)
     {
         // -----------------------------
         // ADAP Decomposition Parameters

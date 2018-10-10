@@ -98,9 +98,9 @@ public class SimpleScatterPlot extends ChartPanel
         int seriesID = 0;
         for (RetTimeClusterer.Cluster c : clusters) {
             XYSeries series = new XYSeries(seriesID++, false);
-            for (RetTimeClusterer.Item range : c.ranges) {
-                series.add(range.getInterval().lowerEndpoint().doubleValue(), range.getMZ());
-                series.add(range.getInterval().upperEndpoint().doubleValue(), range.getMZ());
+            for (RetTimeClusterer.Interval range : c.intervals) {
+                series.add(range.getRange().lowerEndpoint().doubleValue(), range.getMz());
+                series.add(range.getRange().upperEndpoint().doubleValue(), range.getMz());
             }
             xyDataset.addSeries(series);
         }
