@@ -23,6 +23,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 import com.google.common.collect.Range;
+import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -98,9 +99,9 @@ public class SimpleScatterPlot extends ChartPanel
         int seriesID = 0;
         for (RetTimeClusterer.Cluster c : clusters) {
             XYSeries series = new XYSeries(seriesID++, false);
-            for (RetTimeClusterer.Interval range : c.intervals) {
-                series.add(range.getRange().lowerEndpoint().doubleValue(), range.getMz());
-                series.add(range.getRange().upperEndpoint().doubleValue(), range.getMz());
+            for (BetterPeak peak : c.peaks) {
+                series.add(peak.getFirstRetTime(), peak.getMZ());
+                series.add(peak.getLastRetTime(), peak.getMZ());
             }
             xyDataset.addSeries(series);
         }

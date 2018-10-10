@@ -44,7 +44,9 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
     // Logger.
     private static final Logger LOG = Logger.getLogger(ADAP3DecompositionV2Task.class.getName());
-    
+
+    private final ADAP3DecompositionV2Utils utils = new ADAP3DecompositionV2Utils();
+
     // Peak lists.
     private final MZmineProject project;
     private final ChromatogramPeakPair originalLists;
@@ -160,14 +162,11 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                         "Peak deconvolution by ADAP-3", parameters));
         
         // Collect peak information
-        List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(lists.chromatograms);
-        List<RetTimeClusterer.Interval> ranges = Arrays.stream(lists.peaks.getRows())
-                .map(PeakListRow::getBestPeak)
-                .map(p -> new RetTimeClusterer.Interval(p.getRawDataPointsRTRange(), p.getMZ()))
-                .collect(Collectors.toList());
+        List<BetterPeak> chromatograms = utils.getPeaks(lists.chromatograms);
+        List<BetterPeak> peaks = utils.getPeaks(lists.peaks);
 
         // Find components (a.k.a. clusters of peaks with fragmentation spectra)
-        List<BetterComponent> components = getComponents(chromatograms, ranges);
+        List<BetterComponent> components = getComponents(chromatograms, peaks);
 
         // Create PeakListRow for each components
         List <PeakListRow> newPeakListRows = new ArrayList <> ();
@@ -231,7 +230,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
      * @return Collection of dulab.adap.Component objects
      */
     
-    private List<BetterComponent> getComponents(List<BetterPeak> chromatograms, List<RetTimeClusterer.Interval> ranges)
+    private List<BetterComponent> getComponents(List<BetterPeak> chromatograms, List<BetterPeak> peaks)
     {
         // -----------------------------
         // ADAP Decomposition Parameters
@@ -245,7 +244,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         params.smoothing = parameters.getParameter(ADAP3DecompositionV2Parameters.SMOOTHING).getValue();
         params.unimodality = parameters.getParameter(ADAP3DecompositionV2Parameters.UNIMODALITY).getValue();
 
-        return decomposition.run(params, chromatograms, ranges);
+        return decomposition.run(params, chromatograms, peaks);
     }
 
     @Nonnull

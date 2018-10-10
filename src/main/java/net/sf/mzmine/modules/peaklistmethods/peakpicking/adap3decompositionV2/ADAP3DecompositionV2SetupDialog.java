@@ -272,8 +272,10 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
                 .map(p -> new RetTimeClusterer.Interval(p.getRawDataPointsRTRange(), p.getMZ()))
                 .collect(Collectors.toList());
 
+        List<BetterPeak> peaks = new ADAP3DecompositionV2Utils().getPeaks(peakList);
+
         // Form clusters of ranges
-        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize).execute(ranges);
+        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize).execute(peaks);
 
         cboClusters.removeAllItems();
         cboClusters.removeActionListener(this);
@@ -331,9 +333,9 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             e.printStackTrace();
         }
 
-        Set<Double> mzSet = cluster.intervals
+        Set<Double> mzSet = cluster.peaks
                 .stream()
-                .map(RetTimeClusterer.Interval::getMz)
+                .map(BetterPeak::getMZ)
                 .collect(Collectors.toSet());
 
         chromatograms = chromatograms.stream()
