@@ -33,6 +33,11 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to peak list name", "filtered");
 
+  public static final BooleanParameter filterAverageValues = new BooleanParameter(
+      "Filter average m/z and RT",
+      "Uncheck to compare rows on a raw data file basis. This will mark duplicates that share one feature (in one raw data file) with the same RT and m/z (and ID and charge state). If checked this algorithm will compare rows only with their average m/z and RT values, like the old algorithm.",
+      false);
+
   public static final MZToleranceParameter mzDifferenceMax =
       new MZToleranceParameter("m/z tolerance", "Maximum m/z difference between duplicate peaks");
   public static final RTToleranceParameter rtDifferenceMax = new RTToleranceParameter(
@@ -46,7 +51,7 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
       "If checked, original peaklist will be removed and only deisotoped version remains");
 
   public DuplicateFilterParameters() {
-    super(new Parameter[] {peakLists, suffix, mzDifferenceMax, rtDifferenceMax,
+    super(new Parameter[] {peakLists, suffix, filterAverageValues, mzDifferenceMax, rtDifferenceMax,
         requireSameIdentification, autoRemove,});
   }
 

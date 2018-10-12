@@ -18,10 +18,20 @@ row, all <span style="background-color: #00FF00"><b>DETECTED</b></span> features
 Furthermore, if there are only <span style="background-color: #FFFF00"><b>ESTIMATED</b></span> features in a raw data file, the highest is chosen.
 </p>
 
+<h4>Notes</h4>
+This filter might be very helpful to eliminate misaligned feature list rows after the gap-filling process. 
+As the average retention time and m/z value for two duplicates should be very close after gap-filling. A more restrictive option is to mark all rows as duplicates that share one duplicate feature. 
+To use this filter, turn off the average option.
+
+
 <h4>Method parameters</h4>
 <dl>
 <dt>Name sufix</dt>
 <dd>This is the suffix to identify the new aligned peak list in Peak list frame of desktop.</dd>
+
+<dt>Filter average m/z and RT</dt>
+<dd>If checked:	Compares rows with the average m/z and RT (like the old algorithm)</dd>
+<dd>If not:		Compares rows on a raw data file basis. Marks rows as duplicates if two rows share a feature in a raw data file with the same RT and m/z (and identity/charge state)</dd>
 
 <dt>M/Z tolerance</dt>
 <dd>Maximum m/z difference between duplicate peaks.</dd>

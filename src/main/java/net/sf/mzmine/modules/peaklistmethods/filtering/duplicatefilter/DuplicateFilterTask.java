@@ -100,8 +100,8 @@ public class DuplicateFilterTask extends AbstractTask {
             parameters.getParameter(DuplicateFilterParameters.suffix).getValue(),
             parameters.getParameter(DuplicateFilterParameters.mzDifferenceMax).getValue(),
             parameters.getParameter(DuplicateFilterParameters.rtDifferenceMax).getValue(),
-            parameters.getParameter(DuplicateFilterParameters.requireSameIdentification)
-                .getValue());
+            parameters.getParameter(DuplicateFilterParameters.requireSameIdentification).getValue(),
+            parameters.getParameter(DuplicateFilterParameters.filterAverageValues).getValue());
 
         if (!isCanceled()) {
 
@@ -138,13 +138,12 @@ public class DuplicateFilterTask extends AbstractTask {
    * @return the filtered peak list.
    */
   private PeakList filterDuplicatePeakListRows(final PeakList origPeakList, final String suffix,
-      final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId) {
+      final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
+      boolean filterAverageValues) {
 
     final PeakListRow[] peakListRows = origPeakList.getRows();
     final int rowCount = peakListRows.length;
     RawDataFile[] rawFiles = origPeakList.getRawDataFiles();
-
-
 
     // Create the new peak list.
     final PeakList newPeakList =
@@ -175,33 +174,59 @@ public class DuplicateFilterTask extends AbstractTask {
             final boolean sameID =
                 !requireSameId || PeakUtils.compareIdentities(firstRow, secondRow);
 
-            // Compare m/z
-            final boolean sameMZ = mzTolerance.getToleranceRange(firstRow.getAverageMZ())
-                .contains(secondRow.getAverageMZ());
+            boolean sameMZRT = false;
+            if (filterAverageValues) {
+              // Compare m/z
+              boolean sameMZ = mzTolerance.getToleranceRange(firstRow.getAverageMZ())
+                  .contains(secondRow.getAverageMZ());
 
-            // Compare rt
-            final boolean sameRT = rtTolerance.getToleranceRange(firstRow.getAverageRT())
-                .contains(secondRow.getAverageRT());
+              // Compare rt
+              boolean sameRT = rtTolerance.getToleranceRange(firstRow.getAverageRT())
+                  .contains(secondRow.getAverageRT());
+              sameMZRT = sameMZ && sameRT;
+            } else {
+              // at least one similar feature in one raw data file
+              for (RawDataFile raw : rawFiles) {
+                Feature f1 = firstRow.getPeak(raw);
+                Feature f2 = secondRow.getPeak(raw);
+                if (f1 != null && f2 != null) {
+                  // Compare m/z
+                  boolean sameMZ = mzTolerance.getToleranceRange(firstRow.getAverageMZ())
+                      .contains(secondRow.getAverageMZ());
+
+                  // Compare rt
+                  boolean sameRT = rtTolerance.getToleranceRange(firstRow.getAverageRT())
+                      .contains(secondRow.getAverageRT());
+                  sameMZRT = sameMZ && sameRT;
+
+                  // at least one
+                  if (sameMZRT)
+                    break;
+                }
+              }
+            }
 
             // Duplicate peaks?
-            if (sameID && sameMZ && sameRT) {
+            if (sameID && sameMZRT) {
               // MODIFIED!
               // copy all detected features of row2 into row1
               // to exchange detected features against gap-filled
               for (RawDataFile raw : rawFiles) {
                 Feature f2 = secondRow.getPeak(raw);
-                if (f2 != null && f2.getFeatureStatus().equals(FeatureStatus.DETECTED)) {
-                  // DETECTED over all
-                  firstRow.addPeak(raw, copyPeak(f2));
-                } else if (f2.getFeatureStatus().equals(FeatureStatus.ESTIMATED)) {
-                  Feature f1 = firstRow.getPeak(raw);
-                  if (f1 != null) {
-                    // ESTIMATED over UNKNOWN or
-                    // BOTH ESTIMATED? take the highest
-                    if (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
-                        || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
-                            && f1.getHeight() < f2.getHeight()))
-                      firstRow.addPeak(raw, copyPeak(f2));
+                if (f2 != null) {
+                  if (f2.getFeatureStatus().equals(FeatureStatus.DETECTED)) {
+                    // DETECTED over all
+                    firstRow.addPeak(raw, copyPeak(f2));
+                  } else if (f2.getFeatureStatus().equals(FeatureStatus.ESTIMATED)) {
+                    Feature f1 = firstRow.getPeak(raw);
+                    if (f1 != null) {
+                      // ESTIMATED over UNKNOWN or
+                      // BOTH ESTIMATED? take the highest
+                      if (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
+                          || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
+                              && f1.getHeight() < f2.getHeight()))
+                        firstRow.addPeak(raw, copyPeak(f2));
+                    }
                   }
                 }
               }
