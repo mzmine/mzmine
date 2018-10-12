@@ -52,11 +52,6 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
                             "select windows of the given width, but it may not be able to do so.",
                     NumberFormat.getNumberInstance(), 0.05);
     
-    public static final IntegerParameter MIN_NUM_PEAK =
-            new IntegerParameter("Min number peaks",
-                    "Minimum number of detected peaks in a window",
-                    5);
-    
     // ------------------------------------------------------------------------
     // ----- End of First-phase parameters ------------------------------------
     // ------------------------------------------------------------------------
@@ -88,7 +83,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 	    "If checked, original chromomatogram and peak lists will be removed");
     
     public ADAP3DecompositionV2Parameters() {
-	    super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH, MIN_NUM_PEAK,
+	    super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH,
                 RET_TIME_TOLERANCE, SMOOTHING, UNIMODALITY, SUFFIX, AUTO_REMOVE});
     }
     

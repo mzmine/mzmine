@@ -23,7 +23,6 @@ import dulab.adap.datamodel.*;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import dulab.adap.workflow.decomposition.Decomposition;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
@@ -239,7 +238,6 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         Decomposition.Parameters params = new Decomposition.Parameters();
 
         params.prefWindowWidth = parameters.getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
-        params.minClusterSize = parameters.getParameter(ADAP3DecompositionV2Parameters.MIN_NUM_PEAK).getValue();
         params.retTimeTolerance = parameters.getParameter(ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
         params.smoothing = parameters.getParameter(ADAP3DecompositionV2Parameters.SMOOTHING).getValue();
         params.unimodality = parameters.getParameter(ADAP3DecompositionV2Parameters.UNIMODALITY).getValue();

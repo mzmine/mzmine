@@ -263,8 +263,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         if (chromatogramList == null || peakList == null) return;
 
         Double minDistance = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
-        Integer minSize = parameterSet.getParameter(ADAP3DecompositionV2Parameters.MIN_NUM_PEAK).getValue();
-        if (minDistance == null || minSize == null) return;
+        if (minDistance == null) return;
 
         // Convert peakList into ranges
         List<RetTimeClusterer.Interval> ranges = Arrays.stream(peakList.getRows())
@@ -275,7 +274,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         List<BetterPeak> peaks = new ADAP3DecompositionV2Utils().getPeaks(peakList);
 
         // Form clusters of ranges
-        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance, minSize).execute(peaks);
+        List<RetTimeClusterer.Cluster> retTimeClusters = new RetTimeClusterer(minDistance).execute(peaks);
 
         cboClusters.removeAllItems();
         cboClusters.removeActionListener(this);
@@ -357,8 +356,8 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             return CHANGE_STATE.FIRST_PHASE;
         }
         
-        final Set <Integer> firstPhaseIndices = new HashSet <> (Arrays.asList(2, 3));
-        final Set <Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(4, 5, 6));
+        final Set <Integer> firstPhaseIndices = new HashSet <> (Collections.singleton(2));
+        final Set <Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(3, 4, 5));
         
         int size = Math.min(currentParameters.length, newValues.length);
         
