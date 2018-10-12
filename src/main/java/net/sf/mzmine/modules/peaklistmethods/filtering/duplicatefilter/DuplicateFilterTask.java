@@ -21,12 +21,13 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
@@ -141,17 +142,28 @@ public class DuplicateFilterTask extends AbstractTask {
 
     final PeakListRow[] peakListRows = origPeakList.getRows();
     final int rowCount = peakListRows.length;
+    RawDataFile[] rawFiles = origPeakList.getRawDataFiles();
 
+
+
+    // Create the new peak list.
+    final PeakList newPeakList =
+        new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+
+    // sort rows
     Arrays.sort(peakListRows,
-        new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+        new PeakListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
 
     // Loop through all peak list rows
     processedRows = 0;
+    int n = 0;
     totalRows = rowCount;
     for (int firstRowIndex = 0; !isCanceled() && firstRowIndex < rowCount; firstRowIndex++) {
 
-      final PeakListRow firstRow = peakListRows[firstRowIndex];
-      if (firstRow != null) {
+      final PeakListRow mainRow = peakListRows[firstRowIndex];
+      if (mainRow != null) {
+        // need to copy to not alter the old peakList
+        PeakListRow firstRow = copyRow(mainRow);
 
         for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
             && secondRowIndex < rowCount; secondRowIndex++) {
@@ -173,56 +185,70 @@ public class DuplicateFilterTask extends AbstractTask {
 
             // Duplicate peaks?
             if (sameID && sameMZ && sameRT) {
-
+              // MODIFIED!
+              // copy all detected features of row2 into row1
+              // to exchange detected features against gap-filled
+              for (RawDataFile raw : rawFiles) {
+                Feature f2 = secondRow.getPeak(raw);
+                if (f2 != null && f2.getFeatureStatus().equals(FeatureStatus.DETECTED)) {
+                  // DETECTED over all
+                  firstRow.addPeak(raw, copyPeak(f2));
+                } else if (f2.getFeatureStatus().equals(FeatureStatus.ESTIMATED)) {
+                  Feature f1 = firstRow.getPeak(raw);
+                  if (f1 != null) {
+                    // ESTIMATED over UNKNOWN or
+                    // BOTH ESTIMATED? take the highest
+                    if (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
+                        || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
+                            && f1.getHeight() < f2.getHeight()))
+                      firstRow.addPeak(raw, copyPeak(f2));
+                  }
+                }
+              }
+              // row deleted
+              n++;
               peakListRows[secondRowIndex] = null;
             }
           }
         }
+        // add to new list
+        newPeakList.addRow(firstRow);
       }
-
       processedRows++;
     }
 
-    // Create the new peak list.
-    final PeakList newPeakList =
-        new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
-
-    // Add all remaining rows to a new peak list.
-    for (int i = 0; !isCanceled() && i < rowCount; i++) {
-
-      final PeakListRow row = peakListRows[i];
-
-      if (row != null) {
-
-        // Copy the peak list row.
-        final PeakListRow newRow = new SimplePeakListRow(row.getID());
-        PeakUtils.copyPeakListRowProperties(row, newRow);
-
-        // Copy the peaks.
-        for (final Feature peak : row.getPeaks()) {
-
-          final Feature newPeak = new SimpleFeature(peak);
-          PeakUtils.copyPeakProperties(peak, newPeak);
-          newRow.addPeak(peak.getDataFile(), newPeak);
-        }
-
-        newPeakList.addRow(newRow);
-      }
-    }
-
+    // finalize
     if (!isCanceled()) {
-
       // Load previous applied methods.
       for (final PeakListAppliedMethod method : origPeakList.getAppliedMethods()) {
-
         newPeakList.addDescriptionOfAppliedTask(method);
       }
 
       // Add task description to peakList
       newPeakList.addDescriptionOfAppliedTask(
           new SimplePeakListAppliedMethod("Duplicate peak list rows filter", parameters));
+      LOG.info("Removed " + n + " duplicate rows");
     }
 
     return newPeakList;
+  }
+
+  public PeakListRow copyRow(PeakListRow row) {
+    // Copy the peak list row.
+    final PeakListRow newRow = new SimplePeakListRow(row.getID());
+    PeakUtils.copyPeakListRowProperties(row, newRow);
+
+    // Copy the peaks.
+    for (final Feature peak : row.getPeaks()) {
+      newRow.addPeak(peak.getDataFile(), copyPeak(peak));
+    }
+    return newRow;
+  }
+
+  public Feature copyPeak(Feature peak) {
+    // Copy the peaks.
+    final Feature newPeak = new SimpleFeature(peak);
+    PeakUtils.copyPeakProperties(peak, newPeak);
+    return newPeak;
   }
 }

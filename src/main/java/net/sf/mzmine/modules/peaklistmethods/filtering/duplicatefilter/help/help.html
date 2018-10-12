@@ -13,8 +13,9 @@
 
 <p>
 Two peaks are considered duplicates when their m/z and retention time differences are lower than
-the tolerances set by the user. When two duplicates are found, the row with the smaller median 
-of all peak areas will be deleted.
+the tolerances set by the user. When two (or more) duplicates are found, a consensus row is created with the lowest row ID of all duplicates. For this consensus 
+row, all <span style="background-color: #00FF00"><b>DETECTED</b></span> features are favored over <span style="background-color: #FFFF00"><b>ESTIMATED</b></span> (gap-filled) and ESTIMATED are favored over <span style="background-color: #FF0000"><b>UNKNOWN</b></span>. 
+Furthermore, if there are only <span style="background-color: #FFFF00"><b>ESTIMATED</b></span> features in a raw data file, the highest is chosen.
 </p>
 
 <h4>Method parameters</h4>
@@ -36,5 +37,11 @@ of all peak areas will be deleted.
 
 </dl>
 
+
+        <p>
+        <h4>Aligned, gap-filled feature list prior and after duplicate row filter.</h4>
+        <img src="prior.png" name="prior">
+        <img src="after.png" name="after">
+        </p>
 </body>
 </html>
