@@ -141,7 +141,6 @@ public class DuplicateFilterTask extends AbstractTask {
   private PeakList filterDuplicatePeakListRows(final PeakList origPeakList, final String suffix,
       final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
       FilterMode mode) {
-
     final PeakListRow[] peakListRows = origPeakList.getRows();
     final int rowCount = peakListRows.length;
     RawDataFile[] rawFiles = origPeakList.getRawDataFiles();
@@ -157,6 +156,9 @@ public class DuplicateFilterTask extends AbstractTask {
     else
       Arrays.sort(peakListRows,
           new PeakListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+
+    // filter by average mz and rt
+    boolean filterByAvgRTMZ = !mode.equals(FilterMode.SINGLE_FEATURE);
 
     // Loop through all peak list rows
     processedRows = 0;
@@ -178,73 +180,22 @@ public class DuplicateFilterTask extends AbstractTask {
             final boolean sameID =
                 !requireSameId || PeakUtils.compareIdentities(firstRow, secondRow);
 
-            boolean sameMZRT = false;
-            if (!mode.equals(FilterMode.SINGLE_FEATURE)) {
-              // Compare m/z
-              boolean sameMZ = mzTolerance.getToleranceRange(firstRow.getAverageMZ())
-                  .contains(secondRow.getAverageMZ());
-
-              // Compare rt
-              boolean sameRT = rtTolerance.getToleranceRange(firstRow.getAverageRT())
-                  .contains(secondRow.getAverageRT());
-              sameMZRT = sameMZ && sameRT;
-            } else {
-              // at least one similar feature in one raw data file
-              for (RawDataFile raw : rawFiles) {
-                Feature f1 = firstRow.getPeak(raw);
-                Feature f2 = secondRow.getPeak(raw);
-                if (f1 != null && f2 != null) {
-                  // Compare m/z
-                  boolean sameMZ = mzTolerance.getToleranceRange(firstRow.getAverageMZ())
-                      .contains(secondRow.getAverageMZ());
-
-                  // Compare rt
-                  boolean sameRT = rtTolerance.getToleranceRange(firstRow.getAverageRT())
-                      .contains(secondRow.getAverageRT());
-                  sameMZRT = sameMZ && sameRT;
-
-                  // at least one
-                  if (sameMZRT)
-                    break;
-                }
-              }
-            }
+            boolean sameMZRT = filterByAvgRTMZ ? // average or single feature
+                checkSameAverageRTMZ(firstRow, secondRow, mzTolerance, rtTolerance)
+                : checkSameSingleFeatureRTMZ(rawFiles, firstRow, secondRow, mzTolerance,
+                    rtTolerance);
 
             // Duplicate peaks?
             if (sameID && sameMZRT) {
-              if (mode.equals(FilterMode.OLD_AVERAGE)) {
-                // old filter
-                // keep the row with the max average area
-                // row deleted
-                n++;
-                peakListRows[secondRowIndex] = null;
-              } else {
-                // MODIFIED!
+              // create consensus row in new filter
+              if (!mode.equals(FilterMode.OLD_AVERAGE)) {
                 // copy all detected features of row2 into row1
-                // to exchange detected features against gap-filled
-                for (RawDataFile raw : rawFiles) {
-                  Feature f2 = secondRow.getPeak(raw);
-                  if (f2 != null) {
-                    if (f2.getFeatureStatus().equals(FeatureStatus.DETECTED)) {
-                      // DETECTED over all
-                      firstRow.addPeak(raw, copyPeak(f2));
-                    } else if (f2.getFeatureStatus().equals(FeatureStatus.ESTIMATED)) {
-                      Feature f1 = firstRow.getPeak(raw);
-                      if (f1 != null) {
-                        // ESTIMATED over UNKNOWN or
-                        // BOTH ESTIMATED? take the highest
-                        if (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
-                            || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
-                                && f1.getHeight() < f2.getHeight()))
-                          firstRow.addPeak(raw, copyPeak(f2));
-                      }
-                    }
-                  }
-                }
-                // row deleted
-                n++;
-                peakListRows[secondRowIndex] = null;
+                // to exchange gap-filled against detected features
+                createConsensusRow(rawFiles, firstRow, secondRow);
               }
+              // second row deleted
+              n++;
+              peakListRows[secondRowIndex] = null;
             }
           }
         }
@@ -268,6 +219,77 @@ public class DuplicateFilterTask extends AbstractTask {
     }
 
     return newPeakList;
+  }
+
+  /**
+   * Turns firstRow to consensus row. With all features with highest FeatureStatus:
+   * DETECTED>ESTIMATED>UNKNOWN Or the highest feature when comparing two ESTIMATED features
+   * 
+   * @param rawFiles
+   * @param firstRow
+   * @param secondRow
+   */
+  private void createConsensusRow(RawDataFile[] rawFiles, PeakListRow firstRow,
+      PeakListRow secondRow) {
+    for (RawDataFile raw : rawFiles) {
+      Feature f2 = secondRow.getPeak(raw);
+      if (f2 != null) {
+        if (f2.getFeatureStatus().equals(FeatureStatus.DETECTED)) {
+          // DETECTED over all
+          firstRow.addPeak(raw, copyPeak(f2));
+        } else if (f2.getFeatureStatus().equals(FeatureStatus.ESTIMATED)) {
+          Feature f1 = firstRow.getPeak(raw);
+          if (f1 != null) {
+            // ESTIMATED over UNKNOWN or
+            // BOTH ESTIMATED? take the highest
+            if (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
+                || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
+                    && f1.getHeight() < f2.getHeight()))
+              firstRow.addPeak(raw, copyPeak(f2));
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Has one feature within RT and mzTolerance in at least one raw data file
+   * 
+   * @param rawFiles
+   * @param firstRow
+   * @param secondRow
+   * @param mzTolerance
+   * @param rtTolerance
+   * @return
+   */
+  private boolean checkSameSingleFeatureRTMZ(RawDataFile[] rawFiles, PeakListRow firstRow,
+      PeakListRow secondRow, MZTolerance mzTolerance, RTTolerance rtTolerance) {
+    // at least one similar feature in one raw data file
+    for (RawDataFile raw : rawFiles) {
+      Feature f1 = firstRow.getPeak(raw);
+      Feature f2 = secondRow.getPeak(raw);
+      // Compare m/z and rt
+      if (f1 != null && f2 != null && mzTolerance.checkWithinTolerance(f1.getMZ(), f2.getMZ())
+          && rtTolerance.checkWithinTolerance(f1.getRT(), f2.getRT()))
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Shares the same RT and mz
+   * 
+   * @param firstRow
+   * @param secondRow
+   * @param mzTolerance
+   * @param rtTolerance
+   * @return
+   */
+  private boolean checkSameAverageRTMZ(PeakListRow firstRow, PeakListRow secondRow,
+      MZTolerance mzTolerance, RTTolerance rtTolerance) {
+    // Compare m/z and RT
+    return mzTolerance.checkWithinTolerance(firstRow.getAverageMZ(), secondRow.getAverageMZ())
+        && rtTolerance.checkWithinTolerance(firstRow.getAverageRT(), secondRow.getAverageRT());
   }
 
   public PeakListRow copyRow(PeakListRow row) {
