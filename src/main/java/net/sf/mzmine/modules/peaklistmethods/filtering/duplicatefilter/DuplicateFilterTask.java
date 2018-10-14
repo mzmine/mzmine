@@ -32,6 +32,7 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterParameters.FilterMode;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -101,7 +102,7 @@ public class DuplicateFilterTask extends AbstractTask {
             parameters.getParameter(DuplicateFilterParameters.mzDifferenceMax).getValue(),
             parameters.getParameter(DuplicateFilterParameters.rtDifferenceMax).getValue(),
             parameters.getParameter(DuplicateFilterParameters.requireSameIdentification).getValue(),
-            parameters.getParameter(DuplicateFilterParameters.filterAverageValues).getValue());
+            parameters.getParameter(DuplicateFilterParameters.filterMode).getValue());
 
         if (!isCanceled()) {
 
@@ -139,7 +140,7 @@ public class DuplicateFilterTask extends AbstractTask {
    */
   private PeakList filterDuplicatePeakListRows(final PeakList origPeakList, final String suffix,
       final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
-      boolean filterAverageValues) {
+      FilterMode mode) {
 
     final PeakListRow[] peakListRows = origPeakList.getRows();
     final int rowCount = peakListRows.length;
@@ -150,8 +151,12 @@ public class DuplicateFilterTask extends AbstractTask {
         new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
 
     // sort rows
-    Arrays.sort(peakListRows,
-        new PeakListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+    if (mode.equals(FilterMode.OLD_AVERAGE))
+      Arrays.sort(peakListRows,
+          new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+    else
+      Arrays.sort(peakListRows,
+          new PeakListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
 
     // Loop through all peak list rows
     processedRows = 0;
@@ -169,13 +174,12 @@ public class DuplicateFilterTask extends AbstractTask {
 
           final PeakListRow secondRow = peakListRows[secondRowIndex];
           if (secondRow != null) {
-
             // Compare identifications
             final boolean sameID =
                 !requireSameId || PeakUtils.compareIdentities(firstRow, secondRow);
 
             boolean sameMZRT = false;
-            if (filterAverageValues) {
+            if (!mode.equals(FilterMode.SINGLE_FEATURE)) {
               // Compare m/z
               boolean sameMZ = mzTolerance.getToleranceRange(firstRow.getAverageMZ())
                   .contains(secondRow.getAverageMZ());
@@ -208,31 +212,39 @@ public class DuplicateFilterTask extends AbstractTask {
 
             // Duplicate peaks?
             if (sameID && sameMZRT) {
-              // MODIFIED!
-              // copy all detected features of row2 into row1
-              // to exchange detected features against gap-filled
-              for (RawDataFile raw : rawFiles) {
-                Feature f2 = secondRow.getPeak(raw);
-                if (f2 != null) {
-                  if (f2.getFeatureStatus().equals(FeatureStatus.DETECTED)) {
-                    // DETECTED over all
-                    firstRow.addPeak(raw, copyPeak(f2));
-                  } else if (f2.getFeatureStatus().equals(FeatureStatus.ESTIMATED)) {
-                    Feature f1 = firstRow.getPeak(raw);
-                    if (f1 != null) {
-                      // ESTIMATED over UNKNOWN or
-                      // BOTH ESTIMATED? take the highest
-                      if (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
-                          || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
-                              && f1.getHeight() < f2.getHeight()))
-                        firstRow.addPeak(raw, copyPeak(f2));
+              if (mode.equals(FilterMode.OLD_AVERAGE)) {
+                // old filter
+                // keep the row with the max average area
+                // row deleted
+                n++;
+                peakListRows[secondRowIndex] = null;
+              } else {
+                // MODIFIED!
+                // copy all detected features of row2 into row1
+                // to exchange detected features against gap-filled
+                for (RawDataFile raw : rawFiles) {
+                  Feature f2 = secondRow.getPeak(raw);
+                  if (f2 != null) {
+                    if (f2.getFeatureStatus().equals(FeatureStatus.DETECTED)) {
+                      // DETECTED over all
+                      firstRow.addPeak(raw, copyPeak(f2));
+                    } else if (f2.getFeatureStatus().equals(FeatureStatus.ESTIMATED)) {
+                      Feature f1 = firstRow.getPeak(raw);
+                      if (f1 != null) {
+                        // ESTIMATED over UNKNOWN or
+                        // BOTH ESTIMATED? take the highest
+                        if (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
+                            || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
+                                && f1.getHeight() < f2.getHeight()))
+                          firstRow.addPeak(raw, copyPeak(f2));
+                      }
                     }
                   }
                 }
+                // row deleted
+                n++;
+                peakListRows[secondRowIndex] = null;
               }
-              // row deleted
-              n++;
-              peakListRows[secondRowIndex] = null;
             }
           }
         }
