@@ -162,7 +162,10 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
       frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
     }
 
+    // when still outside of screen
+    // e.g. changing from 2 screens to one
     if (!isOnScreen(frame)) {
+      // Maximise on screen 1
       frame.setLocation(0, 0);
       frame.setSize(1024, 800);
       frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
