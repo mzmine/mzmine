@@ -174,12 +174,12 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
 
 
 
-  public boolean isOnScreen(JFrame frame) {
+  private boolean isOnScreen(JFrame frame) {
     Rectangle virtualBounds = getVirtualBounds();
     return virtualBounds.contains(frame.getBounds());
   }
 
-  public static Rectangle getVirtualBounds() {
+  private Rectangle getVirtualBounds() {
     Rectangle bounds = new Rectangle(0, 0, 0, 0);
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice lstGDs[] = ge.getScreenDevices();
