@@ -21,16 +21,18 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterParameters.FilterMode;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -99,8 +101,8 @@ public class DuplicateFilterTask extends AbstractTask {
             parameters.getParameter(DuplicateFilterParameters.suffix).getValue(),
             parameters.getParameter(DuplicateFilterParameters.mzDifferenceMax).getValue(),
             parameters.getParameter(DuplicateFilterParameters.rtDifferenceMax).getValue(),
-            parameters.getParameter(DuplicateFilterParameters.requireSameIdentification)
-                .getValue());
+            parameters.getParameter(DuplicateFilterParameters.requireSameIdentification).getValue(),
+            parameters.getParameter(DuplicateFilterParameters.filterMode).getValue());
 
         if (!isCanceled()) {
 
@@ -137,92 +139,178 @@ public class DuplicateFilterTask extends AbstractTask {
    * @return the filtered peak list.
    */
   private PeakList filterDuplicatePeakListRows(final PeakList origPeakList, final String suffix,
-      final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId) {
-
+      final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
+      FilterMode mode) {
     final PeakListRow[] peakListRows = origPeakList.getRows();
     final int rowCount = peakListRows.length;
+    RawDataFile[] rawFiles = origPeakList.getRawDataFiles();
 
-    Arrays.sort(peakListRows,
-        new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+    // Create the new peak list.
+    final PeakList newPeakList =
+        new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+
+    // sort rows
+    if (mode.equals(FilterMode.OLD_AVERAGE))
+      Arrays.sort(peakListRows,
+          new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+    else
+      Arrays.sort(peakListRows,
+          new PeakListRowSorter(SortingProperty.ID, SortingDirection.Ascending));
+
+    // filter by average mz and rt
+    boolean filterByAvgRTMZ = !mode.equals(FilterMode.SINGLE_FEATURE);
 
     // Loop through all peak list rows
     processedRows = 0;
+    int n = 0;
     totalRows = rowCount;
     for (int firstRowIndex = 0; !isCanceled() && firstRowIndex < rowCount; firstRowIndex++) {
 
-      final PeakListRow firstRow = peakListRows[firstRowIndex];
-      if (firstRow != null) {
+      final PeakListRow mainRow = peakListRows[firstRowIndex];
+
+      if (mainRow != null) {
+        // copy first row
+        PeakListRow firstRow = copyRow(mainRow);
 
         for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
             && secondRowIndex < rowCount; secondRowIndex++) {
 
           final PeakListRow secondRow = peakListRows[secondRowIndex];
           if (secondRow != null) {
-
             // Compare identifications
             final boolean sameID =
                 !requireSameId || PeakUtils.compareIdentities(firstRow, secondRow);
 
-            // Compare m/z
-            final boolean sameMZ = mzTolerance.getToleranceRange(firstRow.getAverageMZ())
-                .contains(secondRow.getAverageMZ());
-
-            // Compare rt
-            final boolean sameRT = rtTolerance.getToleranceRange(firstRow.getAverageRT())
-                .contains(secondRow.getAverageRT());
+            boolean sameMZRT = filterByAvgRTMZ ? // average or single feature
+                checkSameAverageRTMZ(firstRow, secondRow, mzTolerance, rtTolerance)
+                : checkSameSingleFeatureRTMZ(rawFiles, firstRow, secondRow, mzTolerance,
+                    rtTolerance);
 
             // Duplicate peaks?
-            if (sameID && sameMZ && sameRT) {
-
+            if (sameID && sameMZRT) {
+              // create consensus row in new filter
+              if (!mode.equals(FilterMode.OLD_AVERAGE)) {
+                // copy all detected features of row2 into row1
+                // to exchange gap-filled against detected features
+                createConsensusFirstRow(rawFiles, firstRow, secondRow);
+              }
+              // second row deleted
+              n++;
               peakListRows[secondRowIndex] = null;
             }
           }
         }
+        // add to new list
+        newPeakList.addRow(firstRow);
       }
-
       processedRows++;
     }
 
-    // Create the new peak list.
-    final PeakList newPeakList =
-        new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
-
-    // Add all remaining rows to a new peak list.
-    for (int i = 0; !isCanceled() && i < rowCount; i++) {
-
-      final PeakListRow row = peakListRows[i];
-
-      if (row != null) {
-
-        // Copy the peak list row.
-        final PeakListRow newRow = new SimplePeakListRow(row.getID());
-        PeakUtils.copyPeakListRowProperties(row, newRow);
-
-        // Copy the peaks.
-        for (final Feature peak : row.getPeaks()) {
-
-          final Feature newPeak = new SimpleFeature(peak);
-          PeakUtils.copyPeakProperties(peak, newPeak);
-          newRow.addPeak(peak.getDataFile(), newPeak);
-        }
-
-        newPeakList.addRow(newRow);
-      }
-    }
-
+    // finalize
     if (!isCanceled()) {
-
       // Load previous applied methods.
       for (final PeakListAppliedMethod method : origPeakList.getAppliedMethods()) {
-
         newPeakList.addDescriptionOfAppliedTask(method);
       }
 
       // Add task description to peakList
       newPeakList.addDescriptionOfAppliedTask(
           new SimplePeakListAppliedMethod("Duplicate peak list rows filter", parameters));
+      LOG.info("Removed " + n + " duplicate rows");
     }
 
     return newPeakList;
+  }
+
+  /**
+   * Turns firstRow to consensus row. With all features with highest FeatureStatus:
+   * DETECTED>ESTIMATED>UNKNOWN Or the highest feature when comparing two ESTIMATED features
+   * 
+   * @param rawFiles
+   * @param firstRow
+   * @param secondRow
+   */
+  private void createConsensusFirstRow(RawDataFile[] rawFiles, PeakListRow firstRow,
+      PeakListRow secondRow) {
+    for (RawDataFile raw : rawFiles) {
+      Feature f2 = secondRow.getPeak(raw);
+      if (f2 == null)
+        continue;
+
+      switch (f2.getFeatureStatus()) {
+        case DETECTED:
+          // DETECTED over all
+          firstRow.addPeak(raw, copyPeak(f2));
+          break;
+        case ESTIMATED:
+          // ESTIMATED over UNKNOWN or
+          // BOTH ESTIMATED? take the highest
+          Feature f1 = firstRow.getPeak(raw);
+          if (f1 != null && (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
+              || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
+                  && f1.getHeight() < f2.getHeight())))
+            firstRow.addPeak(raw, copyPeak(f2));
+          break;
+      }
+    }
+  }
+
+  /**
+   * Has one feature within RT and mzTolerance in at least one raw data file
+   * 
+   * @param rawFiles
+   * @param firstRow
+   * @param secondRow
+   * @param mzTolerance
+   * @param rtTolerance
+   * @return
+   */
+  private boolean checkSameSingleFeatureRTMZ(RawDataFile[] rawFiles, PeakListRow firstRow,
+      PeakListRow secondRow, MZTolerance mzTolerance, RTTolerance rtTolerance) {
+    // at least one similar feature in one raw data file
+    for (RawDataFile raw : rawFiles) {
+      Feature f1 = firstRow.getPeak(raw);
+      Feature f2 = secondRow.getPeak(raw);
+      // Compare m/z and rt
+      if (f1 != null && f2 != null && mzTolerance.checkWithinTolerance(f1.getMZ(), f2.getMZ())
+          && rtTolerance.checkWithinTolerance(f1.getRT(), f2.getRT()))
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Shares the same RT and mz
+   * 
+   * @param firstRow
+   * @param secondRow
+   * @param mzTolerance
+   * @param rtTolerance
+   * @return
+   */
+  private boolean checkSameAverageRTMZ(PeakListRow firstRow, PeakListRow secondRow,
+      MZTolerance mzTolerance, RTTolerance rtTolerance) {
+    // Compare m/z and RT
+    return mzTolerance.checkWithinTolerance(firstRow.getAverageMZ(), secondRow.getAverageMZ())
+        && rtTolerance.checkWithinTolerance(firstRow.getAverageRT(), secondRow.getAverageRT());
+  }
+
+  public PeakListRow copyRow(PeakListRow row) {
+    // Copy the peak list row.
+    final PeakListRow newRow = new SimplePeakListRow(row.getID());
+    PeakUtils.copyPeakListRowProperties(row, newRow);
+
+    // Copy the peaks.
+    for (final Feature peak : row.getPeaks()) {
+      newRow.addPeak(peak.getDataFile(), copyPeak(peak));
+    }
+    return newRow;
+  }
+
+  public Feature copyPeak(Feature peak) {
+    // Copy the peaks.
+    final Feature newPeak = new SimpleFeature(peak);
+    PeakUtils.copyPeakProperties(peak, newPeak);
+    return newPeak;
   }
 }

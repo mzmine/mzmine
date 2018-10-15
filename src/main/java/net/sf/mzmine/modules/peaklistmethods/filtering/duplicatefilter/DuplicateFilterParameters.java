@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -28,10 +29,24 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
 public class DuplicateFilterParameters extends SimpleParameterSet {
 
+  public enum FilterMode {
+    OLD_AVERAGE, NEW_AVERAGE, SINGLE_FEATURE;
+
+    @Override
+    public String toString() {
+      return super.toString().replaceAll("_", " ");
+    }
+  }
+
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter suffix =
       new StringParameter("Name suffix", "Suffix to be added to peak list name", "filtered");
+
+  public static final ComboParameter<FilterMode> filterMode = new ComboParameter<>("Filter mode",
+      "Old average: Only keep the row with the maximum avg area.\n New average: Create consensus row from duplicates (DETECTED>ESTIMATED>UNKNOWN).\n "
+          + "Single feature: Marks rows as duplicates if they share at least one feature (in one raw data file) with the same RT and m/z. Creates a consensus row.",
+      FilterMode.values(), FilterMode.NEW_AVERAGE);
 
   public static final MZToleranceParameter mzDifferenceMax =
       new MZToleranceParameter("m/z tolerance", "Maximum m/z difference between duplicate peaks");
@@ -46,7 +61,7 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
       "If checked, original peaklist will be removed and only deisotoped version remains");
 
   public DuplicateFilterParameters() {
-    super(new Parameter[] {peakLists, suffix, mzDifferenceMax, rtDifferenceMax,
+    super(new Parameter[] {peakLists, suffix, filterMode, mzDifferenceMax, rtDifferenceMax,
         requireSameIdentification, autoRemove,});
   }
 
