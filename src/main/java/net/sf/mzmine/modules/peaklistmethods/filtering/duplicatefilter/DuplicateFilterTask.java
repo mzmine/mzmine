@@ -167,8 +167,9 @@ public class DuplicateFilterTask extends AbstractTask {
     for (int firstRowIndex = 0; !isCanceled() && firstRowIndex < rowCount; firstRowIndex++) {
 
       final PeakListRow mainRow = peakListRows[firstRowIndex];
+
       if (mainRow != null) {
-        // need to copy to not alter the old peakList
+        // copy first row
         PeakListRow firstRow = copyRow(mainRow);
 
         for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
@@ -191,7 +192,7 @@ public class DuplicateFilterTask extends AbstractTask {
               if (!mode.equals(FilterMode.OLD_AVERAGE)) {
                 // copy all detected features of row2 into row1
                 // to exchange gap-filled against detected features
-                createConsensusRow(rawFiles, firstRow, secondRow);
+                createConsensusFirstRow(rawFiles, firstRow, secondRow);
               }
               // second row deleted
               n++;
@@ -229,25 +230,27 @@ public class DuplicateFilterTask extends AbstractTask {
    * @param firstRow
    * @param secondRow
    */
-  private void createConsensusRow(RawDataFile[] rawFiles, PeakListRow firstRow,
+  private void createConsensusFirstRow(RawDataFile[] rawFiles, PeakListRow firstRow,
       PeakListRow secondRow) {
     for (RawDataFile raw : rawFiles) {
       Feature f2 = secondRow.getPeak(raw);
-      if (f2 != null) {
-        if (f2.getFeatureStatus().equals(FeatureStatus.DETECTED)) {
+      if (f2 == null)
+        continue;
+
+      switch (f2.getFeatureStatus()) {
+        case DETECTED:
           // DETECTED over all
           firstRow.addPeak(raw, copyPeak(f2));
-        } else if (f2.getFeatureStatus().equals(FeatureStatus.ESTIMATED)) {
+          break;
+        case ESTIMATED:
+          // ESTIMATED over UNKNOWN or
+          // BOTH ESTIMATED? take the highest
           Feature f1 = firstRow.getPeak(raw);
-          if (f1 != null) {
-            // ESTIMATED over UNKNOWN or
-            // BOTH ESTIMATED? take the highest
-            if (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
-                || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
-                    && f1.getHeight() < f2.getHeight()))
-              firstRow.addPeak(raw, copyPeak(f2));
-          }
-        }
+          if (f1 != null && (f1.getFeatureStatus().equals(FeatureStatus.UNKNOWN)
+              || (f1.getFeatureStatus().equals(FeatureStatus.ESTIMATED)
+                  && f1.getHeight() < f2.getHeight())))
+            firstRow.addPeak(raw, copyPeak(f2));
+          break;
       }
     }
   }
