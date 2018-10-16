@@ -25,11 +25,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
-
+import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.desktop.impl.MainWindow;
@@ -39,6 +37,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
@@ -71,16 +70,27 @@ public class OrderPeakListsModule implements MZmineProcessingModule {
     List<PeakList> peakLists = Arrays.asList(parameters
         .getParameter(OrderPeakListsParameters.peakLists).getValue().getMatchingPeakLists());
 
-    ProjectTree tree = ((MainWindow) MZmineCore.getDesktop()).getMainPanel().getPeakListTree();
-    final PeakListTreeModel model = (PeakListTreeModel) tree.getModel();
+
+    PeakListTreeModel model = null;
+    if (project instanceof MZmineProjectImpl) {
+      model = ((MZmineProjectImpl) project).getPeakListTreeModel();
+    } else if (MZmineCore.getDesktop() instanceof MainWindow) {
+      ProjectTree tree = ((MainWindow) MZmineCore.getDesktop()).getMainPanel().getPeakListTree();
+      model = (PeakListTreeModel) tree.getModel();
+    }
+
+    if (model == null)
+      throw new MSDKRuntimeException(
+          "Cannot find peak list tree model for sorting. Different MZmine project impl?");
+
     final DefaultMutableTreeNode rootNode = model.getRoot();
 
     // Get all tree nodes that represent selected peak lists, and remove
     // them from
     final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
-    for (int row = 0; row < tree.getRowCount(); row++) {
-      TreePath path = tree.getPathForRow(row);
-      DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+
+    for (int row = 0; row < rootNode.getChildCount(); row++) {
+      DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) rootNode.getChildAt(row);
       Object selectedObject = selectedNode.getUserObject();
       if (peakLists.contains(selectedObject)) {
         selectedNodes.add(selectedNode);
