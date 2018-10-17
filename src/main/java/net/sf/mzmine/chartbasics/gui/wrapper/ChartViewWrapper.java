@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.chartbasics.gui.wrapper;
 
+import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
@@ -28,6 +29,7 @@ import org.jfree.chart.plot.XYPlot;
 import net.sf.mzmine.chartbasics.ChartLogics;
 import net.sf.mzmine.chartbasics.ChartLogicsFX;
 import net.sf.mzmine.chartbasics.gui.javafx.EChartViewer;
+import net.sf.mzmine.chartbasics.gui.swing.ChartGestureMouseAdapter;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 
@@ -202,5 +204,30 @@ public class ChartViewWrapper {
   public ChartEntity findChartEntity(double mx, double my) {
     return cp != null ? ChartLogics.findChartEntity(cp, mx, my)
         : ChartLogicsFX.findChartEntity(cc.getCanvas(), mx, my);
+  }
+
+  /**
+   * Get the chart gesture mouse adapter
+   * 
+   * @return
+   */
+  public GestureMouseAdapter getGestureAdapter() {
+    if (cp != null) {
+      if (cp instanceof EChartPanel)
+        return ((EChartPanel) cp).getGestureAdapter();
+      else
+        for (MouseListener l : cp.getMouseListeners())
+          if (ChartGestureMouseAdapter.class.isInstance(l))
+            return (ChartGestureMouseAdapter) l;
+      // none
+      return null;
+    } else if (cc != null) {
+      if (cc instanceof EChartViewer)
+        return ((EChartViewer) cc).getGestureAdapter();
+      else
+        return null;
+      // TODO export adapter for normal ChartViewer
+    } else
+      return null;
   }
 }
