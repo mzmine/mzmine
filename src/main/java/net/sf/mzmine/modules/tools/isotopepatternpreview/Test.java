@@ -9,8 +9,8 @@ public class Test {
     ExtendedIsotopePattern pattern = new ExtendedIsotopePattern();
     Logger logger = Logger.getLogger("Test");
     
-    pattern.setUpFromFormula("C6Cl2", 0.01, 0.02, 0.01);
-    pattern.applyCharge(1, PolarityType.NEGATIVE);
+    pattern.setUpFromFormula("C6Cl2", 0.01, 0.02, 0.03);
+    pattern.applyCharge(1, PolarityType.POSITIVE);
     
     
     logger.info(pattern.getDetailedPeakDescription(2));
