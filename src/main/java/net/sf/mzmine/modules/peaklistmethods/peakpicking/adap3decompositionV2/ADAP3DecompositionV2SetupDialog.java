@@ -263,7 +263,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         if (chromatogramList == null || peakList == null) return;
 
         Double minDistance = parameterSet.getParameter(ADAP3DecompositionV2Parameters.PREF_WINDOW_WIDTH).getValue();
-        if (minDistance == null) return;
+        if (minDistance == null || minDistance <= 0.0) return;
 
         // Convert peakList into ranges
         List<RetTimeClusterer.Interval> ranges = Arrays.stream(peakList.getRows())
