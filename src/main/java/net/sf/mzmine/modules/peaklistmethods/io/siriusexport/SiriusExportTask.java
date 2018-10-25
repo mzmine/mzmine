@@ -42,12 +42,12 @@ public class SiriusExportTask extends AbstractTask {
   private final File fileName;
   // private final boolean fractionalMZ;
   private final String massListName;
-  protected double progress, totalProgress;
+  protected long finishedRows, totalRows;
   protected final SiriusExportParameters.MERGE_MODE mergeMsMs;
 
 
   public double getFinishedPercentage() {
-    return (totalProgress == 0 ? 0 : progress / totalProgress);
+    return (totalRows == 0 ? 0.0 : (double) finishedRows / (double) totalRows);
   }
 
   public String getTaskDescription() {
@@ -69,16 +69,13 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   public void run() {
-    this.progress = 0d;
     setStatus(TaskStatus.PROCESSING);
 
     // Shall export several files?
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    int counter = 0;
     for (PeakList l : peakLists)
-      counter += l.getNumberOfRows();
-    this.totalProgress = counter;
+      this.totalRows += l.getNumberOfRows();
 
     // Process peak lists
     for (PeakList peakList : peakLists) {
@@ -229,7 +226,6 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   public void runSingleRow(PeakListRow row) {
-    this.progress = 0d;
     setStatus(TaskStatus.PROCESSING);
     try (final BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
       exportPeakListRow(row, bw, getFragmentScans(row.getRawDataFiles()));
@@ -247,6 +243,7 @@ public class SiriusExportTask extends AbstractTask {
 
     for (PeakListRow row : peakList.getRows()) {
       exportPeakListRow(row, writer, fragmentScans);
+      finishedRows++;
     }
   }
 
@@ -339,7 +336,6 @@ public class SiriusExportTask extends AbstractTask {
           writeSpectrum(writer, merge(f.getMZ(), toMerge));
         }
       }
-      ++progress;
     }
     if (mergeMsMs == SiriusExportParameters.MERGE_MODE.MERGE_OVER_SAMPLES && toMerge.size() > 0) {
       writeHeader(writer, row, row.getBestPeak().getDataFile(), polarity, MsType.MSMS, null,
