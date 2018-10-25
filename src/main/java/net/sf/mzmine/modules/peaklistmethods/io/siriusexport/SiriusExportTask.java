@@ -110,13 +110,13 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   private static DataPoint[] merge(double parentPeak, List<DataPoint[]> scans) {
-    final DataPointSorter sorter =
+    final DataPointSorter descendingIntensitySorter =
         new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending);
     double maxTIC = 0d;
     int best = 0;
     for (int i = 0; i < scans.size(); ++i) {
       final DataPoint[] scan = scans.get(i);
-      Arrays.sort(scan, sorter);
+      Arrays.sort(scan, descendingIntensitySorter);
       double tic = 0d;
       for (int j = 0; j < Math.min(40, scan.length); ++j) {
         tic += scan[j].getIntensity();
@@ -157,8 +157,8 @@ public class SiriusExportTask extends AbstractTask {
       final int noisePeaksBehindParentPeak = mergedSpectrum.length - behindParent;
       if (noisePeaksBehindParentPeak >= 10) {
         final DataPoint[] subspec = new DataPoint[noisePeaksBehindParentPeak];
-        System.arraycopy(mergedSpectrum, noisePeaksBehindParentPeak, subspec, 0, subspec.length);
-        Arrays.sort(subspec, sorter);
+        System.arraycopy(mergedSpectrum, 0, subspec, 0, noisePeaksBehindParentPeak);
+        Arrays.sort(subspec, descendingIntensitySorter);
         int q75 = (int) (subspec.length * 0.75);
         baseline = Math.max(subspec[q75].getIntensity(), baseline);
       }
