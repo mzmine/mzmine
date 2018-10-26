@@ -46,6 +46,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
@@ -98,6 +99,8 @@ public class ChemSpiderGateway implements DBGateway {
       filterRequest.setOrderBy(OrderByEnum.RECORDID);
 
       FilteringApi apiInstance = new FilteringApi();
+      apiInstance.getApiClient().setUserAgent("MZmine " + MZmineCore.getMZmineVersion());
+      
       FilterQueryResponse queryId = apiInstance.filterMassPost(filterRequest, apiKey);
       QueryResultResponse result =
           apiInstance.filterQueryIdResultsGet(queryId.getQueryId(), apiKey, 0, numOfResults);
@@ -123,6 +126,8 @@ public class ChemSpiderGateway implements DBGateway {
 
     try {
       RecordsApi apiInstance = new RecordsApi();
+      apiInstance.getApiClient().setUserAgent("MZmine " + MZmineCore.getMZmineVersion());
+
       Integer recordId = Integer.valueOf(ID);
       RecordResponse response = apiInstance.recordsRecordIdDetailsGet(recordId, fields, apiKey);
 
