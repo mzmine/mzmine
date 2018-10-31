@@ -36,6 +36,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
   private IsotopePatternStatus status;
   private String description;
   private Range<Double> mzRange;
+  
+  private String[] isotopeCompostion;
 
   public SimpleIsotopePattern(DataPoint dataPoints[], IsotopePatternStatus status,
       String description) {
@@ -47,6 +49,19 @@ public class SimpleIsotopePattern implements IsotopePattern {
     this.status = status;
     this.description = description;
     this.mzRange = ScanUtils.findMzRange(dataPoints);
+  }
+  
+  public SimpleIsotopePattern(DataPoint dataPoints[], IsotopePatternStatus status,
+      String description, String[] isotopeCompostion) {
+
+    assert dataPoints.length > 0;
+
+    highestIsotope = ScanUtils.findTopDataPoint(dataPoints);
+    this.dataPoints = dataPoints;
+    this.status = status;
+    this.description = description;
+    this.mzRange = ScanUtils.findMzRange(dataPoints); 
+    this.isotopeCompostion = isotopeCompostion;
   }
 
   @Override
@@ -107,4 +122,15 @@ public class SimpleIsotopePattern implements IsotopePattern {
     throw new UnsupportedOperationException();
   }
 
+  public String getIsotopeComposition(int num) {
+    if(isotopeCompostion != null && num < isotopeCompostion.length)
+      return isotopeCompostion[num];
+    return "";
+  }
+  
+  public String[] getIsotopeCompositions() {
+    if(isotopeCompostion != null)
+      return isotopeCompostion;
+    return null;
+  }
 }
