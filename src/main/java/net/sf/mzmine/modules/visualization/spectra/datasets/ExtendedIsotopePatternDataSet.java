@@ -27,6 +27,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.ExtendedIsotopePattern;
 
 /**
@@ -46,7 +47,7 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
    *
    */
   private static final long serialVersionUID = 1L;
-  private ExtendedIsotopePattern pattern;
+  private SimpleIsotopePattern pattern;
   private double minIntensity;
   private DataPoint[] dp;
   private XYSeries above;
@@ -72,7 +73,7 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
    * @param minIntensity minimum intensity (0.0-1.0) threshold for color differentiation
    * @param width Width of the datapoints to be displayed. Used for merging the peaks.
    */
-  public ExtendedIsotopePatternDataSet(ExtendedIsotopePattern pattern, double minIntensity,
+  public ExtendedIsotopePatternDataSet(SimpleIsotopePattern pattern, double minIntensity,
       double width) {
     // super(pattern.getDescription(), pattern.getDataPoints());
     this.pattern = pattern;
@@ -92,12 +93,12 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
         assignment[i].ab = AB.BELOW;
         assignment[i].id = i;
         below.add(dp[i].getMZ(), dp[i].getIntensity());
-        descrBelow.add(pattern.getDetailedPeakDescription(i));
+        descrBelow.add(pattern.getIsotopeComposition(i));
       } else {
         assignment[i].ab = AB.ABOVE;
         assignment[i].id = i;
         above.add(dp[i].getMZ(), dp[i].getIntensity());
-        descrAbove.add(pattern.getDetailedPeakDescription(i));
+        descrAbove.add(pattern.getIsotopeComposition(i));
       }
     }
 

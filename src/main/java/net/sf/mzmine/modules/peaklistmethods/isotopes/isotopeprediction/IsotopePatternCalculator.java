@@ -161,7 +161,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     SimpleIsotopePattern newPattern;
     
-    if(pattern instanceof SimpleIsotopePattern)
+    if(pattern instanceof SimpleIsotopePattern && ((SimpleIsotopePattern)pattern).getIsotopeCompositions() != null)
       newPattern =
         new SimpleIsotopePattern(newDataPoints, pattern.getStatus(), pattern.getDescription(), ((SimpleIsotopePattern)pattern).getIsotopeCompositions());
     else
@@ -182,7 +182,7 @@ public class IsotopePatternCalculator implements MZmineModule {
     DataPoint dataPoints[] = pattern.getDataPoints().clone();
     
     String newIsotopeComposition[] = new String[pattern.getNumberOfDataPoints()];
-    if(pattern instanceof SimpleIsotopePattern)
+    if(pattern instanceof SimpleIsotopePattern && ((SimpleIsotopePattern)pattern).getIsotopeCompositions() != null)
       newIsotopeComposition = ((SimpleIsotopePattern) pattern).getIsotopeCompositions();
 
     for (int i = 0; i < dataPoints.length - 1; i++) {
@@ -194,7 +194,7 @@ public class IsotopePatternCalculator implements MZmineModule {
         dataPoints[i + 1] = new SimpleDataPoint(newMZ, newIntensity);
         dataPoints[i] = null;
         
-        if(pattern instanceof SimpleIsotopePattern) {
+        if(pattern instanceof SimpleIsotopePattern && ((SimpleIsotopePattern)pattern).getIsotopeCompositions() != null) {
           newIsotopeComposition[i+1] = ((SimpleIsotopePattern) pattern).getIsotopeComposition(i) + ", " + ((SimpleIsotopePattern) pattern).getIsotopeComposition(i+1);
           newIsotopeComposition[i] = null;
           
@@ -209,7 +209,7 @@ public class IsotopePatternCalculator implements MZmineModule {
         newDataPoints.add(dp);
     }
     
-    if(pattern instanceof SimpleIsotopePattern) {
+    if(pattern instanceof SimpleIsotopePattern && ((SimpleIsotopePattern)pattern).getIsotopeCompositions() != null) {
       ArrayList<String> newComp = new ArrayList<String>();
       for(String comp : newIsotopeComposition) {
         if(comp != null)
