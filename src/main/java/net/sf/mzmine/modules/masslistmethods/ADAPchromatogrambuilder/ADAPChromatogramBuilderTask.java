@@ -309,19 +309,29 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
           toBeLowerBound = 0.0;
           toBeUpperBound = 0.0;
         }
-        Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
-        ADAPChromatogram newChrom = new ADAPChromatogram(dataFile, allScanNumbers);
 
-        newChrom.addMzPeak(mzPeak.getScanNumber(), mzPeak);
+        if (toBeLowerBound < toBeUpperBound) {
+          Range<Double> newRange = Range.open(toBeLowerBound, toBeUpperBound);
+          ADAPChromatogram newChrom = new ADAPChromatogram(dataFile, allScanNumbers);
 
-        newChrom.setHighPointMZ(mzPeak.getMZ());
+          newChrom.addMzPeak(mzPeak.getScanNumber(), mzPeak);
+
+          newChrom.setHighPointMZ(mzPeak.getMZ());
 
 
+          rangeToChromMap.put(newRange, newChrom);
+          // also need to put it in the set -> this is where the range can be efficiently found.
 
-        rangeToChromMap.put(newRange, newChrom);
-        // also need to put it in the set -> this is where the range can be efficiently found.
+          rangeSet.add(newRange);
+        }
+        else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
+          ADAPChromatogram curChrom = rangeToChromMap.get(plusRange);
+          curChrom.addMzPeak(mzPeak.getScanNumber(), mzPeak);
+        }
+        else
+          throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
+                  toBeLowerBound, toBeUpperBound, mzPeak.getMZ()));
 
-        rangeSet.add(newRange);
       } else {
         // In this case we do not need to update the rangeSet
 

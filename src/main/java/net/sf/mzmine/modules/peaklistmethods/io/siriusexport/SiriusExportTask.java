@@ -42,12 +42,12 @@ public class SiriusExportTask extends AbstractTask {
   private final File fileName;
   // private final boolean fractionalMZ;
   private final String massListName;
-  protected double progress, totalProgress;
+  protected long finishedRows, totalRows;
   protected final SiriusExportParameters.MERGE_MODE mergeMsMs;
 
 
   public double getFinishedPercentage() {
-    return (totalProgress == 0 ? 0 : progress / totalProgress);
+    return (totalRows == 0 ? 0.0 : (double) finishedRows / (double) totalRows);
   }
 
   public String getTaskDescription() {
@@ -69,16 +69,13 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   public void run() {
-    this.progress = 0d;
     setStatus(TaskStatus.PROCESSING);
 
     // Shall export several files?
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    int counter = 0;
     for (PeakList l : peakLists)
-      counter += l.getNumberOfRows();
-    this.totalProgress = counter;
+      this.totalRows += l.getNumberOfRows();
 
     // Process peak lists
     for (PeakList peakList : peakLists) {
@@ -113,13 +110,13 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   private static DataPoint[] merge(double parentPeak, List<DataPoint[]> scans) {
-    final DataPointSorter sorter =
+    final DataPointSorter descendingIntensitySorter =
         new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending);
     double maxTIC = 0d;
     int best = 0;
     for (int i = 0; i < scans.size(); ++i) {
       final DataPoint[] scan = scans.get(i);
-      Arrays.sort(scan, sorter);
+      Arrays.sort(scan, descendingIntensitySorter);
       double tic = 0d;
       for (int j = 0; j < Math.min(40, scan.length); ++j) {
         tic += scan[j].getIntensity();
@@ -160,8 +157,8 @@ public class SiriusExportTask extends AbstractTask {
       final int noisePeaksBehindParentPeak = mergedSpectrum.length - behindParent;
       if (noisePeaksBehindParentPeak >= 10) {
         final DataPoint[] subspec = new DataPoint[noisePeaksBehindParentPeak];
-        System.arraycopy(mergedSpectrum, noisePeaksBehindParentPeak, subspec, 0, subspec.length);
-        Arrays.sort(subspec, sorter);
+        System.arraycopy(mergedSpectrum, 0, subspec, 0, noisePeaksBehindParentPeak);
+        Arrays.sort(subspec, descendingIntensitySorter);
         int q75 = (int) (subspec.length * 0.75);
         baseline = Math.max(subspec[q75].getIntensity(), baseline);
       }
@@ -229,7 +226,6 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   public void runSingleRow(PeakListRow row) {
-    this.progress = 0d;
     setStatus(TaskStatus.PROCESSING);
     try (final BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
       exportPeakListRow(row, bw, getFragmentScans(row.getRawDataFiles()));
@@ -247,6 +243,7 @@ public class SiriusExportTask extends AbstractTask {
 
     for (PeakListRow row : peakList.getRows()) {
       exportPeakListRow(row, writer, fragmentScans);
+      finishedRows++;
     }
   }
 
@@ -339,7 +336,6 @@ public class SiriusExportTask extends AbstractTask {
           writeSpectrum(writer, merge(f.getMZ(), toMerge));
         }
       }
-      ++progress;
     }
     if (mergeMsMs == SiriusExportParameters.MERGE_MODE.MERGE_OVER_SAMPLES && toMerge.size() > 0) {
       writeHeader(writer, row, row.getBestPeak().getDataFile(), polarity, MsType.MSMS, null,
