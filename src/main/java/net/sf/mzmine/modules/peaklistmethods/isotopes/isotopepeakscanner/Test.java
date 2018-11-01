@@ -19,37 +19,54 @@ public class Test {
   public static void main(String[] args) {
     IsotopePattern isos;
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-    IMolecularFormula formula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula("C25Cl2", builder);
+    IMolecularFormula formula =
+        MolecularFormulaManipulator.getMajorIsotopeMolecularFormula("C25Cl2", builder);
     IsotopePatternGenerator gen = new IsotopePatternGenerator(0.01);
     gen.setStoreFormulas(true);
-    System.out.print("--------------------------------------------------------\nCDK pure: C25Cl2 - minIntensity=0.01 - merge=default\n");
+    System.out.print(
+        "--------------------------------------------------------\nCDK pure: C25Cl2 - minIntensity=0.01 - merge=default\n");
     isos = gen.getIsotopes(formula);
     for (IsotopeContainer container : isos.getIsotopes()) {
-      System.out.print("mass=" + container.getMass() +  "\tintensity=" +  container.getIntensity() + "\tformula=" +  container.toString() + "\n");
+      System.out.print("mass=" + container.getMass() + "\tintensity=" + container.getIntensity()
+          + "\tformula=" + container.toString() + "\n");
     }
-    
-    System.out.print("--------------------------------------------------------\nCDK merged: C25Cl2 - minIntensity=0.01 - merge=0.01\n");
+
+    System.out.print(
+        "--------------------------------------------------------\nCDK merged: C25Cl2 - minIntensity=0.01 - merge=0.01\n");
     gen.setMinResolution(0.01);
     isos = gen.getIsotopes(formula);
     for (IsotopeContainer container : isos.getIsotopes()) {
-      System.out.print("mass=" + container.getMass() +  "\tintensity=" +  container.getIntensity() + "\tformula=" +  container.toString() + "\n");
+      System.out.print("mass=" + container.getMass() + "\tintensity=" + container.getIntensity()
+          + "\tformula=" + container.toString() + "\n");
     }
-    
-    
-    SimpleIsotopePattern pat2 = (SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern("C25Cl2", 0.01, 0, PolarityType.NEUTRAL, true);
-    
+
+
+    net.sf.mzmine.datamodel.impl.ExtendedIsotopePattern pat2 = (net.sf.mzmine.datamodel.impl.ExtendedIsotopePattern) IsotopePatternCalculator
+        .calculateIsotopePattern("C25Cl2", 0.01, 0.01, 0, PolarityType.NEUTRAL, true);
+
     DataPoint[] dp = pat2.getDataPoints();
-    System.out.print("--------------------------------------------------------\nMZmine pure: C25Cl2 - minIntensity=0.01 - merge=0.01\n");
-    for(int i = 0; i < pat2.getNumberOfDataPoints(); i++) {
-      
-      System.out.print("mass=" + dp[i].getMZ() + "\tintensity=" + dp[i].getIntensity() + "\tMF=" + pat2.getIsotopeComposition(i) + "\n");
+    System.out.print(
+        "--------------------------------------------------------\nMZmineEx merged: C25Cl2 - minIntensity=0.01 - merge=0.01\n");
+    for (int i = 0; i < pat2.getNumberOfDataPoints(); i++) {
+
+      System.out.print("mass=" + dp[i].getMZ() + "\tintensity=" + dp[i].getIntensity() + "\tMF="
+          + pat2.getIsotopeComposition(i) + "\n");
     }
-    SimpleIsotopePattern pat = (SimpleIsotopePattern) IsotopePatternCalculator.mergeIsotopes(pat2, 0.01);
+    net.sf.mzmine.datamodel.impl.SimpleIsotopePattern pat =
+        (net.sf.mzmine.datamodel.impl.SimpleIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern("C25Cl2", 0.01, 0.01, 0, PolarityType.NEUTRAL, false);
     dp = pat.getDataPoints();
-    System.out.print("--------------------------------------------------------\nMZmine merged: C25Cl2 - minIntensity=0.01 - merge=0.01\n");
-    for(int i = 0; i < pat.getNumberOfDataPoints(); i++) {
-      
-      System.out.print("mass=" + dp[i].getMZ() + "\tintensity=" + dp[i].getIntensity() + "\tMF=" + pat.getIsotopeComposition(i) + "\n");
+    System.out.print(
+        "--------------------------------------------------------\nMZmineSim merged: C25Cl2 - minIntensity=0.01 - merge=0.01\n");
+    for (int i = 0; i < pat.getNumberOfDataPoints(); i++) {
+
+      System.out.print("mass=" + dp[i].getMZ() + "\tintensity=" + dp[i].getIntensity() + "\n");
     }
+    
+    System.out.print(
+        "--------------------------------------------------------\nSteffen merged: C25Cl2 - minIntensity=0.01 - merge=0.01\n");
+    ExtendedIsotopePattern exip = new ExtendedIsotopePattern();
+    exip.setUpFromFormula("C25Cl2", 0.01, 0.01, 0.01);
+    exip.print();
+    
   }
 }

@@ -30,15 +30,17 @@ import com.google.common.collect.Range;
 /**
  * Simple implementation of IsotopePattern interface
  */
-public class SimpleIsotopePattern implements IsotopePattern {
+public class ExtendedIsotopePattern implements IsotopePattern {
 
   private DataPoint dataPoints[], highestIsotope;
   private IsotopePatternStatus status;
   private String description;
   private Range<Double> mzRange;
-
-  public SimpleIsotopePattern(DataPoint dataPoints[], IsotopePatternStatus status,
-      String description) {
+  
+  private String[] isotopeCompostion;
+  
+  public ExtendedIsotopePattern(DataPoint dataPoints[], IsotopePatternStatus status,
+      String description, String[] isotopeCompostion) {
 
     assert dataPoints.length > 0;
 
@@ -46,7 +48,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
     this.dataPoints = dataPoints;
     this.status = status;
     this.description = description;
-    this.mzRange = ScanUtils.findMzRange(dataPoints);
+    this.mzRange = ScanUtils.findMzRange(dataPoints); 
+    this.isotopeCompostion = isotopeCompostion;
   }
 
   @Override
@@ -107,4 +110,15 @@ public class SimpleIsotopePattern implements IsotopePattern {
     throw new UnsupportedOperationException();
   }
 
+  public String getIsotopeComposition(int num) {
+    if(isotopeCompostion != null && num < isotopeCompostion.length)
+      return isotopeCompostion[num];
+    return "";
+  }
+  
+  public String[] getIsotopeCompositions() {
+    if(isotopeCompostion != null)
+      return isotopeCompostion;
+    return null;
+  }
 }

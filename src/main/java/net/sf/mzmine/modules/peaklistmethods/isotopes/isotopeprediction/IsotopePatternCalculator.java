@@ -20,20 +20,18 @@ package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction;
 
 import java.awt.Window;
 import java.util.ArrayList;
-
 import javax.annotation.Nonnull;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.PolarityType;
+import net.sf.mzmine.datamodel.impl.ExtendedIsotopePattern;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
-
 import org.openscience.cdk.formula.IsotopeContainer;
 import org.openscience.cdk.formula.IsotopePatternGenerator;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
@@ -60,33 +58,48 @@ public class IsotopePatternCalculator implements MZmineModule {
       int charge, PolarityType polarity) {
     return calculateIsotopePattern(molecularFormula, minAbundance, charge, polarity, false);
   }
-  
+
   public static IsotopePattern calculateIsotopePattern(String molecularFormula, double minAbundance,
       int charge, PolarityType polarity, boolean storeFormula) {
+
+    return calculateIsotopePattern(molecularFormula, minAbundance, 0.00005f, charge, polarity,
+        storeFormula);
+  }
+
+  public static IsotopePattern calculateIsotopePattern(String molecularFormula, double minAbundance,
+      double mergeWidth, int charge, PolarityType polarity, boolean storeFormula) {
 
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
     IMolecularFormula cdkFormula =
         MolecularFormulaManipulator.getMolecularFormula(molecularFormula, builder);
 
-    return calculateIsotopePattern(cdkFormula, minAbundance, charge, polarity, storeFormula);
+    return calculateIsotopePattern(cdkFormula, minAbundance, mergeWidth, charge, polarity,
+        storeFormula);
   }
 
   public static IsotopePattern calculateIsotopePattern(IMolecularFormula cdkFormula,
       double minAbundance, int charge, PolarityType polarity) {
     return calculateIsotopePattern(cdkFormula, minAbundance, charge, polarity, false);
   }
-  
+
   public static IsotopePattern calculateIsotopePattern(IMolecularFormula cdkFormula,
       double minAbundance, int charge, PolarityType polarity, boolean storeFormula) {
+    return calculateIsotopePattern(cdkFormula, minAbundance, 0.00005f, charge, polarity, false);
+  }
+
+  public static IsotopePattern calculateIsotopePattern(IMolecularFormula cdkFormula,
+      double minAbundance, double mergeWidth, int charge, PolarityType polarity,
+      boolean storeFormula) {
 
     // TODO: check if the formula is not too big (>100 of a single atom?).
     // if so, just cancel the prediction
 
     // Set the minimum abundance of isotope
-    //TODO: in the CDK this is now called minIntensity and refers to the relative intensity in the isotope pattern, should change it here, too
-    IsotopePatternGenerator generator = new IsotopePatternGenerator(minAbundance); 
-    
+    // TODO: in the CDK minAbundance is now called minIntensity and refers to the relative intensity
+    // in the isotope pattern, should change it here, too
+    IsotopePatternGenerator generator = new IsotopePatternGenerator(minAbundance);
+    generator.setMinResolution(mergeWidth);
     generator.setStoreFormulas(storeFormula);
 
     org.openscience.cdk.formula.IsotopePattern pattern = generator.getIsotopes(cdkFormula);
@@ -110,23 +123,19 @@ public class IsotopePatternCalculator implements MZmineModule {
       double intensity = isotope.getIntensity();
 
       dataPoints[i] = new SimpleDataPoint(mass, intensity);
-      
-      if(storeFormula)
+
+      if (storeFormula)
         isotopeComposition[i] = formatCDKString(isotope.toString());
     }
 
     String formulaString = MolecularFormulaManipulator.getString(cdkFormula);
 
-    SimpleIsotopePattern newPattern;
-    
-    if(storeFormula)
-      newPattern =
-        new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, formulaString, isotopeComposition);
+
+    if (storeFormula)
+      return new ExtendedIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED,
+          formulaString, isotopeComposition);
     else
-      newPattern = new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, formulaString);
-
-    return newPattern;
-
+      return new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, formulaString);
   }
 
   /**
@@ -160,15 +169,14 @@ public class IsotopePatternCalculator implements MZmineModule {
     }
 
     SimpleIsotopePattern newPattern;
-    
-    if(pattern instanceof SimpleIsotopePattern && ((SimpleIsotopePattern)pattern).getIsotopeCompositions() != null)
-      newPattern =
-        new SimpleIsotopePattern(newDataPoints, pattern.getStatus(), pattern.getDescription(), ((SimpleIsotopePattern)pattern).getIsotopeCompositions());
-    else
-      newPattern =
-        new SimpleIsotopePattern(newDataPoints, pattern.getStatus(), pattern.getDescription());
 
-    return newPattern;
+    if (pattern instanceof ExtendedIsotopePattern
+        && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null)
+      return new ExtendedIsotopePattern(newDataPoints, pattern.getStatus(),
+          pattern.getDescription(), ((ExtendedIsotopePattern) pattern).getIsotopeCompositions());
+    else
+      return new SimpleIsotopePattern(newDataPoints, pattern.getStatus(), pattern.getDescription());
+
 
   }
 
@@ -180,10 +188,11 @@ public class IsotopePatternCalculator implements MZmineModule {
   public static IsotopePattern mergeIsotopes(IsotopePattern pattern, double mzTolerance) {
 
     DataPoint dataPoints[] = pattern.getDataPoints().clone();
-    
+
     String newIsotopeComposition[] = new String[pattern.getNumberOfDataPoints()];
-    if(pattern instanceof SimpleIsotopePattern && ((SimpleIsotopePattern)pattern).getIsotopeCompositions() != null)
-      newIsotopeComposition = ((SimpleIsotopePattern) pattern).getIsotopeCompositions();
+    if (pattern instanceof ExtendedIsotopePattern
+        && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null)
+      newIsotopeComposition = ((ExtendedIsotopePattern) pattern).getIsotopeCompositions();
 
     for (int i = 0; i < dataPoints.length - 1; i++) {
 
@@ -193,12 +202,14 @@ public class IsotopePatternCalculator implements MZmineModule {
             + dataPoints[i + 1].getMZ() * dataPoints[i + 1].getIntensity()) / newIntensity;
         dataPoints[i + 1] = new SimpleDataPoint(newMZ, newIntensity);
         dataPoints[i] = null;
-        
-        if(pattern instanceof SimpleIsotopePattern && ((SimpleIsotopePattern)pattern).getIsotopeCompositions() != null) {
-          newIsotopeComposition[i+1] = ((SimpleIsotopePattern) pattern).getIsotopeComposition(i) + ", " + ((SimpleIsotopePattern) pattern).getIsotopeComposition(i+1);
+
+        if (pattern instanceof ExtendedIsotopePattern
+            && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null) {
+          newIsotopeComposition[i + 1] = ((ExtendedIsotopePattern) pattern).getIsotopeComposition(i)
+              + ", " + ((ExtendedIsotopePattern) pattern).getIsotopeComposition(i + 1);
           newIsotopeComposition[i] = null;
-          
-//          System.out.println("merged isotopes: " + i + " + " + (i+1));
+
+          // System.out.println("merged isotopes: " + i + " + " + (i+1));
         }
       }
     }
@@ -208,24 +219,20 @@ public class IsotopePatternCalculator implements MZmineModule {
       if (dp != null)
         newDataPoints.add(dp);
     }
-    
-    if(pattern instanceof SimpleIsotopePattern && ((SimpleIsotopePattern)pattern).getIsotopeCompositions() != null) {
+
+    if (pattern instanceof ExtendedIsotopePattern
+        && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null) {
       ArrayList<String> newComp = new ArrayList<String>();
-      for(String comp : newIsotopeComposition) {
-        if(comp != null)
+      for (String comp : newIsotopeComposition) {
+        if (comp != null)
           newComp.add(comp);
       }
-//      for(int i = 0; i < newComp.size(); i++) {
-//        System.out.println(i + newComp.get(i));
-//      }
-      return new SimpleIsotopePattern(
-          newDataPoints.toArray(new DataPoint[0]), pattern.getStatus(), pattern.getDescription(), newComp.toArray(new String[0]));
+      return new ExtendedIsotopePattern(newDataPoints.toArray(new DataPoint[0]), pattern.getStatus(),
+          pattern.getDescription(), newComp.toArray(new String[0]));
     }
-    
-    SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
-        newDataPoints.toArray(new DataPoint[0]), pattern.getStatus(), pattern.getDescription());
 
-    return newPattern;
+    return new SimpleIsotopePattern(
+        newDataPoints.toArray(new DataPoint[0]), pattern.getStatus(), pattern.getDescription());
 
   }
 
@@ -264,8 +271,8 @@ public class IsotopePatternCalculator implements MZmineModule {
 
   static String formatCDKString(String cdkString) {
     int startIndex = cdkString.lastIndexOf("MF=");
-    int endIndex = cdkString.length()-1;
-    
-    return cdkString.substring(startIndex+3, endIndex);
+    int endIndex = cdkString.length() - 1;
+
+    return cdkString.substring(startIndex + 3, endIndex);
   }
 }

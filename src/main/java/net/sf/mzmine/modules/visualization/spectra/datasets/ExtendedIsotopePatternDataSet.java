@@ -27,8 +27,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
-import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.ExtendedIsotopePattern;
+import net.sf.mzmine.datamodel.impl.ExtendedIsotopePattern;
 
 /**
  * 
@@ -47,7 +46,7 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
    *
    */
   private static final long serialVersionUID = 1L;
-  private SimpleIsotopePattern pattern;
+  private ExtendedIsotopePattern pattern;
   private double minIntensity;
   private DataPoint[] dp;
   private XYSeries above;
@@ -73,7 +72,7 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
    * @param minIntensity minimum intensity (0.0-1.0) threshold for color differentiation
    * @param width Width of the datapoints to be displayed. Used for merging the peaks.
    */
-  public ExtendedIsotopePatternDataSet(SimpleIsotopePattern pattern, double minIntensity,
+  public ExtendedIsotopePatternDataSet(ExtendedIsotopePattern pattern, double minIntensity,
       double width) {
     // super(pattern.getDescription(), pattern.getDataPoints());
     this.pattern = pattern;
