@@ -33,6 +33,7 @@ import com.google.common.collect.Range;
 public class ExtendedIsotopePattern implements IsotopePattern {
 
   private DataPoint dataPoints[], highestIsotope;
+  private int highestIsotopeIndex;
   private IsotopePatternStatus status;
   private String description;
   private Range<Double> mzRange;
@@ -44,12 +45,19 @@ public class ExtendedIsotopePattern implements IsotopePattern {
 
     assert dataPoints.length > 0;
 
-    highestIsotope = ScanUtils.findTopDataPoint(dataPoints);
+    highestIsotope = dataPoints[0];
+    for(int i = 0; i < dataPoints.length; i++) {
+      if(highestIsotope.getIntensity() < dataPoints[i].getIntensity()) {
+        highestIsotopeIndex = i;
+        highestIsotope = dataPoints[0];
+      }
+    }
     this.dataPoints = dataPoints;
     this.status = status;
     this.description = description;
     this.mzRange = ScanUtils.findMzRange(dataPoints); 
     this.isotopeCompostion = isotopeCompostion;
+    
   }
 
   @Override
@@ -120,5 +128,9 @@ public class ExtendedIsotopePattern implements IsotopePattern {
     if(isotopeCompostion != null)
       return isotopeCompostion;
     return null;
+  }
+  
+  public int getHighestDataPointIndex() {
+    return highestIsotopeIndex;
   }
 }

@@ -135,6 +135,33 @@ public class IsotopePatternCalculator implements MZmineModule {
     else
       return new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.PREDICTED, formulaString);
   }
+  
+  public static IsotopePattern removeDataPointsBelowIntensity(IsotopePattern pattern, double minIntensity) {
+    
+    DataPoint[] dp = pattern.getDataPoints();
+    for(int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
+      if(dp[i].getIntensity() < minIntensity) {
+        dp[i] = null;
+      }
+    }
+    
+    ArrayList<DataPoint> newDP = new ArrayList<DataPoint>();
+    ArrayList<String> newComp = new ArrayList<String>();
+    for (int i = 0; i < dp.length; i++) {
+      DataPoint p = dp[i];
+      if (dp[i] != null) {
+        newDP.add(p);
+        if(pattern instanceof ExtendedIsotopePattern) {
+          newComp.add(((ExtendedIsotopePattern) pattern).getIsotopeComposition(i));
+        }
+      }
+    }
+    
+    if(pattern instanceof ExtendedIsotopePattern)
+      return new ExtendedIsotopePattern(newDP.toArray(new DataPoint[0]), pattern.getStatus(), pattern.getDescription(), newComp.toArray(new String[0]));
+    else
+      return new SimpleIsotopePattern(newDP.toArray(new DataPoint[0]), pattern.getStatus(), pattern.getDescription());
+  }
 
   /**
    * Returns same isotope pattern (same ratios between isotope intensities) with maximum intensity

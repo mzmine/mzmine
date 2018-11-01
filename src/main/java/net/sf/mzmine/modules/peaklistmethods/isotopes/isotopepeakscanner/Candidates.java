@@ -393,8 +393,7 @@ public class Candidates {
 
 
     if (pointsAdded == 0) {
-      System.out
-          .println("Error: Peaks with ids: " + ID.toString() + "were not in same scans at all");
+      logger.warning("Error: Peaks with ids: " + Arrays.toString(ID) + " were not in same scans at all. Please update the parameters.");
       return null;
     }
     for (int i = 0; i < avgHeights.length; i++)
