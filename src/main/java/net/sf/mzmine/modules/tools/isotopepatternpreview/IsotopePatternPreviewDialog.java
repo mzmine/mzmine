@@ -21,24 +21,19 @@ package net.sf.mzmine.modules.tools.isotopepatternpreview;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -62,7 +57,6 @@ import net.sf.mzmine.parameters.parametertypes.DoubleComponent;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerComponent;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentComponent;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringComponent;
@@ -80,11 +74,11 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
    * 
    */
   private static final long serialVersionUID = 1L;
-  
+
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private NumberFormat intFormat = new DecimalFormat("0.00 %");
-  private NumberFormat relFormat = new DecimalFormat("0.0000");
+  private NumberFormat relFormat = new DecimalFormat("0.00000");
 
   private double minIntensity, mergeWidth;
   private int charge;
@@ -107,12 +101,12 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private PercentParameter pMinIntensity;
   private StringParameter pFormula;
   private IntegerParameter pCharge;
-  
+
   private DoubleComponent cmpMergeWidth;
   private PercentComponent cmpMinIntensity;
   private StringComponent cmpFormula;
   private IntegerComponent cmpCharge;
-  
+
   private JLabel lblMergeWidth, lblMinIntensity, lblFormula, lblCharge;
 
   private ExtendedIsotopePatternDataSet dataset;
@@ -134,7 +128,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    
+
     formatChart();
     parametersChanged();
   }
@@ -142,20 +136,22 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   @Override
   protected void addDialogComponents() {
     super.addDialogComponents();
-    
+
     pFormula = parameterSet.getParameter(IsotopePatternPreviewParameters.molecule);
-    pMinIntensity =
-        parameterSet.getParameter(IsotopePatternPreviewParameters.minIntensity);
+    pMinIntensity = parameterSet.getParameter(IsotopePatternPreviewParameters.minIntensity);
     pMergeWidth = parameterSet.getParameter(IsotopePatternPreviewParameters.mergeWidth);
     pCharge = parameterSet.getParameter(IsotopePatternPreviewParameters.charge);
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    
-    cmpMinIntensity = (PercentComponent) getComponentForParameter(IsotopePatternPreviewParameters.minIntensity);
-    cmpMergeWidth = (DoubleComponent) getComponentForParameter(IsotopePatternPreviewParameters.mergeWidth);
+
+    cmpMinIntensity =
+        (PercentComponent) getComponentForParameter(IsotopePatternPreviewParameters.minIntensity);
+    cmpMergeWidth =
+        (DoubleComponent) getComponentForParameter(IsotopePatternPreviewParameters.mergeWidth);
     cmpCharge = (IntegerComponent) getComponentForParameter(IsotopePatternPreviewParameters.charge);
-    cmpFormula = (StringComponent) getComponentForParameter(IsotopePatternPreviewParameters.molecule);
-    
+    cmpFormula =
+        (StringComponent) getComponentForParameter(IsotopePatternPreviewParameters.molecule);
+
     // panels
     newMainPanel = new JPanel(new BorderLayout());
     pnText = new JScrollPane();
@@ -198,23 +194,23 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     updateMinimumSize();
     pack();
   }
-  
+
   private void organizeParameterPanel() {
     lblMergeWidth = new JLabel(pMergeWidth.getName());
     lblMinIntensity = new JLabel(pMinIntensity.getName());
     lblFormula = new JLabel(pFormula.getName());
     lblCharge = new JLabel(pCharge.getName());
-    
+
     mainPanel.remove(cmpCharge);
     mainPanel.remove(cmpMergeWidth);
     mainPanel.remove(cmpMinIntensity);
     mainPanel.remove(cmpFormula);
-    
+
     lblFormula.setLabelFor(cmpFormula);
     lblMinIntensity.setLabelFor(cmpMinIntensity);
     lblMergeWidth.setLabelFor(cmpMergeWidth);
     lblCharge.setLabelFor(cmpCharge);
-    
+
     pnlParameters.add(lblFormula);
     pnlParameters.add(cmpFormula);
     pnlParameters.add(lblMinIntensity);
@@ -244,9 +240,9 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   // -----------------------------------------------------
   private void updatePreview() {
     if (!updateParameters()) {
-      logger.warning(
-          "updatePreview() failed. Could not update parameters or parameters are invalid."
-          + "\nPlease check the parameters.");
+      logger
+          .warning("updatePreview() failed. Could not update parameters or parameters are invalid."
+              + "\nPlease check the parameters.");
       return;
     }
 
@@ -285,17 +281,17 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
           dataset);
 
     formatChart();
-    
+
     pnlChart.setChart(chart);
   }
-  
+
   private void formatChart() {
     theme.apply(chart);
     plot = chart.getXYPlot();
-    plot.addRangeMarker(new ValueMarker(minIntensity, belowMin, new BasicStroke(1.0f)));
-    ((NumberAxis)plot.getDomainAxis()).setNumberFormatOverride(mzFormat);
-    ((NumberAxis)plot.getRangeAxis()).setNumberFormatOverride(intFormat);
-    
+//    plot.addRangeMarker(new ValueMarker(minIntensity, belowMin, new BasicStroke(1.0f)));
+    ((NumberAxis) plot.getDomainAxis()).setNumberFormatOverride(mzFormat);
+    ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(intFormat);
+
     XYItemRenderer r = plot.getRenderer();
     r.setSeriesPaint(0, aboveMin);
     r.setSeriesPaint(1, belowMin);
@@ -327,8 +323,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   }
 
   private boolean checkParameters() {
-    if (/* pElement.getValue().equals("") */pFormula.getValue() == null
-        || pFormula.getValue().equals("") || !FormulaUtils.checkMolecularFormula(pFormula.getValue())) {
+    if (pFormula.getValue() == null || pFormula.getValue().equals("")
+        || !FormulaUtils.checkMolecularFormula(pFormula.getValue())) {
       logger.info("Invalid input or Element == \"\" or invalid elements.");
       return false;
     }
@@ -341,11 +337,11 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       logger.info("Merge width invalid. " + pMergeWidth.getValue());
       return false;
     }
-    if(pCharge.getValue() == null) {
+    if (pCharge.getValue() == null) {
       logger.info("Charge invalid. " + pCharge.getValue());
       return false;
     }
-    
+
     logger.info("Parameters valid");
     return true;
   }
@@ -360,9 +356,10 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       return null;
 
     logger.info("Calculating isotope pattern: " + molecule);
-    
+
     try {
-      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(molecule, minIntensity, mergeWidth, charge, pol, true);
+      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(molecule,
+          minIntensity, mergeWidth, charge, pol, true);
     } catch (Exception e) {
       logger.warning("The entered Sum formula is invalid. Cancelling.");
       return null;

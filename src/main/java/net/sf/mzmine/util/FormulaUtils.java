@@ -179,9 +179,7 @@ public class FormulaUtils {
     molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
 
     String simple = MolecularFormulaManipulator.simplifyMolecularFormula(formula);
-    logger.info(simple);
     String elements[] = simple.split("0");
-
     String invalid = "";
 
     boolean found = false;

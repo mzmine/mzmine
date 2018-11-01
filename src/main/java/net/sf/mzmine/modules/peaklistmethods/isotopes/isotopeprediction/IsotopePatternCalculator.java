@@ -61,7 +61,6 @@ public class IsotopePatternCalculator implements MZmineModule {
 
   public static IsotopePattern calculateIsotopePattern(String molecularFormula, double minAbundance,
       int charge, PolarityType polarity, boolean storeFormula) {
-
     return calculateIsotopePattern(molecularFormula, minAbundance, 0.00005f, charge, polarity,
         storeFormula);
   }
@@ -174,7 +173,6 @@ public class IsotopePatternCalculator implements MZmineModule {
           pattern.getDescription(), ((ExtendedIsotopePattern) pattern).getIsotopeCompositions());
     else
       return new SimpleIsotopePattern(newDataPoints, pattern.getStatus(), pattern.getDescription());
-
 
   }
 
