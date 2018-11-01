@@ -69,7 +69,7 @@ public class IsotopePatternCalculator implements MZmineModule {
       double mergeWidth, int charge, PolarityType polarity, boolean storeFormula) {
 
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-
+    molecularFormula = molecularFormula.replace(" ", "");
     IMolecularFormula cdkFormula =
         MolecularFormulaManipulator.getMolecularFormula(molecularFormula, builder);
 
@@ -89,14 +89,13 @@ public class IsotopePatternCalculator implements MZmineModule {
 
   public static IsotopePattern calculateIsotopePattern(IMolecularFormula cdkFormula,
       double minAbundance, double mergeWidth, int charge, PolarityType polarity,
-      boolean storeFormula) {
-
+      boolean storeFormula) {    
     // TODO: check if the formula is not too big (>100 of a single atom?).
     // if so, just cancel the prediction
 
     // Set the minimum abundance of isotope
     // TODO: in the CDK minAbundance is now called minIntensity and refers to the relative intensity
-    // in the isotope pattern, should change it here, too
+    // in the isotope pattern, should change it here, too    
     IsotopePatternGenerator generator = new IsotopePatternGenerator(minAbundance);
     generator.setMinResolution(mergeWidth);
     generator.setStoreFormulas(storeFormula);

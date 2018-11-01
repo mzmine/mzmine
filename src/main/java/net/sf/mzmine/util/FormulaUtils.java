@@ -172,7 +172,10 @@ public class FormulaUtils {
    * @return true / false
    */
   public static boolean checkMolecularFormula(String formula) {
-
+    if(formula.matches(".*[äöüÄÖÜß°§$%&/()=?ß²³´`+*~'#;:<>|]")) { // check for this first
+      logger.info("Formula contains illegal characters.");
+      return false;
+    }
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
     IMolecularFormula molFormula;
 
