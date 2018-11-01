@@ -168,8 +168,6 @@ public class IsotopePatternCalculator implements MZmineModule {
       newDataPoints[i] = new SimpleDataPoint(mz, intensity);
     }
 
-    SimpleIsotopePattern newPattern;
-
     if (pattern instanceof ExtendedIsotopePattern
         && ((ExtendedIsotopePattern) pattern).getIsotopeCompositions() != null)
       return new ExtendedIsotopePattern(newDataPoints, pattern.getStatus(),
@@ -208,8 +206,6 @@ public class IsotopePatternCalculator implements MZmineModule {
           newIsotopeComposition[i + 1] = ((ExtendedIsotopePattern) pattern).getIsotopeComposition(i)
               + ", " + ((ExtendedIsotopePattern) pattern).getIsotopeComposition(i + 1);
           newIsotopeComposition[i] = null;
-
-          // System.out.println("merged isotopes: " + i + " + " + (i+1));
         }
       }
     }

@@ -38,12 +38,12 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class IsotopePatternPreviewParameters extends SimpleParameterSet {
 
-  public static final StringParameter molecule = new StringParameter("Element/Molecule",
+  public static final StringParameter molecule = new StringParameter("Molecular formula",
       "The element/molecule to calculate the isotope pattern of. Enter a sum formula.");
 
-  public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width(Da)",
+  public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width (Da / m/z)",
       "This will be used to merge isotope compositions in the calculated isotope pattern if they overlap.",
-      MZmineCore.getConfiguration().getMZFormat(), 0.0005, 0.0d, 10.0d);
+      MZmineCore.getConfiguration().getMZFormat(), 0.00005, 0.0d, 10.0d);
 
   public static final PercentParameter minIntensity =
       new PercentParameter("Minimum intensity",
