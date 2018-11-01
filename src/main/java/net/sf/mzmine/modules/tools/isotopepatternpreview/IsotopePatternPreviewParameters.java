@@ -38,7 +38,7 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class IsotopePatternPreviewParameters extends SimpleParameterSet {
 
-  public static final StringParameter molecule = new StringParameter("Molecular formula",
+  public static final StringParameter molecule = new StringParameter("Chemical formula",
       "The element/molecule to calculate the isotope pattern of. Enter a sum formula.");
 
   public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width (Da / m/z)",

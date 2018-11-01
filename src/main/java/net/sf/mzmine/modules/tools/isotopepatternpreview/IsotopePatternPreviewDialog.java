@@ -68,6 +68,7 @@ import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringComponent;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.FormulaUtils;
 
 /**
  * 
@@ -327,8 +328,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
   private boolean checkParameters() {
     if (/* pElement.getValue().equals("") */pFormula.getValue() == null
-        || pFormula.getValue().equals("")) {
-      logger.info("Invalid input or Element == \"\" and no autoCarbon");
+        || pFormula.getValue().equals("") || !FormulaUtils.checkMolecularFormula(pFormula.getValue())) {
+      logger.info("Invalid input or Element == \"\" or invalid elements.");
       return false;
     }
     if (pMinIntensity.getValue() == null || pMinIntensity.getValue() > 1.0d
@@ -359,11 +360,11 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       return null;
 
     logger.info("Calculating isotope pattern: " + molecule);
-
+    
     try {
       pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(molecule, minIntensity, mergeWidth, charge, pol, true);
     } catch (Exception e) {
-      logger.warning("The entered Sum formula is invalid. Canceling.");
+      logger.warning("The entered Sum formula is invalid. Cancelling.");
       return null;
     }
 
