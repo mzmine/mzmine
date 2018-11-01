@@ -22,18 +22,21 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
-
 import net.sf.mzmine.datamodel.IonizationType;
-
 import org.openscience.cdk.config.Isotopes;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
 
+  private static Logger logger = Logger.getLogger(FormulaUtils.class.getName());
   private static final double electronMass = 0.00054857990946;
 
   /**
@@ -162,4 +165,47 @@ public class FormulaUtils {
 
   }
 
+  /**
+   * Checks if a formula string only contains valid isotopes/elements.
+   * 
+   * @param formula String of the molecular formula.
+   * @return true / false
+   */
+  public static boolean checkMolecularFormula(String formula) {
+    if(formula.matches(".*[äöüÄÖÜß°§$%&/()=?ß²³´`+*~'#;:<>|]")) { // check for this first
+      logger.info("Formula contains illegal characters.");
+      return false;
+    }
+    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    IMolecularFormula molFormula;
+
+    molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+
+    String simple = MolecularFormulaManipulator.simplifyMolecularFormula(formula);
+    String elements[] = simple.split("0");
+    String invalid = "";
+
+    boolean found = false;
+    for (String element : elements) {
+      found = false;
+      for (IIsotope iso : molFormula.isotopes()) {
+        if (element.equals(iso.getSymbol()) && (iso.getAtomicNumber() != null)
+            && (iso.getAtomicNumber() != 0)) {
+          // iso.getAtomicNumber() != null has to be checked, e.g. for some reason an element with
+          // Symbol "R" and number 0 exists in the CDK
+          found = true;
+        }
+      }
+      if (found == false) {
+        invalid += element + ", ";
+      }
+    }
+
+    if (invalid.length() != 0) {
+      invalid = invalid.substring(0, invalid.length() - 2);
+      logger.warning("Formula invalid! Element(s) " + invalid + " do not exist.");
+      return false;
+    }
+    return true;
+  }
 }

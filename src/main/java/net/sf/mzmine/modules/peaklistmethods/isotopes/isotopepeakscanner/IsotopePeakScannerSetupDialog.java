@@ -27,6 +27,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -34,6 +35,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.text.NumberFormatter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -42,7 +44,10 @@ import org.jfree.data.xy.XYSeriesCollection;
 import net.sf.mzmine.chartbasics.chartthemes.EIsotopePatternChartTheme;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.PolarityType;
+import net.sf.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.autocarbon.AutoCarbonParameters;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ExtendedIsotopePatternDataSet;
 import net.sf.mzmine.modules.visualization.spectra.renderers.SpectraToolTipGenerator;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -53,6 +58,8 @@ import net.sf.mzmine.parameters.parametertypes.OptionalModuleComponent;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.FormulaUtils;
 
 /**
  *
@@ -70,8 +77,11 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
   private static final long serialVersionUID = 1L;
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
+  
+  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private NumberFormat intFormat = new DecimalFormat("0.00 %");
 
-  private double minAbundance, minIntensity, mergeWidth;
+  private double minIntensity, mergeWidth;
   private int charge, minSize, minC, maxC;
   private String element;
   private boolean autoCarbon;
@@ -83,7 +93,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
 
 
   // components created by this class
-  private JButton btnPrevPattern, btnNextPattern, btnUpdatePreview;
+  private JButton btnPrevPattern, btnNextPattern;
   private JFormattedTextField txtCurrentPatternIndex;
 
   private NumberFormatter form;
@@ -97,7 +107,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
   private IntegerParameter pMinC, pMaxC, pMinSize, pCharge;
   private StringParameter pElement;
   private DoubleParameter pMinIntensity, pMergeWidth;
-  private PercentParameter pMinAbundance;
   private OptionalModuleParameter pAutoCarbon;
 
   private ExtendedIsotopePatternDataSet dataset;
@@ -126,7 +135,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
 
     pnlChart = new EChartPanel(chart);
     pnlChart.setPreferredSize(
-        new Dimension((int) (screenSize.getWidth() / 2), (int) (screenSize.getHeight() / 3)));
+        new Dimension((int) (screenSize.getWidth() / 3), (int) (screenSize.getHeight() / 3)));
     pnlPreview.add(pnlChart, BorderLayout.CENTER);
 
 
@@ -140,7 +149,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     // but it should be disabled by default. Thats why it's hardcoded here.
 
     // get parameters
-    pMinAbundance = parameterSet.getParameter(IsotopePeakScannerParameters.minAbundance);
     pElement = parameterSet.getParameter(IsotopePeakScannerParameters.element);
     pMinIntensity = parameterSet.getParameter(IsotopePeakScannerParameters.minPatternIntensity);
     pCharge = parameterSet.getParameter(IsotopePeakScannerParameters.charge);
@@ -176,11 +184,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     btnNextPattern.setPreferredSize(btnNextPattern.getMinimumSize());
     btnNextPattern.setEnabled(cmpAutoCarbonCbx.isSelected());
 
-    btnUpdatePreview = new JButton("Update");
-    btnUpdatePreview.addActionListener(this);
-    btnUpdatePreview.setPreferredSize(btnUpdatePreview.getMinimumSize());
-    btnUpdatePreview.setEnabled(cmpPreview.isSelected());
-
     chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
         new XYSeriesCollection(new XYSeries("")));
     chart.getPlot().setBackgroundPaint(Color.WHITE);
@@ -190,8 +193,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     pnlPreviewButtons.add(btnPrevPattern);
     pnlPreviewButtons.add(txtCurrentPatternIndex);
     pnlPreviewButtons.add(btnNextPattern);
-    pnlPreviewButtons.add(btnUpdatePreview);
-
 
     pack();
   }
@@ -230,14 +231,12 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
       if (cmpPreview.isSelected()) {
         newMainPanel.add(pnlPreview, BorderLayout.CENTER);
         pnlPreview.setVisible(true);
-        btnUpdatePreview.setEnabled(cmpPreview.isSelected());
         updatePreview();
         updateMinimumSize();
         pack();
       } else {
         newMainPanel.remove(pnlPreview);
         pnlPreview.setVisible(false);
-        btnUpdatePreview.setEnabled(cmpPreview.isSelected());
         updateMinimumSize();
         pack();
       }
@@ -245,10 +244,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
 
     else if (ae.getSource() == txtCurrentPatternIndex) {
       // logger.info(ae.getSource().toString());
-      updatePreview();
-    }
-
-    else if (ae.getSource() == btnUpdatePreview) {
       updatePreview();
     }
 
@@ -263,7 +258,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
   protected void parametersChanged() {
     updatePreview();
   }
-
 
   // -----------------------------------------------------
   // methods
@@ -288,13 +282,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
     chart = ChartFactory.createXYBarChart("Isotope pattern preview", "m/z", false, "Abundance",
         dataset);
-    theme.apply(chart);
-    plot = chart.getXYPlot();
-    plot.addRangeMarker(new ValueMarker(minIntensity, belowMin, new BasicStroke(1.0f)));
-    XYItemRenderer r = plot.getRenderer();
-    r.setSeriesPaint(0, aboveMin);
-    r.setSeriesPaint(1, belowMin);
-    r.setDefaultToolTipGenerator(ttGen);
+    formatChart();
     pnlChart.setChart(chart);
   }
 
@@ -307,9 +295,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
       return false;
     }
 
-
-    element = pElement.getValue(); // TODO
-    minAbundance = pMinAbundance.getValue();
+    element = pElement.getValue();
     mergeWidth = pMergeWidth.getValue();
     minIntensity = pMinIntensity.getValue();
     charge = pCharge.getValue();
@@ -337,13 +323,8 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
 
   private boolean checkParameters() {
     if (/* pElement.getValue().equals("") */pElement.getValue() == null
-        || (pElement.getValue().equals("") && !autoCarbon) || pElement.getValue().contains(" ")) {
-      logger.info("Invalid input or Element == \"\" and no autoCarbon");
-      return false;
-    }
-    if (pMinAbundance.getValue() == null || pMinAbundance.getValue() > 1.0d
-        || pMinAbundance.getValue() <= 0.0d) {
-      logger.info("Minimun abundance invalid. " + pMinAbundance.getValue());
+        || (pElement.getValue().equals("") && !autoCarbon) || pElement.getValue().contains(" ") || !FormulaUtils.checkMolecularFormula(pElement.getValue())) {
+      logger.info("Invalid input or Element == \"\" and no autoCarbon or invalid formula.");
       return false;
     }
     if (pMinIntensity.getValue() == null || pMinIntensity.getValue() > 1.0d
@@ -365,8 +346,6 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
   }
 
   private ExtendedIsotopePattern calculateIsotopePattern() {
-    ExtendedIsotopePattern pattern = new ExtendedIsotopePattern();
-
     if (!checkParameters())
       return null;
 
@@ -382,16 +361,29 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
       return null;
     logger.info("Calculating isotope pattern: " + strPattern);
 
+    ExtendedIsotopePattern pattern;
+    PolarityType pol = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
+    charge = (charge > 0) ? charge : charge * -1;
     try {
       // *0.2 so the user can see the peaks below the threshold
-      pattern.setUpFromFormula(strPattern, minAbundance, mergeWidth, minIntensity * 0.2);
+      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(strPattern, minIntensity*0.1, mergeWidth, charge, pol, true);
     } catch (Exception e) {
       logger.warning("The entered Sum formula is invalid.");
       return null;
     }
-    PolarityType pol = (charge > 0) ? PolarityType.POSITIVE : PolarityType.NEGATIVE;
-    charge = (charge > 0) ? charge : charge * -1;
-    pattern.applyCharge(charge, pol);
     return pattern;
+  }
+  
+  private void formatChart() {
+    theme.apply(chart);
+    plot = chart.getXYPlot();
+    plot.addRangeMarker(new ValueMarker(minIntensity, belowMin, new BasicStroke(1.0f)));
+    ((NumberAxis) plot.getDomainAxis()).setNumberFormatOverride(mzFormat);
+    ((NumberAxis) plot.getRangeAxis()).setNumberFormatOverride(intFormat);
+
+    XYItemRenderer r = plot.getRenderer();
+    r.setSeriesPaint(0, aboveMin);
+    r.setSeriesPaint(1, belowMin);
+    r.setDefaultToolTipGenerator(ttGen);
   }
 }

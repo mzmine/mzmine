@@ -27,7 +27,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.ExtendedIsotopePattern;
+import net.sf.mzmine.datamodel.impl.ExtendedIsotopePattern;
 
 /**
  * 
@@ -92,12 +92,12 @@ public class ExtendedIsotopePatternDataSet extends XYSeriesCollection {
         assignment[i].ab = AB.BELOW;
         assignment[i].id = i;
         below.add(dp[i].getMZ(), dp[i].getIntensity());
-        descrBelow.add(pattern.getDetailedPeakDescription(i));
+        descrBelow.add(pattern.getIsotopeComposition(i));
       } else {
         assignment[i].ab = AB.ABOVE;
         assignment[i].id = i;
         above.add(dp[i].getMZ(), dp[i].getIntensity());
-        descrAbove.add(pattern.getDetailedPeakDescription(i));
+        descrAbove.add(pattern.getIsotopeComposition(i));
       }
     }
 

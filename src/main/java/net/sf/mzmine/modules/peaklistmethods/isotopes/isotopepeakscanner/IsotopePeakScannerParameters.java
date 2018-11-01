@@ -55,16 +55,11 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-  public static final StringParameter element = new StringParameter("Element pattern",
+  public static final StringParameter element = new StringParameter("Chemical formula",
       "Element (combination) whose isotope pattern to be searched for. Please enter the two letter Symbol."
           + " (e.g. \"Gd\", \"Cl2BrS\")",
       "", false);
-
-  public static final PercentParameter minAbundance = new PercentParameter("Minimum abundance",
-      "The minimum abundance (%) of Isotopes. Small values "
-          + "might increase accuracy but will decrease sensitivity.",
-      0.01);
-
+  
   public static final DoubleParameter minHeight = new DoubleParameter("Minimum height",
       "Minimum peak height to be considered as an isotope peak.",
       MZmineCore.getConfiguration().getIntensityFormat(), 1E4);
@@ -121,7 +116,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
 
   public IsotopePeakScannerParameters() {
     super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, element, autoCarbonOpt,
-        charge, minAbundance, minPatternIntensity, mergeWidth, showPreview, minHeight,
+        charge, minPatternIntensity, mergeWidth, showPreview, minHeight,
         checkIntensity, minRating, ratingChoices, massList, suffix});
   }
 
