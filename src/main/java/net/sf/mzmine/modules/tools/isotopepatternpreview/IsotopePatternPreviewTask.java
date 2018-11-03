@@ -22,6 +22,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   private String formula;
   
   ExtendedIsotopePattern pattern;
+  IsotopePatternPreviewDialog dialog;
   
   public IsotopePatternPreviewTask() {
     message = "Wating for parameters";
@@ -45,7 +46,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     pattern = null;
   }
   
-  public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth, int charge, PolarityType polarity) {
+  public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth, int charge, PolarityType polarity, IsotopePatternPreviewDialog dialog) {
     message = "Wating for parameters";
     parametersChanged = false;
     this.minIntensity = minIntensity;
@@ -53,44 +54,33 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     this.charge = charge;
     this.formula = formula;
     this.polarity = polarity;
+    this.dialog = dialog;
     parametersChanged = true;
     pattern = null;
   }
   
-  public void run() {
-    ExtendedIsotopePattern pattern;
-    while(getStatus() != TaskStatus.FINISHED) {
-      try {
-        TimeUnit.MILLISECONDS.sleep(50);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-        return;
-      }
-      
-      if(parametersChanged) {
-        pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula, minIntensity, mergeWidth, charge, polarity, true);
-        parametersChanged = false;
-        logger.info("Pattern " + pattern.getDescription() + " calculated.");
-      }
+  public void run() {      
+    pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula, minIntensity, mergeWidth, charge, polarity, true);
+    if(pattern == null) {
+      logger.warning("Isotope pattern could not be calculated.");
+      return;
     }
-    
-    updateWindow();
-    
+    logger.info("Pattern " + pattern.getDescription() + " calculated.");
     setStatus(TaskStatus.FINISHED);
+        
+    updateWindow();
   }
   
   public void updateWindow() {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        
+        logger.info("Updating window");
+        dialog.updateChart(pattern);
+        dialog.updateTable(pattern);
       }
     });
   }
   
-  public ExtendedIsotopePattern getPattern() {
-    return pattern;
-  }
-
   @Override
   public String getTaskDescription() {
     return message;

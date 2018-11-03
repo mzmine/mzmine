@@ -112,6 +112,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private ExtendedIsotopePatternDataSet dataset;
   private SpectraToolTipGenerator ttGen;
 
+  private long lastCalc;
+  
   String[][] columns = {{"Exact mass / Da", "Intensity", "Isotope composition"},
       {"m/z", "Intensity", "Isotope composition"}};
 
@@ -125,6 +127,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
     aboveMin = new Color(30, 180, 30);
     belowMin = new Color(200, 30, 30);
+    
+    lastCalc = 0;
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
@@ -243,18 +247,21 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
               + "\nPlease check the parameters.");
       return;
     }
-
-    ExtendedIsotopePattern pattern = calculateIsotopePattern();
-    if (pattern == null) {
-      logger.warning("Could not calculate isotope pattern. Please check the parameters.");
-      return;
-    }
     
-    updateTable(pattern);
-    updateChart(pattern);
+    if(FormulaUtils.getFormulaSize(formula) > 5E3 && ((System.nanoTime() - lastCalc) * 1E-6 < 150)) {
+      logger.info("Big formula " + formula + " size: " + FormulaUtils.getFormulaSize(formula) + " or last calculation recent: " + (System.nanoTime() -  lastCalc) / 1E6 + " ms");
+    }
+    else {
+      IsotopePatternPreviewTask task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);
+      logger.info("Running task...");
+      Thread thread = new Thread(task);
+      thread.setPriority(10);
+      thread.start();
+      lastCalc = System.nanoTime();
+    }
   }
 
-  private void updateChart(ExtendedIsotopePattern pattern) {
+  protected void updateChart(ExtendedIsotopePattern pattern) {
     dataset = new ExtendedIsotopePatternDataSet(pattern, minIntensity, mergeWidth);
     if (pol == PolarityType.NEUTRAL)
       chart = ChartFactory.createXYBarChart("Isotope pattern preview", "Exact mass / Da", false,
@@ -268,7 +275,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     pnlChart.setChart(chart);
   }
   
-  private void updateTable(ExtendedIsotopePattern pattern) {
+  protected void updateTable(ExtendedIsotopePattern pattern) {
     DataPoint[] dp = pattern.getDataPoints();
     Object[][] data = new Object[dp.length][];
     for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
@@ -348,19 +355,5 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     return true;
   }
 
-  private ExtendedIsotopePattern calculateIsotopePattern() {
-    ExtendedIsotopePattern pattern;
-
-    logger.info("Calculating isotope pattern: " + formula);
-
-    try {
-      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula,
-          minIntensity, mergeWidth, charge, pol, true);
-    } catch (Exception e) {
-      logger.warning("The entered Sum formula is invalid. Cancelling.");
-      return null;
-    }
-
-    return pattern;
-  }
+  
 }
