@@ -83,7 +83,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private double minIntensity, mergeWidth;
   private int charge;
   private PolarityType pol;
-  private String molecule;
+  private String formula;
 
   private EChartPanel pnlChart;
   private JFreeChart chart;
@@ -137,7 +137,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   protected void addDialogComponents() {
     super.addDialogComponents();
 
-    pFormula = parameterSet.getParameter(IsotopePatternPreviewParameters.molecule);
+    pFormula = parameterSet.getParameter(IsotopePatternPreviewParameters.formula);
     pMinIntensity = parameterSet.getParameter(IsotopePatternPreviewParameters.minIntensity);
     pMergeWidth = parameterSet.getParameter(IsotopePatternPreviewParameters.mergeWidth);
     pCharge = parameterSet.getParameter(IsotopePatternPreviewParameters.charge);
@@ -150,7 +150,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
         (DoubleComponent) getComponentForParameter(IsotopePatternPreviewParameters.mergeWidth);
     cmpCharge = (IntegerComponent) getComponentForParameter(IsotopePatternPreviewParameters.charge);
     cmpFormula =
-        (StringComponent) getComponentForParameter(IsotopePatternPreviewParameters.molecule);
+        (StringComponent) getComponentForParameter(IsotopePatternPreviewParameters.formula);
 
     // panels
     newMainPanel = new JPanel(new BorderLayout());
@@ -225,23 +225,21 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     if (ae.getSource() == btnOK) {
       this.closeDialog(ExitCode.CANCEL);
     }
-    updateParameterSetFromComponents();
-    updatePreview();
+    updateWindow();
   }
 
   @Override
   protected void parametersChanged() {
-    updateParameterSetFromComponents();
-    updatePreview();
+    updateWindow();
   }
 
   // -----------------------------------------------------
   // methods
   // -----------------------------------------------------
-  private void updatePreview() {
+  public void updateWindow() {
     if (!updateParameters()) {
       logger
-          .warning("updatePreview() failed. Could not update parameters or parameters are invalid."
+          .warning("updateWindow() failed. Could not update parameters or parameters are invalid."
               + "\nPlease check the parameters.");
       return;
     }
@@ -251,23 +249,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       logger.warning("Could not calculate isotope pattern. Please check the parameters.");
       return;
     }
-
-    DataPoint[] dp = pattern.getDataPoints();
-    Object[][] data = new Object[dp.length][];
-    for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
-      data[i] = new Object[3];
-      data[i][0] = mzFormat.format(dp[i].getMZ());
-      data[i][1] = relFormat.format(dp[i].getIntensity());
-      data[i][2] = pattern.getIsotopeComposition(i);
-    }
-
-    if (pol == PolarityType.NEUTRAL)
-      table = new JTable(data, columns[0]); // column 1 = "Exact mass / Da"
-    else
-      table = new JTable(data, columns[1]); // column 2 = "m/z"
-
-    pnText.setViewportView(table);
-    table.setDefaultEditor(Object.class, null); // make editing impossible
+    
+    updateTable(pattern);
     updateChart(pattern);
   }
 
@@ -284,7 +267,26 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
     pnlChart.setChart(chart);
   }
+  
+  private void updateTable(ExtendedIsotopePattern pattern) {
+    DataPoint[] dp = pattern.getDataPoints();
+    Object[][] data = new Object[dp.length][];
+    for (int i = 0; i < pattern.getNumberOfDataPoints(); i++) {
+      data[i] = new Object[3];
+      data[i][0] = mzFormat.format(dp[i].getMZ());
+      data[i][1] = relFormat.format(dp[i].getIntensity());
+      data[i][2] = pattern.getIsotopeComposition(i);
+    }
 
+    if (pol == PolarityType.NEUTRAL)
+      table = new JTable(data, columns[0]); // column 1 = "Exact mass / Da"
+    else
+      table = new JTable(data, columns[1]); // column 2 = "m/z"
+
+    pnText.setViewportView(table);
+    table.setDefaultEditor(Object.class, null); // make editing impossible
+  }
+  
   private void formatChart() {
     theme.apply(chart);
     plot = chart.getXYPlot();
@@ -305,7 +307,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       return false;
     }
 
-    molecule = pFormula.getValue();
+    formula = pFormula.getValue();
     mergeWidth = pMergeWidth.getValue();
     minIntensity = pMinIntensity.getValue();
     charge = pCharge.getValue();
@@ -349,16 +351,10 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private ExtendedIsotopePattern calculateIsotopePattern() {
     ExtendedIsotopePattern pattern;
 
-    if (!checkParameters())
-      return null;
-
-    if (molecule.equals(""))
-      return null;
-
-    logger.info("Calculating isotope pattern: " + molecule);
+    logger.info("Calculating isotope pattern: " + formula);
 
     try {
-      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(molecule,
+      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula,
           minIntensity, mergeWidth, charge, pol, true);
     } catch (Exception e) {
       logger.warning("The entered Sum formula is invalid. Cancelling.");
