@@ -1,37 +1,33 @@
 <html>
     <head>
-        <title>Extract scans - Spectra/mass list to csv export</title>
+        <title>Merge raw data files</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
     </head>
 
     <body>
 
-        <h1>Extract scans - Spectra/mass list to csv export</h1>
-       
+        <h1>Merge raw data files</h1>
+
         <h2>Description</h2>
         <p>
-            This module exports scans or mass lists to csv text files. 
+            This module merges all raw data files into a new. For example to combine positive and negative scans with MS2, all from different raw data files.
         </p>
 
         <h4>Method parameters</h4>
         <dl>
-            <dt>Optional mass list: </dt>
-            <dd>If checked, mass lists are exported instead of raw scans</dd>
-            <dt>Raw data files: </dt>
-            <dd>One or more raw data files that contain the scans/mass lists</dd>
-            <dt>Use center time: </dt>
-            <dd>Specifies that the center time and scan count should be used (inactive in the case that auto search max is selected)</dd>
-            <dt>Scan count to be exported: </dt>
-            <dd>Only used for center time and for auto search max</dd>
-            <dt>Center time: </dt>
-            <dd>Used if option above is checked and auto max is disabled</dd>
-            <dt>Time range:</dt>
-            <dd>Time range to export scans. Only used if use center time and auto search max is unchecked</dd>
-            <dt>Auto search max: </dt>
-            <dd>Searches for TIC maximum to center the scan export of the specified count of scans. (Important: Disables the center time and time range)</dd>
-            <dt>Export header: </dt>
-            <dd>Export meta data as a header for each scan</dd>
+            <dt>Data files: </dt>
+            <dt>Mode: </dt>
+            <dd>MERGE PATTERN: Merge files based on a grouping identifier which can be a name suffix or prefix. (e.g., Sample_A_1, Sample_B_1: Use AFTER LAST _ to combine these files)</dd>
+            <dd>MERGE SELECTED: Merge all selected files to a new</dd>
+            <dt>Grouping identifier position: </dt>
+            <dd>Search for the specific group identifier before the first or after the last marker.</dd>
+            <dt>Position marker: </dt>
+            <dd>The marker that splits the specific group identifier from the rest of the file names</dd>
+            <dt>MS2 marker: </dt>
+            <dd>String that marks a raw data file as a source of MS2 (MSn) scans. All MS1 scans of this file are discarded. (e.g., MS2, TOP4, ...)</dd>
+            <dt>Suffix:</dt>
+            <dd>Suffix to be added to the file name</dd
         </dl>
 
     </body>
