@@ -18,21 +18,42 @@
 
 package net.sf.mzmine.modules.rawdatamethods.merge;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.logging.Logger;
+import io.github.msdk.MSDKRuntimeException;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
+/**
+ * Merge multiple raw data files into one. For example one positive, one negative and multiple with
+ * MS2
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
 class RawFileMergeTask extends AbstractTask {
+
+  private Logger LOG = Logger.getLogger(getClass().getName());
 
   private double perc = 0;
   private RawDataFile[] raw;
   private String suffix;
   private boolean useMS2Marker;
   private String ms2Marker;
+  private MZmineProject project;
 
-  RawFileMergeTask(ParameterSet parameters, RawDataFile[] raw) {
+  RawFileMergeTask(MZmineProject project, ParameterSet parameters, RawDataFile[] raw) {
+    this.project = project;
     this.raw = raw;
     suffix = parameters.getParameter(RawFileMergeParameters.suffix).getValue();
     useMS2Marker = parameters.getParameter(RawFileMergeParameters.MS2_marker).getValue();
@@ -55,27 +76,68 @@ class RawFileMergeTask extends AbstractTask {
 
   @Override
   public void run() {
-    setStatus(TaskStatus.PROCESSING);
+    try {
+      setStatus(TaskStatus.PROCESSING);
 
-    // total number of scans
-    int totalScans = 0;
-    for (RawDataFile r : raw) {
-      totalScans += r.getNumOfScans();
+
+      // total number of scans
+      StringBuilder s = new StringBuilder();
+      s.append("Merge files: ");
+      for (RawDataFile r : raw) {
+        s.append(r.getName());
+        s.append(", ");
+      }
+
+      LOG.info(s.toString());
+
+      // put all in a list and sort by rt
+      List<Scan> scans = new ArrayList<>();
+      for (RawDataFile r : raw) {
+        // some files are only for MS2
+        boolean isMS2Only = useMS2Marker && r.getName().contains(ms2Marker);
+        int[] snarray = r.getScanNumbers();
+        for (int sn : snarray) {
+          if (isCanceled())
+            return;
+
+          Scan scan = r.getScan(sn);
+          if (!isMS2Only || scan.getMSLevel() > 1) {
+            scans.add(scan);
+          }
+        }
+      }
+
+      // sort by rt
+      scans.sort(new Comparator<Scan>() {
+        @Override
+        public int compare(Scan a, Scan b) {
+          return Double.compare(a.getRetentionTime(), b.getRetentionTime());
+        }
+      });
+
+      // create new file
+      RawDataFileWriter rawDataFileWriter =
+          MZmineCore.createNewFile(raw[0].getName() + " " + suffix);
+
+      int i = 0;
+      for (Scan scan : scans) {
+        if (isCanceled())
+          return;
+        // copy, reset scan number
+        SimpleScan scanCopy = new SimpleScan(scan);
+        scanCopy.setScanNumber(i);
+        rawDataFileWriter.addScan(scanCopy);
+        i++;
+      }
+
+      RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+      project.addFile(filteredRawDataFile);
+
+      if (getStatus() == TaskStatus.PROCESSING)
+        setStatus(TaskStatus.FINISHED);
+    } catch (IOException e) {
+      throw new MSDKRuntimeException(e);
     }
-
-    RawDataFileImpl f = (RawDataFileImpl) raw[0];
-
-    RawDataFileImpl result =
-        new RawDataFileImpl(f.getName() + suffix, f.getOriginalFile(), f.getRawDataFileType());
-
-    for (RawDataFile r : raw) {
-      boolean isMS2Only = useMS2Marker && r.getName().contains(ms2Marker);
-      r.getScan(scan)
-
-    }
-
-    if (getStatus() == TaskStatus.PROCESSING)
-      setStatus(TaskStatus.FINISHED);
   }
 
 }

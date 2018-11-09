@@ -61,7 +61,7 @@ public class RawFileMergeModule implements MZmineProcessingModule {
         .equals(MODE.MERGE_SELECTED)) {
       RawDataFile[] raw = parameters.getParameter(RawFileMergeParameters.dataFiles).getValue()
           .getMatchingRawDataFiles();
-      RawFileMergeTask task = new RawFileMergeTask(parameters, raw);
+      RawFileMergeTask task = new RawFileMergeTask(project, parameters, raw);
       tasks.add(task);
     } else {
       // sort files into merge groups
@@ -90,8 +90,8 @@ public class RawFileMergeModule implements MZmineProcessingModule {
         }
         // run task
         if (current.size() > 1) {
-          RawFileMergeTask task =
-              new RawFileMergeTask(parameters, current.toArray(new RawDataFile[current.size()]));
+          RawFileMergeTask task = new RawFileMergeTask(project, parameters,
+              current.toArray(new RawDataFile[current.size()]));
           tasks.add(task);
         }
       } while (!current.isEmpty());

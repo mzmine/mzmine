@@ -20,19 +20,16 @@ package net.sf.mzmine.modules.rawdatamethods.rawdataexport;
 
 import java.io.File;
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-import javax.swing.JOptionPane;
-
+import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.desktop.impl.HeadLessDesktop;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.files.FileAndPathUtil;
 
 /**
  * Raw data export module
@@ -57,30 +54,31 @@ public class RawDataExportModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(final @Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-
-    File fileName = parameters.getParameter(RawDataExportParameters.fileName).getValue();
-    RawDataFile dataFile = parameters.getParameter(RawDataExportParameters.dataFiles).getValue()
-        .getMatchingRawDataFiles()[0];
-
-    if (!fileName.getName().toLowerCase().endsWith("mzml")
-        && !fileName.getName().toLowerCase().endsWith("cdf")) {
-      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Unknown file type - please include either .mzML or .cdf extension in the filename");
-      return ExitCode.ERROR;
+    RawDataFileType type = parameters.getParameter(RawDataExportParameters.type).getValue();
+    String extension = "";
+    switch (type) {
+      case MZML:
+        extension = "mzML";
+        break;
+      case NETCDF:
+        extension = "cdf";
+        break;
+      default:
+        throw new MSDKRuntimeException("This format is not covered in the export module");
     }
 
-    if (!(MZmineCore.getDesktop() instanceof HeadLessDesktop) && fileName.exists()) {
-      String msg = "The file already exists. Do you want to overwrite the file?";
-      int confirmResult =
-          JOptionPane.showConfirmDialog(null, msg, "Existing file", JOptionPane.YES_NO_OPTION);
-      if (confirmResult == JOptionPane.NO_OPTION)
-        return ExitCode.CANCEL;
+    File folder = parameters.getParameter(RawDataExportParameters.fileName).getValue();
+    if (!folder.isDirectory())
+      folder = folder.getParentFile();
 
+    RawDataFile[] dataFile = parameters.getParameter(RawDataExportParameters.dataFiles).getValue()
+        .getMatchingRawDataFiles();
+
+    for (RawDataFile r : dataFile) {
+      File fullName = FileAndPathUtil.getRealFilePath(folder, r.getName(), extension);
+      Task newTask = new RawDataExportTask(r, fullName);
+      tasks.add(newTask);
     }
-
-    Task newTask = new RawDataExportTask(dataFile, fileName);
-    tasks.add(newTask);
-
     return ExitCode.OK;
   }
 
