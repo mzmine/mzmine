@@ -55,20 +55,23 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     this.formula = formula;
     this.polarity = polarity;
     this.dialog = dialog;
+    setStatus(TaskStatus.WAITING);
     parametersChanged = true;
     pattern = null;
   }
   
-  public void run() {      
+  public void run() {
+    setStatus(TaskStatus.PROCESSING);
     pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula, minIntensity, mergeWidth, charge, polarity, true);
     if(pattern == null) {
       logger.warning("Isotope pattern could not be calculated.");
       return;
     }
     logger.info("Pattern " + pattern.getDescription() + " calculated.");
-    setStatus(TaskStatus.FINISHED);
         
     updateWindow();
+    startNextThread();
+    setStatus(TaskStatus.FINISHED);
   }
   
   public void updateWindow() {
@@ -77,6 +80,14 @@ public class IsotopePatternPreviewTask extends AbstractTask {
         logger.info("Updating window");
         dialog.updateChart(pattern);
         dialog.updateTable(pattern);
+      }
+    });
+  }
+  
+  public void startNextThread() {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        dialog.startNextThread();
       }
     });
   }
