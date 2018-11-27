@@ -54,7 +54,7 @@ public class DeconvolutionParameters extends SimpleParameterSet {
    * The function to determin the mz center (median, avg, weighted avg)
    */
   public static final CenterMeasureParameter MZ_CENTER_FUNCTION =
-      new CenterMeasureParameter(CenterMeasure.MEDIAN);
+      new CenterMeasureParameter("m/z center calculation", CenterMeasure.MEDIAN);
 
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
       "Remove original peak list",

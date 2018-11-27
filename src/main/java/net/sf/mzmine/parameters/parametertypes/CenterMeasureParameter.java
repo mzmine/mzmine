@@ -44,28 +44,29 @@ public class CenterMeasureParameter
   private Weighting selectedWeighting;
 
 
-  public CenterMeasureParameter() {
-    this(CenterMeasure.values(), Weighting.values());
+  public CenterMeasureParameter(String name) {
+    this(name, CenterMeasure.values(), Weighting.values());
   }
 
-  public CenterMeasureParameter(CenterMeasure choices[]) {
-    this(choices, Weighting.values());
+  public CenterMeasureParameter(String name, CenterMeasure choices[]) {
+    this(name, choices, Weighting.values());
   }
 
-  public CenterMeasureParameter(Weighting[] avgTransform) {
-    this(CenterMeasure.values(), avgTransform);
+  public CenterMeasureParameter(String name, Weighting[] avgTransform) {
+    this(name, CenterMeasure.values(), avgTransform);
   }
 
-  public CenterMeasureParameter(CenterMeasure choices[], Weighting[] avgTransform) {
-    this(choices, avgTransform, CenterMeasure.values()[0], Weighting.values()[0]);
+  public CenterMeasureParameter(String name, CenterMeasure choices[], Weighting[] avgTransform) {
+    this(name, choices, avgTransform, CenterMeasure.values()[0], Weighting.values()[0]);
   }
 
-  public CenterMeasureParameter(CenterMeasure selectedMeasure) {
-    this(CenterMeasure.values(), Weighting.values(), selectedMeasure, Weighting.NONE);
+  public CenterMeasureParameter(String name, CenterMeasure selectedMeasure) {
+    this(name, CenterMeasure.values(), Weighting.values(), selectedMeasure, Weighting.NONE);
   }
 
-  public CenterMeasureParameter(CenterMeasure selectedMeasure, Weighting selectedWeighting) {
-    this(CenterMeasure.values(), Weighting.values(), selectedMeasure, selectedWeighting);
+  public CenterMeasureParameter(String name, CenterMeasure selectedMeasure,
+      Weighting selectedWeighting) {
+    this(name, CenterMeasure.values(), Weighting.values(), selectedMeasure, selectedWeighting);
   }
 
   /**
@@ -75,9 +76,9 @@ public class CenterMeasureParameter
    * @param selected selected center measure
    * @param selWeighting selected weighting
    */
-  public CenterMeasureParameter(CenterMeasure choices[], Weighting[] weighting,
+  public CenterMeasureParameter(String name, CenterMeasure choices[], Weighting[] weighting,
       CenterMeasure selectedMeasure, Weighting selectedWeighting) {
-    this.name = "Center measure";
+    this.name = name;
     this.description = "Center measure (weighting options for average calculation)";
     this.weighting = weighting;
     this.choices = choices;
@@ -113,8 +114,8 @@ public class CenterMeasureParameter
 
   @Override
   public CenterMeasureParameter cloneParameter() {
-    CenterMeasureParameter copy = new CenterMeasureParameter(choices, weighting, value.getMeasure(),
-        value.getWeightTransform());
+    CenterMeasureParameter copy = new CenterMeasureParameter(name, choices, weighting,
+        value.getMeasure(), value.getWeightTransform());
     copy.value = this.value;
     return copy;
   }

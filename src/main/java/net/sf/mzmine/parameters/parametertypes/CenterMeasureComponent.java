@@ -65,6 +65,7 @@ public class CenterMeasureComponent extends JPanel {
       CenterMeasure selected, Weighting selWeighting) {
     setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
     comboCenterMeasure = new JComboBox<>(choices);
+    comboCenterMeasure.setSelectedItem(selected);
     add(comboCenterMeasure);
     labelTrans = new JLabel("weighting: ");
     add(labelTrans);
@@ -74,13 +75,18 @@ public class CenterMeasureComponent extends JPanel {
 
     // do not show weighting for median
     comboCenterMeasure.addItemListener(il -> {
-      boolean visible = comboCenterMeasure.getSelectedItem().equals(CenterMeasure.AVG);
-      comboTransform.setVisible(visible);
-      labelTrans.setVisible(visible);
-      revalidate();
-      repaint();
+      checkWeightingComponentsVisibility();
     });
-    comboCenterMeasure.setSelectedItem(selected);
+    //
+    checkWeightingComponentsVisibility();
+  }
+
+  private void checkWeightingComponentsVisibility() {
+    boolean visible = comboCenterMeasure.getSelectedItem().equals(CenterMeasure.AVG);
+    comboTransform.setVisible(visible);
+    labelTrans.setVisible(visible);
+    revalidate();
+    repaint();
   }
 
   @Override
