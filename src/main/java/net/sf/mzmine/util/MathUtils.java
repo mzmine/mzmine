@@ -21,7 +21,7 @@ package net.sf.mzmine.util;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
 import net.sf.mzmine.util.maths.CenterMeasure;
-import net.sf.mzmine.util.maths.Transform;
+import net.sf.mzmine.util.maths.Weighting;
 
 /**
  * Mathematical calculation-related helper class
@@ -52,11 +52,11 @@ public class MathUtils {
    * @param center
    * @param values
    * @param weights
-   * @param transform only used for center measure AVG (can also be Transform.NONE)
+   * @param transform only used for center measure AVG (can also be Weighting.NONE)
    * @return
    */
   public static double calcCenter(CenterMeasure center, double[] values, double[] weights,
-      Transform transform) {
+      Weighting transform) {
     switch (center) {
       case AVG:
         return calcWeightedAvg(values, weights, transform);
@@ -199,7 +199,7 @@ public class MathUtils {
   }
 
   /**
-   * Weighted average without weight transformation
+   * Weighted average with linear weights
    * 
    * @param values
    * @param weights
@@ -207,7 +207,7 @@ public class MathUtils {
    * @throws Exception
    */
   public static double calcWeightedAvg(double[] values, double[] weights) {
-    return calcWeightedAvg(values, weights, Transform.NONE);
+    return calcWeightedAvg(values, weights, Weighting.LINEAR);
   }
 
   /**
@@ -219,15 +219,13 @@ public class MathUtils {
    * @return the weighted average (or Double.NaN if no values supplied or the lengths of the arrays
    *         was different)
    */
-  public static double calcWeightedAvg(double[] values, double[] weights, Transform transform) {
+  public static double calcWeightedAvg(double[] values, double[] weights, Weighting transform) {
     if (values == null || weights == null || values.length != weights.length)
       return Double.NaN;
 
     // transform
-    double[] realWeights = weights;
-    if (!transform.equals(Transform.NONE)) {
-      realWeights = transform.transform(weights);
-    }
+    double[] realWeights = transform.transform(weights);
+
     // sum of weights
     double weightSum = DoubleStream.of(realWeights).sum();
 

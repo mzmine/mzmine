@@ -24,7 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import net.sf.mzmine.util.maths.CenterFunction;
 import net.sf.mzmine.util.maths.CenterMeasure;
-import net.sf.mzmine.util.maths.Transform;
+import net.sf.mzmine.util.maths.Weighting;
 
 /**
  * Parameter for center measure: median, avg, weighted avg
@@ -35,23 +35,23 @@ public class CenterMeasureComponent extends JPanel {
   private static final long serialVersionUID = 1L;
 
   private final JComboBox<CenterMeasure> comboCenterMeasure;
-  private final JComboBox<Transform> comboTransform;
+  private final JComboBox<Weighting> comboTransform;
   private JLabel labelTrans;
 
   public CenterMeasureComponent() {
-    this(CenterMeasure.values(), Transform.values());
+    this(CenterMeasure.values(), Weighting.values());
   }
 
   public CenterMeasureComponent(CenterMeasure choices[]) {
-    this(choices, Transform.values());
+    this(choices, Weighting.values());
   }
 
-  public CenterMeasureComponent(Transform[] avgTransform) {
+  public CenterMeasureComponent(Weighting[] avgTransform) {
     this(CenterMeasure.values(), avgTransform);
   }
 
-  public CenterMeasureComponent(CenterMeasure choices[], Transform[] avgTransform) {
-    this(choices, avgTransform, CenterMeasure.values()[0], Transform.values()[0]);
+  public CenterMeasureComponent(CenterMeasure choices[], Weighting[] avgTransform) {
+    this(choices, avgTransform, CenterMeasure.values()[0], Weighting.values()[0]);
   }
 
   /**
@@ -61,8 +61,8 @@ public class CenterMeasureComponent extends JPanel {
    * @param selected selected center measure
    * @param selWeighting selected weighting
    */
-  public CenterMeasureComponent(CenterMeasure choices[], Transform[] avgTransform,
-      CenterMeasure selected, Transform selWeighting) {
+  public CenterMeasureComponent(CenterMeasure choices[], Weighting[] avgTransform,
+      CenterMeasure selected, Weighting selWeighting) {
     setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
     comboCenterMeasure = new JComboBox<>(choices);
     add(comboCenterMeasure);
@@ -90,13 +90,13 @@ public class CenterMeasureComponent extends JPanel {
 
   public CenterFunction getSelectedFunction() {
     CenterMeasure measure = (CenterMeasure) comboCenterMeasure.getSelectedItem();
-    Transform trans = Transform.NONE;
+    Weighting trans = Weighting.NONE;
     if (comboTransform.isVisible())
-      trans = (Transform) comboTransform.getSelectedItem();
+      trans = (Weighting) comboTransform.getSelectedItem();
     return new CenterFunction(measure, trans);
   }
 
-  public void setSelectedItem(CenterMeasure newValue, Transform transform) {
+  public void setSelectedItem(CenterMeasure newValue, Weighting transform) {
     comboCenterMeasure.setSelectedItem(newValue);
     comboTransform.setSelectedItem(transform);
   }

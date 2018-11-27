@@ -28,14 +28,12 @@ import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ce
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PEAK_DURATION;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PEAK_SCALES;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.SN_THRESHOLD;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -46,8 +44,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
-
-import com.google.common.collect.Range;
+import net.sf.mzmine.util.maths.CenterFunction;
 
 /**
  * Use XCMS findPeaks.centWave to identify peaks.
@@ -102,8 +99,8 @@ public class CentWaveDetector implements PeakResolver {
 
   @Override
   public Feature[] resolvePeaks(final Feature chromatogram, final ParameterSet parameters,
-      RSessionWrapper rSession, double msmsRange, double rTRangeMSMS)
-      throws RSessionWrapperException {
+      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
+      double rTRangeMSMS) throws RSessionWrapperException {
 
     int scanNumbers[] = chromatogram.getScanNumbers();
     final int scanCount = scanNumbers.length;
@@ -164,7 +161,8 @@ public class CentWaveDetector implements PeakResolver {
             if ((end > start)
                 && (peakDuration.contains(retentionTimes[end] - retentionTimes[start]))) {
 
-              resolvedPeaks.add(new ResolvedPeak(chromatogram, start, end, msmsRange, rTRangeMSMS));
+              resolvedPeaks.add(new ResolvedPeak(chromatogram, start, end, mzCenterFunction,
+                  msmsRange, rTRangeMSMS));
             }
 
             start = end;

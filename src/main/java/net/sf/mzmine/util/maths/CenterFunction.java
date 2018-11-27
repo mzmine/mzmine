@@ -5,13 +5,13 @@ import net.sf.mzmine.util.MathUtils;
 public class CenterFunction {
   private final CenterMeasure measure;
   // weight transform is only applied to avg
-  private final Transform weightTransform;
+  private final Weighting weightTransform;
 
   public CenterFunction(CenterMeasure measure) {
-    this(measure, Transform.NONE);
+    this(measure, Weighting.NONE);
   }
 
-  public CenterFunction(CenterMeasure measure, Transform weightTransform) {
+  public CenterFunction(CenterMeasure measure, Weighting weightTransform) {
     super();
     this.measure = measure;
     this.weightTransform = weightTransform;
@@ -21,7 +21,7 @@ public class CenterFunction {
     return measure;
   }
 
-  public Transform getWeightTransform() {
+  public Weighting getWeightTransform() {
     return weightTransform;
   }
 

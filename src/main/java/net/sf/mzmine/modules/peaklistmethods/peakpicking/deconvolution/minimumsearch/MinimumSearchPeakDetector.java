@@ -24,14 +24,10 @@ import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.mi
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.MIN_RELATIVE_HEIGHT;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.PEAK_DURATION;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetectorParameters.SEARCH_RT_RANGE;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -41,6 +37,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
+import net.sf.mzmine.util.maths.CenterFunction;
 
 /**
  * This peak recognition method searches for local minima in the chromatogram. If a local minimum is
@@ -56,7 +53,8 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 
   @Override
   public Feature[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
-      RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
+      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
+      double rTRangeMSMS) {
     int scanNumbers[] = chromatogram.getScanNumbers();
     final int scanCount = scanNumbers.length;
     double retentionTimes[] = new double[scanCount];
@@ -125,7 +123,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
                   retentionTimes[currentRegionEnd] - retentionTimes[currentRegionStart])) {
 
             resolvedPeaks.add(new ResolvedPeak(chromatogram, currentRegionStart, currentRegionEnd,
-                msmsRange, rTRangeMSMS));
+                mzCenterFunction, msmsRange, rTRangeMSMS));
           }
 
           // Set the next region start to current region end - 1
@@ -184,7 +182,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
                     retentionTimes[currentRegionEnd] - retentionTimes[currentRegionStart])) {
 
               resolvedPeaks.add(new ResolvedPeak(chromatogram, currentRegionStart, currentRegionEnd,
-                  msmsRange, rTRangeMSMS));
+                  mzCenterFunction, msmsRange, rTRangeMSMS));
             }
 
             // Set the next region start to current region end-1

@@ -28,7 +28,6 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -37,9 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
-
 import org.jfree.data.xy.XYDataset;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -53,6 +50,8 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
+import net.sf.mzmine.util.maths.CenterFunction;
+import net.sf.mzmine.util.maths.CenterMeasure;
 
 /**
  * This class extends ParameterSetupDialog class.
@@ -239,9 +238,11 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
           } else {
             rSession = null;
           }
+          CenterFunction mzCenterFunction = new CenterFunction(CenterMeasure.MEDIAN);
           // preview doesn't show msms scans
           // set it to be default searching range
-          resolvedPeaks = peakResolver.resolvePeaks(previewPeak, parameters, rSession, 0, 0);
+          resolvedPeaks =
+              peakResolver.resolvePeaks(previewPeak, parameters, rSession, mzCenterFunction, 0, 0);
 
           // Turn off R instance.
           if (rSession != null)

@@ -21,26 +21,34 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking;
 
-// import static
-// net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.INTEGRATION_METHOD;
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.PEAK_DURATION;
-// import static
-// net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PEAK_SCALES;
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.SN_THRESHOLD;
+import static dulab.adap.workflow.Deconvolution.DeconvoluteSignal;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.COEF_AREA_THRESHOLD;
 // import static
 // net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.SHARP_THRESHOLD;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.MIN_FEAT_HEIGHT;
-
+// import static
+// net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.INTEGRATION_METHOD;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.PEAK_DURATION;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.RT_FOR_CWT_SCALES_DURATION;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.SN_ESTIMATORS;
+// import static
+// net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PEAK_SCALES;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.SN_THRESHOLD;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.ABS_WAV_COEFFS;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.HALF_WAVELET_WINDOW;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
+import dulab.adap.datamodel.PeakInfo;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 // import
@@ -49,19 +57,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
-
-import com.google.common.collect.Range;
-
-import dulab.adap.datamodel.PeakInfo;
-import static dulab.adap.workflow.Deconvolution.DeconvoluteSignal;
-import java.util.HashMap;
-import java.util.Map;
-import net.sf.mzmine.modules.MZmineProcessingStep;
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.COEF_AREA_THRESHOLD;
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.RT_FOR_CWT_SCALES_DURATION;
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetectorParameters.SN_ESTIMATORS;
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.ABS_WAV_COEFFS;
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.WaveletCoefficientsSNParameters.HALF_WAVELET_WINDOW;
+import net.sf.mzmine.util.maths.CenterFunction;
 
 
 /**
@@ -115,8 +111,8 @@ public class ADAPDetector implements PeakResolver {
 
   @Override
   public Feature[] resolvePeaks(final Feature chromatogram, final ParameterSet parameters,
-      RSessionWrapper rSession, double msmsRange, double rTRangeMSMS)
-      throws RSessionWrapperException {
+      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
+      double rTRangeMSMS) throws RSessionWrapperException {
 
     int scanNumbers[] = chromatogram.getScanNumbers();
     final int scanCount = scanNumbers.length;
@@ -163,7 +159,7 @@ public class ADAPDetector implements PeakResolver {
     for (int i = 0; i < retentionTimes.length - 1; i++) {
       rtSum += retentionTimes[i + 1] - retentionTimes[i];
     }
-    double avgRTInterval = rtSum / ((double) (retentionTimes.length - 1));
+    double avgRTInterval = rtSum / (retentionTimes.length - 1);
     // Change the lower and uper bounds for the wavelet scales from retention times to number of
     // scans.
     Range<Double> rtRangeForCWTScales =
@@ -234,7 +230,7 @@ public class ADAPDetector implements PeakResolver {
 
 
         ResolvedPeak peak = new ResolvedPeak(chromatogram, curPeak.leftApexIndex,
-            curPeak.rightApexIndex, msmsRange, rTRangeMSMS);
+            curPeak.rightApexIndex, mzCenterFunction, msmsRange, rTRangeMSMS);
         peak.setPeakInformation(information);
 
 

@@ -25,7 +25,7 @@ import org.w3c.dom.Element;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.util.maths.CenterFunction;
 import net.sf.mzmine.util.maths.CenterMeasure;
-import net.sf.mzmine.util.maths.Transform;
+import net.sf.mzmine.util.maths.Weighting;
 
 /**
  * Parameter for center measure: median, avg, weighted avg
@@ -39,25 +39,33 @@ public class CenterMeasureParameter
   private String name, description;
   private CenterFunction value;
   private CenterMeasure[] choices;
-  private Transform[] weighting;
+  private Weighting[] weighting;
   private CenterMeasure selectedMeasure;
-  private Transform selectedWeighting;
+  private Weighting selectedWeighting;
 
 
   public CenterMeasureParameter() {
-    this(CenterMeasure.values(), Transform.values());
+    this(CenterMeasure.values(), Weighting.values());
   }
 
   public CenterMeasureParameter(CenterMeasure choices[]) {
-    this(choices, Transform.values());
+    this(choices, Weighting.values());
   }
 
-  public CenterMeasureParameter(Transform[] avgTransform) {
+  public CenterMeasureParameter(Weighting[] avgTransform) {
     this(CenterMeasure.values(), avgTransform);
   }
 
-  public CenterMeasureParameter(CenterMeasure choices[], Transform[] avgTransform) {
-    this(choices, avgTransform, CenterMeasure.values()[0], Transform.values()[0]);
+  public CenterMeasureParameter(CenterMeasure choices[], Weighting[] avgTransform) {
+    this(choices, avgTransform, CenterMeasure.values()[0], Weighting.values()[0]);
+  }
+
+  public CenterMeasureParameter(CenterMeasure selectedMeasure) {
+    this(CenterMeasure.values(), Weighting.values(), selectedMeasure, Weighting.NONE);
+  }
+
+  public CenterMeasureParameter(CenterMeasure selectedMeasure, Weighting selectedWeighting) {
+    this(CenterMeasure.values(), Weighting.values(), selectedMeasure, selectedWeighting);
   }
 
   /**
@@ -67,8 +75,8 @@ public class CenterMeasureParameter
    * @param selected selected center measure
    * @param selWeighting selected weighting
    */
-  public CenterMeasureParameter(CenterMeasure choices[], Transform[] weighting,
-      CenterMeasure selectedMeasure, Transform selectedWeighting) {
+  public CenterMeasureParameter(CenterMeasure choices[], Weighting[] weighting,
+      CenterMeasure selectedMeasure, Weighting selectedWeighting) {
     this.name = "Center measure";
     this.description = "Center measure (weighting options for average calculation)";
     this.weighting = weighting;
@@ -126,7 +134,7 @@ public class CenterMeasureParameter
   public void loadValueFromXML(Element xmlElement) {
     try {
       CenterMeasure measure = CenterMeasure.valueOf(xmlElement.getAttribute("measure"));
-      Transform weighting = Transform.valueOf(xmlElement.getAttribute("weighting"));
+      Weighting weighting = Weighting.valueOf(xmlElement.getAttribute("weighting"));
       value = new CenterFunction(measure, weighting);
     } catch (Exception e) {
       logger.log(Level.WARNING, "center measure cannot be loaded from xml", e);

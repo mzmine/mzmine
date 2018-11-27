@@ -24,6 +24,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
+import net.sf.mzmine.util.maths.CenterFunction;
 
 public interface PeakResolver extends MZmineModule {
 
@@ -53,6 +54,8 @@ public interface PeakResolver extends MZmineModule {
    * obtained from the chromatogram itself. The size of these arrays must be same, and must be equal
    * to the number of scans covered by given chromatogram.
    * 
+   * @param mzCenterFunction
+   * 
    * @param rTRangeMSMS
    * @param msmsRange
    * @param rTRangeMSMS
@@ -63,7 +66,7 @@ public interface PeakResolver extends MZmineModule {
    * @throws RSessionWrapperException
    */
   public Feature[] resolvePeaks(Feature chromatogram, ParameterSet parameters,
-      RSessionWrapper rSession, double msmsRange, double rTRangeMSMS)
-      throws RSessionWrapperException;
+      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
+      double rTRangeMSMS) throws RSessionWrapperException;
 
 }

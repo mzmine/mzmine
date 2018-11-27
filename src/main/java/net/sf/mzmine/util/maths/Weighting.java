@@ -2,12 +2,14 @@ package net.sf.mzmine.util.maths;
 
 import java.util.stream.DoubleStream;
 
-public enum Transform {
-
-  // no transform
-  NONE("none", v -> v),
+public enum Weighting {
+  // no weighting
+  NONE("NONE", v -> 1),
+  // linear -> no transform
+  LINEAR("LINEAR", v -> v),
   // LOG
-  LOG10("LOG10", Math::log), LOG2("LOG2", Math::log),
+  LOG10("LOG10", Math::log), //
+  LOG2("LOG2", Math::log),
   /**
    * Sqare-root
    */
@@ -22,11 +24,11 @@ public enum Transform {
   private TransformFunction f;
   private String description;
 
-  Transform(String label, TransformFunction f) {
+  Weighting(String label, TransformFunction f) {
     this(label, label, f);
   }
 
-  Transform(String label, String description, TransformFunction f) {
+  Weighting(String label, String description, TransformFunction f) {
     this.label = label;
     this.description = description;
     this.f = f;
