@@ -224,7 +224,10 @@ public class MathUtils {
       return Double.NaN;
 
     // transform
-    double[] realWeights = transform.transform(weights);
+    double[] realWeights = weights;
+
+    if (transform != null)
+      realWeights = transform.transform(weights);
 
     // sum of weights
     double weightSum = DoubleStream.of(realWeights).sum();

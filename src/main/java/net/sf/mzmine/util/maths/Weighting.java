@@ -7,9 +7,9 @@ public enum Weighting {
   NONE("NONE", v -> 1),
   // linear -> no transform
   LINEAR("LINEAR", v -> v),
-  // LOG
-  LOG10("LOG10", Math::log), //
-  LOG2("LOG2", Math::log),
+  // LOG: put to zero weight if it was zero
+  LOG10("LOG10", v -> v == 0 ? 0 : Math.log10(v)), //
+  LOG2("LOG2", v -> v == 0 ? 0 : Math.log(v) / Math.log(2)),
   /**
    * Sqare-root
    */
