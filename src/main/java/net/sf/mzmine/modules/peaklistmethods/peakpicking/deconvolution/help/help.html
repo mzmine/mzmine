@@ -30,8 +30,12 @@ PEAK_LISTS, SUFFIX, PEAK_RESOLVER, MZ_CENTER_FUNCTION, mzRangeMSMS,
 <dd>Selection of algorithm for peak recognition</dd>
 
 <dt>m/z center calculation</dt>
-<dd>Define measure for center m/z calculation as median, average (weighting=NONE) or weighted-average. 
-This function is applied to all data points (m/z, intensity) of the new feature. </dd>
+<dd>Define measure for center m/z calculation as median, average or auto (noise level corrected, maximum capped log10-weighted average). 
+This function is applied to all data points (m/z, intensity) of the new feature to find the center m/z.
+</dd>
+<dd> Auto: weight = log10(intensity) - log10(noiseLevel) the maximum weight is 4 </br>
+The noise level is the lowest intensity found in all chromatograms of all selected peakLists. 
+</dd>
 
 <dt>m/z range for MS2 scan pairing (Da)</dt>
 <dd>All MS2 scans within m/z and RT range are allocated to the new feature (ranges as +-value around center)</dd>

@@ -55,11 +55,16 @@ public class MathUtils {
    * @param transform only used for center measure AVG (can also be Weighting.NONE)
    * @return
    */
-  public static double calcCenter(CenterMeasure center, double[] values, double[] weights,
-      Weighting transform) {
-    switch (center) {
+  public static double calcCenter(CenterMeasure measure, double[] values, double[] weights,
+      Weighting weightTransform) {
+    return calcCenter(measure, values, weights, weightTransform, null, null);
+  }
+
+  public static double calcCenter(CenterMeasure measure, double[] values, double[] weights,
+      Weighting weightTransform, Double noiseLevel, Double maxWeight) {
+    switch (measure) {
       case AVG:
-        return calcWeightedAvg(values, weights, transform);
+        return calcWeightedAvg(values, weights, weightTransform, noiseLevel, maxWeight);
       case MEDIAN:
         return calcMedian(values);
       default:
@@ -220,17 +225,36 @@ public class MathUtils {
    *         was different)
    */
   public static double calcWeightedAvg(double[] values, double[] weights, Weighting transform) {
+    return calcWeightedAvg(values, weights, transform, null, null);
+  }
+
+
+  /**
+   * 
+   * @param values
+   * @param weights
+   * @param weightTransform
+   * @param noiseLevel
+   * @param maxWeight
+   * @return
+   */
+  public static double calcWeightedAvg(double[] values, double[] weights, Weighting weightTransform,
+      Double noiseLevel, Double maxWeight) {
     if (values == null || weights == null || values.length != weights.length)
       return Double.NaN;
 
     // transform
     double[] realWeights = weights;
 
-    if (transform != null)
-      realWeights = transform.transform(weights);
+    if (weightTransform != null)
+      realWeights = weightTransform.transform(weights, noiseLevel, maxWeight);
 
     // sum of weights
     double weightSum = DoubleStream.of(realWeights).sum();
+
+    // should never be 0, unless noiseLevel was too high
+    if (weightSum == 0)
+      return calcAvg(values);
 
     double avg = 0;
     for (int i = 0; i < realWeights.length; i++) {

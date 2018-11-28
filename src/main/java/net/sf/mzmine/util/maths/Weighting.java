@@ -45,13 +45,46 @@ public enum Weighting {
   }
 
   /**
+   * e.g., lOG(weight)-LOG(noise)
+   * 
+   * @param weight
+   * @param noiseLevel
+   * @param maxWeight
+   * @return
+   */
+  public double transform(double weight, Double noiseLevel, Double maxWeight) {
+    // e.g., lOG(weight)-LOG(noise)
+    double real = 0;
+    if (noiseLevel != null)
+      real = f.transform(weight) - f.transform(noiseLevel);
+    else
+      real = f.transform(weight);
+
+    if (maxWeight != null)
+      real = Math.min(real, maxWeight);
+    return Math.max(0, real);
+  }
+
+  /**
    * Transform array
    * 
    * @param values
    * @return
    */
-  public double[] transform(double[] values) {
-    return DoubleStream.of(values).map(v -> f.transform(v)).toArray();
+  public double[] transform(double[] weights) {
+    return DoubleStream.of(weights).map(this::transform).toArray();
+  }
+
+  /**
+   * Transform array with noiseLevel and maxHeight
+   * 
+   * @param weights
+   * @param noiseLevel
+   * @param maxWeight
+   * @return
+   */
+  public double[] transform(double[] weights, Double noiseLevel, Double maxWeight) {
+    return DoubleStream.of(weights).map(v -> transform(v, noiseLevel, maxWeight)).toArray();
   }
 
   public String getLabel() {
@@ -62,10 +95,9 @@ public enum Weighting {
     return description;
   }
 
-
-
   @FunctionalInterface
   private interface TransformFunction {
     public double transform(double v);
   }
+
 }

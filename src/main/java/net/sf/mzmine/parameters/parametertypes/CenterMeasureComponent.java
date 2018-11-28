@@ -35,7 +35,7 @@ public class CenterMeasureComponent extends JPanel {
   private static final long serialVersionUID = 1L;
 
   private final JComboBox<CenterMeasure> comboCenterMeasure;
-  private final JComboBox<Weighting> comboTransform;
+  private JComboBox<Weighting> comboTransform;
   private JLabel labelTrans;
 
   public CenterMeasureComponent() {
@@ -67,18 +67,21 @@ public class CenterMeasureComponent extends JPanel {
     comboCenterMeasure = new JComboBox<>(choices);
     comboCenterMeasure.setSelectedItem(selected);
     add(comboCenterMeasure);
-    labelTrans = new JLabel("weighting: ");
-    add(labelTrans);
-    comboTransform = new JComboBox<>(avgTransform);
-    comboTransform.setSelectedItem(selWeighting);
-    add(comboTransform);
 
-    // do not show weighting for median
-    comboCenterMeasure.addItemListener(il -> {
+    if (avgTransform != null && avgTransform.length > 0) {
+      labelTrans = new JLabel("weighting: ");
+      add(labelTrans);
+      comboTransform = new JComboBox<>(avgTransform);
+      comboTransform.setSelectedItem(selWeighting);
+      add(comboTransform);
+
+      // do not show weighting for median
+      comboCenterMeasure.addItemListener(il -> {
+        checkWeightingComponentsVisibility();
+      });
+      //
       checkWeightingComponentsVisibility();
-    });
-    //
-    checkWeightingComponentsVisibility();
+    }
   }
 
   private void checkWeightingComponentsVisibility() {
@@ -97,7 +100,7 @@ public class CenterMeasureComponent extends JPanel {
   public CenterFunction getSelectedFunction() {
     CenterMeasure measure = (CenterMeasure) comboCenterMeasure.getSelectedItem();
     Weighting trans = Weighting.NONE;
-    if (comboTransform.isVisible())
+    if (comboTransform != null && comboTransform.isVisible())
       trans = (Weighting) comboTransform.getSelectedItem();
     return new CenterFunction(measure, trans);
   }
@@ -119,7 +122,8 @@ public class CenterMeasureComponent extends JPanel {
   }
 
   public void setSelectedItem(CenterFunction newValue) {
-    comboTransform.setSelectedItem(newValue.getWeightTransform());
     comboCenterMeasure.setSelectedItem(newValue.getMeasure());
+    if (comboTransform != null)
+      comboTransform.setSelectedItem(newValue.getWeightTransform());
   }
 }

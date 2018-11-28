@@ -44,29 +44,33 @@ public class CenterMeasureParameter
   private Weighting selectedWeighting;
 
 
-  public CenterMeasureParameter(String name) {
-    this(name, CenterMeasure.values(), Weighting.values());
+  public CenterMeasureParameter(String name, String description) {
+    this(name, description, CenterMeasure.values(), Weighting.values());
   }
 
-  public CenterMeasureParameter(String name, CenterMeasure choices[]) {
-    this(name, choices, Weighting.values());
+  public CenterMeasureParameter(String name, String description, CenterMeasure choices[]) {
+    this(name, description, choices, Weighting.values());
   }
 
-  public CenterMeasureParameter(String name, Weighting[] avgTransform) {
-    this(name, CenterMeasure.values(), avgTransform);
+  public CenterMeasureParameter(String name, String description, Weighting[] avgTransform) {
+    this(name, description, CenterMeasure.values(), avgTransform);
   }
 
-  public CenterMeasureParameter(String name, CenterMeasure choices[], Weighting[] avgTransform) {
-    this(name, choices, avgTransform, CenterMeasure.values()[0], Weighting.values()[0]);
+  public CenterMeasureParameter(String name, String description, CenterMeasure choices[],
+      Weighting[] avgTransform) {
+    this(name, description, choices, avgTransform, CenterMeasure.values()[0],
+        Weighting.values()[0]);
   }
 
-  public CenterMeasureParameter(String name, CenterMeasure selectedMeasure) {
-    this(name, CenterMeasure.values(), Weighting.values(), selectedMeasure, Weighting.NONE);
+  public CenterMeasureParameter(String name, String description, CenterMeasure selectedMeasure) {
+    this(name, description, CenterMeasure.values(), Weighting.values(), selectedMeasure,
+        Weighting.NONE);
   }
 
-  public CenterMeasureParameter(String name, CenterMeasure selectedMeasure,
+  public CenterMeasureParameter(String name, String description, CenterMeasure selectedMeasure,
       Weighting selectedWeighting) {
-    this(name, CenterMeasure.values(), Weighting.values(), selectedMeasure, selectedWeighting);
+    this(name, description, CenterMeasure.values(), Weighting.values(), selectedMeasure,
+        selectedWeighting);
   }
 
   /**
@@ -76,15 +80,15 @@ public class CenterMeasureParameter
    * @param selected selected center measure
    * @param selWeighting selected weighting
    */
-  public CenterMeasureParameter(String name, CenterMeasure choices[], Weighting[] weighting,
-      CenterMeasure selectedMeasure, Weighting selectedWeighting) {
+  public CenterMeasureParameter(String name, String description, CenterMeasure choices[],
+      Weighting[] weighting, CenterMeasure selectedMeasure, Weighting selectedWeighting) {
     this.name = name;
-    this.description = "Center measure (weighting options for average calculation)";
+    this.description = description;
     this.weighting = weighting;
     this.choices = choices;
     this.selectedMeasure = selectedMeasure;
-    this.selectedWeighting = selectedWeighting;
-    value = new CenterFunction(selectedMeasure, selectedWeighting);
+    this.selectedWeighting = selectedWeighting == null ? Weighting.NONE : selectedWeighting;
+    value = new CenterFunction(this.selectedMeasure, this.selectedWeighting);
   }
 
   /**
@@ -97,9 +101,7 @@ public class CenterMeasureParameter
 
   @Override
   public CenterMeasureComponent createEditingComponent() {
-    CenterMeasureComponent comboComponent =
-        new CenterMeasureComponent(choices, weighting, selectedMeasure, selectedWeighting);
-    return comboComponent;
+    return new CenterMeasureComponent(choices, weighting, selectedMeasure, selectedWeighting);
   }
 
   @Override
@@ -114,7 +116,7 @@ public class CenterMeasureParameter
 
   @Override
   public CenterMeasureParameter cloneParameter() {
-    CenterMeasureParameter copy = new CenterMeasureParameter(name, choices, weighting,
+    CenterMeasureParameter copy = new CenterMeasureParameter(name, description, choices, weighting,
         value.getMeasure(), value.getWeightTransform());
     copy.value = this.value;
     return copy;

@@ -67,7 +67,7 @@ public class DeconvolutionTask extends AbstractTask {
   private double msmsRange, RTRangeMSMS;
 
   // function to find center mz of all feature data points
-  private CenterFunction mzCenterFunction;
+  private final CenterFunction mzCenterFunction;
 
   /**
    * Create the task.
@@ -76,7 +76,7 @@ public class DeconvolutionTask extends AbstractTask {
    * @param parameterSet task parameters.
    */
   public DeconvolutionTask(final MZmineProject project, final PeakList list,
-      final ParameterSet parameterSet) {
+      final ParameterSet parameterSet, CenterFunction mzCenterFunction) {
 
     // Initialize.
     this.project = project;
@@ -85,6 +85,7 @@ public class DeconvolutionTask extends AbstractTask {
     newPeakList = null;
     processedRows = 0;
     totalRows = 0;
+    this.mzCenterFunction = mzCenterFunction;
   }
 
   @Override
@@ -202,6 +203,7 @@ public class DeconvolutionTask extends AbstractTask {
    * Deconvolve a chromatogram into separate peaks.
    * 
    * @param peakList holds the chromatogram to deconvolve.
+   * @param mzCenterFunction2
    * @return a new peak list holding the resolved peaks.
    * @throws RSessionWrapperException
    */
@@ -227,11 +229,6 @@ public class DeconvolutionTask extends AbstractTask {
           parameters.getParameter(RetentionTimeMSMS).getEmbeddedParameter().getValue();
     else
       this.RTRangeMSMS = 0;
-
-    mzCenterFunction =
-        parameters.getParameter(DeconvolutionParameters.MZ_CENTER_FUNCTION).getValue();
-
-
 
     // Create new peak list.
     final PeakList resolvedPeaks =
