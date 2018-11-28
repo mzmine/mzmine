@@ -28,9 +28,9 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
-import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.maths.CenterFunction;
 
 /**
  * ResolvedPeak
@@ -72,8 +72,8 @@ public class ResolvedPeak implements Feature {
    * (inclusive). The selected region MUST NOT contain any zero-intensity data points, otherwise
    * exception is thrown.
    */
-  public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd, double msmsRange,
-      double RTRangeMSMS) {
+  public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd,
+      CenterFunction mzCenterFunction, double msmsRange, double RTRangeMSMS) {
 
     assert regionEnd > regionStart;
 
@@ -134,8 +134,8 @@ public class ResolvedPeak implements Feature {
       }
     }
 
-    // Calculate median m/z
-    mz = MathUtils.calcQuantile(dataPointMZValues, 0.5f);
+    // Calculate m/z as median, average or weighted-average
+    mz = mzCenterFunction.calcCenter(dataPointMZValues, dataPointIntensityValues);
 
     // Update area
     area = 0;

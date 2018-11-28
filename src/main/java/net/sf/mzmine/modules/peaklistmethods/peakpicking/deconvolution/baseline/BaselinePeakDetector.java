@@ -21,12 +21,10 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetectorParameters.BASELINE_LEVEL;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetectorParameters.MIN_PEAK_HEIGHT;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetectorParameters.PEAK_DURATION;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -35,8 +33,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedP
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
-
-import com.google.common.collect.Range;
+import net.sf.mzmine.util.maths.CenterFunction;
 
 /**
  * This class implements a simple peak deconvolution algorithm. Continuous peaks above a given
@@ -44,13 +41,15 @@ import com.google.common.collect.Range;
  */
 public class BaselinePeakDetector implements PeakResolver {
 
+  @Override
   public @Nonnull String getName() {
     return "Baseline cut-off";
   }
 
   @Override
   public Feature[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
-      RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
+      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
+      double rTRangeMSMS) {
 
     int scanNumbers[] = chromatogram.getScanNumbers();
     final int scanCount = scanNumbers.length;
@@ -109,7 +108,7 @@ public class BaselinePeakDetector implements PeakResolver {
 
           // Create a new ResolvedPeak and add it.
           resolvedPeaks.add(new ResolvedPeak(chromatogram, currentRegionStart, currentRegionEnd,
-              msmsRange, rTRangeMSMS));
+              mzCenterFunction, msmsRange, rTRangeMSMS));
         }
 
         // Find next peak region, starting from next data point.
