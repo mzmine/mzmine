@@ -44,6 +44,7 @@ public class SpectraToolBar extends JToolBar {
   static final Icon exportIcon = new ImageIcon("icons/exporticon.png");
   static final Icon dbOnlineIcon = new ImageIcon("icons/DBOnlineIcon.png");
   static final Icon dbLipidsIcon = new ImageIcon("icons/DBLipidsIcon.png");
+  static final Icon sumFormulaIcon = new ImageIcon("icons/search.png");
 
   private JButton centroidContinuousButton, dataPointsButton;
 
@@ -97,6 +98,11 @@ public class SpectraToolBar extends JToolBar {
 
     GUIUtils.addButton(this, null, dbLipidsIcon, masterFrame, "LIPIDSEARCH",
         "Select target lipid classes for annotation");
+
+    addSeparator();
+
+    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
+        "Predict sum formulas for annotation");
   }
 
   public void setCentroidButton(MassSpectrumType spectrumType) {

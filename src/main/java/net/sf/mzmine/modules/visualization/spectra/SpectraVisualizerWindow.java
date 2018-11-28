@@ -58,6 +58,7 @@ import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
 import net.sf.mzmine.modules.visualization.spectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
@@ -548,6 +549,15 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         @Override
         public void run() {
           LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
+    }
+
+    if (command.equals("SUMFORMULA")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
         }
       });
     }
