@@ -28,7 +28,6 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -37,14 +36,11 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -60,6 +56,8 @@ import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
@@ -534,6 +532,24 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
       }
 
+    }
+
+    if (command.equals("ONLINEDATABASESEARCH")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
+    }
+
+    if (command.equals("LIPIDSEARCH")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
     }
 
   }
