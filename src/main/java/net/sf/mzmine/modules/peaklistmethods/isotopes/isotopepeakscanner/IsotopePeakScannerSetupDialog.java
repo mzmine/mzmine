@@ -27,7 +27,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -54,11 +53,9 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithEmptyPreview;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleComponent;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
-import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.util.FormulaUtils;
 
 /**
@@ -77,7 +74,7 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
   private static final long serialVersionUID = 1L;
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
-  
+
   private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
   private NumberFormat intFormat = new DecimalFormat("0.00 %");
 
@@ -323,7 +320,8 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
 
   private boolean checkParameters() {
     if (/* pElement.getValue().equals("") */pElement.getValue() == null
-        || (pElement.getValue().equals("") && !autoCarbon) || pElement.getValue().contains(" ") || !FormulaUtils.checkMolecularFormula(pElement.getValue())) {
+        || (pElement.getValue().equals("") && !autoCarbon) || pElement.getValue().contains(" ")
+        || !FormulaUtils.checkMolecularFormula(pElement.getValue())) {
       logger.info("Invalid input or Element == \"\" and no autoCarbon or invalid formula.");
       return false;
     }
@@ -366,14 +364,15 @@ public class IsotopePeakScannerSetupDialog extends ParameterSetupDialogWithEmpty
     charge = (charge > 0) ? charge : charge * -1;
     try {
       // *0.2 so the user can see the peaks below the threshold
-      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(strPattern, minIntensity*0.1, mergeWidth, charge, pol, true);
+      pattern = (ExtendedIsotopePattern) IsotopePatternCalculator
+          .calculateIsotopePattern(strPattern, minIntensity * 0.1, mergeWidth, charge, pol, true);
     } catch (Exception e) {
       logger.warning("The entered Sum formula is invalid.");
       return null;
     }
     return pattern;
   }
-  
+
   private void formatChart() {
     theme.apply(chart);
     plot = chart.getXYPlot();

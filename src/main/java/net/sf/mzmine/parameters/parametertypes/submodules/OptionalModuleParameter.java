@@ -16,33 +16,37 @@
  * USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.submodules;
 
 import java.util.Collection;
-
+import org.w3c.dom.Element;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 
-import org.w3c.dom.Element;
-
 /**
- * Parameter represented by check box with additional sub-parameters
- * 
+ * Parameter represented by check box with additional sub-module
  */
-public class OptionalModuleParameter implements UserParameter<Boolean, OptionalModuleComponent> {
+public class OptionalModuleParameter<T extends ParameterSet>
+    implements UserParameter<Boolean, OptionalModuleComponent> {
 
   private String name, description;
-  private ParameterSet embeddedParameters;
+  private T embeddedParameters;
   private Boolean value;
 
-  public OptionalModuleParameter(String name, String description, ParameterSet embeddedParameters) {
+  public OptionalModuleParameter(String name, String description, T embeddedParameters,
+      boolean defaultVal) {
+    this(name, description, embeddedParameters);
+    value = defaultVal;
+  }
+
+  public OptionalModuleParameter(String name, String description, T embeddedParameters) {
     this.name = name;
     this.description = description;
     this.embeddedParameters = embeddedParameters;
   }
 
-  public ParameterSet getEmbeddedParameters() {
+  public T getEmbeddedParameters() {
     return embeddedParameters;
   }
 
@@ -90,10 +94,10 @@ public class OptionalModuleParameter implements UserParameter<Boolean, OptionalM
   }
 
   @Override
-  public OptionalModuleParameter cloneParameter() {
-    final ParameterSet embeddedParametersClone = embeddedParameters.cloneParameterSet();
-    final OptionalModuleParameter copy =
-        new OptionalModuleParameter(name, description, embeddedParametersClone);
+  public OptionalModuleParameter<T> cloneParameter() {
+    final T embeddedParametersClone = (T) embeddedParameters.cloneParameterSet();
+    final OptionalModuleParameter<T> copy =
+        new OptionalModuleParameter<>(name, description, embeddedParametersClone);
     copy.setValue(this.getValue());
     return copy;
   }

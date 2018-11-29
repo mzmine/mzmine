@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.parameters.parametertypes;
+package net.sf.mzmine.parameters.parametertypes.submodules;
 
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;

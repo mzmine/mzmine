@@ -18,9 +18,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportParameters.RowFilter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -55,9 +57,13 @@ public class CSVExportParameters extends SimpleParameterSet {
   public static final StringParameter idSeparator = new StringParameter("Identification separator",
       "Character(s) used to separate identification results in the exported file", ";");
 
+  public static final ComboParameter<RowFilter> filter = new ComboParameter<RowFilter>(
+      "Filter rows", "Limit the exported rows to those with MS/MS data (or annotated rows)",
+      RowFilter.values(), RowFilter.ALL);
+
   public CSVExportParameters() {
     super(new Parameter[] {peakLists, filename, fieldSeparator, exportCommonItems,
-        exportDataFileItems, exportAllPeakInfo, idSeparator});
+        exportDataFileItems, exportAllPeakInfo, idSeparator, filter});
   }
 
 }
