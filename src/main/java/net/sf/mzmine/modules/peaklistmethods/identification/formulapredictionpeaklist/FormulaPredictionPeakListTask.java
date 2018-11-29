@@ -17,21 +17,17 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpeaklist;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
-
 import org.openscience.cdk.formula.MolecularFormulaGenerator;
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-
 import com.google.common.collect.Range;
-
-import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -42,7 +38,6 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormula;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicChecker;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -59,7 +54,6 @@ import net.sf.mzmine.util.FormulaUtils;
 
 public class FormulaPredictionPeakListTask extends AbstractTask {
 
-  private List<ResultFormula> ResultingFormulas;
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private Range<Double> massRange;
   private MolecularFormulaRange elementCounts;
@@ -73,6 +67,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private String message;
   private int totalRows, finishedRows;
+  private int maxBestFormulasPerPeak;
 
   /**
    *
@@ -115,6 +110,9 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
     ratiosParameters = parameters.getParameter(FormulaPredictionPeakListParameters.elementalRatios)
         .getEmbeddedParameters();
 
+    maxBestFormulasPerPeak = parameters
+        .getParameter(FormulaPredictionPeakListParameters.maxBestFormulasPerPeak).getValue();
+
     message = "Formula Prediction";
   }
 
@@ -149,8 +147,6 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
         continue;
       }
 
-      this.ResultingFormulas = new ArrayList<ResultFormula>();
-
       this.searchedMass = (row.getAverageMZ() - ionType.getAddedMass()) * charge;
 
       message = "Formula prediction for "
@@ -163,20 +159,46 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
           massRange.upperEndpoint(), elementCounts);
 
       IMolecularFormula cdkFormula;
-      while ((cdkFormula = generator.getNextFormula()) != null) {
-        // Mass is ok, so test other constraints
-        checkConstraints(cdkFormula, row);
 
+      // create a map to store ResultFormula and relative mass deviation for sorting
+      Map<Double, String> possibleFormulas = new TreeMap<>();
+      while ((cdkFormula = generator.getNextFormula()) != null) {
+        if (isCanceled())
+          return;
+
+        // Mass is ok, so test other constraints
+        if (checkConstraints(cdkFormula, row) == true) {
+          String formula = MolecularFormulaManipulator.getString(cdkFormula);
+
+          // calc rel mass deviation
+          Double relMassDev =
+              ((searchedMass - (FormulaUtils.calculateExactMass(formula))) / searchedMass)
+                  * 1000000;
+
+          // write to map
+          possibleFormulas.put(relMassDev, formula);
+        }
       }
 
       if (isCanceled())
         return;
 
-      for (ResultFormula f : this.ResultingFormulas) {
-        SimplePeakIdentity newIdentity = new SimplePeakIdentity(f.getFormulaAsString());
-        row.addPeakIdentity(newIdentity, false);
-      }
+      // create a map to store ResultFormula and relative mass deviation for sorting
+      Map<Double, String> possibleFormulasSorted = new TreeMap<>(
+          (Comparator<Double>) (o1, o2) -> Double.compare(Math.abs(o1), Math.abs(o2)));
+      possibleFormulasSorted.putAll(possibleFormulas);
 
+      // Add the new formula entry top results
+      int ctr = 0;
+      for (Map.Entry<Double, String> entry : possibleFormulasSorted.entrySet()) {
+        if (ctr < maxBestFormulasPerPeak) {
+          SimplePeakIdentity newIdentity = new SimplePeakIdentity(entry.getValue());
+          row.addPeakIdentity(newIdentity, false);
+          ctr++;
+        }
+      }
+      if (isCanceled())
+        return;
       finishedRows++;
 
     }
@@ -190,13 +212,13 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
 
   }
 
-  private void checkConstraints(IMolecularFormula cdkFormula, PeakListRow peakListRow) {
+  private boolean checkConstraints(IMolecularFormula cdkFormula, PeakListRow peakListRow) {
 
     // Check elemental ratios
     if (checkRatios) {
       boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, ratiosParameters);
       if (!check) {
-        return;
+        return false;
       }
     }
 
@@ -206,7 +228,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
     if (checkRDBE && (rdbeValue != null)) {
       boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeParameters);
       if (!check) {
-        return;
+        return false;
       }
     }
 
@@ -237,7 +259,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
           .getParameter(IsotopePatternScoreParameters.isotopePatternScoreThreshold).getValue();
 
       if (isotopeScore < minScore) {
-        return;
+        return false;
       }
 
     }
@@ -246,7 +268,6 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
     Double msmsScore = null;
     Feature bestPeak = peakListRow.getBestPeak();
     RawDataFile dataFile = bestPeak.getDataFile();
-    Map<DataPoint, String> msmsAnnotations = null;
     int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 
     if ((checkMSMS) && (msmsScanNumber > 0)) {
@@ -257,7 +278,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("The MS/MS scan #" + msmsScanNumber + " in file " + dataFile.getName()
             + " does not have a mass list called '" + massListName + "'");
-        return;
+        return false;
       }
 
       MSMSScore score = MSMSScoreCalculator.evaluateMSMS(cdkFormula, msmsScan, msmsParameters);
@@ -267,23 +288,14 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
 
       if (score != null) {
         msmsScore = score.getScore();
-        msmsAnnotations = score.getAnnotation();
 
         // Check the MS/MS condition
         if (msmsScore < minMSMSScore) {
-          return;
+          return false;
         }
       }
-
     }
-
-    // Create a new formula entry
-    final ResultFormula resultEntry = new ResultFormula(cdkFormula, predictedIsotopePattern,
-        rdbeValue, isotopeScore, msmsScore, msmsAnnotations);
-
-    // Add the new formula entry
-    ResultingFormulas.add(resultEntry);
-
+    return true;
   }
 
   @Override
