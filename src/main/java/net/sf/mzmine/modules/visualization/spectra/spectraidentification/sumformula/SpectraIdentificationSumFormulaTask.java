@@ -3,6 +3,7 @@ package net.sf.mzmine.modules.visualization.spectra.spectraidentification.sumfor
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -103,6 +104,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (numItems == 0)
       return 0;
@@ -112,6 +114,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Sum formula prediction for scan " + currentScan.getScanNumber();
   }
@@ -119,6 +122,7 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -158,26 +162,28 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
           massRange.upperEndpoint(), elementCounts);
 
       IMolecularFormula cdkFormula;
-
       String annotation = "";
       Map<Double, String> possibleFormulas = new HashMap<Double, String>();
       while ((cdkFormula = generator.getNextFormula()) != null) {
         if (isCanceled())
           return;
         // calc rel mass deviation
-        Double relMassDev = (((massList[i].getMZ() - ionType.getAddedMass())
-            - FormulaUtils.calculateExactMass(MolecularFormulaManipulator.getString(cdkFormula)))
-            / (massList[i].getMZ() - ionType.getAddedMass())) * 1000000;
+        Double relMassDev = ((((massList[i].getMZ() - ionType.getAddedMass()) / charge)
+            - (FormulaUtils.calculateExactMass(MolecularFormulaManipulator.getString(cdkFormula)))
+                / charge)
+            / ((massList[i].getMZ() - ionType.getAddedMass()) / charge)) * 1000000;
         possibleFormulas.put(relMassDev, checkConstraints(cdkFormula));
-
       }
-      // sort formulas by relative mass deviation
-      Map<Double, String> sortedPossibleFormulas = new TreeMap<Double, String>(possibleFormulas);
+
+      Map<Double, String> treeMap = new TreeMap<>(
+          (Comparator<Double>) (o1, o2) -> Double.compare(Math.abs(o1), Math.abs(o2)));
+      treeMap.putAll(possibleFormulas);
+
       // get top 5
       int ctr = 0;
-      int number = ctr + 1;
-      for (Map.Entry<Double, String> entry : sortedPossibleFormulas.entrySet()) {
-        System.out.println(entry.getValue());
+      for (Map.Entry<Double, String> entry : treeMap.entrySet()) {
+        int number = ctr + 1;
+        System.out.println(entry.getKey());
         if (ctr > 4)
           break;
         annotation = annotation + number + ". " + entry.getValue() + " Δ "
