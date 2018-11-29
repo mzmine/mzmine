@@ -67,6 +67,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private String message;
   private int totalRows, finishedRows;
+  private int maxBestFormulasPerPeak;
 
   /**
    *
@@ -108,6 +109,9 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
         parameters.getParameter(FormulaPredictionPeakListParameters.elementalRatios).getValue();
     ratiosParameters = parameters.getParameter(FormulaPredictionPeakListParameters.elementalRatios)
         .getEmbeddedParameters();
+
+    maxBestFormulasPerPeak = parameters
+        .getParameter(FormulaPredictionPeakListParameters.maxBestFormulasPerPeak).getValue();
 
     message = "Formula Prediction";
   }
@@ -184,10 +188,14 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
           (Comparator<Double>) (o1, o2) -> Double.compare(Math.abs(o1), Math.abs(o2)));
       possibleFormulasSorted.putAll(possibleFormulas);
 
-      // Add the new formula entry
+      // Add the new formula entry top results
+      int ctr = 0;
       for (Map.Entry<Double, String> entry : possibleFormulasSorted.entrySet()) {
-        SimplePeakIdentity newIdentity = new SimplePeakIdentity(entry.getValue());
-        row.addPeakIdentity(newIdentity, false);
+        if (ctr < maxBestFormulasPerPeak) {
+          SimplePeakIdentity newIdentity = new SimplePeakIdentity(entry.getValue());
+          row.addPeakIdentity(newIdentity, false);
+          ctr++;
+        }
       }
       if (isCanceled())
         return;
