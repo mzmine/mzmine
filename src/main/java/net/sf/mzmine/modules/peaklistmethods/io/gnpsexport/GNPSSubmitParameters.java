@@ -69,8 +69,8 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
   /**
    * Export ion identity network edges (if available)
    */
-  public static final BooleanParameter ANN_EDGES =
-      new BooleanParameter("Annotation edges", "Add annotation edges to GNPS job", true);
+  // public static final BooleanParameter ANN_EDGES =
+  // new BooleanParameter("Annotation edges", "Add annotation edges to GNPS job", true);
   // public static final BooleanParameter CORR_EDGES =
   // new BooleanParameter("Correlation edges", "Add correlation edges to GNPS job", false);
 
@@ -81,6 +81,6 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
       new BooleanParameter("Open website", "Website of GNPS job", true);
 
   public GNPSSubmitParameters() {
-    super(new Parameter[] {META_FILE, PRESETS, EMAIL, ANN_EDGES, OPEN_WEBSITE});
+    super(new Parameter[] {META_FILE, PRESETS, EMAIL, OPEN_WEBSITE});
   }
 }

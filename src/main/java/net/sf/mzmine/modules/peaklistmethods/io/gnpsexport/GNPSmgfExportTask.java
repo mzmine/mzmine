@@ -49,7 +49,6 @@ import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportParameters.RowFilter;
-import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportTask;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -179,9 +178,6 @@ public class GNPSmgfExportTask extends AbstractTask {
       String rowID = Integer.toString(row.getID());
       double retTimeInSeconds = ((row.getAverageRT() * 60 * 100.0) / 100.);
 
-      // find ion species by annotation (can be null)
-      String ion = row.getBestIonIdentity() != null ? row.getBestIonIdentity().getAdduct() : "";
-
       // Get the MS/MS scan number
       Feature bestPeak = row.getBestPeak();
       if (bestPeak == null)
@@ -230,12 +226,6 @@ public class GNPSmgfExportTask extends AbstractTask {
         String mass = mzForm.format(row.getAverageMZ());
         if (mass != null)
           writer.write("PEPMASS=" + mass + newLine);
-
-        // ion annotation, neutral mass, corr group, annotation group
-        String annotationFlags = SiriusExportTask.createMSAnnotationFlags(row, mzForm);
-        if (annotationFlags != null && !annotationFlags.isEmpty()) {
-          writer.write(annotationFlags);
-        }
 
         if (rowID != null) {
           writer.write("SCANS=" + rowID + newLine);

@@ -39,8 +39,6 @@ import java.util.logging.Logger;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.grouping.metacorrelate.export.ExportCorrAnnotationTask;
-import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportTask;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.ExportRowCommonElement;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.ExportRowDataFileElement;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportParameters.RowFilter;
@@ -97,16 +95,12 @@ public class GNPSExportAndSubmitTask extends AbstractTask {
     file = FileAndPathUtil.eraseFormat(file);
     parameters.getParameter(GNPSExportParameters.FILENAME).setValue(file);
 
-
     List<AbstractTask> list = new ArrayList<>(3);
     GNPSmgfExportTask task = new GNPSmgfExportTask(parameters);
     list.add(task);
 
     // add csv quant table
     list.add(addQuantTableTask(parameters, null));
-
-    // add csv extra edges
-    list.add(addExtraEdgesTask(parameters, null));
 
     // finish listener to submit
     if (submit || openFolder) {
@@ -196,10 +190,7 @@ public class GNPSExportAndSubmitTask extends AbstractTask {
     full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name + "_quant", "csv");
 
     ExportRowCommonElement[] common = new ExportRowCommonElement[] {ExportRowCommonElement.ROW_ID,
-        ExportRowCommonElement.ROW_MZ, ExportRowCommonElement.ROW_RT,
-        ExportRowCommonElement.ROW_CORR_GROUP_ID, ExportRowCommonElement.ROW_MOL_NETWORK_ID,
-        ExportRowCommonElement.ROW_BEST_ANNOTATION_AND_SUPPORT,
-        ExportRowCommonElement.ROW_NEUTRAL_MASS};
+        ExportRowCommonElement.ROW_MZ, ExportRowCommonElement.ROW_RT};
 
     ExportRowDataFileElement[] rawdata =
         new ExportRowDataFileElement[] {ExportRowDataFileElement.PEAK_AREA};
@@ -212,31 +203,6 @@ public class GNPSExportAndSubmitTask extends AbstractTask {
     if (tasks != null)
       tasks.add(quanExport);
     return quanExport;
-  }
-
-  /**
-   * Export extra edges (wont create files if empty)
-   * 
-   * @param parameters
-   * @param tasks
-   */
-  private AbstractTask addExtraEdgesTask(ParameterSet parameters, Collection<Task> tasks) {
-    File full = parameters.getParameter(GNPSExportParameters.FILENAME).getValue();
-    RowFilter filter = parameters.getParameter(GNPSExportParameters.FILTER).getValue();
-
-    boolean exAnn = true;
-    if (parameters.getParameter(GNPSExportParameters.SUBMIT).getValue()) {
-      exAnn = parameters.getParameter(GNPSExportParameters.SUBMIT).getEmbeddedParameters()
-          .getParameter(GNPSSubmitParameters.ANN_EDGES).getValue();
-    }
-
-    AbstractTask extraEdgeExport = new ExportCorrAnnotationTask(
-        parameters.getParameter(GNPSExportParameters.PEAK_LISTS).getValue()
-            .getMatchingPeakLists()[0], //
-        full, 0, filter, exAnn, false);
-    if (tasks != null)
-      tasks.add(extraEdgeExport);
-    return extraEdgeExport;
   }
 
 }

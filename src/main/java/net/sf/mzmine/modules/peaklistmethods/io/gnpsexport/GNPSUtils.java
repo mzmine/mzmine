@@ -61,10 +61,6 @@ public class GNPSUtils {
       throws MSDKRuntimeException {
     // optional
     boolean useMeta = param.getParameter(GNPSSubmitParameters.META_FILE).getValue();
-    boolean ann = param.getParameter(GNPSSubmitParameters.ANN_EDGES).getValue();
-    // TODO
-    // boolean corr = param.getParameter(GNPSSubmitParameters.CORR_EDGES).getValue();
-    boolean corr = false;
     boolean openWebsite = param.getParameter(GNPSSubmitParameters.OPEN_WEBSITE).getValue();
     String presets = param.getParameter(GNPSSubmitParameters.PRESETS).getValue().toString();
     String email = param.getParameter(GNPSSubmitParameters.EMAIL).getValue();
@@ -77,15 +73,10 @@ public class GNPSUtils {
 
     // NEEDED files
     if (mgf.exists() && quan.exists()) {
-      File edgeAnn = !ann ? null
-          : FileAndPathUtil.getRealFilePath(folder, name + "_edges_msannotation", "csv");
-      File edgeCorr = !corr ? null
-          : FileAndPathUtil.getRealFilePath(folder, name + "_edges_ms1correlation", "csv");
-
       File meta = !useMeta ? null
           : param.getParameter(GNPSSubmitParameters.META_FILE).getEmbeddedParameter().getValue();
 
-      return submitJob(mgf, quan, meta, edgeAnn, edgeCorr, email, presets, openWebsite);
+      return submitJob(mgf, quan, meta, null, email, presets, openWebsite);
     } else
       return "";
   }
@@ -98,7 +89,7 @@ public class GNPSUtils {
    * @param param
    * @return
    */
-  public static String submitJob(File mgf, File quan, File meta, File edgeAnn, File edgeCorr,
+  public static String submitJob(File mgf, File quan, File meta, File[] additionalEdges,
       String email, String presets, boolean openWebsite) throws MSDKRuntimeException {
     try {
       // NEEDED files
@@ -121,10 +112,12 @@ public class GNPSUtils {
           entity.addPart("email", new StringBody(email));
           if (meta != null && meta.exists())
             entity.addPart("samplemetadata", new FileBody(meta));
-          if (edgeCorr != null && edgeCorr.exists())
-            entity.addPart("additionalpairs", new FileBody(edgeCorr));
-          if (edgeAnn != null && edgeAnn.exists())
-            entity.addPart("additionalpairs", new FileBody(edgeAnn));
+
+          // add additional edges
+          if (additionalEdges != null)
+            for (File edge : additionalEdges)
+              if (edge != null && edge.exists())
+                entity.addPart("additionalpairs", new FileBody(edge));
 
           HttpPost httppost =
               new HttpPost("http://mingwangbeta.ucsd.edu:5050/uploadanalyzefeaturenetworking");
