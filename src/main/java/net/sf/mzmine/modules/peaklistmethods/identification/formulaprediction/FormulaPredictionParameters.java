@@ -26,7 +26,7 @@ import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class FormulaPredictionParameters extends SimpleParameterSet {
