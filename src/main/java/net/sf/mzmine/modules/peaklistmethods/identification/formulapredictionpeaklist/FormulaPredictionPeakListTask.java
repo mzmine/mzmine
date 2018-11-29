@@ -196,10 +196,11 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
       }
       if (isCanceled())
         return;
-
       for (ResultFormula f : this.ResultingFormulas) {
-        SimplePeakIdentity newIdentity = new SimplePeakIdentity(f.getFormulaAsString());
-        row.addPeakIdentity(newIdentity, false);
+        if (f != null) {
+          SimplePeakIdentity newIdentity = new SimplePeakIdentity(f.getFormulaAsString());
+          row.addPeakIdentity(newIdentity, false);
+        }
       }
 
       finishedRows++;
