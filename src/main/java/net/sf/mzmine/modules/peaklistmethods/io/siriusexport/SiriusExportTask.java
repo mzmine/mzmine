@@ -373,8 +373,9 @@ public class SiriusExportTask extends AbstractTask {
     writer.write(String.valueOf(row.getBestPeak().getMZ()));
     writer.newLine();
     writer.write("CHARGE=");
+    if (polarity == '-')
+      writer.write("-");
     writer.write(String.valueOf(Math.abs(row.getRowCharge())));
-    writer.write(polarity);
     writer.newLine();
     writer.write("RTINSECONDS=");
     writer.write(String.valueOf(feature.getRT() * 60d));
