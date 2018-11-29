@@ -20,24 +20,27 @@ package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportParameters.RowFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.RangeUtils;
 
-class CSVExportTask extends AbstractTask {
+public class CSVExportTask extends AbstractTask {
+
 
   private PeakList[] peakLists;
   private int processedRows = 0, totalRows = 0;
@@ -50,9 +53,9 @@ class CSVExportTask extends AbstractTask {
   private ExportRowDataFileElement[] dataFileElements;
   private Boolean exportAllPeakInfo;
   private String idSeparator;
+  private RowFilter filter;
 
-  CSVExportTask(ParameterSet parameters) {
-
+  public CSVExportTask(ParameterSet parameters) {
     this.peakLists =
         parameters.getParameter(CSVExportParameters.peakLists).getValue().getMatchingPeakLists();
     fileName = parameters.getParameter(CSVExportParameters.filename).getValue();
@@ -61,8 +64,36 @@ class CSVExportTask extends AbstractTask {
     dataFileElements = parameters.getParameter(CSVExportParameters.exportDataFileItems).getValue();
     exportAllPeakInfo = parameters.getParameter(CSVExportParameters.exportAllPeakInfo).getValue();
     idSeparator = parameters.getParameter(CSVExportParameters.idSeparator).getValue();
+    this.filter = parameters.getParameter(CSVExportParameters.filter).getValue();
+
   }
 
+  /**
+   * 
+   * @param peakLists
+   * @param fileName
+   * @param fieldSeparator
+   * @param commonElements
+   * @param dataFileElements
+   * @param exportAllPeakInfo
+   * @param idSeparator
+   * @param filter Row filter
+   */
+  public CSVExportTask(PeakList[] peakLists, File fileName, String fieldSeparator,
+      ExportRowCommonElement[] commonElements, ExportRowDataFileElement[] dataFileElements,
+      Boolean exportAllPeakInfo, String idSeparator, RowFilter filter) {
+    super();
+    this.peakLists = peakLists;
+    this.fileName = fileName;
+    this.fieldSeparator = fieldSeparator;
+    this.commonElements = commonElements;
+    this.dataFileElements = dataFileElements;
+    this.exportAllPeakInfo = exportAllPeakInfo;
+    this.idSeparator = idSeparator;
+    this.filter = filter;
+  }
+
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0) {
       return 0;
@@ -70,10 +101,12 @@ class CSVExportTask extends AbstractTask {
     return (double) processedRows / (double) totalRows;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Exporting peak list(s) " + Arrays.toString(peakLists) + " to CSV file(s)";
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -138,7 +171,7 @@ class CSVExportTask extends AbstractTask {
   }
 
   private void exportPeakList(PeakList peakList, FileWriter writer, File fileName) {
-
+    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
 
     // Buffer for writing
@@ -160,6 +193,8 @@ class CSVExportTask extends AbstractTask {
     Set<String> peakInformationFields = new HashSet<>();
 
     for (PeakListRow row : peakList.getRows()) {
+      if (!filter.filter(row))
+        continue;
       if (row.getPeakInformation() != null) {
         for (String key : row.getPeakInformation().getAllProperties().keySet()) {
           peakInformationFields.add(key);
@@ -194,6 +229,11 @@ class CSVExportTask extends AbstractTask {
 
     // Write data rows
     for (PeakListRow peakListRow : peakList.getRows()) {
+
+      if (!filter.filter(peakListRow)) {
+        processedRows++;
+        continue;
+      }
 
       // Cancel?
       if (isCanceled()) {
@@ -334,9 +374,7 @@ class CSVExportTask extends AbstractTask {
                 break;
               case PEAK_MZMAX:
                 line.append(peak.getRawDataPointsMZRange().upperEndpoint() + fieldSeparator);
-
                 break;
-
             }
           } else {
             switch (dataFileElements[i]) {

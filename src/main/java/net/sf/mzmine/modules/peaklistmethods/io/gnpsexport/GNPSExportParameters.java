@@ -52,7 +52,7 @@ public class GNPSExportParameters extends SimpleParameterSet {
    *
    */
   public enum RowFilter {
-  ALL, ONLY_WITH_MS2, ONLY_WITH_MS2_OR_ANNOTATION, ONLY_WITH_MS2_AND_ANNOTATION;
+  ALL, ONLY_WITH_MS2;
 
     @Override
     public String toString() {
@@ -93,7 +93,7 @@ public class GNPSExportParameters extends SimpleParameterSet {
 
   public static final ComboParameter<RowFilter> FILTER = new ComboParameter<RowFilter>(
       "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
-      RowFilter.values(), RowFilter.ONLY_WITH_MS2_OR_ANNOTATION);
+      RowFilter.values(), RowFilter.ONLY_WITH_MS2);
 
   // public static final BooleanParameter OPEN_GNPS = new BooleanParameter("Open GNPS website",
   // "Opens the super quick start of GNPS feature based networking in the standard browser.",
