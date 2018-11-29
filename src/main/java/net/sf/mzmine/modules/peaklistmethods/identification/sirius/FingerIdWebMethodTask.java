@@ -18,23 +18,22 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.id.sirius.FingerIdWebMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
-
-import java.util.LinkedList;
-import java.util.List;
-
-import java.util.concurrent.CountDownLatch;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class FingerIdWebMethodTask Wrapper around FingerIdWebMethod - calculates the result as a
@@ -126,9 +125,12 @@ public class FingerIdWebMethodTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (method == null || method.getFinishedPercentage() == null)
+    if (method == null)
       return 0.0;
-    return method.getFinishedPercentage();
+    Float progress = method.getFinishedPercentage();
+    if (progress == null)
+      return 0.0;
+    return progress.doubleValue();
   }
 
   @Override
@@ -140,9 +142,11 @@ public class FingerIdWebMethodTask extends AbstractTask {
       fingerResults = method.execute();
       logger.debug("Successfully processed {} by FingerWebMethod", formula);
     } catch (RuntimeException e) {
+      e.printStackTrace();
       logger.error("Error during processing FingerIdWebMethod --- return initial compound");
       fingerResults = null;
-    } catch (MSDKException msdk) {
+    } catch (MSDKException e) {
+      e.printStackTrace();
       logger.error("Internal FingerIdWebMethod error occured.");
       fingerResults = null;
     }
