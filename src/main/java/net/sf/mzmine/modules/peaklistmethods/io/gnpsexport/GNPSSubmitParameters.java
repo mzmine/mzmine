@@ -64,7 +64,7 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
    * Email to be notified on job status
    */
   public static final StringParameter EMAIL =
-      new StringParameter("Email", "Email adresse for notifications about the job");
+      new StringParameter("Email", "Email adresse for notifications about the job", "", false);
 
   /**
    * Export ion identity network edges (if available)

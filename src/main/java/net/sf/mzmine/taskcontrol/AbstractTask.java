@@ -23,7 +23,7 @@ import java.util.List;
 
 /**
  * An abstract implementation of task which defines common methods to make Task implementation
- * easier
+ * easier. Added task status listener
  */
 public abstract class AbstractTask implements Task {
 
@@ -66,6 +66,7 @@ public abstract class AbstractTask implements Task {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#cancel()
    */
+  @Override
   public void cancel() {
     setStatus(TaskStatus.CANCELED);
   }
@@ -73,6 +74,7 @@ public abstract class AbstractTask implements Task {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
    */
+  @Override
   public final String getErrorMessage() {
     return errorMessage;
   }
@@ -88,6 +90,7 @@ public abstract class AbstractTask implements Task {
    * 
    * @return The current status of this task
    */
+  @Override
   public final TaskStatus getStatus() {
     return this.status;
   }

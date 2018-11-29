@@ -18,6 +18,12 @@
 
 package net.sf.mzmine.taskcontrol;
 
+/**
+ * Listens for changes in task status
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
 @FunctionalInterface
 public interface TaskStatusListener {
   public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus);
