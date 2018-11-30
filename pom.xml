@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.mzmine</groupId>
 	<artifactId>mzmine2</artifactId>
-	<version>2.36</version>
+	<version>2.37</version>
 	<name>MZmine</name>
 	<description>MZmine is an open-source project delivering a software for mass spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>https://mzmine.github.io</url>
@@ -15,7 +15,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<cdk.version>2.2</cdk.version>
 		<jmztab.version>3.0.7</jmztab.version>
-		<msdk.version>0.0.18</msdk.version>
+		<msdk.version>0.0.19</msdk.version>
 		<gson-fire-version>1.8.0</gson-fire-version>
 		<swagger-core-version>1.5.21</swagger-core-version>
 		<okhttp-version>2.7.5</okhttp-version>
