@@ -19,21 +19,18 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
 import java.util.Arrays;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.ScanUtils;
-
-import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
+import net.sf.mzmine.util.maths.CenterFunction;
 
 /**
  * ResolvedPeak
@@ -75,8 +72,8 @@ public class ResolvedPeak implements Feature {
    * (inclusive). The selected region MUST NOT contain any zero-intensity data points, otherwise
    * exception is thrown.
    */
-  public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd, double msmsRange,
-      double RTRangeMSMS) {
+  public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd,
+      CenterFunction mzCenterFunction, double msmsRange, double RTRangeMSMS) {
 
     assert regionEnd > regionStart;
 
@@ -114,7 +111,7 @@ public class ResolvedPeak implements Feature {
          */
       }
 
-      // dataPointMZValues[i] = dp.getMZ();
+      dataPointMZValues[i] = dp.getMZ();
       dataPointIntensityValues[i] = dp.getIntensity();
 
       if (rawDataPointsIntensityRange == null) {
@@ -137,8 +134,8 @@ public class ResolvedPeak implements Feature {
       }
     }
 
-    // Calculate median m/z
-    mz = MathUtils.calcQuantile(dataPointMZValues, 0.5f);
+    // Calculate m/z as median, average or weighted-average
+    mz = mzCenterFunction.calcCenter(dataPointMZValues, dataPointIntensityValues);
 
     // Update area
     area = 0;
@@ -192,6 +189,7 @@ public class ResolvedPeak implements Feature {
   /**
    * This method returns a representative datapoint of this peak in a given scan
    */
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     int index = Arrays.binarySearch(scanNumbers, scanNumber);
     if (index < 0)
@@ -204,6 +202,7 @@ public class ResolvedPeak implements Feature {
   /**
    * This method returns m/z value of the chromatogram
    */
+  @Override
   public double getMZ() {
     return mz;
   }
@@ -213,103 +212,128 @@ public class ResolvedPeak implements Feature {
    * 
    * @return String information
    */
+  @Override
   public String toString() {
     return PeakUtils.peakToString(this);
   }
 
+  @Override
   public double getArea() {
     return area;
   }
 
+  @Override
   public double getHeight() {
     return height;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
+  @Override
   public double getRT() {
     return rt;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
 
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return dataFile;
   }
 
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
   // dulab Edit
+  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }

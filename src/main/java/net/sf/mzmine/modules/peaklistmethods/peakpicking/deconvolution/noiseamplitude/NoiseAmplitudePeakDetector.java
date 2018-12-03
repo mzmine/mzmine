@@ -21,13 +21,11 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamp
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.MIN_PEAK_HEIGHT;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.NOISE_AMPLITUDE;
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.PEAK_DURATION;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -37,8 +35,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RangeUtils;
 import net.sf.mzmine.util.R.REngineType;
 import net.sf.mzmine.util.R.RSessionWrapper;
-
-import com.google.common.collect.Range;
+import net.sf.mzmine.util.maths.CenterFunction;
 
 /**
  *
@@ -48,13 +45,15 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
   // The maximum noise level relative to the maximum intensity.
   private static final double MAX_NOISE_LEVEL = 0.3;
 
+  @Override
   public @Nonnull String getName() {
     return "Noise amplitude";
   }
 
   @Override
   public Feature[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
-      RSessionWrapper rSession, double msmsRange, double rTRangeMSMS) {
+      RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
+      double rTRangeMSMS) {
 
     int scanNumbers[] = chromatogram.getScanNumbers();
     final int scanCount = scanNumbers.length;
@@ -84,7 +83,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
       avgIntensity += intensity;
     }
 
-    avgIntensity /= (double) scanCount;
+    avgIntensity /= scanCount;
 
     final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);
 
@@ -123,7 +122,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
           if (currentPeakEnd - currentPeakStart > 0) {
 
             final ResolvedPeak peak = new ResolvedPeak(chromatogram, currentPeakStart,
-                currentPeakEnd, msmsRange, rTRangeMSMS);
+                currentPeakEnd, mzCenterFunction, msmsRange, rTRangeMSMS);
             if (peakDuration.contains(RangeUtils.rangeLength(peak.getRawDataPointsRTRange()))
                 && peak.getHeight() >= minimumPeakHeight) {
 
@@ -180,7 +179,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
       }
     }
 
-    double noiseThreshold = (double) (numberOfBin + 2) * amplitudeOfNoise;
+    double noiseThreshold = (numberOfBin + 2) * amplitudeOfNoise;
     if (noiseThreshold / maxIntensity > MAX_NOISE_LEVEL) {
 
       noiseThreshold = amplitudeOfNoise;

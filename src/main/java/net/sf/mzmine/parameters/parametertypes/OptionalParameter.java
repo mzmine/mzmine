@@ -19,12 +19,9 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
-
 import javax.swing.JComponent;
-
-import net.sf.mzmine.parameters.UserParameter;
-
 import org.w3c.dom.Element;
+import net.sf.mzmine.parameters.UserParameter;
 
 /**
  * Parameter represented by check box with an additional sub-parameter
@@ -42,6 +39,11 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
 
   public OptionalParameter(EmbeddedParameterType embeddedParameter) {
     this.embeddedParameter = embeddedParameter;
+  }
+
+  public OptionalParameter(EmbeddedParameterType embeddedParameter, boolean defaultValue) {
+    this.embeddedParameter = embeddedParameter;
+    value = defaultValue;
   }
 
   public EmbeddedParameterType getEmbeddedParameter() {
@@ -87,6 +89,7 @@ public class OptionalParameter<EmbeddedParameterType extends UserParameter<?, ?>
     return copy;
   }
 
+  @Override
   public void setValueFromComponent(OptionalParameterComponent component) {
     this.value = component.isSelected();
     if (value) {

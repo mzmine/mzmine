@@ -1,39 +1,28 @@
 <html>
 <head>
-    <title>Export - GNPS Export</title>
+    <title>Export - GNPS Export/Submit</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
 </head>
 <body>
 
-<h1>GNPS Export</h1>
+<h1>GNPS Export/Submit</h1>
 
 <h2>Description</h2>
 <p>
-    The module Export for GNPS exports a list of MS/MS spectra (one per row) for
-     a selected peaklist or an aligned peaklist as .MGF format.    
+    This module exports all files needed for GNPS' feature based molecular networking. This includes the quant table (csv export) and an mgf with all MS2 spectra.
+    Optionally, a new GNPS job is submitted. This job can be cloned into a personal GNPS account. 
 </p>
 
 <h2>Instructions</h2>
 <p>
-    Before using the module, perform the following:
-    <ol>
-        <li> Filter out peak without associated MS/MS spectrum. 
-            <br>- MZmine2 Menu: Peak list methods / Filtering / Peak list row filter / Keep only 
-            peaks with MS2 scan (GNPS)
-        <li> Reset the peak number ID:  
-            <br>- MZmine2 Menu : Peak list methods / 
-            Filtering / Peak list row filter / Reset the peak number ID
-        <li> Perform mass detection on MS level 2. 
-            <br>- MZmine2 Menu: Raw data methods / Mass detection 
-            <br>[Make sure to use a noise threshold consistent with the MS level 2]
-    </ol>
+    Run this method on any peak list. MS2 spectra need to be associated to the features (usually done in peak deconvolution step).
 </p>
 
 <h2>Documentation</h2>
 <p>
     Please refer to the following documentation for detailed tutorial:
-    <ul>   
+    <ul>    
         <li> If you use the GNPS export module for 
             <a href="http://gnps.ucsd.edu/">GNPS web-platform<a/>, cite 
                 <a href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395">MZmine2 

@@ -27,8 +27,8 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class FormulaPredictionPeakListParameters extends SimpleParameterSet {
@@ -42,6 +42,10 @@ public class FormulaPredictionPeakListParameters extends SimpleParameterSet {
           IonizationType.values());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+
+  public static final IntegerParameter maxBestFormulasPerPeak =
+      new IntegerParameter("Max best formulas per peak",
+          "Enter the number of the maximum number of added formulas per peak");
 
   public static final ElementsParameter elements =
       new ElementsParameter("Elements", "Elements and ranges");
@@ -64,7 +68,7 @@ public class FormulaPredictionPeakListParameters extends SimpleParameterSet {
       new OptionalModuleParameter("MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
 
   public FormulaPredictionPeakListParameters() {
-    super(new Parameter[] {charge, ionization, PEAK_LISTS, mzTolerance, elements, elementalRatios,
-        rdbeRestrictions, isotopeFilter, msmsFilter});
+    super(new Parameter[] {charge, ionization, PEAK_LISTS, mzTolerance, maxBestFormulasPerPeak,
+        elements, elementalRatios, rdbeRestrictions, isotopeFilter, msmsFilter});
   }
 }

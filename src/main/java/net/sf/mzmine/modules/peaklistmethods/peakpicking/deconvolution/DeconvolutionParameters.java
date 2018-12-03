@@ -18,20 +18,22 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ADAPpeakpicking.ADAPDetector;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.CenterMeasureParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
+import net.sf.mzmine.util.maths.CenterMeasure;
 
 public class DeconvolutionParameters extends SimpleParameterSet {
 
@@ -47,6 +49,13 @@ public class DeconvolutionParameters extends SimpleParameterSet {
   public static final ModuleComboParameter<PeakResolver> PEAK_RESOLVER =
       new ModuleComboParameter<PeakResolver>("Algorithm", "Peak recognition description",
           RESOLVERS);
+
+  /**
+   * The function to determin the mz center (median, avg, weighted avg)
+   */
+  public static final CenterMeasureParameter MZ_CENTER_FUNCTION = new CenterMeasureParameter(
+      "m/z center calculation", "Median, average or an automatic log10-weighted approach",
+      CenterMeasure.values(), null, CenterMeasure.MEDIAN, null);
 
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
       "Remove original peak list",
@@ -64,7 +73,7 @@ public class DeconvolutionParameters extends SimpleParameterSet {
               + "will be done on the full retention time range of the chromatogram."));
 
   public DeconvolutionParameters() {
-    super(new Parameter[] {PEAK_LISTS, SUFFIX, PEAK_RESOLVER, mzRangeMSMS, RetentionTimeMSMS,
-        AUTO_REMOVE});
+    super(new Parameter[] {PEAK_LISTS, SUFFIX, PEAK_RESOLVER, MZ_CENTER_FUNCTION, mzRangeMSMS,
+        RetentionTimeMSMS, AUTO_REMOVE});
   }
 }

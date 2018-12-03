@@ -19,14 +19,12 @@
 package net.sf.mzmine.modules.tools.isotopepatternpreview;
 
 import java.awt.Window;
-import java.text.DecimalFormat;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.ExitCode;
@@ -45,15 +43,17 @@ public class IsotopePatternPreviewParameters extends SimpleParameterSet {
       "This will be used to merge isotope compositions in the calculated isotope pattern if they overlap.",
       MZmineCore.getConfiguration().getMZFormat(), 0.00005, 0.0d, 10.0d);
 
-  public static final PercentParameter minIntensity =
-      new PercentParameter("Minimum intensity",
-          "The minimum natural abundance of an isotope and normalized intensity in the calculated isotope pattern.\n"
-              + "Min = 0.0, Max = 0.99...", 0.001, 0.0, 0.9999999999);
+  public static final PercentParameter minIntensity = new PercentParameter("Minimum intensity",
+      "The minimum natural abundance of an isotope and normalized intensity in the calculated isotope pattern.\n"
+          + "Min = 0.0, Max = 0.99...",
+      0.001, 0.0, 0.9999999999);
 
   public static final IntegerParameter charge = new IntegerParameter("Charge",
       "Enter a charge to apply to the molecule. (e.g. [M]+ = +1 / [M]- = -1\n"
-      + "This can also be set to 0 for the uncharged molecule.", 1, true);
+          + "This can also be set to 0 for the uncharged molecule.",
+      1, true);
 
+  @Override
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;

@@ -19,11 +19,68 @@
 package net.sf.mzmine.util;
 
 import java.util.Arrays;
+import java.util.stream.DoubleStream;
+import net.sf.mzmine.util.maths.CenterMeasure;
+import net.sf.mzmine.util.maths.Weighting;
 
 /**
  * Mathematical calculation-related helper class
  */
 public class MathUtils {
+
+  /**
+   * median or non-weighted average
+   * 
+   * @param center
+   * @param values
+   * @return
+   */
+  public static double calcCenter(CenterMeasure center, double[] values) {
+    switch (center) {
+      case AVG:
+        return calcAvg(values);
+      case MEDIAN:
+        return calcMedian(values);
+      default:
+        return Double.NaN;
+    }
+  }
+
+  /**
+   * median or weighted average
+   * 
+   * @param center
+   * @param values
+   * @param weights
+   * @param transform only used for center measure AVG (can also be Weighting.NONE)
+   * @return
+   */
+  public static double calcCenter(CenterMeasure measure, double[] values, double[] weights,
+      Weighting weightTransform) {
+    return calcCenter(measure, values, weights, weightTransform, null, null);
+  }
+
+  public static double calcCenter(CenterMeasure measure, double[] values, double[] weights,
+      Weighting weightTransform, Double noiseLevel, Double maxWeight) {
+    switch (measure) {
+      case AVG:
+        return calcWeightedAvg(values, weights, weightTransform, noiseLevel, maxWeight);
+      case MEDIAN:
+        return calcMedian(values);
+      default:
+        return Double.NaN;
+    }
+  }
+
+  /**
+   * Median
+   * 
+   * @param values
+   * @return
+   */
+  public static double calcMedian(double[] values) {
+    return calcQuantile(values, 0.5);
+  }
 
   /**
    * Calculates q-quantile value of values. q=0.5 => median
@@ -43,14 +100,14 @@ public class MathUtils {
     if (q < 0)
       q = 0;
 
-    double[] vals = (double[]) values.clone();
+    double[] vals = values.clone();
 
     Arrays.sort(vals);
 
     int ind1 = (int) Math.floor((vals.length - 1) * q);
     int ind2 = (int) Math.ceil((vals.length - 1) * q);
 
-    return (vals[ind1] + vals[ind2]) / (double) 2;
+    return (vals[ind1] + vals[ind2]) / 2;
 
   }
 
@@ -71,7 +128,7 @@ public class MathUtils {
       return retVals;
     }
 
-    double[] vals = (double[]) values.clone();
+    double[] vals = values.clone();
     Arrays.sort(vals);
 
     double q;
@@ -89,7 +146,7 @@ public class MathUtils {
       ind1 = (int) Math.floor((vals.length - 1) * q);
       ind2 = (int) Math.ceil((vals.length - 1) * q);
 
-      retVals[qInd] = (vals[ind1] + vals[ind2]) / (double) 2;
+      retVals[qInd] = (vals[ind1] + vals[ind2]) / 2;
     }
 
     return retVals;
@@ -109,7 +166,7 @@ public class MathUtils {
       sum += (d - avg) * (d - avg);
     }
 
-    stdev = (double) Math.sqrt((double) sum / (double) (values.length - 1));
+    stdev = Math.sqrt(sum / (values.length - 1));
     return stdev;
   }
 
@@ -130,7 +187,7 @@ public class MathUtils {
       sum += (d - avg) * (d - avg);
     }
 
-    stdev = (double) Math.sqrt((double) sum / (double) (values.length - 1));
+    stdev = Math.sqrt(sum / (values.length - 1));
 
     return stdev / avg;
   }
@@ -144,7 +201,65 @@ public class MathUtils {
       sum += d;
     }
     return sum / values.length;
-
   }
 
+  /**
+   * Weighted average with linear weights
+   * 
+   * @param values
+   * @param weights
+   * @return
+   * @throws Exception
+   */
+  public static double calcWeightedAvg(double[] values, double[] weights) {
+    return calcWeightedAvg(values, weights, Weighting.LINEAR);
+  }
+
+  /**
+   * Weighted average with weight transformation
+   * 
+   * @param values
+   * @param weights
+   * @param transform function to transform the weights
+   * @return the weighted average (or Double.NaN if no values supplied or the lengths of the arrays
+   *         was different)
+   */
+  public static double calcWeightedAvg(double[] values, double[] weights, Weighting transform) {
+    return calcWeightedAvg(values, weights, transform, null, null);
+  }
+
+
+  /**
+   * 
+   * @param values
+   * @param weights
+   * @param weightTransform
+   * @param noiseLevel
+   * @param maxWeight
+   * @return
+   */
+  public static double calcWeightedAvg(double[] values, double[] weights, Weighting weightTransform,
+      Double noiseLevel, Double maxWeight) {
+    if (values == null || weights == null || values.length != weights.length)
+      return Double.NaN;
+
+    // transform
+    double[] realWeights = weights;
+
+    if (weightTransform != null)
+      realWeights = weightTransform.transform(weights, noiseLevel, maxWeight);
+
+    // sum of weights
+    double weightSum = DoubleStream.of(realWeights).sum();
+
+    // should never be 0, unless noiseLevel was too high
+    if (weightSum == 0)
+      return calcAvg(values);
+
+    double avg = 0;
+    for (int i = 0; i < realWeights.length; i++) {
+      avg += values[i] * realWeights[i] / weightSum;
+    }
+    return avg;
+  }
 }
