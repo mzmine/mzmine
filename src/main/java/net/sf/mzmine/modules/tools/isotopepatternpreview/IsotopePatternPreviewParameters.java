@@ -50,7 +50,7 @@ public class IsotopePatternPreviewParameters extends SimpleParameterSet {
 
   public static final IntegerParameter charge = new IntegerParameter("Charge",
       "Enter a charge to apply to the molecule. (e.g. [M]+ = +1 / [M]- = -1\n"
-          + "This can also be set to 0 for the uncharged molecule.",
+          + "This can also be set to 0 to plot the exact mass.",
       1, true);
 
   @Override

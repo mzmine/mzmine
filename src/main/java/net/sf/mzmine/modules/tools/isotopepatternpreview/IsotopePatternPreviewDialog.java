@@ -107,7 +107,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private StringComponent cmpFormula;
   private IntegerComponent cmpCharge;
 
-  private JLabel lblMergeWidth, lblMinIntensity, lblFormula, lblCharge; //lblStatus;
+  private JLabel lblMergeWidth, lblMinIntensity, lblFormula, lblCharge, lblStatus;
 
   private ExtendedIsotopePatternDataSet dataset;
   private SpectraToolTipGenerator ttGen;
@@ -211,8 +211,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     lblMinIntensity = new JLabel(pMinIntensity.getName());
     lblFormula = new JLabel(pFormula.getName());
     lblCharge = new JLabel(pCharge.getName());
-//    lblStatus = new JLabel("Status");
-//    lblStatus.setText("Status: waiting");
+    lblStatus = new JLabel("Status");
+    setStatus("Waiting.");
 
     mainPanel.remove(cmpCharge);
     mainPanel.remove(cmpMergeWidth);
@@ -237,7 +237,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     pnlParameters.add(cmpMergeWidth);
     pnlParameters.add(lblCharge);
     pnlParameters.add(cmpCharge);
-//    pnlParameters.add(lblStatus);
+    pnlParameters.add(lblStatus);
   }
 
   public void actionPerformed(ActionEvent ae) {
@@ -269,11 +269,9 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
     if(task != null && thread != null && task.getStatus() == TaskStatus.PROCESSING && FormulaUtils.getFormulaSize(formula) > 1E4) {
       newParameters = true;
-//      lblStatus.setText("Status: Queueing " + formula);
       task.setDisplayResult(false);
     }
     else {
-//      lblStatus.setText("Status: Calculating " + formula);
       if(task != null)
         task.setDisplayResult(false);
       logger.info("Creating new Thread: " + formula);
@@ -390,7 +388,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
   public void startNextThread() {
     if(newParameters) {
-//      lblStatus.setText("Satus: Calculating " + formula);
+      lblStatus.setText("Calculating...");
       newParameters = false;
       logger.info("Creating new Thread: " + formula);
       task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);
@@ -398,5 +396,9 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       thread.setPriority(10);
       thread.start();
     }
+  }
+  
+  public void setStatus(String status) {
+    lblStatus.setText(status);
   }
 }

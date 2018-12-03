@@ -65,6 +65,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   
   public void run() {
     setStatus(TaskStatus.PROCESSING);
+    dialog.setStatus("Calculating...");
     pattern = (ExtendedIsotopePattern) IsotopePatternCalculator.calculateIsotopePattern(formula, minIntensity, mergeWidth, charge, polarity, true);
     if(pattern == null) {
       logger.warning("Isotope pattern could not be calculated.");
@@ -73,6 +74,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     logger.info("Pattern " + pattern.getDescription() + " calculated.");
         
     if(displayResult) {
+      dialog.setStatus("Waiting.");
       updateWindow();
       startNextThread();
     }
