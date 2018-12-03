@@ -107,7 +107,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private StringComponent cmpFormula;
   private IntegerComponent cmpCharge;
 
-  private JLabel lblMergeWidth, lblMinIntensity, lblFormula, lblCharge, lblStatus;
+  private JLabel lblMergeWidth, lblMinIntensity, lblFormula, lblCharge; //lblStatus;
 
   private ExtendedIsotopePatternDataSet dataset;
   private SpectraToolTipGenerator ttGen;
@@ -135,7 +135,6 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     lastCalc = 0;
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     newParameters = false;
 //    task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);
@@ -212,8 +211,8 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     lblMinIntensity = new JLabel(pMinIntensity.getName());
     lblFormula = new JLabel(pFormula.getName());
     lblCharge = new JLabel(pCharge.getName());
-    lblStatus = new JLabel("Status");
-    lblStatus.setText("Status: waiting");
+//    lblStatus = new JLabel("Status");
+//    lblStatus.setText("Status: waiting");
 
     mainPanel.remove(cmpCharge);
     mainPanel.remove(cmpMergeWidth);
@@ -225,6 +224,10 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     lblMergeWidth.setLabelFor(cmpMergeWidth);
     lblCharge.setLabelFor(cmpCharge);
     
+//    cmpCharge.setPreferredSize(new Dimension(30, cmpCharge.getHeight()));
+    cmpCharge.setColumns(2);
+    
+    
 
     pnlParameters.add(lblFormula);
     pnlParameters.add(cmpFormula);
@@ -234,7 +237,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     pnlParameters.add(cmpMergeWidth);
     pnlParameters.add(lblCharge);
     pnlParameters.add(cmpCharge);
-    pnlParameters.add(lblStatus);
+//    pnlParameters.add(lblStatus);
   }
 
   public void actionPerformed(ActionEvent ae) {
@@ -264,12 +267,15 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
       logger.info("Big formula " + formula + " size: " + FormulaUtils.getFormulaSize(formula) + " or last calculation recent: " + (System.nanoTime() -  lastCalc) / 1E6 + " ms");
     }
 
-    if(task != null && thread != null && task.getStatus() == TaskStatus.PROCESSING) {
+    if(task != null && thread != null && task.getStatus() == TaskStatus.PROCESSING && FormulaUtils.getFormulaSize(formula) > 1E4) {
       newParameters = true;
-      lblStatus.setText("Status: Queueing " + formula);
+//      lblStatus.setText("Status: Queueing " + formula);
+      task.setDisplayResult(false);
     }
     else {
-      lblStatus.setText("Status: Calculating " + formula);
+//      lblStatus.setText("Status: Calculating " + formula);
+      if(task != null)
+        task.setDisplayResult(false);
       logger.info("Creating new Thread: " + formula);
       task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);
       thread = new Thread(task);
@@ -384,7 +390,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
 
   public void startNextThread() {
     if(newParameters) {
-      lblStatus.setText("Satus: Calculating " + formula);
+//      lblStatus.setText("Satus: Calculating " + formula);
       newParameters = false;
       logger.info("Creating new Thread: " + formula);
       task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);

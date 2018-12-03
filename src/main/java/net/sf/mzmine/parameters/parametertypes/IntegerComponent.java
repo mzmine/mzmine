@@ -66,6 +66,13 @@ public class IntegerComponent extends JPanel {
   private boolean checkBounds(final int number) {
     return (minimum == null || number >= minimum) && (maximum == null || number <= maximum);
   }
+  
+  /**
+   * Sets the number of columns in this TextField.
+   */
+  public void setColumns(int columns) {
+    textField.setColumns(columns);
+  }
 
   /**
    * Input verifier used when minimum or maximum bounds are defined.

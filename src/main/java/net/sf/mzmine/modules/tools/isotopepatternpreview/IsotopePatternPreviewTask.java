@@ -20,6 +20,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   private int charge;
   private PolarityType polarity;
   private String formula;
+  private boolean displayResult;
   
   ExtendedIsotopePattern pattern;
   IsotopePatternPreviewDialog dialog;
@@ -44,6 +45,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     this.polarity = polarity;
     parametersChanged = true;
     pattern = null;
+    displayResult = true;
   }
   
   public IsotopePatternPreviewTask(String formula, double minIntensity, double mergeWidth, int charge, PolarityType polarity, IsotopePatternPreviewDialog dialog) {
@@ -58,6 +60,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     setStatus(TaskStatus.WAITING);
     parametersChanged = true;
     pattern = null;
+    displayResult = true;
   }
   
   public void run() {
@@ -69,8 +72,10 @@ public class IsotopePatternPreviewTask extends AbstractTask {
     }
     logger.info("Pattern " + pattern.getDescription() + " calculated.");
         
-    updateWindow();
-    startNextThread();
+    if(displayResult) {
+      updateWindow();
+      startNextThread();
+    }
     setStatus(TaskStatus.FINISHED);
   }
   
@@ -90,6 +95,10 @@ public class IsotopePatternPreviewTask extends AbstractTask {
         dialog.startNextThread();
       }
     });
+  }
+  
+  public void setDisplayResult(boolean val) {
+    this.displayResult = val;
   }
   
   @Override
