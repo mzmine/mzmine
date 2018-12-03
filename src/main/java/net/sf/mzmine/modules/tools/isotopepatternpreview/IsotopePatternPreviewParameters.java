@@ -36,10 +36,10 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class IsotopePatternPreviewParameters extends SimpleParameterSet {
 
-  public static final StringParameter molecule = new StringParameter("Chemical formula",
-      "The element/molecule to calculate the isotope pattern of. Enter a sum formula.");
+  public static final StringParameter formula = new StringParameter("Chemical formula",
+      "The element/formula to calculate the isotope pattern of. Enter a sum formula.");
 
-  public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width (Da / m/z)",
+  public static final DoubleParameter mergeWidth = new DoubleParameter("Merge width (m/z)",
       "This will be used to merge isotope compositions in the calculated isotope pattern if they overlap.",
       MZmineCore.getConfiguration().getMZFormat(), 0.00005, 0.0d, 10.0d);
 
@@ -50,7 +50,7 @@ public class IsotopePatternPreviewParameters extends SimpleParameterSet {
 
   public static final IntegerParameter charge = new IntegerParameter("Charge",
       "Enter a charge to apply to the molecule. (e.g. [M]+ = +1 / [M]- = -1\n"
-          + "This can also be set to 0 for the uncharged molecule.",
+          + "This can also be set to 0 to plot the exact mass.",
       1, true);
 
   @Override
@@ -64,6 +64,6 @@ public class IsotopePatternPreviewParameters extends SimpleParameterSet {
   }
 
   public IsotopePatternPreviewParameters() {
-    super(new Parameter[] {molecule, minIntensity, mergeWidth, charge});
+    super(new Parameter[] {formula, minIntensity, mergeWidth, charge});
   }
 }
