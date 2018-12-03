@@ -89,7 +89,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
       logger.warning("Isotope pattern could not be calculated.");
       return;
     }
-    logger.info("Pattern " + pattern.getDescription() + " calculated.");
+    logger.finest("Pattern " + pattern.getDescription() + " calculated.");
         
     if(displayResult) {
       dialog.setStatus("Waiting.");
@@ -102,7 +102,7 @@ public class IsotopePatternPreviewTask extends AbstractTask {
   public void updateWindow() {
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        logger.info("Updating window");
+        logger.finest("Updating window");
         dialog.updateChart(pattern);
         dialog.updateTable(pattern);
       }

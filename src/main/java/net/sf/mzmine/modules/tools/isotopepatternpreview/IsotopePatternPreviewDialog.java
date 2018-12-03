@@ -264,7 +264,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     }
     
     if(FormulaUtils.getFormulaSize(formula) > 5E3 && ((System.nanoTime() - lastCalc) * 1E-6 < 150)) {
-      logger.info("Big formula " + formula + " size: " + FormulaUtils.getFormulaSize(formula) + " or last calculation recent: " + (System.nanoTime() -  lastCalc) / 1E6 + " ms");
+      logger.finest("Big formula " + formula + " size: " + FormulaUtils.getFormulaSize(formula) + " or last calculation recent: " + (System.nanoTime() -  lastCalc) / 1E6 + " ms");
     }
 
     if(task != null && thread != null && task.getStatus() == TaskStatus.PROCESSING && FormulaUtils.getFormulaSize(formula) > 1E4) {
@@ -274,7 +274,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     else {
       if(task != null)
         task.setDisplayResult(false);
-      logger.info("Creating new Thread: " + formula);
+      logger.finest("Creating new Thread: " + formula);
       task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);
       thread = new Thread(task);
       thread.setPriority(10);
@@ -341,7 +341,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private boolean updateParameters() {
     updateParameterSetFromComponents();
     if (!checkParameters()) {
-      logger.info("updateParameters() failed due to invalid input.");
+      logger.fine("updateParameters() failed due to invalid input.");
       return false;
     }
 
@@ -365,24 +365,24 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
   private boolean checkParameters() {
     if (pFormula.getValue() == null || pFormula.getValue().equals("")
         || !FormulaUtils.checkMolecularFormula(pFormula.getValue())) {
-      logger.info("Invalid input or Element == \"\" or invalid elements.");
+      logger.fine("Invalid input or Element == \"\" or invalid elements.");
       return false;
     }
     if (pMinIntensity.getValue() == null || pMinIntensity.getValue() > 1.0d
         || pMinIntensity.getValue() < 0.0d) {
-      logger.info("Minimum intensity invalid. " + pMinIntensity.getValue());
+      logger.fine("Minimum intensity invalid. " + pMinIntensity.getValue());
       return false;
     }
     if (pMergeWidth.getValue() == null || pMergeWidth.getValue() < 0.0d) {
-      logger.info("Merge width invalid. " + pMergeWidth.getValue());
+      logger.fine("Merge width invalid. " + pMergeWidth.getValue());
       return false;
     }
     if (pCharge.getValue() == null) {
-      logger.info("Charge invalid. " + pCharge.getValue());
+      logger.fine("Charge invalid. " + pCharge.getValue());
       return false;
     }
 
-    logger.info("Parameters valid");
+    logger.finest("Parameters valid");
     return true;
   }
 
@@ -390,7 +390,7 @@ public class IsotopePatternPreviewDialog extends ParameterSetupDialog {
     if(newParameters) {
       lblStatus.setText("Calculating...");
       newParameters = false;
-      logger.info("Creating new Thread: " + formula);
+      logger.finest("Creating new Thread: " + formula);
       task = new IsotopePatternPreviewTask(formula, minIntensity, mergeWidth, charge, pol, this);
       thread = new Thread(task);
       thread.setPriority(10);
