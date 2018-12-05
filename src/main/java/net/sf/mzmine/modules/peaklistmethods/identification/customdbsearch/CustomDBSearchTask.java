@@ -22,7 +22,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import com.Ostermiller.util.CSVParser;
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
@@ -35,9 +36,6 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import com.Ostermiller.util.CSVParser;
-import com.google.common.collect.Range;
 
 class CustomDBSearchTask extends AbstractTask {
 
@@ -75,6 +73,7 @@ class CustomDBSearchTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (databaseValues == null)
       return 0;
@@ -84,6 +83,7 @@ class CustomDBSearchTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Peak identification of " + peakList + " using database " + dataBaseFile;
   }
@@ -91,6 +91,7 @@ class CustomDBSearchTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -109,7 +110,7 @@ class CustomDBSearchTask extends AbstractTask {
         try {
           processOneLine(databaseValues[finishedLines]);
         } catch (Exception e) {
-          // ingore incorrect lines
+          // ignore incorrect lines
         }
       }
       dbFileReader.close();

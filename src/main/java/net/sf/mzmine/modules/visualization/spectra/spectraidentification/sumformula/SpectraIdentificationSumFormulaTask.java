@@ -168,10 +168,13 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
         if (isCanceled())
           return;
         // calc rel mass deviation
-        Double relMassDev = ((((massList[i].getMZ() - ionType.getAddedMass()) / charge)
-            - (FormulaUtils.calculateExactMass(MolecularFormulaManipulator.getString(cdkFormula)))
-                / charge)
-            / ((massList[i].getMZ() - ionType.getAddedMass()) / charge)) * 1000000;
+        Double relMassDev = ((((massList[i].getMZ() - //
+            ionType.getAddedMass()) / charge)//
+            - (FormulaUtils.calculateExactMass(//
+                MolecularFormulaManipulator.getString(cdkFormula))) / charge)
+            / ((massList[i].getMZ() //
+                - ionType.getAddedMass()) / charge))
+            * 1000000;
         possibleFormulas.put(relMassDev, checkConstraints(cdkFormula));
       }
 
@@ -183,7 +186,6 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
       int ctr = 0;
       for (Map.Entry<Double, String> entry : treeMap.entrySet()) {
         int number = ctr + 1;
-        System.out.println(entry.getKey());
         if (ctr > 4)
           break;
         annotation = annotation + number + ". " + entry.getValue() + " Δ "
