@@ -32,6 +32,8 @@ import net.sf.mzmine.util.ExitCode;
 
 /**
  * Module to identify signals by using the lipid search module.
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
 public class LipidSpectraSearchModule implements MZmineProcessingModule {
 

@@ -31,7 +31,9 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
 /**
- * Module for identifying peaks by searching on-line databases.
+ * Module for identifying peaks by searching custom databases file.
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
 public class CustomDBSpectraSearchModule implements MZmineProcessingModule {
 

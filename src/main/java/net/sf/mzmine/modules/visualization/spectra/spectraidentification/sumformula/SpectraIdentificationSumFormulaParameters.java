@@ -31,6 +31,11 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
+/**
+ * Parameters for sum formula prediction in spectra.
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class SpectraIdentificationSumFormulaParameters extends SimpleParameterSet {
 
   public static final IntegerParameter charge = new IntegerParameter("Charge", "Charge");

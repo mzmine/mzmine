@@ -27,6 +27,11 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
+/**
+ * Parameters for identifying peaks by searching on-line databases.
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class SpectraIdentificationOnlineDatabaseParameters extends SimpleParameterSet {
 
   public static final ModuleComboParameter<OnlineDatabase> database =

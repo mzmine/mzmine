@@ -32,6 +32,8 @@ import net.sf.mzmine.util.ExitCode;
 
 /**
  * Module for identifying peaks by searching on-line databases.
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class OnlineDBSpectraSearchModule implements MZmineProcessingModule {
 
@@ -70,8 +72,8 @@ public class OnlineDBSpectraSearchModule implements MZmineProcessingModule {
     // Run task.
     if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
 
-      MZmineCore.getTaskController().addTask(
-          new SpectraIdentificationOnlineDatabaseTask(parameters.cloneParameterSet(), scan, spectraPlot));
+      MZmineCore.getTaskController().addTask(new SpectraIdentificationOnlineDatabaseTask(
+          parameters.cloneParameterSet(), scan, spectraPlot));
     }
   }
 

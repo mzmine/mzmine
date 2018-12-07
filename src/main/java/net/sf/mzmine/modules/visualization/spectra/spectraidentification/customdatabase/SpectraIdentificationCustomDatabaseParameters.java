@@ -27,6 +27,11 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
+/**
+ * Parameter set for spectra custom database search
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster)
+ */
 public class SpectraIdentificationCustomDatabaseParameters extends SimpleParameterSet {
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",

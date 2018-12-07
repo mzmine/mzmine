@@ -47,6 +47,11 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
+/**
+ * Task to search spectra with a custom database
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster)
+ */
 public class SpectraIdentificationCustomDatabaseTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());

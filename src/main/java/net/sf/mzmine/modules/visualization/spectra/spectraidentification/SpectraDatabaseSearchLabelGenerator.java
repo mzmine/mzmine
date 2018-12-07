@@ -1,5 +1,3 @@
-package net.sf.mzmine.modules.visualization.spectra.spectraidentification;
-
 /*
  * Copyright 2006-2018 The MZmine 2 Development Team
  * 
@@ -17,12 +15,15 @@ package net.sf.mzmine.modules.visualization.spectra.spectraidentification;
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
+
+package net.sf.mzmine.modules.visualization.spectra.spectraidentification;
+
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 
 /**
- * Item label generator for XYPlots adds the name of a feature in form of a label
+ * Item label generator annotated peaks in spectra
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
