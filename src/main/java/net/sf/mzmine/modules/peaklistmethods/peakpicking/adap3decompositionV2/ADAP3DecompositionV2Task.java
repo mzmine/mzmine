@@ -174,7 +174,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
         for (final BetterComponent component : components)
         {
-            if (component.spectrum.length == 0) continue;
+            if (component.spectrum.length == 0 || component.getIntensity() < 1e-12) continue;
 
             // Create a reference peal
             Feature refPeak = getFeature(dataFile, component);

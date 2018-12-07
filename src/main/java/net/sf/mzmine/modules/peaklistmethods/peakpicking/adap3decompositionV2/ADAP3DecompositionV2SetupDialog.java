@@ -332,16 +332,16 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
             e.printStackTrace();
         }
 
-        Set<Double> mzSet = cluster.peaks
-                .stream()
-                .map(BetterPeak::getMZ)
-                .collect(Collectors.toSet());
-
-        chromatograms = chromatograms.stream()
-                .filter(c -> mzSet.contains(c.mzValue)).collect(Collectors.toList());
+//        Set<Double> mzSet = cluster.peaks
+//                .stream()
+//                .map(BetterPeak::getMZ)
+//                .collect(Collectors.toSet());
+//
+//        chromatograms = chromatograms.stream()
+//                .filter(c -> mzSet.contains(c.mzValue)).collect(Collectors.toList());
 
         if (components != null)
-            retTimeIntensityPlot.updateData(chromatograms, components);
+            retTimeIntensityPlot.updateData(cluster.peaks, components);  // chromatograms
     }
     
     private CHANGE_STATE compareParameters(Parameter[] newValues)
