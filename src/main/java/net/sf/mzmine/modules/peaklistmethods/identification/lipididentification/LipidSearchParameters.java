@@ -36,7 +36,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
 
 /**
- * Paramters for lipid search module
+ * Parameters for lipid search module
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */

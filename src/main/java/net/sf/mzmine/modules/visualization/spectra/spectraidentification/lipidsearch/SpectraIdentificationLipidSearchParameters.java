@@ -34,7 +34,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 
 /**
- * Paramters for lipid search module for speactra identification
+ * Parameters for lipid search module for speactra identification
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
@@ -66,7 +66,6 @@ public class SpectraIdentificationLipidSearchParameters extends SimpleParameterS
       new ComboParameter<IonizationType>("Ionization method",
           "Type of ion used to calculate the ionized mass", IonizationType.values());
 
-
   public static final BooleanParameter useModification = new BooleanParameter(
       "Search for lipid modification", "If checked the algorithm searches for lipid modifications");
 
@@ -77,6 +76,5 @@ public class SpectraIdentificationLipidSearchParameters extends SimpleParameterS
   public SpectraIdentificationLipidSearchParameters() {
     super(new Parameter[] {lipidClasses, minChainLength, maxChainLength, minDoubleBonds,
         maxDoubleBonds, ionizationMethod, mzTolerance, noiseLevel, useModification, modification});
-
   }
 }

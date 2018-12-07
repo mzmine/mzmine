@@ -39,7 +39,7 @@ public class LipidSpectraSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Lipid search";
   private static final String MODULE_DESCRIPTION =
-      "This module attepts to annotate signals in selected mass spectra as lipids";
+      "This module attempts to annotate signals in selected mass spectra as lipids";
 
   @Override
   public @Nonnull String getName() {
@@ -60,9 +60,8 @@ public class LipidSpectraSearchModule implements MZmineProcessingModule {
   }
 
   /**
-   * Show dialog for identifying a single peak-list row.
+   * Show dialog for identifying lipids in spectra.
    * 
-   * @param row the peak list row.
    */
   public static void showSpectraIdentificationDialog(final Scan scan,
       final SpectraPlot spectraPlot) {

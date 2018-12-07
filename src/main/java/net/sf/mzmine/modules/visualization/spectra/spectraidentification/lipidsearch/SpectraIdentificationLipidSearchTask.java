@@ -73,8 +73,6 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
 
   public static final NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
-
-
   /**
    * Create the task.
    * 
