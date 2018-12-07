@@ -19,13 +19,11 @@
 package net.sf.mzmine.modules.visualization.spectra.renderers;
 
 import java.text.NumberFormat;
-
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
-
-import org.jfree.chart.labels.XYItemLabelGenerator;
-import org.jfree.data.xy.XYDataset;
 
 /**
  * Label generator for spectra visualizer. Only used to generate labels for the raw data

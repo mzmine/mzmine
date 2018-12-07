@@ -43,8 +43,8 @@ public class SpectraToolBar extends JToolBar {
   static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
   static final Icon exportIcon = new ImageIcon("icons/exporticon.png");
   static final Icon dbOnlineIcon = new ImageIcon("icons/DBOnlineIcon.png");
+  static final Icon dbCustomIcon = new ImageIcon("icons/DBCustomIcon.png");
   static final Icon dbLipidsIcon = new ImageIcon("icons/DBLipidsIcon.png");
-  static final Icon dbCustomIcon = new ImageIcon("icons/DBLipidsIcon.png");
   static final Icon sumFormulaIcon = new ImageIcon("icons/search.png");
 
   private JButton centroidContinuousButton, dataPointsButton;

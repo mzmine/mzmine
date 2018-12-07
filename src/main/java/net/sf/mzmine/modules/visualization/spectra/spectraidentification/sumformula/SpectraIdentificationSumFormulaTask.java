@@ -22,7 +22,6 @@ import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -186,30 +185,39 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
 
       IMolecularFormula cdkFormula;
       String annotation = "";
-      Map<Double, String> possibleFormulas = new HashMap<Double, String>();
+      // create a map to store ResultFormula and relative mass deviation for sorting
+      Map<Double, String> possibleFormulas = new TreeMap<>();
       while ((cdkFormula = generator.getNextFormula()) != null) {
         if (isCanceled())
           return;
-        // calc rel mass deviation
-        Double relMassDev = ((((massList[i].getMZ() - //
-            ionType.getAddedMass()) / charge)//
-            - (FormulaUtils.calculateExactMass(//
-                MolecularFormulaManipulator.getString(cdkFormula))) / charge)
-            / ((massList[i].getMZ() //
-                - ionType.getAddedMass()) / charge))
-            * 1000000;
-        possibleFormulas.put(relMassDev, checkConstraints(cdkFormula));
+
+        // Mass is ok, so test other constraints
+        if (checkConstraints(cdkFormula) == true) {
+          String formula = MolecularFormulaManipulator.getString(cdkFormula);
+
+          // calc rel mass deviation
+          Double relMassDev = ((((massList[i].getMZ() - //
+              ionType.getAddedMass()) / charge)//
+              - (FormulaUtils.calculateExactMass(//
+                  MolecularFormulaManipulator.getString(cdkFormula))) / charge)
+              / ((massList[i].getMZ() //
+                  - ionType.getAddedMass()) / charge))
+              * 1000000;
+
+          // write to map
+          possibleFormulas.put(relMassDev, formula);
+        }
       }
 
       Map<Double, String> treeMap = new TreeMap<>(
           (Comparator<Double>) (o1, o2) -> Double.compare(Math.abs(o1), Math.abs(o2)));
       treeMap.putAll(possibleFormulas);
 
-      // get top 5
+      // get top 3
       int ctr = 0;
       for (Map.Entry<Double, String> entry : treeMap.entrySet()) {
         int number = ctr + 1;
-        if (ctr > 4)
+        if (ctr > 2)
           break;
         annotation = annotation + number + ". " + entry.getValue() + " Δ "
             + NumberFormat.getInstance().format(entry.getKey()) + " ppm; ";
@@ -243,13 +251,13 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     setStatus(TaskStatus.FINISHED);
   }
 
-  private String checkConstraints(IMolecularFormula cdkFormula) {
+  private boolean checkConstraints(IMolecularFormula cdkFormula) {
 
     // Check elemental ratios
     if (checkRatios) {
       boolean check = ElementalHeuristicChecker.checkFormula(cdkFormula, ratiosParameters);
       if (!check)
-        return null;
+        return false;
     }
 
     Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
@@ -258,14 +266,10 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
     if (checkRDBE && (rdbeValue != null)) {
       boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue, rdbeParameters);
       if (!check)
-        return null;
+        return false;
     }
 
-    // Create a new formula
-    final String resultFormula = MolecularFormulaManipulator.getString(cdkFormula);
-
-    foundFormulas++;
-    return resultFormula;
+    return true;
   }
 
   @Override
