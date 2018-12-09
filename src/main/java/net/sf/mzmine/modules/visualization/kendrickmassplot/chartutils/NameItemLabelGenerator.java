@@ -40,8 +40,11 @@ public class NameItemLabelGenerator implements XYItemLabelGenerator {
 
     // Create label
     String label = null;
-    label = rows[item].getPreferredPeakIdentity().getName();
-
+    if (rows[item].getPreferredPeakIdentity() != null) {
+      label = rows[item].getPreferredPeakIdentity().getName();
+    } else {
+      return null;
+    }
     return label;
   }
 

@@ -242,7 +242,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     double max = 0;
 
     if (zAxisScaleType.equals("percentile")) {
-      minScaleIndex = (int) Math.round(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
+      minScaleIndex = (int) Math.floor(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
       maxScaleIndex = copyZValues.length
           - (int) (Math.ceil(copyZValues.length * ((100 - zScaleRange.upperEndpoint()) / 100)));
       if (zScaleRange.upperEndpoint() == 100) {
@@ -262,7 +262,8 @@ public class KendrickMassPlotTask extends AbstractTask {
     Paint[] contourColors =
         XYBlockPixelSizePaintScales.getPaintColors(zAxisScaleType, zScaleRange, paintScaleStyle);
     LookupPaintScale scale = null;
-    scale = new LookupPaintScale(min, max, new Color(244, 66, 223));
+    scale = new LookupPaintScale(copyZValues[0], copyZValues[copyZValues.length - 1],
+        new Color(0, 0, 0));
     double[] scaleValues = new double[contourColors.length];
     double delta = (max - min) / (contourColors.length - 1);
     double value = min;
