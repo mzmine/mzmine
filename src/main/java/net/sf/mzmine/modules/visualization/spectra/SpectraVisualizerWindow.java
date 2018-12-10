@@ -28,7 +28,6 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -37,14 +36,11 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -60,6 +56,10 @@ import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
@@ -136,6 +136,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
   }
 
+  @Override
   public void dispose() {
     super.dispose();
     MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
@@ -187,6 +188,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         // Updating the combo in other than Swing thread may cause
         // exception
         SwingUtilities.invokeLater(new Runnable() {
+          @Override
           public void run() {
             msmsSelector.addItem(itemText);
           }
@@ -301,6 +303,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     yAxis.setTickUnit(new NumberTickUnit(yTickSize));
   }
 
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     String command = event.getActionCommand();
@@ -329,6 +332,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
         Runnable newThreadRunnable = new Runnable() {
 
+          @Override
           public void run() {
             loadRawData(dataFile.getScan(prevScanIndex));
           }
@@ -355,6 +359,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
         Runnable newThreadRunnable = new Runnable() {
 
+          @Override
           public void run() {
             loadRawData(dataFile.getScan(nextScanIndex));
           }
@@ -516,12 +521,12 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
       // Get current axes range
       NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot().getDomainAxis();
       NumberAxis yAxis = (NumberAxis) spectrumPlot.getXYPlot().getRangeAxis();
-      double xMin = (double) xAxis.getRange().getLowerBound();
-      double xMax = (double) xAxis.getRange().getUpperBound();
-      double xTick = (double) xAxis.getTickUnit().getSize();
-      double yMin = (double) yAxis.getRange().getLowerBound();
-      double yMax = (double) yAxis.getRange().getUpperBound();
-      double yTick = (double) yAxis.getTickUnit().getSize();
+      double xMin = xAxis.getRange().getLowerBound();
+      double xMax = xAxis.getRange().getUpperBound();
+      double xTick = xAxis.getTickUnit().getSize();
+      double yMin = yAxis.getRange().getLowerBound();
+      double yMax = yAxis.getRange().getUpperBound();
+      double yTick = yAxis.getTickUnit().getSize();
 
       // Get all frames of my class
       Window spectraFrames[] = JFrame.getWindows();
@@ -534,6 +539,42 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
       }
 
+    }
+
+    if (command.equals("ONLINEDATABASESEARCH")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          OnlineDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
+    }
+
+    if (command.equals("CUSTOMDATABASESEARCH")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          CustomDBSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
+    }
+
+    if (command.equals("LIPIDSEARCH")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          LipidSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
+    }
+
+    if (command.equals("SUMFORMULA")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
     }
 
   }

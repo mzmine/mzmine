@@ -16,38 +16,31 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.renderers;
+package net.sf.mzmine.modules.visualization.spectra.spectraidentification;
 
-import java.text.NumberFormat;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 
 /**
- * Label generator for spectra visualizer. Only used to generate labels for the raw data
- * (ScanDataSet)
+ * Item label generator annotated peaks in spectra
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
+public class SpectraDatabaseSearchLabelGenerator implements XYItemLabelGenerator {
 
-  /*
-   * Number of screen pixels to reserve for each label, so that the labels do not overlap
-   */
   public static final int POINTS_RESERVE_X = 100;
 
   private SpectraPlot plot;
 
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  private String[] annotations;
 
-  public SpectraItemLabelGenerator(SpectraPlot plot) {
+  public SpectraDatabaseSearchLabelGenerator(String[] annotations, SpectraPlot plot) {
+    this.annotations = annotations;
     this.plot = plot;
   }
 
-  /**
-   * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
-   *      int, int)
-   */
+  @Override
   public String generateLabel(XYDataset dataset, int series, int item) {
 
     // X and Y values of current data point
@@ -89,16 +82,12 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
     // Create label
     String label = null;
-    if (dataset instanceof ScanDataSet) {
-      label = ((ScanDataSet) dataset).getAnnotation(item);
+    if (dataset.getSeriesKey(1).equals("Detected compounds")) {
+      label = annotations[item];
+    } else {
+      label = "";
     }
-    if (label == null) {
-      double mzValue = dataset.getXValue(series, item);
-      label = mzFormat.format(mzValue);
-    }
-
     return label;
-
   }
 
 }

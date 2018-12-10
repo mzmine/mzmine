@@ -21,12 +21,10 @@ package net.sf.mzmine.modules.visualization.spectra;
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
-
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
-
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -44,6 +42,10 @@ public class SpectraToolBar extends JToolBar {
   static final Icon isotopePeakIcon = new ImageIcon("icons/isotopepeakicon.png");
   static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
   static final Icon exportIcon = new ImageIcon("icons/exporticon.png");
+  static final Icon dbOnlineIcon = new ImageIcon("icons/DBOnlineIcon.png");
+  static final Icon dbCustomIcon = new ImageIcon("icons/DBCustomIcon.png");
+  static final Icon dbLipidsIcon = new ImageIcon("icons/DBLipidsIcon.png");
+  static final Icon sumFormulaIcon = new ImageIcon("icons/search.png");
 
   private JButton centroidContinuousButton, dataPointsButton;
 
@@ -88,6 +90,25 @@ public class SpectraToolBar extends JToolBar {
     GUIUtils.addButton(this, null, exportIcon, masterFrame, "EXPORT_SPECTRA",
         "Export spectra to spectra file");
 
+    addSeparator();
+
+    GUIUtils.addButton(this, null, dbOnlineIcon, masterFrame, "ONLINEDATABASESEARCH",
+        "Select online database for annotation");
+
+    addSeparator();
+
+    GUIUtils.addButton(this, null, dbCustomIcon, masterFrame, "CUSTOMDATABASESEARCH",
+        "Select custom database for annotation");
+
+    addSeparator();
+
+    GUIUtils.addButton(this, null, dbLipidsIcon, masterFrame, "LIPIDSEARCH",
+        "Select target lipid classes for annotation");
+
+    addSeparator();
+
+    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
+        "Predict sum formulas for annotation");
   }
 
   public void setCentroidButton(MassSpectrumType spectrumType) {
