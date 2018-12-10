@@ -28,7 +28,7 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
@@ -53,13 +53,13 @@ public class SpectraIdentificationSumFormulaParameters extends SimpleParameterSe
   public static final ElementsParameter elements =
       new ElementsParameter("Elements", "Elements and ranges");
 
-  public static final OptionalModuleParameter elementalRatios =
-      new OptionalModuleParameter("Element count heuristics",
+  public static final OptionalModuleParameter<ElementalHeuristicParameters> elementalRatios =
+      new OptionalModuleParameter<ElementalHeuristicParameters>("Element count heuristics",
           "Restrict formulas by heuristic restrictions of elemental counts and ratios",
           new ElementalHeuristicParameters());
 
-  public static final OptionalModuleParameter rdbeRestrictions =
-      new OptionalModuleParameter("RDBE restrictions",
+  public static final OptionalModuleParameter<RDBERestrictionParameters> rdbeRestrictions =
+      new OptionalModuleParameter<RDBERestrictionParameters>("RDBE restrictions",
           "Search only for formulas which correspond to the given RDBE restrictions",
           new RDBERestrictionParameters());
 
