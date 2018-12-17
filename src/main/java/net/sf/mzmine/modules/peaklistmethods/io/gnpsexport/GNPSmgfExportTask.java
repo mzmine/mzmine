@@ -48,7 +48,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportParameters.RowFilter;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitParameters.RowFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -84,11 +84,11 @@ public class GNPSmgfExportTask extends AbstractTask {
 
   GNPSmgfExportTask(ParameterSet parameters) {
     this.peakLists =
-        parameters.getParameter(GNPSExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+        parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
 
-    this.fileName = parameters.getParameter(GNPSExportParameters.FILENAME).getValue();
-    this.massListName = parameters.getParameter(GNPSExportParameters.MASS_LIST).getValue();
-    this.filter = parameters.getParameter(GNPSExportParameters.FILTER).getValue();
+    this.fileName = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
+    this.massListName = parameters.getParameter(GNPSExportAndSubmitParameters.MASS_LIST).getValue();
+    this.filter = parameters.getParameter(GNPSExportAndSubmitParameters.FILTER).getValue();
   }
 
   @Override

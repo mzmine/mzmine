@@ -22,18 +22,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
-
+import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.data.xy.AbstractXYDataset;
+import org.jfree.data.xy.XYDataset;
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import org.jfree.chart.labels.XYToolTipGenerator;
-import org.jfree.data.xy.AbstractXYDataset;
-import org.jfree.data.xy.XYDataset;
-
-import com.google.common.collect.Range;
 
 class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
@@ -79,6 +77,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -193,6 +192,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
   /**
    * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesCount()
    */
+  @Override
   public int getSeriesCount() {
     return dataSeries.size();
   }
@@ -200,6 +200,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
   /**
    * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
    */
+  @Override
   public Comparable<Integer> getSeriesKey(int series) {
     return series;
   }
@@ -207,6 +208,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
   /**
    * @see org.jfree.data.xy.XYDataset#getItemCount(int)
    */
+  @Override
   public int getItemCount(int series) {
     return dataSeries.get(series).size();
   }
@@ -214,6 +216,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
   /**
    * @see org.jfree.data.xy.XYDataset#getX(int, int)
    */
+  @Override
   public Number getX(int series, int item) {
     NeutralLossDataPoint point = dataSeries.get(series).get(item);
     if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
@@ -227,6 +230,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
   /**
    * @see org.jfree.data.xy.XYDataset#getY(int, int)
    */
+  @Override
   public Number getY(int series, int item) {
     NeutralLossDataPoint point = dataSeries.get(series).get(item);
     return point.getNeutralLoss();
@@ -259,18 +263,22 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
    * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
    *      int, int)
    */
+  @Override
   public String generateToolTip(XYDataset dataset, int series, int item) {
     return dataSeries.get(series).get(item).getName();
   }
 
+  @Override
   public void cancel() {
     setStatus(TaskStatus.CANCELED);
   }
 
+  @Override
   public String getErrorMessage() {
     return null;
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0)
       return 0;
@@ -278,10 +286,12 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
       return ((double) processedScans / totalScans);
   }
 
+  @Override
   public TaskStatus getStatus() {
     return status;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Updating neutral loss visualizer of " + rawDataFile;
   }
@@ -297,4 +307,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
     return status == TaskStatus.CANCELED;
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
 }

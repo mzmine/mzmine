@@ -22,22 +22,17 @@ import java.io.File;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
+import org.w3c.dom.Document;
 import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExitCode;
-
-import org.w3c.dom.Document;
 
 /**
  * Batch mode module
@@ -70,9 +65,9 @@ public class BatchModeModule implements MZmineProcessingModule {
      * We do not add the task to the tasks collection, but instead directly submit to the task
      * controller, because we need to set the priority to HIGH. If the priority is not HIGH and the
      * maximum number of concurrent tasks is set to 1 in the MZmine preferences, then this BatchTask
-     * would block all other tasks.
+     * would block all other tasks. See getTaskPriority in BatchTask
      */
-    MZmineCore.getTaskController().addTask(newTask, TaskPriority.HIGH);
+    tasks.add(newTask);
 
     return ExitCode.OK;
   }

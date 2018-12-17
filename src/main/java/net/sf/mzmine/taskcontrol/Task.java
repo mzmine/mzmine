@@ -33,6 +33,13 @@ public interface Task extends Runnable {
   public String getErrorMessage();
 
   /**
+   * The standard TaskPriority assing to this task
+   * 
+   * @return
+   */
+  public TaskPriority getTaskPriority();
+
+  /**
    * Cancel a running task by user request.
    */
   public void cancel();

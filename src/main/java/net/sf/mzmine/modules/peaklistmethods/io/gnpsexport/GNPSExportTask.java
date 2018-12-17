@@ -66,11 +66,11 @@ public class GNPSExportTask extends AbstractTask {
 
   GNPSExportTask(ParameterSet parameters) {
     this.peakLists =
-        parameters.getParameter(GNPSExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+        parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
 
-    this.fileName = parameters.getParameter(GNPSExportParameters.FILENAME).getValue();
+    this.fileName = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
 
-    this.massListName = parameters.getParameter(GNPSExportParameters.MASS_LIST).getValue();
+    this.massListName = parameters.getParameter(GNPSExportAndSubmitParameters.MASS_LIST).getValue();
   }
 
   @Override

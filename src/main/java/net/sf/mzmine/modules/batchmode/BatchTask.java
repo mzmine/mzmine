@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MZmineProjectListener;
 import net.sf.mzmine.datamodel.PeakList;
@@ -36,6 +35,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExitCode;
 
@@ -64,6 +64,7 @@ public class BatchTask extends AbstractTask {
     previousCreatedPeakLists = new ArrayList<>();
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -235,12 +236,20 @@ public class BatchTask extends AbstractTask {
 
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    // to not block mzmine when run with single thread
+    return TaskPriority.HIGH;
+  }
+
+  @Override
   public double getFinishedPercentage() {
     if (totalSteps == 0)
       return 0;
     return (double) processedSteps / totalSteps;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Batch of " + totalSteps + " steps";
   }

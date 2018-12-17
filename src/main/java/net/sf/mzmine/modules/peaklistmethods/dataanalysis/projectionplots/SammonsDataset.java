@@ -20,9 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
 import java.util.Vector;
 import java.util.logging.Logger;
-
 import org.jfree.data.xy.AbstractXYDataset;
-
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
 import jmprojection.Sammons;
@@ -33,6 +31,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakMeasurementType;
 
@@ -128,6 +127,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     return datasetTitle;
   }
 
+  @Override
   public String getXLabel() {
     if (xAxisDimension == 1)
       return "1st projected dimension";
@@ -138,6 +138,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     return "" + xAxisDimension + "th projected dimension";
   }
 
+  @Override
   public String getYLabel() {
     if (yAxisDimension == 1)
       return "1st projected dimension";
@@ -158,26 +159,32 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     return 1;
   }
 
+  @Override
   public int getItemCount(int series) {
     return component1Coords.length;
   }
 
+  @Override
   public Number getX(int series, int item) {
     return component1Coords[item];
   }
 
+  @Override
   public Number getY(int series, int item) {
     return component2Coords[item];
   }
 
+  @Override
   public String getRawDataFile(int item) {
     return selectedRawDataFiles[item].getName();
   }
 
+  @Override
   public int getGroupNumber(int item) {
     return groupsForSelectedRawDataFiles[item];
   }
 
+  @Override
   public Object getGroupParameterValue(int groupNumber) {
     if (parameterValuesForGroups == null)
       return null;
@@ -186,6 +193,7 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     return parameterValuesForGroups[groupNumber];
   }
 
+  @Override
   public int getNumberOfGroups() {
     return numberOfGroups;
   }
@@ -296,4 +304,8 @@ public class SammonsDataset extends AbstractXYDataset implements ProjectionPlotD
     this.status = newStatus;
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
 }

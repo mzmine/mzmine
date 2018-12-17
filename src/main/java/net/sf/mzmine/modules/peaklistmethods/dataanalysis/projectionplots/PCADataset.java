@@ -20,9 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
 import java.util.Vector;
 import java.util.logging.Logger;
-
 import org.jfree.data.xy.AbstractXYDataset;
-
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -33,6 +31,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakMeasurementType;
 
@@ -123,10 +122,17 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
+  @Override
   public String toString() {
     return datasetTitle;
   }
 
+  @Override
   public String getXLabel() {
     if (xAxisPC == 1)
       return "1st PC";
@@ -137,6 +143,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
     return "" + xAxisPC + "th PC";
   }
 
+  @Override
   public String getYLabel() {
     if (yAxisPC == 1)
       return "1st PC";
@@ -157,26 +164,32 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
     return 1;
   }
 
+  @Override
   public int getItemCount(int series) {
     return component1Coords.length;
   }
 
+  @Override
   public Number getX(int series, int item) {
     return component1Coords[item];
   }
 
+  @Override
   public Number getY(int series, int item) {
     return component2Coords[item];
   }
 
+  @Override
   public String getRawDataFile(int item) {
     return selectedRawDataFiles[item].getName();
   }
 
+  @Override
   public int getGroupNumber(int item) {
     return groupsForSelectedRawDataFiles[item];
   }
 
+  @Override
   public Object getGroupParameterValue(int groupNumber) {
     if (parameterValuesForGroups == null)
       return null;
@@ -185,10 +198,12 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
     return parameterValuesForGroups[groupNumber];
   }
 
+  @Override
   public int getNumberOfGroups() {
     return numberOfGroups;
   }
 
+  @Override
   public void run() {
 
     status = TaskStatus.PROCESSING;
@@ -260,24 +275,29 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
   }
 
+  @Override
   public void cancel() {
     if (projectionStatus != null)
       projectionStatus.cancel();
     status = TaskStatus.CANCELED;
   }
 
+  @Override
   public String getErrorMessage() {
     return errorMessage;
   }
 
+  @Override
   public TaskStatus getStatus() {
     return status;
   }
 
+  @Override
   public String getTaskDescription() {
     return "PCA projection";
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (projectionStatus == null)
       return 0;
