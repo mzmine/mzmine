@@ -48,7 +48,7 @@ import net.sf.mzmine.util.ExitCode;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class GNPSExportModule implements MZmineProcessingModule {
+public class GNPSExportAndSubmitModule implements MZmineProcessingModule {
   private final Logger LOG = Logger.getLogger(getClass().getName());
 
   private static final String MODULE_NAME = "Export for/Submit to GNPS";
@@ -66,6 +66,12 @@ public class GNPSExportModule implements MZmineProcessingModule {
       Collection<Task> tasks) {
     // add gnps export task
     GNPSExportAndSubmitTask task = new GNPSExportAndSubmitTask(parameters);
+    /*
+     * We do not add the task to the tasks collection, but instead directly submit to the task
+     * controller, because we need to set the priority to HIGH. If the priority is not HIGH and the
+     * maximum number of concurrent tasks is set to 1 in the MZmine preferences, then this BatchTask
+     * would block all other tasks.
+     */
     tasks.add(task);
 
     return ExitCode.OK;
@@ -83,7 +89,7 @@ public class GNPSExportModule implements MZmineProcessingModule {
 
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return GNPSExportParameters.class;
+    return GNPSExportAndSubmitParameters.class;
   }
 
 }

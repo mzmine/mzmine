@@ -19,13 +19,12 @@
 package net.sf.mzmine.taskcontrol.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
-
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.desktop.preferences.NumOfThreadsParameter;
 import net.sf.mzmine.main.GoogleAnalyticsTracker;
@@ -77,23 +76,36 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
   }
 
+  @Override
   public TaskQueue getTaskQueue() {
     return taskQueue;
   }
 
+  @Override
   public void addTask(Task task) {
-    addTasks(new Task[] {task}, TaskPriority.NORMAL);
+    addTask(task, task.getTaskPriority());
   }
 
+  /**
+   * Override the standard task priority of all tasks with a specific
+   */
+  @Override
   public void addTask(Task task, TaskPriority priority) {
-    addTasks(new Task[] {task}, priority);
+    addTasks(new Task[] {task}, new TaskPriority[] {priority});
   }
 
+  @Override
   public void addTasks(Task tasks[]) {
-    addTasks(tasks, TaskPriority.NORMAL);
+    if (tasks == null || tasks.length == 0)
+      return;
+
+    TaskPriority[] prio =
+        Arrays.stream(tasks).map(Task::getTaskPriority).toArray(TaskPriority[]::new);
+    addTasks(tasks, prio);
   }
 
-  public void addTasks(Task tasks[], TaskPriority priority) {
+  @Override
+  public void addTasks(Task tasks[], TaskPriority[] priorities) {
     // It can sometimes happen during a batch that no tasks are actually
     // executed --> tasks[] array may be empty
     if ((tasks == null) || (tasks.length == 0))
@@ -101,7 +113,9 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
     Set<String> uniqueTaskClasses = new HashSet<String>();
     String taskClassName;
-    for (Task task : tasks) {
+    for (int i = 0; i < tasks.length; i++) {
+      Task task = tasks[i];
+      TaskPriority priority = priorities[i];
       taskClassName = task.getClass().getName();
       taskClassName = taskClassName.substring(taskClassName.lastIndexOf(".") + 1);
       uniqueTaskClasses.add(taskClassName);
@@ -122,7 +136,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
     synchronized (this) {
       this.notifyAll();
     }
-
   }
 
   /**
@@ -130,6 +143,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
    * 
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     int previousQueueSize = -1;
@@ -216,6 +230,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
   }
 
+  @Override
   public void setTaskPriority(Task task, TaskPriority priority) {
 
     // Get a snapshot of current task queue

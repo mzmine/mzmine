@@ -19,7 +19,8 @@
 package net.sf.mzmine.modules.visualization.msms;
 
 import java.awt.Color;
-
+import org.jfree.data.xy.AbstractXYDataset;
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -28,10 +29,6 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import org.jfree.data.xy.AbstractXYDataset;
-
-import com.google.common.collect.Range;
 
 /**
  * 
@@ -183,7 +180,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
       }
 
       // Calculate normalized intensity
-      double normIntensity = (double) intensityValues[index] / maxIntensityVal;
+      double normIntensity = intensityValues[index] / maxIntensityVal;
       if (normIntensity > 1) {
         normIntensity = 1;
       }
@@ -204,22 +201,27 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
 
   }
 
+  @Override
   public int getSeriesCount() {
     return 1;
   }
 
+  @Override
   public Comparable<?> getSeriesKey(int series) {
     return rawDataFile.getName();
   }
 
+  @Override
   public int getItemCount(int series) {
     return totalmsmsScans;
   }
 
+  @Override
   public Number getX(int series, int item) {
     return rtValues[item];
   }
 
+  @Override
   public Number getY(int series, int item) {
     return mzValues[item];
   }
@@ -383,7 +385,7 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     if (totalScans == 0) {
       return 0;
     }
-    return (double) 0.5 * (allProcessedScans / totalScans)
+    return 0.5 * (allProcessedScans / totalScans)
         + 0.5 * (100 * processedColors / totalEntries) / 100;
   }
 
@@ -397,4 +399,8 @@ class MsMsDataSet extends AbstractXYDataset implements Task {
     return "Updating MS/MS visualizer of " + rawDataFile;
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
 }

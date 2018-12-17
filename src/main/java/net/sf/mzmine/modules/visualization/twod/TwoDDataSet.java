@@ -21,7 +21,8 @@ package net.sf.mzmine.modules.visualization.twod;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
-
+import org.jfree.data.xy.AbstractXYDataset;
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -33,10 +34,6 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
-
-import org.jfree.data.xy.AbstractXYDataset;
-
-import com.google.common.collect.Range;
 
 class TwoDDataSet extends AbstractXYDataset implements Task {
 
@@ -109,6 +106,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
   /**
    * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesCount()
    */
+  @Override
   public int getSeriesCount() {
     return 2;
   }
@@ -116,6 +114,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
   /**
    * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
    */
+  @Override
   public Comparable<?> getSeriesKey(int series) {
     return rawDataFile.getName();
   }
@@ -123,6 +122,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
   /**
    * @see org.jfree.data.xy.XYDataset#getItemCount(int)
    */
+  @Override
   public int getItemCount(int series) {
     return 2;
   }
@@ -130,6 +130,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
   /**
    * @see org.jfree.data.xy.XYDataset#getX(int, int)
    */
+  @Override
   public Number getX(int series, int item) {
     if (series == 0)
       return totalRTRange.lowerEndpoint();
@@ -140,6 +141,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
   /**
    * @see org.jfree.data.xy.XYDataset#getY(int, int)
    */
+  @Override
   public Number getY(int series, int item) {
     if (item == 0)
       return totalMZRange.lowerEndpoint();
@@ -364,4 +366,8 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
     return "Updating 2D visualizer of " + rawDataFile;
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
 }

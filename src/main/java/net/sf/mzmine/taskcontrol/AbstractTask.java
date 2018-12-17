@@ -85,6 +85,11 @@ public abstract class AbstractTask implements Task {
     this.errorMessage = errorMessage;
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
+
   /**
    * Returns the TaskStatus of this Task
    * 

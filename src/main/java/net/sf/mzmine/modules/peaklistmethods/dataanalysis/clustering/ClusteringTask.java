@@ -22,12 +22,9 @@ import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
 import javax.swing.JFrame;
 import javax.swing.JTextField;
-
 import org.jfree.data.xy.AbstractXYDataset;
-
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -43,6 +40,7 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchica
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotDataset;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotWindow;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakMeasurementType;
 import weka.core.Attribute;
@@ -103,10 +101,12 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     return datasetTitle;
   }
 
+  @Override
   public String getXLabel() {
     return "1st projected dimension";
   }
 
+  @Override
   public String getYLabel() {
     return "2nd projected dimension";
   }
@@ -121,18 +121,22 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     return 1;
   }
 
+  @Override
   public int getItemCount(int series) {
     return component1Coords.length;
   }
 
+  @Override
   public Number getX(int series, int item) {
     return component1Coords[item];
   }
 
+  @Override
   public Number getY(int series, int item) {
     return component2Coords[item];
   }
 
+  @Override
   public String getRawDataFile(int item) {
     if (typeOfData == ClusteringDataType.VARIABLES) {
       String name = "ID: " + this.selectedRows[item].getID();
@@ -148,6 +152,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     }
   }
 
+  @Override
   public int getGroupNumber(int item) {
     if (typeOfData == ClusteringDataType.VARIABLES) {
       return groupsForSelectedVariables[item];
@@ -156,6 +161,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     }
   }
 
+  @Override
   public Object getGroupParameterValue(int groupNumber) {
     if (parameterValuesForGroups == null) {
       return null;
@@ -166,10 +172,12 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     return parameterValuesForGroups[groupNumber];
   }
 
+  @Override
   public int getNumberOfGroups() {
     return finalNumberOfGroups;
   }
 
+  @Override
   public void run() {
 
     status = TaskStatus.PROCESSING;
@@ -255,7 +263,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         }
 
         ClusteringReportWindow reportWindow = new ClusteringReportWindow(sampleNames,
-            (Integer[]) clusteringResult.toArray(new Integer[0]), "Clustering Report");
+            clusteringResult.toArray(new Integer[0]), "Clustering Report");
         reportWindow.setVisible(true);
       } else {
         String[] variableNames = new String[selectedRows.length];
@@ -269,7 +277,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
         }
 
         ClusteringReportWindow reportWindow = new ClusteringReportWindow(variableNames,
-            (Integer[]) clusteringResult.toArray(new Integer[0]), "Clustering Report");
+            clusteringResult.toArray(new Integer[0]), "Clustering Report");
         reportWindow.setVisible(true);
 
       }
@@ -464,6 +472,7 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     return data;
   }
 
+  @Override
   public void cancel() {
     if (projectionStatus != null) {
       projectionStatus.cancel();
@@ -472,10 +481,12 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
     status = TaskStatus.CANCELED;
   }
 
+  @Override
   public String getErrorMessage() {
     return errorMessage;
   }
 
+  @Override
   public TaskStatus getStatus() {
     return status;
   }
@@ -514,5 +525,10 @@ public class ClusteringTask extends AbstractXYDataset implements ProjectionPlotD
       progress++;
       return ((double) progress / 100);
     }
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
   }
 }

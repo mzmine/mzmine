@@ -43,7 +43,7 @@ import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParamete
 import net.sf.mzmine.util.ExitCode;
 
 
-public class GNPSExportParameters extends SimpleParameterSet {
+public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
 
   /**
    * Define which rows to export
@@ -102,7 +102,7 @@ public class GNPSExportParameters extends SimpleParameterSet {
   public static final BooleanParameter OPEN_FOLDER =
       new BooleanParameter("Open folder", "Opens the export folder", false);
 
-  public GNPSExportParameters() {
+  public GNPSExportAndSubmitParameters() {
     super(new Parameter[] {PEAK_LISTS, FILENAME, MASS_LIST, FILTER, SUBMIT, OPEN_FOLDER});
   }
 

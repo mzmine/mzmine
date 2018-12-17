@@ -23,9 +23,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.SwingUtilities;
-
+import org.jfree.data.xy.AbstractXYZDataset;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -34,11 +35,6 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ScanUtils;
-
-import org.jfree.data.xy.AbstractXYZDataset;
-
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this visualizer. We need to
@@ -402,4 +398,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     status = TaskStatus.CANCELED;
   }
 
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
+  }
 }
