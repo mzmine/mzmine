@@ -341,7 +341,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 //                .filter(c -> mzSet.contains(c.mzValue)).collect(Collectors.toList());
 
         if (components != null)
-            retTimeIntensityPlot.updateData(cluster.peaks, components);  // chromatograms
+            retTimeIntensityPlot.updateData(chromatograms, components);  // chromatograms
     }
     
     private CHANGE_STATE compareParameters(Parameter[] newValues)

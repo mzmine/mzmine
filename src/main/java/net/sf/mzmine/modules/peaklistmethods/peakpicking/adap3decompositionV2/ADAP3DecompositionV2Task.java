@@ -258,7 +258,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         {
             double retTime = file.getScan(num).getRetentionTime();
             Double intensity = chromatogram.getIntensity(retTime, false);
-            if (intensity != null && intensity > 0.0)
+            if (intensity != null)
                 scanNumbers[count++] = num;
             if (retTime == peak.getRetTime())
                 representativeScan = num;
