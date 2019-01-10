@@ -318,16 +318,18 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
 
         Double retTimeTolerance = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
-        Boolean smoothing = parameterSet.getParameter(ADAP3DecompositionV2Parameters.SMOOTHING).getValue();
-        Boolean unimodality = parameterSet.getParameter(ADAP3DecompositionV2Parameters.UNIMODALITY).getValue();
-        if (smoothing == null || unimodality == null || retTimeTolerance == null || retTimeTolerance <= 0.0)
+        Boolean adjustApexRetTime = parameterSet.getParameter(
+                ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME).getValue();
+//        Boolean smoothing = parameterSet.getParameter(ADAP3DecompositionV2Parameters.SMOOTHING).getValue();
+//        Boolean unimodality = parameterSet.getParameter(ADAP3DecompositionV2Parameters.UNIMODALITY).getValue();
+        if (retTimeTolerance == null || retTimeTolerance <= 0.0)  // smoothing == null || unimodality == null ||
             return;
 
         List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(chromatogramList);
 
         List<BetterComponent> components = null;
         try {
-            components = new ComponentSelector(smoothing, unimodality).execute(chromatograms, cluster, retTimeTolerance);
+            components = new ComponentSelector().execute(chromatograms, cluster, retTimeTolerance, adjustApexRetTime);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -357,7 +359,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         }
         
         final Set <Integer> firstPhaseIndices = new HashSet <> (Collections.singleton(2));
-        final Set <Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(3, 4, 5));
+        final Set <Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(3, 4));  //, 5
         
         int size = Math.min(currentParameters.length, newValues.length);
         

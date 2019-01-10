@@ -65,11 +65,15 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
                     " in a window. The larger tolerance, the smaller components are determined.",
             NumberFormat.getNumberInstance(), 0.05, 0.0, Double.MAX_VALUE);
 
-    public static final BooleanParameter SMOOTHING = new BooleanParameter("Smoothed elution profiles",
-            "If this option is checked, the elution profiles of components are smoothed", false);
+    public static final BooleanParameter ADJUST_APEX_RET_TIME = new BooleanParameter("Adjust Apex Ret Time",
+            "If this option is checked, the apex retention time is calculated by fitting a parabola into " +
+                    "the top half of an EIC peak", false);
 
-    public static final BooleanParameter UNIMODALITY = new BooleanParameter("Unimodal elution profiles",
-            "If this option is checked, the elution profiles have a single local maximum", false);
+//    public static final BooleanParameter SMOOTHING = new BooleanParameter("Smoothed elution profiles",
+//            "If this option is checked, the elution profiles of components are smoothed", false);
+//
+//    public static final BooleanParameter UNIMODALITY = new BooleanParameter("Unimodal elution profiles",
+//            "If this option is checked, the elution profiles have a single local maximum", false);
 
     // ------------------------------------------------------------------------
     // ----- End of Second-phase parameters -----------------------------------
@@ -84,7 +88,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     
     public ADAP3DecompositionV2Parameters() {
 	    super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH,
-                RET_TIME_TOLERANCE, SMOOTHING, UNIMODALITY, SUFFIX, AUTO_REMOVE});
+                RET_TIME_TOLERANCE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE});  // SMOOTHING, UNIMODALITY,
     }
     
     @Override
