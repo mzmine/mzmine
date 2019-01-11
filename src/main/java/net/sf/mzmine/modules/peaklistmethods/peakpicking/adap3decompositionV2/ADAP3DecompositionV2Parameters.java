@@ -65,7 +65,10 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
                     " in a window. The larger tolerance, the smaller components are determined.",
             NumberFormat.getNumberInstance(), 0.05, 0.0, Double.MAX_VALUE);
 
-    public static final BooleanParameter ADJUST_APEX_RET_TIME = new BooleanParameter("Adjust Apex Ret Time",
+    public static final IntegerParameter MIN_CLUSTER_SIZE = new IntegerParameter("Minimum Number of Peaks",
+            "Minimum number of peaks that form a component", 1);
+
+    public static final BooleanParameter ADJUST_APEX_RET_TIME = new BooleanParameter("Adjust Apex Ret Times",
             "If this option is checked, the apex retention time is calculated by fitting a parabola into " +
                     "the top half of an EIC peak", false);
 
@@ -88,7 +91,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     
     public ADAP3DecompositionV2Parameters() {
 	    super(new Parameter[] {CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH,
-                RET_TIME_TOLERANCE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE});  // SMOOTHING, UNIMODALITY,
+                RET_TIME_TOLERANCE, MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE});  // SMOOTHING, UNIMODALITY,
     }
     
     @Override

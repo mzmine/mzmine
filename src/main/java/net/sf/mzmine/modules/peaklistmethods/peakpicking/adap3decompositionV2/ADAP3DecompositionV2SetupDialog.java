@@ -320,27 +320,21 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
                 ADAP3DecompositionV2Parameters.RET_TIME_TOLERANCE).getValue();
         Boolean adjustApexRetTime = parameterSet.getParameter(
                 ADAP3DecompositionV2Parameters.ADJUST_APEX_RET_TIME).getValue();
-//        Boolean smoothing = parameterSet.getParameter(ADAP3DecompositionV2Parameters.SMOOTHING).getValue();
-//        Boolean unimodality = parameterSet.getParameter(ADAP3DecompositionV2Parameters.UNIMODALITY).getValue();
-        if (retTimeTolerance == null || retTimeTolerance <= 0.0)  // smoothing == null || unimodality == null ||
+        Integer minClusterSize = parameterSet.getParameter(
+                ADAP3DecompositionV2Parameters.MIN_CLUSTER_SIZE).getValue();
+        if (retTimeTolerance == null || retTimeTolerance <= 0.0
+                || adjustApexRetTime == null || minClusterSize == null || minClusterSize <= 0)
             return;
 
         List<BetterPeak> chromatograms = new ADAP3DecompositionV2Utils().getPeaks(chromatogramList);
 
         List<BetterComponent> components = null;
         try {
-            components = new ComponentSelector().execute(chromatograms, cluster, retTimeTolerance, adjustApexRetTime);
+            components = new ComponentSelector().execute(chromatograms, cluster,
+                    retTimeTolerance, adjustApexRetTime, minClusterSize);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-//        Set<Double> mzSet = cluster.peaks
-//                .stream()
-//                .map(BetterPeak::getMZ)
-//                .collect(Collectors.toSet());
-//
-//        chromatograms = chromatograms.stream()
-//                .filter(c -> mzSet.contains(c.mzValue)).collect(Collectors.toList());
 
         if (components != null)
             retTimeIntensityPlot.updateData(chromatograms, components);  // chromatograms
@@ -359,7 +353,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog
         }
         
         final Set <Integer> firstPhaseIndices = new HashSet <> (Collections.singleton(2));
-        final Set <Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(3, 4));  //, 5
+        final Set <Integer> secondPhaseIndices = new HashSet<>(Arrays.asList(3, 4, 5));
         
         int size = Math.min(currentParameters.length, newValues.length);
         
