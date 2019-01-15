@@ -19,26 +19,12 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Font;
-import java
-
-
-
-
-
-
-
-
-
-
-.lang.reflect.Method;
+import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
-
 import javafx.embed.swing.JFXPanel;
 import net.sf.mzmine.util.components.MultiLineToolTipUI;
 
