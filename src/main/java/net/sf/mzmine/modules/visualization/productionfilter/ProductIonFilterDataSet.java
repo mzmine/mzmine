@@ -18,7 +18,6 @@
 
 package net.sf.mzmine.modules.visualization.productionfilter;
 
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,15 +31,15 @@ import java.util.stream.Collectors;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
-// Shawn
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-/** import net.sf.mzmine.parameters.parametertypes.DoubleParameter; **/
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+
 
 
 class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
@@ -310,7 +309,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
           dataListVisual.add(temp);
         }
 
-        // add precurosr m/z, retention time, and scan number to output .csv file
+        // add precursor m/z, retention time, and scan number to output .csv file
         String dataMZ = Double.toString(scan.getPrecursorMZ());
         String dataRT = Double.toString(scan.getRetentionTime());
         String dataNM = Double.toString(scan.getScanNumber());
@@ -349,6 +348,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     } catch (IOException e) {
       System.out.print("Could not output to file");
       System.out.print(e.getStackTrace());
+
+      fireDatasetChanged();
+      setStatus(TaskStatus.FINISHED);
     }
 
     // write output to csv file - for visual plotting in R. has product ion, precursor ion m/z, and
@@ -382,6 +384,9 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     } catch (IOException e) {
       System.out.print("Could not output to file");
       System.out.print(e.getStackTrace());
+
+      fireDatasetChanged();
+      setStatus(TaskStatus.FINISHED);
     }
 
 
@@ -534,6 +539,11 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       if (!b)
         return false;
     return true;
+  }
+
+  @Override
+  public TaskPriority getTaskPriority() {
+    return TaskPriority.NORMAL;
   }
 
 }
