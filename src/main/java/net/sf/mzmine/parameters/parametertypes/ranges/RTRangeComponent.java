@@ -79,8 +79,11 @@ public class RTRangeComponent extends DoubleRangeComponent implements ActionList
                 .getComponentForParameter(new RawDataFilesParameter());
           }
         }
-        if (rdc != null)
-          currentFiles = rdc.getValue().getMatchingRawDataFiles();
+        if (rdc != null) {
+          RawDataFile matchingFiles[] = rdc.getValue().getMatchingRawDataFiles();
+          if (matchingFiles.length > 0)
+            currentFiles = matchingFiles;
+        }
       } catch (Exception e) {
         e.printStackTrace();
       }

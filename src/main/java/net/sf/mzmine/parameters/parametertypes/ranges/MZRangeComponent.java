@@ -82,8 +82,11 @@ public class MZRangeComponent extends DoubleRangeComponent implements ActionList
             (ParameterSetupDialog) SwingUtilities.getWindowAncestor(this);
         RawDataFilesComponent rdc = (RawDataFilesComponent) setupDialog
             .getComponentForParameter(new RawDataFilesParameter());
-        if (rdc != null)
-          currentFiles = rdc.getValue().getMatchingRawDataFiles();
+        if (rdc != null) {
+          RawDataFile matchingFiles[] = rdc.getValue().getMatchingRawDataFiles();
+          if (matchingFiles.length > 0)
+            currentFiles = matchingFiles;
+        }
         ScanSelectionComponent ssc = (ScanSelectionComponent) setupDialog
             .getComponentForParameter(new ScanSelectionParameter());
         if (ssc != null)

@@ -73,6 +73,8 @@ public class DoubleRangeComponent extends GridBagPanel {
   }
 
   public void setValue(Range<Double> value) {
+    if (value == null)
+      return;
     NumberFormat floorFormat = (NumberFormat) format.clone();
     floorFormat.setRoundingMode(RoundingMode.FLOOR);
     NumberFormat ceilFormat = (NumberFormat) format.clone();
