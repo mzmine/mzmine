@@ -1,0 +1,76 @@
+<html>
+	<head>
+		<title>Visualization - Product ion filter & visualizer</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Product ion filter & visualizer</h1>
+
+<h2>Description</h2>
+<p>
+This module and plot is based upon the Neutral Loss visualizer module with modifications to enable filtering. 
+Its formal title within MZmine is Product Ion Filter however, it will be called Diagnostic Fragmentation Filter in the drop down menu of the GUI.
+
+It shows the product ion m/z and precursor ion m/z of all MS<sup>2</sup>...  MS<sup>n</sup> in the selected raw data file. 
+
+Due to common structural features, compounds within the same class undergo similar MS/MS fragmentation and as a result of many identical product ions and/or neutral losses.
+Diagnostic fragmentation filter (product ion filter) is a post-acquisition approach to screen LC-MS/MS datasets for entire classes of both known and unknown natural products. 
+This tool searches all MS/MS spectra for product ions and/or neutral losses that has defined as being diagnostic for the entire class of compounds. 
+In other words it screens LC-MS/MS datasets for MS/MS spectra containing production ions and/or neutral losses that are specific to that class of compounds.
+</p>
+
+<p>
+For a detailed view on the use and the output of this module see:<br>
+Walsh, Jacob P., et al. "Diagnostic Fragmentation Filtering for the Discovery of New Chaetoglobosins and Cytochalasins." <i>Rapid Communications in Mass Spectrometry</i> (2018).
+<br>
+<a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/rcm.8306">https://onlinelibrary.wiley.com/doi/abs/10.1002/rcm.8306</a>
+</p>
+
+<p>
+The user defines the diagnostic product ions and/or the diagnostic neutral loss values (Da) to use in the filtering. 
+The user can also define the minimum diagnostic ion intensity (% base peak) to use in the filtering. If a recurrent neutral loss occurs, a line pattern in the plot can be observed.
+If compounds carrying those diagnostic product ions and/or the neutral loss values are detected the resulting plot will show their product ion m/z and precusor ion m/z.
+Additionally, an output file may be specified that will output the results of the filtering. Two csv files will be output: {Peaklist out file}.csv contains the scan numbers, precursor m/z, and retention times of the scans.
+This output file may be used in other MZmine modules like "Raw data methods > Peak detection > Targeted peak detection" to generate the extracted ion chromatagrams of ions the have met the defined filtering critera.
+The second output file, {Peaklist output file}_data.csv contains the pproduct ion m/z, precursor m/z, and retention times to allow plots of the filtering to be generated outside of MZmine.
+</p>
+
+
+<h4>Parameters</h4>
+<dl>
+	<dt>X axis</dt>
+    	<dd>X axis type. The user can choose from "Retention time"  or "Precursor mass"</dd>
+	<dt>Retention time</dt>
+    	<dd>Retention time (X axis) range.</dd>
+	<dt>Precursor m/z</dt>
+    	<dd>Range of precursor m/z values.</dd>		
+	<dt>m/z tolerance</dt>
+		<dd>Maximum allowed difference between two m/z values considered the same</dd>
+	<dt>Diagnostic product ions (m/z)</dt>
+		<dd>Input the class specific product ion(s) m/z. Separate multiple product ions with a comma</dd>
+	<dt>Diagnostic neutral loss values (Da)</dt>
+		<dd>Input the class specific neutral loss(es). Separate multiple neutral loss values with a comma. </dd>
+	<dt>Minimum diagnostic ion intensity (% base peak)</dt>
+		<dd>Percent of scan base peak of which ms/ms product ions must be above to be included in the analysis</dd>
+	<dt>Peaklist output file</dt>
+		<dd>Selet a filename and path to output the two resulting output files to</dd>
+
+
+</dl>
+
+<h4>Functionality</h4>
+<p>
+This filter and resulting plot will produce a distinct increasing plot pattern. The plot displays the spectra that met the defined critera defined by the filter. Each spectra carrying the desired
+product ions and/or neutral loss values are shown. The x-axis is the m/z of the precursor ions that met the defined filtering criteria. The y-axis shows the m/z of the product ions within
+the MS/MS spectra. In the following diagram the criteria included product ions with m/z values of 146.0545 and 120.0806.
+</p>
+<p>
+<img src="product_ion_filter.png">
+</p>
+
+
+</body>
+</html>
