@@ -183,9 +183,13 @@ public class Gap {
       // Find the best fragmentation scan, if available
       int fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
 
+      // Find all MS2 level scans
+      int[] allMS2FragmentScanNumbers =
+          ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
+
       SimpleFeature newPeak = new SimpleFeature(rawDataFile, mz, rt, height, area, scanNumbers,
-          finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan, finalRTRange,
-          finalMZRange, finalIntensityRange);
+          finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
+          allMS2FragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
 
       // Fill the gap
       peakListRow.addPeak(rawDataFile, newPeak);

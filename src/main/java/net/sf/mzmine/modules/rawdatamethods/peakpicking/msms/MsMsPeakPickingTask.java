@@ -19,7 +19,7 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.msms;
 
 import java.util.logging.Logger;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -35,8 +35,6 @@ import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ScanUtils;
-
-import com.google.common.collect.Range;
 
 public class MsMsPeakPickingTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -64,16 +62,19 @@ public class MsMsPeakPickingTask extends AbstractTask {
     return dataFile;
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0)
       return 0f;
     return (double) processedScans / totalScans;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Building MS/MS Peaklist based on MS/MS from " + dataFile;
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -122,7 +123,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
       SimpleFeature c = new SimpleFeature(dataFile, scan.getPrecursorMZ(),
           bestScan.getRetentionTime(), maxPoint.getIntensity(), maxPoint.getIntensity(),
           new int[] {bestScan.getScanNumber()}, new DataPoint[] {maxPoint}, FeatureStatus.DETECTED,
-          bestScan.getScanNumber(), scan.getScanNumber(),
+          bestScan.getScanNumber(), scan.getScanNumber(), new int[] {-1},
           Range.singleton(bestScan.getRetentionTime()), Range.singleton(scan.getPrecursorMZ()),
           Range.singleton(maxPoint.getIntensity()));
 

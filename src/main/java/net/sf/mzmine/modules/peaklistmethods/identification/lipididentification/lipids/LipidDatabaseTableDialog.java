@@ -134,7 +134,7 @@ public class LipidDatabaseTableDialog extends JFrame {
     yellowPanel.add(yellowColorLabel);
     legendPanel.add(yellowPanel);
 
-    JLabel redColorLabel = new JLabel("Isobaric interference");
+    JLabel redColorLabel = new JLabel("Isomeric interference");
     JPanel redPanel = new JPanel();
     redPanel.setBackground(Color.red);
     redPanel.add(redColorLabel);
@@ -348,7 +348,7 @@ public class LipidDatabaseTableDialog extends JFrame {
     XYSeriesCollection datasetCollection = new XYSeriesCollection();
     XYSeries noInterferenceSeries = new XYSeries("No interference");
     XYSeries possibleInterferenceSeries = new XYSeries("Possible interference");
-    XYSeries interferenceSeries = new XYSeries("Isobaric interference");
+    XYSeries interferenceSeries = new XYSeries("Isomeric interference");
 
     // add data to all series
     double yValue = 0;

@@ -185,6 +185,11 @@ public interface PeakListRow {
   public Scan getBestFragmentation();
 
   /**
+   * Returns all fragmentation scans of this row
+   */
+  public Scan[] getAllMS2Fragmentations();
+
+  /**
    * Returns the most intense isotope pattern in this row. If there are no isotope patterns present
    * in the row, returns null.
    */

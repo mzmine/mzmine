@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Logger;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
@@ -50,8 +50,6 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ScanUtils;
 
-import com.google.common.collect.Range;
-
 class CasmiImportTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -72,6 +70,7 @@ class CasmiImportTask extends AbstractTask {
 
   }
 
+  @Override
   public double getFinishedPercentage() {
     if (newPeakList != null)
       return 1d;
@@ -81,10 +80,12 @@ class CasmiImportTask extends AbstractTask {
 
   }
 
+  @Override
   public String getTaskDescription() {
     return "Generating CASMI task " + casmiProblemName;
   }
 
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -102,6 +103,7 @@ class CasmiImportTask extends AbstractTask {
       final DataPoint firstDataPoint = msSpectrumDataPoints[0];
       final int msScanNumber = 1;
       final int msMsScanNumber = 2;
+      final int[] allMsMsScanNumbers = new int[] {2};
 
       // Generate the raw data file
       RawDataFileWriter dataFileWriter;
@@ -136,9 +138,9 @@ class CasmiImportTask extends AbstractTask {
       Range<Double> mzRange = ScanUtils.findMzRange(msSpectrumDataPoints);
       Range<Double> rtRange = Range.singleton(msScan.getRetentionTime());
       Range<Double> intensityRange = Range.closed(0.0, firstDataPoint.getIntensity());
-      Feature newPeak =
-          new SimpleFeature(newDataFile, mz, rt, height, area, scanNumbers, dataPointsPerScan,
-              FeatureStatus.MANUAL, msScanNumber, msMsScanNumber, rtRange, mzRange, intensityRange);
+      Feature newPeak = new SimpleFeature(newDataFile, mz, rt, height, area, scanNumbers,
+          dataPointsPerScan, FeatureStatus.MANUAL, msScanNumber, msMsScanNumber, allMsMsScanNumbers,
+          rtRange, mzRange, intensityRange);
 
       // Generate the isotope pattern
       IsotopePattern isotopePat = new SimpleIsotopePattern(msSpectrumDataPoints,

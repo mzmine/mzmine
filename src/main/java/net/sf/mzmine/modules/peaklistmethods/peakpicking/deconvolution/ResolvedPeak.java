@@ -58,6 +58,9 @@ public class ResolvedPeak implements Feature {
   // Top intensity scan, fragment scan
   private int representativeScan, fragmentScan;
 
+  // All MS2 fragment scan numbers
+  private int[] allMS2FragmentScanNumbers;
+
   // Ranges of raw data points
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
 
@@ -176,6 +179,8 @@ public class ResolvedPeak implements Feature {
       searchingRangeRT = rawDataPointsRTRange;
 
     fragmentScan = ScanUtils.findBestFragmentScan(dataFile, searchingRangeRT, searchingRange);
+    allMS2FragmentScanNumbers =
+        ScanUtils.findAllMS2FragmentScans(dataFile, searchingRangeRT, searchingRange);
 
     if (fragmentScan > 0) {
       Scan fragmentScanObject = dataFile.getScan(fragmentScan);
@@ -230,6 +235,11 @@ public class ResolvedPeak implements Feature {
   @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
+  }
+
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    return allMS2FragmentScanNumbers;
   }
 
   @Override
@@ -338,4 +348,5 @@ public class ResolvedPeak implements Feature {
     return peakInfo;
   }
   // End dulab Edit
+
 }

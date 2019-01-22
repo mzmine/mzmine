@@ -21,20 +21,17 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodel
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SGDerivative;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
-
-import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 public class EMGPeakModel implements Feature {
   private SimplePeakInformation peakInfo;
@@ -54,6 +51,7 @@ public class EMGPeakModel implements Feature {
   private RawDataFile rawDataFile;
   private FeatureStatus status;
   private int representativeScan = -1, fragmentScan = -1;
+  private int[] allMS2FragmentScanNumbers = new int[] {-1};
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
   private TreeMap<Integer, DataPoint> dataPointsMap;
 
@@ -121,67 +119,88 @@ public class EMGPeakModel implements Feature {
   }
 
   // dulab Edit
+  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }
   // End dulab Edit
 
+  @Override
   public double getArea() {
     return area;
   }
 
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return rawDataFile;
   }
 
+  @Override
   public double getHeight() {
     return height;
   }
 
+  @Override
   public double getMZ() {
     return mz;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    return allMS2FragmentScanNumbers;
+  }
+
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
 
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return status;
   }
 
+  @Override
   public double getRT() {
     return rt;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
@@ -190,10 +209,12 @@ public class EMGPeakModel implements Feature {
     return "EMG peak " + PeakUtils.peakToString(this);
   }
 
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
@@ -413,7 +434,7 @@ public class EMGPeakModel implements Feature {
     double partB3 = (C / 24) * (Math.pow(partB1, 4) - (6 * Math.pow(partB1, 2)) + 3);
     double partB = 1 + partB2 + partB3;
 
-    shapeHeight = (double) (partA * partB);
+    shapeHeight = partA * partB;
 
     if (shapeHeight < 0)
       shapeHeight = 0;
@@ -421,35 +442,43 @@ public class EMGPeakModel implements Feature {
     return shapeHeight;
   }
 
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
 
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }

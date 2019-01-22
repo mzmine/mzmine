@@ -19,21 +19,18 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 
 import java.util.TreeMap;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.ScanUtils;
-
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 /**
  * This class represents a manually picked chromatographic peak.
@@ -57,6 +54,9 @@ class ManualPeak implements Feature {
   // Number of most intense fragment scan
   private int fragmentScan, representativeScan;
 
+  // Number of all MS2 fragment scans
+  private int[] allMS2FragmentScanNumbers;
+
   // Isotope pattern. Null by default but can be set later by deisotoping
   // method.
   private IsotopePattern isotopePattern;
@@ -73,6 +73,7 @@ class ManualPeak implements Feature {
   /**
    * This peak is always a result of manual peak detection, therefore MANUAL
    */
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.MANUAL;
   }
@@ -80,6 +81,7 @@ class ManualPeak implements Feature {
   /**
    * This method returns M/Z value of the peak
    */
+  @Override
   public double getMZ() {
     return mz;
   }
@@ -87,6 +89,7 @@ class ManualPeak implements Feature {
   /**
    * This method returns retention time of the peak
    */
+  @Override
   public double getRT() {
     return rt;
   }
@@ -94,6 +97,7 @@ class ManualPeak implements Feature {
   /**
    * This method returns the raw height of the peak
    */
+  @Override
   public double getHeight() {
     return height;
   }
@@ -101,6 +105,7 @@ class ManualPeak implements Feature {
   /**
    * This method returns the raw area of the peak
    */
+  @Override
   public double getArea() {
     return area;
   }
@@ -108,6 +113,7 @@ class ManualPeak implements Feature {
   /**
    * This method returns numbers of scans that contain this peak
    */
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return Ints.toArray(dataPointMap.keySet());
   }
@@ -115,18 +121,22 @@ class ManualPeak implements Feature {
   /**
    * This method returns a representative datapoint of this peak in a given scan
    */
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointMap.get(scanNumber);
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return intensityRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return mzRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rtRange;
   }
@@ -134,6 +144,7 @@ class ManualPeak implements Feature {
   /**
    * @see net.sf.mzmine.datamodel.Feature#getDataFile()
    */
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return dataFile;
   }
@@ -142,10 +153,12 @@ class ManualPeak implements Feature {
     return PeakUtils.peakToString(this);
   }
 
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
@@ -239,6 +252,8 @@ class ManualPeak implements Feature {
 
     fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange, mzRange);
 
+    allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile, rtRange, mzRange);
+
     if (fragmentScan > 0) {
       Scan fragmentScanObject = dataFile.getScan(fragmentScan);
       int precursorCharge = fragmentScanObject.getPrecursorCharge();
@@ -248,55 +263,73 @@ class ManualPeak implements Feature {
 
   }
 
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    return allMS2FragmentScanNumbers;
+  }
+
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
   // dulab Edit
+  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }

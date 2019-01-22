@@ -19,6 +19,7 @@
 package net.sf.mzmine.datamodel.impl;
 
 import java.text.Format;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -70,6 +71,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#getID()
    */
+  @Override
   public int getID() {
     return myID;
   }
@@ -77,10 +79,12 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * Return peaks assigned to this row
    */
+  @Override
   public Feature[] getPeaks() {
     return peaks.values().toArray(new Feature[0]);
   }
 
+  @Override
   public void removePeak(RawDataFile file) {
     this.peaks.remove(file);
     calculateAverageValues();
@@ -89,6 +93,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * Returns opened raw data files with a peak on this row
    */
+  @Override
   public RawDataFile[] getRawDataFiles() {
     return peaks.keySet().toArray(new RawDataFile[0]);
   }
@@ -96,10 +101,12 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * Returns peak for given raw data file
    */
+  @Override
   public Feature getPeak(RawDataFile rawData) {
     return peaks.get(rawData);
   }
 
+  @Override
   public synchronized void addPeak(RawDataFile rawData, Feature peak) {
     if (peak == null)
       throw new IllegalArgumentException("Cannot add null peak to a peak list row");
@@ -112,22 +119,27 @@ public class SimplePeakListRow implements PeakListRow {
     calculateAverageValues();
   }
 
+  @Override
   public double getAverageMZ() {
     return averageMZ;
   }
 
+  @Override
   public double getAverageRT() {
     return averageRT;
   }
 
+  @Override
   public double getAverageHeight() {
     return averageHeight;
   }
 
+  @Override
   public double getAverageArea() {
     return averageArea;
   }
 
+  @Override
   public int getRowCharge() {
     return rowCharge;
   }
@@ -162,10 +174,12 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * Returns number of peaks assigned to this row
    */
+  @Override
   public int getNumberOfPeaks() {
     return peaks.size();
   }
 
+  @Override
   public String toString() {
     StringBuffer buf = new StringBuffer();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -184,6 +198,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#getComment()
    */
+  @Override
   public String getComment() {
     return comment;
   }
@@ -191,6 +206,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#setComment(java.lang.String)
    */
+  @Override
   public void setComment(String comment) {
     this.comment = comment;
   }
@@ -198,6 +214,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#setAverageMZ(java.lang.String)
    */
+  @Override
   public void setAverageMZ(double mz) {
     this.averageMZ = mz;
   }
@@ -205,6 +222,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#setAverageRT(java.lang.String)
    */
+  @Override
   public void setAverageRT(double rt) {
     this.averageRT = rt;
   }
@@ -212,6 +230,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)
    */
+  @Override
   public synchronized void addPeakIdentity(PeakIdentity identity, boolean preferred) {
 
     // Verify if exists already an identity with the same name
@@ -230,6 +249,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)
    */
+  @Override
   public synchronized void removePeakIdentity(PeakIdentity identity) {
     identities.remove(identity);
     if (preferredIdentity == identity) {
@@ -244,6 +264,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#getPeakIdentities()
    */
+  @Override
   public PeakIdentity[] getPeakIdentities() {
     return identities.toArray(new PeakIdentity[0]);
   }
@@ -251,6 +272,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#getPreferredPeakIdentity()
    */
+  @Override
   public PeakIdentity getPreferredPeakIdentity() {
     return preferredIdentity;
   }
@@ -258,6 +280,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#setPreferredPeakIdentity(net.sf.mzmine.datamodel.PeakIdentity)
    */
+  @Override
   public void setPreferredPeakIdentity(PeakIdentity identity) {
 
     if (identity == null)
@@ -284,14 +307,17 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * @see net.sf.mzmine.datamodel.PeakListRow#getDataPointMaxIntensity()
    */
+  @Override
   public double getDataPointMaxIntensity() {
     return maxDataPointIntensity;
   }
 
+  @Override
   public boolean hasPeak(Feature peak) {
     return peaks.containsValue(peak);
   }
 
+  @Override
   public boolean hasPeak(RawDataFile file) {
     return peaks.containsKey(file);
   }
@@ -299,6 +325,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * Returns the highest isotope pattern of a peak in this row
    */
+  @Override
   public IsotopePattern getBestIsotopePattern() {
     Feature peaks[] = getPeaks();
     Arrays.sort(peaks, new PeakSorter(SortingProperty.Height, SortingDirection.Descending));
@@ -315,6 +342,7 @@ public class SimplePeakListRow implements PeakListRow {
   /**
    * Returns the highest peak in this row
    */
+  @Override
   public Feature getBestPeak() {
 
     Feature peaks[] = getPeaks();
@@ -346,11 +374,36 @@ public class SimplePeakListRow implements PeakListRow {
     return bestScan;
   }
 
+  @Override
+  public Scan[] getAllMS2Fragmentations() {
+
+    ArrayList<Scan> allMS2ScansList = new ArrayList<Scan>();
+    for (Feature peak : this.getPeaks()) {
+      RawDataFile rawData = peak.getDataFile();
+      int scanNumbers[] = peak.getAllMS2FragmentScanNumbers();
+      if (scanNumbers != null) {
+        for (int scanNumber : scanNumbers) {
+          Scan scan = rawData.getScan(scanNumber);
+          if (scan != null) {
+            allMS2ScansList.add(scan);
+          }
+        }
+      }
+    }
+
+    Scan[] allMSScans = new Scan[allMS2ScansList.size()];
+    for (int i = 0; i < allMS2ScansList.size(); i++) {
+      allMSScans[i] = allMS2ScansList.get(i);
+    }
+    return allMSScans;
+  }
+
   // DorresteinLab edit
   /**
    * set the ID number
    */
 
+  @Override
   public void setID(int id) {
     myID = id;
     return;

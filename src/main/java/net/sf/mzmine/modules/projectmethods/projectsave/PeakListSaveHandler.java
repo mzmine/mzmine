@@ -28,29 +28,25 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
-
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
+import com.Ostermiller.util.Base64;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakInformation;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
-
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.AttributesImpl;
-
-import com.Ostermiller.util.Base64;
-import net.sf.mzmine.datamodel.PeakInformation;
 
 public class PeakListSaveHandler {
 
@@ -327,6 +323,9 @@ public class PeakListSaveHandler {
         String.valueOf(peak.getMostIntenseFragmentScanNumber()).length());
     hd.endElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName());
 
+    // <ALL_MS2_FRAGMENT_SCANS>
+    fillAllMS2FragmentScanNumbers(peak.getAllMS2FragmentScanNumbers(), hd);
+
     int scanNumbers[] = peak.getScanNumbers();
 
     // <ISOTOPE_PATTERN>
@@ -412,6 +411,16 @@ public class PeakListSaveHandler {
       String isotopeString = isotope.getMZ() + ":" + isotope.getIntensity();
       hd.characters(isotopeString.toCharArray(), 0, isotopeString.length());
       hd.endElement("", "", PeakListElementName.ISOTOPE.getElementName());
+    }
+  }
+
+  private void fillAllMS2FragmentScanNumbers(int[] scanNumbers, TransformerHandler hd)
+      throws SAXException, IOException {
+    AttributesImpl atts = new AttributesImpl();
+    for (int scan : scanNumbers) {
+      hd.startElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName(), atts);
+      hd.characters(String.valueOf(scan).toCharArray(), 0, String.valueOf(scan).length());
+      hd.endElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName());
     }
   }
 

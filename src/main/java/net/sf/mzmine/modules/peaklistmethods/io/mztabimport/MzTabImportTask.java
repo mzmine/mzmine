@@ -27,7 +27,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
+import com.google.common.collect.Range;
+import com.google.common.io.ByteStreams;
+import com.google.common.math.DoubleMath;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
@@ -56,10 +58,6 @@ import uk.ac.ebi.pride.jmztab.model.SmallMolecule;
 import uk.ac.ebi.pride.jmztab.model.SplitList;
 import uk.ac.ebi.pride.jmztab.model.StudyVariable;
 import uk.ac.ebi.pride.jmztab.utils.MZTabFileParser;
-
-import com.google.common.collect.Range;
-import com.google.common.io.ByteStreams;
-import com.google.common.math.DoubleMath;
 
 class MzTabImportTask extends AbstractTask {
 
@@ -436,14 +434,15 @@ class MzTabImportTask extends AbstractTask {
         finalDataPoint[0] = new SimpleDataPoint(peak_mz, peak_height);
         int representativeScan = 0;
         int fragmentScan = 0;
+        int[] allFragmentScans = new int[] {0};
         Range<Double> finalRTRange = Range.singleton(peak_rt);
         Range<Double> finalMZRange = Range.singleton(peak_mz);
         Range<Double> finalIntensityRange = Range.singleton(peak_height);
         FeatureStatus status = FeatureStatus.DETECTED;
 
         Feature peak = new SimpleFeature(rawData, peak_mz, peak_rt, peak_height, abundance,
-            scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, finalRTRange,
-            finalMZRange, finalIntensityRange);
+            scanNumbers, finalDataPoint, status, representativeScan, fragmentScan, allFragmentScans,
+            finalRTRange, finalMZRange, finalIntensityRange);
 
         if (abundance > 0) {
           newRow.addPeak(rawData, peak);

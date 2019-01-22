@@ -20,7 +20,6 @@ package net.sf.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
@@ -119,6 +118,11 @@ public interface Feature {
    * Returns the number of scan that represents the fragmentation of this peak in MS2 level.
    */
   public int getMostIntenseFragmentScanNumber();
+
+  /**
+   * Returns all scan numbers that represent fragmentations of this peak in MS2 level.
+   */
+  public int[] getAllMS2FragmentScanNumbers();
 
   /**
    * Returns the isotope pattern of this peak or null if no pattern is attached

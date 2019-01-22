@@ -22,17 +22,23 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
-
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+import com.Ostermiller.util.Base64;
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.PeakInformation;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -41,21 +47,11 @@ import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.modules.projectmethods.projectload.PeakListOpenHandler;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import com.Ostermiller.util.Base64;
-import com.google.common.collect.Range;
-import java.util.HashMap;
-import java.util.Map;
-import net.sf.mzmine.datamodel.PeakInformation;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListOpenHandler {
 
@@ -68,6 +64,8 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
   private String peakColumnID;
   private double mass, rt, area;
   private int[] scanNumbers;
+  private int[] allMS2FragmentScanNumbers;
+  private Vector<Integer> currentAllMS2FragmentScans;
   private double height;
   private double[] masses, intensities;
   private String peakStatus, peakListName, name, identityPropertyName, rawDataFileID;
@@ -101,6 +99,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
   /**
    * Load the peak list from the zip file reading the XML peak list file
    */
+  @Override
   public PeakList readPeakList(InputStream peakListStream)
       throws IOException, ParserConfigurationException, SAXException {
 
@@ -112,6 +111,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     appliedMethodParameters = new Vector<String>();
     currentPeakListDataFiles = new Vector<RawDataFile>();
     currentIsotopes = new Vector<DataPoint>();
+    currentAllMS2FragmentScans = new Vector<Integer>();
 
     buildingPeakList = null;
 
@@ -138,6 +138,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     return (double) parsedRows / totalRows;
   }
 
+  @Override
   public void cancel() {
     canceled = true;
   }
@@ -146,6 +147,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
    * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String,
    *      java.lang.String, org.xml.sax.Attributes)
    */
+  @Override
   public void startElement(String namespaceURI, String lName, String qName, Attributes attrs)
       throws SAXException {
 
@@ -229,6 +231,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
    * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String,
    *      java.lang.String)
    */
+  @Override
   public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
     if (canceled)
@@ -285,9 +288,15 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     }
 
     // <FRAGMENT_SCAN>
-
     if (qName.equals(PeakListElementName_2_5.FRAGMENT_SCAN.getElementName())) {
       fragmentScan = Integer.valueOf(getTextOfElement());
+    }
+
+    // <All_MS2_FRAGMENT_SCANS>
+    if (qName.equals(PeakListElementName_2_5.ALL_MS2_FRAGMENT_SCANS.getElementName())) {
+      currentAllMS2FragmentScans.clear();
+      Integer fragmentNumber = Integer.valueOf(getTextOfElement());
+      currentAllMS2FragmentScans.add(fragmentNumber);
     }
 
     // <MASS>
@@ -299,7 +308,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       masses = new double[numOfMZpeaks];
       for (int i = 0; i < numOfMZpeaks; i++) {
         try {
-          masses[i] = (double) dataInputStream.readFloat();
+          masses[i] = dataInputStream.readFloat();
         } catch (IOException ex) {
           throw new SAXException(ex);
         }
@@ -315,7 +324,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       intensities = new double[numOfMZpeaks];
       for (int i = 0; i < numOfMZpeaks; i++) {
         try {
-          intensities[i] = (double) dataInputStream.readFloat();
+          intensities[i] = dataInputStream.readFloat();
         } catch (IOException ex) {
           throw new SAXException(ex);
         }
@@ -364,8 +373,15 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
       FeatureStatus status = FeatureStatus.valueOf(peakStatus);
 
+      // convert vector of allMS2FragmentScans to array
+      allMS2FragmentScanNumbers = new int[currentAllMS2FragmentScans.size()];
+      for (int i = 0; i < allMS2FragmentScanNumbers.length; i++) {
+        allMS2FragmentScanNumbers[i] = currentAllMS2FragmentScans.get(i);
+      }
+
       SimpleFeature peak = new SimpleFeature(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
-          status, representativeScan, fragmentScan, peakRTRange, peakMZRange, peakIntensityRange);
+          status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
+          peakMZRange, peakIntensityRange);
 
       peak.setCharge(currentPeakCharge);
 
@@ -450,6 +466,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
    * 
    * @see org.xml.sax.ContentHandler#characters(char[], int, int)
    */
+  @Override
   public void characters(char buf[], int offset, int len) throws SAXException {
     charBuffer = charBuffer.append(buf, offset, len);
   }
