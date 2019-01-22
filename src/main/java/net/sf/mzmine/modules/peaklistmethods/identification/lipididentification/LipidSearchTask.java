@@ -247,16 +247,16 @@ public class LipidSearchTask extends AbstractTask {
           massList = msmsScan.getMassLists()[0].getDataPoints();
         } else {
           // Create a new mass list for MS/MS scan. Check if sprectrum is profile or centroid mode
-          if (row.getBestFragmentation().getSpectrumType() == MassSpectrumType.CENTROIDED) {
+          if (msmsScan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
             massDetector = new CentroidMassDetector();
             CentroidMassDetectorParameters parametersMSMS = new CentroidMassDetectorParameters();
             CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
-            massList = massDetector.getMassValues(row.getBestFragmentation(), parametersMSMS);
+            massList = massDetector.getMassValues(msmsScan, parametersMSMS);
           } else {
             massDetector = new ExactMassDetector();
             ExactMassDetectorParameters parametersMSMS = new ExactMassDetectorParameters();
             ExactMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
-            massList = massDetector.getMassValues(row.getBestFragmentation(), parametersMSMS);
+            massList = massDetector.getMassValues(msmsScan, parametersMSMS);
           }
         }
         MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
@@ -273,8 +273,8 @@ public class LipidSearchTask extends AbstractTask {
               String annotatedNegativeFragment =
                   msmsLipidTools.checkForNegativeClassSpecificFragment(mzTolRangeMSMS,
                       row.getPreferredPeakIdentity(), lipidIonMass, fragments);
-              if (annotatedNegativeFragment.equals("") == false && listOfAnnotatedNegativeFragments
-                  .contains(annotatedNegativeFragment) == false) {
+              if (annotatedNegativeFragment.equals("") == false
+                  && row.getComment().contains(annotatedNegativeFragment) == false) {
                 listOfAnnotatedNegativeFragments.add(annotatedNegativeFragment);
               }
             }

@@ -294,6 +294,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
 
     // <All_MS2_FRAGMENT_SCANS>
     if (qName.equals(PeakListElementName_2_5.ALL_MS2_FRAGMENT_SCANS.getElementName())) {
+      currentAllMS2FragmentScans.clear();
       Integer fragmentNumber = Integer.valueOf(getTextOfElement());
       currentAllMS2FragmentScans.add(fragmentNumber);
     }
