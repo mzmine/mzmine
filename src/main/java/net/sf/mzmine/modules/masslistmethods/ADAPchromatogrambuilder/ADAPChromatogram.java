@@ -66,6 +66,9 @@ public class ADAPChromatogram implements Feature {
   // Top intensity scan, fragment scan
   private int representativeScan = -1, fragmentScan = -1;
 
+  // All MS2 fragment scan numbers
+  private int[] allMS2FragmentScanNumbers = new int[] {-1};
+
   // Ranges of raw data points
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
 
@@ -295,8 +298,7 @@ public class ADAPChromatogram implements Feature {
 
   @Override
   public int[] getAllMS2FragmentScanNumbers() {
-    // TODO
-    return null;
+    return allMS2FragmentScanNumbers;
   }
 
   @Override
@@ -455,6 +457,9 @@ public class ADAPChromatogram implements Feature {
     // Update fragment scan
     fragmentScan =
         ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
+
+    allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile,
+        dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
     if (fragmentScan > 0) {
       Scan fragmentScanObject = dataFile.getScan(fragmentScan);

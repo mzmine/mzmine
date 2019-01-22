@@ -324,9 +324,7 @@ public class PeakListSaveHandler {
     hd.endElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName());
 
     // <ALL_MS2_FRAGMENT_SCANS>
-    // hd.startElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName(), atts);
     fillAllMS2FragmentScanNumbers(peak.getAllMS2FragmentScanNumbers(), hd);
-    // hd.endElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName());
 
     int scanNumbers[] = peak.getScanNumbers();
 

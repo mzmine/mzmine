@@ -51,6 +51,7 @@ public class EMGPeakModel implements Feature {
   private RawDataFile rawDataFile;
   private FeatureStatus status;
   private int representativeScan = -1, fragmentScan = -1;
+  private int[] allMS2FragmentScanNumbers = new int[] {-1};
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
   private TreeMap<Integer, DataPoint> dataPointsMap;
 
@@ -157,6 +158,11 @@ public class EMGPeakModel implements Feature {
   @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
+  }
+
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    return allMS2FragmentScanNumbers;
   }
 
   @Override
@@ -475,12 +481,6 @@ public class EMGPeakModel implements Feature {
   @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
-  }
-
-  @Override
-  public int[] getAllMS2FragmentScanNumbers() {
-    // TODO
-    return null;
   }
 
 }
