@@ -19,18 +19,15 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels;
 
 import java.util.TreeMap;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.util.PeakUtils;
-
-import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
+import net.sf.mzmine.util.PeakUtils;
 
 public class TrianglePeakModel implements Feature {
   private SimplePeakInformation peakInfo;
@@ -54,54 +51,67 @@ public class TrianglePeakModel implements Feature {
   private IsotopePattern isotopePattern;
   private int charge = 0;
 
+  @Override
   public double getArea() {
     return area;
   }
 
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return rawDataFile;
   }
 
+  @Override
   public double getHeight() {
     return height;
   }
 
+  @Override
   public double getMZ() {
     return mz;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
 
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return status;
   }
 
+  @Override
   public double getRT() {
     return rt;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
@@ -110,10 +120,12 @@ public class TrianglePeakModel implements Feature {
     return "Triangle peak " + PeakUtils.peakToString(this);
   }
 
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
@@ -137,8 +149,8 @@ public class TrianglePeakModel implements Feature {
     rtRight = retentionTimes[retentionTimes.length - 1];
     rtLeft = retentionTimes[0];
 
-    alpha = (double) Math.atan(height / (rt - rtLeft));
-    beta = (double) Math.atan(height / (rtRight - rt));
+    alpha = Math.atan(height / (rt - rtLeft));
+    beta = Math.atan(height / (rtRight - rt));
 
     // Calculate intensity of each point in the shape.
     double shapeHeight, currentRT, previousRT, previousHeight;
@@ -166,61 +178,78 @@ public class TrianglePeakModel implements Feature {
     double intensity = 0;
     if ((retentionTime > rtLeft) && (retentionTime < rtRight)) {
       if (retentionTime <= rt) {
-        intensity = (double) Math.tan(alpha) * (retentionTime - rtLeft);
+        intensity = Math.tan(alpha) * (retentionTime - rtLeft);
       }
       if (retentionTime > rt) {
-        intensity = (double) Math.tan(beta) * (rtRight - retentionTime);
+        intensity = Math.tan(beta) * (rtRight - retentionTime);
       }
     }
 
     return intensity;
   }
 
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
 
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
   // dulab Edit
+  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }
   // End dulab Edit
+
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    // TODO
+    return null;
+  }
 
 }

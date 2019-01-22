@@ -22,12 +22,9 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map.Entry;
 import java.util.Vector;
-
 import javax.annotation.Nonnull;
-
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -58,6 +55,9 @@ public class Chromatogram implements Feature {
   // Top intensity scan, fragment scan
   private int representativeScan = -1, fragmentScan = -1;
 
+  // All MS2 fragment scan numbers
+  private int[] allMS2FragmentScanNumbers = new int[] {-1};
+
   // Ranges of raw data points
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
 
@@ -82,6 +82,7 @@ public class Chromatogram implements Feature {
 
   private final int scanNumbers[];
 
+  @Override
   public void outputChromToFile() {
     System.out.println("does nothing");
   }
@@ -115,6 +116,7 @@ public class Chromatogram implements Feature {
 
   }
 
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
@@ -129,6 +131,7 @@ public class Chromatogram implements Feature {
   /**
    * This method returns m/z value of the chromatogram
    */
+  @Override
   public double getMZ() {
     return mz;
   }
@@ -138,58 +141,77 @@ public class Chromatogram implements Feature {
    * 
    * @return String information
    */
+  @Override
   public String toString() {
     return "Chromatogram " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
   }
 
+  @Override
   public double getArea() {
     return area;
   }
 
+  @Override
   public double getHeight() {
     return height;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    return allMS2FragmentScanNumbers;
+  }
+
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
+  @Override
   public double getRT() {
     return rt;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
 
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return dataFile;
   }
 
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
@@ -308,42 +330,52 @@ public class Chromatogram implements Feature {
     }
   }
 
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }

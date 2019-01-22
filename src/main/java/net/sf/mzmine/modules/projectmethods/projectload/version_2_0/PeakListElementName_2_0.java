@@ -30,7 +30,9 @@ public enum PeakListElementName_2_0 {
                               "isotope"), MZPEAKS("mzpeaks"), METHOD("applied_method"), METHOD_NAME(
                                   "method_name"), METHOD_PARAMETERS(
                                       "method_parameters"), REPRESENTATIVE_SCAN(
-                                          "best_scan"), FRAGMENT_SCAN("fragment_scan");
+                                          "best_scan"), FRAGMENT_SCAN(
+                                              "fragment_scan"), ALL_MS2_FRAGMENT_SCANS(
+                                                  "all_MS2_fragment_scans");
 
   private String elementName;
 

@@ -20,7 +20,7 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection;
 
 import java.util.List;
 import java.util.Vector;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -29,8 +29,6 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.util.ScanUtils;
-
-import com.google.common.collect.Range;
 
 class Gap {
 
@@ -183,11 +181,15 @@ class Gap {
       // Find the best fragmentation scan, if available
       int fragmentScan = ScanUtils.findBestFragmentScan(rawDataFile, finalRTRange, finalMZRange);
 
+      // Find all MS2 fragment scans, if available
+      int[] allMS2fragmentScanNumbers =
+          ScanUtils.findAllMS2FragmentScans(rawDataFile, finalRTRange, finalMZRange);
+
       // Is intensity above the noise level?
       if (height >= noiseLevel) {
         SimpleFeature newPeak = new SimpleFeature(rawDataFile, mz, rt, height, area, scanNumbers,
-            finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan, finalRTRange,
-            finalMZRange, finalIntensityRange);
+            finalDataPoint, FeatureStatus.ESTIMATED, representativeScan, fragmentScan,
+            allMS2fragmentScanNumbers, finalRTRange, finalMZRange, finalIntensityRange);
 
         // Fill the gap
         peakListRow.addPeak(rawDataFile, newPeak);

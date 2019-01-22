@@ -26,7 +26,6 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.smoothing;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -43,7 +42,6 @@ import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
 import com.google.common.collect.Range;
 
 /**
@@ -195,7 +193,8 @@ public class SmoothingTask extends AbstractTask {
                 newRow.addPeak(dataFile,
                     new SimpleFeature(dataFile, maxDataPoint.getMZ(), peak.getRT(), maxIntensity,
                         area, scanNumbers, newDataPoints, peak.getFeatureStatus(), maxScanNumber,
-                        peak.getMostIntenseFragmentScanNumber(), peak.getRawDataPointsRTRange(),
+                        peak.getMostIntenseFragmentScanNumber(),
+                        peak.getAllMS2FragmentScanNumbers(), peak.getRawDataPointsRTRange(),
                         peak.getRawDataPointsMZRange(), intensityRange));
               }
             }

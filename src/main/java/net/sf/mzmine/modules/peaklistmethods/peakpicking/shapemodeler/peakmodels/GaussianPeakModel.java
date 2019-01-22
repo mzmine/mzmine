@@ -20,19 +20,16 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodel
 
 import java.util.Iterator;
 import java.util.TreeMap;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
-
-import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 public class GaussianPeakModel implements Feature {
   private SimplePeakInformation peakInfo;
@@ -74,7 +71,7 @@ public class GaussianPeakModel implements Feature {
     // FWHM = MathUtils.calcStd(intensities) * 2.355;
 
     partC = FWHM / CONST;
-    part2C2 = 2f * (double) Math.pow(partC, 2);
+    part2C2 = 2f * Math.pow(partC, 2);
 
     // Calculate intensity of each point in the shape.
     double shapeHeight, currentRT, previousRT, previousHeight;
@@ -116,67 +113,83 @@ public class GaussianPeakModel implements Feature {
   }
 
   // dulab Edit
+  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }
   // End dulab Edit
 
+  @Override
   public double getArea() {
     return area;
   }
 
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return rawDataFile;
   }
 
+  @Override
   public double getHeight() {
     return height;
   }
 
+  @Override
   public double getMZ() {
     return mz;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
 
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return status;
   }
 
+  @Override
   public double getRT() {
     return rt;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
@@ -185,10 +198,12 @@ public class GaussianPeakModel implements Feature {
     return "Gaussian peak " + PeakUtils.peakToString(this);
   }
 
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
@@ -196,9 +211,9 @@ public class GaussianPeakModel implements Feature {
   public double calculateIntensity(double retentionTime) {
 
     // Using the Gaussian function we calculate the intensity at given m/z
-    double diff2 = (double) Math.pow(retentionTime - rt, 2);
+    double diff2 = Math.pow(retentionTime - rt, 2);
     double exponent = -1 * (diff2 / part2C2);
-    double eX = (double) Math.exp(exponent);
+    double eX = Math.exp(exponent);
     double intensity = height * eX;
     return intensity;
   }
@@ -304,37 +319,51 @@ public class GaussianPeakModel implements Feature {
     return aproximatedFWHM;
   }
 
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
 
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
+  }
+
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    // TODO
+    return null;
   }
 
 }

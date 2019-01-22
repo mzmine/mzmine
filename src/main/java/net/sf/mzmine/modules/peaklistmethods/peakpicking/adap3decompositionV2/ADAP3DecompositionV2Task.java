@@ -15,23 +15,36 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
-import com.google.common.collect.Range;
-import dulab.adap.datamodel.*;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import javax.annotation.Nonnull;
+import com.google.common.collect.Range;
+import dulab.adap.datamodel.BetterComponent;
+import dulab.adap.datamodel.BetterPeak;
+import dulab.adap.datamodel.Chromatogram;
 import dulab.adap.workflow.decomposition.Decomposition;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
-import net.sf.mzmine.datamodel.*;
-import net.sf.mzmine.datamodel.impl.*;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -272,7 +285,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
     return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(), area,
         scanNumbers, dataPoints, Feature.FeatureStatus.MANUAL, representativeScan,
-        representativeScan, Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
+        representativeScan, null, Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0.0, peak.getIntensity()));
   }

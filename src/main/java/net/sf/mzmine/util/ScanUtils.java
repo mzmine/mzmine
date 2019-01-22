@@ -27,11 +27,8 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-
 import javax.annotation.Nonnull;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -462,6 +459,38 @@ public class ScanUtils {
 
   }
 
+
+  /**
+   * Finds all MS/MS scans on MS2 level within given retention time range and with precursor m/z
+   * within given m/z range
+   */
+  public static int[] findAllMS2FragmentScans(RawDataFile dataFile, Range<Double> rtRange,
+      Range<Double> mzRange) {
+
+    assert dataFile != null;
+    assert rtRange != null;
+    assert mzRange != null;
+
+    int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
+    ArrayList<Integer> fragmentScanNumbersInMZRange = new ArrayList<Integer>();
+
+    for (int number : fragmentScanNumbers) {
+
+      Scan scan = dataFile.getScan(number);
+
+      if (mzRange.contains(scan.getPrecursorMZ())) {
+        fragmentScanNumbersInMZRange.add(number);
+      }
+    }
+    int[] resultScans = new int[fragmentScanNumbersInMZRange.size()];
+    if (resultScans.length > 0) {
+      resultScans = fragmentScanNumbersInMZRange.stream().mapToInt(i -> i).toArray();
+    } else {
+      resultScans = new int[] {-1};
+    }
+    return resultScans;
+  }
+
   /**
    * Find the highest data point in array
    * 
@@ -523,7 +552,7 @@ public class ScanUtils {
     return Range.closed(lowRt, highRt);
   }
 
-   public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {
+  public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {
     ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
     DataOutputStream peakStream = new DataOutputStream(byteStream);
     for (int i = 0; i < dataPoints.length; i++) {

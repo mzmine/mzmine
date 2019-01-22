@@ -21,31 +21,28 @@
 
 package net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-
 import javax.annotation.Nonnull;
-
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.ScanUtils;
-
-import java.io.PrintWriter;
-import java.io.FileNotFoundException;
-import java.io.*;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 
 
@@ -243,6 +240,7 @@ public class ADAPChromatogram implements Feature {
 
   }
 
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
@@ -257,6 +255,7 @@ public class ADAPChromatogram implements Feature {
   /**
    * This method returns m/z value of the chromatogram
    */
+  @Override
   public double getMZ() {
     return mz;
   }
@@ -274,62 +273,83 @@ public class ADAPChromatogram implements Feature {
    * 
    * @return String information
    */
+  @Override
   public String toString() {
     return "Chromatogram " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
   }
 
+  @Override
   public double getArea() {
     return area;
   }
 
+  @Override
   public double getHeight() {
     return height;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
 
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    // TODO
+    return null;
+  }
+
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
+  @Override
   public double getRT() {
     return rt;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
 
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return dataFile;
   }
 
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
+  @Override
   public void outputChromToFile() {
     // int allScanNumbers[] = Ints.toArray(dataPointsMap.keySet());
     int allScanNumbers[] = getScanNumbers();
@@ -495,43 +515,54 @@ public class ADAPChromatogram implements Feature {
     }
   }
 
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
 
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }
+
 }

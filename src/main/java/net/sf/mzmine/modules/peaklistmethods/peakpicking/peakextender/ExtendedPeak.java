@@ -2,23 +2,20 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender;
 
 import java.util.Arrays;
 import java.util.Hashtable;
-
 import javax.annotation.Nonnull;
-
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.ScanUtils;
-
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 public class ExtendedPeak implements Feature {
   private SimplePeakInformation peakInfo;
@@ -35,6 +32,9 @@ public class ExtendedPeak implements Feature {
 
   // Top intensity scan, fragment scan
   private int representativeScan = -1, fragmentScan = -1;
+
+  // All MS2 fragment scans
+  private int[] allMS2FragmentScanNumbers;
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
@@ -70,6 +70,7 @@ public class ExtendedPeak implements Feature {
     dataPointsMap.put(scanNumber, mzValue);
   }
 
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     return dataPointsMap.get(scanNumber);
   }
@@ -84,6 +85,7 @@ public class ExtendedPeak implements Feature {
   /**
    * This method returns m/z value of the extended peak
    */
+  @Override
   public double getMZ() {
     return mz;
   }
@@ -97,14 +99,17 @@ public class ExtendedPeak implements Feature {
     return "Extended peak " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
   }
 
+  @Override
   public double getArea() {
     return area;
   }
 
+  @Override
   public double getHeight() {
     return height;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScan;
   }
@@ -118,42 +123,57 @@ public class ExtendedPeak implements Feature {
     this.fragmentScan = scanNumber;
   }
 
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    return allMS2FragmentScanNumbers;
+  }
+
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return FeatureStatus.DETECTED;
   }
 
+  @Override
   public double getRT() {
     return rt;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return rawDataPointsIntensityRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return rawDataPointsMZRange;
   }
 
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rawDataPointsRTRange;
   }
 
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
 
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return dataFile;
   }
 
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
@@ -220,6 +240,9 @@ public class ExtendedPeak implements Feature {
     fragmentScan =
         ScanUtils.findBestFragmentScan(dataFile, dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
+    allMS2FragmentScanNumbers = ScanUtils.findAllMS2FragmentScans(dataFile,
+        dataFile.getDataRTRange(1), rawDataPointsMZRange);
+
     if (fragmentScan > 0) {
       Scan fragmentScanObject = dataFile.getScan(fragmentScan);
       int precursorCharge = fragmentScanObject.getPrecursorCharge();
@@ -229,10 +252,12 @@ public class ExtendedPeak implements Feature {
 
   }
 
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
@@ -245,39 +270,48 @@ public class ExtendedPeak implements Feature {
     return PeakUtils.peakToString(this);
   }
 
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
 
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
 
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
 
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
 
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
 
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
   // dulab Edit
+  @Override
   public void outputChromToFile() {
     int nothing = -1;
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }
