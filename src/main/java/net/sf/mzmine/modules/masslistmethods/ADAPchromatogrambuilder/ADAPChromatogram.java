@@ -67,7 +67,7 @@ public class ADAPChromatogram implements Feature {
   private int representativeScan = -1, fragmentScan = -1;
 
   // All MS2 fragment scan numbers
-  private int[] allMS2FragmentScanNumbers = new int[] {-1};
+  private int[] allMS2FragmentScanNumbers = new int[] {};
 
   // Ranges of raw data points
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
