@@ -285,7 +285,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
     return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(), area,
         scanNumbers, dataPoints, Feature.FeatureStatus.MANUAL, representativeScan,
-        representativeScan, new int[] {-1},
+        representativeScan, new int[] {},
         Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0.0, peak.getIntensity()));
