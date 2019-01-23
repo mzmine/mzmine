@@ -274,7 +274,6 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements PeakListO
 
     // <All_MS2_FRAGMENT_SCANS>
     if (qName.equals(PeakListElementName_2_5.ALL_MS2_FRAGMENT_SCANS.getElementName())) {
-      currentAllMS2FragmentScans.clear();
       Integer fragmentNumber = Integer.valueOf(getTextOfElement());
       currentAllMS2FragmentScans.add(fragmentNumber);
     }
@@ -352,6 +351,9 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements PeakListO
       for (int i = 0; i < allMS2FragmentScanNumbers.length; i++) {
         allMS2FragmentScanNumbers[i] = currentAllMS2FragmentScans.get(i);
       }
+
+      // clear all MS2 fragment scan numbers list for next peak
+      currentAllMS2FragmentScans.clear();
 
       SimpleFeature peak = new SimpleFeature(dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
           status, representativeScan, fragmentScan, allMS2FragmentScanNumbers, peakRTRange,
