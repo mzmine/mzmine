@@ -123,7 +123,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
       SimpleFeature c = new SimpleFeature(dataFile, scan.getPrecursorMZ(),
           bestScan.getRetentionTime(), maxPoint.getIntensity(), maxPoint.getIntensity(),
           new int[] {bestScan.getScanNumber()}, new DataPoint[] {maxPoint}, FeatureStatus.DETECTED,
-          bestScan.getScanNumber(), scan.getScanNumber(), new int[] {-1},
+          bestScan.getScanNumber(), scan.getScanNumber(), new int[] {},
           Range.singleton(bestScan.getRetentionTime()), Range.singleton(scan.getPrecursorMZ()),
           Range.singleton(maxPoint.getIntensity()));
 

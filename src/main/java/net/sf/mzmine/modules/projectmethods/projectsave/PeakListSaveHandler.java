@@ -417,10 +417,12 @@ public class PeakListSaveHandler {
   private void fillAllMS2FragmentScanNumbers(int[] scanNumbers, TransformerHandler hd)
       throws SAXException, IOException {
     AttributesImpl atts = new AttributesImpl();
-    for (int scan : scanNumbers) {
-      hd.startElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName(), atts);
-      hd.characters(String.valueOf(scan).toCharArray(), 0, String.valueOf(scan).length());
-      hd.endElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName());
+    if (scanNumbers != null) {
+      for (int scan : scanNumbers) {
+        hd.startElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName(), atts);
+        hd.characters(String.valueOf(scan).toCharArray(), 0, String.valueOf(scan).length());
+        hd.endElement("", "", PeakListElementName.ALL_MS2_FRAGMENT_SCANS.getElementName());
+      }
     }
   }
 

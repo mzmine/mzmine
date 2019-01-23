@@ -376,7 +376,6 @@ public class SimplePeakListRow implements PeakListRow {
 
   @Override
   public Scan[] getAllMS2Fragmentations() {
-
     ArrayList<Scan> allMS2ScansList = new ArrayList<Scan>();
     for (Feature peak : this.getPeaks()) {
       RawDataFile rawData = peak.getDataFile();
@@ -384,18 +383,12 @@ public class SimplePeakListRow implements PeakListRow {
       if (scanNumbers != null) {
         for (int scanNumber : scanNumbers) {
           Scan scan = rawData.getScan(scanNumber);
-          if (scan != null) {
-            allMS2ScansList.add(scan);
-          }
+          allMS2ScansList.add(scan);
         }
       }
     }
 
-    Scan[] allMSScans = new Scan[allMS2ScansList.size()];
-    for (int i = 0; i < allMS2ScansList.size(); i++) {
-      allMSScans[i] = allMS2ScansList.get(i);
-    }
-    return allMSScans;
+    return allMS2ScansList.toArray(new Scan[allMS2ScansList.size()]);
   }
 
   // DorresteinLab edit

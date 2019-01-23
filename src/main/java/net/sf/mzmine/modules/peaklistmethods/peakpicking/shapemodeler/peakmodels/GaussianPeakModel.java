@@ -42,7 +42,7 @@ public class GaussianPeakModel implements Feature {
   private RawDataFile rawDataFile;
   private FeatureStatus status;
   private int representativeScan = -1, fragmentScan = -1;
-  private int[] allMS2FragmentScanNumbers = new int[] {-1};
+  private int[] allMS2FragmentScanNumbers = new int[] {};
   private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
   private TreeMap<Integer, DataPoint> dataPointsMap;
 

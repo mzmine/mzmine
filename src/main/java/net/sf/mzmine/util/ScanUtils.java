@@ -486,7 +486,7 @@ public class ScanUtils {
     if (resultScans.length > 0) {
       resultScans = fragmentScanNumbersInMZRange.stream().mapToInt(i -> i).toArray();
     } else {
-      resultScans = new int[] {-1};
+      resultScans = new int[] {};
     }
     return resultScans;
   }
