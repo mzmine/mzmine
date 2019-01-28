@@ -42,7 +42,7 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 /**
- * Window to show a summary of a feature list row
+ * Window to show all MS/MS scans of a feature list row
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
@@ -113,6 +113,7 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     // labels
     labelsMap.put(row.getBestPeak(), row.getBestPeak().toString());
 
+    // get EIC window
     TICVisualizerWindow window = new TICVisualizerWindow(rawFiles, // raw
         TICPlotType.BASEPEAK, // plot type
         scanSelection, // scan selection
@@ -120,10 +121,12 @@ public class MultiSpectraVisualizerWindow extends JFrame {
         row.getPeaks(), // selected features
         labelsMap); // labels
 
+    // get EIC Plot
     TICPlot ticPlot = window.getTICPlot();
     ticPlot.setPreferredSize(new Dimension(600, 200));
     ticPlot.getChart().removeLegend();
 
+    // add a retention time Marker to the EIC
     ValueMarker marker = new ValueMarker(rawFiles[0].getScan(scan).getRetentionTime());
     marker.setPaint(Color.RED);
     marker.setStroke(new BasicStroke(3.0f));
@@ -137,8 +140,12 @@ public class MultiSpectraVisualizerWindow extends JFrame {
     bottomPane.setDividerLocation(200);
 
     JSplitPane spectrumPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+
+    // get MS/MS spectra window
     SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(rawFiles[0]);
     spectraWindow.loadRawData(rawFiles[0].getScan(scan));
+
+    // get MS/MS spectra plot
     SpectraPlot spectrumPlot = spectraWindow.getSpectrumPlot();
     spectrumPlot.getChart().removeLegend();
     spectrumPlot.setPreferredSize(new Dimension(600, 400));
