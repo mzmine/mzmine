@@ -51,12 +51,11 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import net.sf.mzmine.datamodel.identities.iontype.IonIdentity;
 import net.sf.mzmine.datamodel.identities.ms2.MSMSIonIdentity;
 import net.sf.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.visualization.metamsecorrelate.visual.sub.pseudospectra.PseudoSpectrum;
-import net.sf.mzmine.modules.visualization.metamsecorrelate.visual.sub.pseudospectra.PseudoSpectrumDataSet;
+import net.sf.mzmine.modules.visualization.multimsms.pseudospectra.PseudoSpectrum;
+import net.sf.mzmine.modules.visualization.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -378,88 +377,11 @@ public class MultiMSMSWindow extends JFrame {
           alwaysShowBest, useBestForMissingRaw);
 
       if (c != null) {
-        // add MSMS annotations of sub formulas
-        addSubFormulaAnnotation(row,
-            (PseudoSpectrumDataSet) c.getChart().getXYPlot().getDataset(0));
-
         group.add(new ChartViewWrapper(c));
       }
     }
 
-    // add all MSMS annotations
-    addAllMSMSAnnotations(rows, raw);
     renewCharts(group);
-  }
-
-  private void addSubFormulaAnnotation(PeakListRow row, PseudoSpectrumDataSet data) {
-    MolecularFormulaIdentity form = null;
-    if (row.getBestIonIdentity() != null && row.getBestIonIdentity().getNetwork() != null
-        && row.getBestIonIdentity().getNetwork().getBestMolFormula() != null) {
-      form = row.getBestIonIdentity().getNetwork().getBestMolFormula();
-
-      if (row.getBestIonIdentity() != null && row.getBestIonIdentity().getBestMolFormula() != null)
-        for (MolecularFormulaIdentity f : row.getBestIonIdentity().getMolFormulas()) {
-          if (f.equalFormula(form)) {
-            form = f;
-            break;
-          }
-        }
-    } else if (row.getBestIonIdentity() != null
-        && row.getBestIonIdentity().getBestMolFormula() != null)
-      form = row.getBestIonIdentity().getBestMolFormula();
-
-    if (form != null && form.getMSMSannotation() != null) {
-      try {
-        IMolecularFormula ionf =
-            row.getBestIonIdentity().getIonType().addToFormula(form.getFormulaAsObject());
-        Map<DataPoint, String> ann = form.getMSMSannotation();
-        ann.entrySet().forEach(e -> {
-          // neutral loss
-          IMolecularFormula loss = FormulaUtils.createMajorIsotopeMolFormula(e.getValue());
-          try {
-            loss = FormulaUtils.subtractFormula((IMolecularFormula) ionf.clone(), loss);
-          } catch (CloneNotSupportedException e2) {
-            loss = null;
-          }
-
-          String id = loss != null ? MolecularFormulaManipulator.getString(loss) + "\n" : "";
-          id += "-" + e.getValue();
-          data.addAnnotation(new XYDataItem(e.getKey().getMZ(), e.getKey().getIntensity()), id);
-        });
-      } catch (CloneNotSupportedException e2) {
-      }
-    }
-  }
-
-  /**
-   * Adds all MS1 and MSMS annotations to all charts
-   * 
-   * @param rows
-   * @param raw
-   */
-  public void addAllMSMSAnnotations(PeakListRow[] rows, RawDataFile raw) {
-    for (PeakListRow row : rows) {
-      // add MS1 annotations
-      IonIdentity best = row.getBestIonIdentity();
-      if (best == null)
-        continue;
-
-      Scan scan = SpectrumChartFactory.getMSMSScan(row, raw, alwaysShowBest, useBestForMissingRaw);
-      if (scan != null) {
-        Feature f = row.getPeak(scan.getDataFile());
-        double precursorMZ = f != null ? f.getMZ() : row.getAverageMZ();
-        // add ms1 adduct annotation
-        addMSMSAnnotation(new MSMSIonIdentity(mzTolerance, new SimpleDataPoint(precursorMZ, 1f),
-            best.getIonType()));
-
-        // add all MSMS annotations (found in MSMS)
-        if (row.hasIonIdentity()) {
-          for (IonIdentity id : row.getIonIdentities()) {
-            addMSMSAnnotations(id.getMSMSIdentities());
-          }
-        }
-      }
-    }
   }
 
   /**

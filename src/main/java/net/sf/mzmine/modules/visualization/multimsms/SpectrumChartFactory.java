@@ -37,9 +37,9 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.metamsecorrelate.visual.sub.pseudospectra.PseudoSpectraItemLabelGenerator;
-import net.sf.mzmine.modules.visualization.metamsecorrelate.visual.sub.pseudospectra.PseudoSpectraRenderer;
-import net.sf.mzmine.modules.visualization.metamsecorrelate.visual.sub.pseudospectra.PseudoSpectrumDataSet;
+import net.sf.mzmine.modules.visualization.multimsms.pseudospectra.PseudoSpectraItemLabelGenerator;
+import net.sf.mzmine.modules.visualization.multimsms.pseudospectra.PseudoSpectraRenderer;
+import net.sf.mzmine.modules.visualization.multimsms.pseudospectra.PseudoSpectrumDataSet;
 
 public class SpectrumChartFactory {
 
