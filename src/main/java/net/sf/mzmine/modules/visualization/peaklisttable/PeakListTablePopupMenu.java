@@ -49,6 +49,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcess
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import net.sf.mzmine.modules.visualization.mirrorspectra.MirrorScanWindow;
 import net.sf.mzmine.modules.visualization.multimsms.MultiMSMSWindow;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.MSMSExportModule;
@@ -90,6 +91,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem showXICItem;
   private final JMenuItem showXICSetupItem;
   private final JMenuItem showMSMSItem;
+  private final JMenuItem showMSMSMirrorItem;
   private final JMenuItem showIsotopePatternItem;
   private final JMenuItem show2DItem;
   private final JMenuItem show3DItem;
@@ -140,6 +142,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
     show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
     showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
+    showMSMSMirrorItem = GUIUtils.addMenuItem(showMenu, "MS/MS mirror (select 2 rows)", this);
     showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
     showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu, "Peak row summary", this);
 
@@ -187,6 +190,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     show3DItem.setEnabled(false);
     manuallyDefineItem.setEnabled(false);
     showMSMSItem.setEnabled(false);
+    showMSMSMirrorItem.setEnabled(false);
     showIsotopePatternItem.setEnabled(false);
     showPeakRowSummaryItem.setEnabled(false);
     exportIsotopesItem.setEnabled(false);
@@ -251,15 +255,20 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         }
 
         // always show for multi
-        showMSMSItem.setEnabled(!oneRowSelected || getSelectedPeakForMSMS() != null);
-
+        showMSMSItem.setEnabled(selectedRows.length > 0 && getSelectedPeakForMSMS() != null);
       } else {
         showIsotopePatternItem
             .setEnabled(clickedPeakListRow.getBestIsotopePattern() != null && oneRowSelected);
 
         // always show for multi MSMS window
-        showMSMSItem.setEnabled(!oneRowSelected || getSelectedPeakForMSMS() != null);
+        showMSMSItem.setEnabled(selectedRows.length > 0 && getSelectedPeakForMSMS() != null);
       }
+
+      // only show if selected rows == 2 and both have MS2
+      boolean bothMS2 =
+          selectedRows.length == 2 && allClickedPeakListRows[0].getBestFragmentation() != null
+              && allClickedPeakListRows[1].getBestFragmentation() != null;
+      showMSMSMirrorItem.setEnabled(bothMS2);
     }
 
     copyIdsItem
@@ -474,6 +483,22 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
                     + MZmineCore.getConfiguration().getMZFormat().format(showPeak.getMZ())
                     + " m/z in the current raw data.");
           }
+        }
+      }
+    }
+
+    // mirror of the two best fragment scans
+    if (showMSMSMirrorItem.equals(src)) {
+      if (allClickedPeakListRows != null && allClickedPeakListRows.length == 2) {
+        PeakListRow a = allClickedPeakListRows[0];
+        PeakListRow b = allClickedPeakListRows[1];
+        Scan scan = a.getBestFragmentation();
+        Scan mirror = b.getBestFragmentation();
+        if (scan != null && mirror != null) {
+          // show mirror msms window of two rows
+          MirrorScanWindow mirrorWindow = new MirrorScanWindow();
+          mirrorWindow.setScans(scan, mirror);
+          mirrorWindow.setVisible(true);
         }
       }
     }
