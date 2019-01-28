@@ -376,4 +376,42 @@ public class FormulaUtils {
 
     return true;
   }
+
+
+  public static long getFormulaSize(String formula) {
+    long size = 1;
+
+    IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+    IMolecularFormula molFormula;
+
+    molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
+    Isotopes isotopeFactory;
+    try {
+      isotopeFactory = Isotopes.getInstance();
+      for (IIsotope iso : molFormula.isotopes()) {
+
+        int naturalIsotopes = 0;
+        for (IIsotope i : isotopeFactory.getIsotopes(iso.getSymbol())) {
+          if (i.getNaturalAbundance() > 0.0) {
+            naturalIsotopes++;
+          }
+
+        }
+
+        try {
+          size = Math.multiplyExact(size, (molFormula.getIsotopeCount(iso) * naturalIsotopes));
+        } catch (ArithmeticException e) {
+          e.printStackTrace();
+          logger.info("Formula size of " + formula + " is too big.");
+          return -1;
+        }
+      }
+    } catch (IOException e) {
+      logger.warning("Unable to initialise Isotopes.");
+      e.printStackTrace();
+    }
+
+
+    return size;
+  }
 }
