@@ -12,6 +12,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 
+import java.util.Collection;
+import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -21,9 +23,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ExitCode;
-
-import javax.annotation.Nonnull;
-import java.util.Collection;
 
 public class SiriusExportModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Export for SIRIUS";
@@ -69,6 +68,25 @@ public class SiriusExportModule implements MZmineProcessingModule {
           "Error while exporting feature to SIRIUS: " + ExceptionUtils.exceptionToString(e));
     }
 
+  }
+
+
+  public static void exportSingleRows(PeakListRow[] row) {
+    try {
+      ParameterSet parameters =
+          MZmineCore.getConfiguration().getModuleParameters(SiriusExportModule.class);
+
+      ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true);
+      if (exitCode != ExitCode.OK)
+        return;
+      // Open file
+      final SiriusExportTask task = new SiriusExportTask(parameters);
+      task.runSingleRows(row);
+    } catch (Exception e) {
+      e.printStackTrace();
+      MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
+          "Error while exporting feature to SIRIUS: " + ExceptionUtils.exceptionToString(e));
+    }
   }
 
   @Override
