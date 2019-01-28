@@ -136,7 +136,7 @@ public class ImportLipidModificationsAction extends AbstractAction {
       try {
 
         // Create new modification and add it to the choices if it's new.
-        final LipidModification modification = new LipidModification(line[0]);
+        final LipidModification modification = new LipidModification(line[0], line[1]);
         if (!choices.contains(modification)) {
 
           choices.add(modification);

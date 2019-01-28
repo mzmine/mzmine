@@ -121,7 +121,8 @@ public class ExportLipidModificationsAction extends AbstractAction {
     final CSVPrinter writer = new CSVPrinter(new FileWriter(file));
     for (final LipidModification modification : modifications) {
 
-      writer.writeln(new String[] {modification.getLipidModificatio()});
+      writer.writeln(new String[] {modification.getLipidModificatio(),
+          modification.getLipidModificationLabel()});
     }
   }
 }

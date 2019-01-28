@@ -64,7 +64,9 @@ public class AddLipidModificationAction extends AbstractAction {
           true) == ExitCode.OK) {
         // Create new lipid modification
         lipidModification = new LipidModification(
-            parameters.getParameter(AddLipidModificationParameters.lipidModification).getValue());
+            parameters.getParameter(AddLipidModificationParameters.lipidModification).getValue(),
+            parameters.getParameter(AddLipidModificationParameters.lipidModificationLabel)
+                .getValue());
 
         // Add to list of choices (if not already present).
         final Collection<LipidModification> choices = new ArrayList<LipidModification>(
@@ -86,8 +88,11 @@ public class AddLipidModificationAction extends AbstractAction {
     private static final StringParameter lipidModification =
         new StringParameter("Lipid modification", "Lipid modification");
 
+    private static final StringParameter lipidModificationLabel =
+        new StringParameter("Lipid modification label", "Lipid modification label", "");
+
     private AddLipidModificationParameters() {
-      super(new Parameter[] {lipidModification});
+      super(new Parameter[] {lipidModification, lipidModificationLabel});
     }
   }
 }

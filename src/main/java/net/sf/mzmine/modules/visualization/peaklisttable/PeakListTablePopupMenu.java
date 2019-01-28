@@ -18,8 +18,27 @@
 
 package net.sf.mzmine.modules.visualization.peaklisttable;
 
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.table.AbstractTableModel;
 import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
@@ -36,6 +55,7 @@ import net.sf.mzmine.modules.visualization.peaklisttable.table.DataFileColumnTyp
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.MultiSpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
@@ -43,14 +63,6 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.util.GUIUtils;
-
-import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.*;
-import java.util.List;
 
 /**
  * Peak-list table pop-up menu.
@@ -74,6 +86,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem showXICItem;
   private final JMenuItem showXICSetupItem;
   private final JMenuItem showMSMSItem;
+  private final JMenuItem showAllMSMSItem;
   private final JMenuItem showIsotopePatternItem;
   private final JMenuItem show2DItem;
   private final JMenuItem show3DItem;
@@ -123,7 +136,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     showSpectrumItem = GUIUtils.addMenuItem(showMenu, "Mass spectrum", this);
     show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
     show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
-    showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
+    showMSMSItem = GUIUtils.addMenuItem(showMenu, "Most intense MS/MS", this);
+    showAllMSMSItem = GUIUtils.addMenuItem(showMenu, "All MS/MS", this);
     showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
     showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu, "Peak row summary", this);
 
@@ -171,6 +185,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     show3DItem.setEnabled(false);
     manuallyDefineItem.setEnabled(false);
     showMSMSItem.setEnabled(false);
+    showAllMSMSItem.setEnabled(false);
     showIsotopePatternItem.setEnabled(false);
     showPeakRowSummaryItem.setEnabled(false);
     exportIsotopesItem.setEnabled(false);
@@ -234,6 +249,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         if (clickedPeak != null && oneRowSelected) {
           showIsotopePatternItem.setEnabled(clickedPeak.getIsotopePattern() != null);
           showMSMSItem.setEnabled(clickedPeak.getMostIntenseFragmentScanNumber() > 0);
+          showAllMSMSItem.setEnabled(clickedPeak.getAllMS2FragmentScanNumbers().length > 0);
         }
 
       } else {
@@ -243,6 +259,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         if (clickedPeakListRow.getBestPeak() != null) {
           showMSMSItem
               .setEnabled(clickedPeakListRow.getBestPeak().getMostIntenseFragmentScanNumber() > 0
+                  && oneRowSelected);
+          showAllMSMSItem
+              .setEnabled(clickedPeakListRow.getBestPeak().getAllMS2FragmentScanNumbers().length > 0
                   && oneRowSelected);
         }
       }
@@ -441,6 +460,25 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         final int scanNumber = showPeak.getMostIntenseFragmentScanNumber();
         if (scanNumber > 0) {
           SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(), scanNumber);
+        } else {
+          MZmineCore.getDesktop().displayMessage(window,
+              "There is no fragment for "
+                  + MZmineCore.getConfiguration().getMZFormat().format(showPeak.getMZ())
+                  + " m/z in the current raw data.");
+        }
+      }
+    }
+
+    if (showAllMSMSItem.equals(src)) {
+
+      final Feature showPeak = getSelectedPeak();
+      if (showPeak != null) {
+        int[] scanNumbers = showPeak.getAllMS2FragmentScanNumbers();
+
+        if (scanNumbers.length > 0) {
+          MultiSpectraVisualizerWindow multiSpectraWindow =
+              new MultiSpectraVisualizerWindow(scanNumbers, clickedPeakListRow);
+          multiSpectraWindow.setVisible(true);
         } else {
           MZmineCore.getDesktop().displayMessage(window,
               "There is no fragment for "
