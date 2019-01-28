@@ -18,8 +18,28 @@
 
 package net.sf.mzmine.modules.visualization.peaklisttable;
 
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.table.AbstractTableModel;
 import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
@@ -29,6 +49,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcess
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
+import net.sf.mzmine.modules.visualization.multimsms.MultiMSMSWindow;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.MSMSExportModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.CommonColumnType;
@@ -43,14 +64,8 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.util.GUIUtils;
-
-import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.*;
-import java.util.List;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 /**
  * Peak-list table pop-up menu.
@@ -201,11 +216,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     if (clickedRow >= 0 && clickedColumn >= 0) {
 
       final int rowIndex = table.convertRowIndexToModel(clickedRow);
-      clickedPeakListRow = peakList.getRow(rowIndex);
+      clickedPeakListRow = getPeakListRow(rowIndex);
       allClickedPeakListRows = new PeakListRow[selectedRows.length];
       for (int i = 0; i < selectedRows.length; i++) {
-
-        allClickedPeakListRows[i] = peakList.getRow(table.convertRowIndexToModel(selectedRows[i]));
+        allClickedPeakListRows[i] = getPeakListRow(table.convertRowIndexToModel(selectedRows[i]));
       }
 
       // Enable items.
@@ -229,23 +243,22 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
             / DataFileColumnType.values().length);
 
         final Feature clickedPeak =
-            peakList.getRow(table.convertRowIndexToModel(clickedRow)).getPeak(clickedDataFile);
+            getPeakListRow(table.convertRowIndexToModel(clickedRow)).getPeak(clickedDataFile);
 
         // If we have the peak, enable Show... items
         if (clickedPeak != null && oneRowSelected) {
           showIsotopePatternItem.setEnabled(clickedPeak.getIsotopePattern() != null);
-          showMSMSItem.setEnabled(clickedPeak.getMostIntenseFragmentScanNumber() > 0);
         }
+
+        // always show for multi
+        showMSMSItem.setEnabled(!oneRowSelected || getSelectedPeakForMSMS() != null);
 
       } else {
-
         showIsotopePatternItem
             .setEnabled(clickedPeakListRow.getBestIsotopePattern() != null && oneRowSelected);
-        if (clickedPeakListRow.getBestPeak() != null) {
-          showMSMSItem
-              .setEnabled(clickedPeakListRow.getBestPeak().getMostIntenseFragmentScanNumber() > 0
-                  && oneRowSelected);
-        }
+
+        // always show for multi MSMS window
+        showMSMSItem.setEnabled(!oneRowSelected || getSelectedPeakForMSMS() != null);
       }
     }
 
@@ -253,6 +266,15 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         .setEnabled(oneRowSelected && allClickedPeakListRows[0].getPreferredPeakIdentity() != null);
 
     super.show(invoker, x, y);
+  }
+
+  /**
+   * 
+   * @param modelIndex the row index in the table model
+   * @return
+   */
+  protected PeakListRow getPeakListRow(int modelIndex) {
+    return peakList.getRow(modelIndex);
   }
 
   @Override
@@ -288,8 +310,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
       final PeakListRow[] selectedRows = new PeakListRow[selectedTableRows.length];
       for (int i = 0; i < selectedTableRows.length; i++) {
-
-        selectedRows[i] = peakList.getRow(table.convertRowIndexToModel(selectedTableRows[i]));
+        selectedRows[i] = getPeakListRow(table.convertRowIndexToModel(selectedTableRows[i]));
       }
 
       SwingUtilities.invokeLater(new Runnable() {
@@ -435,18 +456,24 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     }
 
     if (showMSMSItem.equals(src)) {
-
-      final Feature showPeak = getSelectedPeak();
-      if (showPeak != null) {
-
-        final int scanNumber = showPeak.getMostIntenseFragmentScanNumber();
-        if (scanNumber > 0) {
-          SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(), scanNumber);
-        } else {
-          MZmineCore.getDesktop().displayMessage(window,
-              "There is no fragment for "
-                  + MZmineCore.getConfiguration().getMZFormat().format(showPeak.getMZ())
-                  + " m/z in the current raw data.");
+      if (allClickedPeakListRows != null && allClickedPeakListRows.length > 1) {
+        // show multi msms window of multiple rows
+        MultiMSMSWindow multi = new MultiMSMSWindow();
+        multi.setData(allClickedPeakListRows, peakList.getRawDataFiles(), clickedDataFile, true,
+            SortingProperty.MZ, SortingDirection.Ascending);
+        multi.setVisible(true);
+      } else {
+        Feature showPeak = getSelectedPeakForMSMS();
+        if (showPeak != null) {
+          final int scanNumber = showPeak.getMostIntenseFragmentScanNumber();
+          if (scanNumber > 0) {
+            SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(), scanNumber);
+          } else {
+            MZmineCore.getDesktop().displayMessage(window,
+                "There is no fragment for "
+                    + MZmineCore.getConfiguration().getMZFormat().format(showPeak.getMZ())
+                    + " m/z in the current raw data.");
+          }
         }
       }
     }
@@ -533,7 +560,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       IsotopePatternExportModule.exportIsotopePattern(clickedPeakListRow);
     }
     if (exportToSirius.equals(src)) {
-      SiriusExportModule.exportSinglePeakList(clickedPeakListRow);
+      // export all selected rows
+      SiriusExportModule.exportSingleRows(peakList, allClickedPeakListRows);
     }
 
     if (exportMSMSItem.equals(src)) {
@@ -632,8 +660,27 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
    * @return the peak.
    */
   private Feature getSelectedPeak() {
-
     return clickedDataFile != null ? clickedPeakListRow.getPeak(clickedDataFile)
         : clickedPeakListRow.getBestPeak();
   }
+
+  /**
+   * Get the selected peak. If no specific raw data file was clicked return highest peak with MS/MS
+   * 
+   * @return the peak.
+   */
+  private Feature getSelectedPeakForMSMS() {
+    Feature peak = getSelectedPeak();
+    // always return if a raw data file was clicked
+    if (clickedDataFile != null || peak != null)
+      return peak;
+    else {
+      // no specific raw data file was chosen and bestPeak has no MSMS
+      // try to find highest peak with MSMS
+      Scan scan = clickedPeakListRow.getBestFragmentation();
+      return scan == null ? null : clickedPeakListRow.getPeak(scan.getDataFile());
+    }
+  }
 }
+
+
