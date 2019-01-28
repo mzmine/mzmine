@@ -54,6 +54,7 @@ import java.util.List;
 
 /**
  * Peak-list table pop-up menu.
+ * 
  */
 public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener {
 
