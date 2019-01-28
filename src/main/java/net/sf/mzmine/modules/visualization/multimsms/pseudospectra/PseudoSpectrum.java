@@ -40,7 +40,7 @@ public class PseudoSpectrum {
   public static PseudoSpectrumDataSet createDataSet(PeakListRow[] group, RawDataFile raw,
       boolean sum) {
     // data
-    PseudoSpectrumDataSet series = new PseudoSpectrumDataSet("pseudo", true);
+    PseudoSpectrumDataSet series = new PseudoSpectrumDataSet(true, "pseudo");
     // add all isotopes as a second series:
     XYSeries isoSeries = new XYSeries("Isotopes", true);
     // raw isotopes in a different color

@@ -65,8 +65,8 @@ public class SpectrumChartFactory {
     if (scan != null) {
       // data
       PseudoSpectrumDataSet series =
-          new PseudoSpectrumDataSet(MessageFormat.format("MSMS for m/z={0} RT={1}",
-              mzForm.format(scan.getPrecursorMZ()), rtForm.format(scan.getRetentionTime())), true);
+          new PseudoSpectrumDataSet(true, MessageFormat.format("MSMS for m/z={0} RT={1}",
+              mzForm.format(scan.getPrecursorMZ()), rtForm.format(scan.getRetentionTime())));
       // for each row
       for (DataPoint dp : scan.getDataPoints()) {
         series.addDP(dp.getMZ(), dp.getIntensity(), null);
@@ -76,20 +76,31 @@ public class SpectrumChartFactory {
       return null;
   }
 
-  public static PseudoSpectrumDataSet createPseudoDataSet(Scan scan) {
+  /**
+   * Two scans as a mirror comparison
+   * 
+   * @param scan
+   * @param mirror gets reflected by *-1
+   * @return
+   */
+  public static PseudoSpectrumDataSet createMirrorDataSet(Scan scan, Scan mirror) {
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
 
-    if (scan != null) {
+    if (scan != null && mirror != null) {
+      String label1 = MessageFormat.format("MSMS for m/z={0} RT={1}",
+          mzForm.format(scan.getPrecursorMZ()), rtForm.format(scan.getRetentionTime()));
+      String label2 = MessageFormat.format("MSMS for m/z={0} RT={1}",
+          mzForm.format(mirror.getPrecursorMZ()), rtForm.format(mirror.getRetentionTime()));
       // data
-      PseudoSpectrumDataSet series =
-          new PseudoSpectrumDataSet(MessageFormat.format("MSMS for m/z={0} RT={1}",
-              mzForm.format(scan.getPrecursorMZ()), rtForm.format(scan.getRetentionTime())), true);
+      PseudoSpectrumDataSet data = new PseudoSpectrumDataSet(true, label1, label2);
       // for each row
-      for (DataPoint dp : scan.getDataPoints()) {
-        series.addDP(dp.getMZ(), dp.getIntensity(), null);
-      }
-      return series;
+      for (DataPoint dp : scan.getDataPoints())
+        data.addDP(0, dp.getMZ(), dp.getIntensity(), null);
+      for (DataPoint dp : mirror.getDataPoints())
+        data.addDP(1, dp.getMZ(), -dp.getIntensity(), null);
+
+      return data;
     } else
       return null;
   }
@@ -104,9 +115,25 @@ public class SpectrumChartFactory {
    * @param showLegend
    * @return
    */
-  public static EChartPanel createChartPanel(Scan scan, boolean showTitle, boolean showLegend) {
-    JFreeChart chart = createChart(scan, showTitle, showLegend);
+  public static EChartPanel createMirrorChartPanel(Scan scan, Scan mirror, boolean showTitle,
+      boolean showLegend) {
+    if (scan == null || mirror == null)
+      return null;
+    PseudoSpectrumDataSet dataset = createMirrorDataSet(scan, mirror);
+    JFreeChart chart = createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), 0);
+    return createChartPanel(chart);
+  }
 
+  public static EChartPanel createScanChartPanel(Scan scan, boolean showTitle, boolean showLegend) {
+    if (scan == null)
+      return null;
+    PseudoSpectrumDataSet dataset = createMSMSDataSet(scan);
+    JFreeChart chart =
+        createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), scan.getPrecursorMZ());
+    return createChartPanel(chart);
+  }
+
+  public static EChartPanel createChartPanel(JFreeChart chart) {
     if (chart == null)
       return null;
     //
@@ -135,23 +162,11 @@ public class SpectrumChartFactory {
     Scan scan = getMSMSScan(row, raw, alwaysShowBest, useBestForMissingRaw);
     if (scan == null)
       return null;
-    JFreeChart chart = createChart(scan, showTitle, showLegend);
-
-    if (chart == null)
-      return null;
-    //
-    EChartPanel pn = new EChartPanel(chart);
-    XYItemRenderer renderer = chart.getXYPlot().getRenderer();
-    PseudoSpectraItemLabelGenerator labelGenerator = new PseudoSpectraItemLabelGenerator(pn);
-    renderer.setDefaultItemLabelsVisible(true);
-    renderer.setDefaultItemLabelPaint(Color.BLACK);
-    renderer.setSeriesItemLabelGenerator(0, labelGenerator);
-    return pn;
+    return createScanChartPanel(scan, showTitle, showLegend);
   }
 
-
-  public static JFreeChart createChart(Scan scan, boolean showTitle, boolean showLegend) {
-    PseudoSpectrumDataSet dataset = createMSMSDataSet(scan);
+  public static JFreeChart createChart(PseudoSpectrumDataSet dataset, boolean showTitle,
+      boolean showLegend, double rt, double precursorMZ) {
     //
     if (dataset == null)
       return null;
@@ -160,9 +175,14 @@ public class SpectrumChartFactory {
     NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
-    JFreeChart chart = ChartFactory.createXYLineChart(
-        MessageFormat.format("MSMS for m/z={0} RT={1}", mzForm.format(scan.getPrecursorMZ()),
-            rtForm.format(scan.getRetentionTime())), // title
+    String title = "";
+    if (precursorMZ == 0)
+      title = "RT=" + mzForm.format(precursorMZ);
+    else
+      title = MessageFormat.format("MSMS for m/z={0} RT={1}", mzForm.format(precursorMZ),
+          rtForm.format(rt));
+
+    JFreeChart chart = ChartFactory.createXYLineChart(title, // title
         "m/z", // x-axis label
         "Intensity", // y-axis label
         dataset, // data set
@@ -209,8 +229,8 @@ public class SpectrumChartFactory {
     chart.getTitle().setVisible(showTitle);
     chart.getLegend().setVisible(showLegend);
     //
-    if (scan.getPrecursorMZ() != 0)
-      addPrecursorMarker(chart, scan);
+    if (precursorMZ != 0)
+      addPrecursorMarker(chart, precursorMZ);
     return chart;
   }
 
@@ -220,8 +240,8 @@ public class SpectrumChartFactory {
    * @param chart
    * @param scan
    */
-  private static void addPrecursorMarker(JFreeChart chart, Scan scan) {
-    chart.getXYPlot().addDomainMarker(
-        new ValueMarker(scan.getPrecursorMZ(), Color.ORANGE, new BasicStroke(1.5f)));
+  private static void addPrecursorMarker(JFreeChart chart, double precursorMZ) {
+    chart.getXYPlot()
+        .addDomainMarker(new ValueMarker(precursorMZ, Color.ORANGE, new BasicStroke(1.5f)));
   }
 }

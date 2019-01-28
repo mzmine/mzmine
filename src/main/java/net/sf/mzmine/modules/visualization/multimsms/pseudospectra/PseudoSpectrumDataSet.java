@@ -18,6 +18,7 @@
 
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.math3.exception.OutOfRangeException;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -30,13 +31,22 @@ public class PseudoSpectrumDataSet extends XYSeriesCollection {
 
   private Map<XYDataItem, String> annotation;
 
-  public PseudoSpectrumDataSet(Comparable key, boolean autoSort) {
-    super(new XYSeries(key, autoSort));
+  public PseudoSpectrumDataSet(boolean autoSort, Comparable... keys) {
+    super();
+    for (Comparable key : keys)
+      addSeries(new XYSeries(key, autoSort));
   }
 
   public void addDP(double x, double y, String ann) {
+    addDP(0, x, y, ann);
+  }
+
+  public void addDP(int series, double x, double y, String ann) {
+    if (series >= getSeriesCount())
+      throw new OutOfRangeException(series, 0, getSeriesCount());
+
     XYDataItem dp = new XYDataItem(x, y);
-    getSeries(0).add(dp);
+    getSeries(series).add(dp);
     if (ann != null) {
       addAnnotation(dp, ann);
     }
@@ -54,10 +64,10 @@ public class PseudoSpectrumDataSet extends XYSeriesCollection {
     annotation.put(dp, ann);
   }
 
-  public String getAnnotation(int item) {
+  public String getAnnotation(int series, int item) {
     if (annotation == null)
       return null;
-    XYDataItem itemDataPoint = getSeries(0).getDataItem(item);
+    XYDataItem itemDataPoint = getSeries(series).getDataItem(item);
     for (XYDataItem key : annotation.keySet()) {
       if (Math.abs(key.getXValue() - itemDataPoint.getXValue()) < 0.0001)
         return annotation.get(key);
@@ -72,11 +82,13 @@ public class PseudoSpectrumDataSet extends XYSeriesCollection {
   }
 
   private void addDPIdentity(MZTolerance mzTolerance, AbstractMSMSDataPointIdentity ann) {
-    XYSeries series = getSeries(0);
-    for (int i = 0; i < series.getItemCount(); i++) {
-      XYDataItem dp = series.getDataItem(i);
-      if (mzTolerance.checkWithinTolerance(dp.getXValue(), ann.getMZ())) {
-        addAnnotation(dp, ann.getName());
+    for (int s = 0; s < getSeriesCount(); s++) {
+      XYSeries series = getSeries(s);
+      for (int i = 0; i < series.getItemCount(); i++) {
+        XYDataItem dp = series.getDataItem(i);
+        if (mzTolerance.checkWithinTolerance(dp.getXValue(), ann.getMZ())) {
+          addAnnotation(dp, ann.getName());
+        }
       }
     }
   }

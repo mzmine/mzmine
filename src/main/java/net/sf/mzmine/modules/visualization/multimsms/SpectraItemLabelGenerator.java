@@ -52,7 +52,7 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
     if (dataset instanceof PseudoSpectrumDataSet) {
       double mzValue = dataset.getXValue(series, item);
       label = mzFormat.format(mzValue);
-      String ann = ((PseudoSpectrumDataSet) dataset).getAnnotation(item);
+      String ann = ((PseudoSpectrumDataSet) dataset).getAnnotation(series, item);
       if (ann != null)
         label = label + "\n" + ann;
       return label;

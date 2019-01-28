@@ -24,7 +24,6 @@ import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -39,25 +38,17 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
-import org.jfree.data.xy.XYDataItem;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import net.sf.mzmine.chartbasics.chartgroups.ChartGroup;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
-import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.identities.MolecularFormulaIdentity;
-import net.sf.mzmine.datamodel.identities.ms2.MSMSIonIdentity;
 import net.sf.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.visualization.multimsms.pseudospectra.PseudoSpectrum;
 import net.sf.mzmine.modules.visualization.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
@@ -353,7 +344,7 @@ public class MultiMSMSWindow extends JFrame {
       }
       if (best != null) {
         scan = best.getDataFile().getScan(best.getRepresentativeScanNumber());
-        EChartPanel cp = SpectrumChartFactory.createChartPanel(scan, showTitle, showLegend);
+        EChartPanel cp = SpectrumChartFactory.createScanChartPanel(scan, showTitle, showLegend);
         if (cp != null)
           msone = new ChartViewWrapper(cp);
       }
