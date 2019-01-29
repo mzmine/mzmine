@@ -78,7 +78,7 @@ public class PseudoSpectraRenderer extends XYBarRenderer {
       public void paintBar(Graphics2D g2, XYBarRenderer renderer, int row, int column,
           RectangularShape bar, RectangleEdge base) {
         super.paintBar(g2, renderer, row, column, new Rectangle2D.Double(
-            bar.getX() + (bar.getWidth() - 2) / 2, bar.getY(), 2, bar.getHeight()), base);
+            bar.getX() + (bar.getWidth() - 1.5) / 2, bar.getY(), 1.5, bar.getHeight()), base);
       }
     });
   }

@@ -23,7 +23,9 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
@@ -119,9 +121,75 @@ public class SpectrumChartFactory {
       boolean showLegend) {
     if (scan == null || mirror == null)
       return null;
-    PseudoSpectrumDataSet dataset = createMirrorDataSet(scan, mirror);
-    JFreeChart chart = createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), 0);
-    return createChartPanel(chart);
+    PseudoSpectrumDataSet data = createMSMSDataSet(scan);
+    PseudoSpectrumDataSet dataMirror = createMSMSDataSet(mirror);
+
+    NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+    NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
+    NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+
+    // set the X axis (retention time) properties
+    NumberAxis xAxis = new NumberAxis("m/z");
+    xAxis.setNumberFormatOverride(mzForm);
+    xAxis.setUpperMargin(0.08);
+    xAxis.setLowerMargin(0.00);
+    xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
+    xAxis.setAutoRangeIncludesZero(false);
+    xAxis.setMinorTickCount(5);
+
+    PseudoSpectraRenderer renderer1 = new PseudoSpectraRenderer(Color.BLACK, false);
+    PseudoSpectraRenderer renderer2 = new PseudoSpectraRenderer(Color.BLACK, false);
+
+    // create subplot 1...
+    final NumberAxis rangeAxis1 = new NumberAxis("Intensity");
+    final XYPlot subplot1 = new XYPlot(data, null, rangeAxis1, renderer1);
+    subplot1.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
+    rangeAxis1.setNumberFormatOverride(intensityFormat);
+    rangeAxis1.setUpperMargin(0.20);
+    rangeAxis1.setAutoRangeIncludesZero(true);
+    rangeAxis1.setAutoRangeStickyZero(true);
+
+    // create subplot 2...
+    final NumberAxis rangeAxis2 = new NumberAxis("Intensity");
+    rangeAxis2.setNumberFormatOverride(intensityFormat);
+    rangeAxis2.setUpperMargin(0.20);
+    rangeAxis2.setAutoRangeIncludesZero(true);
+    rangeAxis2.setAutoRangeStickyZero(true);
+    rangeAxis2.setInverted(true);
+    final XYPlot subplot2 = new XYPlot(dataMirror, null, rangeAxis2, renderer2);
+    subplot2.setRangeAxisLocation(AxisLocation.TOP_OR_LEFT);
+
+    // parent plot...
+    final CombinedDomainXYPlot plot = new CombinedDomainXYPlot(new NumberAxis("Domain"));
+    plot.setGap(0);
+
+    // add the subplots...
+    plot.add(subplot1, 1);
+    plot.add(subplot2, 1);
+    plot.setOrientation(PlotOrientation.VERTICAL);
+
+
+    // set the plot properties
+    plot.setBackgroundPaint(Color.white);
+    plot.setAxisOffset(RectangleInsets.ZERO_INSETS);
+
+    // set rendering order
+    plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+
+    // set crosshair (selection) properties
+    plot.setDomainCrosshairVisible(false);
+    plot.setRangeCrosshairVisible(false);
+
+    // return a new chart containing the overlaid plot...
+    JFreeChart chart = new JFreeChart("", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+    chart.setBackgroundPaint(Color.white);
+    chart.getTitle().setVisible(false);
+
+    // chart.getXYPlot().setRangeZeroBaselineVisible(true);
+    chart.getTitle().setVisible(showTitle);
+    chart.getLegend().setVisible(showLegend);
+
+    return new EChartPanel(chart);
   }
 
   public static EChartPanel createScanChartPanel(Scan scan, boolean showTitle, boolean showLegend) {
