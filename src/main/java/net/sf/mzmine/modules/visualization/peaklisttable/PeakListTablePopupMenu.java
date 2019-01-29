@@ -49,8 +49,6 @@ import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcess
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
-import net.sf.mzmine.modules.visualization.mirrorspectra.MirrorScanWindow;
-import net.sf.mzmine.modules.visualization.multimsms.MultiMSMSWindow;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.MSMSExportModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.CommonColumnType;
@@ -58,7 +56,9 @@ import net.sf.mzmine.modules.visualization.peaklisttable.table.DataFileColumnTyp
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.mirrorspectra.MirrorScanWindow;
+import net.sf.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;

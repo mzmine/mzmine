@@ -27,10 +27,10 @@ import java.util.Vector;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
-import net.sf.mzmine.modules.visualization.spectra.datasets.DataPointsDataSet;
-import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
