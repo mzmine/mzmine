@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
@@ -110,7 +110,7 @@ public class YMDBGateway implements DBGateway {
       throw (new IOException("Could not parse compound name"));
     }
 
-    DBCompound newCompound = new DBCompound(OnlineDatabase.YMDB, ID, compoundName, compoundFormula,
+    DBCompound newCompound = new DBCompound(OnlineDatabases.YMDB, ID, compoundName, compoundFormula,
         entryURL, structure2DURL, structure3DURL);
 
     return newCompound;

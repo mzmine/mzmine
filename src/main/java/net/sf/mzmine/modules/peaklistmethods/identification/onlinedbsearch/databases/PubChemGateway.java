@@ -36,7 +36,7 @@ import com.google.common.collect.Range;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
@@ -155,7 +155,7 @@ public class PubChemGateway implements DBGateway {
     URL structure2DURL = new URL(pubchem2DStructureAddress + CID);
     URL structure3DURL = new URL(pubchem3DStructureAddress + CID);
 
-    DBCompound newCompound = new DBCompound(OnlineDatabase.PubChem, CID, compoundName,
+    DBCompound newCompound = new DBCompound(OnlineDatabases.PubChem, CID, compoundName,
         compoundFormula, entryURL, structure2DURL, structure3DURL);
 
     return newCompound;

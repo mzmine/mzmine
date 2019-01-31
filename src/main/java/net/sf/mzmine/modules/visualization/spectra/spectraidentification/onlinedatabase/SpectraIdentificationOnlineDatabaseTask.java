@@ -35,7 +35,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
@@ -63,7 +63,7 @@ public class SpectraIdentificationOnlineDatabaseTask extends AbstractTask {
 
   private int finishedItems = 0, numItems;
 
-  private MZmineProcessingStep<OnlineDatabase> db;
+  private MZmineProcessingStep<OnlineDatabases> db;
   private double searchedMass;
   private double noiseLevel;
   private MZTolerance mzTolerance;

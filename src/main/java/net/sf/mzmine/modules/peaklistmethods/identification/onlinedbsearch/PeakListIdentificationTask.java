@@ -57,7 +57,7 @@ public class PeakListIdentificationTask extends AbstractTask {
   private int finishedItems;
   private int numItems;
 
-  private final MZmineProcessingStep<OnlineDatabase> db;
+  private final MZmineProcessingStep<OnlineDatabases> db;
   private final MZTolerance mzTolerance;
   private final int numOfResults;
   private final PeakList peakList;

@@ -29,9 +29,9 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class SingleRowIdentificationParameters extends SimpleParameterSet {
 
-  public static final ModuleComboParameter<OnlineDatabase> DATABASE =
-      new ModuleComboParameter<OnlineDatabase>("Database", "Database to search",
-          OnlineDatabase.values());
+  public static final ModuleComboParameter<OnlineDatabases> DATABASE =
+      new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
+          OnlineDatabases.values());
 
   public static final NeutralMassParameter NEUTRAL_MASS =
       new NeutralMassParameter("Neutral mass", "Value to use in the search query");

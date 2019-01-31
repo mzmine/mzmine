@@ -49,7 +49,7 @@ import com.google.common.collect.Range;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.RangeUtils;
@@ -141,7 +141,7 @@ public class ChemSpiderGateway implements DBGateway {
         formula = FORMULA_PATTERN.matcher(formula).replaceAll("");
 
       // Create and return the compound record.
-      return new DBCompound(OnlineDatabase.CHEMSPIDER, ID, name, formula,
+      return new DBCompound(OnlineDatabases.CHEMSPIDER, ID, name, formula,
           new URL(STRUCTURE_URL_PATTERN.replaceFirst("CSID", ID)),
           new URL(STRUCTURE2D_URL_PATTERN.replaceFirst("CSID", ID)),
           new URL(STRUCTURE3D_URL_PATTERN.replaceFirst("CSID", ID)));

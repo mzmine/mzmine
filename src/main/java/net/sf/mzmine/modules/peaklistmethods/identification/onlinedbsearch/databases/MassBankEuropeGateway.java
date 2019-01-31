@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
@@ -128,7 +128,7 @@ public class MassBankEuropeGateway implements DBGateway {
       return null;
     }
 
-    DBCompound newCompound = new DBCompound(OnlineDatabase.MASSBANKEurope, ID, compoundName,
+    DBCompound newCompound = new DBCompound(OnlineDatabases.MASSBANKEurope, ID, compoundName,
         compoundFormula, databaseURL, structure2DURL, structure3DURL);
 
     return newCompound;

@@ -19,7 +19,7 @@
 package net.sf.mzmine.modules.visualization.spectra.spectraidentification.onlinedatabase;
 
 import net.sf.mzmine.datamodel.IonizationType;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -34,9 +34,9 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
  */
 public class SpectraIdentificationOnlineDatabaseParameters extends SimpleParameterSet {
 
-  public static final ModuleComboParameter<OnlineDatabase> database =
-      new ModuleComboParameter<OnlineDatabase>("Database", "Database to search",
-          OnlineDatabase.values());
+  public static final ModuleComboParameter<OnlineDatabases> database =
+      new ModuleComboParameter<OnlineDatabases>("Database", "Database to search",
+          OnlineDatabases.values());
 
   public static final ComboParameter<IonizationType> ionizationType =
       new ComboParameter<IonizationType>("Ionization type", "Ionization type",

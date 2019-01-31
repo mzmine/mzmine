@@ -32,7 +32,7 @@ public class DBCompound extends SimplePeakIdentity {
   private final URL structure3dUrl;
   private Double isotopePatternScore;
   private IsotopePattern isotopePattern;
-  private final OnlineDatabase database;
+  private final OnlineDatabases database;
 
   /**
    * @param db the database the compound is from.
@@ -43,7 +43,7 @@ public class DBCompound extends SimplePeakIdentity {
    * @param url2d the URL of the compound's 2D structure.
    * @param url3d the URL of the compound's 3D structure.
    */
-  public DBCompound(final OnlineDatabase db, final String id, final String name,
+  public DBCompound(final OnlineDatabases db, final String id, final String name,
       final String formula, final URL urlDb, final URL url2d, final URL url3d) {
 
     super(name, formula, db + " search", id, urlDb.toString());
