@@ -98,10 +98,16 @@
 	<repositories>
 		<repository>
 			<!-- jmzml, jmztab repository -->
-			<id>nexus-ebi-release-repo</id>
+			<id>ebi-release-repo</id>
 			<name>The EBI Maven repository</name>
-			<url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
+			<url>https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
 		</repository>
+		<repository>
+			<!-- EBI temp repository -->
+			<id>ebi-repo-2</id>
+			<name>The EBI Maven repository 2</name>
+			<url>https://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
+		</repository>		
 		<repository>
 			<id>lib</id>
 			<name>MZmine local libraries</name>
