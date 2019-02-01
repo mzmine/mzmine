@@ -30,16 +30,16 @@ import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.EntityCollection;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture;
-import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler;
-import net.sf.mzmine.chartbasics.gestures.ChartGestureEvent;
-import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Button;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
 import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler.Orientation;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureEvent;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler.DragHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler.Handler;
+import net.sf.mzmine.chartbasics.gui.wrapper.GestureMouseAdapter;
 
 /**
  * Handles all MouseEvents (like a MouseAdapter) and transforms them into {@link ChartGestureEvent}s
@@ -49,7 +49,7 @@ import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler.Handler;
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  */
-public class ChartGestureMouseAdapter extends MouseAdapter {
+public class ChartGestureMouseAdapter extends MouseAdapter implements GestureMouseAdapter {
   private int lastEntityX = -1, lastEntityY = -1;
   private ChartEntity lastEntity = null;
   private ChartGestureEvent lastDragEvent = null;

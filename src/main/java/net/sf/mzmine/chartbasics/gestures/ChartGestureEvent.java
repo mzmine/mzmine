@@ -175,37 +175,43 @@ public class ChartGestureEvent { // ChartPanel or ChartCanvas
    * Transforms mouse coordinates to data space coordinates. Same as
    * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
    * 
-   * @param chartPanel
-   * @param e
    * @return
    */
   public Point2D getCoordinates(int x, int y) {
     return cp.mouseXYToPlotXY(x, y);
   }
-  
+
+
+  /**
+   * Transforms mouse coordinates to data space coordinates. Same as
+   * {@link ChartLogics#mouseXYToPlotXY(ChartPanel, int, int)}
+   * 
+   * @return
+   */
+  public Point2D getCoordinates() {
+    return cp.mouseXYToPlotXY(mouseEvent.getX(), mouseEvent.getY());
+  }
+
   /**
    * Mouse event point
-   * @param x
-   * @param y
-   * @return 
+   * 
+   * @return
    */
   public Point2D getPoint() {
-	    return mouseEvent.getPoint();
-}
+    return mouseEvent.getPoint();
+  }
+
   /**
-   * Returns the index of the subplot that contains the specified
-   * (x, y) point (the "source" point).  The source point will usually
-   * come from a mouse click on a {@link org.jfree.chart.ChartPanel},
-   * and this method is then used to determine the subplot that
-   * contains the source point.
+   * Returns the index of the subplot that contains the specified (x, y) point (the "source" point).
+   * The source point will usually come from a mouse click on a {@link org.jfree.chart.ChartPanel},
+   * and this method is then used to determine the subplot that contains the source point.
    *
-   * @param source  the source point (in Java2D space, {@code null} not
-   * permitted).
+   * @param source the source point (in Java2D space, {@code null} not permitted).
    *
    * @return The subplot index (or -1 if no subplot contains {@code source}).
    */
   public int getSubplotIndex() {
-	  return cp.getRenderingInfo().getPlotInfo().getSubplotIndex(getPoint());
+    return cp.getRenderingInfo().getPlotInfo().getSubplotIndex(getPoint());
   }
 
   /**

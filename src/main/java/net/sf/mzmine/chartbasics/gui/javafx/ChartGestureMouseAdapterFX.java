@@ -40,6 +40,7 @@ import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler.DragHandler;
 import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler.Handler;
 import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
+import net.sf.mzmine.chartbasics.gui.wrapper.GestureMouseAdapter;
 import net.sf.mzmine.chartbasics.gui.wrapper.MouseEventWrapper;
 
 /**
@@ -48,7 +49,7 @@ import net.sf.mzmine.chartbasics.gui.wrapper.MouseEventWrapper;
  * handler only works for a <b>ChartCanvas</b> that is embedded in a {@link ChartViewer}, since it
  * relies on the <b>ChartViewer</b> for drawing the zoom rectangle.
  */
-public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
+public class ChartGestureMouseAdapterFX implements GestureMouseAdapter, MouseHandlerFX {
 
   private ChartViewer chartViewer;
   private ChartViewWrapper cw;
@@ -115,7 +116,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
     if (gestureHandlers != null)
       gestureHandlers.stream().filter(handler -> handler.getGesture().filter(e.getGesture()))
           .forEach(handler -> {
-        	  handler.accept(e);  
+            handler.accept(e);
           });
   }
 
@@ -125,6 +126,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
    * @param g
    * @param handler
    */
+  @Override
   public void addDragGestureHandler(DragHandler[] handler, Key[] key, Entity entity, Button button,
       Orientation orient, Object[] param) {
     ChartGestureHandler h =
@@ -138,6 +140,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
    * @param g
    * @param handler
    */
+  @Override
   public void addGestureHandler(Handler handler, Entity entity, Event[] event, Button button,
       Key key, Object[] param) {
     ChartGestureHandler h = ChartGestureHandler.createHandler(handler,
@@ -151,6 +154,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
    * @param g
    * @param handler
    */
+  @Override
   public void addGestureHandler(ChartGestureHandler handler) {
     if (gestureHandlers == null) {
       gestureHandlers = new ArrayList<ChartGestureHandler>();
@@ -169,6 +173,7 @@ public class ChartGestureMouseAdapterFX implements MouseHandlerFX {
    * @param g
    * @param handler
    */
+  @Override
   public void removeGestureHandler(ChartGestureHandler handler) {
     if (gestureHandlers == null)
       return;
