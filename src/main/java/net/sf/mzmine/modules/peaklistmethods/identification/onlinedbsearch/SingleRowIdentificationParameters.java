@@ -37,13 +37,14 @@ public class SingleRowIdentificationParameters extends SimpleParameterSet {
       new NeutralMassParameter("Neutral mass", "Value to use in the search query");
 
   public static final IntegerParameter MAX_RESULTS =
-      new IntegerParameter("Number of results", "Maximum number of results to display", 100);
+      new IntegerParameter("Number of results", "Maximum number of results to display", 20, 1, 100);
 
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
-  public static final OptionalModuleParameter ISOTOPE_FILTER = new OptionalModuleParameter(
-      "Isotope pattern filter", "Search only for compounds with a isotope pattern similar",
-      new IsotopePatternScoreParameters());
+  public static final OptionalModuleParameter<IsotopePatternScoreParameters> ISOTOPE_FILTER =
+      new OptionalModuleParameter<>("Isotope pattern filter",
+          "Search only for compounds with a isotope pattern similar",
+          new IsotopePatternScoreParameters());
 
   public SingleRowIdentificationParameters() {
     super(new Parameter[] {DATABASE, NEUTRAL_MASS, MAX_RESULTS, MZ_TOLERANCE, ISOTOPE_FILTER});

@@ -46,18 +46,20 @@ public enum OnlineDatabases implements MZmineModule {
   CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class, ChemSpiderParameters.class), //
   METACYC("MetaCyc Database", MetaCycGateway.class);
 
-  private final String dbName;
-  private final Class<? extends DBGateway> gatewayClass;
-  private final Class<? extends ParameterSet> parametersClass;
+  private final @Nonnull String dbName;
+  private final @Nonnull Class<? extends DBGateway> gatewayClass;
+  private final @Nonnull Class<? extends ParameterSet> parametersClass;
 
-  OnlineDatabases(final String dbName, final Class<? extends DBGateway> gatewayClass,
-      final Class<? extends ParameterSet> parametersClass) {
+  OnlineDatabases(final @Nonnull String dbName,
+      final @Nonnull Class<? extends DBGateway> gatewayClass,
+      final @Nonnull Class<? extends ParameterSet> parametersClass) {
     this.dbName = dbName;
     this.gatewayClass = gatewayClass;
     this.parametersClass = parametersClass;
   }
 
-  OnlineDatabases(final String name, final Class<? extends DBGateway> gatewayClass) {
+  OnlineDatabases(final @Nonnull String name,
+      final @Nonnull Class<? extends DBGateway> gatewayClass) {
     this(name, gatewayClass, SimpleParameterSet.class);
   }
 

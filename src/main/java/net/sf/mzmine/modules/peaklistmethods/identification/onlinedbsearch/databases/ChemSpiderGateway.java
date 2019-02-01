@@ -60,9 +60,8 @@ import net.sf.mzmine.util.RangeUtils;
  */
 public class ChemSpiderGateway implements DBGateway {
 
-  // Logger.
-  private static final Logger LOG = Logger.getLogger(ChemSpiderGateway.class.getName());
-
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+  
   // Compound names.
   private static final String UNKNOWN_NAME = "Unknown name";
 
@@ -81,7 +80,7 @@ public class ChemSpiderGateway implements DBGateway {
   public String[] findCompounds(final double mass, final MZTolerance mzTolerance,
       final int numOfResults, ParameterSet parameters) throws IOException {
 
-    LOG.finest("Searching by mass...");
+    logger.finest("Searching by mass...");
 
     // Get search range
     final Range<Double> mzRange = mzTolerance.getToleranceRange(mass);
@@ -117,7 +116,7 @@ public class ChemSpiderGateway implements DBGateway {
   @Override
   public DBCompound getCompound(final String ID, ParameterSet parameters) throws IOException {
 
-    LOG.finest("Fetching compound info for CSID #" + ID);
+    logger.finest("Fetching compound info for CSID #" + ID);
 
     // Get security token.
     final String apiKey = parameters.getParameter(ChemSpiderParameters.SECURITY_TOKEN).getValue();
@@ -147,7 +146,7 @@ public class ChemSpiderGateway implements DBGateway {
           new URL(STRUCTURE3D_URL_PATTERN.replaceFirst("CSID", ID)));
 
     } catch (ApiException e) {
-      LOG.log(Level.WARNING, "Failed to fetch compound info for CSID #" + ID, e);
+      logger.log(Level.WARNING, "Failed to fetch compound info for CSID #" + ID, e);
       throw new IOException(e);
     }
 
