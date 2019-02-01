@@ -101,5 +101,3 @@ then
 	fi
 fi
 
-# Delete temporary folder
-rm -rf $TMP_FILE_DIRECTORY
