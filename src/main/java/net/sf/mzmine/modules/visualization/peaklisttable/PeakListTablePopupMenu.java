@@ -58,6 +58,7 @@ import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableColu
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.mirrorspectra.MirrorScanWindow;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
@@ -255,7 +256,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         // If we have the peak, enable Show... items
         if (clickedPeak != null && oneRowSelected) {
           showIsotopePatternItem.setEnabled(clickedPeak.getIsotopePattern() != null);
-          }
+        }
 
         // always show for multi
         showMSMSItem.setEnabled(selectedRows.length > 0 && getSelectedPeakForMSMS() != null);
@@ -264,14 +265,13 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
             .setEnabled(clickedPeakListRow.getBestIsotopePattern() != null && oneRowSelected);
 
       }
-      
-        // always show for multi MSMS window
-        showMSMSItem.setEnabled(selectedRows.length > 0 && getSelectedPeakForMSMS() != null);
-      
+
+      // always show for multi MSMS window
+      showMSMSItem.setEnabled(selectedRows.length > 0 && getSelectedPeakForMSMS() != null);
+
       // always show if at least one fragmentation is available
-          showAllMSMSItem
-              .setEnabled(clickedPeakListRow.getBestFragmentation()!=0);
-                  && oneRowSelected);
+      showAllMSMSItem
+          .setEnabled(clickedPeakListRow.getBestFragmentation() != null && oneRowSelected);
 
       // only show if selected rows == 2 and both have MS2
       boolean bothMS2 =
@@ -514,7 +514,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
     if (showAllMSMSItem.equals(src)) {
 
-      final Feature showPeak = getSelectedPeak();
+      final Feature showPeak = getSelectedPeakForMSMS();
       if (showPeak != null) {
         int[] scanNumbers = showPeak.getAllMS2FragmentScanNumbers();
 
