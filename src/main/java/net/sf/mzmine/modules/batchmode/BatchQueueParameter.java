@@ -20,14 +20,14 @@ package net.sf.mzmine.modules.batchmode;
 
 import java.util.Collection;
 
+import org.w3c.dom.Element;
+
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-
-import org.w3c.dom.Element;
 
 /**
  * Batch queue parameter.
@@ -102,15 +102,17 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetup
 
         // Check step's parameters.
         final ParameterSet params = batchStep.getParameterSet();
-        if (params != null) {
-          for (final Parameter<?> parameter : params.getParameters()) {
+        if (params == null)
+          continue;
 
-            // Ignore the raw data files and peak lists parameters
-            if (!(parameter instanceof RawDataFilesParameter)
-                && !(parameter instanceof PeakListsParameter)
-                && !parameter.checkValue(errorMessages)) {
-              allParamsOK = false;
-            }
+        for (final Parameter<?> parameter : params.getParameters()) {
+
+          // Ignore the raw data files and peak lists parameters
+          if (!(parameter instanceof RawDataFilesParameter)
+              && !(parameter instanceof PeakListsParameter)
+              && !parameter.checkValue(errorMessages)) {
+            allParamsOK = false;
+
           }
         }
       }

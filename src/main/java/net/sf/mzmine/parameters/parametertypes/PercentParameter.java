@@ -20,9 +20,9 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
 
-import net.sf.mzmine.parameters.UserParameter;
-
 import org.w3c.dom.Element;
+
+import net.sf.mzmine.parameters.UserParameter;
 
 /**
  * Simple Parameter implementation
@@ -31,22 +31,23 @@ import org.w3c.dom.Element;
  */
 public class PercentParameter implements UserParameter<Double, PercentComponent> {
 
-  private String name, description;
+  private final String name, description;
+  private final Double defaultValue, minValue, maxValue;
   private Double value;
-  private double minValue, maxValue;
 
   public PercentParameter(String name, String description) {
-    this(name, description, null, 0, 1);
+    this(name, description, null, 0.0, 1.0);
   }
 
   public PercentParameter(final String name, final String description, final Double defaultValue) {
-    this(name, description, defaultValue, 0, 1);
+    this(name, description, defaultValue, 0.0, 1.0);
   }
 
   public PercentParameter(final String name, final String description, final Double defaultValue,
-      final double minValue, double maxValue) {
+      final Double minValue, Double maxValue) {
     this.name = name;
     this.description = description;
+    this.defaultValue = defaultValue;
     this.value = defaultValue;
     this.minValue = minValue;
     this.maxValue = maxValue;
@@ -88,7 +89,8 @@ public class PercentParameter implements UserParameter<Double, PercentComponent>
 
   @Override
   public PercentParameter cloneParameter() {
-    PercentParameter copy = new PercentParameter(name, description);
+    PercentParameter copy =
+        new PercentParameter(name, description, defaultValue, minValue, maxValue);
     copy.setValue(this.getValue());
     return copy;
   }

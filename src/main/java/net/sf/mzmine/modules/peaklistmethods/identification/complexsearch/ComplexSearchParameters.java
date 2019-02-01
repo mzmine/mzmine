@@ -45,7 +45,7 @@ public class ComplexSearchParameters extends SimpleParameterSet {
   public static final PercentParameter maxComplexHeight = new PercentParameter(
       "Max complex peak height",
       "Maximum height of the recognized complex peak, relative to the highest of component peaks",
-      0.5, 0, 100);
+      0.5, 0.0, 100.0);
 
   public ComplexSearchParameters() {
     super(

@@ -40,9 +40,9 @@ public class FragmentSearchParameters extends SimpleParameterSet {
   /*
    * Max value 10000% so even high-intensity fragments can be searched for.
    */
-  public static final PercentParameter maxFragmentHeight =
-      new PercentParameter("Max fragment peak height",
-          "Maximum height of the recognized fragment peak, relative to the main peak", 0.5, 0, 100);
+  public static final PercentParameter maxFragmentHeight = new PercentParameter(
+      "Max fragment peak height",
+      "Maximum height of the recognized fragment peak, relative to the main peak", 0.5, 0.0, 100.0);
 
   public static final DoubleParameter minMS2peakHeight = new DoubleParameter("Min MS2 peak height",
       "Minimum absolute intensity of the MS2 fragment peak",

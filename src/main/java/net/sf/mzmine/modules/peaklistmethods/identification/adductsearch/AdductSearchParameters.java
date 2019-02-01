@@ -42,9 +42,9 @@ public class AdductSearchParameters extends SimpleParameterSet {
   /*
    * Max value 10000% so even high-intensity adducts can be searched for.
    */
-  public static final PercentParameter MAX_ADDUCT_HEIGHT =
-      new PercentParameter("Max relative adduct peak height",
-          "Maximum height of the recognized adduct peak, relative to the main peak", 0.5, 0, 100);
+  public static final PercentParameter MAX_ADDUCT_HEIGHT = new PercentParameter(
+      "Max relative adduct peak height",
+      "Maximum height of the recognized adduct peak, relative to the main peak", 0.5, 0.0, 100.0);
 
   public AdductSearchParameters() {
 
