@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -41,7 +42,6 @@ public interface MZmineModule {
    * SimpleParameterSet class. The returned class must provide a public constructor without
    * parameters.
    */
-  @Nonnull
-  public Class<? extends ParameterSet> getParameterSetClass();
+  public @Nullable Class<? extends ParameterSet> getParameterSetClass();
 
 }

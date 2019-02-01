@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase;
+package net.sf.mzmine.modules.visualization.spectra.spectraidentification.onlinedatabase;
 
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
@@ -26,7 +26,6 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-
 
 /**
  * Parameters for identifying peaks by searching on-line databases.

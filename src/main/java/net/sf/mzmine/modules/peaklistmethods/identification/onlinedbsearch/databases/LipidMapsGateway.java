@@ -24,7 +24,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
@@ -101,7 +101,7 @@ public class LipidMapsGateway implements DBGateway {
     URL structure3DURL = null;
     URL databaseURL = new URL(lipidMapsDetailsAddress + ID);
 
-    DBCompound newCompound = new DBCompound(OnlineDatabase.LIPIDMAPS, ID, compoundName,
+    DBCompound newCompound = new DBCompound(OnlineDatabases.LIPIDMAPS, ID, compoundName,
         compoundFormula, databaseURL, structure2DURL, structure3DURL);
 
     return newCompound;

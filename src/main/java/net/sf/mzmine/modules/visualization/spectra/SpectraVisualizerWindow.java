@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra;
+package net.sf.mzmine.modules.visualization.spectra;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -52,14 +52,14 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.SinglePeakDataSet;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;

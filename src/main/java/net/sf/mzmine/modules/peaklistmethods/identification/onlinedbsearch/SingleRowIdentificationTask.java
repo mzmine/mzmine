@@ -52,7 +52,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
   private int finishedItems = 0, numItems;
 
-  private MZmineProcessingStep<OnlineDatabase> db;
+  private MZmineProcessingStep<OnlineDatabases> db;
   private double searchedMass;
   private MZTolerance mzTolerance;
   private int charge;

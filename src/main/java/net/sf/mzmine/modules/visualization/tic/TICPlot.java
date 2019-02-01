@@ -51,6 +51,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.DefaultXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -469,6 +470,7 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     }
   }
 
+  @Override
   public void mouseWheelMoved(MouseWheelEvent event) {
     int notches = event.getWheelRotation();
     if (notches < 0) {
@@ -478,6 +480,7 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     }
   }
 
+  @Override
   public void restoreAutoBounds() {
     getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
     getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
@@ -623,6 +626,20 @@ public class TICPlot extends EChartPanel implements MouseWheelListener {
     addDataSetRenderer(dataSet, renderer);
     numOfPeaks++;
   }
+
+  // add data set
+  public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency) {
+
+    XYItemRenderer newRenderer = new DefaultXYItemRenderer();
+
+    newRenderer.setDefaultFillPaint(color);
+
+    plot.setDataset(numOfDataSets, dataSet);
+    plot.setRenderer(numOfDataSets, newRenderer);
+    numOfDataSets++;
+
+  }
+
 
   public synchronized void addLabelledPeakDataset(final XYDataset dataSet, final String label) {
 

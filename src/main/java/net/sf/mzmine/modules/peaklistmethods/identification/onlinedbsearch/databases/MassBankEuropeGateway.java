@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
@@ -39,18 +39,15 @@ public class MassBankEuropeGateway implements DBGateway {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  // Unfortunately, we need to list all the instrument types here
-  private static final String instrumentTypes[] =
-      {"APCI-ITFT", "APCI-ITTOF", "CE-ESI-TOF", "CI-B", "EI-B", "EI-EBEB", "ESI-FTICR", "ESI-ITFT",
-          "ESI-ITTOF", "ESI-QTOF", "FAB-B", "FAB-EB", "FAB-EBEB", "FD-B", "FI-B", "GC-EI-QQ",
-          "GC-EI-TOF", "HPLC-ESI-TOF", "LC-APCI-Q", "LC-APCI-QTOF", "LC-APPI-QQ", "LC-ESI-IT",
-          "LC-ESI-ITFT", "LC-ESI-ITTOF", "LC-ESI-Q", "LC-ESI-QFT", "LC-ESI-QIT", "LC-ESI-QQ",
-          "LC-ESI-QTOF", "LC-ESI-TOF", "MALDI-QIT", "MALDI-TOF", "MALDI-TOFTOF", "UPLC-ESI-QTOF"};
-
   private static final String massBankSearchAddress =
-      "http://massbank.ufz.de/MassBank/jsp/Result.jsp?type=quick";
+      "https://massbank.eu/MassBank/Result.jsp?type=quick&formula=&compound=&"
+          + "ms=all&ms=MS&ms=MS2&ms=MS3&ms=MS4&ion=0&op1=and&"
+          + "inst_grp=ESI&inst=CE-ESI-TOF&inst=ESI-ITFT&inst=ESI-ITTOF&inst=ESI-QTOF&inst=ESI-TOF&"
+          + "inst=LC-ESI-IT&inst=LC-ESI-ITFT&inst=LC-ESI-ITTOF&inst=LC-ESI-Q&inst=LC-ESI-QFT&"
+          + "inst=LC-ESI-QIT&inst=LC-ESI-QQ&inst=LC-ESI-QTOF&inst=LC-ESI-TOF";
+
   private static final String massBankEntryAddress =
-      "http://massbank.ufz.de/MassBank/jsp/FwdRecord.jsp?id=";
+      "https://massbank.eu/MassBank/RecordDisplay.jsp?id=";
 
   public String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
       ParameterSet parameters) throws IOException {
@@ -58,11 +55,6 @@ public class MassBankEuropeGateway implements DBGateway {
     Range<Double> toleranceRange = mzTolerance.getToleranceRange(mass);
 
     StringBuilder queryAddress = new StringBuilder(massBankSearchAddress);
-
-    for (String inst : instrumentTypes) {
-      queryAddress.append("&inst=");
-      queryAddress.append(inst);
-    }
 
     queryAddress.append("&mz=");
     queryAddress.append(RangeUtils.rangeCenter(toleranceRange));
@@ -72,7 +64,7 @@ public class MassBankEuropeGateway implements DBGateway {
     URL queryURL = new URL(queryAddress.toString());
 
     // Submit the query
-    logger.finest("Querying URL " + queryURL);
+    logger.finest("Querying MassBank.eu URL " + queryURL);
     String queryResult = InetUtils.retrieveData(queryURL);
 
     Vector<String> results = new Vector<String>();
@@ -100,7 +92,7 @@ public class MassBankEuropeGateway implements DBGateway {
     URL entryURL = new URL(massBankEntryAddress + ID);
 
     // Retrieve data
-    logger.finest("Querying URL " + entryURL);
+    logger.finest("Querying MassBank.eu URL " + entryURL);
     String massBankEntry = InetUtils.retrieveData(entryURL);
 
     String compoundName = null;
@@ -113,14 +105,14 @@ public class MassBankEuropeGateway implements DBGateway {
     Pattern patName = Pattern.compile("RECORD_TITLE: (.*)");
     Matcher matcherName = patName.matcher(massBankEntry);
     if (matcherName.find()) {
-      compoundName = matcherName.group(1);
+      compoundName = matcherName.group(1).replaceAll("\\<[^>]*>", "");
     }
 
     // Find compound formula
     Pattern patFormula = Pattern.compile("CH\\$FORMULA: .*>(.*)</a>");
     Matcher matcherFormula = patFormula.matcher(massBankEntry);
     if (matcherFormula.find()) {
-      compoundFormula = matcherFormula.group(1);
+      compoundFormula = matcherFormula.group(1).replaceAll("\\<[^>]*>", "");
     }
 
     if (compoundName == null) {
@@ -128,7 +120,7 @@ public class MassBankEuropeGateway implements DBGateway {
       return null;
     }
 
-    DBCompound newCompound = new DBCompound(OnlineDatabase.MASSBANKEurope, ID, compoundName,
+    DBCompound newCompound = new DBCompound(OnlineDatabases.MASSBANKEurope, ID, compoundName,
         compoundFormula, databaseURL, structure2DURL, structure3DURL);
 
     return newCompound;

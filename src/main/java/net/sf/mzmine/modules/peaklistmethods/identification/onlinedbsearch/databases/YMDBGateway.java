@@ -21,12 +21,13 @@ package net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.data
 import java.io.IOException;
 import java.net.URL;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
@@ -35,22 +36,25 @@ import com.google.common.collect.Range;
 
 public class YMDBGateway implements DBGateway {
 
-  public static final String ymdbEntryAddress =
-      "http://www.ymdb.ca/structures/structures/compounds/";
-  private static final String ymdbSeachAddress =
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private static final String ymdbSearchAddress =
       "http://www.ymdb.ca/structures/search/compounds/mass?";
+  public static final String ymdbSDFAddress = "http://www.ymdb.ca/structures/compounds/";
+  public static final String ymdbEntryAddress = "http://www.ymdb.ca/compounds/";
 
   public String[] findCompounds(double mass, MZTolerance mzTolerance, int numOfResults,
       ParameterSet parameters) throws IOException {
 
     Range<Double> toleranceRange = mzTolerance.getToleranceRange(mass);
 
-    String queryAddress = ymdbSeachAddress + "query_from=" + toleranceRange.lowerEndpoint()
+    String queryAddress = ymdbSearchAddress + "query_from=" + toleranceRange.lowerEndpoint()
         + "&query_to=" + toleranceRange.upperEndpoint();
 
     URL queryURL = new URL(queryAddress);
 
     // Submit the query
+    logger.finest("Querying YMDB URL " + queryURL);
     String queryResult = InetUtils.retrieveData(queryURL);
 
     // Organize the IDs as a TreeSet to keep them sorted
@@ -84,8 +88,9 @@ public class YMDBGateway implements DBGateway {
 
     // We will parse the name and formula from the SDF file, it seems like
     // the easiest way
-    URL sdfURL = new URL(ymdbEntryAddress + ID + ".sdf");
+    URL sdfURL = new URL(ymdbSDFAddress + ID + ".sdf");
 
+    logger.finest("Querying YMDB URL " + sdfURL);
     String sdfRecord = InetUtils.retrieveData(sdfURL);
     String lines[] = sdfRecord.split("\n");
 
@@ -93,7 +98,7 @@ public class YMDBGateway implements DBGateway {
     String compoundFormula = null;
     URL entryURL = new URL(ymdbEntryAddress + ID);
     URL structure2DURL = sdfURL;
-    URL structure3DURL = sdfURL;
+    URL structure3DURL = new URL(ymdbSDFAddress + ID + ".sdf?dim=3d");
 
     for (int i = 0; i < lines.length - 1; i++) {
 
@@ -101,7 +106,7 @@ public class YMDBGateway implements DBGateway {
         compoundName = lines[i + 1];
       }
 
-      if (lines[i].contains("> <JCHEM_FORMULA>")) {
+      if (lines[i].contains("> <FORMULA>")) {
         compoundFormula = lines[i + 1];
       }
     }
@@ -110,7 +115,7 @@ public class YMDBGateway implements DBGateway {
       throw (new IOException("Could not parse compound name"));
     }
 
-    DBCompound newCompound = new DBCompound(OnlineDatabase.YMDB, ID, compoundName, compoundFormula,
+    DBCompound newCompound = new DBCompound(OnlineDatabases.YMDB, ID, compoundName, compoundFormula,
         entryURL, structure2DURL, structure3DURL);
 
     return newCompound;

@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
@@ -118,7 +118,7 @@ public class KEGGGateway implements DBGateway {
       structure3DURL = new URL(met3DStructureAddress1 + ID3DMet + met3DStructureAddress2);
     }
 
-    DBCompound newCompound = new DBCompound(OnlineDatabase.KEGG, ID, compoundName, compoundFormula,
+    DBCompound newCompound = new DBCompound(OnlineDatabases.KEGG, ID, compoundName, compoundFormula,
         entryURL, structure2DURL, structure3DURL);
 
     return newCompound;

@@ -31,21 +31,31 @@ import net.sf.mzmine.util.FormulaUtils;
 public class LipidModification {
 
   private String lipidModification;
+  private String lipidModificationLabel;
 
-  public LipidModification(String lipidModification) {
+  public LipidModification(String lipidModification, String lipidModificationLabel) {
     this.lipidModification = lipidModification;
+    this.lipidModificationLabel = lipidModificationLabel;
   }
 
   public String getLipidModificatio() {
     return lipidModification;
   }
 
+  public String getLipidModificationLabel() {
+    return lipidModificationLabel;
+  }
+
   public void setLipidModification(String newLipidModification) {
     lipidModification = newLipidModification;
   }
 
+  public void setLipidModificationLabel(String newLipidModificationLabel) {
+    lipidModificationLabel = newLipidModificationLabel;
+  }
+
   /**
-   * This method calculates the exact mass of lipid modification
+   * This method calculates the exact mass of a lipid modification
    */
   public double getModificationMass() {
     Double lipidModificationMass = 0.0;
@@ -107,7 +117,7 @@ public class LipidModification {
   public String toString() {
     NumberFormat format = new DecimalFormat("0.0000");
     return "Modify lipid with [" + lipidModification + "] (" + format.format(getModificationMass())
-        + ")";
+        + ") " + lipidModificationLabel;
   }
 
 }

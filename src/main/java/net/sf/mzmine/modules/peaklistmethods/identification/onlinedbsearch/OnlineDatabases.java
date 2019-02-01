@@ -27,14 +27,13 @@ import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.datab
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.KEGGGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.LipidMapsGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MassBankEuropeGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MassBankJapanGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.MetaCycGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.PubChemGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.databases.YMDBGateway;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 
-public enum OnlineDatabase implements MZmineModule {
+public enum OnlineDatabases implements MZmineModule {
 
   KEGG("KEGG Compound Database", KEGGGateway.class), //
   PubChem("PubChem Compound Database", PubChemGateway.class), //
@@ -42,23 +41,25 @@ public enum OnlineDatabase implements MZmineModule {
   YMDB("Yeast Metabolome Database (YMDB)", YMDBGateway.class), //
   // METLIN("METLIN Database", MetLinGateway.class, MetLinParameters.class),
   LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class), //
-  MASSBANKJapan("Japanese MassBank", MassBankJapanGateway.class), //
-  MASSBANKEurope("European MassBank", MassBankEuropeGateway.class), //
+  // MASSBANKJapan("Japanese MassBank", MassBankJapanGateway.class), //
+  MASSBANKEurope("MassBank.eu", MassBankEuropeGateway.class), //
   CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class, ChemSpiderParameters.class), //
   METACYC("MetaCyc Database", MetaCycGateway.class);
 
-  private final String dbName;
-  private final Class<? extends DBGateway> gatewayClass;
-  private final Class<? extends ParameterSet> parametersClass;
+  private final @Nonnull String dbName;
+  private final @Nonnull Class<? extends DBGateway> gatewayClass;
+  private final @Nonnull Class<? extends ParameterSet> parametersClass;
 
-  OnlineDatabase(final String dbName, final Class<? extends DBGateway> gatewayClass,
-      final Class<? extends ParameterSet> parametersClass) {
+  OnlineDatabases(final @Nonnull String dbName,
+      final @Nonnull Class<? extends DBGateway> gatewayClass,
+      final @Nonnull Class<? extends ParameterSet> parametersClass) {
     this.dbName = dbName;
     this.gatewayClass = gatewayClass;
     this.parametersClass = parametersClass;
   }
 
-  OnlineDatabase(final String name, final Class<? extends DBGateway> gatewayClass) {
+  OnlineDatabases(final @Nonnull String name,
+      final @Nonnull Class<? extends DBGateway> gatewayClass) {
     this(name, gatewayClass, SimpleParameterSet.class);
   }
 

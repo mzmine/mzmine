@@ -32,11 +32,20 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
-
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
+import org.jfree.chart.ChartMouseEvent;
+import org.jfree.chart.ChartMouseListener;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.LegendItemEntity;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import com.google.common.base.Joiner;
+import com.google.common.collect.BoundType;
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -51,19 +60,6 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.SimpleSorter;
 import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
-
-import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.chart.entity.ChartEntity;
-import org.jfree.chart.entity.LegendItemEntity;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.BoundType;
-import com.google.common.collect.Range;
 
 /**
  * Total ion chromatogram visualizer using JFreeChart library
@@ -367,8 +363,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
    * @return current cursor position
    */
   public CursorPosition getCursorPosition() {
-    double selectedRT = (double) ticPlot.getXYPlot().getDomainCrosshairValue();
-    double selectedIT = (double) ticPlot.getXYPlot().getRangeCrosshairValue();
+    double selectedRT = ticPlot.getXYPlot().getDomainCrosshairValue();
+    double selectedIT = ticPlot.getXYPlot().getRangeCrosshairValue();
     Enumeration<TICDataSet> e = ticDataSets.elements();
     while (e.hasMoreElements()) {
       TICDataSet dataSet = e.nextElement();
@@ -376,7 +372,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
       if (index >= 0) {
         double mz = 0;
         if (plotType == TICPlotType.BASEPEAK) {
-          mz = (double) dataSet.getZValue(0, index);
+          mz = dataSet.getZValue(0, index);
         }
         CursorPosition pos = new CursorPosition(selectedRT, mz, selectedIT, dataSet.getDataFile(),
             dataSet.getScanNumber(index));
@@ -397,6 +393,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
   /**
    * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
    */
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     String command = event.getActionCommand();
@@ -415,8 +412,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
         int index = dataSet.getIndex(pos.getRetentionTime(), pos.getIntensityValue());
         if (index > 0) {
           index--;
-          pos.setRetentionTime((double) dataSet.getXValue(0, index));
-          pos.setIntensityValue((double) dataSet.getYValue(0, index));
+          pos.setRetentionTime(dataSet.getXValue(0, index));
+          pos.setIntensityValue(dataSet.getYValue(0, index));
           setCursorPosition(pos);
 
         }
@@ -431,8 +428,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
         if (index >= 0) {
           index++;
           if (index < dataSet.getItemCount(0)) {
-            pos.setRetentionTime((double) dataSet.getXValue(0, index));
-            pos.setIntensityValue((double) dataSet.getYValue(0, index));
+            pos.setRetentionTime(dataSet.getXValue(0, index));
+            pos.setIntensityValue(dataSet.getYValue(0, index));
             setCursorPosition(pos);
           }
         }
@@ -441,6 +438,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
   }
 
+  @Override
   public void dispose() {
 
     // If the window is closed, we want to cancel all running tasks of the
@@ -456,6 +454,10 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
     }
     super.dispose();
 
+  }
+
+  public TICPlot getTICPlot() {
+    return ticPlot;
   }
 
 }

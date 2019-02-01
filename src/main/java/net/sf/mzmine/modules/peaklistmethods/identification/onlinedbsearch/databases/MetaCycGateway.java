@@ -39,7 +39,7 @@ import org.w3c.dom.NodeList;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
@@ -126,7 +126,7 @@ public class MetaCycGateway implements DBGateway {
         throw (new IOException("Invalid compound ID " + ID));
       }
 
-      DBCompound newCompound = new DBCompound(OnlineDatabase.METACYC, ID, compoundName,
+      DBCompound newCompound = new DBCompound(OnlineDatabases.METACYC, ID, compoundName,
           compoundFormula, entryURL, structure2DURL, structure3DURL);
 
       return newCompound;

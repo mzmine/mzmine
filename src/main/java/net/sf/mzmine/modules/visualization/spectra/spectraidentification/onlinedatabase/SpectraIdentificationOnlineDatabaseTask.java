@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase;
+package net.sf.mzmine.modules.visualization.spectra.spectraidentification.onlinedatabase;
 
 import static net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.SingleRowIdentificationParameters.DATABASE;
 import java.awt.Color;
@@ -41,9 +41,9 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.C
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetectorParameters;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
+import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.datasets.DataPointsDataSet;
+import net.sf.mzmine.modules.visualization.spectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
