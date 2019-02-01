@@ -143,7 +143,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     showSpectrumItem = GUIUtils.addMenuItem(showMenu, "Mass spectrum", this);
     show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
     show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
-    showMSMSItem = GUIUtils.addMenuItem(showMenu, "Most intense MS/MS", this);
+    showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS (single/multiple)", this);
     showAllMSMSItem = GUIUtils.addMenuItem(showMenu, "All MS/MS", this);
     showMSMSMirrorItem = GUIUtils.addMenuItem(showMenu, "MS/MS mirror (select 2 rows)", this);
     showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
@@ -257,26 +257,24 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         if (clickedPeak != null && oneRowSelected) {
           showIsotopePatternItem.setEnabled(clickedPeak.getIsotopePattern() != null);
         }
-
-        // always show for multi
-        showMSMSItem.setEnabled(selectedRows.length > 0 && getSelectedPeakForMSMS() != null);
       } else {
         showIsotopePatternItem
             .setEnabled(clickedPeakListRow.getBestIsotopePattern() != null && oneRowSelected);
-
       }
 
+      long nRowsWithFragmentation = Arrays.stream(allClickedPeakListRows)
+          .filter(r -> r.getBestFragmentation() != null).count();
       // always show for multi MSMS window
-      showMSMSItem.setEnabled(selectedRows.length > 0 && getSelectedPeakForMSMS() != null);
+      showMSMSItem.setEnabled((oneRowSelected && getSelectedPeakForMSMS() != null
+          && getSelectedPeakForMSMS().getMostIntenseFragmentScanNumber() > 0)
+          || (selectedRows.length > 1 && nRowsWithFragmentation > 1));
 
       // always show if at least one fragmentation is available
       showAllMSMSItem
           .setEnabled(clickedPeakListRow.getBestFragmentation() != null && oneRowSelected);
 
       // only show if selected rows == 2 and both have MS2
-      boolean bothMS2 =
-          selectedRows.length == 2 && allClickedPeakListRows[0].getBestFragmentation() != null
-              && allClickedPeakListRows[1].getBestFragmentation() != null;
+      boolean bothMS2 = selectedRows.length == 2 && nRowsWithFragmentation == 2;
       showMSMSMirrorItem.setEnabled(bothMS2);
     }
 
@@ -515,19 +513,20 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     if (showAllMSMSItem.equals(src)) {
 
       final Feature showPeak = getSelectedPeakForMSMS();
-      if (showPeak != null) {
-        int[] scanNumbers = showPeak.getAllMS2FragmentScanNumbers();
+      RawDataFile raw = clickedPeakListRow.getBestFragmentation().getDataFile();
+      if (showPeak != null && showPeak.getMostIntenseFragmentScanNumber() != 0)
+        raw = showPeak.getDataFile();
 
-        if (scanNumbers.length > 0) {
-          MultiSpectraVisualizerWindow multiSpectraWindow =
-              new MultiSpectraVisualizerWindow(scanNumbers, clickedPeakListRow);
-          multiSpectraWindow.setVisible(true);
-        } else {
-          MZmineCore.getDesktop().displayMessage(window,
-              "There is no fragment for "
-                  + MZmineCore.getConfiguration().getMZFormat().format(showPeak.getMZ())
-                  + " m/z in the current raw data.");
-        }
+      if (clickedPeakListRow.getBestFragmentation() != null) {
+        MultiSpectraVisualizerWindow multiSpectraWindow =
+            new MultiSpectraVisualizerWindow(clickedPeakListRow, raw);
+        multiSpectraWindow.setVisible(true);
+      } else {
+        MZmineCore.getDesktop().displayMessage(window,
+            "There is no fragment for "
+                + MZmineCore.getConfiguration().getMZFormat().format(showPeak.getMZ())
+                + " m/z in the current raw data.");
+
       }
     }
 

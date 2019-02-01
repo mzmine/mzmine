@@ -24,6 +24,7 @@ import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -114,12 +115,8 @@ public class MultiMSMSWindow extends JFrame {
     setContentPane(contentPane);
 
 
-    pnTopMenu = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+    pnTopMenu = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
     contentPane.add(pnTopMenu, BorderLayout.NORTH);
-    lbRawIndex = new JLabel("");
-    pnTopMenu.add(lbRawIndex);
-    lbRawName = new JLabel("");
-    pnTopMenu.add(lbRawName);
 
     prevRaw = new JButton("<");
     pnTopMenu.add(prevRaw);
@@ -132,6 +129,11 @@ public class MultiMSMSWindow extends JFrame {
     nextRaw.addActionListener(e -> {
       nextRaw();
     });
+
+    lbRawIndex = new JLabel("");
+    pnTopMenu.add(lbRawIndex);
+    lbRawName = new JLabel("");
+    pnTopMenu.add(lbRawName);
 
     cbBestRaw = new JCheckBox("use best for each");
     pnTopMenu.add(cbBestRaw);
@@ -167,19 +169,46 @@ public class MultiMSMSWindow extends JFrame {
   private void nextRaw() {
     if (allRaw == null)
       return;
-    if (rawIndex < allRaw.length - 1) {
+    while (rawIndex + 1 < allRaw.length) {
       rawIndex++;
-      setRaw(allRaw[rawIndex], true);
+      if (rawContainsFragmentation(allRaw[rawIndex])) {
+        setRaw(allRaw[rawIndex]);
+        break;
+      }
     }
   }
+
 
   private void prevRaw() {
     if (allRaw == null)
       return;
     if (rawIndex > 0) {
       rawIndex--;
-      setRaw(allRaw[rawIndex], true);
+      setRaw(allRaw[rawIndex]);
     }
+    while (rawIndex - 1 >= 0) {
+      rawIndex--;
+      if (rawContainsFragmentation(allRaw[rawIndex])) {
+        setRaw(allRaw[rawIndex]);
+        break;
+      }
+    }
+  }
+
+  /**
+   * any row contains fragment scan in raw data file
+   * 
+   * @param raw
+   * @return
+   */
+  private boolean rawContainsFragmentation(RawDataFile raw) {
+    for (PeakListRow row : rows) {
+      Feature peak = row.getPeak(raw);
+      if (peak != null && peak.getMostIntenseFragmentScanNumber() > 0) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -187,7 +216,7 @@ public class MultiMSMSWindow extends JFrame {
    * 
    * @param raw
    */
-  public void setRaw(RawDataFile raw, boolean update) {
+  public void setRaw(RawDataFile raw) {
     this.raw = raw;
 
     this.rawIndex = 0;
@@ -320,10 +349,15 @@ public class MultiMSMSWindow extends JFrame {
     this.rows = rows;
     this.allRaw = allRaw;
     this.createMS1 = createMS1;
-    // set raw and not update
-    setRaw(raw, false);
 
-    updateAllCharts();
+    // check raw
+    if (raw != null && !rawContainsFragmentation(raw)) {
+      // change to best of highest row
+      raw = Arrays.stream(rows).map(PeakListRow::getBestFragmentation).filter(Objects::nonNull)
+          .findFirst().get().getDataFile();
+    }
+    // set raw and update
+    setRaw(raw);
   }
 
   /**
