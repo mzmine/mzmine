@@ -247,7 +247,7 @@ public class EChartViewer extends ChartViewer {
       for (GestureHandlerFactory f : ChartGestureHandler.getStandardGestures())
         m.addGestureHandler(f.createHandler());
 
-      logger.log(Level.INFO, "Added standard gestures: " + m.getGestureHandlers().size());
+      logger.log(Level.FINEST, "Added standard gestures: " + m.getGestureHandlers().size());
     }
   }
 

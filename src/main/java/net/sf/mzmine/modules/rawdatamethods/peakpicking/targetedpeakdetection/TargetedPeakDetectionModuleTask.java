@@ -181,7 +181,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     processedPeakList.addDescriptionOfAppliedTask(
         new SimplePeakListAppliedMethod("Targeted peak detection ", parameters));
 
-    logger.log(Level.INFO, "Targeted peak detection on {0}", this.dataFile);
+    logger.log(Level.INFO, "Finished targeted peak detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);
   }
 
