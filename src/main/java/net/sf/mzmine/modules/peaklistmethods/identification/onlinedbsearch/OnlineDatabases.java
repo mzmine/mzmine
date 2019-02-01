@@ -35,16 +35,16 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 
 public enum OnlineDatabases implements MZmineModule {
 
-  KEGG("KEGG Compound Database", KEGGGateway.class), //
-  PubChem("PubChem Compound Database", PubChemGateway.class), //
-  HMDB("Human Metabolome Database (HMDB)", HMDBGateway.class), //
-  YMDB("Yeast Metabolome Database (YMDB)", YMDBGateway.class), //
+  KEGG("KEGG", KEGGGateway.class), //
+  PubChem("PubChem", PubChemGateway.class), //
+  HMDB("Human Metabolome (HMDB)", HMDBGateway.class), //
+  YMDB("Yeast Metabolome (YMDB)", YMDBGateway.class), //
   // METLIN("METLIN Database", MetLinGateway.class, MetLinParameters.class),
-  LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class), //
+  LIPIDMAPS("LipidMaps", LipidMapsGateway.class), //
   // MASSBANKJapan("Japanese MassBank", MassBankJapanGateway.class), //
   MASSBANKEurope("MassBank.eu", MassBankEuropeGateway.class), //
-  CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class, ChemSpiderParameters.class), //
-  METACYC("MetaCyc Database", MetaCycGateway.class);
+  CHEMSPIDER("ChemSpider", ChemSpiderGateway.class, ChemSpiderParameters.class), //
+  METACYC("MetaCyc", MetaCycGateway.class);
 
   private final @Nonnull String dbName;
   private final @Nonnull Class<? extends DBGateway> gatewayClass;
