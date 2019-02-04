@@ -33,7 +33,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
@@ -143,7 +142,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     showSpectrumItem = GUIUtils.addMenuItem(showMenu, "Mass spectrum", this);
     show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
     show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
-    showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS (single/multiple)", this);
+    showMSMSItem = GUIUtils.addMenuItem(showMenu, "Most intense MS/MS ", this);
+    showMSMSItem.setToolTipText("MS/MS of a single or multiple rows");
     showAllMSMSItem = GUIUtils.addMenuItem(showMenu, "All MS/MS", this);
     showMSMSMirrorItem = GUIUtils.addMenuItem(showMenu, "MS/MS mirror (select 2 rows)", this);
     showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
