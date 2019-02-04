@@ -107,7 +107,7 @@
 			<id>ebi-repo-2</id>
 			<name>The EBI Maven repository 2</name>
 			<url>https://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
-		</repository>		
+		</repository>
 		<repository>
 			<id>lib</id>
 			<name>MZmine local libraries</name>
@@ -501,6 +501,12 @@
 			<version>20130919</version>
 		</dependency>
 
+		<dependency>
+			<groupId>it.unimi.dsi</groupId>
+			<artifactId>fastutil</artifactId>
+			<version>8.2.2</version>
+		</dependency>
+
 		<!-- Export pdf -->
 		<dependency>
 			<groupId>com.itextpdf</groupId>
@@ -588,9 +594,7 @@
 		</dependency>
 
 		<!-- jaxb - used to be part Java until version 8, has to be manually enabled 
-			in Java 9 and will be likely removed in Java 11, see 
-			https://stackoverflow.com/questions/43574426/how-to-resolve-java-lang-noclassdeffounderror-javax-xml-bind-jaxbexception-in-j
-	     -->
+			in Java 9 and will be likely removed in Java 11, see https://stackoverflow.com/questions/43574426/how-to-resolve-java-lang-noclassdeffounderror-javax-xml-bind-jaxbexception-in-j -->
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
