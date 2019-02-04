@@ -27,7 +27,7 @@ public class NeutralMolecule {
   protected @Nullable IMolecularFormula cdkFormula;
   protected @Nullable String molFormula;
   protected @Nonnull String name;
-  protected @Nonnull double mass;
+  protected double mass;
 
   public NeutralMolecule(String name, double mass) {
     this(name, "", mass);
