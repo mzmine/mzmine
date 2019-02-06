@@ -32,7 +32,7 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class ADAP3DecompositionV2Module implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Blind Source Separation";
+  private static final String MODULE_NAME = "Multivariate Curve Resolution";
   private static final String MODULE_DESCRIPTION = "This method "
       + "combines peaks into analytes and constructs fragmentation spectrum for each analyte";
 

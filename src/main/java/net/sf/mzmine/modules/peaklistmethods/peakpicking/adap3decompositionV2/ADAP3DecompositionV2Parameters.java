@@ -82,13 +82,13 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
 
     public ADAP3DecompositionV2Parameters() {
         super(new Parameter[]{CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH,
-                RET_TIME_TOLERANCE, MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE});  // SMOOTHING, UNIMODALITY,
+                RET_TIME_TOLERANCE, MIN_CLUSTER_SIZE, ADJUST_APEX_RET_TIME, SUFFIX, AUTO_REMOVE});
     }
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-        CHROMATOGRAM_LISTS.setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS);
-        PEAK_LISTS.setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS);
+        CHROMATOGRAM_LISTS.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
+        PEAK_LISTS.setValue(PeakListsSelectionType.GUI_SELECTED_PEAKLISTS);
 
         final ADAP3DecompositionV2SetupDialog dialog =
                 new ADAP3DecompositionV2SetupDialog(parent, valueCheckRequired, this);
