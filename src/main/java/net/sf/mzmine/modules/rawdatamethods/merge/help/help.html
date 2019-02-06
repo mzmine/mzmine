@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <title>Merge raw data files</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+    <body>
+
+        <h1>Merge raw data files</h1>
+
+        <h2>Description</h2>
+        <p>
+            This module merges all raw data files into a new. For example to combine positive and negative scans with MS2, all from different raw data files.
+        </p>
+
+        <h4>Method parameters</h4>
+        <dl>
+            <dt>Data files: </dt>
+            <dt>Mode: </dt>
+            <dd>MERGE PATTERN: Merge files based on a grouping identifier which can be a name suffix or prefix. (e.g., Sample_A_1, Sample_B_1: Use AFTER LAST _ to combine these files)</dd>
+            <dd>MERGE SELECTED: Merge all selected files to a new</dd>
+            <dt>Grouping identifier position: </dt>
+            <dd>Search for the specific group identifier before the first or after the last marker.</dd>
+            <dt>Position marker: </dt>
+            <dd>The marker that splits the specific group identifier from the rest of the file names</dd>
+            <dt>MS2 marker: </dt>
+            <dd>String that marks a raw data file as a source of MS2 (MSn) scans. All MS1 scans of this file are discarded. (e.g., MS2, TOP4, ...)</dd>
+            <dt>Suffix:</dt>
+            <dd>Suffix to be added to the file name</dd
+        </dl>
+
+    </body>
+</html>

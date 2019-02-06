@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -44,7 +44,7 @@ import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
-import net.sf.mzmine.chartbasics.EChartPanel;
+import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
@@ -242,7 +242,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     double max = 0;
 
     if (zAxisScaleType.equals("percentile")) {
-      minScaleIndex = (int) Math.round(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
+      minScaleIndex = (int) Math.floor(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
       maxScaleIndex = copyZValues.length
           - (int) (Math.ceil(copyZValues.length * ((100 - zScaleRange.upperEndpoint()) / 100)));
       if (zScaleRange.upperEndpoint() == 100) {
@@ -262,7 +262,8 @@ public class KendrickMassPlotTask extends AbstractTask {
     Paint[] contourColors =
         XYBlockPixelSizePaintScales.getPaintColors(zAxisScaleType, zScaleRange, paintScaleStyle);
     LookupPaintScale scale = null;
-    scale = new LookupPaintScale(min, max, new Color(244, 66, 223));
+    scale = new LookupPaintScale(copyZValues[0], copyZValues[copyZValues.length - 1],
+        new Color(0, 0, 0));
     double[] scaleValues = new double[contourColors.length];
     double delta = (max - min) / (contourColors.length - 1);
     double value = min;

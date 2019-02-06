@@ -130,5 +130,3 @@ for /l %%N in (1 1 %file.count%) do (
   taskkill /PID !pid! /F 2>nul
 )
 
-:: Delete temporary folder
-RD /S /Q %TMP_FILE_DIRECTORY%

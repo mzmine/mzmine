@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,12 +19,9 @@
 package net.sf.mzmine.datamodel.impl;
 
 import java.util.Arrays;
-
 import javax.annotation.Nonnull;
-
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
-
 import io.github.msdk.datamodel.Chromatogram;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -61,6 +58,9 @@ public class SimpleFeature implements Feature {
   // Number of most intense fragment scan
   private int fragmentScanNumber;
 
+  // Numbers of all MS2 fragment scans
+  private int[] allMS2FragmentScanNumbers;
+
   // Isotope pattern. Null by default but can be set later by deisotoping
   // method.
   private IsotopePattern isotopePattern;
@@ -72,8 +72,8 @@ public class SimpleFeature implements Feature {
    */
   public SimpleFeature(RawDataFile dataFile, double MZ, double RT, double height, double area,
       int[] scanNumbers, DataPoint[] dataPointsPerScan, FeatureStatus peakStatus,
-      int representativeScan, int fragmentScanNumber, Range<Double> rtRange, Range<Double> mzRange,
-      Range<Double> intensityRange) {
+      int representativeScan, int fragmentScanNumber, int[] allMS2FragmentScanNumbers,
+      Range<Double> rtRange, Range<Double> mzRange, Range<Double> intensityRange) {
 
     if (dataPointsPerScan.length == 0) {
       throw new IllegalArgumentException("Cannot create a SimplePeak instance with no data points");
@@ -88,6 +88,7 @@ public class SimpleFeature implements Feature {
     this.peakStatus = peakStatus;
     this.representativeScan = representativeScan;
     this.fragmentScanNumber = fragmentScanNumber;
+    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
     this.rtRange = rtRange;
     this.mzRange = mzRange;
     this.intensityRange = intensityRange;
@@ -130,6 +131,7 @@ public class SimpleFeature implements Feature {
 
     this.representativeScan = p.getRepresentativeScanNumber();
     this.fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
+    this.allMS2FragmentScanNumbers = p.getAllMS2FragmentScanNumbers();
 
   }
 
@@ -151,12 +153,12 @@ public class SimpleFeature implements Feature {
     final float rtValues[] = msdkFeatureChromatogram.getRetentionTimes();
     final float intensityValues[] = msdkFeatureChromatogram.getIntensityValues();
 
-    this.rtRange = Range.closed(
-        msdkFeatureChromatogram.getRtRange().lowerEndpoint().doubleValue() / 60.0,
-        msdkFeatureChromatogram.getRtRange().upperEndpoint().doubleValue() / 60.0);
-    this.mzRange = Range.encloseAll(Doubles.asList(mzValues));    
+    this.rtRange =
+        Range.closed(msdkFeatureChromatogram.getRtRange().lowerEndpoint().doubleValue() / 60.0,
+            msdkFeatureChromatogram.getRtRange().upperEndpoint().doubleValue() / 60.0);
+    this.mzRange = Range.encloseAll(Doubles.asList(mzValues));
     this.intensityRange = Range.closed(0.0, msdkFeature.getHeight().doubleValue());
-    
+
     this.scanNumbers = new int[rtValues.length];
     this.dataPointsPerScan = new DataPoint[scanNumbers.length];
     for (int i = 0; i < scanNumbers.length; i++) {
@@ -167,20 +169,22 @@ public class SimpleFeature implements Feature {
     this.peakStatus = status;
 
     this.representativeScan = RawDataFileUtils.getClosestScanNumber(dataFile, this.rt);
-    this.fragmentScanNumber = ScanUtils.findBestFragmentScan(dataFile,
-        this.rtRange, this.mzRange);
-    
-    for (int i = 0; i < scanNumbers.length; i++) {   
+    this.fragmentScanNumber = ScanUtils.findBestFragmentScan(dataFile, this.rtRange, this.mzRange);
+    this.allMS2FragmentScanNumbers =
+        ScanUtils.findAllMS2FragmentScans(dataFile, this.rtRange, this.mzRange);
+
+    for (int i = 0; i < scanNumbers.length; i++) {
       if (height < dataPointsPerScan[i].getIntensity()) {
-          representativeScan = scanNumbers[i];
+        representativeScan = scanNumbers[i];
       }
-  }
+    }
 
   }
 
   /**
    * This method returns the status of the peak
    */
+  @Override
   public @Nonnull FeatureStatus getFeatureStatus() {
     return peakStatus;
   }
@@ -188,6 +192,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns M/Z value of the peak
    */
+  @Override
   public double getMZ() {
     return mz;
   }
@@ -203,6 +208,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns retention time of the peak
    */
+  @Override
   public double getRT() {
     return rt;
   }
@@ -210,6 +216,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns the raw height of the peak
    */
+  @Override
   public double getHeight() {
     return height;
   }
@@ -226,6 +233,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns the raw area of the peak
    */
+  @Override
   public double getArea() {
     return area;
   }
@@ -240,6 +248,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns numbers of scans that contain this peak
    */
+  @Override
   public @Nonnull int[] getScanNumbers() {
     return scanNumbers;
   }
@@ -247,6 +256,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns a representative datapoint of this peak in a given scan
    */
+  @Override
   public DataPoint getDataPoint(int scanNumber) {
     int index = Arrays.binarySearch(scanNumbers, scanNumber);
     if (index < 0)
@@ -257,6 +267,7 @@ public class SimpleFeature implements Feature {
   /**
    * @see net.sf.mzmine.datamodel.Feature#getDataFile()
    */
+  @Override
   public @Nonnull RawDataFile getDataFile() {
     return dataFile;
   }
@@ -279,6 +290,7 @@ public class SimpleFeature implements Feature {
   /**
    * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsIntensityRange()
    */
+  @Override
   public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
     return intensityRange;
   }
@@ -286,6 +298,7 @@ public class SimpleFeature implements Feature {
   /**
    * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsMZRange()
    */
+  @Override
   public @Nonnull Range<Double> getRawDataPointsMZRange() {
     return mzRange;
   }
@@ -293,6 +306,7 @@ public class SimpleFeature implements Feature {
   /**
    * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsRTRange()
    */
+  @Override
   public @Nonnull Range<Double> getRawDataPointsRTRange() {
     return rtRange;
   }
@@ -300,26 +314,37 @@ public class SimpleFeature implements Feature {
   /**
    * @see net.sf.mzmine.datamodel.Feature#getRepresentativeScanNumber()
    */
+  @Override
   public int getRepresentativeScanNumber() {
     return representativeScan;
   }
 
+  @Override
   public int getMostIntenseFragmentScanNumber() {
     return fragmentScanNumber;
   }
 
+  @Override
+  public int[] getAllMS2FragmentScanNumbers() {
+    return allMS2FragmentScanNumbers;
+  }
+
+  @Override
   public IsotopePattern getIsotopePattern() {
     return isotopePattern;
   }
 
+  @Override
   public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
     this.isotopePattern = isotopePattern;
   }
 
+  @Override
   public int getCharge() {
     return charge;
   }
 
+  @Override
   public void setCharge(int charge) {
     this.charge = charge;
   }
@@ -327,6 +352,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns the full width at half maximum (FWHM) of the peak
    */
+  @Override
   public Double getFWHM() {
     return fwhm;
   }
@@ -334,6 +360,7 @@ public class SimpleFeature implements Feature {
   /**
    * @param fwhm The full width at half maximum (FWHM) to set.
    */
+  @Override
   public void setFWHM(Double fwhm) {
     this.fwhm = fwhm;
   }
@@ -341,6 +368,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns the tailing factor of the peak
    */
+  @Override
   public Double getTailingFactor() {
     return tf;
   }
@@ -348,6 +376,7 @@ public class SimpleFeature implements Feature {
   /**
    * @param tf The tailing factor to set.
    */
+  @Override
   public void setTailingFactor(Double tf) {
     this.tf = tf;
   }
@@ -355,6 +384,7 @@ public class SimpleFeature implements Feature {
   /**
    * This method returns the asymmetry factor of the peak
    */
+  @Override
   public Double getAsymmetryFactor() {
     return af;
   }
@@ -362,19 +392,23 @@ public class SimpleFeature implements Feature {
   /**
    * @param af The asymmetry factor to set.
    */
+  @Override
   public void setAsymmetryFactor(Double af) {
     this.af = af;
   }
 
   // dulab Edit
+  @Override
   public void outputChromToFile() {
-  
+
   }
 
+  @Override
   public void setPeakInformation(SimplePeakInformation peakInfoIn) {
     this.peakInfo = peakInfoIn;
   }
 
+  @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
   }

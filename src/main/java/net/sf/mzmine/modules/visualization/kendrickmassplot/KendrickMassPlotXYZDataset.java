@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -127,7 +127,7 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
         } else if (zAxisKMBase.equals("FWHM")) {
           zValues[i] = selectedRows[i].getBestPeak().getFWHM();
         } else if (zAxisKMBase.equals("m/z")) {
-          zValues[i] = selectedRows[i].getBestPeak().getFWHM();
+          zValues[i] = selectedRows[i].getBestPeak().getMZ();
         }
       }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,18 +20,25 @@ package net.sf.mzmine.modules.rawdatamethods.rawdataexport;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.DirectoryParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 public class RawDataExportParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
 
-  public static final FileNameParameter fileName = new FileNameParameter(
-      "Target mzML or netCDF file", "Target filename. Make sure to add .mzML or .cdf extension.");
+
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+
+  public static final DirectoryParameter fileName =
+      new DirectoryParameter("Folder", "Select a folder");
+
+  public static final ComboParameter<RawDataFileType> type = new ComboParameter<>("File type", "",
+      new RawDataFileType[] {RawDataFileType.MZML, RawDataFileType.NETCDF}, RawDataFileType.MZML);
+
 
   public RawDataExportParameters() {
-    super(new Parameter[] {dataFiles, fileName});
+    super(new Parameter[] {dataFiles, fileName, type});
   }
 
 }

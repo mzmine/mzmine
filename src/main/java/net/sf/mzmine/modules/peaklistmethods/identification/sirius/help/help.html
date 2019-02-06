@@ -1,0 +1,114 @@
+<html>
+  <head>
+    <style>
+      div .pic {
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+      div .pic#first {
+        padding-top: 0px;
+      }
+      h2 {
+        padding: 5px;
+      }
+      dl dd {
+        padding-bottom: 5px;
+      }
+    </style>
+    <title>Identification - Sirius structure prediction</title>
+  </head>
+  <body>
+    <h1>Sirius Identification module</h1>
+    <p>This module allows identification of peaks using Böcker lab tool: Sirius (locally) & FingerId (through Web-API).</p>
+    <p>Module processes peaks using two jobs</p>
+    <ol>
+      <li>
+        <h3>Sirius Identification job</h3>
+        <p>It is a tool for identification of possible compounds. The result of this job shows compounds' formulas.<br>
+        There is a timer for this job, it allows to limit amount of time for processing a peak. Because on some datasets it can compute for too long.</p>
+        <p>The results of this job are later proceed to FingerId Web method.</p>
+      </li>
+      <li>
+        <h3>FingerId Identification job</h3>
+        <p>FingerId identification job uses results from previous method and makes several web-requests on Böcker lab server.<br>
+          You will receive a list of possible candidates per each compound.</p>
+        <p>If there is an item with the <b>Sirius score</b>, but without <b>FingerId score</b>, that means the processing of this compound by FingerId did not return any candidates.</p>
+        <p>There is internal timer that tracks the status of the job on a web-server. It is not configurable from user side.</p>
+      </li>
+    </ol>
+
+    <div>
+      <h2>Single item identification task</h2>
+      <div class="pic" id="first">
+        <h3>Selection of a peak for identification</h3>
+        <img src="singleTaskSelection.JPG">
+      </div>
+
+      <div class="pic">
+        <h3>Dialogue window</h3>
+        <img src="SingleTaskDialogue.JPG">
+      </div>
+
+      <div class="pic">
+        <h3>Identification results</h3>
+        <img src="SingleTaskResults.JPG">
+        <ul>
+          <li>Button <b>Add identity</b> - adds new identity.</li>
+          <li>Button <b>Copy SMILES string</b> - copies to the clipboard SMILES of selected compound (if it is successfully processed by FingerId).</li>
+          <li>Button <b>Copy Formula string</b> - copies to the clipboard Formula value of selected compound.</li>
+          <li>Button <b>Display DB links</b> - displays another window with pairs of DB name: ID.</li>
+          <li>If mouse hovers a preview image of the compound, large image is shown.</li>
+        </ul>
+      </div>
+
+      <div class="pic">
+        <h3>List of DB links returned from FingerId job</h3>
+        <img src="SingleTaskDB.JPG">
+        <ul>
+          <li>Button <b>Open browser</b> - opens a new page about selected pair in a default browser.</li>
+        </ul>
+      </div>
+
+      <hr>
+      <h2>Peak list identification task</h2>
+      <div class="pic">
+        <h3>Dialogue window</h3>
+        <img src="PeakListDialogue.JPG">
+      </div>
+    </div>
+    <h4>Method parameters</h4>
+    <dl>
+      <dt>Precursor m/z</dt>
+      <dd>Detected m/z value of the peak. This is set by default to the peak m/z subjected to identification.</dd>
+
+      <dt>Ionization method</dt>
+      <dd>Type of ionization that produced the peak subjected to identification. This is used to calculate the neutral
+        mass.</dd>
+
+      <dt>Number of candidates from Sirius method</dt>
+      <dd>Limit the amount of top rated results to return from Sirius Identification job.</dd>
+
+      <dt>Number of candidates from FingerId method</dt>
+      <dd>Limit for the number of results to be retrieved from FingerId job.<br>
+        <b>Remember!</b> Each result from Sirius method produces this number of candidates (if identified by FingerId).</dd>
+
+      <dt>Mass tolerance</dt>
+      <dd>Tolerance of the neutral mass for searching the database.</dd>
+
+      <dt>Elements</dt>
+      <dd>Elements allowed in the formula and their minimum and maximum counts (values from 0 to 100).</dd>
+
+      <dt>Timer for Sirius Identification job</dt>
+      <dd>Amount of seconds provided for Sirius Identification job. If it expires - a dialogue window is shown and task is cancelled.</dd>
+
+      <dt>Amount of parallel jobs</dt>
+      <dd>This field allows to speed up the peak list processing using parallelism. You can set the amount of parallel threads.<br>
+        Values from 1 to 20 (be careful).</dd>
+
+      <dt>Mass list</dt>
+      <dd>The same value of Mass List Name is used for MS1 and MS2 scans<br>
+        You have to run Mass Detection module on all scans with the same mass list name in order to use them in module like this.<br>
+        Note that the MS1 spectrum can contain the deconvoluted isotopic peaks.</dd>
+    </dl>
+  </body>
+</html>

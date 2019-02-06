@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -39,7 +39,7 @@ import org.w3c.dom.NodeList;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabase;
+import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
@@ -72,7 +72,8 @@ public class MetaCycGateway implements DBGateway {
     String line;
     while ((line = lineReader.readLine()) != null) {
       String split[] = line.split("\\t");
-      if (split.length < 5) continue;
+      if (split.length < 5)
+        continue;
       String id = split[4];
       results.add(id);
       if (results.size() == numOfResults)
@@ -125,7 +126,7 @@ public class MetaCycGateway implements DBGateway {
         throw (new IOException("Invalid compound ID " + ID));
       }
 
-      DBCompound newCompound = new DBCompound(OnlineDatabase.METACYC, ID, compoundName,
+      DBCompound newCompound = new DBCompound(OnlineDatabases.METACYC, ID, compoundName,
           compoundFormula, entryURL, structure2DURL, structure3DURL);
 
       return newCompound;

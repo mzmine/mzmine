@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,11 +25,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.logging.Logger;
 
 /**
  * Internet related utilities
  */
 public class InetUtils {
+
+  private static final Logger logger = Logger.getLogger(InetUtils.class.getName());
 
   /**
    * Opens a connection to the given URL (typically HTTP) and retrieves the data from server. Data
@@ -37,6 +40,8 @@ public class InetUtils {
    */
   public static String retrieveData(URL url) throws IOException {
 
+    logger.finest("Retrieving data from URL " + url);
+    
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestProperty("User-agent", "MZmine 2");
 
@@ -79,6 +84,8 @@ public class InetUtils {
 
     is.close();
 
+    logger.finest("Retrieved " + buffer.length() + " characters from " + url);
+    
     return buffer.toString();
 
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -18,11 +18,11 @@
 
 package net.sf.mzmine.chartbasics.listener;
 
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.AxisChangeEvent;
 import org.jfree.chart.event.AxisChangeListener;
 import org.jfree.data.Range;
+import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 
 /**
  * Listener for multiple axes
@@ -34,7 +34,7 @@ public abstract class AxesRangeChangedListener implements AxisChangeListener {
   // last lower / upper range
   private ValueAxis[] axis;
   private Range[] lastRange = null;
-  private ChartPanel chart;
+  private ChartViewWrapper chart;
 
   /**
    * Creates no listeners. Needs to by notified by external AxisRangeChangedListeners
@@ -49,10 +49,10 @@ public abstract class AxesRangeChangedListener implements AxisChangeListener {
    * 
    * @param cp
    */
-  public AxesRangeChangedListener(ChartPanel cp) {
+  public AxesRangeChangedListener(ChartViewWrapper cp) {
     this(2);
     chart = cp;
-    if (chart != null) {
+    if (chart != null && chart.getChart() != null) {
       chart.getChart().getXYPlot().getDomainAxis().addChangeListener(this);
       chart.getChart().getXYPlot().getRangeAxis().addChangeListener(this);
     }
@@ -95,5 +95,6 @@ public abstract class AxesRangeChangedListener implements AxisChangeListener {
    * @param lastR
    * @param newR
    */
-  public abstract void axesRangeChanged(ChartPanel chart, ValueAxis axis, Range lastR, Range newR);
+  public abstract void axesRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR,
+      Range newR);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -101,7 +101,8 @@ public class DialogLoggerUtil {
   public static void centerOnParent(final Window child, final boolean absolute) {
     child.pack();
     boolean useChildsOwner = child.getOwner() != null
-        ? ((child.getOwner() instanceof JFrame) || (child.getOwner() instanceof JDialog)) : false;
+        ? ((child.getOwner() instanceof JFrame) || (child.getOwner() instanceof JDialog))
+        : false;
     final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     final Dimension parentSize = useChildsOwner ? child.getOwner().getSize() : screenSize;
     final Point parentLocationOnScreen =

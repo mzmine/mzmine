@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -57,7 +57,7 @@ public class PeakListIdentificationTask extends AbstractTask {
   private int finishedItems;
   private int numItems;
 
-  private final MZmineProcessingStep<OnlineDatabase> db;
+  private final MZmineProcessingStep<OnlineDatabases> db;
   private final MZTolerance mzTolerance;
   private final int numOfResults;
   private final PeakList peakList;

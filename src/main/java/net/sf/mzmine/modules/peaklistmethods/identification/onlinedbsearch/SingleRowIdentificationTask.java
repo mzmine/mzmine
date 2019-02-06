@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -52,7 +52,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
   private int finishedItems = 0, numItems;
 
-  private MZmineProcessingStep<OnlineDatabase> db;
+  private MZmineProcessingStep<OnlineDatabases> db;
   private double searchedMass;
   private MZTolerance mzTolerance;
   private int charge;

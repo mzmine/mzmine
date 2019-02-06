@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -123,7 +123,7 @@ public class XYBlockPixelSizePaintScales {
   public static Paint[] getFullRainBowScaleLowerUpperBound() {
     int ncolor = 360;
     Color[] readRainbow = new Color[ncolor];
-    Color[] rainbow = new Color[ncolor + 10];
+    Color[] rainbow = new Color[ncolor];
 
     float x = (float) (1. / (ncolor + 160));
     for (int i = 0; i < readRainbow.length; i++) {
@@ -147,17 +147,17 @@ public class XYBlockPixelSizePaintScales {
   public static Paint[] getFullRainBowScaleLowerBound() {
     int ncolor = 360;
     Color[] readRainbow = new Color[ncolor];
-    Color[] rainbow = new Color[ncolor + 5];
+    Color[] rainbow = new Color[ncolor];
 
     float x = (float) (1. / (ncolor + 160));
-    for (int i = 0; i < readRainbow.length; i++) {
+    for (int i = 5; i < readRainbow.length; i++) {
       readRainbow[i] = new Color(Color.HSBtoRGB((i) * x, 1.0F, 1.0F));
     }
     for (int i = 0; i < 5; i++) {
       rainbow[i] = new Color(0, 0, 0);
     }
     for (int i = 5; i < readRainbow.length; i++) {
-      rainbow[i] = readRainbow[readRainbow.length - i - 1];
+      rainbow[i] = readRainbow[readRainbow.length - i - 1 + 5];
     }
     return rainbow;
   }
@@ -168,7 +168,7 @@ public class XYBlockPixelSizePaintScales {
   public static Paint[] getFullRainBowScaleUpperBound() {
     int ncolor = 360;
     Color[] readRainbow = new Color[ncolor];
-    Color[] rainbow = new Color[ncolor + 5];
+    Color[] rainbow = new Color[ncolor];
 
     float x = (float) (1. / (ncolor + 160));
     for (int i = 0; i < readRainbow.length; i++) {
