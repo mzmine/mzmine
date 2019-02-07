@@ -44,9 +44,8 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ------------------------------------------------------------------------
 
     public static final DoubleParameter PREF_WINDOW_WIDTH =
-            new DoubleParameter("Preferred window width (min)",
-                    "Preferred width of a deconvolution window (in minutes). The algorithm will try to " +
-                            "select windows of the given width, but it may not be able to do so.",
+            new DoubleParameter("Deconvolution window width (min)",
+                    "Preferred width of deconvolution windows (in minutes).",
                     NumberFormat.getNumberInstance(), 0.05);
 
     // ------------------------------------------------------------------------
@@ -63,7 +62,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
             NumberFormat.getNumberInstance(), 0.05, 0.0, Double.MAX_VALUE);
 
     public static final IntegerParameter MIN_CLUSTER_SIZE = new IntegerParameter("Minimum Number of Peaks",
-            "Minimum number of peaks that form a component", 1);
+            "Minimum number of peaks that can form a component", 1);
 
     public static final BooleanParameter ADJUST_APEX_RET_TIME = new BooleanParameter("Adjust Apex Ret Times",
             "If this option is checked, the apex retention time is calculated by fitting a parabola into " +
