@@ -18,6 +18,8 @@
 
 package net.sf.mzmine.datamodel;
 
+import javax.annotation.Nonnull;
+
 public interface PeakListRow {
 
   /**
@@ -187,6 +189,7 @@ public interface PeakListRow {
   /**
    * Returns all fragmentation scans of this row
    */
+  @Nonnull
   public Scan[] getAllMS2Fragmentations();
 
   /**

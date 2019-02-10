@@ -27,16 +27,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
@@ -49,6 +46,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.Fo
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
@@ -105,6 +103,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
   ///// kaidu edit
   private final JMenuItem exportToSirius;
+  // for building MS/MS library and submission to online libraries
+  private final JMenuItem exportMSMSLibrary;
   ////
   private final JMenuItem manuallyDefineItem;
   private final JMenuItem showPeakRowSummaryItem;
@@ -165,6 +165,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     exportIsotopesItem = GUIUtils.addMenuItem(exportMenu, "Isotope pattern", this);
     // kaidu edit
     exportToSirius = GUIUtils.addMenuItem(exportMenu, "Export to SIRIUS", this);
+    exportMSMSLibrary = GUIUtils.addMenuItem(exportMenu, "Export MS/MS library", this);
     //
     exportMSMSItem = GUIUtils.addMenuItem(exportMenu, "MS/MS pattern", this);
 
@@ -216,6 +217,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     idsMenu.setEnabled(rowsSelected);
     exportIsotopesItem.setEnabled(rowsSelected);
     exportToSirius.setEnabled(rowsSelected);
+    exportMSMSLibrary.setEnabled(rowsSelected);
     exportMenu.setEnabled(rowsSelected);
 
     final boolean oneRowSelected = selectedRows.length == 1;
@@ -618,6 +620,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     if (exportToSirius.equals(src)) {
       // export all selected rows
       SiriusExportModule.exportSingleRows(allClickedPeakListRows);
+    }
+    if (exportMSMSLibrary.equals(src)) {
+      // open window with all selected rows
+      MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
+      libraryWindow.setData(allClickedPeakListRows);
+      libraryWindow.setVisible(true);
     }
 
     if (exportMSMSItem.equals(src)) {

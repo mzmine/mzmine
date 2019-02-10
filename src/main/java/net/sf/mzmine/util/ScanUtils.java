@@ -27,14 +27,23 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.ScanSortMode;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.ScanSorter;
+import net.sf.mzmine.util.exceptions.MissingMassListException;
 
 /**
  * Scan related utilities
@@ -601,6 +610,109 @@ public class ScanUtils {
     byte[] bytes = Base64.getDecoder().decode(new String(encodedData));
     DataPoint dataPoints[] = decodeDataPointsFromBytes(bytes);
     return dataPoints;
+  }
+
+  public static Stream<Scan> streamAllFragmentScans(PeakListRow row) {
+    return Arrays.stream(row.getAllMS2Fragmentations());
+  }
+
+  /**
+   * Sorted list (best first) of all MS2 fragmentation scans with n signals >= noiseLevel in the
+   * specified or first massList, if none was specified
+   * 
+   * @param row
+   * @param massListName the name or null/empty to always use the first masslist
+   * @param noiseLevel
+   * @param minNumberOfSignals
+   * @param sort the sorting property (best first, index=0)
+   * @return
+   */
+  @Nonnull
+  public static List<Scan> listAllFragmentScans(PeakListRow row, @Nullable String massListName,
+      double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
+      throws MissingMassListException {
+    List<Scan> scans = listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals);
+    // first entry is the best scan
+    scans.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    return scans;
+  }
+
+  /**
+   * List of all MS2 fragmentation scans with n signals >= noiseLevel in the specified or first
+   * massList, if none was specified
+   * 
+   * @param row
+   * @param massListName the name or null/empty to always use the first masslist
+   * @param noiseLevel
+   * @param minNumberOfSignals
+   * @return
+   */
+  @Nonnull
+  public static List<Scan> listAllFragmentScans(PeakListRow row, @Nullable String massListName,
+      double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
+    List<Scan> filtered = new ArrayList<Scan>();
+    Scan[] scans = row.getAllMS2Fragmentations();
+    for (Scan scan : scans) {
+      // find mass list: with name or first
+      final MassList massList = getMassListOrFirst(scan, massListName);
+      if (massList == null)
+        throw new MissingMassListException("", massListName);
+
+      // minimum number of signals >= noiseLevel
+      int signals = 0;
+      for (DataPoint dp : massList.getDataPoints())
+        if (dp.getIntensity() >= noiseLevel)
+          signals++;
+      if (signals >= minNumberOfSignals)
+        filtered.add(scan);
+    }
+    return filtered;
+  }
+
+  /**
+   * Get specific masslist or the first if no masslist name is specified
+   * 
+   * @param scan
+   * @param massListName
+   * @return null if no masslist with this name or if name was not specified and this scan has zero
+   *         masslists
+   * @throws MissingMassListException
+   */
+  public static MassList getMassListOrFirst(Scan scan, String massListName) {
+    final MassList massList;
+    if (massListName == null || massListName.length() == 0) {
+      MassList[] lists = scan.getMassLists();
+      massList = lists.length > 0 ? lists[0] : null;
+    } else {
+      massList = scan.getMassList(massListName);
+    }
+    return massList;
+  }
+
+  /**
+   * Sum of intensity of all data points >= noiseLevel
+   * 
+   * @param data
+   * @param noiseLevel
+   * @return
+   */
+  public static double getTIC(DataPoint[] data, double noiseLevel) {
+    return Stream.of(data).mapToDouble(DataPoint::getIntensity).filter(i -> i >= noiseLevel).sum();
+  }
+
+  /**
+   * Number of signals >=noiseLevel
+   * 
+   * @param data
+   * @param noiseLevel
+   * @return
+   */
+  public static int getNumberOfSignals(DataPoint[] data, double noiseLevel) {
+    int n = 0;
+    for (DataPoint dp : data)
+      if (dp.getIntensity() >= noiseLevel)
+        n++;
+    return n;
   }
 
 }

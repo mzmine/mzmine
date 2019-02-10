@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakIdentity;
@@ -375,8 +376,9 @@ public class SimplePeakListRow implements PeakListRow {
   }
 
   @Override
+  @Nonnull
   public Scan[] getAllMS2Fragmentations() {
-    ArrayList<Scan> allMS2ScansList = new ArrayList<Scan>();
+    ArrayList<Scan> allMS2ScansList = new ArrayList<>();
     for (Feature peak : this.getPeaks()) {
       RawDataFile rawData = peak.getDataFile();
       int scanNumbers[] = peak.getAllMS2FragmentScanNumbers();
