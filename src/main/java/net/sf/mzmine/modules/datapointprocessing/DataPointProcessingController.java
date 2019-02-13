@@ -1,17 +1,12 @@
 package net.sf.mzmine.modules.datapointprocessing;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModulesList;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
@@ -80,6 +75,7 @@ public class DataPointProcessingController {
   }
 
   public void setStatus(ControllerStatus status) {
+    // TODO: implement listener to tell the manager the controller is done.
     this.status = status;
   }
 

@@ -9,7 +9,10 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
 /**
  * 
- * This abstract class defines the methods for processing an array of DataPoints.
+ * This abstract class defines the methods for processing an array of DataPoints. When implementing
+ * this, make sure to use setStatus and setResults at the end of the task. The next task will not be
+ * launched, if the status has not been set to FINISHED. The next Task will be launched using
+ * ProcessedDataPoint[] results.
  * 
  */
 public abstract class DataPointProcessingTask extends AbstractTask {
@@ -52,9 +55,10 @@ public abstract class DataPointProcessingTask extends AbstractTask {
       return results;
     return new ProcessedDataPoint[0];
   }
-  
+
   /**
    * Set the results when your task is done processing.
+   * 
    * @param dp Array the results shall be set to.
    */
   public void setResults(ProcessedDataPoint[] dp) {
