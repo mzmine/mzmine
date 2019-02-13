@@ -13,14 +13,14 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
  * 
  */
 public abstract class DataPointProcessingTask extends AbstractTask {
-  
+
   SpectraPlot targetPlot;
   DataPoint[] dataPoints;
-  DataPointProcessingListener dppManager;
   ProcessedDataPoint[] results;
   ParameterSet parameterSet;
 
-  DataPointProcessingTask(DataPoint[] dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet) {
+  DataPointProcessingTask(DataPoint[] dataPoints, SpectraPlot targetPlot,
+      ParameterSet parameterSet) {
     setDataPoints(dataPoints);
     setTargetPlot(targetPlot);
     setParameterSet(parameterSet);
@@ -30,28 +30,35 @@ public abstract class DataPointProcessingTask extends AbstractTask {
     return dataPoints;
   }
 
-  public void setDataPoints(DataPoint[] dataPoints) {
+  private void setDataPoints(DataPoint[] dataPoints) {
     this.dataPoints = dataPoints;
   }
-  
+
   public SpectraPlot getTargetPlot() {
     return targetPlot;
   }
 
-  public void setTargetPlot(SpectraPlot targetPlot) {
+  private void setTargetPlot(SpectraPlot targetPlot) {
     this.targetPlot = targetPlot;
   }
-  
-  public void taskFinished() {
-    if(this.getStatus() != TaskStatus.FINISHED) // make sure this is set
-      this.setStatus(TaskStatus.FINISHED);
-    dppManager.handle(new DataPointProcessingEvent(this));
-  }
-  
+
+  /**
+   * 
+   * @return Array of ProcessedDataPoints. Make sure the task has finished. If results are not set a
+   *         new ProcessedDataPoint[0] will be returned.
+   */
   public ProcessedDataPoint[] getResults() {
-    if(results != null)
+    if (results != null)
       return results;
     return new ProcessedDataPoint[0];
+  }
+  
+  /**
+   * Set the results when your task is done processing.
+   * @param dp Array the results shall be set to.
+   */
+  public void setResults(ProcessedDataPoint[] dp) {
+    this.results = dp;
   }
 
   public ParameterSet getParameterSet() {
