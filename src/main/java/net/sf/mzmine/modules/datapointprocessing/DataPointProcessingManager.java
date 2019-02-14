@@ -71,9 +71,16 @@ public class DataPointProcessingManager implements Runnable {
     logger.finest("Controller removed from running list. (size = " + running.size() + ")");
   }
 
+  private void removeAllWaitingControllers() {
+    synchronized (waiting) {
+      waiting.clear();
+    }
+  }
+
   /**
    * Tries to start the next controller from the waiting list and adds a listener to automatically
-   * start the next one when finished.
+   * start the next one when finished. Every SpectraPlot will call this method after adding its
+   * controller. TODO: Maybe just call this in addController?
    */
   public void startNextController() {
     if (running.size() >= MAX_RUNNING) {
@@ -105,6 +112,8 @@ public class DataPointProcessingManager implements Runnable {
           logger.finest("Controller finished, trying to start the next one. + (size = "
               + running.size() + ")");
         } else if (newStatus == ControllerStatus.CANCELED) {
+          // this will be called, when the controller is forcefully canceled. The current task will
+          // be completed, then the status will be changed and this method is called.
           removeRunningController(controller);
         }
       }
@@ -127,5 +136,52 @@ public class DataPointProcessingManager implements Runnable {
     }
   }
 
-  //TODO: cancelController, cancelAllRunning, cancelAllWating, cancelAll
+  /**
+   * Cancels the execution of a specific controller or removes it from wating list.
+   * 
+   * @param controller
+   */
+  public void cancelController(DataPointProcessingController controller) {
+    synchronized (waiting) {
+      if (waiting.contains(controller)) {
+        controller.cancelTasks();
+        // removing the controller will be executed by the statusListener in startNextController()
+        // since the forcedStatus of the controller has been set. Controller.execute checks before
+        // every task launch if the controller was canceled.
+        // removeWaitingController(controller);
+      }
+    }
+    synchronized (running) {
+      if (running.contains(controller)) {
+        controller.cancelTasks();
+        // removing the controller will be executed by the statusListener in startNextController()
+        // removeRunningController(controller);
+      }
+    }
+  }
+
+  /**
+   * Cancels the execution of all running controllers. Keep in mind that calling only this method
+   * will only cancel the running ones, the currently waiting ones will be started afterwards.
+   * Consider calling removeAllWaiting first or use cancelAndRemoveAll() instead.
+   */
+  public void cancelAllRunning() {
+    synchronized (running) {
+      for (DataPointProcessingController c : running) {
+        c.cancelTasks();
+      }
+    }
+  }
+
+  /**
+   * Cancels every running task and removed all waiting controllers.
+   */
+  public void cancelAndRemoveAll() {
+    removeAllWaitingControllers();
+    synchronized (running) {
+      for (DataPointProcessingController c : running) {
+        c.cancelTasks();
+      }
+    }
+  }
 }
