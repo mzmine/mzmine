@@ -5,6 +5,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import net.sf.mzmine.main.MZmineCore;
 
+/**
+ * This class keeps track of every DataPointProcessingController and manages their assignment to the
+ * TaskController.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DataPointProcessingManager implements Runnable {
 
   private static final DataPointProcessingManager inst = new DataPointProcessingManager();

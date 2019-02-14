@@ -14,7 +14,7 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
  * This class will control the tasks to process the DataPoints in a SpectraWindow. Every SpectraPlot
  * is meant to have an instance of this class associated with it.
  * 
- * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
 public class DataPointProcessingController {

@@ -14,6 +14,8 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
  * launched, if the status has not been set to FINISHED. The next Task will be launched using
  * ProcessedDataPoint[] results.
  * 
+ * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ * 
  */
 public abstract class DataPointProcessingTask extends AbstractTask {
 

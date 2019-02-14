@@ -8,57 +8,66 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 
+/**
+ * This class stores the results of DataPointProcessingTasks. It offers more functionality, e.g.
+ * assigning identities.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class ProcessedDataPoint extends SimpleDataPoint {
-  
+
   public ProcessedDataPoint(DataPoint dp) {
     super(dp);
     identities = new Vector<PeakIdentity>();
   }
+
   public ProcessedDataPoint(double mz, double intensity) {
     super(mz, intensity);
   }
-  
-  public ProcessedDataPoint(DataPoint dp, PeakIdentity preferredIdentity, List<PeakIdentity> identities) {
+
+  public ProcessedDataPoint(DataPoint dp, PeakIdentity preferredIdentity,
+      List<PeakIdentity> identities) {
     super(dp);
     setPreferredIdentity(preferredIdentity);
-    
+
   }
-  
+
   PeakIdentity preferredIdentity;
   List<PeakIdentity> identities;
   HashMap<String, Object> properties;
-  
+
   public void setPreferredIdentity(PeakIdentity identity) {
     this.preferredIdentity = identity;
   }
-  
+
   public PeakIdentity getPreferredIdentiy() {
     return preferredIdentity;
   }
-  
+
   public boolean addIdentity(PeakIdentity identity) {
-    if(identity == null)
+    if (identity == null)
       return false;
-    
-    if(identities.contains(identity))
+
+    if (identities.contains(identity))
       return false;
-    
-    if(preferredIdentity == null)
+
+    if (preferredIdentity == null)
       setPreferredIdentity(identity);
-    
+
     return identities.add(identity);
   }
-  
+
   public void removeIdenities(Iterable<PeakIdentity> identities) {
-    for(PeakIdentity id : identities)
+    for (PeakIdentity id : identities)
       this.identities.remove(id);
   }
-  
+
   public boolean removeIdentity(PeakIdentity identity) {
     return identities.remove(identity);
   }
-  
-  public PeakIdentity[] getIdentities(){
+
+  public PeakIdentity[] getIdentities() {
     return identities.toArray(new PeakIdentity[0]);
   }
 }
