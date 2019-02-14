@@ -7,8 +7,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.ControllerStatus;
 
 /**
- * This class keeps track of every DataPointProcessingController and manages their assignment to the
- * TaskController.
+ * There will be a single instance of this class, use getInst(). This class keeps track of every
+ * DataPointProcessingController and manages their assignment to the TaskController.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
@@ -27,6 +27,11 @@ public class DataPointProcessingManager implements Runnable {
     return inst;
   }
 
+  /**
+   * Adds a controller to the end of the waiting list.
+   * 
+   * @param controller Controller to add.
+   */
   public void addController(DataPointProcessingController controller) {
     synchronized (waiting) {
       if (waiting.contains(controller)) {
@@ -39,6 +44,11 @@ public class DataPointProcessingManager implements Runnable {
     logger.finest("Controller added to waiting list. (size = " + waiting.size() + ")");
   }
 
+  /**
+   * Removes a controller from the waiting list. Use this if the current plot has changed.
+   * 
+   * @param controller
+   */
   public void removeWaitingController(DataPointProcessingController controller) {
     if (!waiting.contains(controller))
       return;
@@ -49,6 +59,12 @@ public class DataPointProcessingManager implements Runnable {
     logger.finest("Controller removed from wating list. (size = " + waiting.size() + ")");
   }
 
+  /**
+   * Adds a controller to the running list. Don't use publicly. Is called by startNextController()
+   * if running.size < MAX_RUNNING.
+   * 
+   * @param controller
+   */
   private void addRunningController(DataPointProcessingController controller) {
     synchronized (running) {
       if (running.contains(controller)) {
@@ -61,6 +77,13 @@ public class DataPointProcessingManager implements Runnable {
     logger.finest("Controller added to running list. (size = " + running.size() + ")");
   }
 
+  /**
+   * Removes a controller from the running list. Don't use publicly. Is called by the
+   * DPControllerStatusListener in the startNextController method, if the task was canceled or
+   * finished.
+   * 
+   * @param controller
+   */
   private void removeRunningController(DataPointProcessingController controller) {
     if (!running.contains(controller))
       return;
@@ -71,6 +94,9 @@ public class DataPointProcessingManager implements Runnable {
     logger.finest("Controller removed from running list. (size = " + running.size() + ")");
   }
 
+  /**
+   * Clears the list of all waiting controllers.
+   */
   private void removeAllWaitingControllers() {
     synchronized (waiting) {
       waiting.clear();
@@ -119,7 +145,7 @@ public class DataPointProcessingManager implements Runnable {
       }
     });
 
-    next.execute();
+    next.execute(); // this will start the actual task via the controller method.
     logger.finest("Started controller from running list. (size = " + running.size() + ")");
   }
 

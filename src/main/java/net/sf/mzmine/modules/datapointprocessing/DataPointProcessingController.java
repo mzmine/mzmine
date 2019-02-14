@@ -22,8 +22,6 @@ public class DataPointProcessingController {
 
   private Logger logger = Logger.getLogger(DataPointProcessingController.class.getName());
 
-
-
   PlotModuleCombo pmc;
   DataPoint[] dataPoints;
   ProcessedDataPoint[] results;
@@ -35,7 +33,8 @@ public class DataPointProcessingController {
   };
 
   /**
-   * This is used to cancel the execution of this controller. It is set to NORMAL in the constructor. 
+   * This is used to cancel the execution of this controller. It is set to NORMAL in the
+   * constructor.
    */
   public enum ForcedControllerStatus {
     NORMAL, CANCEL
@@ -77,6 +76,10 @@ public class DataPointProcessingController {
     this.dataPoints = dataPoints;
   }
 
+  /**
+   * 
+   * @return Results of this task. Might be null, make sure to check the status first!
+   */
   public ProcessedDataPoint[] getResults() {
     return results;
   }
@@ -115,13 +118,13 @@ public class DataPointProcessingController {
     return forcedStatus;
   }
 
-  public void setForcedStatus(ForcedControllerStatus forcedStatus) {
+  private void setForcedStatus(ForcedControllerStatus forcedStatus) {
     this.forcedStatus = forcedStatus;
   }
 
   /**
    * Convenience method to cancel the execution of this controller. The manager will listen to this
-   * change by it's DPControllerStatusListener. The ControllerStatus is changed in the execute()
+   * change by its DPControllerStatusListener. The ControllerStatus is changed in the execute()
    * method of this controller.
    */
   public void cancelTasks() {
@@ -198,7 +201,8 @@ public class DataPointProcessingController {
   }
 
   /**
-   * Executes the modules in the PlotModuleCombo to the plot with the given DataPoints.
+   * Executes the modules in the PlotModuleCombo to the plot with the given DataPoints. This will be
+   * called by the DataPointProcessingManager.
    */
   public void execute() {
     if (!isPlotModuleComboSet())
