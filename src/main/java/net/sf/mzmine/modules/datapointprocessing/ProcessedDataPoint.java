@@ -17,6 +17,21 @@ import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
  */
 public class ProcessedDataPoint extends SimpleDataPoint {
 
+  /**
+   * Generates an array of ProcessedDataPoints from DataPoints.
+   * @param dp DataPoints to convert.
+   * @return Array of ProcessedDataPoints from DataPoints.
+   */
+  static ProcessedDataPoint[] convert(DataPoint[] dp) {
+    if(dp == null)
+      return new ProcessedDataPoint[0];
+    
+    ProcessedDataPoint[] pdp = new ProcessedDataPoint[dp.length];
+    for(int i = 0; i < pdp.length; i++)
+      pdp[i] = new ProcessedDataPoint(dp[i]);
+    return pdp;
+  }
+  
   public ProcessedDataPoint(DataPoint dp) {
     super(dp);
     identities = new Vector<PeakIdentity>();
@@ -70,4 +85,9 @@ public class ProcessedDataPoint extends SimpleDataPoint {
   public PeakIdentity[] getIdentities() {
     return identities.toArray(new PeakIdentity[0]);
   }
+  
+  /*
+  public boolean equals(ProcessedDataPoint p) {
+    //TODO
+  }*/
 }
