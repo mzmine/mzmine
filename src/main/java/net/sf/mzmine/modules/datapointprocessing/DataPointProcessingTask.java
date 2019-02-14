@@ -4,8 +4,6 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
 /**
  * 
@@ -74,4 +72,5 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   public void setParameterSet(ParameterSet parameterSet) {
     this.parameterSet = parameterSet;
   }
+
 }

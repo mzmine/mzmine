@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.ControllerStatus;
 
 /**
  * This class keeps track of every DataPointProcessingController and manages their assignment to the
@@ -29,7 +30,7 @@ public class DataPointProcessingManager implements Runnable {
   public void addController(DataPointProcessingController controller) {
     synchronized (waiting) {
       if (waiting.contains(controller)) {
-        logger.info("Warning: Controller was already added to waiting list at index "
+        logger.fine("Warning: Controller was already added to waiting list at index "
             + waiting.indexOf(controller) + "/" + waiting.size() + ". Skipping.");
         return;
       }
@@ -51,7 +52,7 @@ public class DataPointProcessingManager implements Runnable {
   private void addRunningController(DataPointProcessingController controller) {
     synchronized (running) {
       if (running.contains(controller)) {
-        logger.info("Warning: Controller was already added to waiting list at index "
+        logger.fine("Warning: Controller was already added to waiting list at index "
             + running.indexOf(controller) + "/" + running.size() + ". Skipping.");
         return;
       }
@@ -70,9 +71,19 @@ public class DataPointProcessingManager implements Runnable {
     logger.finest("Controller removed from running list. (size = " + running.size() + ")");
   }
 
+  /**
+   * Tries to start the next controller from the waiting list and adds a listener to automatically
+   * start the next one when finished.
+   */
   public void startNextController() {
-    if (running.size() >= MAX_RUNNING && waiting.size() < 1)
+    if (running.size() >= MAX_RUNNING) {
+      logger.info("Too much controllers running, cannot start the next one.");
       return;
+    }
+    if (waiting.isEmpty()) {
+      logger.info("No more waiting controllers, cannot start the next one.");
+      return;
+    }
 
     DataPointProcessingController next;
 
@@ -81,7 +92,24 @@ public class DataPointProcessingManager implements Runnable {
       removeWaitingController(next);
     }
 
-    running.add(next);
+    addRunningController(next);
+    next.addControllerStatusListener(new DPControllerStatusListener() {
+
+      @Override
+      public void statusChanged(DataPointProcessingController controller,
+          ControllerStatus newStatus, ControllerStatus oldStatus) {
+        if (newStatus == ControllerStatus.FINISHED) {
+          // One controller finished, now we can remove it and start the next one.
+          removeRunningController(controller);
+          startNextController();
+          logger.finest("Controller finished, trying to start the next one. + (size = "
+              + running.size() + ")");
+        } else if (newStatus == ControllerStatus.CANCELED) {
+          removeRunningController(controller);
+        }
+      }
+    });
+
     next.execute();
     logger.finest("Started controller from running list. (size = " + running.size() + ")");
   }
@@ -99,5 +127,5 @@ public class DataPointProcessingManager implements Runnable {
     }
   }
 
-
+  //TODO: cancelController, cancelAllRunning, cancelAllWating, cancelAll
 }
