@@ -2,8 +2,8 @@ package net.sf.mzmine.modules.datapointprocessing;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
 /**
@@ -13,7 +13,6 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
  */
 public interface DataPointProcessingModule extends MZmineModule {
   
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, SpectraPlot plot, TaskStatusListener listener);
+  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet, SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener);
   
-  // TODO: runModule() is not needed for this. what do we do with it?
 }

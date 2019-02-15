@@ -9,10 +9,16 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 public class PlotModuleCombo {
   SpectraPlot plot;
   List<Class<DataPointProcessingModule>> modules;
+//  List<Class<? extends ParameterSet>> parameters;
 
   PlotModuleCombo(List<Class<DataPointProcessingModule>> modules, SpectraPlot plot) {
     setPlot(plot);
     setModules(modules);
+//    List<Class<? extends ParameterSet>> parameters = new ArrayList<Class<? extends ParameterSet>>();
+
+//    for(Class<DataPointProcessingModule> module : modules) {
+//      parameters.add(MZmineCore.getModuleInstance(module).getParameterSetClass());
+//    }
   }
 
   public PlotModuleCombo() {
@@ -41,6 +47,10 @@ public class PlotModuleCombo {
   public void setModules(List<Class<DataPointProcessingModule>> modules) {
     this.modules = modules;
   }
+
+//  public Class<? extends ParameterSet> getModuleParameterSetClass(Class<DataPointProcessingModule> module){
+//    return parameters.get(modules.indexOf(module));
+//  }
 
   /**
    * 
@@ -98,4 +108,5 @@ public class PlotModuleCombo {
     }
     return null;
   }
+  
 }

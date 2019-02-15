@@ -27,7 +27,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * @param dp DataPoints to convert.
    * @return Array of ProcessedDataPoints from DataPoints.
    */
-  static ProcessedDataPoint[] convert(DataPoint[] dp) {
+  public static ProcessedDataPoint[] convert(DataPoint[] dp) {
     if (dp == null)
       return new ProcessedDataPoint[0];
 

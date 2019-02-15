@@ -8,6 +8,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
@@ -51,7 +53,7 @@ public class DataPointProcessingController {
    * DataPointProcessingController(PlotModuleCombo pmc) { setPlotModuleCombo(pmc); }
    */
 
-  DataPointProcessingController(List<Class<DataPointProcessingModule>> moduleList, SpectraPlot plot,
+  DataPointProcessingController(List<Class<DataPointProcessingModule>> moduleList, List<Class<SimpleParameterSet>> parameters, SpectraPlot plot,
       DataPoint[] dataPoints) {
     pmc = new PlotModuleCombo(moduleList, plot);
     setdataPoints(dataPoints);
@@ -163,35 +165,53 @@ public class DataPointProcessingController {
 
     if (inst instanceof DataPointProcessingModule) {
 
-      Task t = ((DataPointProcessingModule) inst).createTask(dp, plot, new TaskStatusListener() {
+      //TODO: use our own parameter thing here?
+      ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(module);
+      
+      Task t = ((DataPointProcessingModule) inst).createTask(dp, parameters, plot, this, new TaskStatusListener() {
         @Override
         public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
           if (!(task instanceof DataPointProcessingTask)) {
             // TODO: Throw exception?
+            logger.warning("This should have been a DataPointProcessingTask.");
             return;
           }
-          if (newStatus == TaskStatus.FINISHED) {
-            if (pmc.hasNextModule(module)) {
-              Class<DataPointProcessingModule> next = pmc.getNextModule(module);
+          switch (newStatus) {
+            case FINISHED:
+              if (pmc.hasNextModule(module)) {
+                if (DataPointProcessingManager.getInst()
+                    .isRunning(((DataPointProcessingTask) task).getController())) {
 
-              // pass results to next task and start recursively
-              ProcessedDataPoint[] result = ((DataPointProcessingTask) task).getResults();
-              execute(result, next, plot);
-            } else {
-              // TODO: finish and display
-              setResults(((DataPointProcessingTask) task).getResults());
-              setStatus(ControllerStatus.FINISHED);
+                  Class<DataPointProcessingModule> next = pmc.getNextModule(module);
 
-              logger.finest("Controller finished.");
-            }
-          } else if (newStatus == TaskStatus.PROCESSING) {
-            setStatus(ControllerStatus.PROCESSING);
-          } else if (newStatus == TaskStatus.WAITING) {
-            // should set to waiting here?
-          } else if (newStatus == TaskStatus.ERROR) {
-            setStatus(ControllerStatus.ERROR);
-          } else if (newStatus == TaskStatus.CANCELED) {
-            setStatus(ControllerStatus.CANCELED);
+                  // pass results to next task and start recursively
+                  ProcessedDataPoint[] result = ((DataPointProcessingTask) task).getResults();
+                  execute(result, next, plot);
+                } else {
+                  logger.warning(
+                      "This controller was already removed from the running list, although it had not finished processing. Exiting");
+                  break;
+                }
+              } else {
+                // TODO: finish and display
+                setResults(((DataPointProcessingTask) task).getResults());
+                setStatus(ControllerStatus.FINISHED);
+
+                logger.finest("Controller finished.");
+              }
+              break;
+            case PROCESSING:
+              setStatus(ControllerStatus.PROCESSING);
+              break;
+            case WAITING:
+              // should we even set to WAITING here?
+              break;
+            case ERROR:
+              setStatus(ControllerStatus.ERROR);
+              break;
+            case CANCELED:
+              setStatus(ControllerStatus.CANCELED);
+              break;
           }
         }
       });

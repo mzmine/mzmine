@@ -141,6 +141,11 @@ public class DataPointProcessingManager implements Runnable {
           // this will be called, when the controller is forcefully canceled. The current task will
           // be completed, then the status will be changed and this method is called.
           removeRunningController(controller);
+        } else if (newStatus == ControllerStatus.ERROR) {
+          // if a controller's task errors out, we should cancel the whole controller here
+          // since the next controller wont be started, just using cancelTasks() here is not
+          // sufficient, we have to remove it manually
+          removeRunningController(controller);
         }
       }
     });
@@ -209,5 +214,17 @@ public class DataPointProcessingManager implements Runnable {
         c.cancelTasks();
       }
     }
+  }
+
+  /**
+   * Convenience method to double check if a controller is allowed to run.
+   * 
+   * @param controller
+   * @return true or false if the controller is still in the running list. If this is false and the
+   *         controller wants to execute() something went wrong. Check the setStatus method of the
+   *         controller and the tasks.
+   */
+  public boolean isRunning(DataPointProcessingController controller) {
+    return running.contains(controller);
   }
 }

@@ -4,6 +4,8 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
 /**
  * 
@@ -19,14 +21,21 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   SpectraPlot targetPlot;
   DataPoint[] dataPoints;
-  ProcessedDataPoint[] results;
   ParameterSet parameterSet;
+  DataPointProcessingController controller;
 
-  DataPointProcessingTask(DataPoint[] dataPoints, SpectraPlot targetPlot,
-      ParameterSet parameterSet) {
+  // move the results into this array by setReults to be collected by the controller and passed on
+  // to the next DPPTask by it
+  ProcessedDataPoint[] results;
+
+  public DataPointProcessingTask(DataPoint[] dataPoints, SpectraPlot targetPlot,
+      ParameterSet parameterSet, DataPointProcessingController controller, TaskStatusListener listener) {
     setDataPoints(dataPoints);
     setTargetPlot(targetPlot);
     setParameterSet(parameterSet);
+    setController(controller);
+    addTaskStatusListener(listener);
+    setStatus(TaskStatus.WAITING);
   }
 
   public DataPoint[] getDataPoints() {
@@ -71,6 +80,14 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   public void setParameterSet(ParameterSet parameterSet) {
     this.parameterSet = parameterSet;
+  }
+
+  public DataPointProcessingController getController() {
+    return controller;
+  }
+
+  private void setController(DataPointProcessingController controller) {
+    this.controller = controller;
   }
 
 }
