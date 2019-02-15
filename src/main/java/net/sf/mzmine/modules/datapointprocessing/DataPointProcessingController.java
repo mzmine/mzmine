@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.taskcontrol.Task;
@@ -158,7 +159,7 @@ public class DataPointProcessingController {
       return;
     }
 
-    MZmineProcessingModule inst = MZmineCore.getModuleInstance(module);
+    MZmineModule inst = MZmineCore.getModuleInstance(module);
 
     if (inst instanceof DataPointProcessingModule) {
 
