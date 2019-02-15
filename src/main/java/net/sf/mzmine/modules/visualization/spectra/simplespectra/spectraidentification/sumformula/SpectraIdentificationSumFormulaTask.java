@@ -162,12 +162,12 @@ public class SpectraIdentificationSumFormulaTask extends AbstractTask {
       massDetector = new CentroidMassDetector();
       CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
       CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan, parameters);
+      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
     } else {
       massDetector = new ExactMassDetector();
       ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
       ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan, parameters);
+      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
     }
     numItems = massList.length;
     // loop through every peak in mass list

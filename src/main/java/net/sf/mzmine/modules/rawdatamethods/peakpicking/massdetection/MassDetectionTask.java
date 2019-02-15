@@ -154,7 +154,7 @@ public class MassDetectionTask extends AbstractTask {
           return;
 
         MassDetector detector = massDetector.getModule();
-        DataPoint mzPeaks[] = detector.getMassValues(scan, massDetector.getParameterSet());
+        DataPoint mzPeaks[] = detector.getMassValues(scan.getDataPoints(), massDetector.getParameterSet());
 
         SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
 

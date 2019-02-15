@@ -31,6 +31,6 @@ public interface MassDetector extends MZmineModule {
   /**
    * Returns mass and intensity values detected in given scan
    */
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters);
+  public DataPoint[] getMassValues(DataPoint[] dp, ParameterSet parameters);
 
 }

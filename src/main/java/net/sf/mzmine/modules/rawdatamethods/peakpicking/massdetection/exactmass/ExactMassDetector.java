@@ -36,7 +36,7 @@ public class ExactMassDetector implements MassDetector {
   /**
    * @see net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(net.sf.mzmine.datamodel.Scan)
    */
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 
     double noiseLevel = parameters.getParameter(ExactMassDetectorParameters.noiseLevel).getValue();
 
@@ -50,7 +50,7 @@ public class ExactMassDetector implements MassDetector {
         new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending));
 
     // First get all candidate peaks (local maximum)
-    getLocalMaxima(scan, candidatePeaks, noiseLevel);
+    getLocalMaxima(dataPoints, candidatePeaks, noiseLevel);
 
     // We calculate the exact mass for each peak,
     // starting with biggest intensity peak and so on
@@ -83,10 +83,9 @@ public class ExactMassDetector implements MassDetector {
    * @param scan
    * @return
    */
-  private void getLocalMaxima(Scan scan, TreeSet<ExactMzDataPoint> candidatePeaks,
+  private void getLocalMaxima(DataPoint scanDataPoints[], TreeSet<ExactMzDataPoint> candidatePeaks,
       double noiseLevel) {
 
-    DataPoint[] scanDataPoints = scan.getDataPoints();
     if (scanDataPoints.length == 0)
       return;
     DataPoint localMaximum = scanDataPoints[0];

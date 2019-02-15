@@ -32,15 +32,13 @@ import net.sf.mzmine.parameters.ParameterSet;
  */
 public class LocalMaxMassDetector implements MassDetector {
 
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 
     double noiseLevel =
         parameters.getParameter(LocalMaxMassDetectorParameters.noiseLevel).getValue();
 
     // List of found mz peaks
     ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
-
-    DataPoint dataPoints[] = scan.getDataPoints();
 
     // All data points of current m/z peak
 

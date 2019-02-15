@@ -29,14 +29,12 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public class CentroidMassDetector implements MassDetector {
 
-  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 
     double noiseLevel =
         parameters.getParameter(CentroidMassDetectorParameters.noiseLevel).getValue();
 
     ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
-
-    DataPoint dataPoints[] = scan.getDataPoints();
 
     // Find possible mzPeaks
     for (int j = 0; j < dataPoints.length; j++) {

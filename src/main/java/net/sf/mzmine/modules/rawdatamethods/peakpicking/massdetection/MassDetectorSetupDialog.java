@@ -75,7 +75,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialogWithScanPreview
     if (!paramsOK)
       return;
 
-    DataPoint[] mzValues = massDetector.getMassValues(previewScan, parameters);
+    DataPoint[] mzValues = massDetector.getMassValues(previewScan.getDataPoints(), parameters);
 
     DataPointsDataSet peaksDataSet = new DataPointsDataSet("Detected peaks", mzValues);
 
