@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="428.0" prefWidth="648.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="DPPSetupWindowController">
+   <children>
+      <BorderPane layoutX="-100.0" layoutY="-100.0" prefHeight="100.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <center>
+            <SplitPane dividerPositions="0.5" prefHeight="283.0" prefWidth="315.0" BorderPane.alignment="CENTER">
+              <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="98.0" prefWidth="47.0">
+                     <children>
+                        <TreeView fx:id="tvProcessing" layoutX="81.0" layoutY="46.0" prefHeight="401.0" prefWidth="320.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                     <children>
+                        <TreeView fx:id="tvAllModules" layoutY="42.0" prefHeight="401.0" prefWidth="320.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
+              </items>
+            </SplitPane>
+         </center>
+         <bottom>
+            <FlowPane alignment="TOP_RIGHT" BorderPane.alignment="CENTER">
+               <children>
+                  <Button fx:id="btnApply" mnemonicParsing="false" onMouseClicked="#btnApplyClicked" text="Apply" />
+                  <Button fx:id="btnAdd" mnemonicParsing="false" onMouseClicked="#btnAddClicked" text="Add" />
+                  <Button fx:id="btnRemove" mnemonicParsing="false" onMouseClicked="#btnRemoveClicked" text="Remove" />
+                  <Button fx:id="btnSetParameters" mnemonicParsing="false" onMouseClicked="#btnSetParamClicked" text="Set parameters" />
+                  <Button fx:id="btnLoad" disable="true" mnemonicParsing="false" onMouseClicked="#btnLoadClicked" text="Load" />
+                  <Button fx:id="btnSave" disable="true" mnemonicParsing="false" onMouseClicked="#btnSaveClicked" text="Save" />
+               </children>
+            </FlowPane>
+         </bottom>
+      </BorderPane>
+   </children>
+</AnchorPane>

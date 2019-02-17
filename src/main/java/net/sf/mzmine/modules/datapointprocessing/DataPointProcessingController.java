@@ -28,7 +28,7 @@ public class DataPointProcessingController {
   PlotModuleCombo pmc;
   DataPoint[] dataPoints;
   ProcessedDataPoint[] results;
-  List<DPControllerStatusListener> listener;
+  List<DPPControllerStatusListener> listener;
   DataPointProcessingTask currentTask;
 
   public enum ControllerStatus {
@@ -105,7 +105,7 @@ public class DataPointProcessingController {
     this.status = status;
 
     if (listener != null)
-      for (DPControllerStatusListener l : listener)
+      for (DPPControllerStatusListener l : listener)
         l.statusChanged(this, this.status, old);
   }
 
@@ -238,13 +238,13 @@ public class DataPointProcessingController {
     execute(getDataPoints(), first, pmc.getPlot());
   }
 
-  public boolean addControllerStatusListener(DPControllerStatusListener list) {
+  public boolean addControllerStatusListener(DPPControllerStatusListener list) {
     if (listener == null)
-      listener = new ArrayList<DPControllerStatusListener>();
+      listener = new ArrayList<DPPControllerStatusListener>();
     return listener.add(list);
   }
 
-  public boolean removeControllerStatusListener(DPControllerStatusListener list) {
+  public boolean removeControllerStatusListener(DPPControllerStatusListener list) {
     if (listener != null)
       return listener.remove(list);
     return false;

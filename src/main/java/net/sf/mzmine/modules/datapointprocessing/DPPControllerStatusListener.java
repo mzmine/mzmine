@@ -9,6 +9,6 @@ import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.C
  *
  */
 @FunctionalInterface
-public interface DPControllerStatusListener {
+public interface DPPControllerStatusListener {
   public void statusChanged(DataPointProcessingController controller, ControllerStatus newStatus, ControllerStatus oldStatus);
 }

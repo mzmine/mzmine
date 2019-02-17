@@ -1,9 +1,11 @@
 package net.sf.mzmine.modules.datapointprocessing;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.ControllerStatus;
 
 /**
@@ -22,6 +24,12 @@ public class DataPointProcessingManager implements Runnable {
 
   private List<DataPointProcessingController> waiting;
   private List<DataPointProcessingController> running;
+
+  private List<MZmineProcessingStep<DataPointProcessingModule>> processingList;
+
+  public DataPointProcessingManager() {
+    processingList = new ArrayList<MZmineProcessingStep<DataPointProcessingModule>>();
+  }
 
   public static DataPointProcessingManager getInst() {
     return inst;
@@ -126,7 +134,7 @@ public class DataPointProcessingManager implements Runnable {
     }
 
     addRunningController(next);
-    next.addControllerStatusListener(new DPControllerStatusListener() {
+    next.addControllerStatusListener(new DPPControllerStatusListener() {
 
       @Override
       public void statusChanged(DataPointProcessingController controller,
@@ -143,6 +151,8 @@ public class DataPointProcessingManager implements Runnable {
           removeRunningController(controller);
         } else if (newStatus == ControllerStatus.ERROR) {
           // if a controller's task errors out, we should cancel the whole controller here
+          // the controller status is set to ERROR automatically, if a task error's out.
+
           // since the next controller wont be started, just using cancelTasks() here is not
           // sufficient, we have to remove it manually
           removeRunningController(controller);
@@ -226,5 +236,35 @@ public class DataPointProcessingManager implements Runnable {
    */
   public boolean isRunning(DataPointProcessingController controller) {
     return running.contains(controller);
+  }
+
+  /**
+   * Adds a processing step to the list.
+   * 
+   * @param step Processing step to add.
+   * @return {@link Collection#add}
+   */
+  public boolean addProcessingStep(MZmineProcessingStep<DataPointProcessingModule> step) {
+    return processingList.add(step);
+  }
+
+  /**
+   * Removes a processing step from the list.
+   * @param step Processing step to remove.
+   * @return {@link Collection#remove}
+   */
+  public boolean removeProcessingStep(MZmineProcessingStep<DataPointProcessingModule> step) {
+    return processingList.remove(step);
+  }
+
+  /**
+   * Clears the lsit of processing steps
+   */
+  public void clearProcessingSteps() {
+    processingList.clear();
+  }
+
+  public List<MZmineProcessingStep<DataPointProcessingModule>> getProcessingSteps() {
+    return processingList;
   }
 }
