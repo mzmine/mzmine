@@ -30,8 +30,10 @@ public class DPPSetupWindow  {
   private static final DPPSetupWindow inst = new DPPSetupWindow();
 
   public DPPSetupWindow() {
-    frame = new JFrame("Data point processing method selection");
 
+    frame = new JFrame("Data point processing method selection");
+    frame.setSize(800, 600);
+    
     fxPanel = new JFXPanel();
 
     loader = new FXMLLoader(getClass().getResource("DPPSetupWindow.fxml"));
@@ -46,8 +48,8 @@ public class DPPSetupWindow  {
     scene = new Scene(root);
     fxPanel.setScene(scene);
 
-    frame.setSize(800, 600);
     frame.add(fxPanel);
+    
     fxPanel.setVisible(true);
 
     // add menu item manually, else we'd need a module just to add this item which would be
@@ -56,7 +58,7 @@ public class DPPSetupWindow  {
 
     logger.finest("DPPSetupWindow intialized.");
   }
-
+  
   public void show() {
     fxPanel.setVisible(true);
     frame.setVisible(true);
@@ -97,4 +99,8 @@ public class DPPSetupWindow  {
     }
   }
 
+  public JFrame getFrame() {
+    return frame;
+  }
+  
 }

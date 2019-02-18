@@ -41,6 +41,7 @@ import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import net.sf.mzmine.desktop.impl.MainWindow;
+import net.sf.mzmine.modules.datapointprocessing.setup.DPPSetupWindow;
 
 /**
  * GUI related utilities
@@ -93,7 +94,7 @@ public class GUIUtils {
    */
   public static void closeAllWindows() {
     for (Window window : Window.getWindows()) {
-      if (window instanceof MainWindow)
+      if (window instanceof MainWindow || window == DPPSetupWindow.getInstance().getFrame())
         continue;
       window.dispose();
     }
