@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
@@ -25,16 +26,17 @@
             </SplitPane>
          </center>
          <bottom>
-            <FlowPane alignment="TOP_RIGHT" BorderPane.alignment="CENTER">
+            <HBox alignment="CENTER" spacing="10.0">
                <children>
+                  <CheckBox fx:id="cbEnabled" mnemonicParsing="false" text="Enabled" />
                   <Button fx:id="btnApply" mnemonicParsing="false" onAction="#btnApplyClicked" text="Apply &amp; Close" />
                   <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#btnAddClicked" text="Add" />
                   <Button fx:id="btnRemove" mnemonicParsing="false" onAction="#btnRemoveClicked" text="Remove" />
                   <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#btnSetParamClicked" text="Set parameters" />
-                  <Button fx:id="btnLoad" disable="true" mnemonicParsing="false" onAction="#btnLoadClicked" text="Load" />
                   <Button fx:id="btnSave" disable="true" mnemonicParsing="false" onAction="#btnSaveClicked" text="Save" />
+                  <Button fx:id="btnLoad" disable="true" mnemonicParsing="false" onAction="#btnLoadClicked" text="Load" />
                </children>
-            </FlowPane>
+            </HBox>
          </bottom>
       </BorderPane>
    </children>

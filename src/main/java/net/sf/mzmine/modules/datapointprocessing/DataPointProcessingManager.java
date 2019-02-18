@@ -21,6 +21,8 @@ public class DataPointProcessingManager implements Runnable {
   private int MAX_RUNNING = 5;
 
   private static Logger logger = Logger.getLogger(DataPointProcessingManager.class.getName());
+  
+  private boolean enabled;
 
   private List<DataPointProcessingController> waiting;
   private List<DataPointProcessingController> running;
@@ -29,6 +31,7 @@ public class DataPointProcessingManager implements Runnable {
 
   public DataPointProcessingManager() {
     processingList = new ArrayList<MZmineProcessingStep<DataPointProcessingModule>>();
+    enabled = false;
   }
 
   public static DataPointProcessingManager getInst() {
@@ -274,5 +277,14 @@ public class DataPointProcessingManager implements Runnable {
    */
   public void setProcessingSteps(List<MZmineProcessingStep<DataPointProcessingModule>> list) {
     processingList = list;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+    logger.finest("Enabled changed to " + enabled);
   }
 }

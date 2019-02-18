@@ -59,5 +59,4 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
     setResults(dp);
     setStatus(TaskStatus.FINISHED);
   }
-
 }

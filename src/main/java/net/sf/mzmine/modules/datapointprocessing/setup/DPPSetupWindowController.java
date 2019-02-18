@@ -13,6 +13,7 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
@@ -63,6 +64,9 @@ public class DPPSetupWindowController {
 
   @FXML
   private Button btnSetParameters;
+  
+  @FXML
+  private CheckBox cbEnabled;
 
   @FXML
   void btnApplyClicked(ActionEvent event) {
@@ -107,6 +111,7 @@ public class DPPSetupWindowController {
 
   @FXML
   void initialize() {
+    assert cbEnabled != null : "fx:id=\"cbEnabled\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
     assert tvProcessing != null : "fx:id=\"tvProcessing\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
     assert btnApply != null : "fx:id=\"btnApply\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
     assert btnSave != null : "fx:id=\"btnSave\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
@@ -163,6 +168,10 @@ public class DPPSetupWindowController {
     
     tvAllModules.getRoot().setExpanded(true);
     tvProcessing.getRoot().setExpanded(true);
+    
+    cbEnabled.selectedProperty().addListener(l -> {
+      DataPointProcessingManager.getInst().setEnabled(cbEnabled.isSelected());
+    });
   }
 
   private MZmineProcessingStep<DataPointProcessingModule> createProcessingStep(
@@ -235,6 +244,9 @@ public class DPPSetupWindowController {
     selected.setParameters(stepParameters);
   }
   
+  /**
+   * Adds the selected module in the tvAllModules to the processing list
+   */
   private void addModule() {
     TreeItem<String> selected = tvAllModules.getSelectionModel().getSelectedItem();
     if(selected == null)
@@ -257,6 +269,9 @@ public class DPPSetupWindowController {
     }
   }
   
+  /**
+   * Removes the selected module in the tvProcessingList from the list
+   */
   private void removeModule() {
     TreeItem<String> selected = tvProcessing.getSelectionModel().getSelectedItem();
     if(selected == null)
@@ -270,5 +285,6 @@ public class DPPSetupWindowController {
       logger.finest("Cannot remove item " + selected.getValue() + " from processing list.");
     }
   }
+  
 }
 
