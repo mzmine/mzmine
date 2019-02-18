@@ -1,9 +1,10 @@
-package net.sf.mzmine.modules.datapointprocessing;
+package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import io.github.msdk.MSDKRuntimeException;
+import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 
 public class PlotModuleCombo {
@@ -11,7 +12,7 @@ public class PlotModuleCombo {
   List<Class<DataPointProcessingModule>> modules;
 //  List<Class<? extends ParameterSet>> parameters;
 
-  PlotModuleCombo(List<Class<DataPointProcessingModule>> modules, SpectraPlot plot) {
+  public PlotModuleCombo(List<Class<DataPointProcessingModule>> modules, SpectraPlot plot) {
     setPlot(plot);
     setModules(modules);
 //    List<Class<? extends ParameterSet>> parameters = new ArrayList<Class<? extends ParameterSet>>();
