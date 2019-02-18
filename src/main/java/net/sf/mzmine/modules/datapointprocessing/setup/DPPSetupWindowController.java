@@ -61,16 +61,16 @@ public class DPPSetupWindowController {
 
   @FXML
   void btnApplyClicked(ActionEvent event) {
+    logger.finest(event.getSource().toString() + " clicked.");
+    
     sendList();
     DPPSetupWindow.getInstance().hide();
   }
 
   @FXML
   void btnAddClicked(ActionEvent event) {
-    // check if the module list is focused
-    if (!tvAllModules.isFocused())
-      return;
-
+    logger.finest(event.getSource().toString() + " clicked.");
+    
     TreeItem<String> selected = tvAllModules.getSelectionModel().getSelectedItem();
 
     if (selected instanceof DPPModuleTreeItem) {
@@ -92,11 +92,13 @@ public class DPPSetupWindowController {
 
   @FXML
   void btnRemoveClicked(ActionEvent event) {
+    logger.finest(event.getSource().toString() + " clicked.");
+    
     // check if processing list is focused
     if (!tvProcessing.isFocused())
       return;
 
-    TreeItem selected = tvProcessing.getSelectionModel().getSelectedItem();
+    TreeItem<String> selected = tvProcessing.getSelectionModel().getSelectedItem();
     if (selected instanceof DPPModuleTreeItem) {
       tvProcessing.getRoot().getChildren().remove(selected);
       logger.finest("Removed module " + ((DPPModuleTreeItem) selected).getModule().getName()
@@ -108,10 +110,9 @@ public class DPPSetupWindowController {
 
   @FXML
   void btnSetParamClicked(ActionEvent event) {
-    if (!tvProcessing.isFocused())
-      return;
-
-    TreeItem _selected = tvProcessing.getSelectionModel().getSelectedItem();
+    logger.finest(event.getSource().toString() + " clicked.");
+    
+    TreeItem<String> _selected = tvProcessing.getSelectionModel().getSelectedItem();
     if (!(_selected instanceof DPPModuleTreeItem))
       return;
     DPPModuleTreeItem selected = (DPPModuleTreeItem) _selected;
@@ -139,11 +140,13 @@ public class DPPSetupWindowController {
 
   @FXML
   void btnLoadClicked(ActionEvent event) {
+    logger.finest(event.getSource().toString() + " clicked.");
     // TODO
   }
 
   @FXML
   void btnSaveClicked(ActionEvent event) {
+    logger.finest(event.getSource().toString() + " clicked.");
     // TODO
   }
 
@@ -167,8 +170,8 @@ public class DPPSetupWindowController {
    * automatically.
    */
   private void setupTreeViews() {
-    TreeItem tiAllModulesRoot = new TreeItem<String>("Modules");
-    TreeItem tiProcessingRoot = new TreeItem<String>("Processing steps");
+    TreeItem<String> tiAllModulesRoot = new TreeItem<String>("Modules");
+    TreeItem<String> tiProcessingRoot = new TreeItem<String>("Processing steps");
 
     // create category items dynamically, if a new category is added later on.
     DPPModuleCategoryTreeItem[] moduleCategories =
@@ -218,7 +221,7 @@ public class DPPSetupWindowController {
     List<MZmineProcessingStep<DataPointProcessingModule>> list =
         new ArrayList<MZmineProcessingStep<DataPointProcessingModule>>();
     
-    for (TreeItem item : tvProcessing.getRoot().getChildren()) {
+    for (TreeItem<String> item : tvProcessing.getRoot().getChildren()) {
       if (!(item instanceof DPPModuleTreeItem))
         continue;
       DPPModuleTreeItem moduleitem = (DPPModuleTreeItem) item;

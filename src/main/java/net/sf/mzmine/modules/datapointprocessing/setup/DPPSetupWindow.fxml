@@ -27,12 +27,12 @@
          <bottom>
             <FlowPane alignment="TOP_RIGHT" BorderPane.alignment="CENTER">
                <children>
-                  <Button fx:id="btnApply" mnemonicParsing="false" onMouseClicked="#btnApplyClicked" text="Apply &amp; Close" />
-                  <Button fx:id="btnAdd" mnemonicParsing="false" onMouseClicked="#btnAddClicked" text="Add" />
-                  <Button fx:id="btnRemove" mnemonicParsing="false" onMouseClicked="#btnRemoveClicked" text="Remove" />
-                  <Button fx:id="btnSetParameters" mnemonicParsing="false" onMouseClicked="#btnSetParamClicked" text="Set parameters" />
-                  <Button fx:id="btnLoad" disable="true" mnemonicParsing="false" onMouseClicked="#btnLoadClicked" text="Load" />
-                  <Button fx:id="btnSave" disable="true" mnemonicParsing="false" onMouseClicked="#btnSaveClicked" text="Save" />
+                  <Button fx:id="btnApply" mnemonicParsing="false" onAction="#btnApplyClicked" text="Apply &amp; Close" />
+                  <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#btnAddClicked" text="Add" />
+                  <Button fx:id="btnRemove" mnemonicParsing="false" onAction="#btnRemoveClicked" text="Remove" />
+                  <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#btnSetParamClicked" text="Set parameters" />
+                  <Button fx:id="btnLoad" disable="true" mnemonicParsing="false" onAction="#btnLoadClicked" text="Load" />
+                  <Button fx:id="btnSave" disable="true" mnemonicParsing="false" onAction="#btnSaveClicked" text="Save" />
                </children>
             </FlowPane>
          </bottom>
