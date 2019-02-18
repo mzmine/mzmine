@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.datapointprocessing;
+package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
 import java.util.HashMap;
 import java.util.List;

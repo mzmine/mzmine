@@ -4,7 +4,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingTask;
-import net.sf.mzmine.modules.datapointprocessing.ProcessedDataPoint;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
