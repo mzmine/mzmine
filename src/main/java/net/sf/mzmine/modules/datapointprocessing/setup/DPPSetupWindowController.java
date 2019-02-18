@@ -94,10 +94,6 @@ public class DPPSetupWindowController {
   void btnRemoveClicked(ActionEvent event) {
     logger.finest(event.getSource().toString() + " clicked.");
     
-    // check if processing list is focused
-    if (!tvProcessing.isFocused())
-      return;
-
     TreeItem<String> selected = tvProcessing.getSelectionModel().getSelectedItem();
     if (selected instanceof DPPModuleTreeItem) {
       tvProcessing.getRoot().getChildren().remove(selected);
