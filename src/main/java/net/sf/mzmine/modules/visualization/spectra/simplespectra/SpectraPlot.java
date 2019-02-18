@@ -418,7 +418,6 @@ public class SpectraPlot extends EChartPanel {
       controller = new DataPointProcessingController(inst.getProcessingSteps(), this,
           getMainScanDataSet().getDataPoints());
       inst.addController(controller);
-      inst.startNextController();
     }
   }
 

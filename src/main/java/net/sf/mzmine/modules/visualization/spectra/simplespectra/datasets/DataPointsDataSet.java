@@ -32,7 +32,7 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
    * 
    */
   private static final long serialVersionUID = 1L;
-  private DataPoint mzPeaks[];
+  protected DataPoint mzPeaks[];
   private String label;
 
   public DataPointsDataSet(String label, DataPoint mzPeaks[]) {

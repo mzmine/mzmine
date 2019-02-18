@@ -15,7 +15,7 @@ import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.C
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class DataPointProcessingManager implements Runnable {
+public class DataPointProcessingManager {
 
   private static final DataPointProcessingManager inst = new DataPointProcessingManager();
   private int MAX_RUNNING = 5;
@@ -42,7 +42,7 @@ public class DataPointProcessingManager implements Runnable {
   }
 
   /**
-   * Adds a controller to the end of the waiting list.
+   * Adds a controller to the end of the waiting list. Automatically tries to start a controller after addition.
    * 
    * @param controller Controller to add.
    */
@@ -56,6 +56,7 @@ public class DataPointProcessingManager implements Runnable {
       waiting.add(controller);
     }
     logger.finest("Controller added to waiting list. (size = " + waiting.size() + ")");
+    startNextController();
   }
 
   /**
@@ -171,19 +172,6 @@ public class DataPointProcessingManager implements Runnable {
 
     next.execute(); // this will start the actual task via the controller method.
     logger.finest("Started controller from running list. (size = " + running.size() + ")");
-  }
-
-  @Override
-  public void run() {
-    while (true) {
-
-      try {
-        TimeUnit.MILLISECONDS.sleep(200);
-      } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
   }
 
   /**

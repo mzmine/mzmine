@@ -200,7 +200,7 @@ public class DataPointProcessingController {
 
                 logger.finest("Controller finished.");
                 
-                plot.addDataSet(new DataPointsDataSet("Results", getResults()), Color.RED, false);
+                plot.addDataSet(new DataPointsDataSet("Results", getResults()), Color.MAGENTA, false);
               }
               break;
             case PROCESSING:
