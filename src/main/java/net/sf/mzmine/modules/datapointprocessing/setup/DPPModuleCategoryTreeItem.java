@@ -7,7 +7,7 @@ public class DPPModuleCategoryTreeItem extends TreeItem<String> {
   private ModuleSubCategory category;
   
   DPPModuleCategoryTreeItem(ModuleSubCategory category){
-    super(category.toString());
+    super(category.getName());
     setCategory(category);
   }
 

@@ -9,10 +9,13 @@ import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.MouseEvent;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -71,67 +74,21 @@ public class DPPSetupWindowController {
   void btnAddClicked(ActionEvent event) {
     logger.finest(event.getSource().toString() + " clicked.");
     
-    TreeItem<String> selected = tvAllModules.getSelectionModel().getSelectedItem();
-
-    if (selected instanceof DPPModuleTreeItem) {
-
-      // a module cannot be added twice
-      if (tvProcessing.getRoot().getChildren().contains(selected)) {
-        logger.finest("Cannot add module " + ((DPPModuleTreeItem) selected).getModule().getName()
-            + " to processing list twice.");
-        return;
-      }
-
-      tvProcessing.getRoot().getChildren().add(selected);
-      logger.finest("Added module " + ((DPPModuleTreeItem) selected).getModule().getName()
-          + " to processing list.");
-    } else {
-      logger.finest("Cannot add item " + selected.getValue() + " to processing list.");
-    }
+    addModule();
   }
 
   @FXML
   void btnRemoveClicked(ActionEvent event) {
     logger.finest(event.getSource().toString() + " clicked.");
     
-    TreeItem<String> selected = tvProcessing.getSelectionModel().getSelectedItem();
-    if (selected instanceof DPPModuleTreeItem) {
-      tvProcessing.getRoot().getChildren().remove(selected);
-      logger.finest("Removed module " + ((DPPModuleTreeItem) selected).getModule().getName()
-          + " from processing list.");
-    } else {
-      logger.finest("Cannot remove item " + selected.getValue() + " from processing list.");
-    }
+    removeModule();
   }
 
   @FXML
   void btnSetParamClicked(ActionEvent event) {
     logger.finest(event.getSource().toString() + " clicked.");
     
-    TreeItem<String> _selected = tvProcessing.getSelectionModel().getSelectedItem();
-    if (!(_selected instanceof DPPModuleTreeItem))
-      return;
-    DPPModuleTreeItem selected = (DPPModuleTreeItem) _selected;
-
-    MZmineModule module = selected.getModule();
-    ParameterSet stepParameters =
-        MZmineCore.getConfiguration().getModuleParameters(module.getClass());
-
-    // do i even have to clone here? since, unlike batch mode, this is the only place we use this
-    // parameter set.
-//    ParameterSet stepParameters = methodParameters.cloneParameterSet();
-
-    if (stepParameters.getParameters().length > 0) {
-      // TODO ugh, is this ok since this is a javafx window?
-      Window parent = (Window) SwingUtilities.getAncestorOfClass(Window.class,
-          MZmineCore.getDesktop().getMainWindow());
-      ExitCode exitCode = stepParameters.showSetupDialog(parent, false);
-      if (exitCode != ExitCode.OK)
-        return;
-    }
-
-    // store the parameters in the tree item
-    selected.setParameters(stepParameters);
+    setParameters();
   }
 
   @FXML
@@ -158,6 +115,7 @@ public class DPPSetupWindowController {
     assert btnSetParameters != null : "fx:id=\"btnSetParameters\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
 
     setupTreeViews();
+    initTreeviewMouseEvents();
   }
 
   /**
@@ -200,6 +158,9 @@ public class DPPSetupWindowController {
 
     tvAllModules.showRootProperty().set(true);
     tvProcessing.showRootProperty().set(true);
+    
+    tvAllModules.getRoot().setExpanded(true);
+    tvProcessing.getRoot().setExpanded(true);
   }
 
   private MZmineProcessingStep<DataPointProcessingModule> createProcessingStep(
@@ -225,6 +186,87 @@ public class DPPSetupWindowController {
     }
 
     manager.setProcessingSteps(list);
+  }
+  
+  private void initTreeviewMouseEvents() {
+    
+    // Parameter setting
+    tvProcessing.setOnMouseClicked(e -> {
+      if(e.getClickCount() < 2)
+        return;
+      logger.finest("Double clicked item in processing tree view.");
+      setParameters();
+    });
+    
+    // Module addition
+    tvAllModules.setOnMouseClicked(e -> {
+      if(e.getClickCount() < 2)
+        return;
+      logger.finest("Double clicked item in processing tree view.");
+      addModule();
+    });
+  }
+  
+  
+  private void setParameters() {
+    TreeItem<String> _selected = tvProcessing.getSelectionModel().getSelectedItem();
+    if (_selected == null || !(_selected instanceof DPPModuleTreeItem))
+      return;
+    
+    DPPModuleTreeItem selected = (DPPModuleTreeItem) _selected;
+
+    MZmineModule module = selected.getModule();
+    ParameterSet stepParameters =
+        MZmineCore.getConfiguration().getModuleParameters(module.getClass());
+
+    // do i even have to clone here? since, unlike batch mode, this is the only place we use this
+    // parameter set.
+//    ParameterSet stepParameters = methodParameters.cloneParameterSet();
+
+    if (stepParameters.getParameters().length > 0) {
+      ExitCode exitCode = stepParameters.showSetupDialog(null, false);
+      if (exitCode != ExitCode.OK)
+        return;
+    }
+
+    // store the parameters in the tree item
+    selected.setParameters(stepParameters);
+  }
+  
+  private void addModule() {
+    TreeItem<String> selected = tvAllModules.getSelectionModel().getSelectedItem();
+    if(selected == null)
+      return;
+
+    if (selected instanceof DPPModuleTreeItem) {
+
+      // a module cannot be added twice
+      if (tvProcessing.getRoot().getChildren().contains(selected)) {
+        logger.finest("Cannot add module " + ((DPPModuleTreeItem) selected).getModule().getName()
+            + " to processing list twice.");
+        return;
+      }
+
+      tvProcessing.getRoot().getChildren().add(selected);
+      logger.finest("Added module " + ((DPPModuleTreeItem) selected).getModule().getName()
+          + " to processing list.");
+    } else {
+      logger.finest("Cannot add item " + selected.getValue() + " to processing list.");
+    }
+  }
+  
+  private void removeModule() {
+    TreeItem<String> selected = tvProcessing.getSelectionModel().getSelectedItem();
+    if(selected == null)
+      return;
+    
+    if (selected instanceof DPPModuleTreeItem) {
+      tvProcessing.getRoot().getChildren().remove(selected);
+      logger.finest("Removed module " + ((DPPModuleTreeItem) selected).getModule().getName()
+          + " from processing list.");
+    } else {
+      logger.finest("Cannot remove item " + selected.getValue() + " from processing list.");
+    }
   }
 }
 
