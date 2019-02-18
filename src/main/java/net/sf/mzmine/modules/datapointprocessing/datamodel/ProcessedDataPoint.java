@@ -1,11 +1,10 @@
 package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult;
 
 /**
  * This class stores the results of DataPointProcessingTasks. It offers more functionality, e.g.
@@ -16,10 +15,9 @@ import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
  */
 public class ProcessedDataPoint extends SimpleDataPoint {
 
-  PeakIdentity preferredIdentity;
-  List<PeakIdentity> identities;
-  HashMap<String, Object> properties;
-  
+  // this map is set in the add... methods so we don't use too much memory
+  HashMap<String, DPPResult<?>> results;
+
   /**
    * Generates an array of ProcessedDataPoints from DataPoints.
    * 
@@ -38,61 +36,87 @@ public class ProcessedDataPoint extends SimpleDataPoint {
 
   public ProcessedDataPoint(DataPoint dp) {
     super(dp);
-    identities = new Vector<PeakIdentity>();
   }
 
-  public ProcessedDataPoint(double mz, double intensity) {
-    super(mz, intensity);
-    identities = new Vector<PeakIdentity>();
+  public ProcessedDataPoint(DataPoint dp, DPPResult<?> result) {
+    this(dp);
+    addResult(result);
   }
 
-  public ProcessedDataPoint(DataPoint dp, PeakIdentity preferredIdentity,
-      List<PeakIdentity> identities) {
-    super(dp);
-    setPreferredIdentity(preferredIdentity);
-    this.identities = identities;
+  public ProcessedDataPoint(DataPoint dp, Collection<DPPResult<?>> results) {
+    this(dp);
+    addAllResults(results);
   }
 
-  public void setPreferredIdentity(PeakIdentity identity) {
-    this.preferredIdentity = identity;
+  /**
+   * Adds a single result to this data point.
+   * @param result
+   */
+  public void addResult(DPPResult<?> result) {
+    if (result == null)
+      return;
+
+    if (results == null)
+      results = new HashMap<String, DPPResult<?>>();
+
+    results.put(result.getName(), result);
+  }
+
+  /**
+   * Adds a collection of DPPResults to this data point.
+   * @param results
+   */
+  public void addAllResults(Collection<DPPResult<?>> results) {
+    if (results == null)
+      return;
+
+    if (this.results == null)
+      this.results = new HashMap<String, DPPResult<?>>();
+
+    for (DPPResult<?> result : results) {
+      if (result.getName() == null || result.getName().equals(""))
+        continue;
+      this.results.put(result.getName(), result);
+    }
   }
 
   /**
    * 
-   * @return The preferred identity of this data point. Might be null, if no identity has been set
-   *         at all. If any identity has been set, the first one will be assigned to
-   *         preferredIdentity automatically.
+   * @param name Key of the specified result
+   * @return DPPResult with the given key, may be null if no result with that key exits or no result
+   *         exists at all.
    */
-  public PeakIdentity getPreferredIdentiy() {
-    return preferredIdentity;
+  public DPPResult<?> getResult(String name) {
+    if (results == null)
+      return null;
+    return results.get(name);
   }
 
-  public boolean addIdentity(PeakIdentity identity) {
-    if (identity == null)
-      return false;
-
-    if (identities.contains(identity))
-      return false;
-
-    if (preferredIdentity == null)
-      setPreferredIdentity(identity);
-
-    return identities.add(identity);
+  /**
+   * Specifies if a result with the given key exists.
+   * @param key
+   * @return
+   */
+  public boolean resultKeyExists(String key) {
+    if (results.containsKey(key))
+      return true;
+    return false;
   }
 
-  public void removeIdenities(Iterable<PeakIdentity> identities) {
-    for (PeakIdentity id : identities)
-      this.identities.remove(id);
+  /**
+   *
+   * @return Returns an array of all keys in this map.
+   */
+  public String[] getAllResultKeys() {
+    if(results == null)
+      return new String[0];
+      
+    return results.keySet().toArray(new String[0]);
   }
-
-  public boolean removeIdentity(PeakIdentity identity) {
-    return identities.remove(identity);
+  
+  public void removeResult(String key) {
+    results.remove(key);
   }
-
-  public PeakIdentity[] getIdentities() {
-    return identities.toArray(new PeakIdentity[0]);
-  }
-
   /*
    * public boolean equals(ProcessedDataPoint p) { //TODO }
    */
