@@ -2,7 +2,9 @@ package net.sf.mzmine.modules.datapointprocessing.setup;
 
 import java.awt.Window;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -61,7 +63,7 @@ public class DPPSetupWindowController {
   void btnApplyClicked(ActionEvent event) {
     sendList();
   }
-  
+
   @FXML
   void btnAddClicked(ActionEvent event) {
     // check if the module list is focused
@@ -212,14 +214,17 @@ public class DPPSetupWindowController {
     DataPointProcessingManager manager = DataPointProcessingManager.getInst();
     manager.clearProcessingSteps();
 
+    List<MZmineProcessingStep<DataPointProcessingModule>> list =
+        new ArrayList<MZmineProcessingStep<DataPointProcessingModule>>();
+    
     for (TreeItem item : tvProcessing.getRoot().getChildren()) {
       if (!(item instanceof DPPModuleTreeItem))
         continue;
       DPPModuleTreeItem moduleitem = (DPPModuleTreeItem) item;
-      MZmineProcessingStep<DataPointProcessingModule> step = createProcessingStep(moduleitem);
-      manager.addProcessingStep(step);
+      list.add(createProcessingStep(moduleitem));
     }
 
+    manager.setProcessingSteps(list);
   }
 }
 

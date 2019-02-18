@@ -258,7 +258,7 @@ public class DataPointProcessingManager implements Runnable {
   }
 
   /**
-   * Clears the lsit of processing steps
+   * Clears the list of processing steps
    */
   public void clearProcessingSteps() {
     processingList.clear();
@@ -266,5 +266,13 @@ public class DataPointProcessingManager implements Runnable {
 
   public List<MZmineProcessingStep<DataPointProcessingModule>> getProcessingSteps() {
     return processingList;
+  }
+  
+  /**
+   * Sets the processing list.
+   * @param list New processing list.
+   */
+  public void setProcessingSteps(List<MZmineProcessingStep<DataPointProcessingModule>> list) {
+    processingList = list;
   }
 }
