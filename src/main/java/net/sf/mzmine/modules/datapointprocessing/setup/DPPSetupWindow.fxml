@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="428.0" prefWidth="648.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="DPPSetupWindowController">
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.datapointprocessing.setup.DPPSetupWindowController">
    <children>
       <BorderPane layoutX="-100.0" layoutY="-100.0" prefHeight="100.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <center>
@@ -27,7 +27,7 @@
          <bottom>
             <FlowPane alignment="TOP_RIGHT" BorderPane.alignment="CENTER">
                <children>
-                  <Button fx:id="btnApply" mnemonicParsing="false" onMouseClicked="#btnApplyClicked" text="Apply" />
+                  <Button fx:id="btnApply" mnemonicParsing="false" onMouseClicked="#btnApplyClicked" text="Apply &amp; Close" />
                   <Button fx:id="btnAdd" mnemonicParsing="false" onMouseClicked="#btnAddClicked" text="Add" />
                   <Button fx:id="btnRemove" mnemonicParsing="false" onMouseClicked="#btnRemoveClicked" text="Remove" />
                   <Button fx:id="btnSetParameters" mnemonicParsing="false" onMouseClicked="#btnSetParamClicked" text="Set parameters" />

@@ -13,6 +13,7 @@ public class DPPModuleTreeItem extends TreeItem<String> {
   private ParameterSet parameters;
   
   DPPModuleTreeItem(DataPointProcessingModule module){
+    super(module.getName());
     setName(module.getName());
     setModule(module);
     setSubCat(module.getModuleSubCategory());

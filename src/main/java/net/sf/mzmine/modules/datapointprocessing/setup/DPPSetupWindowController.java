@@ -36,7 +36,7 @@ public class DPPSetupWindowController {
   private URL location;
 
   @FXML
-  private TreeView<?> tvProcessing;
+  private TreeView<String> tvProcessing;
 
   @FXML
   private Button btnApply;
@@ -51,7 +51,7 @@ public class DPPSetupWindowController {
   private Button btnLoad;
 
   @FXML
-  private TreeView<?> tvAllModules;
+  private TreeView<String> tvAllModules;
 
   @FXML
   private Button btnRemove;
@@ -62,6 +62,7 @@ public class DPPSetupWindowController {
   @FXML
   void btnApplyClicked(ActionEvent event) {
     sendList();
+    DPPSetupWindow.getInstance().hide();
   }
 
   @FXML
@@ -70,7 +71,7 @@ public class DPPSetupWindowController {
     if (!tvAllModules.isFocused())
       return;
 
-    TreeItem selected = tvAllModules.getSelectionModel().getSelectedItem();
+    TreeItem<String> selected = tvAllModules.getSelectionModel().getSelectedItem();
 
     if (selected instanceof DPPModuleTreeItem) {
 
@@ -116,12 +117,12 @@ public class DPPSetupWindowController {
     DPPModuleTreeItem selected = (DPPModuleTreeItem) _selected;
 
     MZmineModule module = selected.getModule();
-    ParameterSet methodParameters =
+    ParameterSet stepParameters =
         MZmineCore.getConfiguration().getModuleParameters(module.getClass());
 
     // do i even have to clone here? since, unlike batch mode, this is the only place we use this
     // parameter set.
-    ParameterSet stepParameters = methodParameters.cloneParameterSet();
+//    ParameterSet stepParameters = methodParameters.cloneParameterSet();
 
     if (stepParameters.getParameters().length > 0) {
       // TODO ugh, is this ok since this is a javafx window?
