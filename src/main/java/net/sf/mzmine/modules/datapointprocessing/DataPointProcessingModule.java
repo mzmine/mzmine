@@ -3,6 +3,7 @@ package net.sf.mzmine.modules.datapointprocessing;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;

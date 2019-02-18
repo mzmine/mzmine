@@ -1,11 +1,10 @@
 package net.sf.mzmine.modules.datapointprocessing.massdetection;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingTask;
-import net.sf.mzmine.modules.datapointprocessing.ModuleSubCategory;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;

@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.datapointprocessing;
+package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
 public enum ModuleSubCategory {
     MASSDETECTION("Mass detection"), ISOTOPES("Isotopes"), IDENTIFICATION("Identification");
