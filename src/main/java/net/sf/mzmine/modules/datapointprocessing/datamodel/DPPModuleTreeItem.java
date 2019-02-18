@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.datapointprocessing.setup;
+package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
 import javafx.scene.control.TreeItem;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
@@ -12,7 +12,7 @@ public class DPPModuleTreeItem extends TreeItem<String> {
   private ModuleSubCategory subCat;
   private ParameterSet parameters;
   
-  DPPModuleTreeItem(DataPointProcessingModule module){
+  public DPPModuleTreeItem(DataPointProcessingModule module){
     super(module.getName());
     setName(module.getName());
     setModule(module);

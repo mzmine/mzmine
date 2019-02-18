@@ -2,7 +2,6 @@ package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
 import java.util.Vector;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakIdentity;

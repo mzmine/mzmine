@@ -13,9 +13,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import net.sf.mzmine.desktop.impl.MainMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.parameters.ParameterSet;
 
 public class DPPSetupWindow  {
 
