@@ -1,17 +1,17 @@
 package net.sf.mzmine.modules.datapointprocessing;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.PlotModuleCombo;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
@@ -55,9 +55,10 @@ public class DataPointProcessingController {
    * DataPointProcessingController(PlotModuleCombo pmc) { setPlotModuleCombo(pmc); }
    */
 
-  DataPointProcessingController(List<Class<DataPointProcessingModule>> moduleList, List<Class<SimpleParameterSet>> parameters, SpectraPlot plot,
+  public DataPointProcessingController(List<MZmineProcessingStep<DataPointProcessingModule>> steps, SpectraPlot plot,
       DataPoint[] dataPoints) {
-    pmc = new PlotModuleCombo(moduleList, plot);
+    
+    pmc = new PlotModuleCombo(steps, plot);
     setdataPoints(dataPoints);
     setStatus(ControllerStatus.WAITING);
     setForcedStatus(ForcedControllerStatus.NORMAL);
@@ -149,7 +150,7 @@ public class DataPointProcessingController {
    * @param module
    * @param plot
    */
-  private void execute(DataPoint[] dp, Class<DataPointProcessingModule> module, SpectraPlot plot) {
+  private void execute(DataPoint[] dp, MZmineProcessingStep<DataPointProcessingModule> step, SpectraPlot plot) {
     if (!isPlotModuleComboSet()) {
       logger.warning("execute called, without pmc being set.");
       return;
@@ -163,12 +164,10 @@ public class DataPointProcessingController {
       return;
     }
 
-    MZmineModule inst = MZmineCore.getModuleInstance(module);
+    if (step.getModule() instanceof DataPointProcessingModule) {
 
-    if (inst instanceof DataPointProcessingModule) {
-
-      //TODO: use our own parameter thing here?
-      ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(module);
+      DataPointProcessingModule inst = step.getModule();
+      ParameterSet parameters = step.getParameterSet();
       
       Task t = ((DataPointProcessingModule) inst).createTask(dp, parameters, plot, this, new TaskStatusListener() {
         @Override
@@ -180,11 +179,11 @@ public class DataPointProcessingController {
           }
           switch (newStatus) {
             case FINISHED:
-              if (pmc.hasNextModule(module)) {
+              if (pmc.hasNextStep(step)) {
                 if (DataPointProcessingManager.getInst()
                     .isRunning(((DataPointProcessingTask) task).getController())) {
 
-                  Class<DataPointProcessingModule> next = pmc.getNextModule(module);
+                  MZmineProcessingStep<DataPointProcessingModule> next = pmc.getNextStep(step);
 
                   // pass results to next task and start recursively
                   ProcessedDataPoint[] result = ((DataPointProcessingTask) task).getResults();
@@ -200,6 +199,8 @@ public class DataPointProcessingController {
                 setStatus(ControllerStatus.FINISHED);
 
                 logger.finest("Controller finished.");
+                
+                plot.addDataSet(new DataPointsDataSet("Results", getResults()), Color.RED, false);
               }
               break;
             case PROCESSING:
@@ -231,7 +232,7 @@ public class DataPointProcessingController {
     if (!isPlotModuleComboSet())
       return;
 
-    Class<DataPointProcessingModule> first = pmc.getFirstModule();
+    MZmineProcessingStep<DataPointProcessingModule> first = pmc.getFirstStep();
     if (first == null)
       return;
 

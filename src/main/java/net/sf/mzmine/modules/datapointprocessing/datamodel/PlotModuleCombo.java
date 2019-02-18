@@ -4,26 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import io.github.msdk.MSDKRuntimeException;
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 
 public class PlotModuleCombo {
   SpectraPlot plot;
-  List<Class<DataPointProcessingModule>> modules;
-//  List<Class<? extends ParameterSet>> parameters;
+  List<MZmineProcessingStep<DataPointProcessingModule>> steps;
 
-  public PlotModuleCombo(List<Class<DataPointProcessingModule>> modules, SpectraPlot plot) {
+  public PlotModuleCombo(List<MZmineProcessingStep<DataPointProcessingModule>> steps, SpectraPlot plot) {
     setPlot(plot);
-    setModules(modules);
-//    List<Class<? extends ParameterSet>> parameters = new ArrayList<Class<? extends ParameterSet>>();
-
-//    for(Class<DataPointProcessingModule> module : modules) {
-//      parameters.add(MZmineCore.getModuleInstance(module).getParameterSetClass());
-//    }
+    setSteps(steps);
   }
 
   public PlotModuleCombo() {
-    modules = new ArrayList<Class<DataPointProcessingModule>>();
+    steps = new ArrayList<MZmineProcessingStep<DataPointProcessingModule>>();
   }
 
   public boolean plotValid() {
@@ -37,49 +32,49 @@ public class PlotModuleCombo {
   }
 
   @Nonnull
-  public List<Class<DataPointProcessingModule>> getModules() {
-    return modules;
+  public List<MZmineProcessingStep<DataPointProcessingModule>> getsteps() {
+    return steps;
   }
 
   public void setPlot(SpectraPlot plot) {
     this.plot = plot;
   }
 
-  public void setModules(List<Class<DataPointProcessingModule>> modules) {
-    this.modules = modules;
+  public void setSteps(List<MZmineProcessingStep<DataPointProcessingModule>> steps) {
+    this.steps = steps;
   }
 
-//  public Class<? extends ParameterSet> getModuleParameterSetClass(Class<DataPointProcessingModule> module){
-//    return parameters.get(modules.indexOf(module));
+//  public Class<? extends ParameterSet> getModuleParameterSetClass(MZmineProcessingStep<DataPointProcessingModule> module){
+//    return parameters.get(steps.indexOf(module));
 //  }
 
   /**
    * 
    * @return Returns true if the module list is initialized and > 0.
    */
-  public boolean modulesValid() {
-    if(modules != null && modules.size() > 0)
+  public boolean stepsValid() {
+    if(steps != null && steps.size() > 0)
       return true;
     return false;
   }
 
-  public boolean addModule(Class<DataPointProcessingModule> module) {
-    return this.modules.add(module);
+  public boolean addStep(MZmineProcessingStep<DataPointProcessingModule> module) {
+    return this.steps.add(module);
   }
 
-  public boolean removeTask(Class<DataPointProcessingModule> module) {
-    return this.modules.remove(module);
+  public boolean removeTask(MZmineProcessingStep<DataPointProcessingModule> module) {
+    return this.steps.remove(module);
   }
 
   /**
    * 
    * @param current A pointer to the current module. 
-   * @return Returns true if there is one or more modules, false if not.
+   * @return Returns true if there is one or more steps, false if not.
    */
-  public boolean hasNextModule(Class<DataPointProcessingModule> current) {
-    if (modules.contains(current)) {
-      int index = modules.indexOf(current);
-      if (modules.size() < index + 1) {
+  public boolean hasNextStep(MZmineProcessingStep<DataPointProcessingModule> current) {
+    if (steps.contains(current)) {
+      int index = steps.indexOf(current);
+      if (steps.size() < index + 1) {
         return true;
       }
     }
@@ -92,20 +87,20 @@ public class PlotModuleCombo {
    * @return Returns the next module in this PlotModuleCombo. If this pmc has no next module the
    *         return is null. Use hasNextModule to check beforehand.
    */
-  public Class<DataPointProcessingModule> getNextModule(Class<DataPointProcessingModule> current) {
-    if (hasNextModule(current))
-      return modules.get(modules.indexOf(current) + 1);
+  public MZmineProcessingStep<DataPointProcessingModule> getNextStep(MZmineProcessingStep<DataPointProcessingModule> current) {
+    if (hasNextStep(current))
+      return steps.get(steps.indexOf(current) + 1);
     return null;
   }
 
   /**
    * 
-   * @return Returns the first module in this PlotModuleCombo. If the list of modules is not
+   * @return Returns the first module in this PlotModuleCombo. If the list of steps is not
    *         initialised, the return is null.
    */
-  public Class<DataPointProcessingModule> getFirstModule() {
-    if (modules.size() > 0) {
-      return modules.get(0);
+  public MZmineProcessingStep<DataPointProcessingModule> getFirstStep() {
+    if (steps.size() > 0) {
+      return steps.get(0);
     }
     return null;
   }

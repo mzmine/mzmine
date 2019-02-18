@@ -58,10 +58,12 @@ public class DPPSetupWindow  {
   }
 
   public void show() {
+    fxPanel.setVisible(true);
     frame.setVisible(true);
   }
 
   public void hide() {
+    fxPanel.setVisible(true);
     frame.setVisible(false);
   }
 

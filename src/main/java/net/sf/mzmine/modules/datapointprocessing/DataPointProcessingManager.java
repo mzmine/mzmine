@@ -21,7 +21,7 @@ public class DataPointProcessingManager implements Runnable {
   private int MAX_RUNNING = 5;
 
   private static Logger logger = Logger.getLogger(DataPointProcessingManager.class.getName());
-  
+
   private boolean enabled;
 
   private List<DataPointProcessingController> waiting;
@@ -30,6 +30,9 @@ public class DataPointProcessingManager implements Runnable {
   private List<MZmineProcessingStep<DataPointProcessingModule>> processingList;
 
   public DataPointProcessingManager() {
+    waiting = new ArrayList<>();
+    running = new ArrayList<>();
+    
     processingList = new ArrayList<MZmineProcessingStep<DataPointProcessingModule>>();
     enabled = false;
   }
@@ -120,6 +123,9 @@ public class DataPointProcessingManager implements Runnable {
    * controller. TODO: Maybe just call this in addController?
    */
   public void startNextController() {
+    if (!isEnabled())
+      return;
+
     if (running.size() >= MAX_RUNNING) {
       logger.info("Too much controllers running, cannot start the next one.");
       return;
@@ -253,6 +259,7 @@ public class DataPointProcessingManager implements Runnable {
 
   /**
    * Removes a processing step from the list.
+   * 
    * @param step Processing step to remove.
    * @return {@link Collection#remove}
    */
@@ -270,9 +277,10 @@ public class DataPointProcessingManager implements Runnable {
   public List<MZmineProcessingStep<DataPointProcessingModule>> getProcessingSteps() {
     return processingList;
   }
-  
+
   /**
    * Sets the processing list.
+   * 
    * @param list New processing list.
    */
   public void setProcessingSteps(List<MZmineProcessingStep<DataPointProcessingModule>> list) {

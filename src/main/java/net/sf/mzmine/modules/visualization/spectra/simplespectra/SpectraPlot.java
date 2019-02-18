@@ -47,6 +47,8 @@ import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController;
+import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
@@ -93,6 +95,9 @@ public class SpectraPlot extends EChartPanel {
   // We use our own counter, because plot.getDatasetCount() just keeps
   // increasing even when we remove old data sets
   private int numOfDataSets = 0;
+
+  // Spectra processing
+  DataPointProcessingController controller;
 
   public SpectraPlot(ActionListener masterPlot) {
 
@@ -407,6 +412,14 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
+    if (dataSet instanceof ScanDataSet && DataPointProcessingManager.getInst().isEnabled()) {
+      DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+
+      controller = new DataPointProcessingController(inst.getProcessingSteps(), this,
+          getMainScanDataSet().getDataPoints());
+      inst.addController(controller);
+      inst.startNextController();
+    }
   }
 
   // add Dataset with label generator
