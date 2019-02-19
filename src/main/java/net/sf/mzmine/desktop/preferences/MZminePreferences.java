@@ -61,9 +61,15 @@ public class MZminePreferences extends SimpleParameterSet {
 
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
+  // DataPointProcessing parameters
+  public static final BooleanParameter spectraProcessing = new BooleanParameter(
+      "Enable spectra processing", "Enable spectra processing for Spectra plots.", false);
+  public static final FileNameParameter defaultDPPQueue = new FileNameParameter(
+      "Default spectra processing queue", "File that saves the default spectra processing queue");
+
   public MZminePreferences() {
     super(new Parameter[] {mzFormat, rtFormat, intensityFormat, numOfThreads, proxySettings,
-        rExecPath, sendStatistics, windowSetttings, sendErrorEMail});
+        rExecPath, sendStatistics, windowSetttings, sendErrorEMail, spectraProcessing, defaultDPPQueue});
   }
 
   @Override

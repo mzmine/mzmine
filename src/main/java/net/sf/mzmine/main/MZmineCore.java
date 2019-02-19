@@ -244,7 +244,7 @@ public final class MZmineCore {
         System.exit(1);
     }
 
-    // initialize data point processing instance
+ // initialize data point processing instance
     DPPSetupWindow.getInstance();
   }
 

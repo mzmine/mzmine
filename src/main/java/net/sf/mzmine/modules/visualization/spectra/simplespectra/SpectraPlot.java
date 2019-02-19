@@ -378,6 +378,11 @@ public class SpectraPlot extends EChartPanel {
   }
 
   public synchronized void removeAllDataSets() {
+    
+    // if the data sets are removed, we have to cancel the tasks.
+    if(controller != null)
+      controller.cancelTasks();
+    
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       plot.setDataset(i, null);
     }
@@ -415,7 +420,7 @@ public class SpectraPlot extends EChartPanel {
     if (dataSet instanceof ScanDataSet && DataPointProcessingManager.getInst().isEnabled()) {
       DataPointProcessingManager inst = DataPointProcessingManager.getInst();
 
-      controller = new DataPointProcessingController(inst.getProcessingSteps(), this,
+      controller = new DataPointProcessingController(inst.getProcessingQueue(), this,
           getMainScanDataSet().getDataPoints());
       inst.addController(controller);
     }

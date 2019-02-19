@@ -75,7 +75,7 @@ public class DataPointProcessingController {
    * DataPointProcessingController(PlotModuleCombo pmc) { setPlotModuleCombo(pmc); }
    */
 
-  public DataPointProcessingController(List<MZmineProcessingStep<DataPointProcessingModule>> steps,
+  public DataPointProcessingController(DataPointProcessingQueue steps,
       SpectraPlot plot, DataPoint[] dataPoints) {
 
     pmc = new PlotModuleCombo(steps, plot);
@@ -155,6 +155,7 @@ public class DataPointProcessingController {
    */
   public void cancelTasks() {
     setForcedStatus(ForcedControllerStatus.CANCEL);
+    getCurrentTask().setStatus(TaskStatus.CANCELED);
   }
 
   public boolean isPlotModuleComboSet() {

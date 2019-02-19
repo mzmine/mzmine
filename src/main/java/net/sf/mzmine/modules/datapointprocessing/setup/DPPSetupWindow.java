@@ -33,9 +33,10 @@ import net.sf.mzmine.desktop.impl.MainMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 
-public class DPPSetupWindow  {
+public class DPPSetupWindow {
 
   private static Logger logger = Logger.getLogger(DPPSetupWindow.class.getName());
+  private static final String MODULE_NAME = "Data point processing setup Window";
 
   private FXMLLoader loader;
   private DPPSetupWindowController controller;
@@ -120,5 +121,5 @@ public class DPPSetupWindow  {
   public JFrame getFrame() {
     return frame;
   }
-  
+
 }

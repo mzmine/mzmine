@@ -18,10 +18,12 @@
 
 package net.sf.mzmine.modules.datapointprocessing;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.ControllerStatus;
@@ -36,7 +38,8 @@ import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.C
 public class DataPointProcessingManager {
 
   private static final DataPointProcessingManager inst = new DataPointProcessingManager();
-  private int MAX_RUNNING = 5;
+  private int MAX_RUNNING = 3;
+  private static final String MODULE_NAME = "Data point processing manager";
 
   private static Logger logger = Logger.getLogger(DataPointProcessingManager.class.getName());
 
@@ -45,14 +48,21 @@ public class DataPointProcessingManager {
   private List<DataPointProcessingController> waiting;
   private List<DataPointProcessingController> running;
 
-  private List<MZmineProcessingStep<DataPointProcessingModule>> processingList;
+  private DataPointProcessingQueue processingList;
 
   public DataPointProcessingManager() {
     waiting = new ArrayList<>();
     running = new ArrayList<>();
-    
-    processingList = new ArrayList<MZmineProcessingStep<DataPointProcessingModule>>();
-    enabled = false;
+
+    enabled = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.spectraProcessing).getValue();
+    File path = MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.defaultDPPQueue).getValue();
+
+    if (path != null) {
+      processingList = DataPointProcessingQueue.loadFromFile(path);
+    } else
+      processingList = new DataPointProcessingQueue();
   }
 
   public static DataPointProcessingManager getInst() {
@@ -60,15 +70,16 @@ public class DataPointProcessingManager {
   }
 
   /**
-   * Adds a controller to the end of the waiting list. Automatically tries to start a controller after addition.
+   * Adds a controller to the end of the waiting list. Automatically tries to start a controller
+   * after addition.
    * 
    * @param controller Controller to add.
    */
   public void addController(DataPointProcessingController controller) {
     synchronized (waiting) {
       if (waiting.contains(controller)) {
-//        logger.fine("Warning: Controller was already added to waiting list at index "
-//            + waiting.indexOf(controller) + "/" + waiting.size() + ". Skipping.");
+        // logger.fine("Warning: Controller was already added to waiting list at index "
+        // + waiting.indexOf(controller) + "/" + waiting.size() + ". Skipping.");
         return;
       }
       waiting.add(controller);
@@ -89,7 +100,7 @@ public class DataPointProcessingManager {
     synchronized (waiting) {
       waiting.remove(controller);
     }
-//    logger.finest("Controller removed from wating list. (size = " + waiting.size() + ")");
+    // logger.finest("Controller removed from wating list. (size = " + waiting.size() + ")");
   }
 
   /**
@@ -101,13 +112,13 @@ public class DataPointProcessingManager {
   private void addRunningController(DataPointProcessingController controller) {
     synchronized (running) {
       if (running.contains(controller)) {
-//        logger.fine("Warning: Controller was already added to waiting list at index "
-//            + running.indexOf(controller) + "/" + running.size() + ". Skipping.");
+        // logger.fine("Warning: Controller was already added to waiting list at index "
+        // + running.indexOf(controller) + "/" + running.size() + ". Skipping.");
         return;
       }
       running.add(controller);
     }
-//    logger.finest("Controller added to running list. (size = " + running.size() + ")");
+    // logger.finest("Controller added to running list. (size = " + running.size() + ")");
   }
 
   /**
@@ -124,7 +135,7 @@ public class DataPointProcessingManager {
     synchronized (running) {
       running.remove(controller);
     }
-//    logger.finest("Controller removed from running list. (size = " + running.size() + ")");
+    // logger.finest("Controller removed from running list. (size = " + running.size() + ")");
   }
 
   /**
@@ -146,11 +157,11 @@ public class DataPointProcessingManager {
       return;
 
     if (running.size() >= MAX_RUNNING) {
-//      logger.info("Too much controllers running, cannot start the next one.");
+      // logger.info("Too much controllers running, cannot start the next one.");
       return;
     }
     if (waiting.isEmpty()) {
-//      logger.info("No more waiting controllers, cannot start the next one.");
+      // logger.info("No more waiting controllers, cannot start the next one.");
       return;
     }
 
@@ -171,8 +182,8 @@ public class DataPointProcessingManager {
           // One controller finished, now we can remove it and start the next one.
           removeRunningController(controller);
           startNextController();
-//          logger.finest("Controller finished, trying to start the next one. (size = "
-//              + running.size() + ")");
+          // logger.finest("Controller finished, trying to start the next one. (size = "
+          // + running.size() + ")");
         } else if (newStatus == ControllerStatus.CANCELED) {
           // this will be called, when the controller is forcefully canceled. The current task will
           // be completed, then the status will be changed and this method is called.
@@ -189,7 +200,7 @@ public class DataPointProcessingManager {
     });
 
     next.execute(); // this will start the actual task via the controller method.
-//    logger.finest("Started controller from running list. (size = " + running.size() + ")");
+    // logger.finest("Started controller from running list. (size = " + running.size() + ")");
   }
 
   /**
@@ -280,7 +291,7 @@ public class DataPointProcessingManager {
     processingList.clear();
   }
 
-  public List<MZmineProcessingStep<DataPointProcessingModule>> getProcessingSteps() {
+  public DataPointProcessingQueue getProcessingQueue() {
     return processingList;
   }
 
@@ -289,7 +300,7 @@ public class DataPointProcessingManager {
    * 
    * @param list New processing list.
    */
-  public void setProcessingSteps(List<MZmineProcessingStep<DataPointProcessingModule>> list) {
+  public void setProcessingSteps(DataPointProcessingQueue list) {
     processingList = list;
   }
 
@@ -299,6 +310,9 @@ public class DataPointProcessingManager {
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
+    MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.spectraProcessing)
+        .setValue(enabled);
     logger.finest("Enabled changed to " + enabled);
   }
+
 }

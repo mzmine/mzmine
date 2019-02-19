@@ -24,19 +24,20 @@ import javax.annotation.Nonnull;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
+import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingQueue;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 
 public class PlotModuleCombo {
   SpectraPlot plot;
-  List<MZmineProcessingStep<DataPointProcessingModule>> steps;
+  DataPointProcessingQueue steps;
 
-  public PlotModuleCombo(List<MZmineProcessingStep<DataPointProcessingModule>> steps, SpectraPlot plot) {
+  public PlotModuleCombo(DataPointProcessingQueue steps, SpectraPlot plot) {
     setPlot(plot);
     setSteps(steps);
   }
 
   public PlotModuleCombo() {
-    steps = new ArrayList<MZmineProcessingStep<DataPointProcessingModule>>();
+    steps = new DataPointProcessingQueue();
   }
 
   public boolean plotValid() {
@@ -58,7 +59,7 @@ public class PlotModuleCombo {
     this.plot = plot;
   }
 
-  public void setSteps(List<MZmineProcessingStep<DataPointProcessingModule>> steps) {
+  public void setSteps(DataPointProcessingQueue steps) {
     this.steps = steps;
   }
 
