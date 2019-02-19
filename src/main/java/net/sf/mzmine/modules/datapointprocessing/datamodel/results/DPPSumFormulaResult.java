@@ -2,8 +2,11 @@ package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
 
 public class DPPSumFormulaResult extends DPPResult<String> {
 
-  public DPPSumFormulaResult(String key, String value) {
-    super(key, value);
+  private final double ppm;
+  
+  public DPPSumFormulaResult(String key, String formula, double ppm) {
+    super(key, formula);
+    this.ppm = ppm;
   }
 
   @Override
@@ -14,5 +17,9 @@ public class DPPSumFormulaResult extends DPPResult<String> {
   @Override
   public Classification getClassification() {
     return Classification.STRING;
+  }
+
+  public double getPpm() {
+    return ppm;
   }
 }

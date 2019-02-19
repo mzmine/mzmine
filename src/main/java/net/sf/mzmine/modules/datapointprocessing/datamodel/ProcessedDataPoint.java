@@ -50,6 +50,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
 
   /**
    * Adds a single result to this data point.
+   * 
    * @param result
    */
   public void addResult(DPPResult<?> result) {
@@ -64,6 +65,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
 
   /**
    * Adds a collection of DPPResults to this data point.
+   * 
    * @param results
    */
   public void addAllResults(Collection<DPPResult<?>> results) {
@@ -77,6 +79,18 @@ public class ProcessedDataPoint extends SimpleDataPoint {
       if (result.getName() == null || result.getName().equals(""))
         continue;
       this.results.put(result.getName(), result);
+    }
+  }
+  
+  public void addAllResults(DPPResult[] result) {
+    if (result == null)
+      return;
+
+    if (results == null)
+      results = new HashMap<String, DPPResult<?>>();
+    
+    for(DPPResult<?> r : result) {
+      results.put(r.getName(), r);
     }
   }
 
@@ -94,6 +108,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
 
   /**
    * Specifies if a result with the given key exists.
+   * 
    * @param key
    * @return
    */
@@ -108,16 +123,33 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * @return Returns an array of all keys in this map.
    */
   public String[] getAllResultKeys() {
-    if(results == null)
+    if (results == null)
       return new String[0];
-      
+
     return results.keySet().toArray(new String[0]);
   }
-  
+
   public void removeResult(String key) {
     results.remove(key);
   }
   /*
    * public boolean equals(ProcessedDataPoint p) { //TODO }
    */
+
+  /**
+   * 
+   * @param key
+   * @return The number of entries with the given key.
+   */
+  public int getNumberOfKeyEntries(String key) {
+    int i = 0;
+    if(results == null)
+      return i;
+    
+    for(String k : results.keySet()) {
+      if(k.contains(key))
+        i++;
+    }
+    return i;
+  }
 }

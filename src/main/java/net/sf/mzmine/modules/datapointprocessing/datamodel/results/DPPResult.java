@@ -2,6 +2,10 @@ package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
 
 public abstract class DPPResult<T> {
 
+  public static final String KEY_SUMFORMULARESULT = "Sum formula";
+  public static final String KEY_ADDUCTRESULT = "Adduct";
+  public static final String KEY_ISOTOPEPATTERNRESULT = "Isotope pattern";
+  
   final String name;
   final T value;
   
