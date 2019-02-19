@@ -20,19 +20,19 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
  */
 public abstract class DataPointProcessingTask extends AbstractTask {
 
-  SpectraPlot targetPlot;
-  DataPoint[] dataPoints;
-  ParameterSet parameterSet;
-  DataPointProcessingController controller;
+  private SpectraPlot targetPlot;
+  protected DataPoint[] dataPoints;
+  protected ParameterSet parameterSet;
+  private DataPointProcessingController controller;
 
   // move the results into this array by setReults to be collected by the controller and passed on
   // to the next DPPTask by it
-  ProcessedDataPoint[] results;
+  private ProcessedDataPoint[] results;
 
-  public DataPointProcessingTask(DataPoint[] dataPoints, SpectraPlot targetPlot,
+  public DataPointProcessingTask(DataPoint[] dataPoints, SpectraPlot plot,
       ParameterSet parameterSet, DataPointProcessingController controller, TaskStatusListener listener) {
     setDataPoints(dataPoints);
-    setTargetPlot(targetPlot);
+    setTargetPlot(plot);
     setParameterSet(parameterSet);
     setController(controller);
     addTaskStatusListener(listener);

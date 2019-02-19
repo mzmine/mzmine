@@ -49,8 +49,8 @@ public class DataPointProcessingManager {
   public void addController(DataPointProcessingController controller) {
     synchronized (waiting) {
       if (waiting.contains(controller)) {
-        logger.fine("Warning: Controller was already added to waiting list at index "
-            + waiting.indexOf(controller) + "/" + waiting.size() + ". Skipping.");
+//        logger.fine("Warning: Controller was already added to waiting list at index "
+//            + waiting.indexOf(controller) + "/" + waiting.size() + ". Skipping.");
         return;
       }
       waiting.add(controller);
@@ -71,7 +71,7 @@ public class DataPointProcessingManager {
     synchronized (waiting) {
       waiting.remove(controller);
     }
-    logger.finest("Controller removed from wating list. (size = " + waiting.size() + ")");
+//    logger.finest("Controller removed from wating list. (size = " + waiting.size() + ")");
   }
 
   /**
@@ -83,13 +83,13 @@ public class DataPointProcessingManager {
   private void addRunningController(DataPointProcessingController controller) {
     synchronized (running) {
       if (running.contains(controller)) {
-        logger.fine("Warning: Controller was already added to waiting list at index "
-            + running.indexOf(controller) + "/" + running.size() + ". Skipping.");
+//        logger.fine("Warning: Controller was already added to waiting list at index "
+//            + running.indexOf(controller) + "/" + running.size() + ". Skipping.");
         return;
       }
       running.add(controller);
     }
-    logger.finest("Controller added to running list. (size = " + running.size() + ")");
+//    logger.finest("Controller added to running list. (size = " + running.size() + ")");
   }
 
   /**
@@ -106,7 +106,7 @@ public class DataPointProcessingManager {
     synchronized (running) {
       running.remove(controller);
     }
-    logger.finest("Controller removed from running list. (size = " + running.size() + ")");
+//    logger.finest("Controller removed from running list. (size = " + running.size() + ")");
   }
 
   /**
@@ -128,11 +128,11 @@ public class DataPointProcessingManager {
       return;
 
     if (running.size() >= MAX_RUNNING) {
-      logger.info("Too much controllers running, cannot start the next one.");
+//      logger.info("Too much controllers running, cannot start the next one.");
       return;
     }
     if (waiting.isEmpty()) {
-      logger.info("No more waiting controllers, cannot start the next one.");
+//      logger.info("No more waiting controllers, cannot start the next one.");
       return;
     }
 
@@ -153,8 +153,8 @@ public class DataPointProcessingManager {
           // One controller finished, now we can remove it and start the next one.
           removeRunningController(controller);
           startNextController();
-          logger.finest("Controller finished, trying to start the next one. + (size = "
-              + running.size() + ")");
+//          logger.finest("Controller finished, trying to start the next one. (size = "
+//              + running.size() + ")");
         } else if (newStatus == ControllerStatus.CANCELED) {
           // this will be called, when the controller is forcefully canceled. The current task will
           // be completed, then the status will be changed and this method is called.
@@ -171,7 +171,7 @@ public class DataPointProcessingManager {
     });
 
     next.execute(); // this will start the actual task via the controller method.
-    logger.finest("Started controller from running list. (size = " + running.size() + ")");
+//    logger.finest("Started controller from running list. (size = " + running.size() + ")");
   }
 
   /**
