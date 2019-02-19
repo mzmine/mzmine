@@ -1,25 +1,37 @@
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package net.sf.mzmine.modules.datapointprocessing.setup;
 
-import java.awt.Window;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.input.MouseEvent;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
@@ -28,7 +40,6 @@ import net.sf.mzmine.modules.datapointprocessing.datamodel.DPPModuleTreeItem;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.util.ExitCode;
 
 public class DPPSetupWindowController {
