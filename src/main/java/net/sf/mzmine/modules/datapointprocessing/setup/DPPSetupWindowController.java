@@ -139,6 +139,7 @@ public class DPPSetupWindowController {
         new DPPModuleCategoryTreeItem[ModuleSubCategory.values().length];
     for (int i = 0; i < moduleCategories.length; i++) {
       moduleCategories[i] = new DPPModuleCategoryTreeItem(ModuleSubCategory.values()[i]);
+      moduleCategories[i].setExpanded(true);
     }
 
     // add modules to their module category items

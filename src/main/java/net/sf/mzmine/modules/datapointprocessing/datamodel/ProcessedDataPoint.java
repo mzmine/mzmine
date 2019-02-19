@@ -152,4 +152,10 @@ public class ProcessedDataPoint extends SimpleDataPoint {
     }
     return i;
   }
+  
+  public boolean hasResults() {
+    if(results == null || results.isEmpty())
+      return false;
+    return true;
+  }
 }

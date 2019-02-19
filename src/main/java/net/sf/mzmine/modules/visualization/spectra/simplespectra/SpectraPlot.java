@@ -34,6 +34,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -55,7 +56,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDa
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.SaveImage;
 import net.sf.mzmine.util.SaveImage.FileType;
@@ -423,7 +423,7 @@ public class SpectraPlot extends EChartPanel {
 
   // add Dataset with label generator
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
-      SpectraDatabaseSearchLabelGenerator labelGenerator) {
+      XYItemLabelGenerator labelGenerator) {
 
     XYItemRenderer newRenderer;
 

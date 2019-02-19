@@ -86,7 +86,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    return ((double) currentIndex / getDataPoints().length) * 100;
+    return ((double) currentIndex / getDataPoints().length);
   }
 
   @Override
@@ -114,9 +114,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
           massRange.upperEndpoint(), elementCounts);
 
       List<PredResult> formulas = generateFormulas(dataPoints[i].getMZ(), massRange, charge, generator);
-      DPPResult[] results = genereateResults(formulas, 3);
+     
+      DPPSumFormulaResult[] results = genereateResults(formulas, 3);
+      
       ((ProcessedDataPoint)dataPoints[i]).addAllResults(results);
       currentIndex++;
+      
     }
 
     setResults((ProcessedDataPoint[])dataPoints);
@@ -177,11 +180,11 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     return possibleFormulas;
   }
 
-  private DPPResult[] genereateResults(List<PredResult> formulas, int n) {
+  private DPPSumFormulaResult[] genereateResults(List<PredResult> formulas, int n) {
     if (formulas.size() < n)
       n = formulas.size();
 
-    DPPResult[] results = new DPPResult[n];
+    DPPSumFormulaResult[] results = new DPPSumFormulaResult[n];
 
     for (int i = 0; i < results.length; i++) {
       results[i] = new DPPSumFormulaResult(DPPResult.KEY_SUMFORMULARESULT + " " + i,

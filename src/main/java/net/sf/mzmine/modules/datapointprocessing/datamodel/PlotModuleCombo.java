@@ -74,7 +74,7 @@ public class PlotModuleCombo {
   public boolean hasNextStep(MZmineProcessingStep<DataPointProcessingModule> current) {
     if (steps.contains(current)) {
       int index = steps.indexOf(current);
-      if (steps.size() < index + 1) {
+      if (index + 1 < steps.size()) {
         return true;
       }
     }

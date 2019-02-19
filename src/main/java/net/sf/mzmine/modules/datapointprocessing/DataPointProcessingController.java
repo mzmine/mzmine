@@ -4,13 +4,15 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.PlotModuleCombo;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResultsDataSet;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -55,9 +57,9 @@ public class DataPointProcessingController {
    * DataPointProcessingController(PlotModuleCombo pmc) { setPlotModuleCombo(pmc); }
    */
 
-  public DataPointProcessingController(List<MZmineProcessingStep<DataPointProcessingModule>> steps, SpectraPlot plot,
-      DataPoint[] dataPoints) {
-    
+  public DataPointProcessingController(List<MZmineProcessingStep<DataPointProcessingModule>> steps,
+      SpectraPlot plot, DataPoint[] dataPoints) {
+
     pmc = new PlotModuleCombo(steps, plot);
     setdataPoints(dataPoints);
     setStatus(ControllerStatus.WAITING);
@@ -150,7 +152,8 @@ public class DataPointProcessingController {
    * @param module
    * @param plot
    */
-  private void execute(DataPoint[] dp, MZmineProcessingStep<DataPointProcessingModule> step, SpectraPlot plot) {
+  private void execute(DataPoint[] dp, MZmineProcessingStep<DataPointProcessingModule> step,
+      SpectraPlot plot) {
     if (!isPlotModuleComboSet()) {
       logger.warning("execute called, without pmc being set.");
       return;
@@ -168,57 +171,67 @@ public class DataPointProcessingController {
 
       DataPointProcessingModule inst = step.getModule();
       ParameterSet parameters = step.getParameterSet();
-      
-      Task t = ((DataPointProcessingModule) inst).createTask(dp, parameters, plot, this, new TaskStatusListener() {
-        @Override
-        public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
-          if (!(task instanceof DataPointProcessingTask)) {
-            // TODO: Throw exception?
-            logger.warning("This should have been a DataPointProcessingTask.");
-            return;
-          }
-          
-          switch (newStatus) {
-            case FINISHED:
-              if (pmc.hasNextStep(step)) {
-                if (DataPointProcessingManager.getInst()
-                    .isRunning(((DataPointProcessingTask) task).getController())) {
 
-                  MZmineProcessingStep<DataPointProcessingModule> next = pmc.getNextStep(step);
-
-                  // pass results to next task and start recursively
-                  ProcessedDataPoint[] result = ((DataPointProcessingTask) task).getResults();
-                  execute(result, next, plot);
-                } else {
-                  logger.warning(
-                      "This controller was already removed from the running list, although it had not finished processing. Exiting");
-                  break;
-                }
-              } else {
-                // TODO: finish and display
-                setResults(((DataPointProcessingTask) task).getResults());
-                setStatus(ControllerStatus.FINISHED);
-
-                logger.finest("Controller finished.");
-                
-                plot.addDataSet(new DataPointsDataSet("Results", getResults()), Color.MAGENTA, false);
+      Task t = ((DataPointProcessingModule) inst).createTask(dp, parameters, plot, this,
+          new TaskStatusListener() {
+            @Override
+            public void taskStatusChanged(Task task, TaskStatus newStatus, TaskStatus oldStatus) {
+              if (!(task instanceof DataPointProcessingTask)) {
+                // TODO: Throw exception?
+                logger.warning("This should have been a DataPointProcessingTask.");
+                return;
               }
-              break;
-            case PROCESSING:
-              setStatus(ControllerStatus.PROCESSING);
-              break;
-            case WAITING:
-              // should we even set to WAITING here?
-              break;
-            case ERROR:
-              setStatus(ControllerStatus.ERROR);
-              break;
-            case CANCELED:
-              setStatus(ControllerStatus.CANCELED);
-              break;
-          }
-        }
-      });
+              logger.info("Task status changed to " + newStatus.toString());
+              switch (newStatus) {
+                case FINISHED:
+                  if (pmc.hasNextStep(step)) {
+                    if (DataPointProcessingManager.getInst()
+                        .isRunning(((DataPointProcessingTask) task).getController())) {
+
+                      MZmineProcessingStep<DataPointProcessingModule> next = pmc.getNextStep(step);
+
+                      // pass results to next task and start recursively
+                      ProcessedDataPoint[] result = ((DataPointProcessingTask) task).getResults();
+                      execute(result, next, plot);
+                    } else {
+                      logger.warning(
+                          "This controller was already removed from the running list, although it had not finished processing. Exiting");
+                      break;
+                    }
+                  } else {
+                    logger.info(
+                        task.getClass().getName() + " finished, but there is no next module.");
+                    // TODO: finish and display
+                    setResults(((DataPointProcessingTask) task).getResults());
+                    
+                    setStatus(ControllerStatus.FINISHED);
+
+                    logger.finest("Controller finished.");
+
+                    DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(plot);
+                    plot.addDataSet(new DPPResultsDataSet("Results", getResults()), Color.MAGENTA,
+                        false, labelGen);
+                    clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
+                    
+                    // plot.getXYPlot().getRenderer()
+                    // .setSeriesItemLabelGenerator(plot.getXYPlot().getSeriesCount(), labelGen);
+                  }
+                  break;
+                case PROCESSING:
+                  setStatus(ControllerStatus.PROCESSING);
+                  break;
+                case WAITING:
+                  // should we even set to WAITING here?
+                  break;
+                case ERROR:
+                  setStatus(ControllerStatus.ERROR);
+                  break;
+                case CANCELED:
+                  setStatus(ControllerStatus.CANCELED);
+                  break;
+              }
+            }
+          });
 
       setCurrentTask((DataPointProcessingTask) t); // maybe we need this some time
       logger.info("Start processing of " + t.getClass().getName());
@@ -258,5 +271,19 @@ public class DataPointProcessingController {
   public void clearControllerStatusListeners() {
     if (listener != null)
       listener.clear();
+  }
+
+  /**
+   * Removes all label generators of datasets that are not of the given type.
+   * @param plot Plot to apply this method to.
+   * @param ignore Class object of the instances to ignore.
+   */
+  public void clearOtherLabelGenerators(SpectraPlot plot, Class<? extends XYDataset> ignore) {
+    for (int i = 0; i < plot.getXYPlot().getDatasetCount(); i++) {
+      XYDataset dataset = plot.getXYPlot().getDataset(i);
+      // check if object of dataset is an instance of ignore.class
+      if (!(ignore.isInstance(dataset)))
+        plot.getXYPlot().getRendererForDataset(dataset).setDefaultItemLabelGenerator(null);
+    }
   }
 }
