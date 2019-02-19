@@ -199,22 +199,13 @@ public class DataPointProcessingController {
                       break;
                     }
                   } else {
-                    logger.info(
-                        task.getClass().getName() + " finished, but there is no next module.");
-                    // TODO: finish and display
                     setResults(((DataPointProcessingTask) task).getResults());
-                    
                     setStatus(ControllerStatus.FINISHED);
-
-                    logger.finest("Controller finished.");
 
                     DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(plot);
                     plot.addDataSet(new DPPResultsDataSet("Results", getResults()), Color.MAGENTA,
                         false, labelGen);
                     clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
-                    
-                    // plot.getXYPlot().getRenderer()
-                    // .setSeriesItemLabelGenerator(plot.getXYPlot().getSeriesCount(), labelGen);
                   }
                   break;
                 case PROCESSING:

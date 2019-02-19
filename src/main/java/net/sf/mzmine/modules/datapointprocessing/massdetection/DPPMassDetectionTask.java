@@ -63,8 +63,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
       CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
       dp = ProcessedDataPoint.convert(massDetector.getMassValues(getDataPoints(), parameters));
     }
-
-
+    currentIndex = dataPoints.length;
 
     setResults(dp);
     setStatus(TaskStatus.FINISHED);
