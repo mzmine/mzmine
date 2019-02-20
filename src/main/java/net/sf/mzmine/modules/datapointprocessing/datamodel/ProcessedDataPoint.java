@@ -18,9 +18,12 @@
 
 package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
+import java.util.Vector;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult;
@@ -35,7 +38,7 @@ import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult;
 public class ProcessedDataPoint extends SimpleDataPoint {
 
   // this map is set in the add... methods so we don't use too much memory
-  TreeMap<String, DPPResult<?>> results;
+  Vector<DPPResult<?>> results;
 
   /**
    * Generates an array of ProcessedDataPoints from DataPoints.
@@ -77,9 +80,9 @@ public class ProcessedDataPoint extends SimpleDataPoint {
       return;
 
     if (results == null)
-      results = new TreeMap<String, DPPResult<?>>();
+      results = new Vector<DPPResult<?>>();
 
-    results.put(result.getName(), result);
+    results.add(result);
   }
 
   /**
@@ -92,88 +95,127 @@ public class ProcessedDataPoint extends SimpleDataPoint {
       return;
 
     if (this.results == null)
-      this.results = new TreeMap<String, DPPResult<?>>();
+      this.results = new Vector<DPPResult<?>>();
 
     for (DPPResult<?> result : results) {
-      if (result.getName() == null || result.getName().equals(""))
-        continue;
-      this.results.put(result.getName(), result);
+      this.results.add(result);
     }
   }
-  
-  public void addAllResults(DPPResult[] result) {
+
+  public void addAllResults(DPPResult<?>[] result) {
     if (result == null)
       return;
 
     if (results == null)
-      results = new TreeMap<String, DPPResult<?>>();
-    
-    for(DPPResult<?> r : result) {
-      results.put(r.getName(), r);
+      results = new Vector<DPPResult<?>>();
+
+    for (DPPResult<?> r : result) {
+      results.add(r);
     }
   }
 
   /**
    * 
-   * @param name Key of the specified result
+   * @param i Index of the specified result
    * @return DPPResult with the given key, may be null if no result with that key exits or no result
    *         exists at all.
    */
-  public DPPResult<?> getResult(String name) {
+  public DPPResult<?> getResult(int i) {
     if (results == null)
       return null;
-    return results.get(name);
+    return results.get(i);
   }
 
   /**
-   * Specifies if a result with the given key exists.
+   * Specifies if a result with the given type exists.
    * 
-   * @param key
+   * @param type
    * @return
    */
-  public boolean resultKeyExists(String key) {
-    if (results.containsKey(key))
-      return true;
+  public boolean resultTypeExists(DPPResult.ResultType type) {
+    for (DPPResult<?> r : results)
+      if (r.getResultType() == type)
+        return true;
     return false;
   }
 
   /**
-   *
-   * @return Returns an array of all keys in this map.
+   * The number of results with the given type.
+   * @param type
+   * @return
    */
-  public String[] getAllResultKeys() {
+  public int getNumberOfResultsByType(DPPResult.ResultType type) {
     if (results == null)
-      return new String[0];
+      return 0;
 
-    return results.keySet().toArray(new String[0]);
+    int i = 0;
+    for (DPPResult<?> r : results)
+      if (r.getResultType() == type)
+        i++;
+
+    return i;
   }
 
-  public void removeResult(String key) {
-    results.remove(key);
+  /**
+   *
+   * @return Returns List of all results of the given type. Null if no result exists.
+   */
+  public List<DPPResult<?>> getAllResultsByType(DPPResult.ResultType type) {
+    if (results == null)
+      return null;
+
+    List<DPPResult<?>> list = new ArrayList<>();
+
+    for (DPPResult<?> r : results) {
+      if (r.getResultType() == type) {
+        list.add(r);
+      }
+    }
+
+    if (list.isEmpty())
+      return null;
+
+    return list;
+  }
+  
+  /**
+   * Returns the first result of the given type.
+   * @param type
+   * @return Instance of DPPResult<?> or null if no result of that type exists.
+   */
+  public DPPResult<?> getFirstResultByType(DPPResult.ResultType type){
+    if (results == null)
+      return null;
+    
+    for(DPPResult<?> r : results)
+      if(r.getResultType() == type)
+        return r;
+    return null;
+  }
+
+  public void removeResult(int i) {
+    results.remove(i);
+  }
+  
+  public void removeResult(DPPResult<?> result) {
+    results.remove(result);
   }
   /*
    * public boolean equals(ProcessedDataPoint p) { //TODO }
    */
 
   /**
-   * 
-   * @param key
-   * @return The number of entries with the given key.
+   * @return The number of results
    */
-  public int getNumberOfKeyEntries(String key) {
-    int i = 0;
-    if(results == null)
-      return i;
-    
-    for(String k : results.keySet()) {
-      if(k.contains(key))
-        i++;
-    }
-    return i;
+  public int getNumberOfResults() {
+    if (results == null)
+      return 0;
+
+    return results.size();
   }
-  
+
   public boolean hasResults() {
-    if(results == null || results.isEmpty())
+    if (results == null || results.isEmpty())
       return false;
     return true;
   }

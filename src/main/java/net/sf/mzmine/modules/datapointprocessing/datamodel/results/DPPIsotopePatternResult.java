@@ -22,8 +22,8 @@ import net.sf.mzmine.datamodel.IsotopePattern;
 
 public class DPPIsotopePatternResult extends DPPResult<IsotopePattern>{
 
-  public DPPIsotopePatternResult(String key, IsotopePattern value) {
-    super(key, value);
+  public DPPIsotopePatternResult(IsotopePattern value) {
+    super(value);
   }
 
   @Override
@@ -32,7 +32,7 @@ public class DPPIsotopePatternResult extends DPPResult<IsotopePattern>{
   }
 
   @Override
-  public Classification getClassification() {
-    return Classification.ISOTOPE_PATTERN;
+  public ResultType getResultType() {
+    return ResultType.ISOTOPEPATTERN;
   }
 }

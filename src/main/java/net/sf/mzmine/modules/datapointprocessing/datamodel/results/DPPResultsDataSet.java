@@ -33,5 +33,4 @@ public class DPPResultsDataSet extends DataPointsDataSet {
     return (ProcessedDataPoint[]) mzPeaks;
   }
   
-  // TODO: Label generator, Renderer to work with isotope patterns
 }

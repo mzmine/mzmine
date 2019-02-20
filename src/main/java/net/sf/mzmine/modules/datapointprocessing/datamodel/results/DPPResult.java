@@ -20,22 +20,16 @@ package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
 
 public abstract class DPPResult<T> {
 
-  public static final String KEY_SUMFORMULARESULT = "Sum formula";
-  public static final String KEY_ADDUCTRESULT = "Adduct";
-  public static final String KEY_ISOTOPEPATTERNRESULT = "Isotope pattern";
+//  public static final Class  RESULT_ADDUCT = ;
   
-  final String name;
+  public enum ResultType {SUMFORMULA, ISOTOPEPATTERN, ADDUCT, FRAGMENT};
+  
   final T value;
   
-  public DPPResult (String key, T value) {
-    this.name = key;
+  public DPPResult (T value) {
     this.value = value;
   }
   
-  public String getName() {
-    return name;
-  }
-
   public T getValue() {
     return value;
   }
@@ -44,21 +38,5 @@ public abstract class DPPResult<T> {
   
   public abstract String generateLabel();
 
-  public abstract Classification getClassification();
-
-  public static enum Classification {
-    STRING("String"), ISOTOPE_PATTERN("Isotope pattern"), FRAGMENTATION("Fragmentation"), ADDUCT(
-        "Addukt");
-
-    Classification(String name) {
-      this.name = name;
-    }
-
-    private final String name;
-
-    public String getName() {
-      return name;
-    }
-  }
-
+  public abstract ResultType getResultType();
 }

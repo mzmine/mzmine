@@ -27,8 +27,8 @@ public class DPPSumFormulaResult extends DPPResult<String> {
   private final double ppm;
   private static final NumberFormat format = new DecimalFormat("0.00");
   
-  public DPPSumFormulaResult(String key, String formula, double ppm) {
-    super(key, formula);
+  public DPPSumFormulaResult(String formula, double ppm) {
+    super(formula);
     this.ppm = ppm;
   }
 
@@ -37,12 +37,12 @@ public class DPPSumFormulaResult extends DPPResult<String> {
     return getValue() + " (Δ " + format.format(ppm) + " ppm)";
   }
 
-  @Override
-  public Classification getClassification() {
-    return Classification.STRING;
-  }
-
   public double getPpm() {
     return ppm;
+  }
+
+  @Override
+  public ResultType getResultType() {
+    return ResultType.SUMFORMULA;
   }
 }
