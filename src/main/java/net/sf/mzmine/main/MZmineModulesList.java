@@ -19,6 +19,7 @@
 package net.sf.mzmine.main;
 
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
+import net.sf.mzmine.modules.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
 import net.sf.mzmine.modules.datapointprocessing.massdetection.DPPMassDetectionModule;
 import net.sf.mzmine.modules.datapointprocessing.sumformulaprediction.DPPSumFormulaPredictionModule;
 import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromatogramBuilderModule;
@@ -198,6 +199,6 @@ public class MZmineModulesList {
       IsotopePatternPreviewModule.class,
 
       // Data point processing
-      DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class
+      DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
   };
 }

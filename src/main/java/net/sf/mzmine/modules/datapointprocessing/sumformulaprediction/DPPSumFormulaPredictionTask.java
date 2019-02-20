@@ -192,19 +192,11 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       }
     }
 
-    String str ="";
-    for(PredResult r : possibleFormulas)
-      str += r.formula + "(" + r.ppm + ")";
-    logger.info("pre sort: " + str);
     
     possibleFormulas.sort((Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
       return Double.compare(Math.abs(o1.ppm), Math.abs(o2.ppm));
     });
 
-    str ="";
-    for(PredResult r : possibleFormulas)
-      str += r.formula + "(" + r.ppm + ")";
-    logger.info("after sort: " + str);
     return possibleFormulas;
   }
 
