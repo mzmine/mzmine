@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.TreeMap;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult;
@@ -34,7 +35,7 @@ import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult;
 public class ProcessedDataPoint extends SimpleDataPoint {
 
   // this map is set in the add... methods so we don't use too much memory
-  HashMap<String, DPPResult<?>> results;
+  TreeMap<String, DPPResult<?>> results;
 
   /**
    * Generates an array of ProcessedDataPoints from DataPoints.
@@ -76,7 +77,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
       return;
 
     if (results == null)
-      results = new HashMap<String, DPPResult<?>>();
+      results = new TreeMap<String, DPPResult<?>>();
 
     results.put(result.getName(), result);
   }
@@ -91,7 +92,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
       return;
 
     if (this.results == null)
-      this.results = new HashMap<String, DPPResult<?>>();
+      this.results = new TreeMap<String, DPPResult<?>>();
 
     for (DPPResult<?> result : results) {
       if (result.getName() == null || result.getName().equals(""))
@@ -105,7 +106,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
       return;
 
     if (results == null)
-      results = new HashMap<String, DPPResult<?>>();
+      results = new TreeMap<String, DPPResult<?>>();
     
     for(DPPResult<?> r : result) {
       results.put(r.getName(), r);

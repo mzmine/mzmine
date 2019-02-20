@@ -72,7 +72,7 @@ public class DPPSetupWindow {
     fxPanel.setVisible(true);
 
     // add menu item manually, else we'd need a module just to add this item which would be
-    // unnecessary.
+    // unnecessary. Additionally we dont have a parameter set class.
     addMenuItem();
 
     logger.finest("DPPSetupWindow intialized.");

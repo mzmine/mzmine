@@ -30,6 +30,7 @@ import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
+import com.github.rcaller.rstuff.RStreamHandler;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IonizationType;
@@ -72,27 +73,27 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       TaskStatusListener listener) {
     super(dataPoints, targetPlot, parameterSet, controller, listener);
 
-    charge = parameterSet.getParameter(SpectraIdentificationSumFormulaParameters.charge).getValue();
+    charge = parameterSet.getParameter(DPPSumFormulaPredictionParameters.charge).getValue();
     ionType =
-        parameterSet.getParameter(SpectraIdentificationSumFormulaParameters.ionization).getValue();
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.ionization).getValue();
 
     checkRDBE = parameterSet
-        .getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions).getValue();
+        .getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions).getValue();
     rdbeParameters =
-        parameterSet.getParameter(SpectraIdentificationSumFormulaParameters.rdbeRestrictions)
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.rdbeRestrictions)
             .getEmbeddedParameters();
 
     checkRatios = parameterSet
-        .getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios).getValue();
+        .getParameter(DPPSumFormulaPredictionParameters.elementalRatios).getValue();
     ratiosParameters =
-        parameterSet.getParameter(SpectraIdentificationSumFormulaParameters.elementalRatios)
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.elementalRatios)
             .getEmbeddedParameters();
 
     elementCounts =
-        parameterSet.getParameter(SpectraIdentificationSumFormulaParameters.elements).getValue();
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.elements).getValue();
 
     mzTolerance =
-        parameterSet.getParameter(SpectraIdentificationSumFormulaParameters.mzTolerance).getValue();
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.mzTolerance).getValue();
 
     currentIndex = 0;
   }
@@ -191,10 +192,19 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       }
     }
 
+    String str ="";
+    for(PredResult r : possibleFormulas)
+      str += r.formula + "(" + r.ppm + ")";
+    logger.info("pre sort: " + str);
+    
     possibleFormulas.sort((Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
       return Double.compare(Math.abs(o1.ppm), Math.abs(o2.ppm));
     });
 
+    str ="";
+    for(PredResult r : possibleFormulas)
+      str += r.formula + "(" + r.ppm + ")";
+    logger.info("after sort: " + str);
     return possibleFormulas;
   }
 
@@ -205,6 +215,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     DPPSumFormulaResult[] results = new DPPSumFormulaResult[n];
 
     for (int i = 0; i < results.length; i++) {
+      logger.info("Adding result " + formulas.get(i).formula + " (" + formulas.get(i).ppm + ")");
       results[i] = new DPPSumFormulaResult(DPPResult.KEY_SUMFORMULARESULT + " " + i,
           formulas.get(i).formula, formulas.get(i).ppm);
     }
