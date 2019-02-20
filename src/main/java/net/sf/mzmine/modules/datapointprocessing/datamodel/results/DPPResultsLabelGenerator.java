@@ -23,6 +23,7 @@ import java.util.Set;
 import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
@@ -99,18 +100,15 @@ public class DPPResultsLabelGenerator extends SpectraItemLabelGenerator {
     if(!dp.hasResults())
       return label;
       
-    String[] keys = dp.getAllResultKeys();
-    
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     String mz;
     String formulas = "";
     mz = mzForm.format(dp.getMZ());
 //    System.out.println(dp.getMZ() + " has " + keys.length + " keys " + keys.toString());
     
-    for(String key : keys) {
-      DPPResult<?> result = dp.getResult(key);
-      if(result instanceof DPPSumFormulaResult) {
-        formulas += result.generateLabel() + "\n";
+    for(DPPResult<?> r : dp.getAllResultsByType(ResultType.SUMFORMULA)) {
+      if(r instanceof DPPSumFormulaResult) {
+        formulas += r.generateLabel() + "\n";
       }
     }
     

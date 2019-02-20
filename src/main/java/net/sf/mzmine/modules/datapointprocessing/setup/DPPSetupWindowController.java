@@ -177,7 +177,7 @@ public class DPPSetupWindowController {
         new DPPModuleCategoryTreeItem[ModuleSubCategory.values().length];
     for (int i = 0; i < moduleCategories.length; i++) {
       moduleCategories[i] = new DPPModuleCategoryTreeItem(ModuleSubCategory.values()[i]);
-      moduleCategories[i].setExpanded(true);
+      
     }
 
     // add modules to their module category items
@@ -192,7 +192,6 @@ public class DPPSetupWindowController {
             catItem.getChildren().add(new DPPModuleTreeItem(dppm));
           }
         }
-
       }
     }
 
@@ -205,8 +204,8 @@ public class DPPSetupWindowController {
     tvAllModules.showRootProperty().set(true);
     tvProcessing.showRootProperty().set(true);
 
-    tvAllModules.getRoot().setExpanded(true);
-    tvProcessing.getRoot().setExpanded(true);
+//    tvAllModules.getRoot().setExpanded(true);
+//    tvProcessing.getRoot().setExpanded(true);
 
     cbEnabled.selectedProperty().addListener(l -> {
       DataPointProcessingManager.getInst().setEnabled(cbEnabled.isSelected());

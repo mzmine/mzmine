@@ -144,7 +144,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
           new SimpleIsotopePattern(originalPeaks, IsotopePatternStatus.DETECTED, aPeak.toString());
 
       deisotopedDataPoints.add(dataPoints[i]);
-      dataPoints[i].addResult(new DPPIsotopePatternResult(DPPResult.KEY_ISOTOPEPATTERNRESULT, newPattern));
+      dataPoints[i].addResult(new DPPIsotopePatternResult(newPattern));
 
       logger.info("Found isotope pattern for m/z " + dataPoints[i].getMZ() + " size: "
           + newPattern.getNumberOfDataPoints());

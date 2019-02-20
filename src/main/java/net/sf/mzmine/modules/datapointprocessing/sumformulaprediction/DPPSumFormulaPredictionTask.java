@@ -207,9 +207,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     DPPSumFormulaResult[] results = new DPPSumFormulaResult[n];
 
     for (int i = 0; i < results.length; i++) {
-      logger.info("Adding result " + formulas.get(i).formula + " (" + formulas.get(i).ppm + ")");
-      results[i] = new DPPSumFormulaResult(DPPResult.KEY_SUMFORMULARESULT + " " + i,
-          formulas.get(i).formula, formulas.get(i).ppm);
+      results[i] = new DPPSumFormulaResult(formulas.get(i).formula, formulas.get(i).ppm);
     }
 
     return results;

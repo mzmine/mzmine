@@ -417,6 +417,7 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
+    // if enabled, do the data point processing as set up by the user
     if (dataSet instanceof ScanDataSet && DataPointProcessingManager.getInst().isEnabled()) {
       DataPointProcessingManager inst = DataPointProcessingManager.getInst();
 
