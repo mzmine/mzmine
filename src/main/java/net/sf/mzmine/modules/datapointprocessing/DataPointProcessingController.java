@@ -24,13 +24,19 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.PlotModuleCombo;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -75,8 +81,8 @@ public class DataPointProcessingController {
    * DataPointProcessingController(PlotModuleCombo pmc) { setPlotModuleCombo(pmc); }
    */
 
-  public DataPointProcessingController(DataPointProcessingQueue steps,
-      SpectraPlot plot, DataPoint[] dataPoints) {
+  public DataPointProcessingController(DataPointProcessingQueue steps, SpectraPlot plot,
+      DataPoint[] dataPoints) {
 
     pmc = new PlotModuleCombo(steps, plot);
     setdataPoints(dataPoints);
@@ -221,10 +227,8 @@ public class DataPointProcessingController {
                     setResults(((DataPointProcessingTask) task).getResults());
                     setStatus(ControllerStatus.FINISHED);
 
-                    DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(plot);
-                    plot.addDataSet(new DPPResultsDataSet("Results", getResults()), Color.MAGENTA,
-                        false, labelGen);
-                    clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
+                    displayResults(getResults(), plot);
+
                   }
                   break;
                 case PROCESSING:
@@ -247,6 +251,24 @@ public class DataPointProcessingController {
       logger.info("Start processing of " + t.getClass().getName());
       MZmineCore.getTaskController().addTask(t);
     }
+  }
+
+  /**
+   * TODO
+   * 
+   * @param results
+   * @param plot
+   */
+  private void displayResults(ProcessedDataPoint[] results, SpectraPlot plot) {
+    // add full data set
+    DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(plot);
+    plot.addDataSet(new DPPResultsDataSet("Results", getResults()), Color.MAGENTA, false, labelGen);
+
+    // make sure we dont have overlapping labels
+    clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
+
+    // now add detected isotope patterns
+    plot.addDataSet(compressIsotopeDataSets(results), Color.GREEN, false);
   }
 
   /**
@@ -285,6 +307,7 @@ public class DataPointProcessingController {
 
   /**
    * Removes all label generators of datasets that are not of the given type.
+   * 
    * @param plot Plot to apply this method to.
    * @param ignore Class object of the instances to ignore.
    */
@@ -295,5 +318,34 @@ public class DataPointProcessingController {
       if (!(ignore.isInstance(dataset)))
         plot.getXYPlot().getRendererForDataset(dataset).setDefaultItemLabelGenerator(null);
     }
+  }
+  
+  /**
+   * This method generates a single IsotopesDataSet from all detected isotope patterns in the
+   * results.
+   * 
+   * @param dataPoints
+   * @return
+   */
+  private IsotopesDataSet compressIsotopeDataSets(ProcessedDataPoint[] dataPoints) {
+    List<IsotopePattern> list = new ArrayList<>();
+
+    for (ProcessedDataPoint dp : dataPoints) {
+      if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
+        list.add(((DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN))
+            .getValue());
+      }
+    }
+
+    List<DataPoint> dpList = new ArrayList<>();
+
+    for (IsotopePattern pattern : list) {
+      for (DataPoint dp : pattern.getDataPoints())
+        dpList.add(dp);
+    }
+
+    IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
+        IsotopePatternStatus.DETECTED, "Isotope patterns");
+    return new IsotopesDataSet(full);
   }
 }
