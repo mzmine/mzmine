@@ -268,7 +268,10 @@ public class DataPointProcessingController {
     clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
 
     // now add detected isotope patterns
-    plot.addDataSet(compressIsotopeDataSets(results), Color.GREEN, false);
+    plot.addDataSet(compressIsotopeDataSets(results), Color.GREEN, false, labelGen);
+//    for(ProcessedDataPoint result : results)
+//      if(result.resultTypeExists(ResultType.ISOTOPEPATTERN))
+//        plot.addDataSet(new IsotopesDataSet((IsotopePattern)result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()), Color.YELLOW, false);
   }
 
   /**

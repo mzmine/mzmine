@@ -25,20 +25,34 @@ import net.sf.mzmine.main.MZmineCore;
 public class DPPSumFormulaResult extends DPPResult<String> {
 
   private final double ppm;
+  private final double score;
+
+
   private static final NumberFormat format = new DecimalFormat("0.00");
   
   public DPPSumFormulaResult(String formula, double ppm) {
     super(formula);
     this.ppm = ppm;
+    this.score = 0.f;
+  }
+  
+  public DPPSumFormulaResult(String formula, double ppm, double score) {
+    super(formula);
+    this.ppm = ppm;
+    this.score = score;
   }
 
   @Override
   public String generateLabel() {
-    return getValue() + " (Δ " + format.format(ppm) + " ppm)";
+    return getValue() + " (Δ " + format.format(ppm) + " ppm, " + format.format(score) + " %)";
   }
 
   public double getPpm() {
     return ppm;
+  }
+  
+  public double getScore() {
+    return score;
   }
 
   @Override

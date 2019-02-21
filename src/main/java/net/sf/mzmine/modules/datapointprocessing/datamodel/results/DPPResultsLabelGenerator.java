@@ -19,7 +19,6 @@
 package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
 
 import java.text.NumberFormat;
-import java.util.Set;
 import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
@@ -81,42 +80,47 @@ public class DPPResultsLabelGenerator extends SpectraItemLabelGenerator {
     String label = null;
     if (dataset instanceof ScanDataSet) {
       label = ((ScanDataSet) dataset).getAnnotation(item);
+    } else if (dataset instanceof DPPResultsDataSet) {
+      label = createLabel(((DPPResultsDataSet) dataset).getDataPoints()[item]);
     }
-    else if (dataset instanceof DPPResultsDataSet) {
-      label = createLabel(((DPPResultsDataSet)dataset).getDataPoints()[item]);
-    }
-    
-    if (label == null) {
+
+    if (label == null || label.equals("")) {
       double mzValue = dataset.getXValue(series, item);
       label = mzFormat.format(mzValue);
     }
-    
+
     return label;
   }
-  
+
   private String createLabel(ProcessedDataPoint dp) {
     String label = "";
-    
-    if(!dp.hasResults())
+
+    if (!dp.hasResults())
       return label;
-      
+
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     String mz;
     String formulas = "";
     mz = mzForm.format(dp.getMZ());
-//    System.out.println(dp.getMZ() + " has " + keys.length + " keys " + keys.toString());
-    
-    for(DPPResult<?> r : dp.getAllResultsByType(ResultType.SUMFORMULA)) {
-      if(r instanceof DPPSumFormulaResult) {
-        formulas += r.generateLabel() + "\n";
+    // System.out.println(dp.getMZ() + " has " + keys.length + " keys " + keys.toString());
+
+    if (dp.resultTypeExists(ResultType.SUMFORMULA)) {
+      for (DPPResult<?> r : dp.getAllResultsByType(ResultType.SUMFORMULA)) {
+        if (r instanceof DPPSumFormulaResult) {
+          formulas += r.generateLabel() + "\n";
+        }
       }
     }
     
+    if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
+      label += "(pat)";
+    }
+    
     label = mz;
-    
-    if(!formulas.equals(""))
+
+    if (!formulas.equals(""))
       label += "\n" + formulas;
-    
+
     return label;
   }
 }

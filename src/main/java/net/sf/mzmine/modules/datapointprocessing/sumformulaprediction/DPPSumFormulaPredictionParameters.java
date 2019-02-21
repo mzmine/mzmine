@@ -22,6 +22,7 @@ import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -52,9 +53,13 @@ public class DPPSumFormulaPredictionParameters extends SimpleParameterSet {
       new OptionalModuleParameter<RDBERestrictionParameters>("RDBE restrictions",
           "Search only for formulas which correspond to the given RDBE restrictions",
           new RDBERestrictionParameters());
+  
+  public static final OptionalModuleParameter<IsotopePatternScoreParameters> isotopeFilter = new OptionalModuleParameter(
+      "Isotope pattern filter", "Search only for formulas with a isotope pattern similar",
+      new IsotopePatternScoreParameters());
 
   public DPPSumFormulaPredictionParameters() {
     super(new Parameter[] {charge, ionization, mzTolerance, elements, elementalRatios,
-        rdbeRestrictions});
+        rdbeRestrictions, isotopeFilter});
   }
 }

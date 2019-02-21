@@ -24,7 +24,6 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
@@ -33,9 +32,9 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
   public static final String ChooseLowestMZ = "Lowest m/z";
 
   public static final String[] representativeIsotopeValues = {ChooseTopIntensity, ChooseLowestMZ};
-
-  public static final PeakListsParameter peakLists = new PeakListsParameter();
-
+  
+  public static final StringParameter element = new StringParameter("Element", "Element symbol of the element to deisotope for.");
+  
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
@@ -52,11 +51,12 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
           + "peptides, the lowest m/z isotope may be the representative.",
       representativeIsotopeValues);
 
-  public static final BooleanParameter autoRemove = new BooleanParameter("Remove original peaklist",
-      "If checked, original peaklist will be removed and only deisotoped version remains");
+  public static final BooleanParameter autoRemove = new BooleanParameter("Remove non-isotopes",
+      "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.");
   
   public DPPIsotopeGrouperParameters() {
-    super(new Parameter[] {peakLists, mzTolerance, monotonicShape,
+    super(new Parameter[] {element, mzTolerance, monotonicShape,
         maximumCharge, representativeIsotope, autoRemove});
   }
+  
 }

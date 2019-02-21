@@ -39,6 +39,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
+import net.sf.mzmine.util.FormulaUtils;
 
 /**
  * 
@@ -57,6 +58,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private MZTolerance mzTolerance;
   private boolean monotonicShape;
   private int maximumCharge;
+  private String element;
+  private boolean autoRemove;
 
   public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
@@ -64,8 +67,11 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
     // Get parameter values for easier use
     mzTolerance = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzTolerance).getValue();
-    monotonicShape = parameterSet.getParameter(DPPIsotopeGrouperParameters.monotonicShape).getValue();
+    monotonicShape =
+        parameterSet.getParameter(DPPIsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
+    element = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
+    autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
   }
 
 
@@ -81,6 +87,11 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       return;
     }
 
+    if (!FormulaUtils.checkMolecularFormula(element)) {
+      setStatus(TaskStatus.ERROR);
+      logger.warning("Invalid element parameter in " + this.getClass().getName());
+    }
+
     ProcessedDataPoint[] dataPoints = (ProcessedDataPoint[]) getDataPoints();
 
     int charges[] = new int[maximumCharge];
@@ -88,18 +99,18 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       charges[i] = i + 1;
 
     IsotopePattern pattern =
-        IsotopePatternCalculator.calculateIsotopePattern("Cl", 0.01, 1, PolarityType.POSITIVE);
+        IsotopePatternCalculator.calculateIsotopePattern(element, 0.01, 1, PolarityType.POSITIVE);
     double isotopeDistance =
         pattern.getDataPoints()[1].getMZ() - pattern.getDataPoints()[0].getMZ();
 
-    DataPoint[] sortedDataPoints = dataPoints.clone();
+    ProcessedDataPoint[] sortedDataPoints = dataPoints.clone();
     Arrays.sort(sortedDataPoints, (d1, d2) -> {
-      return Double.compare(d1.getIntensity(), d2.getIntensity());
+      return -1*Double.compare(d1.getIntensity(), d2.getIntensity()); // *-1 to sort descending
     });
 
     List<ProcessedDataPoint> deisotopedDataPoints = new ArrayList<>();
 
-    for (int i = 0; i < dataPoints.length; i++) {
+    for (int i = 0; i < sortedDataPoints.length; i++) {
       if (isCanceled())
         return;
 
@@ -133,8 +144,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       // Verify the number of detected isotopes. If there is only one
       // isotope, we skip this left the original peak in the peak list.
       if (bestFitPeaks.size() == 1) {
-        // TODO: this probably does not store previous results
-        deisotopedDataPoints.add(dataPoints[i]);
+        if (!autoRemove)
+          deisotopedDataPoints.add(sortedDataPoints[i]);
         processedPeaks++;
         continue;
       }
@@ -143,11 +154,11 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       SimpleIsotopePattern newPattern =
           new SimpleIsotopePattern(originalPeaks, IsotopePatternStatus.DETECTED, aPeak.toString());
 
-      deisotopedDataPoints.add(dataPoints[i]);
-      dataPoints[i].addResult(new DPPIsotopePatternResult(newPattern));
+      sortedDataPoints[i].addResult(new DPPIsotopePatternResult(newPattern));
+      deisotopedDataPoints.add(sortedDataPoints[i]);
 
-      logger.info("Found isotope pattern for m/z " + dataPoints[i].getMZ() + " size: "
-          + newPattern.getNumberOfDataPoints());
+      // logger.info("Found isotope pattern for m/z " + dataPoints[i].getMZ() + " size: "
+      // + newPattern.getNumberOfDataPoints());
 
       for (int j = 0; j < sortedDataPoints.length; j++) {
         if (bestFitPeaks.contains(sortedDataPoints[j]))
@@ -157,6 +168,10 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       // Update completion rate
       processedPeaks++;
     }
+
+    deisotopedDataPoints.sort((d1, d2) -> {
+      return Double.compare(d1.getMZ(), d2.getMZ());
+    });
 
     setResults(deisotopedDataPoints.toArray(new ProcessedDataPoint[0]));
     setStatus(TaskStatus.FINISHED);

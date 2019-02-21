@@ -133,6 +133,9 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * @return
    */
   public boolean resultTypeExists(DPPResult.ResultType type) {
+    if (results == null)
+      return false;
+    
     for (DPPResult<?> r : results)
       if (r.getResultType() == type)
         return true;
