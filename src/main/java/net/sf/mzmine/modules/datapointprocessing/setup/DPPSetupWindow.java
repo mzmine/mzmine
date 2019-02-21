@@ -51,7 +51,8 @@ public class DPPSetupWindow {
   public DPPSetupWindow() {
 
     frame = new JFrame("Data point processing method selection");
-    frame.setSize(800, 600);
+    frame.setSize(600, 400);
+    frame.setLocationRelativeTo(null);
     
     fxPanel = new JFXPanel();
 
