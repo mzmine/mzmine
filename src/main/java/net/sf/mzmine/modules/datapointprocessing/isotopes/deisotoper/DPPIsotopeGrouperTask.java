@@ -278,9 +278,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if (totalPeaks == 0)
+    if (getDataPoints().length == 0)
       return 0.0f;
-    return (double) processedPeaks / (double) totalPeaks;
+    return (double) processedPeaks / (double) getDataPoints().length;
   }
 
 }

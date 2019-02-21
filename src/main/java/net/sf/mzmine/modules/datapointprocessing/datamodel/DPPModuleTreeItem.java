@@ -21,8 +21,16 @@ package net.sf.mzmine.modules.datapointprocessing.datamodel;
 import javafx.scene.control.TreeItem;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
+import net.sf.mzmine.modules.datapointprocessing.setup.DPPSetupWindowController;
 import net.sf.mzmine.parameters.ParameterSet;
 
+/**
+ * Stores {@link DataPointProcessingModule}s and their parameters in a tree item. All MZmineModules implementing
+ * DataPointProcessingModule are automatically added in {@link DPPSetupWindowController}.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DPPModuleTreeItem extends TreeItem<String> {
 
   private String name;

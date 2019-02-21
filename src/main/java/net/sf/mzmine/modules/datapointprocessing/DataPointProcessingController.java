@@ -264,11 +264,13 @@ public class DataPointProcessingController {
     DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(plot);
     plot.addDataSet(new DPPResultsDataSet("Results", getResults()), Color.MAGENTA, false, labelGen);
 
+    plot.addDataSet(compressIsotopeDataSets(results), Color.GREEN, false, labelGen);
+    
     // make sure we dont have overlapping labels
     clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
 
     // now add detected isotope patterns
-    plot.addDataSet(compressIsotopeDataSets(results), Color.GREEN, false, labelGen);
+    
 //    for(ProcessedDataPoint result : results)
 //      if(result.resultTypeExists(ResultType.ISOTOPEPATTERN))
 //        plot.addDataSet(new IsotopesDataSet((IsotopePattern)result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()), Color.YELLOW, false);

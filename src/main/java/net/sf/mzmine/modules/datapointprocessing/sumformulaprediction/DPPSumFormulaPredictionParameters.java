@@ -26,6 +26,7 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.Isotop
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
@@ -33,8 +34,11 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 /**
  */
 public class DPPSumFormulaPredictionParameters extends SimpleParameterSet {
+
   public static final IntegerParameter charge = new IntegerParameter("Charge", "Charge");
 
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level", "Minimum intensity of a data point to predict a sum formula for.");
+  
   public static final ComboParameter<IonizationType> ionization =
       new ComboParameter<IonizationType>("Ionization type", "Ionization type",
           IonizationType.values());
@@ -59,7 +63,7 @@ public class DPPSumFormulaPredictionParameters extends SimpleParameterSet {
       new IsotopePatternScoreParameters());
 
   public DPPSumFormulaPredictionParameters() {
-    super(new Parameter[] {charge, ionization, mzTolerance, elements, elementalRatios,
+    super(new Parameter[] {charge, noiseLevel, ionization, mzTolerance, elements, elementalRatios,
         rdbeRestrictions, isotopeFilter});
   }
 }

@@ -27,6 +27,12 @@ import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
 import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingQueue;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 
+/**
+ * Combines the processing queues information and the corresponding plot.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class PlotModuleCombo {
   SpectraPlot plot;
   DataPointProcessingQueue steps;

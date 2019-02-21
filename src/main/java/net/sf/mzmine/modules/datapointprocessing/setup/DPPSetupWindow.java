@@ -33,6 +33,13 @@ import net.sf.mzmine.desktop.impl.MainMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 
+/**
+ * 
+ * This class creates the JFrame for the window to set up the data point processing methods.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DPPSetupWindow {
 
   private static Logger logger = Logger.getLogger(DPPSetupWindow.class.getName());
@@ -53,7 +60,7 @@ public class DPPSetupWindow {
     frame = new JFrame("Data point processing method selection");
     frame.setSize(600, 400);
     frame.setLocationRelativeTo(null);
-    
+
     fxPanel = new JFXPanel();
 
     loader = new FXMLLoader(getClass().getResource("DPPSetupWindow.fxml"));
@@ -69,7 +76,7 @@ public class DPPSetupWindow {
     fxPanel.setScene(scene);
 
     frame.add(fxPanel);
-    
+
     fxPanel.setVisible(true);
 
     // add menu item manually, else we'd need a module just to add this item which would be
@@ -78,7 +85,7 @@ public class DPPSetupWindow {
 
     logger.finest("DPPSetupWindow intialized.");
   }
-  
+
   public void show() {
     fxPanel.setVisible(true);
     frame.setVisible(true);

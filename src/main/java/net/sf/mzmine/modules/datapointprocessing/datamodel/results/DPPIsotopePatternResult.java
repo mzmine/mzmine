@@ -19,7 +19,12 @@
 package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
 
 import net.sf.mzmine.datamodel.IsotopePattern;
-
+/**
+ * Used to store a detected isotope pattern in a {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DPPIsotopePatternResult extends DPPResult<IsotopePattern>{
 
   public DPPIsotopePatternResult(IsotopePattern value) {

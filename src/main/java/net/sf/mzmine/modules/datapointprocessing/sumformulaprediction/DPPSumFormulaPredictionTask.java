@@ -49,6 +49,12 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 import net.sf.mzmine.util.FormulaUtils;
 
+/**
+ * Predicts sum formulas just like net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   private Logger logger = Logger.getLogger(DPPSumFormulaPredictionTask.class.getName());
@@ -59,6 +65,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   private int foundFormulas = 0;
   private IonizationType ionType;
   private int charge;
+  private double noiseLevel;
   private boolean checkRatios;
   private boolean checkRDBE;
   private ParameterSet ratiosParameters;
@@ -76,6 +83,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     super(dataPoints, targetPlot, parameterSet, controller, listener);
 
     charge = parameterSet.getParameter(DPPSumFormulaPredictionParameters.charge).getValue();
+    noiseLevel = parameterSet.getParameter(DPPSumFormulaPredictionParameters.noiseLevel).getValue();
     ionType = parameterSet.getParameter(DPPSumFormulaPredictionParameters.ionization).getValue();
 
     checkRDBE =
@@ -115,8 +123,6 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public void run() {
-    logger.info(ratiosParameters.toString());
-    logger.info(elementCounts.toString());
     
     setStatus(TaskStatus.PROCESSING);
 
@@ -134,7 +140,10 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
       if (isCanceled())
         return;
-
+      
+      if(dataPoints[i].getIntensity() < noiseLevel)
+        continue;
+      
       massRange =
           mzTolerance.getToleranceRange((dataPoints[i].getMZ() - ionType.getAddedMass()) / charge);
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),

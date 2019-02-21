@@ -20,10 +20,17 @@ package net.sf.mzmine.modules.datapointprocessing.datamodel;
 
 import javafx.scene.control.TreeItem;
 
+/**
+ * Stores module categories in a tree item. Used to organize the tree view automatically. Every
+ * {@link ModuleSubCategory} is automatically added in {@link DPPSetupWindowController}.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DPPModuleCategoryTreeItem extends TreeItem<String> {
   private ModuleSubCategory category;
-  
-  public DPPModuleCategoryTreeItem(ModuleSubCategory category){
+
+  public DPPModuleCategoryTreeItem(ModuleSubCategory category) {
     super(category.getName());
     setCategory(category);
   }

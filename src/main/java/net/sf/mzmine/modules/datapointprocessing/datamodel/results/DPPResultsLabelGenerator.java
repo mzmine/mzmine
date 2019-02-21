@@ -107,16 +107,12 @@ public class DPPResultsLabelGenerator extends SpectraItemLabelGenerator {
     if (dp.resultTypeExists(ResultType.SUMFORMULA)) {
       for (DPPResult<?> r : dp.getAllResultsByType(ResultType.SUMFORMULA)) {
         if (r instanceof DPPSumFormulaResult) {
-          formulas += r.generateLabel() + "\n";
+          formulas += r.generateLabel() + " ";
         }
       }
     }
     
-    if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-      label += "(pat)";
-    }
-    
-    label = mz;
+    label = mz + " ";
 
     if (!formulas.equals(""))
       label += "\n" + formulas;

@@ -18,10 +18,15 @@
 
 package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
 
+/**
+ * This interface is used to store data point processing results in a {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}
+ * When adding a new result type, also add it to the ResultType enum.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public abstract class DPPResult<T> {
 
-//  public static final Class  RESULT_ADDUCT = ;
-  
   public enum ResultType {SUMFORMULA, ISOTOPEPATTERN, ADDUCT, FRAGMENT};
   
   final T value;
