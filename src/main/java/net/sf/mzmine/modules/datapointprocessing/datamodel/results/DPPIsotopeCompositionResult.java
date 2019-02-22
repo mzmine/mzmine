@@ -18,30 +18,38 @@
 
 package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * This interface is used to store data point processing results in a {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}
- * When adding a new result type, also add it to the ResultType enum.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public abstract class DPPResult<T> {
+public class DPPIsotopeCompositionResult extends DPPResult<List<String>>{
 
-  public enum ResultType {SUMFORMULA, ISOTOPEPATTERN, ADDUCT, FRAGMENT, ISOTOPECOMPOSITION};
-  
-  final T value;
-  
-  public DPPResult (T value) {
-    this.value = value;
+  public DPPIsotopeCompositionResult(List<String> value) {
+    super(value);
   }
   
-  public T getValue() {
-    return value;
+  public DPPIsotopeCompositionResult(String value) {
+    super(new ArrayList<String>());
+    getValue().add(value);
   }
 
-//  public String toString();
-  
-  public abstract String generateLabel();
+  @Override
+  public String generateLabel() {
+    String label = "";
+    for(String s : value)
+      label += s + ", ";
+    label = label.substring(0, label.length() - 2);
+    return label;
+  }
 
-  public abstract ResultType getResultType();
+  @Override
+  public ResultType getResultType() {
+    return ResultType.ISOTOPECOMPOSITION;
+  }
+
+  
 }
