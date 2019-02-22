@@ -19,16 +19,50 @@
 package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
 
 import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
+
 /**
- * Used to store a detected isotope pattern in a {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}.
+ * Used to store a detected isotope pattern in a
+ * {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class DPPIsotopePatternResult extends DPPResult<IsotopePattern>{
+public class DPPIsotopePatternResult extends DPPResult<IsotopePattern> {
+
+  private ProcessedDataPoint[] linkedDataPoints;
 
   public DPPIsotopePatternResult(IsotopePattern value) {
     super(value);
+  }
+
+  public DPPIsotopePatternResult(IsotopePattern value, ProcessedDataPoint[] linkedDataPoints) {
+    super(value);
+
+    if (value.getNumberOfDataPoints() == linkedDataPoints.length) {
+      this.linkedDataPoints = linkedDataPoints;
+    }
+  }
+
+  public ProcessedDataPoint[] getLinkedDataPoints() {
+    return linkedDataPoints;
+  }
+
+  public void setLinkedDataPoints(ProcessedDataPoint[] linkedDataPoints) {
+    this.linkedDataPoints = linkedDataPoints;
+  }
+
+  public ProcessedDataPoint getLinkedDataPoint(int i) {
+    if (linkedDataPoints != null)
+      if (i < linkedDataPoints.length)
+        return linkedDataPoints[i];
+    return null;
+  }
+
+  public void linkDataPoint(int i, ProcessedDataPoint dp) {
+    if (linkedDataPoints != null)
+      if (i < linkedDataPoints.length)
+        linkedDataPoints[i] = dp;
   }
 
   @Override

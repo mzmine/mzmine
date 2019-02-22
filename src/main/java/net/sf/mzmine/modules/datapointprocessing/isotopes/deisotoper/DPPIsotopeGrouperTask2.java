@@ -74,24 +74,6 @@ public class DPPIsotopeGrouperTask2 extends DataPointProcessingTask {
 
   }
 
-
-  /*
-   * private void checkOverlappingIsotopes(AllElements elements, double maxRange) {
-   * 
-   * for (AllIsotopes isotopes : elements) {
-   * 
-   * for (int x = 0; x < isotopes.size(); x++) {
-   * 
-   * for (AllIsotopes i : elements) { for (int y = 0; y < i.size(); y++) {
-   * 
-   * if (Math.abs(isotopes.getIsotope(x).getExactMass() - i.getIsotope(y).getExactMass()) <
-   * mergeWidth) { logger.info("overlapping: " + isotopes.getIsotope(x).getSymbol()); }
-   * 
-   * } } } } }
-   */
-
-
-
   public static IsotopePattern checkOverlappingIsotopes(IsotopePattern pattern, IIsotope[] isotopes,
       double mergeWidth, double minAbundance) {
     DataPoint[] dp = pattern.getDataPoints();
@@ -156,8 +138,57 @@ public class DPPIsotopeGrouperTask2 extends DataPointProcessingTask {
     return new SimpleIsotopePattern(newPeaks.toArray(new DataPoint[0]),
         IsotopePatternStatus.PREDICTED, "");
   }
+  
+  public static IsotopePattern getMassDifferences(String elements, double mergeWidth,
+      double minAbundance) {
+    SilentChemObjectBuilder builder =
+        (SilentChemObjectBuilder) SilentChemObjectBuilder.getInstance();
+    IMolecularFormula form =
+        MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(elements, builder);
+    Isotopes ifac;
+
+    try {
+      ifac = Isotopes.getInstance();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return null;
+    }
+    IsotopePattern massDifferences = new SimpleIsotopePattern(
+        new DataPoint[] {new SimpleDataPoint(0.0, 1.0)}, IsotopePatternStatus.PREDICTED, "");
+
+    for (IIsotope element : form.isotopes()) {
+      massDifferences = checkOverlappingIsotopes(massDifferences,
+          ifac.getIsotopes(element.getSymbol()), mergeWidth, minAbundance);
+    }
+    logger.info(dataPointsToString(massDifferences.getDataPoints()));
+    return massDifferences;
+  }
+
+  private static String dataPointsToString(DataPoint[] dp) {
+    String str = "";
+    for (DataPoint p : dp)
+      str += "(" + p.getMZ() + ", " + p.getIntensity() + "), ";
+    return str;
+  }
 
 
+
+  /*
+   * private void checkOverlappingIsotopes(AllElements elements, double maxRange) {
+   * 
+   * for (AllIsotopes isotopes : elements) {
+   * 
+   * for (int x = 0; x < isotopes.size(); x++) {
+   * 
+   * for (AllIsotopes i : elements) { for (int y = 0; y < i.size(); y++) {
+   * 
+   * if (Math.abs(isotopes.getIsotope(x).getExactMass() - i.getIsotope(y).getExactMass()) <
+   * mergeWidth) { logger.info("overlapping: " + isotopes.getIsotope(x).getSymbol()); }
+   * 
+   * } } } } }
+   */
+  
   // too much i think
   public IsotopePattern checkOverlappingIsotopes1(IsotopePattern pattern, IIsotope[] isotopes,
       double mergeWidth) {
@@ -226,39 +257,6 @@ public class DPPIsotopeGrouperTask2 extends DataPointProcessingTask {
     public AllIsotopes getElement(int i) {
       return get(i);
     }
-  }
-
-  public static IsotopePattern getMassDifferences(String elements, double mergeWidth,
-      double minAbundance) {
-    SilentChemObjectBuilder builder =
-        (SilentChemObjectBuilder) SilentChemObjectBuilder.getInstance();
-    IMolecularFormula form =
-        MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(elements, builder);
-    Isotopes ifac;
-
-    try {
-      ifac = Isotopes.getInstance();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-      return null;
-    }
-    IsotopePattern massDifferences = new SimpleIsotopePattern(
-        new DataPoint[] {new SimpleDataPoint(0.0, 1.0)}, IsotopePatternStatus.PREDICTED, "");
-
-    for (IIsotope element : form.isotopes()) {
-      massDifferences = checkOverlappingIsotopes(massDifferences,
-          ifac.getIsotopes(element.getSymbol()), mergeWidth, minAbundance);
-    }
-    logger.info(dataPointsToString(massDifferences.getDataPoints()));
-    return massDifferences;
-  }
-
-  private static String dataPointsToString(DataPoint[] dp) {
-    String str = "";
-    for (DataPoint p : dp)
-      str += "(" + p.getMZ() + ", " + p.getIntensity() + "), ";
-    return str;
   }
 
   @Override
