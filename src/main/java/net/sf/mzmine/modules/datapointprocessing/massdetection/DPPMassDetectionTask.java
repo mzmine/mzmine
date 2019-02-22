@@ -59,6 +59,8 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
+    if(getDataPoints().length == 0)
+      return 0;
     return currentIndex / getDataPoints().length;
   }
 

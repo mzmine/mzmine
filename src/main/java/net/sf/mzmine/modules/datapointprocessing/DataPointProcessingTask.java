@@ -31,7 +31,10 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
  * This abstract class defines the methods for processing an array of DataPoints. When implementing
  * this, make sure to use setStatus and setResults at the end of the task. The next task will not be
  * launched, if the status has not been set to FINISHED. The next Task will be launched using
- * ProcessedDataPoint[] results.
+ * ProcessedDataPoint[] results. DataPoints passed to this task will be stored in dataPoints[] (an
+ * array of DataPoint[]). If you method requires mass detection, it is recommended to chech if it's
+ * an instance of ProcessedDataPoint[]. ParameterSet, plot and controller are also stored during the
+ * constructor of this this abstract class.
  * 
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  * 
@@ -47,8 +50,19 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   // to the next DPPTask by it
   private ProcessedDataPoint[] results;
 
+  /**
+   * Stores the dataPoints, plot, parameters, controller, and TaskStatusListener passed to this task
+   * and sets the task status to WAITING. Make sure to call this super constructor in your extending class.
+   * 
+   * @param dataPoints
+   * @param plot
+   * @param parameterSet
+   * @param controller
+   * @param listener
+   */
   public DataPointProcessingTask(DataPoint[] dataPoints, SpectraPlot plot,
-      ParameterSet parameterSet, DataPointProcessingController controller, TaskStatusListener listener) {
+      ParameterSet parameterSet, DataPointProcessingController controller,
+      TaskStatusListener listener) {
     setDataPoints(dataPoints);
     setTargetPlot(plot);
     setParameterSet(parameterSet);
@@ -93,11 +107,15 @@ public abstract class DataPointProcessingTask extends AbstractTask {
     this.results = dp;
   }
 
+  /**
+   * 
+   * @return The parameter set passed to this task.
+   */
   public ParameterSet getParameterSet() {
     return parameterSet;
   }
 
-  public void setParameterSet(ParameterSet parameterSet) {
+  private void setParameterSet(ParameterSet parameterSet) {
     this.parameterSet = parameterSet;
   }
 

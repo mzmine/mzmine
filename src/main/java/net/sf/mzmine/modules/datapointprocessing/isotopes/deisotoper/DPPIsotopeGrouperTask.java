@@ -58,7 +58,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private MZTolerance mzTolerance;
   private boolean monotonicShape;
   private int maximumCharge;
-  private String element;
+  private String element = "C";
   private boolean autoRemove;
 
   public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
@@ -70,7 +70,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     monotonicShape =
         parameterSet.getParameter(DPPIsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
-    element = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
+//    element = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
     autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
   }
 
@@ -78,11 +78,20 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public void run() {
+
+    if (getDataPoints() == null || getDataPoints().length == 0) {
+      logger.info("No data points were passed to " + this.getClass().getName()
+          + " Please check the parameters.");
+      setStatus(TaskStatus.CANCELED);
+      return;
+    }
+
     setStatus(TaskStatus.PROCESSING);
 
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
-          "The data points passed to Isotope Grouper were not an instance of processed data points. Make sure to run mass detection first.");
+          "The data points passed to Isotope Grouper were not an instance of processed data points."
+              + " Make sure to run mass detection first.");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -105,7 +114,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
     ProcessedDataPoint[] sortedDataPoints = dataPoints.clone();
     Arrays.sort(sortedDataPoints, (d1, d2) -> {
-      return -1*Double.compare(d1.getIntensity(), d2.getIntensity()); // *-1 to sort descending
+      return -1 * Double.compare(d1.getIntensity(), d2.getIntensity()); // *-1 to sort descending
     });
 
     List<ProcessedDataPoint> deisotopedDataPoints = new ArrayList<>();

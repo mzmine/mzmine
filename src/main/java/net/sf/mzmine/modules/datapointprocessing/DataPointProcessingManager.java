@@ -30,7 +30,8 @@ import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.C
 
 /**
  * There will be a single instance of this class, use getInst(). This class keeps track of every
- * DataPointProcessingController and manages their assignment to the TaskController.
+ * DataPointProcessingController and manages their assignment to the TaskController. Default
+ * settings are loaded as set in the preferences.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
@@ -38,7 +39,7 @@ import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.C
 public class DataPointProcessingManager {
 
   private static final DataPointProcessingManager inst = new DataPointProcessingManager();
-  private int MAX_RUNNING = 3;
+  private static final int MAX_RUNNING = 3;
   private static final String MODULE_NAME = "Data point processing manager";
 
   private static Logger logger = Logger.getLogger(DataPointProcessingManager.class.getName());
@@ -156,18 +157,18 @@ public class DataPointProcessingManager {
     if (!isEnabled())
       return;
 
-    if (running.size() >= MAX_RUNNING) {
-      // logger.info("Too much controllers running, cannot start the next one.");
-      return;
-    }
-    if (waiting.isEmpty()) {
-      // logger.info("No more waiting controllers, cannot start the next one.");
-      return;
-    }
-
     DataPointProcessingController next;
 
     synchronized (waiting) {
+      if (running.size() >= MAX_RUNNING) {
+        // logger.info("Too much controllers running, cannot start the next one.");
+        return;
+      }
+      if (waiting.isEmpty()) {
+        // logger.info("No more waiting controllers, cannot start the next one.");
+        return;
+      }
+
       next = waiting.get(0);
       removeWaitingController(next);
     }
@@ -300,7 +301,7 @@ public class DataPointProcessingManager {
    * 
    * @param list New processing list.
    */
-  public void setProcessingSteps(DataPointProcessingQueue list) {
+  public void setProcessingQueue(DataPointProcessingQueue list) {
     processingList = list;
   }
 

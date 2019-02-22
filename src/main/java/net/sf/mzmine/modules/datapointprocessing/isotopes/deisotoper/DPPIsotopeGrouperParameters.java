@@ -33,7 +33,7 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
 
   public static final String[] representativeIsotopeValues = {ChooseTopIntensity, ChooseLowestMZ};
   
-  public static final StringParameter element = new StringParameter("Element", "Element symbol of the element to deisotope for.");
+//  public static final StringParameter element = new StringParameter("Element", "Element symbol of the element to deisotope for.");
   
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
@@ -55,7 +55,7 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
       "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.");
   
   public DPPIsotopeGrouperParameters() {
-    super(new Parameter[] {element, mzTolerance, monotonicShape,
+    super(new Parameter[] {/*element,*/ mzTolerance, monotonicShape,
         maximumCharge, representativeIsotope, autoRemove});
   }
   

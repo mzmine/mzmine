@@ -31,7 +31,7 @@ public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
 
   @Override
   public String getName() {
-    return "Data point isotope grouper";
+    return "13C-Isotope grouper";
   }
 
   @Override
@@ -49,5 +49,4 @@ public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
       SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener) {
     return new DPPIsotopeGrouperTask(dataPoints, plot, parameterSet, controller, listener);
   }
-
 }

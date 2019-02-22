@@ -171,7 +171,8 @@ public class DataPointProcessingController {
   /**
    * This will execute the modules associated with the plot. It will start with the first one and
    * execute the following ones afterwards automatically. This method is called by the public method
-   * execute().
+   * execute(). The status listener in this method starts the next task recursively after the
+   * previous one has finished.
    * 
    * @param dp
    * @param module
@@ -254,7 +255,7 @@ public class DataPointProcessingController {
   }
 
   /**
-   * TODO
+   * Displays the results in the plot.
    * 
    * @param results
    * @param plot
@@ -264,21 +265,27 @@ public class DataPointProcessingController {
     DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(plot);
     plot.addDataSet(new DPPResultsDataSet("Results", getResults()), Color.MAGENTA, false, labelGen);
 
-    plot.addDataSet(compressIsotopeDataSets(results), Color.GREEN, false, labelGen);
-    
+    // add all detected isotope patterns as a single dataset
+    IsotopesDataSet isotopes = compressIsotopeDataSets(results);
+    if(isotopes != null)
+      plot.addDataSet(isotopes, Color.GREEN, false, labelGen);
+
     // make sure we dont have overlapping labels
     clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
 
     // now add detected isotope patterns
-    
-//    for(ProcessedDataPoint result : results)
-//      if(result.resultTypeExists(ResultType.ISOTOPEPATTERN))
-//        plot.addDataSet(new IsotopesDataSet((IsotopePattern)result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()), Color.YELLOW, false);
+
+    // for(ProcessedDataPoint result : results)
+    // if(result.resultTypeExists(ResultType.ISOTOPEPATTERN))
+    // plot.addDataSet(new
+    // IsotopesDataSet((IsotopePattern)result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
+    // Color.YELLOW, false);
   }
 
   /**
    * Executes the modules in the PlotModuleCombo to the plot with the given DataPoints. This will be
-   * called by the DataPointProcessingManager.
+   * called by the DataPointProcessingManager. This starts the first module, which recursively
+   * starts the following ones after finishing.
    */
   public void execute() {
     if (!isPlotModuleComboSet())
@@ -324,7 +331,7 @@ public class DataPointProcessingController {
         plot.getXYPlot().getRendererForDataset(dataset).setDefaultItemLabelGenerator(null);
     }
   }
-  
+
   /**
    * This method generates a single IsotopesDataSet from all detected isotope patterns in the
    * results.
@@ -341,14 +348,18 @@ public class DataPointProcessingController {
             .getValue());
       }
     }
-
+    if(list.isEmpty())
+      return null;
+    
     List<DataPoint> dpList = new ArrayList<>();
 
     for (IsotopePattern pattern : list) {
       for (DataPoint dp : pattern.getDataPoints())
         dpList.add(dp);
     }
-
+    if(dpList.isEmpty())
+      return null;
+    
     IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
         IsotopePatternStatus.DETECTED, "Isotope patterns");
     return new IsotopesDataSet(full);

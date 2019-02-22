@@ -50,7 +50,8 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
 import net.sf.mzmine.util.FormulaUtils;
 
 /**
- * Predicts sum formulas just like net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction
+ * Predicts sum formulas just like
+ * net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
@@ -118,15 +119,23 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
+    if(getDataPoints().length == 0)
+      return 0;
     return ((double) currentIndex / getDataPoints().length);
   }
 
   @Override
   public void run() {
-    
+
+    if (getDataPoints() == null || getDataPoints().length == 0) {
+      logger.info("No data points were passed to " + this.getClass().getName() + " Please check the parameters." );
+      setStatus(TaskStatus.CANCELED);
+      return;
+    }
+
     setStatus(TaskStatus.PROCESSING);
 
-    if (!(dataPoints instanceof ProcessedDataPoint[])) {
+    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       setStatus(TaskStatus.ERROR);
       logger.warning("The array of data points passed to " + this.getClass().getName()
           + " is not an instance of ProcessedDataPoint. Make sure to run mass detection first.");
@@ -140,10 +149,10 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
       if (isCanceled())
         return;
-      
-      if(dataPoints[i].getIntensity() < noiseLevel)
+
+      if (dataPoints[i].getIntensity() < noiseLevel)
         continue;
-      
+
       massRange =
           mzTolerance.getToleranceRange((dataPoints[i].getMZ() - ionType.getAddedMass()) / charge);
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
@@ -226,14 +235,15 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     // sort by score or ppm
     if (checkIsotopes && dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
       possibleFormulas.sort((Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
-        return -1*Double.compare(Math.abs(o1.score), Math.abs(o2.score)); // *-1 to sort descending
+        return -1 * Double.compare(Math.abs(o1.score), Math.abs(o2.score)); // *-1 to sort
+                                                                            // descending
       });
     } else {
       possibleFormulas.sort((Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
         return Double.compare(Math.abs(o1.ppm), Math.abs(o2.ppm));
       });
     }
-    
+
     return possibleFormulas;
   }
 
