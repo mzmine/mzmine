@@ -1,0 +1,68 @@
+<!--
+  ~ Copyright (C) 2019 Du-Lab Team <dulab.binf@gmail.com>
+  ~
+  ~ This program is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU General Public License
+  ~ as published by the Free Software Foundation; either version 2
+  ~ of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  -->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>ADAP Alignment</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+<body>
+
+<h1>ADAP Aligner</h1>
+
+<h2>Description</h2>
+
+<p>
+    This method aligns detected compounds in different samples through matching their mass fragmentation spectra and retention times.
+</p>
+
+<p>
+    First, all compounds within a retention time range are collected from all samples. Then, pair-wise scores between those compounds are calculated as follows:
+    <div align="center" style="margin: 10pt">
+    S(C<sub>1</sub>, C<sub>2</sub>) = w S<sub>time</sub> + (1 - w) S<sub>spec</sub>
+    </div>
+    where S<sub>time</sub> is the relative retention time difference between two compounds and S<sub>spec</sub> is the
+spectrum similarity between two compounds. Finally, a two-phase procedure is used to determine the best matching
+compound in each sample. For more details, see the paper
+    <br/><br/>
+    Jiang, W.; Qiu, Y.; Ni, Y.; Su, M.; Jia, W.; Du, X.: <b>An automated data analysis pipeline for GC-TOF-MS metabonomics studies.</b> <i>Journal of proteome research</i> 2010, 9 (11), 5974-81
+</p>
+
+<h2>Parameters</h2>
+
+<ul>
+    <li><b>Min confidence:</b> smallest fraction of samples where a compound should be detected. If the fraction of
+        samples where a compound is detected is larger then <b>Min confidence</b>, then that compound is included in the
+        list of aligned compounds. Otherwise, that compound is discarded. This parameter should be between 0 and 1.</li>
+
+    <li><b>Retention time range:</b> maximum allowed retention time gap between aligned compounds</li>
+
+    <li><b>Score tolerance:</b> the minimum matching score required for compounds to be included in the list of
+    aligned compounds. This parameter should be between 0 and 1</li>
+
+    <li><b> Score weight:</b> the weight w that is used in the scoring formula. If w = 0, then only the spectrum
+    similarity is used for scoring. If w = 1, then only the retention time proximity is used for scoring.</li>
+
+    <li><b>EIC score:</b> method used for calculating the retention time proximity. The <b>retention time difference (fast)</b> is preferred method.</li>
+</ul>
+
+</body>
+</html>
