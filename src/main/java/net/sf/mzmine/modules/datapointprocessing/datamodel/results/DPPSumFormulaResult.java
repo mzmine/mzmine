@@ -44,7 +44,10 @@ public class DPPSumFormulaResult extends DPPResult<String> {
 
   @Override
   public String generateLabel() {
-    return getValue() + " (Δ " + format.format(ppm) + " ppm, " + format.format(score) + " %)";
+    String strScore = ", -";
+    if(score != 0.0d)
+      strScore = ", " + format.format(score * 100.0) + " %";
+    return getValue() + " (Δ " + format.format(ppm) + " ppm" + strScore + ")";
   }
 
   public double getPpm() {

@@ -31,7 +31,7 @@ public class DPPMassDetectionModule implements DataPointProcessingModule {
 
   @Override
   public String getName() {
-    return "DataPoint mass detection";
+    return "Exact mass/Centroid mass detection";
   }
 
   @Override

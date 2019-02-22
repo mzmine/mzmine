@@ -99,7 +99,6 @@ public class DPPSetupWindowController {
     logger.finest(event.getSource().toString() + " clicked.");
 
     sendQueue();
-    DPPSetupWindow.getInstance().hide();
   }
 
   @FXML
@@ -383,11 +382,11 @@ public class DPPSetupWindowController {
 
     DataPointProcessingManager manager = DataPointProcessingManager.getInst();
     manager.clearProcessingSteps();
-    manager.setProcessingSteps(queue);
+    manager.setProcessingQueue(queue);
   }
 
   /**
-   * Creates a Collectiom of DPPModuleTreeItem from a queue. Can be used after loading a queue from
+   * Creates a collection of DPPModuleTreeItem from a queue. Can be used after loading a queue from
    * a file.
    * 
    * @param queue The queue.
