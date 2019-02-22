@@ -213,7 +213,7 @@ public class DPPIsotopeGrouperTask3 extends DataPointProcessingTask {
       }
     }
 
-  }
+  } 
 
   public class BufferElement {
     final double ppm;
