@@ -306,7 +306,8 @@ public class DataPointProcessingManager {
   }
 
   public boolean isEnabled() {
-    return enabled;
+    return MZmineCore.getConfiguration().getPreferences()
+        .getParameter(MZminePreferences.spectraProcessing).getValue();
   }
 
   public void setEnabled(boolean enabled) {
