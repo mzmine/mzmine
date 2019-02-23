@@ -266,22 +266,41 @@ public class DataPointProcessingController {
     plot.addDataSet(new DPPResultsDataSet("Results", getResults()), Color.MAGENTA, false, labelGen);
 
     // add all detected isotope patterns as a single dataset
-    IsotopesDataSet isotopes = compressIsotopeDataSets(results);
-    if(isotopes != null)
-      plot.addDataSet(isotopes, Color.GREEN, false, labelGen);
+    // IsotopesDataSet isotopes = compressIsotopeDataSets(results);
+    // if(isotopes != null)
+    // plot.addDataSet(isotopes, Color.GREEN, false, labelGen);
 
     // make sure we dont have overlapping labels
     clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
 
     // now add detected isotope patterns
 
-    // for(ProcessedDataPoint result : results)
-    // if(result.resultTypeExists(ResultType.ISOTOPEPATTERN))
-    // plot.addDataSet(new
-    // IsotopesDataSet((IsotopePattern)result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
-    // Color.YELLOW, false);
+    int i = 0;
+    for (ProcessedDataPoint result : results)
+      if (result.resultTypeExists(ResultType.ISOTOPEPATTERN))
+        i++;
+    if(i == 0) i = 1;
+    
+    int j = 0;
+    for (ProcessedDataPoint result : results)
+      if (result.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
+        plot.addDataSet(
+            new IsotopesDataSet(
+                (IsotopePattern) result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
+            getColor((double)j/(double)i), false);
+        j++;
+      }
   }
 
+  public Color getColor(double power)
+  {
+      double H = power; // Hue (note 0.4 = Green, see huge chart below)
+      double S = 0.9; // Saturation
+      double B = 0.9; // Brightness
+
+      return Color.getHSBColor((float)H, (float)S, (float)B);
+  }
+  
   /**
    * Executes the modules in the PlotModuleCombo to the plot with the given DataPoints. This will be
    * called by the DataPointProcessingManager. This starts the first module, which recursively
@@ -348,18 +367,18 @@ public class DataPointProcessingController {
             .getValue());
       }
     }
-    if(list.isEmpty())
+    if (list.isEmpty())
       return null;
-    
+
     List<DataPoint> dpList = new ArrayList<>();
 
     for (IsotopePattern pattern : list) {
       for (DataPoint dp : pattern.getDataPoints())
         dpList.add(dp);
     }
-    if(dpList.isEmpty())
+    if (dpList.isEmpty())
       return null;
-    
+
     IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
         IsotopePatternStatus.DETECTED, "Isotope patterns");
     return new IsotopesDataSet(full);
