@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.formula.IsotopePatternManipulator;
@@ -186,6 +188,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
                     .upperEndpoint())
                   break;
 
+//                logger.info("found overlapping peaks");
+                
                 double ppm = ppmDiff(patternDP.getMZ(), dp.getMZ() + isoMzDiff);
                 ProcessedDataPoint linkedDp = result.getLinkedDataPoint(l_pdp);
                 if (bestppm[isotopeindex] == null && linkedDp != null) {
@@ -199,9 +203,10 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
                 }
               } // end of pattern datapointarray loop
             } // end of isotope pattern results loop
+            
           }
 
-        }
+        } // end of isotopeindex loop
         // ok we finished looking for the isotope peaks, let's see what we found
 
         // check if results are good, we must have found a peak for every isotope of the current
@@ -230,8 +235,10 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
           IsotopePattern patternx = new SimpleIsotopePattern(bestdp, IsotopePatternStatus.DETECTED,
               pattern.getDescription()); // pattern.getDescription() is the element symbol
           dp.addResult(new DPPIsotopePatternResult(patternx, bestdp));
-          logger.info("Found isotope pattern of element " + patternx.getDescription()
-              + " at base m/z " + format.format(dp.getMZ()) + " best dp: " + dataPointsToString(bestdp) + " pattern dp: " + dataPointsToString(patternx.getDataPoints()));
+          // logger.info("Found isotope pattern of element " + patternx.getDescription()
+          // + " at base m/z " + format.format(dp.getMZ()) + " best dp: " +
+          // dataPointsToString(bestdp) + " pattern dp: " +
+          // dataPointsToString(patternx.getDataPoints()));
         }
 
         processedSteps++;
@@ -252,9 +259,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
         // ok, the data point does have an isotope pattern assigned to it
         List<DPPResult<?>> patternResults = dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-        
-        logger.info("m/z " + dp.getMZ() + " has " + patternResults.size() + " pattern results.");
-        
+
+        // logger.info("m/z " + dp.getMZ() + " has " + patternResults.size() + " pattern results.");
+
         // let's check if the peaks in the isotope pattern have isotope patterns assigned to them
         for (int k_pr = 0; k_pr < patternResults.size(); k_pr++) {
           // we get every isotope pattern, that has been assigned to dp
@@ -263,9 +270,10 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
           ProcessedDataPoint[] linkedDataPoints = patternResult.getLinkedDataPoints();
           IsotopePattern pattern = patternResult.getValue();
 
-          List<DataPoint> dpToAdd = new ArrayList<DataPoint>();
-          
-          logger.info("Pattern " + k_pr + " contains " + linkedDataPoints.length + " peaks at " + dataPointsToString(linkedDataPoints));
+          List<ProcessedDataPoint> dpToAdd = new ArrayList<>();
+
+          // logger.info("Pattern " + k_pr + " contains " + linkedDataPoints.length + " peaks at " +
+          // dataPointsToString(linkedDataPoints));
 
           // check the data points linked in the isotope pattern, if they contain isotope patterns
           // themselves, if yes, add them to our list
@@ -274,8 +282,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
             if (linked == dp)
               continue;
 
-            logger.info("Checking m/z " + linked.getMZ() + " for isotope patterns.");
-            
+            // logger.info("Checking m/z " + linked.getMZ() + " for isotope patterns.");
+
             // does the linked peak in the isotope pattern have an isotope pattern associated with
             // it?
             if (linked.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
@@ -286,15 +294,26 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
               for (int l_lpr = 0; l_lpr < linkedPatternResults.size(); l_lpr++) {
                 DPPIsotopePatternResult linkedPatternResult =
                     (DPPIsotopePatternResult) linkedPatternResults.get(l_lpr);
-                
-                logger.info("adding isotope pattern of m/z " + format.format(linked.getMZ()) + " ("
-                    + dataPointsToString(linkedPatternResult.getLinkedDataPoints()) + ")"
-                    + " to " + format.format(dp.getMZ()));
-                
+
+                // logger.info("adding isotope pattern of m/z " + format.format(linked.getMZ()) + "
+                // ("
+                // + dataPointsToString(linkedPatternResult.getLinkedDataPoints()) + ")"
+                // + " to " + format.format(dp.getMZ()));
+
                 // now add the linked isotope pattern's data points
                 dpToAdd.addAll(Arrays.asList(linkedPatternResult.getLinkedDataPoints()));
-                
+
                 // TODO: later on, think of something to keep track of the composition here
+                // now we update the isotope composition.
+                for (ProcessedDataPoint p : linkedPatternResult.getLinkedDataPoints()) {
+                  if(p == linked)
+                    continue;
+                  ((DPPIsotopeCompositionResult) p
+                      .getFirstResultByType(ResultType.ISOTOPECOMPOSITION)).getValue()
+                          .addAll(((DPPIsotopeCompositionResult) linked
+                              .getFirstResultByType(ResultType.ISOTOPECOMPOSITION)).getValue());
+                }
+
 
                 // since we merged the isotope patterns now, we remove it from the linked peak
                 linked.removeResult(linkedPatternResult);
@@ -304,22 +323,32 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
                 results.remove(linked);
               }
 
-            } else logger.info("No pattern at " + format.format(linked.getMZ()));
+            } // else logger.info("No pattern at " + format.format(linked.getMZ()));
             dpToAdd.add(linked);
           }
-          dpToAdd.addAll(Arrays.asList(pattern.getDataPoints()));
+          dpToAdd.addAll(Arrays.asList(patternResult.getLinkedDataPoints()));
+
+          // remove duplicates by adding to a hash set
+          Set<ProcessedDataPoint> set = new LinkedHashSet<>();
+          set.addAll(dpToAdd);
+          dpToAdd.clear();
+          dpToAdd.addAll(set);
+
           dpToAdd.sort((o1, o2) -> {
             return Double.compare(o1.getMZ(), o2.getMZ());
           });
-          
+
+
+
           dp.removeResult(patternResult);
           ProcessedDataPoint[] dpToAddArray = dpToAdd.toArray(new ProcessedDataPoint[0]);
           // can we just pass all previously linked peaks here?
           dp.addResult(new DPPIsotopePatternResult(
               new SimpleIsotopePattern(dpToAddArray, IsotopePatternStatus.DETECTED, ""),
               dpToAddArray));
-          
-          logger.info("Adding datapoints " + dataPointsToString(dpToAddArray) + " to " + format.format(dp.getMZ()));
+
+          // logger.info("Adding datapoints " + dataPointsToString(dpToAddArray) + " to " +
+          // format.format(dp.getMZ()));
         }
 
         // now we merged all sub results, but we might still have more than one isotope pattern in
@@ -332,17 +361,44 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
           pattern.addAll(Arrays.asList(newPatternResult.getLinkedDataPoints()));
           dp.removeResult(newPatternResult);
         }
+
+        Set<ProcessedDataPoint> set = new LinkedHashSet<>();
+        set.addAll(pattern);
+        pattern.clear();
+        pattern.addAll(set);
+        pattern.sort((o1, o2) -> {
+          return Double.compare(o1.getMZ(), o2.getMZ());
+        });
+
         ProcessedDataPoint[] patternArray = pattern.toArray(new ProcessedDataPoint[0]);
-        dp.addResult(new DPPIsotopePatternResult(new SimpleIsotopePattern(patternArray, IsotopePatternStatus.DETECTED, ""), patternArray
-            ));
+        dp.addResult(new DPPIsotopePatternResult(
+            new SimpleIsotopePattern(patternArray, IsotopePatternStatus.DETECTED, ""),
+            patternArray));
+//        logger.finest("FINAL: " + dp.getMZ() + " pattern: " + getResultIsoComp((DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN)));
         results.add(dp);
       }
 
     }
-
+    results.sort((o1, o2) -> {
+      return Double.compare(o1.getMZ(), o2.getMZ());
+    });
     setResults(results.toArray(new ProcessedDataPoint[0]));
     setStatus(TaskStatus.FINISHED);
 
+  }
+  
+  private String getResultIsoComp(DPPIsotopePatternResult result) {
+    String str = "";
+    for(ProcessedDataPoint dp : result.getLinkedDataPoints()) {
+      String c = "";
+      DPPIsotopeCompositionResult comps = (DPPIsotopeCompositionResult) dp.getFirstResultByType(ResultType.ISOTOPECOMPOSITION);
+      for(String comp : comps.getValue())
+        c += comp + ", ";
+      c = c.substring(0, c.length()-2);
+      str += dp.getMZ() + " (" + c + "), " ;
+    }
+    str = str.substring(0, str.length()-2);
+    return str;
   }
 
   public class BufferElement {

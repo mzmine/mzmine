@@ -165,6 +165,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
       ((ProcessedDataPoint) dataPoints[i]).addAllResults(results);
       currentIndex++;
+//      logger.info("Prediction result: " + dataPoints[i].getMZ() + " = " + results[0].generateLabel());
     }
 
     setResults((ProcessedDataPoint[]) dataPoints);

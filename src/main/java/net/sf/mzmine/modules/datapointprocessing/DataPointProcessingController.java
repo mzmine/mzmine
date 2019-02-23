@@ -275,7 +275,7 @@ public class DataPointProcessingController {
 
     // now add detected isotope patterns
 
-    int i = 0;
+    /*int i = 0;
     for (ProcessedDataPoint result : results)
       if (result.resultTypeExists(ResultType.ISOTOPEPATTERN))
         i++;
@@ -289,7 +289,7 @@ public class DataPointProcessingController {
                 (IsotopePattern) result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
             getColor((double)j/(double)i), false);
         j++;
-      }
+      }*/
   }
 
   public Color getColor(double power)
