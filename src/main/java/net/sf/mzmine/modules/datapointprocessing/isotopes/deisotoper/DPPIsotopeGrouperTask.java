@@ -231,7 +231,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
               pattern.getDescription()); // pattern.getDescription() is the element symbol
           dp.addResult(new DPPIsotopePatternResult(patternx, bestdp));
           logger.info("Found isotope pattern of element " + patternx.getDescription()
-              + " at base m/z " + dp.getMZ());
+              + " at base m/z " + format.format(dp.getMZ()) + " best dp: " + dataPointsToString(bestdp) + " pattern dp: " + dataPointsToString(patternx.getDataPoints()));
         }
 
         processedSteps++;
@@ -285,7 +285,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
               // go through every associated isotope pattern and add the data points to the list
               for (int l_lpr = 0; l_lpr < linkedPatternResults.size(); l_lpr++) {
                 DPPIsotopePatternResult linkedPatternResult =
-                    (DPPIsotopePatternResult) patternResults.get(l_lpr);
+                    (DPPIsotopePatternResult) linkedPatternResults.get(l_lpr);
                 
                 logger.info("adding isotope pattern of m/z " + format.format(linked.getMZ()) + " ("
                     + dataPointsToString(linkedPatternResult.getLinkedDataPoints()) + ")"
