@@ -26,10 +26,12 @@ import java.awt.GridLayout;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -50,6 +52,7 @@ import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.chartbasics.chartgroups.ChartGroup;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
@@ -59,6 +62,7 @@ import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.Pseud
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import net.sf.mzmine.util.DialogLoggerUtil;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
@@ -72,6 +76,7 @@ import net.sf.mzmine.util.components.GridBagPanel;
  */
 public class MSMSLibrarySubmissionWindow extends JFrame {
 
+  private Logger log = Logger.getLogger(this.getClass().getName());
   protected Map<String, JComponent> parametersAndComponents;
   protected LibrarySubmitParameters param = new LibrarySubmitParameters();
 
@@ -112,7 +117,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private final Color errorColor = Color.decode("#ff8080");
   private JLabel lblMassList;
   private JTextField txtMassListName;
-  private ScanSelectPanel[] panel;
+  private ScanSelectPanel[] pnScanSelect;
   private JLabel lblCompoundName;
   private JLabel lblMoleculeMass;
   private JLabel lblInstrument;
@@ -457,16 +462,48 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private void submitSpectra() {
     if (checkParameters()) {
       // check number of ions
-
-      // show accept dialog
-
+      int ions = Arrays.stream(pnScanSelect).mapToInt(pn -> pn.isValidAndSelected() ? 1 : 0).sum();
+      if (ions == 0) {
+        log.info("No MS/MS spectrum selected or valid");
+        DialogLoggerUtil.showMessageDialogForTime(this, "Error",
+            "No MS/MS spectrum selected or valid", 1500);
+      } else {
+        // show accept dialog
+        if (DialogLoggerUtil.showDialogYesNo(this, "Submission?",
+            ions + " MS/MS spectra were selected. Submit?")) {
+          // submit to GNPS
+          HashMap<LibrarySubmitIonParameters, DataPoint[]> map = new HashMap<>(ions);
+          for (ScanSelectPanel ion : pnScanSelect) {
+            if (ion.isValidAndSelected()) {
+              // create ion param
+              LibrarySubmitIonParameters ionParam = createIonParameters(param, ion);
+              DataPoint[] dps = ion.getFilteredDataPoints();
+              // submit and save locally
+              map.put(ionParam, dps);
+            }
+          }
+          // start task
+          LibrarySubmitTask task = new LibrarySubmitTask(map);
+          MZmineCore.getTaskController().addTask(task);
+        }
+      }
     }
+  }
+
+  private LibrarySubmitIonParameters createIonParameters(LibrarySubmitParameters param,
+      ScanSelectPanel ion) {
+    LibrarySubmitIonParameters ionParam = new LibrarySubmitIonParameters();
+    ionParam.getParameter(LibrarySubmitIonParameters.META_PARAM).setValue(param);
+    ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT).setValue(ion.getAdduct());
+    ionParam.getParameter(LibrarySubmitIonParameters.CHARGE).setValue(ion.getPrecursorCharge());
+    ionParam.getParameter(LibrarySubmitIonParameters.MZ).setValue(ion.getPrecursorMZ());
+    return ionParam;
   }
 
   private void updateSortModeOnAllSelectors() {
     ScanSortMode sort = (ScanSortMode) comboSortMode.getSelectedItem();
-    if (panel != null)
-      for (ScanSelectPanel pn : panel)
+    if (pnScanSelect != null)
+      for (ScanSelectPanel pn : pnScanSelect)
         pn.setSortMode(sort);
   }
 
@@ -475,8 +512,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
       int minSignals = Integer.parseInt(txtMinSignals.getText());
       double noiseLevel = Double.parseDouble(txtNoiseLevel.getText());
       String massListName = txtMassListName.getText();
-      if (panel != null)
-        for (ScanSelectPanel pn : panel)
+      if (pnScanSelect != null)
+        for (ScanSelectPanel pn : pnScanSelect)
           pn.setFilter(massListName, noiseLevel, minSignals);
     }
   }
@@ -517,8 +554,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   }
 
   private void setChartSize(Dimension dim) {
-    if (panel != null && dim != null)
-      for (ScanSelectPanel pn : panel)
+    if (pnScanSelect != null && dim != null)
+      for (ScanSelectPanel pn : pnScanSelect)
         pn.setChartSize(dim);
   }
 
@@ -576,7 +613,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
    */
   public void setData(PeakListRow[] rows) {
     this.rows = rows;
-    this.panel = new ScanSelectPanel[rows.length];
+    this.pnScanSelect = new ScanSelectPanel[rows.length];
     updateAllChartSelectors();
   }
 
@@ -598,7 +635,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
       for (int i = 0; i < rows.length; i++) {
         PeakListRow row = rows[i];
         ScanSelectPanel pn = new ScanSelectPanel(row, sort, noiseLevel, minSignals, massListName);
-        panel[i] = pn;
+        pnScanSelect[i] = pn;
         pn.addChartChangedListener(chart -> regroupCharts());
         pnCharts.add(pn);
 
@@ -616,8 +653,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
 
   private void regroupCharts() {
     group = new ChartGroup(showCrosshair, showCrosshair, true, false);
-    if (panel != null) {
-      for (ScanSelectPanel pn : panel) {
+    if (pnScanSelect != null) {
+      for (ScanSelectPanel pn : pnScanSelect) {
         EChartPanel chart = pn.getChart();
         if (chart != null)
           group.add(new ChartViewWrapper(chart));

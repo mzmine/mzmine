@@ -33,8 +33,10 @@ package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PasswordParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 /**
  * 
@@ -51,7 +53,7 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
    */
 
   public enum CompoundSource {
-    Lysate, Isolated, Commercial, Crude, Other;
+  Lysate, Isolated, Commercial, Crude, Other;
   }
 
   public enum Polarity {
@@ -63,15 +65,21 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final ComboParameter<Polarity> POLARITY =
       new ComboParameter<>("POLARITY", "", Polarity.values(), Polarity.POSITIVE);
 
+  // save to local file
+  public static final FileNameParameter LOCALFILE =
+      new FileNameParameter("Local file", "Local library file", "json");
+  // user and password
   public static final StringParameter USERNAME = new StringParameter("username", "", "", true);
   public static final PasswordParameter PASSWORD = new PasswordParameter("password", "", "", true);
+  // all general parameters
+  public static final StringParameter DESCRIPTION =
+      new StringParameter("description", "", "", false);
   public static final StringParameter COMPOUND_NAME =
       new StringParameter("COMPOUND_NAME", "", "", true);
   public static final StringParameter INSTRUMENT = new StringParameter("INSTRUMENT", "", "", true);
   public static final StringParameter ION_SOURCE = new StringParameter("IONSOURCE", "", "", true);
   public static final StringParameter PI =
       new StringParameter("PI", "Principle investigator", "", true);
-
 
   public static final StringParameter DATA_COLLECTOR =
       new StringParameter("DATACOLLECTOR", "", "", false);
@@ -81,19 +89,21 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final StringParameter CAS = new StringParameter("CASNUMBER", "", "", false);
   public static final StringParameter SMILES = new StringParameter("SMILES", "", "", false);
   public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
-  public static final StringParameter MOLECULE_MASS =
-      new StringParameter("MOLECULEMASS", "", "", false);
-  public static final StringParameter EXACT_MASS = new StringParameter("EXACTMASS", "", "", false);
+  public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS", "");
+  public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS", "");
 
 
   public LibrarySubmitParameters() {
     super(new Parameter[] {
+        // save to local file
+        LOCALFILE,
         // username password
         USERNAME, PASSWORD,
         // Always set
         COMPOUND_NAME, INSTRUMENT, ION_SOURCE, PI, ACQUISITION, POLARITY,
         // optional
-        DATA_COLLECTOR, PUBMED, INCHI, INCHI_AUX, SMILES, CAS, MOLECULE_MASS, EXACT_MASS,
+        DESCRIPTION, DATA_COLLECTOR, PUBMED, INCHI, INCHI_AUX, SMILES, CAS, MOLECULE_MASS,
+        EXACT_MASS,
         // newly introduced
         FORMULA});
   }

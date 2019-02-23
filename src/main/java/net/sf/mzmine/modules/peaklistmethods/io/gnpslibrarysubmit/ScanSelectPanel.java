@@ -60,6 +60,7 @@ public class ScanSelectPanel extends JPanel {
   private @Nullable String massListName;
   // noise level to cut off signals
   private double noiseLevel;
+  // minimum of 1
   private int minNumberOfSignals;
   private JLabel lbMassListError;
 
@@ -83,6 +84,11 @@ public class ScanSelectPanel extends JPanel {
   private JLabel lbTIC;
   private JLabel lbSignals;
   private Dimension chartSize = new Dimension(350, 320);
+  private boolean validSelection = false;
+  private JTextField txtCharge;
+  private JTextField txtPrecursorMZ;
+  private JLabel lblChargeMz;
+  private JButton btnFromScan;
 
   /**
    * Create the panel.
@@ -94,7 +100,7 @@ public class ScanSelectPanel extends JPanel {
     this.massListName = massListName;
     this.sort = sort;
     this.noiseLevel = noiseLevel;
-    this.minNumberOfSignals = minNumberOfSignals;
+    setMinNumberOfSignals(minNumberOfSignals);
     setLayout(new BorderLayout(0, 0));
 
     pnChart = new JPanel();
@@ -155,7 +161,7 @@ public class ScanSelectPanel extends JPanel {
 
     JPanel pnData = new JPanel();
     pnMenu.add(pnData, BorderLayout.CENTER);
-    pnData.setLayout(new MigLayout("", "[grow][][]", "[][][][]"));
+    pnData.setLayout(new MigLayout("", "[grow][][]", "[][][][][][][][]"));
 
     JLabel lblAdduct = new JLabel("Adduct:");
     pnData.add(lblAdduct, "cell 0 0 3 1");
@@ -166,17 +172,34 @@ public class ScanSelectPanel extends JPanel {
     pnData.add(txtAdduct, "cell 0 1 3 1,growx");
     txtAdduct.setColumns(10);
 
+    lblChargeMz = new JLabel("Charge; m/z");
+    pnData.add(lblChargeMz, "cell 0 2");
+
+    txtCharge = new JTextField();
+    txtCharge.setToolTipText("Charge");
+    txtCharge.setText("1");
+    pnData.add(txtCharge, "cell 0 3,growx,aligny top");
+    txtCharge.setColumns(4);
+
+    txtPrecursorMZ = new JTextField();
+    pnData.add(txtPrecursorMZ, "cell 0 4,growx,aligny top");
+    txtPrecursorMZ.setColumns(9);
+
+    btnFromScan = new JButton("From scan");
+    btnFromScan.addActionListener(e -> setMZandChargeFromScan());
+    pnData.add(btnFromScan, "cell 0 5,growx");
+
     lblTic = new JLabel("TIC=");
-    pnData.add(lblTic, "cell 0 2,alignx trailing");
+    pnData.add(lblTic, "cell 0 6,alignx trailing");
 
     lbTIC = new JLabel("0");
-    pnData.add(lbTIC, "cell 1 2");
+    pnData.add(lbTIC, "cell 1 6");
 
     lblSignals = new JLabel("signals: ");
-    pnData.add(lblSignals, "cell 0 3,alignx trailing");
+    pnData.add(lblSignals, "cell 0 7,alignx trailing");
 
     lbSignals = new JLabel("0");
-    pnData.add(lbSignals, "cell 1 3");
+    pnData.add(lbSignals, "cell 1 7");
 
     lbMassListError = new JLabel("ERROR with masslist selection: Wrong name or no masslist");
     lbMassListError.setFont(new Font("Tahoma", Font.BOLD, 13));
@@ -188,6 +211,55 @@ public class ScanSelectPanel extends JPanel {
     // create chart with current sort mode
     setSortMode(sort);
     createChart();
+    setMZandChargeFromScan();
+  }
+
+  /**
+   * 
+   */
+  public void setMZandChargeFromScan() {
+    if (scans != null && !scans.isEmpty()) {
+      Scan scan = scans.get(selectedScanI);
+      double mz = scan.getPrecursorMZ();
+      if (mz == 0)
+        mz = row.getAverageMZ();
+      int charge = scan.getPrecursorCharge();
+      if (charge == 0)
+        charge = row.getRowCharge();
+
+      // set as text
+      txtCharge.setText(String.valueOf(charge));
+      txtPrecursorMZ.setText(MZmineCore.getConfiguration().getMZFormat().format(mz));
+    }
+  }
+
+  public PeakListRow getRow() {
+    return row;
+  }
+
+  public double getPrecursorMZ() {
+    try {
+      return Double.parseDouble(txtPrecursorMZ.getText());
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
+  public int getPrecursorCharge() {
+    try {
+      return Integer.parseInt(txtCharge.getText());
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
+  /**
+   * minimum is >=1
+   * 
+   * @param minNumberOfSignals
+   */
+  public void setMinNumberOfSignals(int minNumberOfSignals) {
+    this.minNumberOfSignals = Math.min(minNumberOfSignals, 1);
   }
 
   private void applySelectionState() {
@@ -295,6 +367,7 @@ public class ScanSelectPanel extends JPanel {
 
       analyzeScan(scan);
       applySelectionState();
+      setValidSelection(true);
     } else {
       // add error label
       JLabel error =
@@ -318,6 +391,10 @@ public class ScanSelectPanel extends JPanel {
     repaint();
   }
 
+  private void setValidSelection(boolean state) {
+    validSelection = state;
+  }
+
   private void analyzeScan(Scan scan) {
     MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
     if (massList != null) {
@@ -329,6 +406,17 @@ public class ScanSelectPanel extends JPanel {
       lbTIC.getParent().revalidate();
       lbTIC.getParent().repaint();
     }
+  }
+
+  @Nullable
+  public DataPoint[] getFilteredDataPoints() {
+    if (scans != null && !scans.isEmpty()) {
+      Scan scan = scans.get(selectedScanI);
+      MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+      if (massList != null)
+        return ScanUtils.getFiltered(massList.getDataPoints(), noiseLevel);
+    }
+    return null;
   }
 
   public JLabel getLbMassListError() {
@@ -363,5 +451,17 @@ public class ScanSelectPanel extends JPanel {
 
   public void setChartSize(Dimension dim) {
     chartSize = dim;
+  }
+
+  public boolean isValidAndSelected() {
+    return isSelected() && validSelection;
+  }
+
+  public JTextField getTxtCharge() {
+    return txtCharge;
+  }
+
+  public JTextField getTxtPrecursorMZ() {
+    return txtPrecursorMZ;
   }
 }

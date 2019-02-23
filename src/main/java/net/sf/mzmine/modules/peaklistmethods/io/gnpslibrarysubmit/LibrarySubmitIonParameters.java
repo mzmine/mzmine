@@ -45,7 +45,7 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 public class LibrarySubmitIonParameters extends SimpleParameterSet {
 
   public static final ParameterSetParameter META_PARAM =
-      new ParameterSetParameter("Metadata", "", new LibrarySubmitIonParameters());
+      new ParameterSetParameter("Metadata", "", new LibrarySubmitParameters());
   // set later
   public static final StringParameter ADDUCT = new StringParameter("ADDUCT", "", "", false);
   public static final DoubleParameter MZ = new DoubleParameter("MZ", "");
