@@ -49,6 +49,7 @@ public class LibrarySubmitIonParameters extends SimpleParameterSet {
   // set later
   public static final StringParameter ADDUCT = new StringParameter("ADDUCT", "", "", false);
   public static final DoubleParameter MZ = new DoubleParameter("MZ", "");
+  public static final DoubleParameter RT = new DoubleParameter("RT", "");
   public static final IntegerParameter CHARGE = new IntegerParameter("CHARGE", "", 1);
 
   public LibrarySubmitIonParameters() {
@@ -56,6 +57,6 @@ public class LibrarySubmitIonParameters extends SimpleParameterSet {
         // meta data param
         META_PARAM,
         // Ion specific
-        ADDUCT, MZ, CHARGE});
+        ADDUCT, MZ, RT, CHARGE});
   }
 }
