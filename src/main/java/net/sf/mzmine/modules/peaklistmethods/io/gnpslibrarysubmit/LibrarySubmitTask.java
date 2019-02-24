@@ -29,17 +29,35 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import com.google.common.base.Charsets;
+import com.google.common.io.CharSink;
+import com.google.common.io.FileWriteMode;
+import com.google.common.io.Files;
+import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.files.FileAndPathUtil;
 
 /**
  * Exports all files needed for GNPS
@@ -48,12 +66,37 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
  *
  */
 public class LibrarySubmitTask extends AbstractTask {
+  //
+  private final String s = "http://dorresteinappshub.ucsd.edu:5050/";
+
   private Logger log = Logger.getLogger(this.getClass().getName());
   private Map<LibrarySubmitIonParameters, DataPoint[]> map;
   private int done = 0;
+  private final String PASS;
+  private final String USER;
+  private final boolean saveLocal;
+  private final boolean submitGNPS;
+  private final File file;
+
 
   LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
     this.map = map;
+    // get file, user and pass
+    Entry<LibrarySubmitIonParameters, DataPoint[]> e = map.entrySet().iterator().next();
+    LibrarySubmitParameters meta = (LibrarySubmitParameters) e.getKey()
+        .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
+
+    PASS = meta.getParameter(LibrarySubmitParameters.PASSWORD).getValue();
+    USER = meta.getParameter(LibrarySubmitParameters.USERNAME).getValue();
+    submitGNPS = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
+    saveLocal = meta.getParameter(LibrarySubmitParameters.LOCALFILE).getValue();
+    if (saveLocal) {
+      File tmpfile =
+          meta.getParameter(LibrarySubmitParameters.LOCALFILE).getEmbeddedParameter().getValue();
+      file = FileAndPathUtil.getRealFilePath(tmpfile, "json");
+    } else {
+      file = null;
+    }
   }
 
   @Override
@@ -71,11 +114,89 @@ public class LibrarySubmitTask extends AbstractTask {
 
       String json = generateJSON(param, dps);
       log.info(json);
+      if (saveLocal && file != null)
+        writeToLocalFile(file, json);
+
+      if (submitGNPS)
+        submitGNPS(json);
+
+      done++;
     }
 
     setStatus(TaskStatus.FINISHED);
   }
 
+
+  private void submitGNPS(String json) {
+    try {
+      CloseableHttpClient httpclient = HttpClients.createDefault();
+      try {
+        MultipartEntity entity = new MultipartEntity();
+
+        // ######################################################
+        // NEEDED
+        // user pass and json entry
+        entity.addPart("username", new StringBody(USER));
+        entity.addPart("password", new StringBody(PASS));
+        entity.addPart("spectrum", new StringBody(json));
+
+        HttpPost httppost =
+            new HttpPost("http://dorresteinappshub.ucsd.edu:5050/depostsinglespectrum");
+        httppost.setEntity(entity);
+
+        log.info("Submitting GNPS library entry " + httppost.getRequestLine());
+        CloseableHttpResponse response = httpclient.execute(httppost);
+        try {
+          log.info("GNPS submit entry response status: " + response.getStatusLine());
+          HttpEntity resEntity = response.getEntity();
+          if (resEntity != null) {
+            log.info("GNPS submit entry response content length: " + resEntity.getContentLength());
+
+            String body = IOUtils.toString(resEntity.getContent());
+            log.log(Level.WARNING, body);
+            EntityUtils.consume(resEntity);
+          }
+        } finally {
+          response.close();
+        }
+      } finally {
+        httpclient.close();
+      }
+    } catch (IOException e) {
+      log.log(Level.SEVERE, "Error while submitting GNPS job", e);
+      throw new MSDKRuntimeException(e);
+    }
+  }
+
+  /**
+   * Append json to file
+   * 
+   * @param file
+   * @param json
+   */
+  private void writeToLocalFile(File file, String json) {
+    try {
+      if (!file.getParentFile().exists())
+        file.getParentFile().mkdirs();
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
+    }
+
+    try {
+      CharSink chs = Files.asCharSink(file, Charsets.UTF_8, FileWriteMode.APPEND);
+      chs.write(json + "\n");
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
+    }
+  }
+
+  /**
+   * Whole JSON entry
+   * 
+   * @param param
+   * @param dps
+   * @return
+   */
   private String generateJSON(LibrarySubmitIonParameters param, DataPoint[] dps) {
     LibrarySubmitParameters meta = (LibrarySubmitParameters) param
         .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
@@ -91,7 +212,8 @@ public class LibrarySubmitTask extends AbstractTask {
     // add meta data
     for (Parameter<?> p : meta.getParameters()) {
       if (!p.getName().equals("username") && !p.getName().equals("password")
-          && !p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())) {
+          && !p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())
+          && !p.getName().equals(LibrarySubmitParameters.SUBMIT_GNPS.getName())) {
         String key = p.getName();
         Object value = p.getValue();
         if (value instanceof Double)
@@ -106,6 +228,12 @@ public class LibrarySubmitTask extends AbstractTask {
     return Json.createObjectBuilder().add("spectrum", json.build()).build().toString();
   }
 
+  /**
+   * JSON of data points array
+   * 
+   * @param dps
+   * @return
+   */
   private JsonArray genJSONData(DataPoint[] dps) {
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();

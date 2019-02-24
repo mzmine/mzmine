@@ -497,7 +497,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT).setValue(ion.getAdduct());
     ionParam.getParameter(LibrarySubmitIonParameters.CHARGE).setValue(ion.getPrecursorCharge());
     ionParam.getParameter(LibrarySubmitIonParameters.MZ).setValue(ion.getPrecursorMZ());
-    return ionParam;
+    return (LibrarySubmitIonParameters) ionParam.cloneParameterSet();
   }
 
   private void updateSortModeOnAllSelectors() {

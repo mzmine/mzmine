@@ -32,8 +32,10 @@ package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.PasswordParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -66,9 +68,11 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
       new ComboParameter<>("POLARITY", "", Polarity.values(), Polarity.POSITIVE);
 
   // save to local file
-  public static final FileNameParameter LOCALFILE =
-      new FileNameParameter("Local file", "Local library file", "json");
+  public static final OptionalParameter<FileNameParameter> LOCALFILE = new OptionalParameter<>(
+      new FileNameParameter("Local file", "Local library file", "json"), true);
   // user and password
+  public static final BooleanParameter SUBMIT_GNPS =
+      new BooleanParameter("Submit to GNPS", "Submit new entry to GNPS library", true);
   public static final StringParameter USERNAME = new StringParameter("username", "", "", true);
   public static final PasswordParameter PASSWORD = new PasswordParameter("password", "", "", true);
   // all general parameters
@@ -97,6 +101,8 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
     super(new Parameter[] {
         // save to local file
         LOCALFILE,
+        // submit to online library
+        SUBMIT_GNPS,
         // username password
         USERNAME, PASSWORD,
         // Always set
