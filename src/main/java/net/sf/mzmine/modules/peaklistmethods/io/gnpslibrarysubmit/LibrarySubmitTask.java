@@ -112,14 +112,18 @@ public class LibrarySubmitTask extends AbstractTask {
       LibrarySubmitIonParameters param = e.getKey();
       DataPoint[] dps = e.getValue();
 
-      String json = generateJSON(param, dps);
-      log.info(json);
-      if (saveLocal && file != null)
-        writeToLocalFile(file, json);
+      // final check
+      // at least 2 data points
+      if (dps != null && dps.length > 2) {
 
-      if (submitGNPS)
-        submitGNPS(json);
+        String json = generateJSON(param, dps);
+        log.info(json);
+        if (saveLocal && file != null)
+          writeToLocalFile(file, json);
 
+        if (submitGNPS)
+          submitGNPS(json);
+      }
       done++;
     }
 
