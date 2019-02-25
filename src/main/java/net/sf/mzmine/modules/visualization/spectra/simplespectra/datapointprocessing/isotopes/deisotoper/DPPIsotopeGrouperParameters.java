@@ -54,9 +54,12 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
   public static final BooleanParameter autoRemove = new BooleanParameter("Remove non-isotopes",
       "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.");
   
+  public static final BooleanParameter displayResults = new BooleanParameter("Display results",
+      "Check if you want to display the deisotoping results in the plot. Displaying too much datasets might decrease clarity.", false);
+  
   public DPPIsotopeGrouperParameters() {
     super(new Parameter[] {/*element,*/ mzTolerance, monotonicShape,
-        maximumCharge, representativeIsotope, autoRemove});
+        maximumCharge, representativeIsotope, autoRemove, displayResults});
   }
   
 }

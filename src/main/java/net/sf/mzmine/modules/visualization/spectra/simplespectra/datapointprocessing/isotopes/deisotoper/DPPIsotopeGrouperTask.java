@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +35,8 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -59,6 +62,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private int maximumCharge;
   private String element = "C";
   private boolean autoRemove;
+  private boolean displayResults;
 
   public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
@@ -71,6 +75,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     maximumCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
 //    element = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
     autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
+    displayResults =
+        parameterSet.getParameter(DPPIsotopeGrouperParameters.displayResults).getValue();
   }
 
 
@@ -291,4 +297,43 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     return (double) processedPeaks / (double) getDataPoints().length;
   }
 
+  @Override
+  public void displayResults() {
+    if(displayResults || getController().isLastTaskRunning()) {
+      getTargetPlot().addDataSet(compressIsotopeDataSets(getResults()), Color.GREEN, false);
+    }
+  }
+
+  /**
+   * This method generates a single IsotopesDataSet from all detected isotope patterns in the
+   * results.
+   * 
+   * @param dataPoints
+   * @return
+   */
+  private IsotopesDataSet compressIsotopeDataSets(ProcessedDataPoint[] dataPoints) {
+    List<IsotopePattern> list = new ArrayList<>();
+
+    for (ProcessedDataPoint dp : dataPoints) {
+      if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
+        list.add(((DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN))
+            .getValue());
+      }
+    }
+    if (list.isEmpty())
+      return null;
+
+    List<DataPoint> dpList = new ArrayList<>();
+
+    for (IsotopePattern pattern : list) {
+      for (DataPoint dp : pattern.getDataPoints())
+        dpList.add(dp);
+    }
+    if (dpList.isEmpty())
+      return null;
+
+    IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
+        IsotopePatternStatus.DETECTED, "Isotope patterns");
+    return new IsotopesDataSet(full);
+  }
 }

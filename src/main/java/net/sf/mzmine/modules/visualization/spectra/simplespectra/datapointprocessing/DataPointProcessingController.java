@@ -132,11 +132,11 @@ public class DataPointProcessingController {
   private void setCurrentTask(DataPointProcessingTask currentTask) {
     this.currentTask = currentTask;
   }
-  
+
   private MZmineProcessingStep<DataPointProcessingModule> getCurrentStep() {
     return this.currentStep;
   }
-  
+
   private void setCurrentStep(MZmineProcessingStep<DataPointProcessingModule> step) {
     this.currentStep = step;
   }
@@ -156,10 +156,10 @@ public class DataPointProcessingController {
    */
   public void cancelTasks() {
     setForcedStatus(ForcedControllerStatus.CANCEL);
-    if(getCurrentTask() != null)
+    if (getCurrentTask() != null)
       getCurrentTask().setStatus(TaskStatus.CANCELED);
   }
-  
+
   /**
    * This will execute the modules associated with the plot. It will start with the first one and
    * execute the following ones afterwards automatically. This method is called by the public method
@@ -199,29 +199,31 @@ public class DataPointProcessingController {
                 logger.warning("This should have been a DataPointProcessingTask.");
                 return;
               }
-//              logger.finest("Task status changed to " + newStatus.toString());
+              // logger.finest("Task status changed to " + newStatus.toString());
               switch (newStatus) {
                 case FINISHED:
                   if (queue.hasNextStep(step)) {
                     if (DataPointProcessingManager.getInst()
                         .isRunning(((DataPointProcessingTask) task).getController())) {
 
-                      MZmineProcessingStep<DataPointProcessingModule> next = queue.getNextStep(step);
+                      MZmineProcessingStep<DataPointProcessingModule> next =
+                          queue.getNextStep(step);
 
                       // pass results to next task and start recursively
                       ProcessedDataPoint[] result = ((DataPointProcessingTask) task).getResults();
+                      ((DataPointProcessingTask) task).displayResults();
+                      
                       execute(result, next, plot);
                     } else {
                       logger.warning(
-                          "This controller was already removed from the running list, although it had not finished processing. Exiting");
+                          "This controller was already removed from the running list, although it "
+                          + "had not finished processing. Exiting");
                       break;
                     }
                   } else {
                     setResults(((DataPointProcessingTask) task).getResults());
+                    ((DataPointProcessingTask) task).displayResults();
                     setStatus(ControllerStatus.FINISHED);
-
-                    displayResults(getResults(), plot);
-
                   }
                   break;
                 case PROCESSING:
@@ -240,7 +242,7 @@ public class DataPointProcessingController {
             }
           });
 
-      
+
       logger.finest("Start processing of " + t.getClass().getName());
       MZmineCore.getTaskController().addTask(t);
       setCurrentTask((DataPointProcessingTask) t); // maybe we need this some time
@@ -248,33 +250,6 @@ public class DataPointProcessingController {
     }
   }
 
-  /**
-   * Displays the results in the plot.
-   * 
-   * @param results
-   * @param plot
-   */
-  private void displayResults(ProcessedDataPoint[] results, SpectraPlot plot) {
-    // add full data set
-    DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(plot);
-    plot.addDataSet(new DPPResultsDataSet("Results", getResults()), Color.MAGENTA, false, labelGen);
-
-    // add all detected isotope patterns as a single dataset
-    IsotopesDataSet isotopes = compressIsotopeDataSets(results);
-    if(isotopes != null)
-      plot.addDataSet(isotopes, Color.GREEN, false, labelGen);
-
-    // make sure we dont have overlapping labels
-    clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
-
-    // now add detected isotope patterns
-
-    // for(ProcessedDataPoint result : results)
-    // if(result.resultTypeExists(ResultType.ISOTOPEPATTERN))
-    // plot.addDataSet(new
-    // IsotopesDataSet((IsotopePattern)result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
-    // Color.YELLOW, false);
-  }
 
   /**
    * Executes the modules in the PlotModuleCombo to the plot with the given DataPoints. This will be
@@ -314,59 +289,15 @@ public class DataPointProcessingController {
   }
 
   /**
-   * Removes all label generators of datasets that are not of the given type.
    * 
-   * @param plot Plot to apply this method to.
-   * @param ignore Class object of the instances to ignore.
+   * @return True if the current task is the last one, false otherwise.
    */
-  public void clearOtherLabelGenerators(SpectraPlot plot, Class<? extends XYDataset> ignore) {
-    for (int i = 0; i < plot.getXYPlot().getDatasetCount(); i++) {
-      XYDataset dataset = plot.getXYPlot().getDataset(i);
-      // check if object of dataset is an instance of ignore.class
-      if (!(ignore.isInstance(dataset)))
-        plot.getXYPlot().getRendererForDataset(dataset).setDefaultItemLabelGenerator(null);
-    }
-  }
-
-  /**
-   * This method generates a single IsotopesDataSet from all detected isotope patterns in the
-   * results.
-   * 
-   * @param dataPoints
-   * @return
-   */
-  private IsotopesDataSet compressIsotopeDataSets(ProcessedDataPoint[] dataPoints) {
-    List<IsotopePattern> list = new ArrayList<>();
-
-    for (ProcessedDataPoint dp : dataPoints) {
-      if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-        list.add(((DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN))
-            .getValue());
-      }
-    }
-    if(list.isEmpty())
-      return null;
-    
-    List<DataPoint> dpList = new ArrayList<>();
-
-    for (IsotopePattern pattern : list) {
-      for (DataPoint dp : pattern.getDataPoints())
-        dpList.add(dp);
-    }
-    if(dpList.isEmpty())
-      return null;
-    
-    IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
-        IsotopePatternStatus.DETECTED, "Isotope patterns");
-    return new IsotopesDataSet(full);
-  }
-  
   public boolean isLastTaskRunning() {
-    if(getQueue().indexOf(getCurrentStep()) == getQueue().size()-1)
+    if (getQueue().indexOf(getCurrentStep()) == getQueue().size() - 1)
       return true;
     return false;
   }
-  
+
   /**
    * 
    * @return The current ControllerStatus.

@@ -18,6 +18,8 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
+import java.util.List;
+import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
@@ -70,6 +72,8 @@ public abstract class DataPointProcessingTask extends AbstractTask {
     addTaskStatusListener(listener);
     setStatus(TaskStatus.WAITING);
   }
+  
+  public abstract void displayResults();
 
   public DataPoint[] getDataPoints() {
     return dataPoints;

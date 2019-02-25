@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection;
 
+import java.awt.Color;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
@@ -28,6 +29,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
@@ -38,6 +40,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   // private MZmineProcessingStep<MassDetector> pMassDetector;
   private MassDetector massDetector;
   double noiseLevel;
+  boolean displayResults;
 
 
   DPPMassDetectionTask(DataPoint[] dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet,
@@ -48,11 +51,12 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
         parameterSet.getParameter(DPPMassDetectionParameters.massDetector).getValue();
     massDetector = step.getModule();
     noiseLevel = parameterSet.getParameter(DPPMassDetectionParameters.noiseLevel).getValue();
+    displayResults = parameterSet.getParameter(DPPMassDetectionParameters.displayResults).getValue();
   }
 
   @Override
   public String getTaskDescription() {
-    return "Mass detection for a single array of DataPoints.";
+    return "Mass detection for plot " + getTargetPlot().toString();
   }
 
   @Override
@@ -86,4 +90,13 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
     setResults(dp);
     setStatus(TaskStatus.FINISHED);
   }
+
+  @Override
+  public void displayResults() {
+    // if this is the last task, display even if not checked.
+    if(getController().isLastTaskRunning() || displayResults) {
+      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results", getResults()), Color.CYAN, false);
+    }
+  }
+  
 }

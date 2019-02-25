@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.sumformulaprediction;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -42,12 +43,16 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPSumFormulaResult;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 import net.sf.mzmine.util.FormulaUtils;
+import net.sf.mzmine.util.SpectraPlotUtils;
 
 /**
  * Predicts sum formulas just like
@@ -73,6 +78,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   private ParameterSet rdbeParameters;
   private ParameterSet isotopeParameters;
   private boolean checkIsotopes;
+  private boolean displayResults;
+  private int numResults;
 
   private MolecularFormulaRange elementCounts;
   private MolecularFormulaGenerator generator;
@@ -108,6 +115,10 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     mzTolerance =
         parameterSet.getParameter(DPPSumFormulaPredictionParameters.mzTolerance).getValue();
+    
+    displayResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue();
+    
+    numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getEmbeddedParameter().getValue();
 
     currentIndex = 0;
   }
@@ -161,7 +172,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       List<PredResult> formulas =
           generateFormulas((ProcessedDataPoint) dataPoints[i], massRange, charge, generator);
 
-      DPPSumFormulaResult[] results = genereateResults(formulas, 3);
+      DPPSumFormulaResult[] results = genereateResults(formulas, numResults);
 
       ((ProcessedDataPoint) dataPoints[i]).addAllResults(results);
       currentIndex++;
@@ -316,5 +327,14 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     if (generator != null)
       generator.cancel();
 
+  }
+
+  @Override
+  public void displayResults() {
+    if(displayResults || getController().isLastTaskRunning()) {
+      SpectraPlotUtils.clearDatasetLabelGenerators(getTargetPlot(), DPPResultsDataSet.class);
+      DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(getTargetPlot());
+      getTargetPlot().addDataSet(new DPPResultsDataSet("Sum formula prediction results", getResults()), Color.BLACK, false, labelGen);
+    }
   }
 }
