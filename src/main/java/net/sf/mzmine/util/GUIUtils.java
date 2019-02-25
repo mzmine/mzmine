@@ -31,6 +31,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -484,4 +485,86 @@ public class GUIUtils {
     return panel;
   }
 
+  /**
+   * 
+   * Add a new checkbox to given component
+   * 
+   * @param container Component to add the checkbox to
+   * @param text Checkbox' text
+   * @param icon Checkbox' icon or null
+   * @param listener Checkbox' listener or null
+   * @param actionCommand Checkbox' action command or null
+   * @param mnemonic Checkbox' mnemonic (virtual key code) or 0
+   * @param toolTip Checkbox' tool tip or null
+   * @param state Checkbox' state
+   * @return Created checkbox
+   */
+  public static JCheckBox addCheckbox(Container component, String text, Icon icon,
+      ActionListener listener, String actionCommand, int mnemonic, String toolTip, boolean state) {
+    JCheckBox checkbox = new JCheckBox(text, icon, state);
+    if (listener != null)
+      checkbox.addActionListener(listener);
+    if (actionCommand != null)
+      checkbox.setActionCommand(actionCommand);
+    if (mnemonic > 0)
+      checkbox.setMnemonic(mnemonic);
+    if (toolTip != null)
+      checkbox.setToolTipText(toolTip);
+    if (component != null)
+      component.add(checkbox);
+    return checkbox;
+  }
+
+  /**
+   * 
+   * Add a new checkbox to given component
+   * 
+   * @param component Component to add the checkbox to
+   * @param text Checkbox' text
+   * @param icon Checkbox' icon or null
+   * @param listener Checkbox' listener or null
+   * @param actionCommand Checkbox' action command or null
+   * @param toolTip Checkbox' tool tip or null
+   * @param state Checkbox' state
+   * @return
+   */
+  public static JCheckBox addCheckbox(Container component, String text, Icon icon,
+      ActionListener listener, String actionCommand, String toolTip, boolean state) {
+    return addCheckbox(component, text, icon, listener, actionCommand, 0, toolTip, state);
+  }
+
+  /**
+   * 
+   * Add a new checkbox to given component
+   * 
+   * @param component Component to add the checkbox to
+   * @param text Checkbox' text
+   * @param icon Checkbox' icon or null
+   * @param listener Checkbox' listener or null
+   * @param actionCommand Checkbox' action command or null
+   * @param toolTip Checkbox' tool tip or null
+   * @return
+   */
+  public static JCheckBox addCheckbox(Container component, String text, Icon icon,
+      ActionListener listener, String actionCommand, String toolTip) {
+    return addCheckbox(component, text, icon, listener, actionCommand, 0, toolTip, false);
+  }
+  
+  /**
+   * 
+   *  Add a new checkbox to given component
+   *  
+   * @param component Component to add the checkbox to
+   * @param text Checkbox' text
+   * @param listener Checkbox' listener or null
+   * @param actionCommand Checkbox' action command or null
+   * @param toolTip Checkbox' tool tip or null
+   * @return
+   */
+  public static JCheckBox addCheckbox(Container component, String text,
+      ActionListener listener, String actionCommand, String toolTip) {  
+    return addCheckbox(component, text, null, listener, actionCommand, 0, toolTip, false);
+  }
+  
+  
 }
