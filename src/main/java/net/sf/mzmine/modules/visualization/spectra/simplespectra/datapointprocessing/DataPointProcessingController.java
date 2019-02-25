@@ -30,7 +30,6 @@ import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.PlotModuleCombo;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
@@ -53,11 +52,13 @@ public class DataPointProcessingController {
 
   private Logger logger = Logger.getLogger(DataPointProcessingController.class.getName());
 
-  PlotModuleCombo pmc;
-  DataPoint[] dataPoints;
-  ProcessedDataPoint[] results;
-  List<DPPControllerStatusListener> listener;
-  DataPointProcessingTask currentTask;
+  private DataPoint[] dataPoints;
+  private ProcessedDataPoint[] results;
+  private List<DPPControllerStatusListener> listener;
+  private DataPointProcessingTask currentTask;
+  private MZmineProcessingStep<DataPointProcessingModule> currentStep;
+  private DataPointProcessingQueue queue;
+  private SpectraPlot plot;
 
   public enum ControllerStatus {
     WAITING, PROCESSING, ERROR, CANCELED, FINISHED
@@ -74,37 +75,41 @@ public class DataPointProcessingController {
   ControllerStatus status;
   ForcedControllerStatus forcedStatus;
 
-
-  /*
-   * DataPointProcessingController() { }
-   * 
-   * DataPointProcessingController(PlotModuleCombo pmc) { setPlotModuleCombo(pmc); }
-   */
-
   public DataPointProcessingController(DataPointProcessingQueue steps, SpectraPlot plot,
       DataPoint[] dataPoints) {
 
-    pmc = new PlotModuleCombo(steps, plot);
+    setQueue(steps);
+    setPlot(plot);
     setdataPoints(dataPoints);
     setStatus(ControllerStatus.WAITING);
     setForcedStatus(ForcedControllerStatus.NORMAL);
   }
 
-  public void setPlotModuleCombo(PlotModuleCombo pmc) {
-    this.pmc = pmc;
+  public DataPointProcessingQueue getQueue() {
+    return queue;
   }
 
-  public PlotModuleCombo getPlotModuleCombo() {
-    if (isPlotModuleComboSet())
-      return this.pmc;
-    return new PlotModuleCombo();
+  public SpectraPlot getPlot() {
+    return plot;
   }
 
+  private void setQueue(DataPointProcessingQueue queue) {
+    this.queue = queue;
+  }
+
+  private void setPlot(SpectraPlot plot) {
+    this.plot = plot;
+  }
+
+  /**
+   * 
+   * @return The original data points this controller started execution with.
+   */
   public DataPoint[] getDataPoints() {
     return dataPoints;
   }
 
-  public void setdataPoints(DataPoint[] dataPoints) {
+  private void setdataPoints(DataPoint[] dataPoints) {
     this.dataPoints = dataPoints;
   }
 
@@ -116,26 +121,8 @@ public class DataPointProcessingController {
     return results;
   }
 
-  public void setResults(ProcessedDataPoint[] results) {
+  private void setResults(ProcessedDataPoint[] results) {
     this.results = results;
-  }
-
-  public ControllerStatus getStatus() {
-    return status;
-  }
-
-  /**
-   * Changes the status of this controller and notifies listeners.
-   * 
-   * @param status New ControllerStatus.
-   */
-  public void setStatus(ControllerStatus status) {
-    ControllerStatus old = this.status;
-    this.status = status;
-
-    if (listener != null)
-      for (DPPControllerStatusListener l : listener)
-        l.statusChanged(this, this.status, old);
   }
 
   public DataPointProcessingTask getCurrentTask() {
@@ -144,6 +131,14 @@ public class DataPointProcessingController {
 
   private void setCurrentTask(DataPointProcessingTask currentTask) {
     this.currentTask = currentTask;
+  }
+  
+  private MZmineProcessingStep<DataPointProcessingModule> getCurrentStep() {
+    return this.currentStep;
+  }
+  
+  private void setCurrentStep(MZmineProcessingStep<DataPointProcessingModule> step) {
+    this.currentStep = step;
   }
 
   public ForcedControllerStatus getForcedStatus() {
@@ -164,11 +159,7 @@ public class DataPointProcessingController {
     if(getCurrentTask() != null)
       getCurrentTask().setStatus(TaskStatus.CANCELED);
   }
-
-  public boolean isPlotModuleComboSet() {
-    return (pmc != null);
-  }
-
+  
   /**
    * This will execute the modules associated with the plot. It will start with the first one and
    * execute the following ones afterwards automatically. This method is called by the public method
@@ -181,8 +172,8 @@ public class DataPointProcessingController {
    */
   private void execute(DataPoint[] dp, MZmineProcessingStep<DataPointProcessingModule> step,
       SpectraPlot plot) {
-    if (!isPlotModuleComboSet()) {
-      logger.warning("execute called, without pmc being set.");
+    if (queue == null || queue.isEmpty() || plot == null) {
+      logger.warning("execute called, without queue or plot being set.");
       return;
     }
 
@@ -211,11 +202,11 @@ public class DataPointProcessingController {
 //              logger.finest("Task status changed to " + newStatus.toString());
               switch (newStatus) {
                 case FINISHED:
-                  if (pmc.hasNextStep(step)) {
+                  if (queue.hasNextStep(step)) {
                     if (DataPointProcessingManager.getInst()
                         .isRunning(((DataPointProcessingTask) task).getController())) {
 
-                      MZmineProcessingStep<DataPointProcessingModule> next = pmc.getNextStep(step);
+                      MZmineProcessingStep<DataPointProcessingModule> next = queue.getNextStep(step);
 
                       // pass results to next task and start recursively
                       ProcessedDataPoint[] result = ((DataPointProcessingTask) task).getResults();
@@ -249,9 +240,11 @@ public class DataPointProcessingController {
             }
           });
 
-      setCurrentTask((DataPointProcessingTask) t); // maybe we need this some time
+      
       logger.finest("Start processing of " + t.getClass().getName());
       MZmineCore.getTaskController().addTask(t);
+      setCurrentTask((DataPointProcessingTask) t); // maybe we need this some time
+      setCurrentStep(step);
     }
   }
 
@@ -289,16 +282,18 @@ public class DataPointProcessingController {
    * starts the following ones after finishing.
    */
   public void execute() {
-    if (!isPlotModuleComboSet())
+    if (queue == null || queue.isEmpty() || plot == null) {
+      logger.warning("execute called, without queue or plot being set.");
       return;
+    }
 
-    MZmineProcessingStep<DataPointProcessingModule> first = pmc.getFirstStep();
+    MZmineProcessingStep<DataPointProcessingModule> first = queue.getFirstStep();
     if (first == null)
       return;
 
     setStatus(ControllerStatus.PROCESSING);
     logger.finest("Executing DataPointProcessingTasks.");
-    execute(getDataPoints(), first, pmc.getPlot());
+    execute(getDataPoints(), first, getPlot());
   }
 
   public boolean addControllerStatusListener(DPPControllerStatusListener list) {
@@ -364,5 +359,33 @@ public class DataPointProcessingController {
     IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
         IsotopePatternStatus.DETECTED, "Isotope patterns");
     return new IsotopesDataSet(full);
+  }
+  
+  public boolean isLastTaskRunning() {
+    if(getQueue().indexOf(getCurrentStep()) == getQueue().size()-1)
+      return true;
+    return false;
+  }
+  
+  /**
+   * 
+   * @return The current ControllerStatus.
+   */
+  public ControllerStatus getStatus() {
+    return status;
+  }
+
+  /**
+   * Changes the status of this controller and notifies listeners.
+   * 
+   * @param status New ControllerStatus.
+   */
+  public void setStatus(ControllerStatus status) {
+    ControllerStatus old = this.status;
+    this.status = status;
+
+    if (listener != null)
+      for (DPPControllerStatusListener l : listener)
+        l.statusChanged(this, this.status, old);
   }
 }
