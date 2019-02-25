@@ -33,9 +33,11 @@ import javax.swing.SwingConstants;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import com.mysql.fabric.xmlrpc.base.Data;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -132,6 +134,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     JCheckBox cbEnableProcessing = GUIUtils.addCheckbox(processingPanel, "Enable processing",
         masterFrame, "PROCESSING_CHECKBOX",
         "Enable/Disable automatic spectra processing.\n Use \"Set processing options...\" to select the options.");
+    cbEnableProcessing.setSelected(DataPointProcessingManager.getInst().isEnabled());
     cbEnableProcessing.setBackground(Color.white);
     cbEnableProcessing.setFont(smallFont);
     

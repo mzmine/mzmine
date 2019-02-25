@@ -39,6 +39,7 @@ import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleCategoryTreeItem;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleTreeItem;
@@ -68,7 +69,7 @@ public class DPPSetupWindowController {
   private URL location;
 
   @FXML
-  private TreeView<?> tvProcessing;
+  private TreeView<String> tvProcessing;
 
   @FXML
   private Button btnApply;
@@ -83,7 +84,7 @@ public class DPPSetupWindowController {
   private Button btnLoad;
 
   @FXML
-  private TreeView<?> tvAllModules;
+  private TreeView<String> tvAllModules;
 
   @FXML
   private Button btnRemove;
@@ -142,10 +143,15 @@ public class DPPSetupWindowController {
     DataPointProcessingQueue queue = getProcessingQueueFromTreeView();
     queue.saveToFile(file);
   }
-  
+
   @FXML
   void btnSetDefaultClicked(ActionEvent event) {
-
+    final File file = chooser.getLoadFile(DPPSetupWindow.getInstance().getFrame());
+    if (file != null) {
+      DataPointProcessingManager.getInst().getParameters()
+          .getParameter(DataPointProcessingParameters.defaultDPPQueue).setValue(file);
+      logger.finest("Set default processing queue to: " + file.getAbsolutePath());
+    }
   }
 
   @FXML
@@ -165,9 +171,9 @@ public class DPPSetupWindowController {
     initTreeViewMenus();
 
     // if set, load default processing steps already
-    DataPointProcessingManager manager = DataPointProcessingManager.getInst();
-    if (!manager.getProcessingQueue().isEmpty())
-      setTreeViewProcessingItemsFromQueue(manager.getProcessingQueue());
+    // DataPointProcessingManager manager = DataPointProcessingManager.getInst();
+    // if (!manager.getProcessingQueue().isEmpty())
+    // setTreeViewProcessingItemsFromQueue(manager.getProcessingQueue());
 
     chooser = new LoadSaveFileChooser("Select Batch Queue File");
     chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML files", XML_EXTENSION));

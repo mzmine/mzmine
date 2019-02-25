@@ -23,13 +23,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController.ControllerStatus;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindowController;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
@@ -45,7 +44,7 @@ public class DataPointProcessingManager implements MZmineModule {
   private static final DataPointProcessingManager inst = new DataPointProcessingManager();
   private static final int MAX_RUNNING = 3;
   private static final String MODULE_NAME = "Data point processing manager";
-  
+
   private ParameterSet parameters;
 
   private static Logger logger = Logger.getLogger(DataPointProcessingManager.class.getName());
@@ -61,19 +60,39 @@ public class DataPointProcessingManager implements MZmineModule {
     waiting = new ArrayList<>();
     running = new ArrayList<>();
 
-    parameters = MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
-    
-    enabled = parameters.getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
-    File path = parameters.getParameter(DataPointProcessingParameters.defaultDPPQueue).getValue();
+    // parameters =
+    // MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
 
-    if (path != null) {
-      processingList = DataPointProcessingQueue.loadFromFile(path);
-    } else
-      processingList = new DataPointProcessingQueue();
+    // enabled =
+    // parameters.getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
+    // File path =
+    // parameters.getParameter(DataPointProcessingParameters.defaultDPPQueue).getValue();
+
+    // if (path != null) {
+    // processingList = DataPointProcessingQueue.loadFromFile(path);
+    // } else
+    processingList = new DataPointProcessingQueue();
+    // DPPSetupWindow.getInstance();
   }
 
   public static DataPointProcessingManager getInst() {
     return inst;
+  }
+
+  public ParameterSet getParameters() {
+    if (parameters == null) {
+      parameters =
+          MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
+
+      File path = parameters.getParameter(DataPointProcessingParameters.defaultDPPQueue).getValue();
+      if (path != null) {
+        setProcessingQueue(DataPointProcessingQueue.loadFromFile(path));
+        DPPSetupWindow window = DPPSetupWindow.getInstance();
+        DPPSetupWindowController controller = window.getController();
+        controller.setTreeViewProcessingItemsFromQueue(getProcessingQueue());
+      }
+    }
+    return parameters;
   }
 
   /**
@@ -312,12 +331,13 @@ public class DataPointProcessingManager implements MZmineModule {
   }
 
   public boolean isEnabled() {
-    return parameters.getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
+    getParameters();
+    return getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
   }
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
-    parameters.getParameter(DataPointProcessingParameters.spectraProcessing).setValue(enabled);
+    getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).setValue(enabled);
     logger.finest("Enabled changed to " + enabled);
   }
 
