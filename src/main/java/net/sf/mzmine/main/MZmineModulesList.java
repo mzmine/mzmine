@@ -113,6 +113,7 @@ import net.sf.mzmine.modules.visualization.productionfilter.ProductIonFilterVisu
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection.DPPMassDetectionModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.sumformulaprediction.DPPSumFormulaPredictionModule;
@@ -199,6 +200,6 @@ public class MZmineModulesList {
       IsotopePatternPreviewModule.class,
 
       // Data point processing
-      DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
+      DataPointProcessingManager.class, DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
   };
 }

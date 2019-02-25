@@ -41,7 +41,6 @@ import net.sf.mzmine.main.impl.MZmineConfigurationImpl;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.project.ProjectManager;
@@ -244,8 +243,6 @@ public final class MZmineCore {
         System.exit(1);
     }
 
- // initialize data point processing instance
-    DPPSetupWindow.getInstance();
   }
 
   @Nonnull

@@ -161,7 +161,8 @@ public class DataPointProcessingController {
    */
   public void cancelTasks() {
     setForcedStatus(ForcedControllerStatus.CANCEL);
-    getCurrentTask().setStatus(TaskStatus.CANCELED);
+    if(getCurrentTask() != null)
+      getCurrentTask().setStatus(TaskStatus.CANCELED);
   }
 
   public boolean isPlotModuleComboSet() {
