@@ -41,7 +41,7 @@ import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import net.sf.mzmine.desktop.impl.MainWindow;
-import net.sf.mzmine.modules.datapointprocessing.setup.DPPSetupWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
 
 /**
  * GUI related utilities
