@@ -96,9 +96,10 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     ExtendedIsotopePattern[] elementPattern =
         getIsotopePatterns(elements, mergeWidth, minAbundance);
 
+
     ProcessedDataPoint[] originalDataPoints = (ProcessedDataPoint[]) getDataPoints();
 
-    totalSteps = elementPattern.length * originalDataPoints.length + 1;
+    totalSteps = originalDataPoints.length * 2 + 1;
 
     // one loop for every element
     for (ExtendedIsotopePattern pattern : elementPattern) {
@@ -188,8 +189,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
                     .upperEndpoint())
                   break;
 
-//                logger.info("found overlapping peaks");
-                
+                // logger.info("found overlapping peaks");
+
                 double ppm = ppmDiff(patternDP.getMZ(), dp.getMZ() + isoMzDiff);
                 ProcessedDataPoint linkedDp = result.getLinkedDataPoint(l_pdp);
                 if (bestppm[isotopeindex] == null && linkedDp != null) {
@@ -203,7 +204,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
                 }
               } // end of pattern datapointarray loop
             } // end of isotope pattern results loop
-            
+
           }
 
         } // end of isotopeindex loop
@@ -306,7 +307,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
                 // TODO: later on, think of something to keep track of the composition here
                 // now we update the isotope composition.
                 for (ProcessedDataPoint p : linkedPatternResult.getLinkedDataPoints()) {
-                  if(p == linked)
+                  if (p == linked)
                     continue;
                   ((DPPIsotopeCompositionResult) p
                       .getFirstResultByType(ResultType.ISOTOPECOMPOSITION)).getValue()
@@ -372,12 +373,14 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
         ProcessedDataPoint[] patternArray = pattern.toArray(new ProcessedDataPoint[0]);
         dp.addResult(new DPPIsotopePatternResult(
-            new SimpleIsotopePattern(patternArray, IsotopePatternStatus.DETECTED, ""),
+            new SimpleIsotopePattern(patternArray, IsotopePatternStatus.DETECTED, format.format(dp.getMZ())),
             patternArray));
-//        logger.finest("FINAL: " + dp.getMZ() + " pattern: " + getResultIsoComp((DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN)));
+        logger.finest("FINAL: " + format.format(dp.getMZ()) + " pattern: " + getResultIsoComp(
+            (DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN)));
         results.add(dp);
       }
-
+      
+      processedSteps++;
     }
     results.sort((o1, o2) -> {
       return Double.compare(o1.getMZ(), o2.getMZ());
@@ -386,18 +389,19 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     setStatus(TaskStatus.FINISHED);
 
   }
-  
+
   private String getResultIsoComp(DPPIsotopePatternResult result) {
     String str = "";
-    for(ProcessedDataPoint dp : result.getLinkedDataPoints()) {
+    for (ProcessedDataPoint dp : result.getLinkedDataPoints()) {
       String c = "";
-      DPPIsotopeCompositionResult comps = (DPPIsotopeCompositionResult) dp.getFirstResultByType(ResultType.ISOTOPECOMPOSITION);
-      for(String comp : comps.getValue())
+      DPPIsotopeCompositionResult comps =
+          (DPPIsotopeCompositionResult) dp.getFirstResultByType(ResultType.ISOTOPECOMPOSITION);
+      for (String comp : comps.getValue())
         c += comp + ", ";
-      c = c.substring(0, c.length()-2);
-      str += dp.getMZ() + " (" + c + "), " ;
+      c = c.substring(0, c.length() - 2);
+      str += format.format(dp.getMZ()) + " (" + c + "), ";
     }
-    str = str.substring(0, str.length()-2);
+    str = str.substring(0, str.length() - 2);
     return str;
   }
 
@@ -515,7 +519,21 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
               element.getSymbol(), minAbundance, mergeWidth, 1, PolarityType.NEUTRAL, true);
       i++;
     }
-    return isotopePatterns;
+    // also, we want to keep track of the isotope composition, to do that cleanly, we remove the
+    // lightest isotope description
+
+    ExtendedIsotopePattern[] cleanedPatterns = new ExtendedIsotopePattern[form.getIsotopeCount()];
+
+    i = 0;
+    for (ExtendedIsotopePattern p : isotopePatterns) {
+      String[] composition = p.getIsotopeCompositions();
+      composition[0] = "";
+      cleanedPatterns[i] = new ExtendedIsotopePattern(p.getDataPoints(), p.getStatus(),
+          p.getDescription(), composition);
+      i++;
+    }
+
+    return cleanedPatterns;
   }
 
   private static String dataPointsToString(DataPoint[] dp) {

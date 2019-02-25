@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.datapointprocessing;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import org.jfree.data.xy.XYDataset;
@@ -274,25 +275,40 @@ public class DataPointProcessingController {
     clearOtherLabelGenerators(plot, DPPResultsDataSet.class);
 
     // now add detected isotope patterns
-
-    /*int i = 0;
+    int i = 0;
     for (ProcessedDataPoint result : results)
       if (result.resultTypeExists(ResultType.ISOTOPEPATTERN))
         i++;
     if(i == 0) i = 1;
     
+    
+    List<Color>clr = generateRainbowColors(i);
     int j = 0;
     for (ProcessedDataPoint result : results)
       if (result.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
         plot.addDataSet(
             new IsotopesDataSet(
                 (IsotopePattern) result.getFirstResultByType(ResultType.ISOTOPEPATTERN).getValue()),
-            getColor((double)j/(double)i), false);
+            clr.get(j), false);
         j++;
-      }*/
+      }
+  }
+  
+  public static List<Color> generateRainbowColors(int num){
+    List<Color>clr = new ArrayList<>(num);
+    if(num == 0) {
+      clr.add(getColor(1));
+      return clr;
+    }
+      
+    for(int j = 0; j < num; j++) {
+      clr.add(getColor((double)j/(double)num));
+    }
+    Collections.shuffle(clr); 
+    return clr;
   }
 
-  public Color getColor(double power)
+  public static Color getColor(double power)
   {
       double H = power; // Hue (note 0.4 = Green, see huge chart below)
       double S = 0.9; // Saturation
