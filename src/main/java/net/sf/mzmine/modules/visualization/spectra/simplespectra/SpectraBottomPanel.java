@@ -19,25 +19,23 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra;
 
 import java.awt.BorderLayout;
-import java.awt.Checkbox;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.logging.Logger;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-import com.mysql.fabric.xmlrpc.base.Data;
+
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -100,7 +98,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     topPanel.add(peakListSelector);
 
     topPanel.add(Box.createHorizontalGlue());
-    
+
     JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null, masterFrame, "NEXT_SCAN");
     nextScanBtn.setBackground(Color.white);
     nextScanBtn.setFont(smallFont);
@@ -126,25 +124,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     showButton.setFont(smallFont);
 
     bottomPanel.add(Box.createHorizontalGlue());
-    
-    // spectra processing controls start
-    JPanel processingPanel = new JPanel();
-    processingPanel.setBackground(Color.WHITE);
-    
-    JCheckBox cbEnableProcessing = GUIUtils.addCheckbox(processingPanel, "Enable processing",
-        masterFrame, "PROCESSING_CHECKBOX",
-        "Enable/Disable automatic spectra processing.\n Use \"Set processing options...\" to select the options.");
-    cbEnableProcessing.setSelected(DataPointProcessingManager.getInst().isEnabled());
-    cbEnableProcessing.setBackground(Color.white);
-    cbEnableProcessing.setFont(smallFont);
-    
-    JButton processingOptionsButton = GUIUtils.addButton(processingPanel, "Set processing options...",
-        null, masterFrame, "SET_PROCESSING_PARAMETERS");
-    processingOptionsButton.setBackground(Color.white);
-    processingOptionsButton.setFont(smallFont);
-    
-    add(processingPanel, BorderLayout.NORTH);
- // spectra processing controls end
+
   }
 
   JComboBox<String> getMSMSSelector() {

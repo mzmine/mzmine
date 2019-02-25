@@ -208,7 +208,7 @@ public class DataPointProcessingController {
                 logger.warning("This should have been a DataPointProcessingTask.");
                 return;
               }
-              logger.info("Task status changed to " + newStatus.toString());
+//              logger.finest("Task status changed to " + newStatus.toString());
               switch (newStatus) {
                 case FINISHED:
                   if (pmc.hasNextStep(step)) {
@@ -250,7 +250,7 @@ public class DataPointProcessingController {
           });
 
       setCurrentTask((DataPointProcessingTask) t); // maybe we need this some time
-      logger.info("Start processing of " + t.getClass().getName());
+      logger.finest("Start processing of " + t.getClass().getName());
       MZmineCore.getTaskController().addTask(t);
     }
   }
