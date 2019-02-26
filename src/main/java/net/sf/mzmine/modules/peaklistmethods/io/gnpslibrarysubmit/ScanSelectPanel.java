@@ -454,7 +454,7 @@ public class ScanSelectPanel extends JPanel {
   }
 
   public boolean isValidAndSelected() {
-    return isSelected() && validSelection;
+    return isSelected() && validSelection && !getAdduct().isEmpty();
   }
 
   public JTextField getTxtCharge() {

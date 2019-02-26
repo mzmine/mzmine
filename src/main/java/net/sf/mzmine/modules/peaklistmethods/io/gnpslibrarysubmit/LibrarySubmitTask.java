@@ -224,8 +224,11 @@ public class LibrarySubmitTask extends AbstractTask {
           json.add(key, (Double) value);
         else if (value instanceof Integer)
           json.add(key, (Integer) value);
-        else
+        else {
+          if (value == null || (value instanceof String && ((String) value).isEmpty()))
+            value = "N/A";
           json.add(key, value.toString());
+        }
       }
     }
 

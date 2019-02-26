@@ -30,6 +30,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -84,6 +85,8 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final StringParameter ION_SOURCE = new StringParameter("IONSOURCE", "", "", true);
   public static final StringParameter PI =
       new StringParameter("PI", "Principle investigator", "", true);
+  public static final StringParameter DATACOLLECTOR =
+      new StringParameter("DATACOLLECTOR", "", "", true);
 
   public static final StringParameter DATA_COLLECTOR =
       new StringParameter("DATACOLLECTOR", "", "", false);
@@ -93,8 +96,10 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final StringParameter CAS = new StringParameter("CASNUMBER", "", "", false);
   public static final StringParameter SMILES = new StringParameter("SMILES", "", "", false);
   public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
-  public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS", "");
-  public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS", "");
+  public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS",
+      "Exact precursor m/z", MZmineCore.getConfiguration().getMZFormat(), 0d);
+  public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
+      "Monoisotopic neutral mass of compound", MZmineCore.getConfiguration().getMZFormat(), 0d);
 
 
   public LibrarySubmitParameters() {
@@ -106,10 +111,9 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
         // username password
         USERNAME, PASSWORD,
         // Always set
-        COMPOUND_NAME, INSTRUMENT, ION_SOURCE, PI, ACQUISITION, POLARITY,
+        COMPOUND_NAME, MOLECULE_MASS, EXACT_MASS, INSTRUMENT, ION_SOURCE, PI, ACQUISITION, POLARITY,
         // optional
-        DESCRIPTION, DATA_COLLECTOR, PUBMED, INCHI, INCHI_AUX, SMILES, CAS, MOLECULE_MASS,
-        EXACT_MASS,
+        DESCRIPTION, DATA_COLLECTOR, PUBMED, INCHI, INCHI_AUX, SMILES, CAS,
         // newly introduced
         FORMULA});
   }

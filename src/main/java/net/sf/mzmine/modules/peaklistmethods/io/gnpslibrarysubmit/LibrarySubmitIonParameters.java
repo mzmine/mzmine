@@ -50,7 +50,7 @@ public class LibrarySubmitIonParameters extends SimpleParameterSet {
   public static final StringParameter ADDUCT = new StringParameter("ADDUCT", "", "", false);
   public static final DoubleParameter MZ = new DoubleParameter("MZ", "");
   public static final DoubleParameter RT = new DoubleParameter("RT", "");
-  public static final IntegerParameter CHARGE = new IntegerParameter("CHARGE", "", 1);
+  public static final IntegerParameter CHARGE = new IntegerParameter("CHARGE", "", 0);
 
   public LibrarySubmitIonParameters() {
     super(new Parameter[] {
