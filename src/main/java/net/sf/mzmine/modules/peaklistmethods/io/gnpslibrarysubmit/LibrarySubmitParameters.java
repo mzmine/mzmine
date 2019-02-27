@@ -60,17 +60,58 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   }
 
   public enum Polarity {
-    POSITIVE, NEGATIVE;
+    Positive, Negative;
+  }
+
+  public enum IonSource {
+    LC_ESI("LC-ESI"), DI_ESI("DI-ESI"), EI, APCI, ESI;
+
+    private final String value;
+
+    private IonSource() {
+      this.value = null;
+    }
+
+    private IonSource(String value) {
+      this.value = value;
+    }
+
+    @Override
+    public String toString() {
+      return value != null ? value : super.toString();
+    }
+  }
+  public enum Instrument {
+    qTof, QQQ, Ion_Trap("Ion Trap"), Hybrid_FT("Hybrid FT"), Orbitrap, ToF;
+
+    private final String value;
+
+    private Instrument() {
+      this.value = null;
+    }
+
+    private Instrument(String value) {
+      this.value = value;
+    }
+
+    @Override
+    public String toString() {
+      return value != null ? value : super.toString();
+    }
   }
 
   public static final ComboParameter<CompoundSource> ACQUISITION =
       new ComboParameter<>("ACQUISITION", "", CompoundSource.values(), CompoundSource.Crude);
-  public static final ComboParameter<Polarity> POLARITY =
-      new ComboParameter<>("POLARITY", "", Polarity.values(), Polarity.POSITIVE);
+  public static final ComboParameter<Polarity> IONMODE =
+      new ComboParameter<>("IONMODE", "", Polarity.values(), Polarity.Positive);
+  public static final ComboParameter<Instrument> INSTRUMENT =
+      new ComboParameter<>("INSTRUMENT", "", Instrument.values(), Instrument.Orbitrap);
+  public static final ComboParameter<IonSource> ION_SOURCE =
+      new ComboParameter<>("IONSOURCE", "", IonSource.values(), IonSource.LC_ESI);
 
   // save to local file
   public static final OptionalParameter<FileNameParameter> LOCALFILE = new OptionalParameter<>(
-      new FileNameParameter("Local file", "Local library file", "json"), true);
+      new FileNameParameter("Local file", "Local library file", "json"), false);
   // user and password
   public static final BooleanParameter SUBMIT_GNPS =
       new BooleanParameter("Submit to GNPS", "Submit new entry to GNPS library", true);
@@ -81,8 +122,6 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
       new StringParameter("description", "", "", false);
   public static final StringParameter COMPOUND_NAME =
       new StringParameter("COMPOUND_NAME", "", "", true);
-  public static final StringParameter INSTRUMENT = new StringParameter("INSTRUMENT", "", "", true);
-  public static final StringParameter ION_SOURCE = new StringParameter("IONSOURCE", "", "", true);
   public static final StringParameter PI =
       new StringParameter("PI", "Principle investigator", "", true);
   public static final StringParameter DATACOLLECTOR =
@@ -96,11 +135,12 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final StringParameter CAS = new StringParameter("CASNUMBER", "", "", false);
   public static final StringParameter SMILES = new StringParameter("SMILES", "", "", false);
   public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
-  public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS",
-      "Exact precursor m/z", MZmineCore.getConfiguration().getMZFormat(), 0d);
   public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
       "Monoisotopic neutral mass of compound", MZmineCore.getConfiguration().getMZFormat(), 0d);
 
+  // is not used: this would override MZ (the precursor MZ)
+  // public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS",
+  // "Exact precursor m/z", MZmineCore.getConfiguration().getMZFormat(), 0d);
 
   public LibrarySubmitParameters() {
     super(new Parameter[] {
@@ -111,9 +151,10 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
         // username password
         USERNAME, PASSWORD,
         // Always set
-        COMPOUND_NAME, MOLECULE_MASS, EXACT_MASS, INSTRUMENT, ION_SOURCE, PI, ACQUISITION, POLARITY,
+        DESCRIPTION, COMPOUND_NAME, EXACT_MASS, INSTRUMENT, ION_SOURCE, PI, DATA_COLLECTOR,
+        ACQUISITION, IONMODE,
         // optional
-        DESCRIPTION, DATA_COLLECTOR, PUBMED, INCHI, INCHI_AUX, SMILES, CAS,
+        PUBMED, INCHI, INCHI_AUX, SMILES, CAS,
         // newly introduced
         FORMULA});
   }

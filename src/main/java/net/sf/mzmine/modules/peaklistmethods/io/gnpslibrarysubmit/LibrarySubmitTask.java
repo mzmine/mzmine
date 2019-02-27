@@ -157,7 +157,9 @@ public class LibrarySubmitTask extends AbstractTask {
             log.info("GNPS submit entry response content length: " + resEntity.getContentLength());
 
             String body = IOUtils.toString(resEntity.getContent());
-            log.log(Level.WARNING, body);
+            String url =
+                "Submission task: https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=" + body;
+            log.log(Level.INFO, url);
             EntityUtils.consume(resEntity);
           }
         } finally {
@@ -206,6 +208,9 @@ public class LibrarySubmitTask extends AbstractTask {
         .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
 
     JsonObjectBuilder json = Json.createObjectBuilder();
+    // tag spectrum from mzmine2
+    json.add("softwaresource", "mzmine2");
+    // ion specific
     json.add("MZ", param.getParameter(LibrarySubmitIonParameters.MZ).getValue());
     json.add("CHARGE", param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue());
     json.add("ADDUCT", param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue());
@@ -220,9 +225,17 @@ public class LibrarySubmitTask extends AbstractTask {
           && !p.getName().equals(LibrarySubmitParameters.SUBMIT_GNPS.getName())) {
         String key = p.getName();
         Object value = p.getValue();
-        if (value instanceof Double)
-          json.add(key, (Double) value);
-        else if (value instanceof Integer)
+        if (value instanceof Double) {
+          if (Double.compare(0d, (Double) value) == 0)
+            json.add(key, 0);
+          else
+            json.add(key, (Double) value);
+        } else if (value instanceof Float) {
+          if (Float.compare(0f, (Float) value) == 0)
+            json.add(key, 0);
+          else
+            json.add(key, (Float) value);
+        } else if (value instanceof Integer)
           json.add(key, (Integer) value);
         else {
           if (value == null || (value instanceof String && ((String) value).isEmpty()))
@@ -232,7 +245,8 @@ public class LibrarySubmitTask extends AbstractTask {
       }
     }
 
-    return Json.createObjectBuilder().add("spectrum", json.build()).build().toString();
+    // return Json.createObjectBuilder().add("spectrum", json.build()).build().toString();
+    return json.build().toString();
   }
 
   /**
