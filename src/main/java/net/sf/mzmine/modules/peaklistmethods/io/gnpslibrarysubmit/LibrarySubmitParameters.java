@@ -103,7 +103,11 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final ComboParameter<CompoundSource> ACQUISITION =
       new ComboParameter<>("ACQUISITION", "", CompoundSource.values(), CompoundSource.Crude);
   public static final ComboParameter<Polarity> IONMODE =
+<<<<<<< HEAD
       new ComboParameter<>("IONMODE", "", Polarity.values(), Polarity.Positive);
+=======
+      new ComboParameter<>("IONMODE", "", Polarity.values(), Polarity.Negative);
+>>>>>>> branch 'tomasmaster_submit_library_entry_gnps' of https://github.com/robinschmid/mzmine2.git
   public static final ComboParameter<Instrument> INSTRUMENT =
       new ComboParameter<>("INSTRUMENT", "", Instrument.values(), Instrument.Orbitrap);
   public static final ComboParameter<IonSource> ION_SOURCE =
