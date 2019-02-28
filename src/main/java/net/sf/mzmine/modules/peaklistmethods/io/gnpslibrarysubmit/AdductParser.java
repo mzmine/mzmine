@@ -1,7 +1,17 @@
 package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class AdductParser {
 
+  /**
+   * 
+   * @param adduct
+   * @return The formatted adduct or an empty String if input was wrong
+   */
   public static String parse(String adduct) {
     final String old = adduct;
     if (adduct == null || adduct.isEmpty())
@@ -15,13 +25,11 @@ public class AdductParser {
       return "";
 
     // ends with single charge? remove
-    if (adduct.endsWith("+"))
+    if (!adduct.equals("M+") && adduct.endsWith("+"))
       adduct = adduct.substring(0, adduct.length() - 1);
 
     // first -FRAGMENTS then +ADDUCT
     adduct = orderAdduct(adduct);
-
-    System.out.println(old + " -> " + adduct);
     return adduct;
   }
 
@@ -46,7 +54,12 @@ public class AdductParser {
       return true;
   }
 
-
+  /**
+   * Sort: losses first then additions (alphabetically)
+   * 
+   * @param adduct
+   * @return
+   */
   private static String orderAdduct(String adduct) {
     final int MINDEX = adduct.indexOf("M");
     // subtract and store charge
@@ -64,32 +77,72 @@ public class AdductParser {
         break;
     }
 
-    // only test if - and + are present
-    if (!(adduct.contains("+") && adduct.contains("-")))
-      return adduct + charge;
-
     // get all components
+    List<Component> list = getCompList(adduct);
+    // sort by M - - + + ... charge
+    Collections.sort(list);
 
-
-    // first -FRAGMENTS then +ADDUCT
-    for (int i = adduct.length() - 1; i > MINDEX + 1; i--) {
-      char c = adduct.charAt(i);
-      // loss found
-      if (c == '-') {
-
-      }
-    }
+    return list.stream().map(Component::getFullName).collect(Collectors.joining()) + charge;
   }
 
-  private class Component {
+  private static List<Component> getCompList(String adduct) {
+    List<Component> list = new ArrayList<>();
+    int lasti = 0;
+    for (int i = 0; i < adduct.length(); i++) {
+      if (adduct.charAt(i) == '+' || adduct.charAt(i) == '-') {
+        String c = adduct.substring(lasti, i);
+        list.add(new Component(c));
+        lasti = i;
+      }
+    }
+    String c = adduct.substring(lasti);
+    list.add(new Component(c));
+    return list;
+  }
+
+  private static class Component implements Comparable<Component> {
     String count, name, sign;
 
-    public Component(String count, String name, String sign) {
+    Component(String comp) {
+      if (comp.startsWith("+") || comp.startsWith("-")) {
+        sign = comp.substring(0, 1);
+        comp = comp.substring(1);
+      } else
+        sign = "";
+      int i = 0;
+      for (i = 0; i < comp.length() && Character.isDigit(comp.charAt(i)); i++) {
+      }
+      count = comp.substring(0, i);
+      name = comp.substring(i);
+    }
+
+    Component(String count, String name, String sign) {
       super();
       this.count = count;
       this.name = name;
       this.sign = sign;
     }
 
+    public String getFullName() {
+      return sign + count + name;
+    }
+
+    @Override
+    public int compareTo(Component o) {
+      // M is always the first
+      if (name.equals("M") && sign.isEmpty())
+        return -1;
+      if (o.name.equals("M") && o.sign.isEmpty())
+        return 1;
+      // minus smaller than plus
+      if (!o.sign.equals(this.sign)) {
+        if (this.sign.equals("-"))
+          return -1;
+        if (o.sign.equals("-"))
+          return 1;
+      }
+      // then alphabetically
+      return this.name.compareToIgnoreCase(o.name);
+    }
   }
 }

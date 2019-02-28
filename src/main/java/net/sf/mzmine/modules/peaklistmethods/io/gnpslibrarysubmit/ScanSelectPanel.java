@@ -442,37 +442,16 @@ public class ScanSelectPanel extends JPanel {
 
   public String getAdduct() {
     String adduct = txtAdduct.getText();
-    return isValidAdduct(adduct) ? adduct : "";
+
+    String formatted = AdductParser.parse(adduct);
+    if (formatted.isEmpty())
+      return "";
+
+    if (!formatted.equals(adduct))
+      txtAdduct.setText(formatted);
+    return formatted;
   }
 
-  /**
-   * no spaces, charge can be left out for +1 charge <br>
-   * xM-FRAG+ADDUCT+CHARGE <br>
-   * 2M+H <br>
-   * M+2H+2 (for doubly charged) <br>
-   * M-H2O+Na <br>
-   * M+Cl- <br>
-   * 
-   * @param adduct
-   * @return
-   */
-  private boolean isValidAdduct(String adduct) {
-    if (adduct == null || adduct.isEmpty())
-      return false;
-
-    // delete all spaces
-    adduct = adduct.replaceAll(" ", "");
-
-    // Starts with M or digit
-    if (!(adduct.startsWith("M") || Character.isDigit(adduct.charAt(0))))
-      return false;
-
-    // ends with single charge? remove
-    if (adduct.endsWith("+"))
-      adduct = adduct.substring(0, adduct.length() - 1);
-
-    return false;
-  }
 
   private static Icon createIcon(String path) {
     return new ImageIcon(new ImageIcon(ScanSelectPanel.class.getClassLoader().getResource(path))
