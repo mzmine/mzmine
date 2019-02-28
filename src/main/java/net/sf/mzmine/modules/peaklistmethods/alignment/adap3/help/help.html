@@ -44,8 +44,8 @@
     <strong>ADAP Aligner</strong> aligns features based on their mass spectra and retention time similarity.
     This approach is different from <strong>Join Aligner</strong> that aligns peaks
     across all samples, using their <em>m/z and retention time</em> similarity. Instead, <strong>ADAP Aligner</strong>
-    uses <em>mass spectra and retention time</em> to detect similar compounds in each sample and align them together.
-    Due to the usage of mass spectra, this algorithm's approach to the alignment is significantly different from the
+    uses <em>mass spectra and retention time</em> to detect similar features in each sample and align them together.
+    Due to the usage of mass spectra, this alignment approach is significantly different from the
     approach of <strong>Join Aligner</strong>. Therefore, <strong>ADAP Aligner</strong> requires mass spectra to
     be constructed prior to the alignment (e.g. using Spectral Deconvolution or CAMERA).
 </p>
@@ -56,38 +56,38 @@
 </p>
 
 <p>
-    Similarity between two compounds is calculated by the following score:
+    Similarity between two features f<sub>1</sub> and f<sub>2</sub> is calculated by the following score:
 </p>
 <div align="center" style="margin: 10pt">
-    S(C<sub>1</sub>, C<sub>2</sub>) = w S<sub>time</sub> + (1 - w) S<sub>spec</sub>
+    S(f<sub>1</sub>, f<sub>2</sub>) = w S<sub>time</sub>(f<sub>1</sub>, f<sub>2</sub>) + (1 - w) S<sub>spec</sub>(f<sub>1</sub>, f<sub>2</sub>)
 </div>
 <p>
-    where S<sub>time</sub> is the relative retention time difference between two compounds and S<sub>spec</sub> is the
-    spectrum similarity between two compounds.
+    where S<sub>time</sub>(f<sub>1</sub>, f<sub>2</sub>) is the relative retention time difference between two features
+    and S<sub>spec</sub>(f<sub>1</sub>, f<sub>2</sub>) is the spectrum similarity between two features.
 </p>
 
 <h2>Parameters</h2>
 
 <ul>
-    <li><b>Min confidence</b> (number between 0 and 1) is a fraction of the total number of samples. An aligned compound
+    <li><b>Min confidence</b> (number between 0 and 1) is a fraction of the total number of samples. An aligned feature
         must be detected at least in several samples. This parameter determines the minimum number of samples where a
-        compound must be detected. The default value is 0.7, so an aligned compound must be observed at least in 70% of
+        feature must be detected. The default value is 0.7, so an aligned feature must be observed at least in 70% of
         all samples.
     </li>
 
-    <li><b>Retention time range</b> (minutes) is the maximum allowed retention time difference between aligned compounds
+    <li><b>Retention time range</b> (minutes) is the maximum allowed retention time difference between aligned features
         from different samples.</li>
 
 
     <li><b>M/z tolerance</b> is the maximum m/z difference, when two peaks from different mass spectra are considered
         equal.</li>
 
-    <li><b>Score threshold</b> (number between 0 and 1) is the minimum value of the similarity function S(C<sub>1</sub>,
-        C<sub>2</sub>) required for compounds to be aligned together. The default value is 0.75.
+    <li><b>Score threshold</b> (number between 0 and 1) is the minimum value of the similarity function
+        S(f<sub>1</sub>, f<sub>2</sub>) required for features to be aligned together. The default value is 0.75.
     </li>
 
     <li><b>Score weight</b> (number between 0 and 1) is the weight w that is used in the similarity function
-        S(C<sub>1</sub>, C<sub>2</sub>). The default value is 0.1.
+        S(f<sub>1</sub>, f<sub>2</sub>). The default value is 0.1.
     </li>
 
     <li><b>Retention time similarity</b> chooses a method used for calculating the retention time similarity.
