@@ -71,7 +71,8 @@
 <ul>
     <li><b>Min confidence</b> (number between 0 and 1) is a fraction of the total number of samples. An aligned compound
         must be detected at least in several samples. This parameter determines the minimum number of samples where a
-        compound must be detected.
+        compound must be detected. The default value is 0.7, so an aligned compound must be observed at least in 70% of
+        all samples.
     </li>
 
     <li><b>Retention time range</b> (minutes) is the maximum allowed retention time difference between aligned compounds
@@ -82,11 +83,11 @@
         equal.</li>
 
     <li><b>Score threshold</b> (number between 0 and 1) is the minimum value of the similarity function S(C<sub>1</sub>,
-        C<sub>2</sub>) required for compounds to be aligned together.
+        C<sub>2</sub>) required for compounds to be aligned together. The default value is 0.75.
     </li>
 
     <li><b>Score weight</b> (number between 0 and 1) is the weight w that is used in the similarity function
-        S(C<sub>1</sub>, C<sub>2</sub>).
+        S(C<sub>1</sub>, C<sub>2</sub>). The default value is 0.1.
     </li>
 
     <li><b>Retention time similarity</b> chooses a method used for calculating the retention time similarity.
