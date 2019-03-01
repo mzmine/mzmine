@@ -624,7 +624,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     if (exportMSMSLibrary.equals(src)) {
       // open window with all selected rows
       MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
-      libraryWindow.setData(allClickedPeakListRows);
+      libraryWindow.setData(allClickedPeakListRows, SortingProperty.MZ, SortingDirection.Ascending);
       libraryWindow.setVisible(true);
     }
 
