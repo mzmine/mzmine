@@ -1,0 +1,45 @@
+<html>
+        <head>
+                <title>Data analysis - Significance Calculation</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Significance Calculation</h1>
+
+                <h2>Description</h2>
+                <p>
+                       Mummichog is an algorithm for analyzing data from high throughput, untargeted metabolomics. It leverages the organization of metabolic networks to predict functional activity directly from feature tables, bypassing metabolite identification. Thus, high-quality hypotheses can be quickly generated from a LC-MS data table. The algorithm runs on the Aligned peak lists and performs Modular and Pathway analysis using an existing Human or Worm metabolical networks. The calculation edits the aligned peak list with addition in compound information against each mz-retion_time row. The calculation also prpduces three csv files which have the list of empirical compunds, top modules from modular analysis and the results from pathway analysis.
+
+                        <br> <br>
+
+                        The algorithm was first developed in python. For more information visit the below link.
+
+                        <br>
+                        <a href="http://mummichog.org/">http://mummichog.org/</a>
+                </p>
+                <br>
+                <p>
+                        <img src="Significance.png" name="mummichog screen">
+                </p>
+
+                <h4>Method parameters</h4>
+                <dl>
+                        <dt><b>Peak lists</b></dt>
+                        <dd>Displays all the selected peak lists for calculation. 
+                            <br></dd>
+
+                        <dt><b>Experimental Group Name</b></dt>
+                        <dd>This drop down option lets user to chose a base metabolic network on basis of which the calculation is done. The algorithm supports Human and Worm metabolic network in current version.
+                         <br></dd>
+
+                        <dt><b>Control Group Name</b></dt>
+                        <dd>The checkbox option lets user specify if they want to enforce presence of primary ion while creating empirical compounds.
+                         <br></dd>
+
+                </dl>
+
+        </body>
+</html>
