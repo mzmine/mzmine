@@ -79,7 +79,7 @@ public class LibrarySubmitTask extends AbstractTask {
   private final File file;
 
 
-  LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
+  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
     this.map = map;
     // get file, user and pass
     Entry<LibrarySubmitIonParameters, DataPoint[]> e = map.entrySet().iterator().next();

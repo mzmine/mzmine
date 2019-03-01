@@ -1,4 +1,22 @@
-package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
+package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -11,7 +29,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -23,6 +43,8 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.Document;
 import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -30,7 +52,10 @@ import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.framework.documentfilter.DocumentSizeFilter;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.AdductParser;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.sorting.ScanSortMode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import net.sf.mzmine.util.ScanUtils;
@@ -167,6 +192,9 @@ public class ScanSelectPanel extends JPanel {
     pnData.add(lblAdduct, "cell 0 0 3 1");
 
     txtAdduct = new JTextField();
+    Document doc = txtAdduct.getDocument();
+    if (doc instanceof AbstractDocument)
+      ((AbstractDocument) doc).setDocumentFilter(new DocumentSizeFilter(20));
     txtAdduct.setToolTipText(
         "Insert adduct in this format: M+H, M-H2O+H, 2M+Na, M+2H+2 (for doubly charged)");
     pnData.add(txtAdduct, "cell 0 1 3 1,growx");
@@ -440,15 +468,25 @@ public class ScanSelectPanel extends JPanel {
     return lbSignals;
   }
 
+  /**
+   * This will check adduct pattern and enforce it.
+   * 
+   * @return The adduct or an empty String for wrong input
+   */
+  @Nonnull
   public String getAdduct() {
     String adduct = txtAdduct.getText();
 
     String formatted = AdductParser.parse(adduct);
-    if (formatted.isEmpty())
+    if (formatted.isEmpty()) {
+      txtAdduct.setBorder(BorderFactory.createLineBorder(Color.red));
       return "";
+    }
 
-    if (!formatted.equals(adduct))
+    if (!formatted.equals(adduct)) {
       txtAdduct.setText(formatted);
+    }
+    txtAdduct.setBorder(BorderFactory.createLineBorder(Color.black));
     return formatted;
   }
 
@@ -462,8 +500,13 @@ public class ScanSelectPanel extends JPanel {
     chartSize = dim;
   }
 
+  /**
+   * Valid spectrum and is selected? Still check for correct adduct
+   * 
+   * @return
+   */
   public boolean isValidAndSelected() {
-    return isSelected() && validSelection && !getAdduct().isEmpty();
+    return isSelected() && validSelection;
   }
 
   public JTextField getTxtCharge() {
