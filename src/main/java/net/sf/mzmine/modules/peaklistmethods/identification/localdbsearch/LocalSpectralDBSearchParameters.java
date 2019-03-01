@@ -18,8 +18,10 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.localdbsearch;
 
+import java.text.DecimalFormat;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -44,9 +46,11 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       new OptionalParameter<>(new RTToleranceParameter());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final DoubleParameter minCosine = new DoubleParameter("Min cos similarity",
+      "Cosine similarity", new DecimalFormat("0.000"), 0.7);
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, massList, dataBaseFile, mzTolerance, rtTolerance});
+    super(new Parameter[] {peakLists, massList, dataBaseFile, mzTolerance, rtTolerance, minCosine});
   }
 
 }

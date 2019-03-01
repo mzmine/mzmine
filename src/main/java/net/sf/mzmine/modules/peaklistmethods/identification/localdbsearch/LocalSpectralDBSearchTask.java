@@ -102,19 +102,19 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     try {
-      List<SpectralDBPeakIdentity> map = new ArrayList<>();
+      List<SpectralDBPeakIdentity> list = new ArrayList<>();
       List<String> lines = Files.readLines(dataBaseFile, Charsets.UTF_8);
       for (String l : lines) {
         JsonReader reader = Json.createReader(new StringReader(l));
-        JsonObject json = reader.readObject().getJsonObject("spectrum");
-        map.add(getPeakIdentity(json));
+        JsonObject json = reader.readObject();
+        list.add(getPeakIdentity(json));
       }
 
       for (PeakListRow row : peakList.getRows()) {
         if (row.getBestFragmentation() != null) {
-          for (SpectralDBPeakIdentity ident : map) {
+          for (SpectralDBPeakIdentity ident : list) {
             if (spectraDBMatch(row, ident)) {
-
+              addIdentity(row, ident);
             }
           }
         }
@@ -170,6 +170,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     JsonNumber rt = main.getJsonNumber(LibrarySubmitIonParameters.RT.getName());
     String formula = main.getString(LibrarySubmitParameters.FORMULA.getName(), "");
     String name = main.getString(LibrarySubmitParameters.COMPOUND_NAME.getName(), "");
+    if (formula.equals("N/A"))
+      formula = "";
 
     DataPoint[] dps = getDataPoints(main);
 
@@ -179,7 +181,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   public void addIdentity(PeakListRow row, PeakIdentity ident) {
     // add new identity to the row
-    row.addPeakIdentity(ident, false);
+    row.addPeakIdentity(ident, true);
 
     // Notify the GUI about the change in the project
     MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
