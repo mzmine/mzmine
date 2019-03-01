@@ -49,6 +49,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.Fo
 import net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpeaklist.FormulaPredictionPeakListModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.FragmentSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.LipidSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.localdbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.ms2search.Ms2SearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
@@ -106,10 +107,10 @@ import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import net.sf.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule;
 import net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule;
-import net.sf.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.MSMSExportModule;
+import net.sf.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
@@ -178,10 +179,11 @@ public class MZmineModulesList {
       SammonsPlotModule.class, ClusteringModule.class, HeatMapModule.class,
 
       // Identification
-      CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
-      AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
-      LipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
-      FormulaPredictionPeakListModule.class, Ms2SearchModule.class, SiriusProcessingModule.class,
+      LocalSpectralDBSearchModule.class, CustomDBSearchModule.class, FormulaPredictionModule.class,
+      FragmentSearchModule.class, AdductSearchModule.class, ComplexSearchModule.class,
+      OnlineDBSearchModule.class, LipidSearchModule.class, CameraSearchModule.class,
+      NistMsSearchModule.class, FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
+      SiriusProcessingModule.class,
 
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,

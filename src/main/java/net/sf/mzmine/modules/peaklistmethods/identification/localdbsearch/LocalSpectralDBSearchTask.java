@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
@@ -31,10 +32,13 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
@@ -42,18 +46,23 @@ import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.LibrarySubmitIonParameters;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.LibrarySubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.sorting.ScanSortMode;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.exceptions.MissingMassListException;
 
 class LocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
+  private static final int MAX_ERROR = 3;
+  private int errorCounter = 0;
   private final PeakList peakList;
-  private final String massListName;
+  private final @Nonnull String massListName;
   private final File dataBaseFile;
   private final MZTolerance mzTolerance;
   private final RTTolerance rtTolerance;
@@ -117,6 +126,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
         JsonReader reader = Json.createReader(new StringReader(l));
         JsonObject json = reader.readObject();
         list.add(getPeakIdentity(json));
+        reader.close();
       }
 
       for (PeakListRow row : peakList.getRows()) {
@@ -125,6 +135,14 @@ class LocalSpectralDBSearchTask extends AbstractTask {
             if (spectraDBMatch(row, ident)) {
               addIdentity(row, ident);
             }
+            // check for max error (missing masslist)
+            if (errorCounter > MAX_ERROR) {
+              logger.log(Level.WARNING,
+                  "MS/MS data base matching failed. To many missing mass lists ");
+              setStatus(TaskStatus.ERROR);
+              setErrorMessage("MS/MS data base matching failed. To many missing mass lists ");
+              return;
+            }
           }
         }
         // next row
@@ -132,10 +150,10 @@ class LocalSpectralDBSearchTask extends AbstractTask {
       }
 
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
+      logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.toString());
-      return;
+      throw new MSDKRuntimeException(e);
     }
 
     // Add task description to peakList
@@ -157,20 +175,43 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     if (!useRT || rtTolerance.checkWithinTolerance(ident.getRetentionTime(), row.getAverageRT())) {
       // precursor mz
       if (mzTolerance.checkWithinTolerance(ident.getMz(), row.getAverageMZ())) {
-        // check MS2 similarity
-        DataPoint[] rowMassList = getDataPoints(row);
-        SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
-            rowMassList, minMatch);
-        if (sim.getCosine() >= minSimilarity)
-          return true;
+        try {
+          // check MS2 similarity
+          DataPoint[] rowMassList = getDataPoints(row);
+          SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
+              rowMassList, minMatch);
+          if (sim != null && sim.getCosine() >= minSimilarity)
+            return true;
+        } catch (MissingMassListException e) {
+          logger.log(Level.WARNING, "No mass list in MS2 spectrum for rowID=" + row.getID(), e);
+          errorCounter++;
+          return false;
+        }
       }
     }
-    // TODO Auto-generated method stub
     return false;
   }
 
-  private DataPoint[] getDataPoints(PeakListRow row) {
-    return null;
+  /**
+   * Thresholded masslist
+   * 
+   * @param row
+   * @return
+   * @throws MissingMassListException
+   */
+  private DataPoint[] getDataPoints(PeakListRow row) throws MissingMassListException {
+    // first entry is the best scan
+    List<Scan> scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minMatch,
+        ScanSortMode.MAX_TIC);
+    if (scans.isEmpty())
+      return new DataPoint[0];
+
+    MassList masses = scans.get(0).getMassList(massListName);
+    if (masses == null)
+      return new DataPoint[0];
+
+    DataPoint[] dps = masses.getDataPoints();
+    return ScanUtils.getFiltered(dps, noiseLevel);
   }
 
   public static DataPoint[] getDataPoints(JsonObject main) {

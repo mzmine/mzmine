@@ -53,8 +53,8 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getIntensityFormat(), 0d);
   public static final DoubleParameter minCosine = new DoubleParameter("Min cos similarity",
       "Cosine similarity", new DecimalFormat("0.000"), 0.7);
-  public static final IntegerParameter minMatch =
-      new IntegerParameter("Min cos similarity", "Cosine similarity", 4);
+  public static final IntegerParameter minMatch = new IntegerParameter("Min matched signals",
+      "Minimum matched signals (within mz tolerance)", 4);
 
   public LocalSpectralDBSearchParameters() {
     super(new Parameter[] {peakLists, massList, dataBaseFile, mzTolerance, rtTolerance,

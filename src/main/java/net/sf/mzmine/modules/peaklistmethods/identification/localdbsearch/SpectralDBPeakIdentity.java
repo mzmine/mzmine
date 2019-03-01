@@ -32,7 +32,8 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
 
   public SpectralDBPeakIdentity(String name, double mz, double rt, String adduct, String formula,
       String method, DataPoint[] dps) {
-    super(MessageFormat.format("{0} ({1}) {2}", name, mz, formula), formula, method, "", "");
+    super(MessageFormat.format("{0} as {3} ({1}) {2}", name, mz, formula, adduct), formula, method,
+        "", "");
     this.name = name;
     this.mz = mz;
     this.rt = rt;

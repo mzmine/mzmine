@@ -259,7 +259,8 @@ public class LibrarySubmitTask extends AbstractTask {
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();
     for (DataPoint dp : dps) {
-      signal.add(dp.getMZ());
+      // round to five digits. thats more than enough
+      signal.add(((int) (dp.getMZ() * 100000)) / 100000.d);
       signal.add(dp.getIntensity());
       data.add(signal.build());
     }
