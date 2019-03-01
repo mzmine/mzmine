@@ -516,4 +516,8 @@ public class ScanSelectPanel extends JPanel {
   public JTextField getTxtPrecursorMZ() {
     return txtPrecursorMZ;
   }
+
+  public boolean hasAdduct() {
+    return !getAdduct().isEmpty();
+  }
 }

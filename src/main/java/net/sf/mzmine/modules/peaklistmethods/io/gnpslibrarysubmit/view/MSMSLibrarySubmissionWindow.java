@@ -24,6 +24,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
 import java.awt.event.ItemListener;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -228,7 +230,10 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     pnSideMenu.add(pnButtons, BorderLayout.SOUTH);
 
     JButton btnCheck = new JButton("Check");
-    btnCheck.addActionListener(e -> checkParameters());
+    btnCheck.addActionListener(e -> {
+      if (checkParameters())
+        DialogLoggerUtil.showMessageDialogForTime(this, "Check OK", "All parameters are set", 1500);
+    });
     pnButtons.add(btnCheck);
 
     JButton btnSubmit = new JButton("Submit");
@@ -448,47 +453,63 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     updateParameterSetFromComponents();
 
     // check
-    ArrayList<String> messages = new ArrayList<String>();
-    boolean allParametersOK = param.checkParameterValues(messages);
+    ArrayList<String> messages = new ArrayList<>();
 
-    if (!allParametersOK) {
-      StringBuilder message = new StringBuilder("Please check the parameter settings:\n\n");
-      for (String m : messages) {
-        message.append(m);
-        message.append("\n");
-      }
-      MZmineCore.getDesktop().displayMessage(this, message.toString());
+    if (param.checkParameterValues(messages)) {
+      return true;
+    } else {
+      String message = messages.stream().collect(Collectors.joining("\n"));
+      MZmineCore.getDesktop().displayMessage(this, message);
       return false;
     }
-    return true;
   }
 
+  /**
+   * Submit. Checks parameters and adduct for each selected ion
+   */
   private void submitSpectra() {
     if (checkParameters()) {
       // check number of ions
       int ions = Arrays.stream(pnScanSelect).mapToInt(pn -> pn.isValidAndSelected() ? 1 : 0).sum();
-      if (ions == 0) {
-        log.info("No MS/MS spectrum selected or valid");
-        DialogLoggerUtil.showMessageDialogForTime(this, "Error",
-            "No MS/MS spectrum selected or valid", 1500);
+      int adducts = Arrays.stream(pnScanSelect)
+          .mapToInt(pn -> pn.isValidAndSelected() && pn.hasAdduct() ? 1 : 0).sum();
+      // every valid selected ion needs an adduct
+      if (ions != adducts) {
+        MZmineCore.getDesktop().displayErrorMessage(this, "ERROR",
+            MessageFormat.format(
+                "Not all adducts are set: {0} ion spectra selected and only {1}  adducts set", ions,
+                adducts));
+        return;
       } else {
-        // show accept dialog
-        if (DialogLoggerUtil.showDialogYesNo(this, "Submission?",
-            ions + " MS/MS spectra were selected. Submit?")) {
-          // submit to GNPS
-          HashMap<LibrarySubmitIonParameters, DataPoint[]> map = new HashMap<>(ions);
-          for (ScanSelectPanel ion : pnScanSelect) {
-            if (ion.isValidAndSelected()) {
-              // create ion param
-              LibrarySubmitIonParameters ionParam = createIonParameters(param, ion);
-              DataPoint[] dps = ion.getFilteredDataPoints();
-              // submit and save locally
-              map.put(ionParam, dps);
+        if (ions == 0) {
+          log.info("No MS/MS spectrum selected or valid");
+          DialogLoggerUtil.showMessageDialogForTime(this, "Error",
+              "No MS/MS spectrum selected or valid", 1500);
+        } else {
+
+          String allAdducts =
+              Arrays.stream(pnScanSelect).filter(pn -> pn.isValidAndSelected() && pn.hasAdduct())
+                  .map(ScanSelectPanel::getAdduct).collect(Collectors.joining(", "));
+          // show accept dialog
+          if (DialogLoggerUtil.showDialogYesNo(this, "Submission?",
+              ions + " MS/MS spectra were selected. Submit? (" + allAdducts + ")")) {
+            // submit to GNPS
+            HashMap<LibrarySubmitIonParameters, DataPoint[]> map = new HashMap<>(ions);
+            for (ScanSelectPanel ion : pnScanSelect) {
+              if (ion.isValidAndSelected()) {
+                // create ion param
+                LibrarySubmitIonParameters ionParam = createIonParameters(param, ion);
+                DataPoint[] dps = ion.getFilteredDataPoints();
+                // submit and save locally
+                map.put(ionParam, dps);
+              }
             }
+            // start task
+            log.info("Added task to export library entries: " + ions
+                + " MS/MS spectra were selected (" + allAdducts + ")");
+            LibrarySubmitTask task = new LibrarySubmitTask(map);
+            MZmineCore.getTaskController().addTask(task);
           }
-          // start task
-          LibrarySubmitTask task = new LibrarySubmitTask(map);
-          MZmineCore.getTaskController().addTask(task);
         }
       }
     }
