@@ -63,15 +63,24 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   private ParameterSet parameters;
 
+  private double noiseLevel;
+  private double minSimilarity;
+  private int minMatch;
+
   LocalSpectralDBSearchTask(PeakList peakList, ParameterSet parameters) {
     this.peakList = peakList;
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
-    useRT = parameters.getParameter(LocalSpectralDBSearchParameters.rtTolerance).getValue();
     mzTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerance).getValue();
+    noiseLevel = parameters.getParameter(LocalSpectralDBSearchParameters.noiseLevelMS2).getValue();
+
+    useRT = parameters.getParameter(LocalSpectralDBSearchParameters.rtTolerance).getValue();
     rtTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.rtTolerance)
         .getEmbeddedParameter().getValue();
+
+    minMatch = parameters.getParameter(LocalSpectralDBSearchParameters.minMatch).getValue();
+    minSimilarity = parameters.getParameter(LocalSpectralDBSearchParameters.minCosine).getValue();
     totalRows = peakList.getNumberOfRows();
   }
 
@@ -144,13 +153,24 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
 
   private boolean spectraDBMatch(PeakListRow row, SpectralDBPeakIdentity ident) {
+    // retention time
     if (!useRT || rtTolerance.checkWithinTolerance(ident.getRetentionTime(), row.getAverageRT())) {
+      // precursor mz
       if (mzTolerance.checkWithinTolerance(ident.getMz(), row.getAverageMZ())) {
         // check MS2 similarity
+        DataPoint[] rowMassList = getDataPoints(row);
+        SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
+            rowMassList, minMatch);
+        if (sim.getCosine() >= minSimilarity)
+          return true;
       }
     }
     // TODO Auto-generated method stub
     return false;
+  }
+
+  private DataPoint[] getDataPoints(PeakListRow row) {
+    return null;
   }
 
   public static DataPoint[] getDataPoints(JsonObject main) {

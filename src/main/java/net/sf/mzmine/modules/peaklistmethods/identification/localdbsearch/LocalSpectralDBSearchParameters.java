@@ -19,9 +19,11 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.localdbsearch;
 
 import java.text.DecimalFormat;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -46,11 +48,17 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       new OptionalParameter<>(new RTToleranceParameter());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final DoubleParameter noiseLevelMS2 =
+      new DoubleParameter("Noise level", "Noise level to filter MS2 mass lists",
+          MZmineCore.getConfiguration().getIntensityFormat(), 0d);
   public static final DoubleParameter minCosine = new DoubleParameter("Min cos similarity",
       "Cosine similarity", new DecimalFormat("0.000"), 0.7);
+  public static final IntegerParameter minMatch =
+      new IntegerParameter("Min cos similarity", "Cosine similarity", 4);
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, massList, dataBaseFile, mzTolerance, rtTolerance, minCosine});
+    super(new Parameter[] {peakLists, massList, dataBaseFile, mzTolerance, rtTolerance,
+        noiseLevelMS2, minCosine, minMatch});
   }
 
 }
