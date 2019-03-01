@@ -1,45 +1,76 @@
 <html>
-        <head>
-                <title>Data analysis - Significance Calculation</title>
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
-        </head>
+<head>
+    <title>Data analysis - Student's t-test and Fold Change</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
 
-        <body>
+<body>
 
-                <h1>Significance Calculation</h1>
+<h1>Student's t-test and Fold Change</h1>
 
-                <h2>Description</h2>
-                <p>
-                       Mummichog is an algorithm for analyzing data from high throughput, untargeted metabolomics. It leverages the organization of metabolic networks to predict functional activity directly from feature tables, bypassing metabolite identification. Thus, high-quality hypotheses can be quickly generated from a LC-MS data table. The algorithm runs on the Aligned peak lists and performs Modular and Pathway analysis using an existing Human or Worm metabolical networks. The calculation edits the aligned peak list with addition in compound information against each mz-retion_time row. The calculation also prpduces three csv files which have the list of empirical compunds, top modules from modular analysis and the results from pathway analysis.
+<h2>Description</h2>
+<p>
+    This module calculates significance values of aligned features. Two significance tests are used:
+</p>
+<ul>
+    <li>
+        <b>Independent two-group t-test for groups with unequal variances (Welch's t-test).</b> The t-statistic to test
+        whether the population means are different is calculated as:
+        <div align="center">
+            <p>
+                <img src="t_test.svg" alt="t-test"/>
+            </p>
+        </div>
+        where
+        <div align="center">
+            <p>
+                <img src="variance.svg" alt="variance"/>
+            </p>
+        </div>
+        Here, s<sub>i</sub><sup>2</sup> is the unbiased estimator of the variance of each of the two groups with
+        n<sub>i</sub> number of samples in group i (1 or 2).
+    </li>
+</ul>
 
-                        <br> <br>
+<p>
+    Mummichog is an algorithm for analyzing data from high throughput, untargeted metabolomics. It leverages the
+    organization of metabolic networks to predict functional activity directly from feature tables, bypassing metabolite
+    identification. Thus, high-quality hypotheses can be quickly generated from a LC-MS data table. The algorithm runs
+    on the Aligned peak lists and performs Modular and Pathway analysis using an existing Human or Worm metabolical
+    networks. The calculation edits the aligned peak list with addition in compound information against each
+    mz-retion_time row. The calculation also prpduces three csv files which have the list of empirical compunds, top
+    modules from modular analysis and the results from pathway analysis.
 
-                        The algorithm was first developed in python. For more information visit the below link.
+    <br> <br>
 
-                        <br>
-                        <a href="http://mummichog.org/">http://mummichog.org/</a>
-                </p>
-                <br>
-                <p>
-                        <img src="Significance.png" name="mummichog screen">
-                </p>
+    The algorithm was first developed in python. For more information visit the below link.
 
-                <h4>Method parameters</h4>
-                <dl>
-                        <dt><b>Peak lists</b></dt>
-                        <dd>Displays all the selected peak lists for calculation. 
-                            <br></dd>
+    <br>
+    <a href="http://mummichog.org/">http://mummichog.org/</a>
+</p>
+<br>
+<p>
+    <img src="Significance.png" name="mummichog screen">
+</p>
 
-                        <dt><b>Experimental Group Name</b></dt>
-                        <dd>This drop down option lets user to chose a base metabolic network on basis of which the calculation is done. The algorithm supports Human and Worm metabolic network in current version.
-                         <br></dd>
+<h4>Method parameters</h4>
+<dl>
+    <dt><b>Peak lists</b></dt>
+    <dd>Displays all the selected peak lists for calculation.
+        <br></dd>
 
-                        <dt><b>Control Group Name</b></dt>
-                        <dd>The checkbox option lets user specify if they want to enforce presence of primary ion while creating empirical compounds.
-                         <br></dd>
+    <dt><b>Experimental Group Name</b></dt>
+    <dd>This drop down option lets user to chose a base metabolic network on basis of which the calculation is done. The
+        algorithm supports Human and Worm metabolic network in current version.
+        <br></dd>
 
-                </dl>
+    <dt><b>Control Group Name</b></dt>
+    <dd>The checkbox option lets user specify if they want to enforce presence of primary ion while creating empirical
+        compounds.
+        <br></dd>
 
-        </body>
+</dl>
+
+</body>
 </html>
