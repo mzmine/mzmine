@@ -30,7 +30,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
 
-import net.sf.mzmine.main.MZmineCore;
+import java.text.DecimalFormat;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -131,12 +131,14 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
       new StringParameter("DATACOLLECTOR", "", "", false);
   public static final StringParameter PUBMED = new StringParameter("PUBMED", "", "", false);
   public static final StringParameter INCHI_AUX = new StringParameter("INCHIAUX", "", "", false);
-  public static final StringParameter INCHI = new StringParameter("INCHI", "", "", false);
+  public static final StringParameter INCHI =
+      new StringParameter("INCHI", "Structure as INCHI", "", false);
   public static final StringParameter CAS = new StringParameter("CASNUMBER", "", "", false);
-  public static final StringParameter SMILES = new StringParameter("SMILES", "", "", false);
+  public static final StringParameter SMILES =
+      new StringParameter("SMILES", "Structure as SMILES code", "", false);
   public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
   public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
-      "Monoisotopic neutral mass of compound", MZmineCore.getConfiguration().getMZFormat(), 0d);
+      "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"), 0d);
 
   // is not used: this would override MZ (the precursor MZ)
   // public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS",
@@ -151,11 +153,11 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
         // username password
         USERNAME, PASSWORD,
         // Always set
-        DESCRIPTION, COMPOUND_NAME, EXACT_MASS, INSTRUMENT, ION_SOURCE, PI, DATA_COLLECTOR,
+        PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, INSTRUMENT, ION_SOURCE,
         ACQUISITION, IONMODE,
-        // optional
-        PUBMED, INCHI, INCHI_AUX, SMILES, CAS,
         // newly introduced
-        FORMULA});
+        FORMULA,
+        // optional
+        SMILES, INCHI, INCHI_AUX, CAS, PUBMED});
   }
 }

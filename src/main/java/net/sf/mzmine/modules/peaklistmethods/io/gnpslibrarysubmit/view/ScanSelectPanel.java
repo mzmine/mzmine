@@ -375,6 +375,7 @@ public class ScanSelectPanel extends JPanel {
    * Create chart of selected scan
    */
   public void createChart() {
+    setValidSelection(false);
     EChartPanel oldChart = spectrumPlot;
     // empty
     pnChart.removeAll();
@@ -406,7 +407,6 @@ public class ScanSelectPanel extends JPanel {
       error.setForeground(new Color(220, 20, 60));
       pnChart.add(error, BorderLayout.CENTER);
       //
-      // setSelected(false);
     }
 
     // listener on change
