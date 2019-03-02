@@ -28,8 +28,10 @@
                 <img src="variance.svg" alt="variance"/>
             </p>
         </div>
-        Here, s<sub>i</sub><sup>2</sup> is the unbiased estimator of the variance of each of the two groups with
-        n<sub>i</sub> number of samples in group i (1 or 2). After the t-statistics is estimated, the corresponding
+        Here, <img src="xi.png" alt="X<sub>i</sub>"/> is the average intensity of group <i>i</i> (1 or 2), and
+        s<sub>i</sub><sup>2</sup> is the unbiased estimator of the variance of each of the two groups with
+        n<sub>i</sub> number of samples in group <i>i</i> (1 or 2). After the t-statistics is estimated, the
+        corresponding
         p-value is calculated. Usually, 0.05 < p < 1 means that there is no statistical difference between the two
         group averages, and 0 < p < 0.05 means the feature is statistically significant.
         <div align="center">
@@ -38,46 +40,43 @@
             </p>
         </div>
     </li>
+
+    <li>
+        <b>Logarithmic Fold Change.</b> Fold change is a measure describing how much a quantity changes between two
+        groups. The logarithmic fold change is calculates as:
+        <div align="center">
+            <p>
+                <img src="fold_change.png" alt="foldchange"/>
+            </p>
+        </div>
+        where <img src="xi.png" alt="X<sub>i</sub>"/> is the average intensity of group <i>i</i> (1 or 2).
+    </li>
 </ul>
 
+<h2>Parameters</h2>
+
+<div align="center">
+    <p>
+        <img src="Significance.png" alt="Parameters Window"/>
+    </p>
+</div>
+
+<ul>
+    <li><b>Experimental group ID</b> is used to specify samples in the first group. All raw data files with names
+        containing this ID will be assigned to the first group.
+    </li>
+
+    <li><b>Control group ID</b> is used to specify samples in the second group. All raw data files with names
+        containing this ID will be assigned to the second group.
+    </li>
+</ul>
+
+<h2>Output</h2>
+
 <p>
-    Mummichog is an algorithm for analyzing data from high throughput, untargeted metabolomics. It leverages the
-    organization of metabolic networks to predict functional activity directly from feature tables, bypassing metabolite
-    identification. Thus, high-quality hypotheses can be quickly generated from a LC-MS data table. The algorithm runs
-    on the Aligned peak lists and performs Modular and Pathway analysis using an existing Human or Worm metabolical
-    networks. The calculation edits the aligned peak list with addition in compound information against each
-    mz-retion_time row. The calculation also prpduces three csv files which have the list of empirical compunds, top
-    modules from modular analysis and the results from pathway analysis.
-
-    <br> <br>
-
-    The algorithm was first developed in python. For more information visit the below link.
-
-    <br>
-    <a href="http://mummichog.org/">http://mummichog.org/</a>
+    Calculated values will be added to CSV-file when a peaklist is exported into CSV with option "Export quantitation
+    results and other information"
 </p>
-<br>
-<p>
-    <img src="Significance.png" name="mummichog screen">
-</p>
-
-<h4>Method parameters</h4>
-<dl>
-    <dt><b>Peak lists</b></dt>
-    <dd>Displays all the selected peak lists for calculation.
-        <br></dd>
-
-    <dt><b>Experimental Group Name</b></dt>
-    <dd>This drop down option lets user to chose a base metabolic network on basis of which the calculation is done. The
-        algorithm supports Human and Worm metabolic network in current version.
-        <br></dd>
-
-    <dt><b>Control Group Name</b></dt>
-    <dd>The checkbox option lets user specify if they want to enforce presence of primary ion while creating empirical
-        compounds.
-        <br></dd>
-
-</dl>
 
 </body>
 </html>

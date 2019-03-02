@@ -27,10 +27,10 @@ public class SignificanceParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
 
-    public static final StringParameter controlGroupName = new StringParameter("Control Group Name",
+    public static final StringParameter controlGroupName = new StringParameter("Control Group ID",
             "All lists containing this name will be assigned to the control group");
 
-    public static final StringParameter experimentalGroupName = new StringParameter("Experimental Group Name",
+    public static final StringParameter experimentalGroupName = new StringParameter("Experimental Group ID",
             "All lists containing this name will be assigned to the experimental group");
 
     public SignificanceParameters() {
