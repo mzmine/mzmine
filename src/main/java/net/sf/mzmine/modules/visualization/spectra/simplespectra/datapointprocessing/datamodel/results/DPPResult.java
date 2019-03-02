@@ -27,7 +27,7 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproce
  */
 public abstract class DPPResult<T> {
 
-  public enum ResultType {SUMFORMULA, ISOTOPEPATTERN, ADDUCT, FRAGMENT};
+  public enum ResultType {SUMFORMULA, ISOTOPEPATTERN, ADDUCT, FRAGMENT, ISOTOPECOMPOSITION};
   
   final T value;
   

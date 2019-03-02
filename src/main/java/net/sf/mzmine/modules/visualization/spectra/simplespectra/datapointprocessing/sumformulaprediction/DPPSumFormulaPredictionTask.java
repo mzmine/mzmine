@@ -45,7 +45,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPSumFormulaResult;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -115,10 +114,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     mzTolerance =
         parameterSet.getParameter(DPPSumFormulaPredictionParameters.mzTolerance).getValue();
-    
-    displayResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue();
-    
-    numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getEmbeddedParameter().getValue();
+
+    displayResults =
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue();
+
+    numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults)
+        .getEmbeddedParameter().getValue();
 
     currentIndex = 0;
   }
@@ -130,7 +131,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if(getDataPoints().length == 0)
+    if (getDataPoints().length == 0)
       return 0;
     return ((double) currentIndex / getDataPoints().length);
   }
@@ -139,7 +140,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   public void run() {
 
     if (getDataPoints() == null || getDataPoints().length == 0) {
-      logger.info("No data points were passed to " + this.getClass().getName() + " Please check the parameters." );
+      logger.info("No data points were passed to " + this.getClass().getName()
+          + " Please check the parameters.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
@@ -176,6 +178,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
       ((ProcessedDataPoint) dataPoints[i]).addAllResults(results);
       currentIndex++;
+      // logger.info("Prediction result: " + dataPoints[i].getMZ() + " = " +
+      // results[0].generateLabel());
     }
 
     setResults((ProcessedDataPoint[]) dataPoints);

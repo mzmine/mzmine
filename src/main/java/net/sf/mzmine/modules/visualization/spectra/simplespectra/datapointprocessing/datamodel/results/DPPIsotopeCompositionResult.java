@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -18,23 +18,29 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
-  
+
   public static final String ChooseTopIntensity = "Most intense";
   public static final String ChooseLowestMZ = "Lowest m/z";
 
   public static final String[] representativeIsotopeValues = {ChooseTopIntensity, ChooseLowestMZ};
-  
-//  public static final StringParameter element = new StringParameter("Element", "Element symbol of the element to deisotope for.");
-  
+
+  public static final DoubleRangeParameter mzRange = new DoubleRangeParameter("m/z range",
+      "The range of m/z to scan for isotope peaks", MZmineCore.getConfiguration().getMZFormat());
+
+  public static final StringParameter element =
+      new StringParameter("Element", "Element symbol of the element to deisotope for.");
+
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
@@ -56,10 +62,10 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
   
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
       "Check if you want to display the deisotoping results in the plot. Displaying too much datasets might decrease clarity.", false);
-  
+
   public DPPIsotopeGrouperParameters() {
-    super(new Parameter[] {/*element,*/ mzTolerance, monotonicShape,
-        maximumCharge, representativeIsotope, autoRemove, displayResults});
+    super(new Parameter[] {element, mzTolerance, mzRange, monotonicShape, maximumCharge,
+        representativeIsotope, autoRemove, displayResults});
   }
-  
+
 }
