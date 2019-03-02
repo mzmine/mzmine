@@ -16,28 +16,28 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
-import javax.annotation.Nonnull;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.ModuleSubCategory;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.taskcontrol.TaskStatusListener;
-
+import net.sf.mzmine.datamodel.IsotopePattern;
 /**
+ * Used to store a detected isotope pattern in a {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public interface DataPointProcessingModule extends MZmineModule {
+public class DPPIsotopePatternResult extends DPPResult<IsotopePattern>{
 
-  @Nonnull
-  public ModuleSubCategory getModuleSubCategory();
+  public DPPIsotopePatternResult(IsotopePattern value) {
+    super(value);
+  }
 
-  @Nonnull
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
-      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener);
+  @Override
+  public String generateLabel() {
+    return "Isotope pattern detected";
+  }
 
+  @Override
+  public ResultType getResultType() {
+    return ResultType.ISOTOPEPATTERN;
+  }
 }

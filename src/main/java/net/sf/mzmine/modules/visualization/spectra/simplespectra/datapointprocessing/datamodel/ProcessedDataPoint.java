@@ -16,17 +16,15 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.datamodel;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.TreeMap;
 import java.util.Vector;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
 
 /**
  * This class stores the results of DataPointProcessingTasks. It offers more functionality, e.g.

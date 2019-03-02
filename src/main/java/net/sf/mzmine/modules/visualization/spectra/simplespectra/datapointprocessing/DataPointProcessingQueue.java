@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -149,4 +149,52 @@ public class DataPointProcessingQueue extends Vector<MZmineProcessingStep<DataPo
     
   }
   
+  /**
+   * 
+   * @return Returns true if the module list is initialized and > 0.
+   */
+  public boolean stepsValid() {
+    if(!this.isEmpty())
+      return true;
+    return false;
+  }
+  
+  /**
+   * 
+   * @param current A pointer to the current module. 
+   * @return Returns true if there is one or more steps, false if not.
+   */
+  public boolean hasNextStep(MZmineProcessingStep<DataPointProcessingModule> current) {
+    if (this.contains(current)) {
+      int index = this.indexOf(current);
+      if (index + 1 < this.size()) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  /**
+   * 
+   * @param current A pointer to the current module.
+   * @return Returns the next module in this PlotModuleCombo. If this pmc has no next module the
+   *         return is null. Use hasNextModule to check beforehand.
+   */
+  public MZmineProcessingStep<DataPointProcessingModule> getNextStep(MZmineProcessingStep<DataPointProcessingModule> current) {
+    if (hasNextStep(current))
+      return this.get(this.indexOf(current) + 1);
+    return null;
+  }
+  
+  /**
+   * 
+   * @return Returns the first module in this PlotModuleCombo. If the list of steps is not
+   *         initialised, the return is null.
+   */
+  public MZmineProcessingStep<DataPointProcessingModule> getFirstStep() {
+    if (this.size() > 0) {
+      return this.get(0);
+    }
+    return null;
+  }
 }

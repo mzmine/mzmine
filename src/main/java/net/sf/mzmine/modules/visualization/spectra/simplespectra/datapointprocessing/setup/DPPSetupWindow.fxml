@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.datapointprocessing.setup.DPPSetupWindowController">
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindowController">
    <children>
       <BorderPane layoutX="-100.0" layoutY="-100.0" prefHeight="100.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <center>
@@ -26,17 +26,25 @@
             </SplitPane>
          </center>
          <bottom>
-            <HBox alignment="CENTER" spacing="10.0">
+            <VBox>
                <children>
-                  <CheckBox fx:id="cbEnabled" mnemonicParsing="false" text="Enabled" />
-                  <Button fx:id="btnApply" mnemonicParsing="false" onAction="#btnApplyClicked" text="Apply" />
-                  <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#btnAddClicked" text="Add" />
-                  <Button fx:id="btnRemove" mnemonicParsing="false" onAction="#btnRemoveClicked" text="Remove" />
-                  <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#btnSetParamClicked" text="Set parameters" />
-                  <Button fx:id="btnSave" mnemonicParsing="false" onAction="#btnSaveClicked" text="Save" />
-                  <Button fx:id="btnLoad" mnemonicParsing="false" onAction="#btnLoadClicked" text="Load" />
+                  <HBox alignment="CENTER" spacing="10.0">
+                     <children>
+                        <Button fx:id="btnApply" mnemonicParsing="false" onAction="#btnApplyClicked" text="Apply" />
+                        <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#btnAddClicked" text="Add" />
+                        <Button fx:id="btnRemove" mnemonicParsing="false" onAction="#btnRemoveClicked" text="Remove" />
+                        <Button fx:id="btnSetParameters" mnemonicParsing="false" onAction="#btnSetParamClicked" text="Set parameters" />
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER" spacing="15.0">
+                     <children>
+                        <Button fx:id="btnSave" alignment="CENTER" mnemonicParsing="false" onAction="#btnSaveClicked" text="Save steps..." />
+                        <Button fx:id="btnLoad" alignment="CENTER" mnemonicParsing="false" onAction="#btnLoadClicked" text="Load steps..." />
+                        <Button fx:id="btnSetDefault" alignment="CENTER" mnemonicParsing="false" onAction="#btnSetDefaultClicked" text="Set default..." />
+                     </children>
+                  </HBox>
                </children>
-            </HBox>
+            </VBox>
          </bottom>
       </BorderPane>
    </children>

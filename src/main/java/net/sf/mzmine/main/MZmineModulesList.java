@@ -19,9 +19,6 @@
 package net.sf.mzmine.main;
 
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
-import net.sf.mzmine.modules.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
-import net.sf.mzmine.modules.datapointprocessing.massdetection.DPPMassDetectionModule;
-import net.sf.mzmine.modules.datapointprocessing.sumformulaprediction.DPPSumFormulaPredictionModule;
 import net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder.ADAPChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
@@ -109,13 +106,17 @@ import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.KendrickMassPlotModule;
 import net.sf.mzmine.modules.visualization.mzhistogram.MZDistributionHistoModule;
 import net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule;
-import net.sf.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.MSMSExportModule;
+import net.sf.mzmine.modules.visualization.productionfilter.ProductIonFilterVisualizerModule;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection.DPPMassDetectionModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.sumformulaprediction.DPPSumFormulaPredictionModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -199,6 +200,6 @@ public class MZmineModulesList {
       IsotopePatternPreviewModule.class,
 
       // Data point processing
-      DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
+      DataPointProcessingManager.class, DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
   };
 }

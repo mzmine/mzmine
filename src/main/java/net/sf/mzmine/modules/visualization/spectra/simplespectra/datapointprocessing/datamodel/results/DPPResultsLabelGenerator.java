@@ -16,14 +16,14 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
 import java.text.NumberFormat;
 import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
 

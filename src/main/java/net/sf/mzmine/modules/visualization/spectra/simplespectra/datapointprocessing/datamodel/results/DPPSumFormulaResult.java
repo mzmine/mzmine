@@ -16,11 +16,10 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import net.sf.mzmine.main.MZmineCore;
 
 public class DPPSumFormulaResult extends DPPResult<String> {
 

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.setup;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup;
 
 import java.io.File;
 import java.net.URL;
@@ -36,13 +36,14 @@ import javafx.scene.control.TreeView;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingManager;
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingQueue;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.DPPModuleCategoryTreeItem;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.DPPModuleTreeItem;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleCategoryTreeItem;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleTreeItem;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
@@ -92,7 +93,8 @@ public class DPPSetupWindowController {
   private Button btnSetParameters;
 
   @FXML
-  private CheckBox cbEnabled;
+  private Button btnSetDefault;
+
 
   @FXML
   void btnApplyClicked(ActionEvent event) {
@@ -143,8 +145,17 @@ public class DPPSetupWindowController {
   }
 
   @FXML
+  void btnSetDefaultClicked(ActionEvent event) {
+    final File file = chooser.getLoadFile(DPPSetupWindow.getInstance().getFrame());
+    if (file != null) {
+      DataPointProcessingManager.getInst().getParameters()
+          .getParameter(DataPointProcessingParameters.defaultDPPQueue).setValue(file);
+      logger.finest("Set default processing queue to: " + file.getAbsolutePath());
+    }
+  }
+
+  @FXML
   void initialize() {
-    assert cbEnabled != null : "fx:id=\"cbEnabled\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
     assert tvProcessing != null : "fx:id=\"tvProcessing\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
     assert btnApply != null : "fx:id=\"btnApply\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
     assert btnSave != null : "fx:id=\"btnSave\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
@@ -153,17 +164,17 @@ public class DPPSetupWindowController {
     assert tvAllModules != null : "fx:id=\"tvAllModules\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
     assert btnRemove != null : "fx:id=\"btnRemove\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
     assert btnSetParameters != null : "fx:id=\"btnSetParameters\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
+    assert btnSetDefault != null : "fx:id=\"btnSetDefault\" was not injected: check your FXML file 'DPPSetupWindow.fxml'.";
 
     setupTreeViews();
     initTreeviewMouseEvents();
     initTreeViewMenus();
 
-    //  if set, load default processing steps already
-    DataPointProcessingManager manager = DataPointProcessingManager.getInst();
-    if (!manager.getProcessingQueue().isEmpty())
-      setTreeViewProcessingItemsFromQueue(manager.getProcessingQueue());
-    cbEnabled.setSelected(manager.isEnabled());
-    
+    // if set, load default processing steps already
+    // DataPointProcessingManager manager = DataPointProcessingManager.getInst();
+    // if (!manager.getProcessingQueue().isEmpty())
+    // setTreeViewProcessingItemsFromQueue(manager.getProcessingQueue());
+
     chooser = new LoadSaveFileChooser("Select Batch Queue File");
     chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML files", XML_EXTENSION));
   }
@@ -182,7 +193,7 @@ public class DPPSetupWindowController {
         new DPPModuleCategoryTreeItem[ModuleSubCategory.values().length];
     for (int i = 0; i < moduleCategories.length; i++) {
       moduleCategories[i] = new DPPModuleCategoryTreeItem(ModuleSubCategory.values()[i]);
-      
+
     }
 
     // add modules to their module category items
@@ -209,12 +220,8 @@ public class DPPSetupWindowController {
     tvAllModules.showRootProperty().set(true);
     tvProcessing.showRootProperty().set(true);
 
-//    tvAllModules.getRoot().setExpanded(true);
-//    tvProcessing.getRoot().setExpanded(true);
-
-    cbEnabled.selectedProperty().addListener(l -> {
-      DataPointProcessingManager.getInst().setEnabled(cbEnabled.isSelected());
-    });
+    // tvAllModules.getRoot().setExpanded(true);
+    // tvProcessing.getRoot().setExpanded(true);
 
   }
 
@@ -232,7 +239,7 @@ public class DPPSetupWindowController {
     tvAllModules.setOnMouseClicked(e -> {
       if (e.getClickCount() < 2)
         return;
-      logger.finest("Double clicked item in processing tree view.");
+      logger.finest("Double clicked item in all module tree view.");
       addModule();
     });
   }
@@ -247,23 +254,23 @@ public class DPPSetupWindowController {
 
     MenuItem miProcessingSetParameters = new MenuItem("Set parameters");
     miProcessingSetParameters.setOnAction(e -> {
-        setParameters(tvProcessing.getSelectionModel().getSelectedItem());
+      setParameters(tvProcessing.getSelectionModel().getSelectedItem());
     });
     menutvProcessing.getItems().addAll(miProcessingRemove, miProcessingSetParameters);
 
     ContextMenu menutvAllModules = new ContextMenu();
-    
+
     MenuItem menuItemAdd = new MenuItem("Add selected module");
     menuItemAdd.setOnAction(e -> {
       addModule();
     });
     MenuItem miAllModulesSetParameters = new MenuItem("Set parameters");
     miAllModulesSetParameters.setOnAction(e -> {
-        setParameters(tvAllModules.getSelectionModel().getSelectedItem());
+      setParameters(tvAllModules.getSelectionModel().getSelectedItem());
     });
-    
+
     menutvAllModules.getItems().addAll(menuItemAdd, miAllModulesSetParameters);
-    
+
     tvProcessing.setContextMenu(menutvProcessing);
     tvAllModules.setContextMenu(menutvAllModules);
   }
@@ -271,7 +278,7 @@ public class DPPSetupWindowController {
   /**
    * Opens the parameter setup dialog of the selected module.
    */
-  private void setParameters(TreeItem<String> _selected) {
+  private void setParameters(TreeItem<?> _selected) {
     if (_selected == null || !(_selected instanceof DPPModuleTreeItem))
       return;
 

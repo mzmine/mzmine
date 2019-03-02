@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.setup;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -64,7 +64,7 @@ public class DPPSetupWindow {
     fxPanel = new JFXPanel();
 
     loader = new FXMLLoader(getClass().getResource("DPPSetupWindow.fxml"));
-    setController(loader.getController());
+    
     try {
       root = loader.load();
     } catch (IOException e) {
@@ -72,6 +72,8 @@ public class DPPSetupWindow {
       e.printStackTrace();
       return;
     }
+    setController(loader.getController());
+    
     scene = new Scene(root);
     fxPanel.setScene(scene);
 
@@ -81,7 +83,7 @@ public class DPPSetupWindow {
 
     // add menu item manually, else we'd need a module just to add this item which would be
     // unnecessary. Additionally we dont have a parameter set class.
-    addMenuItem();
+//    addMenuItem();
 
     logger.finest("DPPSetupWindow intialized.");
   }

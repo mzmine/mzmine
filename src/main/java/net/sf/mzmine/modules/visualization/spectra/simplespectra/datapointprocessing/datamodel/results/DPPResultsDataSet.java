@@ -16,18 +16,21 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.datamodel;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
-public enum ModuleSubCategory {
-    MASSDETECTION("Mass detection"), ISOTOPES("Isotopes"), IDENTIFICATION("Identification");
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+
+public class DPPResultsDataSet extends DataPointsDataSet {
+
+  private static final long serialVersionUID = 1L;
   
-  private final String name;
-  
-  ModuleSubCategory(String name){
-    this.name = name;
+  public DPPResultsDataSet(String label, ProcessedDataPoint[] mzPeaks) {
+    super(label, mzPeaks);
+  }
+
+  public ProcessedDataPoint[] getDataPoints() {
+    return (ProcessedDataPoint[]) mzPeaks;
   }
   
-  public String getName() {
-    return name;
-  }
 }

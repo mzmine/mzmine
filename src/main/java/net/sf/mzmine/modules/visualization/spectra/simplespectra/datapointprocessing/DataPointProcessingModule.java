@@ -16,37 +16,28 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.isotopes.deisotoper;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
+import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController;
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingTask;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.ModuleSubCategory;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
-public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
+/**
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
+public interface DataPointProcessingModule extends MZmineModule {
 
-  @Override
-  public String getName() {
-    return "13C-Isotope grouper";
-  }
+  @Nonnull
+  public ModuleSubCategory getModuleSubCategory();
 
-  @Override
-  public Class<? extends ParameterSet> getParameterSetClass() {
-    return DPPIsotopeGrouperParameters.class;
-  }
-
-  @Override
-  public ModuleSubCategory getModuleSubCategory() {
-    return ModuleSubCategory.ISOTOPES;
-  }
-
-  @Override
+  @Nonnull
   public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
-      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener) {
-    return new DPPIsotopeGrouperTask(dataPoints, plot, parameterSet, controller, listener);
-  }
+      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener);
+
 }

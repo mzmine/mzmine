@@ -16,11 +16,13 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
+import java.util.List;
+import org.jfree.data.xy.XYDataset;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -70,6 +72,8 @@ public abstract class DataPointProcessingTask extends AbstractTask {
     addTaskStatusListener(listener);
     setStatus(TaskStatus.WAITING);
   }
+  
+  public abstract void displayResults();
 
   public DataPoint[] getDataPoints() {
     return dataPoints;

@@ -16,17 +16,30 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.ControllerStatus;
+import javafx.scene.control.TreeItem;
 
 /**
- * Listens to changes in the status of a DataPointProcessingController.
+ * Stores module categories in a tree item. Used to organize the tree view automatically. Every
+ * {@link ModuleSubCategory} is automatically added in {@link DPPSetupWindowController}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-@FunctionalInterface
-public interface DPPControllerStatusListener {
-  public void statusChanged(DataPointProcessingController controller, ControllerStatus newStatus, ControllerStatus oldStatus);
+public class DPPModuleCategoryTreeItem extends TreeItem<String> {
+  private ModuleSubCategory category;
+
+  public DPPModuleCategoryTreeItem(ModuleSubCategory category) {
+    super(category.getName());
+    setCategory(category);
+  }
+
+  public ModuleSubCategory getCategory() {
+    return category;
+  }
+
+  private void setCategory(ModuleSubCategory category) {
+    this.category = category;
+  }
 }

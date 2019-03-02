@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -52,6 +53,8 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
@@ -577,6 +580,23 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
       });
     }
 
+    if(command.equals("PROCESSING_CHECKBOX")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          DataPointProcessingManager.getInst().setEnabled(((JCheckBox)event.getSource()).isSelected());
+        }
+      });
+    }
+    
+    if(command.equals("SET_PROCESSING_PARAMETERS")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          DPPSetupWindow.getInstance().show();
+        }
+      });
+    }
   }
 
   public void addAnnotation(Map<DataPoint, String> annotation) {

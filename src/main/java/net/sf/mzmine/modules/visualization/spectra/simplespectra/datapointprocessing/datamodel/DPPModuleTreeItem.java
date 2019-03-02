@@ -16,12 +16,12 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.datamodel;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
 import javafx.scene.control.TreeItem;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingModule;
-import net.sf.mzmine.modules.datapointprocessing.setup.DPPSetupWindowController;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindowController;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**

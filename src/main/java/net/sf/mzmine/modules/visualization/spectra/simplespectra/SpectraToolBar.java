@@ -26,6 +26,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -46,6 +47,7 @@ public class SpectraToolBar extends JToolBar {
   static final Icon dbCustomIcon = new ImageIcon("icons/DBCustomIcon.png");
   static final Icon dbLipidsIcon = new ImageIcon("icons/DBLipidsIcon.png");
   static final Icon sumFormulaIcon = new ImageIcon("icons/search.png");
+  static final Icon processingIcon = new ImageIcon("icons/btnspectraprocessing.png");
 
   private JButton centroidContinuousButton, dataPointsButton;
 
@@ -109,6 +111,19 @@ public class SpectraToolBar extends JToolBar {
 
     GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
         "Predict sum formulas for annotation");
+
+    addSeparator();
+
+    GUIUtils.addCheckbox(this, null, null, masterFrame, "PROCESSING_CHECKBOX", 0,
+        "Enable/Disable spectra processing. Please set the parameters below.",
+        DataPointProcessingManager.getInst().isEnabled());
+
+    addSeparator();
+    
+    GUIUtils.addButton(this, null, processingIcon, masterFrame, "SET_PROCESSING_PARAMETERS",
+        "Set spectra processing options...");
+
+    addSeparator();
   }
 
   public void setCentroidButton(MassSpectrumType spectrumType) {

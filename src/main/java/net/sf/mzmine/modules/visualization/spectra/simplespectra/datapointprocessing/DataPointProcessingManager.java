@@ -16,17 +16,20 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
-import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.ControllerStatus;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController.ControllerStatus;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindowController;
+import net.sf.mzmine.parameters.ParameterSet;
 
 /**
  * There will be a single instance of this class, use getInst(). This class keeps track of every
@@ -36,11 +39,13 @@ import net.sf.mzmine.modules.datapointprocessing.DataPointProcessingController.C
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class DataPointProcessingManager {
+public class DataPointProcessingManager implements MZmineModule {
 
   private static final DataPointProcessingManager inst = new DataPointProcessingManager();
   private static final int MAX_RUNNING = 3;
   private static final String MODULE_NAME = "Data point processing manager";
+
+  private ParameterSet parameters;
 
   private static Logger logger = Logger.getLogger(DataPointProcessingManager.class.getName());
 
@@ -55,19 +60,39 @@ public class DataPointProcessingManager {
     waiting = new ArrayList<>();
     running = new ArrayList<>();
 
-    enabled = MZmineCore.getConfiguration().getPreferences()
-        .getParameter(MZminePreferences.spectraProcessing).getValue();
-    File path = MZmineCore.getConfiguration().getPreferences()
-        .getParameter(MZminePreferences.defaultDPPQueue).getValue();
+    // parameters =
+    // MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
 
-    if (path != null) {
-      processingList = DataPointProcessingQueue.loadFromFile(path);
-    } else
-      processingList = new DataPointProcessingQueue();
+    // enabled =
+    // parameters.getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
+    // File path =
+    // parameters.getParameter(DataPointProcessingParameters.defaultDPPQueue).getValue();
+
+    // if (path != null) {
+    // processingList = DataPointProcessingQueue.loadFromFile(path);
+    // } else
+    processingList = new DataPointProcessingQueue();
+    // DPPSetupWindow.getInstance();
   }
 
   public static DataPointProcessingManager getInst() {
     return inst;
+  }
+
+  public ParameterSet getParameters() {
+    if (parameters == null) {
+      parameters =
+          MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
+
+      File path = parameters.getParameter(DataPointProcessingParameters.defaultDPPQueue).getValue();
+      if (path != null) {
+        setProcessingQueue(DataPointProcessingQueue.loadFromFile(path));
+        DPPSetupWindow window = DPPSetupWindow.getInstance();
+        DPPSetupWindowController controller = window.getController();
+        controller.setTreeViewProcessingItemsFromQueue(getProcessingQueue());
+      }
+    }
+    return parameters;
   }
 
   /**
@@ -306,15 +331,24 @@ public class DataPointProcessingManager {
   }
 
   public boolean isEnabled() {
-    return MZmineCore.getConfiguration().getPreferences()
-        .getParameter(MZminePreferences.spectraProcessing).getValue();
+    getParameters();
+    return getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
   }
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
-    MZmineCore.getConfiguration().getPreferences().getParameter(MZminePreferences.spectraProcessing)
-        .setValue(enabled);
+    getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).setValue(enabled);
     logger.finest("Enabled changed to " + enabled);
+  }
+
+  @Override
+  public String getName() {
+    return "Data point/Spectra processing";
+  }
+
+  @Override
+  public Class<? extends ParameterSet> getParameterSetClass() {
+    return DataPointProcessingParameters.class;
   }
 
 }

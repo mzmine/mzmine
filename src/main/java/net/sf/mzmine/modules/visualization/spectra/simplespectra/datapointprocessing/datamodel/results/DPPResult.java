@@ -16,21 +16,32 @@
  * USA
  */
 
-package net.sf.mzmine.modules.datapointprocessing.datamodel.results;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
-import net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+/**
+ * This interface is used to store data point processing results in a {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}
+ * When adding a new result type, also add it to the ResultType enum.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
+public abstract class DPPResult<T> {
 
-public class DPPResultsDataSet extends DataPointsDataSet {
-
-  private static final long serialVersionUID = 1L;
+  public enum ResultType {SUMFORMULA, ISOTOPEPATTERN, ADDUCT, FRAGMENT};
   
-  public DPPResultsDataSet(String label, ProcessedDataPoint[] mzPeaks) {
-    super(label, mzPeaks);
+  final T value;
+  
+  public DPPResult (T value) {
+    this.value = value;
+  }
+  
+  public T getValue() {
+    return value;
   }
 
-  public ProcessedDataPoint[] getDataPoints() {
-    return (ProcessedDataPoint[]) mzPeaks;
-  }
+//  public String toString();
   
+  public abstract String generateLabel();
+
+  public abstract ResultType getResultType();
 }
