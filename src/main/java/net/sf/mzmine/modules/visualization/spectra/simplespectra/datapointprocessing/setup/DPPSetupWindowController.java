@@ -239,7 +239,7 @@ public class DPPSetupWindowController {
     tvAllModules.setOnMouseClicked(e -> {
       if (e.getClickCount() < 2)
         return;
-      logger.finest("Double clicked item in processing tree view.");
+      logger.finest("Double clicked item in all module tree view.");
       addModule();
     });
   }
