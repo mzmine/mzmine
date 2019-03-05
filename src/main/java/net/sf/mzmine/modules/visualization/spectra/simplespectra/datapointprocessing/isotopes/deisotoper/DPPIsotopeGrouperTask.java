@@ -63,6 +63,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private String element = "C";
   private boolean autoRemove;
   private boolean displayResults;
+  private Color color;
 
   public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
@@ -73,10 +74,12 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     monotonicShape =
         parameterSet.getParameter(DPPIsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
-//    element = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
+    // element = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
     autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
     displayResults =
         parameterSet.getParameter(DPPIsotopeGrouperParameters.displayResults).getValue();
+
+    color = parameterSet.getParameter(DPPIsotopeGrouperParameters.datasetColor).getValue();
   }
 
 
@@ -287,7 +290,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public String getTaskDescription() {
-    return "Deisotoping of " + getTargetPlot().getName();
+    return "Deisotoping of Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
   }
 
   @Override
@@ -299,8 +302,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public void displayResults() {
-    if(displayResults || getController().isLastTaskRunning()) {
-      getTargetPlot().addDataSet(compressIsotopeDataSets(getResults()), Color.GREEN, false);
+    if (displayResults || getController().isLastTaskRunning()) {
+      getTargetPlot().addDataSet(compressIsotopeDataSets(getResults()), color, false);
     }
   }
 

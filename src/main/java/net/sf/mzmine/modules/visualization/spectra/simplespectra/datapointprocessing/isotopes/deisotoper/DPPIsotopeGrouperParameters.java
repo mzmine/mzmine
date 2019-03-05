@@ -18,9 +18,11 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
 
+import java.awt.Color;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ColorParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
@@ -57,9 +59,12 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
       "Check if you want to display the deisotoping results in the plot. Displaying too much datasets might decrease clarity.", false);
   
+  public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
+      "Set the color you want the detected isotope patterns to be displayed with.", Color.GREEN);
+  
   public DPPIsotopeGrouperParameters() {
     super(new Parameter[] {/*element,*/ mzTolerance, monotonicShape,
-        maximumCharge, representativeIsotope, autoRemove, displayResults});
+        maximumCharge, representativeIsotope, autoRemove, displayResults, datasetColor});
   }
   
 }

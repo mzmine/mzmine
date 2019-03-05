@@ -175,7 +175,7 @@ public class DPPSetupWindowController {
     // if (!manager.getProcessingQueue().isEmpty())
     // setTreeViewProcessingItemsFromQueue(manager.getProcessingQueue());
 
-    chooser = new LoadSaveFileChooser("Select Batch Queue File");
+    chooser = new LoadSaveFileChooser("Select Processing Queue File");
     chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML files", XML_EXTENSION));
   }
 

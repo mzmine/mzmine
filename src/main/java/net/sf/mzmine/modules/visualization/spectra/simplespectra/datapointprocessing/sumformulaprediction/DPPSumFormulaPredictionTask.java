@@ -80,6 +80,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   private boolean checkIsotopes;
   private boolean displayResults;
   private int numResults;
+  private Color color;
 
   private MolecularFormulaRange elementCounts;
   private MolecularFormulaGenerator generator;
@@ -119,13 +120,15 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     displayResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue();
     
     numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getEmbeddedParameter().getValue();
+    
+    
 
     currentIndex = 0;
   }
 
   @Override
   public String getTaskDescription() {
-    return "Predicts sum formulas for an array of data points.";
+    return "Predicts sum formulas for Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
   }
 
   @Override

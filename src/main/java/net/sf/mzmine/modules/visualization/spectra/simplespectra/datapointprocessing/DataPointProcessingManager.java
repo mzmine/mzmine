@@ -318,6 +318,7 @@ public class DataPointProcessingManager implements MZmineModule {
   }
 
   public DataPointProcessingQueue getProcessingQueue() {
+    getParameters();
     return processingList;
   }
 

@@ -50,6 +50,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
@@ -382,6 +383,7 @@ public class SpectraPlot extends EChartPanel {
     // if the data sets are removed, we have to cancel the tasks.
     if(controller != null)
       controller.cancelTasks();
+    controller = null;
     
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       plot.setDataset(i, null);
@@ -417,14 +419,7 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
-    // if enabled, do the data point processing as set up by the user
-    if (dataSet instanceof ScanDataSet && DataPointProcessingManager.getInst().isEnabled()) {
-      DataPointProcessingManager inst = DataPointProcessingManager.getInst();
-
-      controller = new DataPointProcessingController(inst.getProcessingQueue(), this,
-          getMainScanDataSet().getDataPoints());
-      inst.addController(controller);
-    }
+    checkAndRunController();
   }
 
   // add Dataset with label generator
@@ -460,6 +455,7 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
+    checkAndRunController();
   }
 
 
@@ -472,7 +468,7 @@ public class SpectraPlot extends EChartPanel {
     }
   }
 
-  ScanDataSet getMainScanDataSet() {
+  public ScanDataSet getMainScanDataSet() {
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof ScanDataSet) {
@@ -482,4 +478,29 @@ public class SpectraPlot extends EChartPanel {
     return null;
   }
 
+  /**
+   * Checks if the spectra processing is enabled and executes the controller if it is.
+   */
+  public void checkAndRunController() {
+    
+    if(controller != null)
+      return;
+    
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      XYDataset dataSet = plot.getDataset(i);
+      if (dataSet instanceof DPPResultsDataSet) {
+        // if the processing was executed already, back out
+        return;
+      }
+    }
+    // if enabled, do the data point processing as set up by the user
+    XYDataset dataSet = getMainScanDataSet();
+    if (dataSet instanceof ScanDataSet && DataPointProcessingManager.getInst().isEnabled()) {
+      DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+
+      controller = new DataPointProcessingController(inst.getProcessingQueue(), this,
+          getMainScanDataSet().getDataPoints());
+      inst.addController(controller);
+    }
+  }
 }
