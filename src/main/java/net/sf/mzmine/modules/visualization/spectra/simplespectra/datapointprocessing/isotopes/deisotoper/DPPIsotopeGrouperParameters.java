@@ -63,9 +63,12 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
       "Check if you want to display the deisotoping results in the plot. Displaying too much datasets might decrease clarity.", false);
 
+  public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
+      "Set the color you want the detected isotope patterns to be displayed with.", Color.GREEN);
+  
   public DPPIsotopeGrouperParameters() {
     super(new Parameter[] {element, mzTolerance, mzRange, monotonicShape, maximumCharge,
         representativeIsotope, autoRemove, displayResults});
-  }
+   }
 
 }

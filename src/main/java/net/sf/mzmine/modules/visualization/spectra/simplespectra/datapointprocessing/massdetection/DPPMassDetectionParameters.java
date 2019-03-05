@@ -18,12 +18,14 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection;
 
+import java.awt.Color;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ColorParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 
@@ -40,10 +42,14 @@ public class DPPMassDetectionParameters extends SimpleParameterSet {
           "Algorithm to use for mass detection and its parameters", massDetectors);
 
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
-      "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.", false);
+      "Check if you want to display the mass detection results in the plot. Displaying too much datasets might decrease clarity.",
+      false);
+
+  public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
+      "Set the color you want the detected isotope patterns to be displayed with.", Color.CYAN);
 
   public DPPMassDetectionParameters() {
-    super(new Parameter[] {noiseLevel, massDetector, displayResults});
+    super(new Parameter[] {noiseLevel, massDetector, displayResults, datasetColor});
   }
 
 }

@@ -27,8 +27,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController.ControllerStatus;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindowController;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
@@ -87,9 +85,6 @@ public class DataPointProcessingManager implements MZmineModule {
       File path = parameters.getParameter(DataPointProcessingParameters.defaultDPPQueue).getValue();
       if (path != null) {
         setProcessingQueue(DataPointProcessingQueue.loadFromFile(path));
-        DPPSetupWindow window = DPPSetupWindow.getInstance();
-        DPPSetupWindowController controller = window.getController();
-        controller.setTreeViewProcessingItemsFromQueue(getProcessingQueue());
       }
     }
     return parameters;
@@ -318,6 +313,7 @@ public class DataPointProcessingManager implements MZmineModule {
   }
 
   public DataPointProcessingQueue getProcessingQueue() {
+    getParameters();
     return processingList;
   }
 

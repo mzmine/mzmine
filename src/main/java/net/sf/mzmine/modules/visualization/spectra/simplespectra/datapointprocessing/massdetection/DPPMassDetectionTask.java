@@ -39,8 +39,9 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   int currentIndex;
   // private MZmineProcessingStep<MassDetector> pMassDetector;
   private MassDetector massDetector;
-  double noiseLevel;
-  boolean displayResults;
+  private double noiseLevel;
+  private boolean displayResults;
+  private Color color;
 
 
   DPPMassDetectionTask(DataPoint[] dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet,
@@ -52,11 +53,12 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
     massDetector = step.getModule();
     noiseLevel = parameterSet.getParameter(DPPMassDetectionParameters.noiseLevel).getValue();
     displayResults = parameterSet.getParameter(DPPMassDetectionParameters.displayResults).getValue();
+    color = parameterSet.getParameter(DPPMassDetectionParameters.datasetColor).getValue();
   }
 
   @Override
   public String getTaskDescription() {
-    return "Mass detection for plot " + getTargetPlot().toString();
+    return "Mass detection for Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
   }
 
   @Override
@@ -95,7 +97,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   public void displayResults() {
     // if this is the last task, display even if not checked.
     if(getController().isLastTaskRunning() || displayResults) {
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results", getResults()), Color.CYAN, false);
+      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results", getResults()), color, false);
     }
   }
   

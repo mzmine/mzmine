@@ -54,7 +54,7 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
@@ -65,6 +65,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentifi
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 /**
@@ -580,20 +581,26 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
       });
     }
 
-    if(command.equals("PROCESSING_CHECKBOX")) {
+    if (command.equals("PROCESSING_CHECKBOX")) {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
-          DataPointProcessingManager.getInst().setEnabled(((JCheckBox)event.getSource()).isSelected());
+          DataPointProcessingManager.getInst()
+              .setEnabled(((JCheckBox) event.getSource()).isSelected());
         }
       });
     }
-    
-    if(command.equals("SET_PROCESSING_PARAMETERS")) {
+
+    if (command.equals("SET_PROCESSING_PARAMETERS")) {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
-          DPPSetupWindow.getInstance().show();
+          // DPPSetupWindow.getInstance().show();
+          if (DataPointProcessingManager.getInst().getParameters()
+              .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK
+              && DataPointProcessingManager.getInst().isEnabled()) {
+            getSpectrumPlot().checkAndRunController();
+          }
         }
       });
     }

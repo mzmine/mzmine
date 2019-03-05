@@ -79,6 +79,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   private boolean checkIsotopes;
   private boolean displayResults;
   private int numResults;
+  private Color color;
 
   private MolecularFormulaRange elementCounts;
   private MolecularFormulaGenerator generator;

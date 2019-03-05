@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.sumformulaprediction;
 
+import java.awt.Color;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicParameters;
@@ -26,6 +27,7 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.Isotop
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ColorParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
@@ -69,11 +71,15 @@ public class DPPSumFormulaPredictionParameters extends SimpleParameterSet {
   public static final OptionalParameter<IntegerParameter> displayResults =
       new OptionalParameter<IntegerParameter>(new IntegerParameter("Display results (#)",
           "Check if you want to display the sum formula prediction results in the plot. "
-          + "Displaying too much datasets might decrease clarity.\nPlease enter the number "
-          + "of predicted sum formulas, you would like to display.", 1));
+              + "Displaying too much datasets might decrease clarity.\nPlease enter the number "
+              + "of predicted sum formulas, you would like to display.",
+          1));
+
+  public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
+      "Set the color you want the detected isotope patterns to be displayed with.", Color.BLACK);
 
   public DPPSumFormulaPredictionParameters() {
     super(new Parameter[] {charge, noiseLevel, ionization, mzTolerance, elements, elementalRatios,
-        rdbeRestrictions, isotopeFilter, displayResults});
+        rdbeRestrictions, isotopeFilter, displayResults, datasetColor});
   }
 }
