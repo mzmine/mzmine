@@ -122,6 +122,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults)
         .getEmbeddedParameter().getValue();
 
+    color = parameterSet.getParameter(DPPSumFormulaPredictionParameters.datasetColor).getValue();
+
     currentIndex = 0;
   }
 
@@ -336,10 +338,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public void displayResults() {
-    if(displayResults || getController().isLastTaskRunning()) {
+    if (displayResults || getController().isLastTaskRunning()) {
       SpectraPlotUtils.clearDatasetLabelGenerators(getTargetPlot(), DPPResultsDataSet.class);
       DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(getTargetPlot());
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Sum formula prediction results", getResults()), Color.BLACK, false, labelGen);
+      getTargetPlot().addDataSet(
+          new DPPResultsDataSet("Sum formula prediction results", getResults()), color, false,
+          labelGen);
     }
   }
 }

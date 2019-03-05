@@ -77,7 +77,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private Range<Double> mzrange;
   private boolean displayResults;
   private int maxCharge;
-  private Color color;
 
   public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
@@ -103,7 +102,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   public void run() {
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
-          "The data points passed to Isotope Grouper were not an instance of processed data points. Make sure to run mass detection first.");
+          "The data points passed to Isotope Grouper were not an instance of processed data points."
+          + " Make sure to run mass detection first.");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -137,15 +137,17 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
         if (!mzrange.contains(dp.getMZ()))
           continue;
 
-        IsotopePatternUtils.findIsotopePatterns(dp, originalDataPoints, mzTolerance, pattern, mzrange, maxCharge);
+        IsotopePatternUtils.findIsotopePatterns(dp, originalDataPoints, mzTolerance, pattern,
+            mzrange, maxCharge);
 
         processedSteps++;
       }
     }
 
 
-    List<ProcessedDataPoint> results = IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
-    
+    List<ProcessedDataPoint> results =
+        IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
+
     // now we looped through all dataPoints and link the found isotope patterns together
     // we start from the back so we can just accumulate them by merging the linked the
     // peaks/patterns
@@ -309,8 +311,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public String getTaskDescription() {
-    // TODO Auto-generated method stub
-    return null;
+    return "Isotope grouping for Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
   }
 
   @Override
