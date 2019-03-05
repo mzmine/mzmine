@@ -22,16 +22,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Used to keep track of the isotope composition of a peak. This result type contains an ArrayList
+ * of Strings. A ProcessedDataPoint should only contain one result of this type. If there is more
+ * than one isotope involved, they should all be added to this list.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class DPPIsotopeCompositionResult extends DPPResult<List<String>>{
+public class DPPIsotopeCompositionResult extends DPPResult<List<String>> {
 
   public DPPIsotopeCompositionResult(List<String> value) {
     super(value);
   }
-  
+
   public DPPIsotopeCompositionResult(String value) {
     super(new ArrayList<String>());
     getValue().add(value);
@@ -40,7 +43,7 @@ public class DPPIsotopeCompositionResult extends DPPResult<List<String>>{
   @Override
   public String generateLabel() {
     String label = "";
-    for(String s : value)
+    for (String s : value)
       label += s + ", ";
     label = label.substring(0, label.length() - 2);
     return label;
@@ -51,5 +54,5 @@ public class DPPIsotopeCompositionResult extends DPPResult<List<String>>{
     return ResultType.ISOTOPECOMPOSITION;
   }
 
-  
+
 }

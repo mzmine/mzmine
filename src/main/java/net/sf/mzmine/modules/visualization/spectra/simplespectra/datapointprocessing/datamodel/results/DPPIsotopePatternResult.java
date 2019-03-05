@@ -31,17 +31,19 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 public class DPPIsotopePatternResult extends DPPResult<IsotopePattern> {
 
   private ProcessedDataPoint[] linkedDataPoints;
+  private final int charge;
 
-  public DPPIsotopePatternResult(IsotopePattern value) {
-    super(value);
-  }
+//  public DPPIsotopePatternResult(IsotopePattern value) {
+//    super(value);
+//  }
 
-  public DPPIsotopePatternResult(IsotopePattern value, ProcessedDataPoint[] linkedDataPoints) {
+  public DPPIsotopePatternResult(IsotopePattern value, ProcessedDataPoint[] linkedDataPoints, int charge) {
     super(value);
 
     if (value.getNumberOfDataPoints() == linkedDataPoints.length) {
       this.linkedDataPoints = linkedDataPoints;
     }
+    this.charge = charge;
   }
 
   public ProcessedDataPoint[] getLinkedDataPoints() {
@@ -64,7 +66,11 @@ public class DPPIsotopePatternResult extends DPPResult<IsotopePattern> {
       if (i < linkedDataPoints.length)
         linkedDataPoints[i] = dp;
   }
-
+  
+  public int getCharge() {
+    return charge;
+  }
+  
   @Override
   public String generateLabel() {
     return "Isotope pattern detected";
