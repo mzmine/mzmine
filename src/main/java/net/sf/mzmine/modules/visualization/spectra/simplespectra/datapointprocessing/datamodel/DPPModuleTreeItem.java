@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproce
 import javafx.scene.control.TreeItem;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindowController;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**

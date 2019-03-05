@@ -1,7 +1,6 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -19,7 +18,6 @@ import javax.swing.JTree;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import net.sf.mzmine.main.MZmineCore;
@@ -28,17 +26,14 @@ import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleCategoryTreeNode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleTreeNode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
-import weka.classifiers.bayes.net.GUI;
 
 public class ProcessingComponent extends JPanel implements ActionListener {
 
@@ -100,13 +95,13 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     } else if (e.getActionCommand().equals("BTN_SET_PARAMETERS")) {
       setParameters(getSelectedItem(tvProcessing));
     } else if (e.getActionCommand().equals("BTN_LOAD")) {
-      final File file = chooser.getLoadFile(DPPSetupWindow.getInstance().getFrame());
+      final File file = chooser.getLoadFile(this);
 
       DataPointProcessingQueue queue = DataPointProcessingQueue.loadFromFile(file);
       setTreeViewProcessingItemsFromQueue(queue);
       sendQueue();
     } else if (e.getActionCommand().equals("BTN_SAVE")) {
-      final File file = chooser.getSaveFile(DPPSetupWindow.getInstance().getFrame(), XML_EXTENSION);
+      final File file = chooser.getSaveFile(this, XML_EXTENSION);
       DataPointProcessingQueue queue = getProcessingQueueFromTreeView();
       queue.saveToFile(file);
     }

@@ -55,7 +55,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.setup.DPPSetupWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
