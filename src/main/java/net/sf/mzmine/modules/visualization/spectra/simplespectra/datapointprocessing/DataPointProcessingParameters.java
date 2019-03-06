@@ -12,12 +12,10 @@ public class DataPointProcessingParameters extends SimpleParameterSet {
    */
   public static final BooleanParameter spectraProcessing = new BooleanParameter(
       "Enable spectra processing", "Enable spectra processing for Spectra plots.", false);
-  public static final FileNameParameter defaultDPPQueue = new FileNameParameter(
-      "Default spectra processing queue", "File that saves the default spectra processing queue");
   public static final ProcessingParameter processing = new ProcessingParameter("Processing queue",
       "Set the modules to be executed in the processing queue.");
 
   public DataPointProcessingParameters() {
-    super(new Parameter[] {spectraProcessing, defaultDPPQueue, processing});
+    super(new Parameter[] {spectraProcessing, processing});
   }
 }

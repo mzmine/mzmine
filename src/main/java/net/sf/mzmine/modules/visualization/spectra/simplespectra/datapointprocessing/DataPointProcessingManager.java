@@ -81,11 +81,7 @@ public class DataPointProcessingManager implements MZmineModule {
     if (parameters == null) {
       parameters =
           MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
-
-      File path = parameters.getParameter(DataPointProcessingParameters.defaultDPPQueue).getValue();
-      if (path != null) {
-        setProcessingQueue(DataPointProcessingQueue.loadFromFile(path));
-      }
+      processingList = parameters.getParameter(DataPointProcessingParameters.processing).getValue();
     }
     return parameters;
   }
