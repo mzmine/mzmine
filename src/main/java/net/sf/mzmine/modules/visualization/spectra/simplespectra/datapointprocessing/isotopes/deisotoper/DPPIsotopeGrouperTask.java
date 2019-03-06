@@ -103,15 +103,17 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
           "The data points passed to Isotope Grouper were not an instance of processed data points."
-          + " Make sure to run mass detection first.");
+              + " Make sure to run mass detection first.");
       setStatus(TaskStatus.ERROR);
       return;
     }
 
     // check formula
-    if (!FormulaUtils.checkMolecularFormula(elements)) {
+    if (elements == null || elements.equals("") || !FormulaUtils.checkMolecularFormula(elements)) {
+      setErrorMessage("Invalid element parameter in " + this.getClass().getName());
       setStatus(TaskStatus.ERROR);
       logger.warning("Invalid element parameter in " + this.getClass().getName());
+      return;
     }
 
     ExtendedIsotopePattern[] elementPattern =
@@ -154,43 +156,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     setResults(results.toArray(new ProcessedDataPoint[0]));
     setStatus(TaskStatus.FINISHED);
 
-  }
-
-  private String getResultIsoComp(DPPIsotopePatternResult result) {
-    String str = "";
-    for (ProcessedDataPoint dp : result.getLinkedDataPoints()) {
-      String c = "";
-      DPPIsotopeCompositionResult comps =
-          (DPPIsotopeCompositionResult) dp.getFirstResultByType(ResultType.ISOTOPECOMPOSITION);
-      for (String comp : comps.getValue())
-        c += comp + ", ";
-      c = c.substring(0, c.length() - 2);
-      str += format.format(dp.getMZ()) + " (" + c + "), ";
-    }
-    str = str.substring(0, str.length() - 2);
-    return str;
-  }
-
-  public class BufferElement {
-    final double ppm;
-    final ProcessedDataPoint dp;
-
-    BufferElement(double ppm, ProcessedDataPoint dp) {
-      this.ppm = ppm;
-      this.dp = dp;
-    }
-
-    public double getPpm() {
-      return ppm;
-    }
-
-    public ProcessedDataPoint getDp() {
-      return dp;
-    }
-  }
-
-  public static double ppmDiff(double realmz, double calcmz) {
-    return 10E6 * (realmz - calcmz) / calcmz;
   }
 
   public static IsotopePattern checkOverlappingIsotopes(IsotopePattern pattern, IIsotope[] isotopes,
@@ -311,7 +276,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public String getTaskDescription() {
-    return "Isotope grouping for Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
+    return "Isotope grouping for Scan #"
+        + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
   }
 
   @Override
@@ -341,39 +307,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
           j++;
         }
     }
-  }
-
-  /**
-   * This method generates a single IsotopesDataSet from all detected isotope patterns in the
-   * results.
-   * 
-   * @param dataPoints
-   * @return
-   */
-  private IsotopesDataSet compressIsotopeDataSets(ProcessedDataPoint[] dataPoints) {
-    List<IsotopePattern> list = new ArrayList<>();
-
-    for (ProcessedDataPoint dp : dataPoints) {
-      if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-        list.add(((DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN))
-            .getValue());
-      }
-    }
-    if (list.isEmpty())
-      return null;
-
-    List<DataPoint> dpList = new ArrayList<>();
-
-    for (IsotopePattern pattern : list) {
-      for (DataPoint dp : pattern.getDataPoints())
-        dpList.add(dp);
-    }
-    if (dpList.isEmpty())
-      return null;
-
-    IsotopePattern full = new SimpleIsotopePattern(dpList.toArray(new DataPoint[0]),
-        IsotopePatternStatus.DETECTED, "Isotope patterns");
-    return new IsotopesDataSet(full);
   }
 
   public static List<Color> generateRainbowColors(int num) {
