@@ -38,7 +38,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
 
   int currentIndex;
   // private MZmineProcessingStep<MassDetector> pMassDetector;
-  private MassDetector massDetector;
+  private MZmineProcessingStep<MassDetector> massDetector;
   private double noiseLevel;
   private boolean displayResults;
   private Color color;
@@ -48,22 +48,22 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
       DataPointProcessingController controller, TaskStatusListener listener) {
     super(dataPoints, targetPlot, parameterSet, controller, listener);
     currentIndex = 0;
-    MZmineProcessingStep<MassDetector> step =
-        parameterSet.getParameter(DPPMassDetectionParameters.massDetector).getValue();
-    massDetector = step.getModule();
-    noiseLevel = parameterSet.getParameter(DPPMassDetectionParameters.noiseLevel).getValue();
-    displayResults = parameterSet.getParameter(DPPMassDetectionParameters.displayResults).getValue();
+    massDetector = parameterSet.getParameter(DPPMassDetectionParameters.massDetector).getValue();
+    // massDetector = step.getModule();
+    displayResults =
+        parameterSet.getParameter(DPPMassDetectionParameters.displayResults).getValue();
     color = parameterSet.getParameter(DPPMassDetectionParameters.datasetColor).getValue();
   }
 
   @Override
   public String getTaskDescription() {
-    return "Mass detection for Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
+    return "Mass detection for Scan #"
+        + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
   }
 
   @Override
   public double getFinishedPercentage() {
-    if(getDataPoints().length == 0)
+    if (getDataPoints().length == 0)
       return 0;
     return currentIndex / getDataPoints().length;
   }
@@ -72,21 +72,27 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
-    if (getDataPoints() == null) {
+    if (getDataPoints() == null || massDetector == null || massDetector.getModule() == null
+        || massDetector.getParameterSet() == null) {
       setStatus(TaskStatus.ERROR);
       return;
     }
 
-    ProcessedDataPoint[] dp;
-    if (massDetector instanceof ExactMassDetector) {
-      ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
-      ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      dp = ProcessedDataPoint.convert(massDetector.getMassValues(getDataPoints(), parameters));
-    } else {
-      CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
-      CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      dp = ProcessedDataPoint.convert(massDetector.getMassValues(getDataPoints(), parameters));
+    if(getStatus() == TaskStatus.CANCELED) {
+      return;
     }
+    
+    MassDetector detector = massDetector.getModule();
+    DataPoint[] masses = detector.getMassValues(getDataPoints(), massDetector.getParameterSet());
+    
+    if(masses == null || masses.length <= 0) {
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+      
+    
+    ProcessedDataPoint[] dp = ProcessedDataPoint.convert(masses);
+
     currentIndex = dataPoints.length;
 
     setResults(dp);
@@ -96,9 +102,10 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   @Override
   public void displayResults() {
     // if this is the last task, display even if not checked.
-    if(getController().isLastTaskRunning() || displayResults) {
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results", getResults()), color, false);
+    if (getController().isLastTaskRunning() || displayResults) {
+      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results", getResults()),
+          color, false);
     }
   }
-  
+
 }
