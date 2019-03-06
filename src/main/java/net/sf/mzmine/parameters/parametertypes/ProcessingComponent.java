@@ -239,12 +239,14 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       return;
 
     if (selected instanceof DPPModuleTreeNode) {
-      ((DefaultTreeModel) tvProcessing.getModel()).removeNodeFromParent(selected);
+      ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).remove(selected);
+//      selected.removeFromParent();
       logger.finest("Removed module " + ((DPPModuleTreeNode) selected).getModule().getName()
           + " from processing list.");
     } else {
       logger.finest("Cannot remove item " + selected.toString() + " from processing list.");
     }
+    ((DefaultTreeModel)tvProcessing.getModel()).reload();
   }
 
   /**
@@ -308,12 +310,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   private Collection<DPPModuleTreeNode> createTreeItemsFromQueue(DataPointProcessingQueue queue) {
     Collection<DPPModuleTreeNode> items = new ArrayList<DPPModuleTreeNode>();
 
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
-
     for (MZmineProcessingStep<DataPointProcessingModule> step : queue) {
-      logger.info("adding module " + step.getModule().getName() + " to the list.");
-
-      root.add(new DPPModuleTreeNode(step.getModule()));
+      items.add(new DPPModuleTreeNode(step.getModule()));
     }
 
     return items;
@@ -326,6 +324,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * @param queue
    */
   public void setTreeViewProcessingItemsFromQueue(DataPointProcessingQueue queue) {
+    logger.info("Loading queue into tvProcessing...");
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
     root.removeAllChildren();
     Collection<DPPModuleTreeNode> moduleNodes = createTreeItemsFromQueue(queue);

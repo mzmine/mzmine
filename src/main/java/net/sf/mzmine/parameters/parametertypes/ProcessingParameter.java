@@ -63,8 +63,8 @@ public class ProcessingParameter implements UserParameter <DataPointProcessingQu
   @Override
   public ProcessingComponent createEditingComponent() {
     ProcessingComponent comp = new ProcessingComponent();
-    if(value != null)
-      comp.setTreeViewProcessingItemsFromQueue(value);
+//    if(value != null)
+//      comp.setTreeViewProcessingItemsFromQueue(value);
     return comp;
   }
 

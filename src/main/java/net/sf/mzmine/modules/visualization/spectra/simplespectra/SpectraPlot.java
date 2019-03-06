@@ -99,8 +99,9 @@ public class SpectraPlot extends EChartPanel {
 
   // Spectra processing
   DataPointProcessingController controller;
+  private boolean processingAllowed;
 
-  public SpectraPlot(ActionListener masterPlot) {
+  public SpectraPlot(ActionListener masterPlot, boolean processingAllowed) {
 
     super(ChartFactory.createXYLineChart("", // title
         "m/z", // x-axis label
@@ -221,6 +222,13 @@ public class SpectraPlot extends EChartPanel {
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
+    
+    // set processingAllowed
+    setProcessingAllowed(processingAllowed);
+  }
+  
+  public SpectraPlot(ActionListener masterPlot) {
+    this(masterPlot, false);
   }
 
   @Override
@@ -379,12 +387,12 @@ public class SpectraPlot extends EChartPanel {
   }
 
   public synchronized void removeAllDataSets() {
-    
+
     // if the data sets are removed, we have to cancel the tasks.
-    if(controller != null)
+    if (controller != null)
       controller.cancelTasks();
     controller = null;
-    
+
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       plot.setDataset(i, null);
     }
@@ -479,13 +487,16 @@ public class SpectraPlot extends EChartPanel {
   }
 
   /**
-   * Checks if the spectra processing is enabled and executes the controller if it is.
+   * Checks if the spectra processing is enabled & allowed and executes the controller if it is.
+   * Processing is forbidden for instances of ParameterSetupDialogWithScanPreviews
    */
   public void checkAndRunController() {
-    
-    if(controller != null)
+
+    // if controller != null, processing on the current spectra has already been executed. When
+    // loading a new spectrum, the controller is set to null in removeAllDataSets()
+    if (controller != null || !isProcessingAllowed())
       return;
-    
+
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof DPPResultsDataSet) {
@@ -502,5 +513,13 @@ public class SpectraPlot extends EChartPanel {
           getMainScanDataSet().getDataPoints());
       inst.addController(controller);
     }
+  }
+
+  public boolean isProcessingAllowed() {
+    return processingAllowed;
+  }
+
+  public void setProcessingAllowed(boolean processingAllowed) {
+    this.processingAllowed = processingAllowed;
   }
 }

@@ -129,7 +129,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public String getTaskDescription() {
-    return "Predicts sum formulas for an array of data points.";
+    return "Predicts sum formulas for Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
   }
 
   @Override

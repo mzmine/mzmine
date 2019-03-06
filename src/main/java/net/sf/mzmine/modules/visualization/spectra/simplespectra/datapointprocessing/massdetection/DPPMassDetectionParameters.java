@@ -22,6 +22,9 @@ import java.awt.Color;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima.LocalMaxMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.recursive.RecursiveMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet.WaveletMassDetector;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -31,11 +34,9 @@ import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 
 public class DPPMassDetectionParameters extends SimpleParameterSet {
 
-  public static final DoubleParameter noiseLevel =
-      new DoubleParameter("Noise Level", "Minimum intensity to be considered a peak.");
-
   public static final MassDetector massDetectors[] =
-      {new CentroidMassDetector(), new ExactMassDetector()};
+      {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
+        new RecursiveMassDetector(), new WaveletMassDetector()};
 
   public static final ModuleComboParameter<MassDetector> massDetector =
       new ModuleComboParameter<MassDetector>("Mass detector",
@@ -49,7 +50,7 @@ public class DPPMassDetectionParameters extends SimpleParameterSet {
       "Set the color you want the detected isotope patterns to be displayed with.", Color.CYAN);
 
   public DPPMassDetectionParameters() {
-    super(new Parameter[] {noiseLevel, massDetector, displayResults, datasetColor});
+    super(new Parameter[] {massDetector, displayResults, datasetColor});
   }
 
 }

@@ -107,7 +107,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     setBackground(Color.white);
 
-    spectrumPlot = new SpectraPlot(this);
+    spectrumPlot = new SpectraPlot(this, true);
     add(spectrumPlot, BorderLayout.CENTER);
 
     toolBar = new SpectraToolBar(this);
