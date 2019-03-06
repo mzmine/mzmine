@@ -39,7 +39,6 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   int currentIndex;
   // private MZmineProcessingStep<MassDetector> pMassDetector;
   private MZmineProcessingStep<MassDetector> massDetector;
-  private double noiseLevel;
   private boolean displayResults;
   private Color color;
 
@@ -89,7 +88,6 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
       setStatus(TaskStatus.ERROR);
       return;
     }
-      
     
     ProcessedDataPoint[] dp = ProcessedDataPoint.convert(masses);
 

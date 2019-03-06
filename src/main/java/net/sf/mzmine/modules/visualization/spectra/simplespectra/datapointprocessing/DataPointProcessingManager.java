@@ -47,8 +47,6 @@ public class DataPointProcessingManager implements MZmineModule {
 
   private static Logger logger = Logger.getLogger(DataPointProcessingManager.class.getName());
 
-  private boolean enabled;
-
   private List<DataPointProcessingController> waiting;
   private List<DataPointProcessingController> running;
 
@@ -61,16 +59,7 @@ public class DataPointProcessingManager implements MZmineModule {
     // parameters =
     // MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
 
-    // enabled =
-    // parameters.getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
-    // File path =
-    // parameters.getParameter(DataPointProcessingParameters.defaultDPPQueue).getValue();
-
-    // if (path != null) {
-    // processingList = DataPointProcessingQueue.loadFromFile(path);
-    // } else
     processingList = new DataPointProcessingQueue();
-    // DPPSetupWindow.getInstance();
   }
 
   public static DataPointProcessingManager getInst() {
@@ -328,7 +317,6 @@ public class DataPointProcessingManager implements MZmineModule {
   }
 
   public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
     getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).setValue(enabled);
     logger.finest("Enabled changed to " + enabled);
   }
