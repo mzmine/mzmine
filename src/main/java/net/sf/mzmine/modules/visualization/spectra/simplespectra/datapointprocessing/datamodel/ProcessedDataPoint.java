@@ -133,7 +133,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
   public boolean resultTypeExists(DPPResult.ResultType type) {
     if (results == null)
       return false;
-    
+
     for (DPPResult<?> r : results)
       if (r.getResultType() == type)
         return true;
@@ -142,6 +142,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
 
   /**
    * The number of results with the given type.
+   * 
    * @param type
    * @return
    */
@@ -178,18 +179,19 @@ public class ProcessedDataPoint extends SimpleDataPoint {
 
     return list;
   }
-  
+
   /**
    * Returns the first result of the given type.
+   * 
    * @param type
    * @return Instance of DPPResult<?> or null if no result of that type exists.
    */
-  public DPPResult<?> getFirstResultByType(DPPResult.ResultType type){
+  public DPPResult<?> getFirstResultByType(DPPResult.ResultType type) {
     if (results == null)
       return null;
-    
-    for(DPPResult<?> r : results)
-      if(r.getResultType() == type)
+
+    for (DPPResult<?> r : results)
+      if (r.getResultType() == type)
         return r;
     return null;
   }
@@ -197,9 +199,16 @@ public class ProcessedDataPoint extends SimpleDataPoint {
   public void removeResult(int i) {
     results.remove(i);
   }
-  
+
   public void removeResult(DPPResult<?> result) {
+    // System.out.println(results.toString());
     results.remove(result);
+    // System.out.println(results.toString());
+  }
+
+  public void removeResults(List<DPPResult<?>> results) {
+    for (DPPResult<?> result : results)
+      removeResult(result);
   }
   /*
    * public boolean equals(ProcessedDataPoint p) { //TODO }

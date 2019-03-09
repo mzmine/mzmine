@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -37,7 +38,20 @@ public class DPPIsotopeCompositionResult extends DPPResult<List<String>> {
 
   public DPPIsotopeCompositionResult(String value) {
     super(new ArrayList<String>());
-    getValue().add(value);
+    
+    if(value != null && !value.equals("") && !value.equals(" "))
+      getValue().add(value);
+  }
+  
+  public void add(String value) {
+    if(value == null || value.equals("") || value.equals(" "))
+      return;
+    this.getValue().add(value);
+  }
+  
+  public void addAll(Collection<String> values) {
+    for(String value : values)
+      add(value);
   }
 
   @Override

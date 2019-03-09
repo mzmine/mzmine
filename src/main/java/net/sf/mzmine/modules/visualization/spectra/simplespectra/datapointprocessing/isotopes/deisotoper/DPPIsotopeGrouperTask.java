@@ -147,9 +147,15 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     }
 
 
-    List<ProcessedDataPoint> results =
-        IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
-
+    // List<ProcessedDataPoint> results =
+    IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
+    List<ProcessedDataPoint> results = new ArrayList<>();
+    
+    for(ProcessedDataPoint dp : originalDataPoints) {
+      if(dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+        results.add(dp);
+    }
+    
     // now we looped through all dataPoints and link the found isotope patterns together
     // we start from the back so we can just accumulate them by merging the linked the
     // peaks/patterns
