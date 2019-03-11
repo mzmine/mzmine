@@ -52,6 +52,8 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
+import javax.annotation.Nullable;
+
 /**
  * @author aleksandrsmirnov
  */
@@ -96,45 +98,52 @@ public class ADAP3AlignerTask extends AbstractTask {
     }
 
     @Override
+    public void cancel() {
+        super.cancel();
+
+        this.alignment.cancel();
+    }
+
+    @Override
     public void run() {
 
-        if (!isCanceled()) {
-            String errorMsg = null;
+        if (isCanceled()) return;
 
-            setStatus(TaskStatus.PROCESSING);
-            LOG.info("Started ADAP Peak Alignment");
+        String errorMsg = null;
 
-            try {
-                PeakList peakList = alignPeaks(peakLists);
+        setStatus(TaskStatus.PROCESSING);
+        LOG.info("Started ADAP Peak Alignment");
 
-                if (!isCanceled()) {
-                    project.addPeakList(peakList);
+        try {
+            PeakList peakList = alignPeaks();
 
-                    QualityParameters.calculateQualityParameters(peakList);
+            if (!isCanceled()) {
+                project.addPeakList(peakList);
 
-                    setStatus(TaskStatus.FINISHED);
-                    LOG.info("Finished ADAP Peak Alignment");
-                }
-            } catch (IllegalArgumentException e) {
-                errorMsg = "Incorrect Peak Lists:\n" + e.getMessage();
-            } catch (Exception e) {
-                errorMsg = "'Unknown error' during alignment. \n"
-                        + e.getMessage();
-            } catch (Throwable t) {
-                setStatus(TaskStatus.ERROR);
-                setErrorMessage(t.getMessage());
-                LOG.log(Level.SEVERE, "ADAP Alignment error", t);
+                QualityParameters.calculateQualityParameters(peakList);
+
+                setStatus(TaskStatus.FINISHED);
+                LOG.info("Finished ADAP Peak Alignment");
             }
+        } catch (IllegalArgumentException e) {
+            errorMsg = "Incorrect Peak Lists:\n" + e.getMessage();
+        } catch (Exception e) {
+            errorMsg = "'Unknown error' during alignment. \n"
+                    + e.getMessage();
+        } catch (Throwable t) {
+            setStatus(TaskStatus.ERROR);
+            setErrorMessage(t.getMessage());
+            LOG.log(Level.SEVERE, "ADAP Alignment error", t);
+        }
 
-            // Report error
-            if (errorMsg != null) {
-                setErrorMessage(errorMsg);
-                setStatus(TaskStatus.ERROR);
-            }
+        // Report error
+        if (errorMsg != null) {
+            setErrorMessage(errorMsg);
+            setStatus(TaskStatus.ERROR);
         }
     }
 
-    private PeakList alignPeaks(PeakList[] peakLists) {
+    private PeakList alignPeaks() {
 
         // Collect all data files
 
@@ -151,21 +160,26 @@ public class ADAP3AlignerTask extends AbstractTask {
 
         // Perform alignment
 
-        for (final PeakList peakList : peakLists) {
+        for (int i = 0; i < peakLists.length; ++i) {
 
-            Sample sample = new Sample(peakList.hashCode());
+            PeakList peakList = peakLists[i];
 
-            for (final PeakListRow row : peakList.getRows())
-                sample.addComponent(getComponent(row));
+            Sample sample = new Sample(i);
+
+            for (final PeakListRow row : peakList.getRows()) {
+                Component component = getComponent(row);
+                if (component != null)
+                    sample.addComponent(component);
+            }
 
             alignment.addSample(sample);
         }
 
-        process(alignment);
+        process();
 
         // Create new peak list
         final PeakList alignedPeakList = new SimplePeakList(peakListName,
-                allDataFiles.toArray(new RawDataFile[allDataFiles.size()]));
+                allDataFiles.toArray(new RawDataFile[0]));
 
         int rowID = 0;
 
@@ -176,29 +190,37 @@ public class ADAP3AlignerTask extends AbstractTask {
         for (final ReferenceComponent component : alignedComponents) {
             final Peak peak = component.getBestPeak();
 
-            PeakListRow refRow = findRow(peakLists, component.getSampleID(),
-                    peak.getInfo().peakID);
+            PeakListRow refRow = findPeakListRow(component.getSampleID(), peak.getInfo().peakID);
+            if (refRow == null)
+                throw new IllegalStateException(String.format(
+                        "Cannot find a peak list row for fileId = %d and peakId = %d",
+                        component.getSampleID(), peak.getInfo().peakID));
 
             SimplePeakListRow newRow = new SimplePeakListRow(++rowID);
 
             newRow.addPeak(refRow.getRawDataFiles()[0], refRow.getBestPeak());
 
             for (int i = 0; i < component.size(); ++i) {
-                PeakListRow row = findRow(peakLists,
+
+                PeakListRow row = findPeakListRow(
                         component.getSampleID(i),
                         component.getComponent(i).getBestPeak().getInfo().peakID);
+
+                if (row == null)
+                    throw new IllegalStateException(String.format(
+                            "Cannot find a peak list row for fileId = %d and peakId = %d",
+                            component.getSampleID(), peak.getInfo().peakID));
 
                 if (row != refRow)
                     newRow.addPeak(row.getRawDataFiles()[0], row.getBestPeak());
             }
-
 
             PeakIdentity identity = refRow.getPreferredPeakIdentity();
 
             if (identity != null)
                 newRow.addPeakIdentity(identity, true);
 
-            newRow.setComment("Alignment Score = " + Double.toString(component.getScore()));
+            newRow.setComment("Alignment Score = " + component.getScore());
 
             // -----------------------------------------------
             // Determine the quantitative mass and intensities
@@ -217,8 +239,14 @@ public class ADAP3AlignerTask extends AbstractTask {
                     new ArrayList<>(component.getComponents());
 
             for (int i = 0; i < components.size(); ++i) {
+
                 Component c = components.get(i);
-                RawDataFile file = findFile(peakLists, component.getSampleID(i));
+
+                PeakList peakList = findPeakList(component.getSampleID(i));
+                if (peakList == null)
+                    throw new IllegalArgumentException("Cannot find peak list " + component.getSampleID(i));
+
+                RawDataFile file = peakList.getRawDataFile(0);
 
                 double minDistance = Double.MAX_VALUE;
                 double intensity = 0.0;
@@ -248,11 +276,17 @@ public class ADAP3AlignerTask extends AbstractTask {
         return alignedPeakList;
     }
 
+    /**
+     * Convert a {@link PeakListRow} with one {@link Feature} into {@link Component}.
+     *
+     * @param row an instance of {@link PeakListRow}. This parameter cannot be null.
+     * @return an instance of {@link Component} or null if the row doesn't contain any peaks or isotope patterns.
+     */
+    @Nullable
     private Component getComponent(final PeakListRow row) {
-        final PeakIdentity identity = row.getPreferredPeakIdentity();
 
         if (row.getNumberOfPeaks() == 0)
-            throw new IllegalArgumentException("No peaks found");
+            return null;
 
         // Read Spectrum information        
         NavigableMap<Double, Double> spectrum = new TreeMap<>();
@@ -282,11 +316,16 @@ public class ADAP3AlignerTask extends AbstractTask {
         return new Component(null,
                 new Peak(chromatogram, new PeakInfo()
                         .mzValue(peak.getMZ())
-                        .peakID(row.hashCode())),
+                        .peakID(row.getID())),
                 spectrum, null);
     }
 
-    private void process(Project alignment) {
+    /**
+     * Call the alignment from the ADAP package.
+     *
+     * @param alignment an instance of {@link Project} containing all samples and peaks to be aligned.
+     */
+    private void process() {
         AlignmentParameters params = new AlignmentParameters()
                 .sampleCountRatio(parameters.getParameter(
                         ADAP3AlignerParameters.SAMPLE_COUNT_RATIO).getValue())
@@ -310,24 +349,25 @@ public class ADAP3AlignerTask extends AbstractTask {
         alignment.alignSamples(params);
     }
 
-    private PeakListRow findRow(final PeakList[] peakLists,
-                                final int listID, final int peakID) {
+    /**
+     * Find the existing {@link PeakListRow} for a given peak list ID and row ID.
+     *
+     * @param peakListID number of a peak list in the array of {@link PeakList}. The numeration starts with 0.
+     * @param rowID integer that is returned by method getId() of {@link PeakListRow}.
+     * @return an instance of {@link PeakListRow} if an existing row is found. Otherwise it returns null.
+     */
+    @Nullable
+    private PeakListRow findPeakListRow(final int peakListID, final int rowID) {
+
         // Find peak list
-
-        PeakList peakList = null;
-        for (final PeakList list : peakLists)
-            if (listID == list.hashCode()) {
-                peakList = list;
-                break;
-            }
-
-        if (peakList == null) return null;
+        PeakList peakList = findPeakList(peakListID);
+        if (peakList == null)
+            return null;
 
         // Find row
-
         PeakListRow row = null;
         for (final PeakListRow r : peakList.getRows())
-            if (peakID == r.hashCode()) {
+            if (rowID == r.getID()) {
                 row = r;
                 break;
             }
@@ -335,22 +375,20 @@ public class ADAP3AlignerTask extends AbstractTask {
         return row;
     }
 
-    private RawDataFile findFile(final PeakList[] peakLists,
-                                 final int listID) {
-        // Find peak list
-
+    /**
+     * Find the existing {@link PeakList} for a given peak list ID.
+     * @param peakListId number of a peak list in the array of {@link PeakList}. The numeration starts with 0.
+     * @return an instance of {@link PeakList} if a peak list is found, or null.
+     */
+    @Nullable
+    private PeakList findPeakList(int peakListId) {
         PeakList peakList = null;
-        for (final PeakList list : peakLists)
-            if (listID == list.hashCode()) {
-                peakList = list;
+        for (int i = 0; i < peakLists.length; ++i)
+            if (peakListId == i) {
+                peakList = peakLists[i];
                 break;
             }
-
-        if (peakList == null)
-            throw new IllegalArgumentException("Cannot find peak list "
-                    + Integer.toString(listID));
-
-        return peakList.getRawDataFile(0);
+        return peakList;
     }
 
     /**
