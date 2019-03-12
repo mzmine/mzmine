@@ -1,0 +1,89 @@
+<html>
+<head>
+    <title>Data analysis - Student's t-test and Fold Change</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Student's t-test and Fold Change</h1>
+
+<h2>Description</h2>
+<p>
+    This module calculates significance values of aligned features. Two significance tests are used:
+</p>
+<ul>
+    <li>
+        <b>Independent two-group t-test for groups with unequal variances (Welch's t-test).</b> The t-statistic to test
+        whether the population means are different is calculated as:
+        <div align="center">
+            <p>
+                <img src="t_test.png" alt="t-test"/>
+            </p>
+        </div>
+        where
+        <div align="center">
+            <p>
+                <img src="variance.png" alt="variance"/>
+            </p>
+        </div>
+        Here, <img src="xi.png" alt="X<sub>i</sub>"/> is the average intensity of group <i>i</i> (1 or 2), and
+        s<sub>i</sub><sup>2</sup> is the unbiased estimator of the variance of each of the two groups with
+        n<sub>i</sub> number of samples in group <i>i</i> (1 or 2). After the t-statistics is estimated, the
+        corresponding
+        p-value is calculated. Usually, 0.05 < p < 1 means that there is no statistical difference between the two
+        group averages, and 0 < p < 0.05 means the feature is statistically significant.
+        <div align="center">
+            <p>
+                <img src="p_value.gif" alt="variance"/>
+            </p>
+        </div>
+    </li>
+
+    <li>
+        <b>Logarithmic Fold Change.</b> Fold change is a measure describing how much a quantity changes between two
+        groups. The logarithmic fold change is calculates as:
+        <div align="center">
+            <p>
+                <img src="fold_change.png" alt="foldchange"/>
+            </p>
+        </div>
+        where <img src="xi.png" alt="X<sub>i</sub>"/> is the average intensity of group <i>i</i> (1 or 2).
+    </li>
+</ul>
+
+<h2>Parameters</h2>
+
+<div align="center">
+    <p>
+        <img src="significance_parameters.png" alt="Parameters Window"/>
+    </p>
+</div>
+
+<ul>
+    <li><b>Experimental group ID</b> is used to specify samples in the first group. All raw data files with names
+        containing this ID will be assigned to the first group.
+    </li>
+
+    <li><b>Control group ID</b> is used to specify samples in the second group. All raw data files with names
+        containing this ID will be assigned to the second group.
+    </li>
+</ul>
+
+<h2>Output</h2>
+
+<div align="center">
+    <p>
+        <img src="export.png" alt="Export" />
+    </p>
+</div>
+
+<p>
+    Calculated values will be added to CSV-file when a peaklist is exported into CSV with option "Export quantitation
+    results and other information" (see the figure above). Columns STUDENT_P_VALUE, STUDENT_T_VALUE, LOG2_FOLD_CHANGE
+    contain the p-value, t-test, and the logarithmic fold change respectively.
+</p>
+
+</body>
+</html>

@@ -32,6 +32,7 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.PCAPlo
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.SammonsPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot.LogratioPlotModule;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.significance.SignificanceModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.clearannotations.PeaklistClearAnnotationsModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.neutralloss.NeutralLossFilterModule;
@@ -175,7 +176,7 @@ public class MZmineModulesList {
 
       // Data analysis
       CVPlotModule.class, LogratioPlotModule.class, PCAPlotModule.class, CDAPlotModule.class,
-      SammonsPlotModule.class, ClusteringModule.class, HeatMapModule.class,
+      SammonsPlotModule.class, ClusteringModule.class, HeatMapModule.class, SignificanceModule.class,
 
       // Identification
       CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
