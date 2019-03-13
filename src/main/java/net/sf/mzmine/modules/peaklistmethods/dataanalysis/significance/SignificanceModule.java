@@ -49,19 +49,12 @@ public class SignificanceModule implements MZmineRunnableModule {
     public ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-        String controlGroupName = parameters.getParameter(SignificanceParameters.controlGroupName).getValue();
-        String experimentalGroupName = parameters.getParameter(SignificanceParameters.experimentalGroupName).getValue();
-
         PeakList[] peakLists = parameters
                 .getParameter(SignificanceParameters.peakLists).getValue()
                 .getMatchingPeakLists();
 
         for (PeakList peakList : peakLists) {
-
-            Group controlGroup = SignificanceTask.getGroup(peakList.getRows(), controlGroupName);
-            Group experimentalGroup = SignificanceTask.getGroup(peakList.getRows(), experimentalGroupName);
-
-            tasks.add(new SignificanceTask(peakList.getRows(), controlGroup, experimentalGroup));
+            tasks.add(new SignificanceTask(peakList.getRows(), parameters));
         }
 
         return ExitCode.OK;
