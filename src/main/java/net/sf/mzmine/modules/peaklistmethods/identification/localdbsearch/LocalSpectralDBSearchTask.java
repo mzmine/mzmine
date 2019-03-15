@@ -35,7 +35,6 @@ import com.google.common.io.Files;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.Scan;
@@ -59,6 +58,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
+  private static final String METHOD = "MS/MS spectral DB search";
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
   private final PeakList peakList;
@@ -120,20 +120,22 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     try {
-      List<SpectralDBPeakIdentity> list = new ArrayList<>();
+      List<SpectralDBEntry> list = new ArrayList<>();
       List<String> lines = Files.readLines(dataBaseFile, Charsets.UTF_8);
+      // create db
       for (String l : lines) {
         JsonReader reader = Json.createReader(new StringReader(l));
         JsonObject json = reader.readObject();
-        list.add(getPeakIdentity(json));
+        list.add(getDBEntry(json));
         reader.close();
       }
 
       for (PeakListRow row : peakList.getRows()) {
         if (row.getBestFragmentation() != null) {
-          for (SpectralDBPeakIdentity ident : list) {
-            if (spectraDBMatch(row, ident)) {
-              addIdentity(row, ident);
+          for (SpectralDBEntry ident : list) {
+            SpectraSimilarity sim = spectraDBMatch(row, ident);
+            if (sim != null) {
+              addIdentity(row, ident, sim);
             }
             // check for max error (missing masslist)
             if (errorCounter > MAX_ERROR) {
@@ -169,10 +171,16 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   }
 
-
-  private boolean spectraDBMatch(PeakListRow row, SpectralDBPeakIdentity ident) {
+  /**
+   * 
+   * @param row
+   * @param ident
+   * @return spectral similarity or null if no match
+   */
+  private SpectraSimilarity spectraDBMatch(PeakListRow row, SpectralDBEntry ident) {
     // retention time
-    if (!useRT || rtTolerance.checkWithinTolerance(ident.getRetentionTime(), row.getAverageRT())) {
+    if (!useRT || !ident.hasRetentionTime()
+        || rtTolerance.checkWithinTolerance(ident.getRetentionTime(), row.getAverageRT())) {
       // precursor mz
       if (mzTolerance.checkWithinTolerance(ident.getMz(), row.getAverageMZ())) {
         try {
@@ -181,15 +189,15 @@ class LocalSpectralDBSearchTask extends AbstractTask {
           SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
               rowMassList, minMatch);
           if (sim != null && sim.getCosine() >= minSimilarity)
-            return true;
+            return sim;
         } catch (MissingMassListException e) {
           logger.log(Level.WARNING, "No mass list in MS2 spectrum for rowID=" + row.getID(), e);
           errorCounter++;
-          return false;
+          return null;
         }
       }
     }
-    return false;
+    return null;
   }
 
   /**
@@ -225,7 +233,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     return dps;
   }
 
-  public static SpectralDBPeakIdentity getPeakIdentity(JsonObject main) {
+  public static SpectralDBEntry getDBEntry(JsonObject main) {
     String adduct = main.getString(LibrarySubmitIonParameters.ADDUCT.getName(), "");
     JsonNumber mz = main.getJsonNumber(LibrarySubmitIonParameters.MZ.getName());
     JsonNumber rt = main.getJsonNumber(LibrarySubmitIonParameters.RT.getName());
@@ -236,13 +244,13 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
     DataPoint[] dps = getDataPoints(main);
 
-    return new SpectralDBPeakIdentity(name, mz == null ? 0 : mz.doubleValue(),
-        rt == null ? 0 : rt.doubleValue(), adduct, formula, "local MS/MS database", dps);
+    return new SpectralDBEntry(name, mz == null ? 0 : mz.doubleValue(),
+        rt == null ? null : rt.doubleValue(), adduct, formula, dps);
   }
 
-  public void addIdentity(PeakListRow row, PeakIdentity ident) {
+  private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectraSimilarity sim) {
     // add new identity to the row
-    row.addPeakIdentity(ident, true);
+    row.addPeakIdentity(new SpectralDBPeakIdentity(ident, sim, METHOD), true);
 
     // Notify the GUI about the change in the project
     MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);

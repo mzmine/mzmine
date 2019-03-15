@@ -18,49 +18,32 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.localdbsearch;
 
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
-import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 
 public class SpectralDBPeakIdentity extends SimplePeakIdentity {
+  private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
 
-  private final String name;
-  private final double mz;
-  private final double rt;
-  private final String adduct;
-  private final DataPoint[] dps;
+  private final SpectralDBEntry entry;
+  private final SpectraSimilarity similarity;
 
-  public SpectralDBPeakIdentity(String name, double mz, double rt, String adduct, String formula,
-      String method, DataPoint[] dps) {
-    super(MessageFormat.format("{0} as {3} ({1}) {2}", name, mz, formula, adduct), formula, method,
-        "", "");
-    this.name = name;
-    this.mz = mz;
-    this.rt = rt;
-    this.adduct = adduct;
-    this.dps = dps;
+  public SpectralDBPeakIdentity(SpectralDBEntry entry, SpectraSimilarity similarity,
+      String method) {
+    super(
+        MessageFormat.format("{0} as {3} ({1}) {2} cos={4}", entry.getCompoundName(), entry.getMz(),
+            entry.getFormula(), entry.getAdduct(), COS_FORM.format(similarity)),
+        entry.getFormula(), method, "", "");
+    this.entry = entry;
+    this.similarity = similarity;
   }
 
-  public String getCompoundName() {
-    return name;
+  public SpectralDBEntry getEntry() {
+    return entry;
   }
 
-  public double getMz() {
-    return mz;
+  public SpectraSimilarity getSimilarity() {
+    return similarity;
   }
-
-  public String getAdduct() {
-    return adduct;
-  }
-
-  public DataPoint[] getDataPoints() {
-    return dps;
-  }
-
-  public double getRetentionTime() {
-    return rt;
-  }
-
-
 
 }
