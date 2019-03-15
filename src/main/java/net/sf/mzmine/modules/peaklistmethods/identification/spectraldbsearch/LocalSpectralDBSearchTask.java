@@ -236,7 +236,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   public static SpectralDBEntry getDBEntry(JsonObject main) {
     String adduct = main.getString(LibrarySubmitIonParameters.ADDUCT.getName(), "");
     JsonNumber mz = main.getJsonNumber(LibrarySubmitIonParameters.MZ.getName());
-    JsonNumber rt = main.getJsonNumber(LibrarySubmitIonParameters.RT.getName());
+    JsonNumber rt = main.getJsonNumber(LibrarySubmitParameters.EXPORT_RT.getName());
     String formula = main.getString(LibrarySubmitParameters.FORMULA.getName(), "");
     String name = main.getString(LibrarySubmitParameters.COMPOUND_NAME.getName(), "");
     if (formula.equals("N/A"))
