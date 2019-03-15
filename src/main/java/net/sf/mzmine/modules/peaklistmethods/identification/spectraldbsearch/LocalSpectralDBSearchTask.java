@@ -179,10 +179,10 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    */
   private SpectraSimilarity spectraDBMatch(PeakListRow row, SpectralDBEntry ident) {
     // retention time
-    if (!useRT || !ident.hasRetentionTime()
-        || rtTolerance.checkWithinTolerance(ident.getRetentionTime(), row.getAverageRT())) {
+    if (!useRT || !ident.hasRetentionTime() || rtTolerance
+        .checkWithinTolerance(ident.getRetentionTime().getAsDouble(), row.getAverageRT())) {
       // precursor mz
-      if (mzTolerance.checkWithinTolerance(ident.getMz(), row.getAverageMZ())) {
+      if (mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ())) {
         try {
           // check MS2 similarity
           DataPoint[] rowMassList = getDataPoints(row);

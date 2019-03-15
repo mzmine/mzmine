@@ -18,13 +18,14 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
+import java.util.OptionalDouble;
 import net.sf.mzmine.datamodel.DataPoint;
 
 public class SpectralDBEntry {
 
   private final String name;
   private final double mz;
-  private final Double rt;
+  private final OptionalDouble rt;
   private final String adduct;
   private final DataPoint[] dps;
   private String formula;
@@ -33,7 +34,10 @@ public class SpectralDBEntry {
       DataPoint[] dps) {
     this.name = name;
     this.mz = mz;
-    this.rt = rt;
+    if (rt != null)
+      this.rt = OptionalDouble.of(rt);
+    else
+      this.rt = OptionalDouble.empty();
     this.adduct = adduct;
     this.formula = formula;
     this.dps = dps;
@@ -43,7 +47,7 @@ public class SpectralDBEntry {
     return name;
   }
 
-  public double getMz() {
+  public double getPrecursorMZ() {
     return mz;
   }
 
@@ -59,12 +63,12 @@ public class SpectralDBEntry {
    * 
    * @return null if no retention time was set
    */
-  public Double getRetentionTime() {
+  public OptionalDouble getRetentionTime() {
     return rt;
   }
 
   public boolean hasRetentionTime() {
-    return rt != null;
+    return rt != null && rt.isPresent();
   }
 
   public String getFormula() {
