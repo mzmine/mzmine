@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.localdbsearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.util.List;
 import javax.annotation.Nullable;

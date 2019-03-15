@@ -46,8 +46,8 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.Fo
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;

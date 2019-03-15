@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.view;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -54,8 +54,8 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.framework.documentfilter.DocumentSizeFilter;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.AdductParser;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.sorting.ScanSortMode;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.AdductParser;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSortMode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import net.sf.mzmine.util.ScanUtils;

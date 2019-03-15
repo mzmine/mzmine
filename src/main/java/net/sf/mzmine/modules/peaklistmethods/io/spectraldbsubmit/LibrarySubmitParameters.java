@@ -28,9 +28,10 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
 
 import java.text.DecimalFormat;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -56,7 +57,7 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
    */
 
   public enum CompoundSource {
-  Lysate, Isolated, Commercial, Crude, Other;
+    Lysate, Isolated, Commercial, Crude, Other;
   }
 
   public enum Polarity {
@@ -127,6 +128,10 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final StringParameter DATACOLLECTOR =
       new StringParameter("DATACOLLECTOR", "", "", true);
 
+  public static final StringParameter FRAGMENTATION_METHOD =
+      new StringParameter("FRAGMENTATION_METHOD", "", "", false);
+  public static final StringParameter INSTRUMENT_NAME =
+      new StringParameter("INSTRUMENT_NAME", "", "", false);
   public static final StringParameter DATA_COLLECTOR =
       new StringParameter("DATACOLLECTOR", "", "", false);
   public static final StringParameter PUBMED = new StringParameter("PUBMED", "", "", false);
@@ -139,6 +144,11 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
   public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
       "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"), 0d);
+
+
+  public static final OptionalParameter<DoubleParameter> EXPORT_RT = new OptionalParameter<>(
+      new DoubleParameter("RT", "Retention time", MZmineCore.getConfiguration().getRTFormat(), 0d),
+      false);
 
   // is not used: this would override MZ (the precursor MZ)
   // public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS",
@@ -153,8 +163,8 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
         // username password
         USERNAME, PASSWORD,
         // Always set
-        PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, INSTRUMENT, ION_SOURCE,
-        ACQUISITION, IONMODE,
+        PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, EXPORT_RT, INSTRUMENT_NAME,
+        INSTRUMENT, ION_SOURCE, ACQUISITION, IONMODE, FRAGMENTATION_METHOD,
         // newly introduced
         FORMULA,
         // optional

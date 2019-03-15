@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.view;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

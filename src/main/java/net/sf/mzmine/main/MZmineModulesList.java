@@ -49,11 +49,11 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.Fo
 import net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpeaklist.FormulaPredictionPeakListModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.FragmentSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.LipidSearchModule;
-import net.sf.mzmine.modules.peaklistmethods.identification.localdbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.ms2search.Ms2SearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitModule;

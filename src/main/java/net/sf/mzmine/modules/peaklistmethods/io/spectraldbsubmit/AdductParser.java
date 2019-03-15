@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
 
 import java.util.ArrayList;
 import java.util.Collections;

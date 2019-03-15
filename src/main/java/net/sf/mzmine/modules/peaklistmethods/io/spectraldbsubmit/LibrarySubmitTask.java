@@ -27,7 +27,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
 
 import java.io.File;
 import java.io.IOException;

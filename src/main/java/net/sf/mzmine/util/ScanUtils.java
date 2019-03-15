@@ -41,8 +41,8 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.sorting.ScanSortMode;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.sorting.ScanSorter;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSortMode;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSorter;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 
 /**

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.localdbsearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import net.sf.mzmine.datamodel.DataPoint;
 

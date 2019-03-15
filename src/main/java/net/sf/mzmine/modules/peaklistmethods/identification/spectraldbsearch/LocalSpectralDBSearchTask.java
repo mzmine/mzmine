@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.localdbsearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.io.File;
 import java.io.StringReader;
@@ -43,9 +43,9 @@ import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.LibrarySubmitIonParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.LibrarySubmitParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.sorting.ScanSortMode;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitIonParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSortMode;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;

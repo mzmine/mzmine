@@ -15,7 +15,7 @@
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
  */
-package net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.view;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -59,11 +59,11 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.LibrarySubmitIonParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.LibrarySubmitParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.LibrarySubmitParameters.CompoundSource;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.LibrarySubmitTask;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpslibrarysubmit.sorting.ScanSortMode;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitIonParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitTask;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitParameters.CompoundSource;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSortMode;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
