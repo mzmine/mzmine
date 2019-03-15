@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -61,12 +60,14 @@ import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitIonParameters;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitTask;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitParameters.CompoundSource;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitTask;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSortMode;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleComponent;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.DialogLoggerUtil;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -320,133 +321,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     return param.getParameters().length;
   }
 
-  private void createMetaDataPanelOld() {
-    pnMetaData = new GridBagPanel();
-    scrollMeta = new JScrollPane(pnMetaData);
-    scrollMeta.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-    scrollMeta.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    pnSideMenu.add(scrollMeta, BorderLayout.CENTER);
-    pnMetaData
-        .setLayout(new MigLayout("", "[trailing][grow]", "[][][][][][][][][][][][][][][][][]"));
-
-    lblMetadata = new JLabel("Metadata");
-    lblMetadata.setFont(new Font("Tahoma", Font.BOLD, 11));
-    pnMetaData.add(lblMetadata, "cell 0 0,alignx center");
-
-    lblUsername = new JLabel("Username");
-    pnMetaData.add(lblUsername, "cell 0 1,alignx trailing");
-
-    txtUsername = new JTextField();
-    txtUsername.setColumns(10);
-    pnMetaData.add(txtUsername, "cell 1 1,growx");
-
-    lblPassword = new JLabel("Password");
-    pnMetaData.add(lblPassword, "cell 0 2,alignx trailing,aligny baseline");
-
-    txtPassword = new JTextField();
-    pnMetaData.add(txtPassword, "cell 1 2,growx");
-    txtPassword.setColumns(10);
-
-    lblPi = new JLabel("PI");
-    lblPi.setToolTipText("Principle investigator");
-    pnMetaData.add(lblPi, "cell 0 3,alignx trailing");
-
-    txtPI = new JTextField();
-    pnMetaData.add(txtPI, "cell 1 3,growx");
-    txtPI.setColumns(10);
-
-    lblDataCollector = new JLabel("Data collector");
-    pnMetaData.add(lblDataCollector, "cell 0 4,alignx trailing");
-
-    txtDataCollector = new JTextField();
-    txtDataCollector.setColumns(10);
-    pnMetaData.add(txtDataCollector, "cell 1 4,growx");
-
-    lblCompoundName = new JLabel("Compound name");
-    pnMetaData.add(lblCompoundName, "cell 0 5,alignx trailing");
-
-    txtCompoundName = new JTextField();
-    pnMetaData.add(txtCompoundName, "cell 1 5,growx");
-    txtCompoundName.setColumns(10);
-
-    lblMoleculeMass = new JLabel("Molecule mass");
-    pnMetaData.add(lblMoleculeMass, "cell 0 6,alignx trailing");
-
-    txtMoleculeMass = new JTextField();
-    txtMoleculeMass.setColumns(10);
-    pnMetaData.add(txtMoleculeMass, "cell 1 6,growx");
-
-    lblFormula = new JLabel("Formula");
-    pnMetaData.add(lblFormula, "cell 0 7,alignx trailing");
-
-    txtFormula = new JTextField();
-    txtFormula.setColumns(10);
-    pnMetaData.add(txtFormula, "cell 1 7,growx");
-
-    lblIonMode = new JLabel("Ion mode");
-    pnMetaData.add(lblIonMode, "cell 0 8,alignx trailing");
-
-    comboPolarity = new JComboBox<>();
-    comboPolarity.setModel(new DefaultComboBoxModel<String>(new String[] {"POSITIVE", "NEGATIVE"}));
-    comboPolarity.setSelectedIndex(0);
-    pnMetaData.add(comboPolarity, "cell 1 8,growx");
-
-    lblInstrument = new JLabel("Instrument");
-    pnMetaData.add(lblInstrument, "cell 0 9,alignx trailing");
-
-    txtInstrument = new JTextField();
-    txtInstrument.setColumns(10);
-    pnMetaData.add(txtInstrument, "cell 1 9,growx");
-
-    lblIonSource = new JLabel("Ion source");
-    pnMetaData.add(lblIonSource, "flowy,cell 0 10,alignx trailing");
-
-    txtIonSource = new JTextField();
-    txtIonSource.setColumns(10);
-    pnMetaData.add(txtIonSource, "cell 1 10,growx");
-
-    lblCompoundSource = new JLabel("Compound source");
-    pnMetaData.add(lblCompoundSource, "cell 0 11,alignx trailing");
-
-    comboSource = new JComboBox<>(CompoundSource.values());
-    comboSource.setSelectedItem(CompoundSource.Crude);
-    pnMetaData.add(comboSource, "cell 1 9,growx");
-
-    lblPub = new JLabel("PubMed");
-    pnMetaData.add(lblPub, "cell 0 12,alignx trailing");
-
-    txtPubMed = new JTextField();
-    txtPubMed.setColumns(10);
-    pnMetaData.add(txtPubMed, "cell 1 12,growx");
-
-    lblSmiles = new JLabel("SMILES");
-    pnMetaData.add(lblSmiles, "cell 0 13,alignx trailing");
-
-    txtSMILES = new JTextField();
-    txtSMILES.setColumns(10);
-    pnMetaData.add(txtSMILES, "cell 1 13,growx");
-
-    lblInchi = new JLabel("InChI");
-    pnMetaData.add(lblInchi, "cell 0 14,alignx trailing");
-
-    txtINCHI = new JTextField();
-    txtINCHI.setColumns(10);
-    pnMetaData.add(txtINCHI, "cell 1 14,growx");
-
-    lblInchiAux = new JLabel("InChI AUX");
-    pnMetaData.add(lblInchiAux, "cell 0 15,alignx trailing");
-
-    txtINCHIAUX = new JTextField();
-    txtINCHIAUX.setColumns(10);
-    pnMetaData.add(txtINCHIAUX, "cell 1 15,growx");
-
-    lblCas = new JLabel("CAS");
-    pnMetaData.add(lblCas, "cell 0 16,alignx trailing");
-
-    txtCAS = new JTextField();
-    txtCAS.setColumns(10);
-    pnMetaData.add(txtCAS, "cell 1 16,growx");
-  }
 
   protected boolean checkParameters() {
     // commit the changes to the parameter set
@@ -462,6 +336,10 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
       MZmineCore.getDesktop().displayMessage(this, message);
       return false;
     }
+  }
+
+  private JComponent getComponentForParameter(UserParameter p) {
+    return parametersAndComponents.get(p.getName());
   }
 
   /**
@@ -639,7 +517,19 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   public void setData(PeakListRow[] rows) {
     this.rows = rows;
     this.pnScanSelect = new ScanSelectPanel[rows.length];
+
+    // set rt
+    double rt = Arrays.stream(rows).mapToDouble(PeakListRow::getAverageRT).average().orElse(-1);
+    setRetentionTimeToComponent(rt);
+
     updateAllChartSelectors();
+  }
+
+  private void setRetentionTimeToComponent(double rt) {
+    OptionalParameterComponent<DoubleComponent> cb =
+        (OptionalParameterComponent<DoubleComponent>) getComponentForParameter(
+            LibrarySubmitParameters.EXPORT_RT);
+    cb.getEmbeddedComponent().setText(MZmineCore.getConfiguration().getRTFormat().format(rt));
   }
 
   /**

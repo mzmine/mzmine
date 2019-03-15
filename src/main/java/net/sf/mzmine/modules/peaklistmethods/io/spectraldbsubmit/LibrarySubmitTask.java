@@ -78,6 +78,8 @@ public class LibrarySubmitTask extends AbstractTask {
   private final boolean submitGNPS;
   private final File file;
 
+  private boolean exportRT;
+
 
   public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
     this.map = map;
@@ -86,6 +88,7 @@ public class LibrarySubmitTask extends AbstractTask {
     LibrarySubmitParameters meta = (LibrarySubmitParameters) e.getKey()
         .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
 
+    exportRT = meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getValue();
     PASS = meta.getParameter(LibrarySubmitParameters.PASSWORD).getValue();
     USER = meta.getParameter(LibrarySubmitParameters.USERNAME).getValue();
     submitGNPS = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
@@ -215,6 +218,13 @@ public class LibrarySubmitTask extends AbstractTask {
     json.add("CHARGE", param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue());
     json.add("ADDUCT", param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue());
 
+    if (exportRT) {
+      Double rt =
+          meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getEmbeddedParameter().getValue();
+      if (rt != null)
+        json.add("RT", rt);
+    }
+
     // add data points array
     json.add("peaks", genJSONData(dps));
 
@@ -222,7 +232,8 @@ public class LibrarySubmitTask extends AbstractTask {
     for (Parameter<?> p : meta.getParameters()) {
       if (!p.getName().equals("username") && !p.getName().equals("password")
           && !p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())
-          && !p.getName().equals(LibrarySubmitParameters.SUBMIT_GNPS.getName())) {
+          && !p.getName().equals(LibrarySubmitParameters.SUBMIT_GNPS.getName())
+          && !p.getName().equals(LibrarySubmitParameters.EXPORT_RT.getName())) {
         String key = p.getName();
         Object value = p.getValue();
         if (value instanceof Double) {
