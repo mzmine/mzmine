@@ -119,12 +119,12 @@
         <dependency>
             <groupId>org.du-lab.javanmf</groupId>
             <artifactId>javanmf</artifactId>
-            <version>0.1.3</version>
+            <version>0.1.4</version>
         </dependency>
         <dependency>
             <groupId>org.du-lab.jsparsehc</groupId>
             <artifactId>jsparsehc</artifactId>
-            <version>0.1.1</version>
+            <version>0.1.2</version>
         </dependency>
     </dependencies>
     <properties>
