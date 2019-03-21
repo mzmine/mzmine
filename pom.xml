@@ -485,9 +485,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>dulab</groupId>
+			<groupId>org.du-lab.adap</groupId>
 			<artifactId>adap</artifactId>
-			<version>3.3.1-1</version>
+			<version>4.0.0</version>
 		</dependency>
 
 		<dependency>
