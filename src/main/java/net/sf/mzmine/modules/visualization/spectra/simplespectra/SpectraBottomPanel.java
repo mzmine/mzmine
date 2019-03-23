@@ -78,7 +78,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     topPanel.setBackground(Color.white);
     topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
     add(topPanel, BorderLayout.CENTER);
-
+    
     topPanel.add(Box.createHorizontalStrut(10));
 
     JButton prevScanBtn =
@@ -96,6 +96,10 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     peakListSelector.addActionListener(masterFrame);
     peakListSelector.setActionCommand("PEAKLIST_CHANGE");
     topPanel.add(peakListSelector);
+    
+    JButton processingParametersBtn = GUIUtils.addButton(topPanel, "Spectra processing", null, masterFrame, "SET_PROCESSING_PARAMETERS");
+    processingParametersBtn.setBackground(Color.white);
+    processingParametersBtn.setFont(smallFont);
 
     topPanel.add(Box.createHorizontalGlue());
 
@@ -104,7 +108,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     nextScanBtn.setFont(smallFont);
 
     topPanel.add(Box.createHorizontalStrut(10));
-
+    
     bottomPanel = new JPanel();
     bottomPanel.setBackground(Color.white);
     bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));

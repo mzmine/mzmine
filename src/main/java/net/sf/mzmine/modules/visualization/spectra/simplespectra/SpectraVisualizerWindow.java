@@ -581,16 +581,6 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
       });
     }
 
-    if (command.equals("PROCESSING_CHECKBOX")) {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          DataPointProcessingManager.getInst()
-              .setEnabled(((JCheckBox) event.getSource()).isSelected());
-        }
-      });
-    }
-
     if (command.equals("SET_PROCESSING_PARAMETERS")) {
       SwingUtilities.invokeLater(new Runnable() {
         @Override

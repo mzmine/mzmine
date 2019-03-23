@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
+import org.postgresql.translation.messages_bg;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -99,6 +100,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
           "The data points passed to Isotope Grouper were not an instance of processed data points."
+              + " Make sure to run mass detection first.");
+      setErrorMessage( "The data points passed to Isotope Grouper were not an instance of processed data points."
               + " Make sure to run mass detection first.");
       setStatus(TaskStatus.ERROR);
       return;

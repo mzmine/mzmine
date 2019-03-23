@@ -112,18 +112,6 @@ public class SpectraToolBar extends JToolBar {
     GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
         "Predict sum formulas for annotation");
 
-    addSeparator();
-
-    GUIUtils.addCheckbox(this, null, null, masterFrame, "PROCESSING_CHECKBOX", 0,
-        "Enable/Disable spectra processing. Please set the parameters below.",
-        DataPointProcessingManager.getInst().isEnabled());
-
-    addSeparator();
-    
-    GUIUtils.addButton(this, null, processingIcon, masterFrame, "SET_PROCESSING_PARAMETERS",
-        "Set spectra processing options...");
-
-    addSeparator();
   }
 
   public void setCentroidButton(MassSpectrumType spectrumType) {

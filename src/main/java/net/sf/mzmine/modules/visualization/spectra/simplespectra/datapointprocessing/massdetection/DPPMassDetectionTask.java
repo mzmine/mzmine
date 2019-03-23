@@ -85,6 +85,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
     DataPoint[] masses = detector.getMassValues(getDataPoints(), massDetector.getParameterSet());
     
     if(masses == null || masses.length <= 0) {
+      setErrorMessage("No masses were detected with the given parameters.");
       setStatus(TaskStatus.ERROR);
       return;
     }
