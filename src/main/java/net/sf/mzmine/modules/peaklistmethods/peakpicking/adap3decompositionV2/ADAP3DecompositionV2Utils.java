@@ -97,10 +97,11 @@ public class ADAP3DecompositionV2Utils {
         continue;
       }
 
-      peaks.add(new BetterPeak(chromatogram, info));
+      BetterPeak betterPeak = new BetterPeak(row.getID(), chromatogram, info);
+      betterPeak.setParentId(row.getParentRowID());
+      peaks.add(betterPeak);
     }
 
-    // return FeatureTools.mergePeaks(peaks);
     return peaks;
   }
 
