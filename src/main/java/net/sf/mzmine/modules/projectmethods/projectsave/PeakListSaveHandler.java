@@ -163,6 +163,8 @@ public class PeakListSaveHandler {
       row = peakList.getRow(i);
       atts.addAttribute("", "", PeakListElementName.ID.getElementName(), "CDATA",
           String.valueOf(row.getID()));
+      atts.addAttribute("", "", PeakListElementName.PARENT_ROW_ID.getElementName(), "CDATA",
+          row.getParentRowID() != null ? String.valueOf(row.getParentRowID()) : "");
       if (row.getComment() != null) {
         atts.addAttribute("", "", PeakListElementName.COMMENT.getElementName(), "CDATA",
             row.getComment());

@@ -34,7 +34,7 @@ public enum PeakListElementName_2_5 {
                                               "method_parameters"), REPRESENTATIVE_SCAN(
                                                   "best_scan"), FRAGMENT_SCAN(
                                                       "fragment_scan"), ALL_MS2_FRAGMENT_SCANS(
-                                                          "all_MS2_fragment_scans");
+                                                          "all_MS2_fragment_scans"), PARENT_ROW_ID("parent_row_id");
 
   private String elementName;
 

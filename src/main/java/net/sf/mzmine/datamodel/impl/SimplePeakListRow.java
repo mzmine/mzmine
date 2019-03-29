@@ -38,6 +38,8 @@ import net.sf.mzmine.util.PeakSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
+import javax.annotation.Nullable;
+
 /**
  * Implementation of PeakListRow
  */
@@ -52,6 +54,7 @@ public class SimplePeakListRow implements PeakListRow {
   private PeakInformation information;
   private int myID;
   private double maxDataPointIntensity = 0;
+  private Integer parentRowID;
 
   /**
    * These variables are used for caching the average values, so we don't need to calculate them
@@ -413,5 +416,15 @@ public class SimplePeakListRow implements PeakListRow {
   // End Gauthier edit
 
 
+  @Override
+  public void setParentRowID(Integer id) {
+    parentRowID = id;
+  }
+
+  @Override
+  @Nullable
+  public Integer getParentRowID() {
+    return parentRowID;
+  }
 }
 // End DorresteinLab edit

@@ -250,11 +250,15 @@ public class DeconvolutionTask extends AbstractTask {
     int peakId = 1;
 
     // Process each chromatogram.
-    final Feature[] chromatograms = peakList.getPeaks(dataFile);
-    final int chromatogramCount = chromatograms.length;
+//    final Feature[] chromatograms = peakList.getPeaks(dataFile);
+//    final int chromatogramCount = chromatograms.length;
+    final PeakListRow[] peakListRows = peakList.getRows();
+    final int chromatogramCount = peakListRows.length;
     for (int index = 0; !isCanceled() && index < chromatogramCount; index++) {
 
-      final Feature chromatogram = chromatograms[index];
+      final PeakListRow currentRow = peakListRows[index];
+      final Feature chromatogram = currentRow.getPeak(dataFile);
+//      final Feature chromatogram = chromatograms[index];
 
       // Resolve peaks.
       final PeakResolver resolverModule = resolver.getModule();
@@ -267,6 +271,7 @@ public class DeconvolutionTask extends AbstractTask {
 
         final PeakListRow newRow = new SimplePeakListRow(peakId++);
         newRow.addPeak(dataFile, peak);
+        newRow.setParentRowID(currentRow.getID());
         newRow.setPeakInformation(peak.getPeakInformation());
         resolvedPeaks.addRow(newRow);
       }

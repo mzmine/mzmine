@@ -165,6 +165,12 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       }
       int rowID = Integer.parseInt(attrs.getValue(PeakListElementName_2_5.ID.getElementName()));
       buildingRow = new SimplePeakListRow(rowID);
+      try {
+        int parentRowID = Integer.parseInt(attrs.getValue(PeakListElementName_2_5.PARENT_ROW_ID.getElementName()));
+        buildingRow.setParentRowID(parentRowID);
+      } catch (NumberFormatException e) {
+        buildingRow.setParentRowID(null);
+      }
       String comment = attrs.getValue(PeakListElementName_2_5.COMMENT.getElementName());
       buildingRow.setComment(comment);
     }

@@ -203,4 +203,9 @@ public interface PeakListRow {
 
   // End DorresteinLab edit
 
+  // DuLab edit
+  public void setParentRowID(Integer id);
+
+  public Integer getParentRowID();
+  // End of DuLab edit
 }
