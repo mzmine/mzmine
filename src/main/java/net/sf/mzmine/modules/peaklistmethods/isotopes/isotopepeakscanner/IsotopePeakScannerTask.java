@@ -22,7 +22,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -405,8 +408,16 @@ public class IsotopePeakScannerTask extends AbstractTask {
         // is not urgent. Will be nicer though, because of cleaner code.
 
 //      PeakListRow parent = copyPeakRow(peakList.getRow(i));
-      PeakListRow parent = copyPeakRow(plh.getRowByID(candidates[bestPatternIndex].get(0).getCandID()));
-
+      
+      boolean allPeaksAddable = true;
+      List<PeakListRow> rowBuffer = new ArrayList<PeakListRow>();
+      
+      PeakListRow original = getRowFromCandidate(candidates, bestPatternIndex, 0, plh);
+      if(original == null)
+        continue;
+      
+      PeakListRow parent = copyPeakRow(original);
+      
       if (resultMap.containsID(parent.getID())) // if we can assign this row multiple times we
                                                 // have to copy the comment, because adding it to
                                                 // the map twice will overwrite the results
@@ -418,7 +429,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
       if (carbonRange != 1)
         addComment(parent, "BestPattern: " + pattern[bestPatternIndex].getDescription());
 
-      resultMap.addRow(parent); // add results to resultPeakList
+      rowBuffer.add(parent);
 
       DataPoint[] dp = new DataPoint[pattern[bestPatternIndex].getNumberOfDataPoints()];
       // we need this to add the IsotopePattern later on
@@ -434,8 +445,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
                                                                     // groupedPeaks[0]/
       // ==candidates.get(0) which we added before
       {
+        PeakListRow originalChild = getRowFromCandidate(candidates, bestPatternIndex, k, plh);
+       
+        if(originalChild == null) {
+          allPeaksAddable = false;
+          continue;
+        }
         PeakListRow child =
-            copyPeakRow(plh.getRowByID(candidates[bestPatternIndex].get(k).getCandID()));
+            copyPeakRow(originalChild);
+        
         if (accurateAvgIntensity) {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(),
               candidates[bestPatternIndex].getAvgHeight(k));
@@ -458,7 +476,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
           addComment(parent,
               " pattern rating: " + round(candidates[bestPatternIndex].getSimpleAvgRating(), 3));
 
-        ;
         addComment(child,
             (parent.getID() + "-Parent ID" + " m/z-shift(ppm): "
                 + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff[bestPatternIndex][k])
@@ -471,16 +488,20 @@ public class IsotopePeakScannerTask extends AbstractTask {
                 + " Identity: " + pattern[bestPatternIndex].getIsotopeComposition(k) + " Rating: "
                 + round(candidates[bestPatternIndex].get(k).getRating(), 3) + average));
 
-        resultMap.addRow(child);
+        rowBuffer.add(child);
       }
-
+      
+      if(!allPeaksAddable)
+        continue;
+      
       IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED,
           element + " monoisotopic mass: " + parent.getAverageMZ());
       parent.getBestPeak().setIsotopePattern(resultPattern);
 
-      for (int j = 1; j < diff[bestPatternIndex].length; j++)
-        resultMap.getRowByID(candidates[bestPatternIndex].get(j).getCandID()).getBestPeak()
-            .setIsotopePattern(resultPattern);
+      for(PeakListRow row : rowBuffer) {
+        row.getBestPeak().setIsotopePattern(resultPattern);
+        resultMap.addRow(row);
+      }
 
       if (isCanceled())
         return;
@@ -517,6 +538,32 @@ public class IsotopePeakScannerTask extends AbstractTask {
       if (c.getRating() == 0)
         return false;
     return true;
+  }
+  
+  /**
+   * Extracts a peak list row from a Candidates array.
+   * @param candidates
+   * @param bestPatternIndex The index of the isotope pattern that was found to be the best fit for the detected pattern
+   * @param peakIndex the index of the candidate peak, the peak list row should be extracted for.
+   * @param plh
+   * @return null if no peak with the given parameters exists, the specified peak list row otherwise.
+   */
+  private @Nullable PeakListRow getRowFromCandidate(@Nonnull Candidates[] candidates, int bestPatternIndex, int peakIndex, @Nonnull PeakListHandler plh) {
+    
+    if(bestPatternIndex >= candidates.length)
+      return null;
+    
+    if(peakIndex >= candidates[bestPatternIndex].size())
+      return null;
+    
+    Candidate cand = candidates[bestPatternIndex].get(peakIndex);
+    
+    if(cand != null) {
+      int id = cand.getCandID();
+      PeakListRow original = plh.getRowByID(id);
+      return original;
+    }
+    return null;
   }
 
   /**
