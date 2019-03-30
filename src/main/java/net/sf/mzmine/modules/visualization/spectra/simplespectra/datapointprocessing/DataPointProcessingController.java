@@ -22,7 +22,9 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.xalan.xsltc.compiler.util.ErrorMessages;
 import org.jfree.data.xy.XYDataset;
+import com.sun.xml.bind.v2.runtime.reflect.Accessor.SetterOnlyReflection;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -174,6 +176,7 @@ public class DataPointProcessingController {
       SpectraPlot plot) {
     if (queue == null || queue.isEmpty() || plot == null) {
       logger.warning("execute called, without queue or plot being set.");
+      setStatus(ControllerStatus.FINISHED);
       return;
     }
 
@@ -258,14 +261,17 @@ public class DataPointProcessingController {
    */
   public void execute() {
     if (queue == null || queue.isEmpty() || plot == null) {
+      setStatus(ControllerStatus.FINISHED);
       logger.warning("execute called, without queue or plot being set.");
       return;
     }
 
     MZmineProcessingStep<DataPointProcessingModule> first = queue.getFirstStep();
-    if (first == null)
+    if (first == null) {
+      setStatus(ControllerStatus.ERROR);
       return;
-
+    }
+    
     setStatus(ControllerStatus.PROCESSING);
     logger.finest("Executing DataPointProcessingTasks.");
     execute(getDataPoints(), first, getPlot());

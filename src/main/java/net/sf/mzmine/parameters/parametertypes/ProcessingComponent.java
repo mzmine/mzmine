@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
@@ -79,7 +81,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     super.repaint();
   }
 
-  public ProcessingComponent(DataPointProcessingQueue queue) {
+  public ProcessingComponent(@Nullable DataPointProcessingQueue queue) {
     this();
     setTreeViewProcessingItemsFromQueue(queue);
   }
@@ -171,7 +173,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   /**
    * Opens the parameter setup dialog of the selected module.
    */
-  private void setParameters(DefaultMutableTreeNode _selected) {
+  private void setParameters(@Nonnull DefaultMutableTreeNode _selected) {
     if (_selected == null || !(_selected instanceof DPPModuleTreeNode))
       return;
 
@@ -214,7 +216,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   /**
    * Adds a module in the tvAllModules to the processing list
    */
-  private void addModule(DPPModuleTreeNode node) {
+  private void addModule(@Nonnull DPPModuleTreeNode node) {
     // a module cannot be added twice
     if (treeContains(tvProcessing, node)) {
       logger.finest("Cannot add module " + ((DPPModuleTreeNode) node).getModule().getName()
@@ -240,13 +242,13 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
     if (selected instanceof DPPModuleTreeNode) {
       ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).remove(selected);
-//      selected.removeFromParent();
+      // selected.removeFromParent();
       logger.finest("Removed module " + ((DPPModuleTreeNode) selected).getModule().getName()
           + " from processing list.");
     } else {
       logger.finest("Cannot remove item " + selected.toString() + " from processing list.");
     }
-    ((DefaultTreeModel)tvProcessing.getModel()).reload();
+    ((DefaultTreeModel) tvProcessing.getModel()).reload();
   }
 
   /**
@@ -254,7 +256,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * 
    * @return Instance of DataPointProcessingQueue.
    */
-  public DataPointProcessingQueue getProcessingQueueFromTreeView() {
+  public @Nonnull DataPointProcessingQueue getProcessingQueueFromTreeView() {
     DataPointProcessingQueue list = new DataPointProcessingQueue();
 
     if (((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).getChildCount() < 1)
@@ -279,8 +281,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * @param item Tree item.
    * @return Instance of MZmineProcessingStep<DataPointProcessingModule>.
    */
-  private MZmineProcessingStep<DataPointProcessingModule> createProcessingStep(
-      DPPModuleTreeNode item) {
+  private @Nonnull MZmineProcessingStep<DataPointProcessingModule> createProcessingStep(
+      @Nonnull DPPModuleTreeNode item) {
     return new MZmineProcessingStepImpl<>(item.getModule(), item.getParameters());
   }
 
@@ -288,8 +290,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * Sends the queue to the DataPointProcessingManager.
    */
   private void sendQueue() {
-    if (((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).getChildCount() < 1)
-      return;
+    // if (((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).getChildCount() < 1)
+    // return;
 
     DataPointProcessingQueue queue = getProcessingQueueFromTreeView();
     if (queue.isEmpty())
@@ -307,8 +309,12 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * @param queue The queue.
    * @return Collection<DPPModuleTreeItem>.
    */
-  private Collection<DPPModuleTreeNode> createTreeItemsFromQueue(DataPointProcessingQueue queue) {
+  private @Nonnull Collection<DPPModuleTreeNode> createTreeItemsFromQueue(
+      @Nullable DataPointProcessingQueue queue) {
     Collection<DPPModuleTreeNode> items = new ArrayList<DPPModuleTreeNode>();
+
+    if (queue == null)
+      return items;
 
     for (MZmineProcessingStep<DataPointProcessingModule> step : queue) {
       items.add(new DPPModuleTreeNode(step.getModule()));
@@ -323,7 +329,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * 
    * @param queue
    */
-  public void setTreeViewProcessingItemsFromQueue(DataPointProcessingQueue queue) {
+  public void setTreeViewProcessingItemsFromQueue(@Nullable DataPointProcessingQueue queue) {
     logger.info("Loading queue into tvProcessing...");
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
     root.removeAllChildren();
@@ -334,7 +340,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     expandAllNodes(tvProcessing);
   }
 
-  private boolean treeContains(JTree tree, DefaultMutableTreeNode comp) {
+  private boolean treeContains(@Nonnull JTree tree, @Nonnull DefaultMutableTreeNode comp) {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel().getRoot();
     Enumeration<DefaultMutableTreeNode> e = root.depthFirstEnumeration();
     while (e.hasMoreElements()) {
@@ -346,7 +352,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     return false;
   }
 
-  private DefaultMutableTreeNode getSelectedItem(JTree tree) {
+  private @Nullable DefaultMutableTreeNode getSelectedItem(@Nonnull JTree tree) {
     TreeSelectionModel selectionModel = tree.getSelectionModel();
     if (selectionModel == null)
       return null;
@@ -356,7 +362,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     return (DefaultMutableTreeNode) path.getLastPathComponent();
   }
 
-  private void expandAllNodes(JTree tree) {
+  private void expandAllNodes(@Nonnull JTree tree) {
     for (int i = 0; i < tree.getRowCount(); i++) {
       tree.expandRow(i);
     }

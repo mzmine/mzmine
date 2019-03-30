@@ -18,11 +18,11 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
@@ -81,7 +81,7 @@ public class DataPointProcessingManager implements MZmineModule {
    * 
    * @param controller Controller to add.
    */
-  public void addController(DataPointProcessingController controller) {
+  public void addController(@Nonnull DataPointProcessingController controller) {
     synchronized (waiting) {
       if (waiting.contains(controller)) {
         // logger.fine("Warning: Controller was already added to waiting list at index "
@@ -99,12 +99,12 @@ public class DataPointProcessingManager implements MZmineModule {
    * 
    * @param controller
    */
-  public void removeWaitingController(DataPointProcessingController controller) {
-    if (!waiting.contains(controller))
-      return;
+  public boolean removeWaitingController(DataPointProcessingController controller) {
+//    if (!waiting.contains(controller))
+//      return false;
 
     synchronized (waiting) {
-      waiting.remove(controller);
+      return waiting.remove(controller);
     }
     // logger.finest("Controller removed from wating list. (size = " + waiting.size() + ")");
   }
@@ -115,7 +115,7 @@ public class DataPointProcessingManager implements MZmineModule {
    * 
    * @param controller
    */
-  private void addRunningController(DataPointProcessingController controller) {
+  private void addRunningController(@Nonnull DataPointProcessingController controller) {
     synchronized (running) {
       if (running.contains(controller)) {
         // logger.fine("Warning: Controller was already added to waiting list at index "
@@ -134,12 +134,12 @@ public class DataPointProcessingManager implements MZmineModule {
    * 
    * @param controller
    */
-  private void removeRunningController(DataPointProcessingController controller) {
-    if (!running.contains(controller))
-      return;
+  private boolean removeRunningController(DataPointProcessingController controller) {
+//    if (!running.contains(controller))
+//      return;
 
     synchronized (running) {
-      running.remove(controller);
+      return running.remove(controller);
     }
     // logger.finest("Controller removed from running list. (size = " + running.size() + ")");
   }
@@ -152,11 +152,22 @@ public class DataPointProcessingManager implements MZmineModule {
       waiting.clear();
     }
   }
+  
+  /**
+   * Tries to remove the controller from waiting OR running list.
+   * @param controller
+   * @return
+   */
+  public boolean removeController(DataPointProcessingController controller) {
+    if(removeRunningController(controller))
+      return true;
+    else return removeWaitingController(controller);
+  }
 
   /**
    * Tries to start the next controller from the waiting list and adds a listener to automatically
    * start the next one when finished. Every SpectraPlot will call this method after adding its
-   * controller. TODO: Maybe just call this in addController?
+   * controller.
    */
   public void startNextController() {
     if (!isEnabled())
@@ -186,21 +197,22 @@ public class DataPointProcessingManager implements MZmineModule {
           ControllerStatus newStatus, ControllerStatus oldStatus) {
         if (newStatus == ControllerStatus.FINISHED) {
           // One controller finished, now we can remove it and start the next one.
-          removeRunningController(controller);
+          removeController(controller);
           startNextController();
           // logger.finest("Controller finished, trying to start the next one. (size = "
           // + running.size() + ")");
         } else if (newStatus == ControllerStatus.CANCELED) {
           // this will be called, when the controller is forcefully canceled. The current task will
           // be completed, then the status will be changed and this method is called.
-          removeRunningController(controller);
+          removeController(controller);
+          startNextController();
         } else if (newStatus == ControllerStatus.ERROR) {
           // if a controller's task errors out, we should cancel the whole controller here
           // the controller status is set to ERROR automatically, if a task error's out.
 
           // since the next controller wont be started, just using cancelTasks() here is not
           // sufficient, we have to remove it manually
-          removeRunningController(controller);
+          removeController(controller);
         }
       }
     });
@@ -210,7 +222,7 @@ public class DataPointProcessingManager implements MZmineModule {
   }
 
   /**
-   * Cancels the execution of a specific controller or removes it from wating list.
+   * Cancels the execution of a specific controller or removes it from waiting list.
    * 
    * @param controller
    */
@@ -277,6 +289,8 @@ public class DataPointProcessingManager implements MZmineModule {
    * @return {@link Collection#add}
    */
   public boolean addProcessingStep(MZmineProcessingStep<DataPointProcessingModule> step) {
+    if (processingList == null)
+      processingList = new DataPointProcessingQueue();
     return processingList.add(step);
   }
 
@@ -287,6 +301,8 @@ public class DataPointProcessingManager implements MZmineModule {
    * @return {@link Collection#remove}
    */
   public boolean removeProcessingStep(MZmineProcessingStep<DataPointProcessingModule> step) {
+    if (processingList == null)
+      processingList = new DataPointProcessingQueue();
     return processingList.remove(step);
   }
 
@@ -294,10 +310,12 @@ public class DataPointProcessingManager implements MZmineModule {
    * Clears the list of processing steps
    */
   public void clearProcessingSteps() {
+    if (processingList == null)
+      processingList = new DataPointProcessingQueue();
     processingList.clear();
   }
 
-  public DataPointProcessingQueue getProcessingQueue() {
+  public @Nonnull DataPointProcessingQueue getProcessingQueue() {
     getParameters();
     return processingList;
   }
@@ -307,7 +325,7 @@ public class DataPointProcessingManager implements MZmineModule {
    * 
    * @param list New processing list.
    */
-  public void setProcessingQueue(DataPointProcessingQueue list) {
+  public void setProcessingQueue(@Nonnull DataPointProcessingQueue list) {
     processingList = list;
   }
 
