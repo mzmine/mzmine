@@ -748,31 +748,27 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
   private boolean checkParameters() {
     if (charge == 0) {
+      setErrorMessage("Error: charge may not be 0!");
       setStatus(TaskStatus.ERROR);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Error: charge may not be 0!");
       return false;
     }
     if (!FormulaUtils.checkMolecularFormula(element)) {
+      setErrorMessage("Error: Invalid formula!");
       setStatus(TaskStatus.ERROR);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Error: Invalid formula!");
       return false;
     }
 
     if (accurateAvgIntensity || ratingType == RatingType.TEMPAVG) {
       if (massListName.equals("") && ratingType == RatingType.TEMPAVG) {
+        setErrorMessage("Error: Rating Type = temporary average but no masslist was selected.\nYou can"
+            + " select a mass list without checking accurate average.");
         setStatus(TaskStatus.ERROR);
-        MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-            "Error: Rating Type = temporary average but no masslist was selected.\nYou can"
-                + " select a mass list without checking accurate average.");
         return false;
       }
       if (peakList.getNumberOfRawDataFiles() > 1) {
+        setErrorMessage("The number of raw data files of peak list \"" + peakList.getName()
+        + "\" is greater than 1. This is not supported by this module.");
         setStatus(TaskStatus.ERROR);
-        MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-            "The number of raw data files of peak list \"" + peakList.getName()
-                + "\" is greater than 1. This is not supported by this module.");
         return false;
       }
 
@@ -789,10 +785,9 @@ public class IsotopePeakScannerTask extends AbstractTask {
         }
       }
       if (foundMassList == false) {
-        setStatus(TaskStatus.ERROR);
-        MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-            "Peak list \"" + peakList.getName() + "\" does not contain a mass list by the name of "
+        setErrorMessage("Peak list \"" + peakList.getName() + "\" does not contain a mass list by the name of "
                 + massListName + ".");
+        setStatus(TaskStatus.ERROR);
         return false;
       }
     }
