@@ -220,7 +220,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   @Override
   public void run() {
 
-    if(!checkParameters())
+    if (!checkParameters())
       return;
 
     setStatus(TaskStatus.PROCESSING);
@@ -404,7 +404,8 @@ public class IsotopePeakScannerTask extends AbstractTask {
         // The results you miss by skipping here would have not been valid results anyway, so this
         // is not urgent. Will be nicer though, because of cleaner code.
 
-      PeakListRow parent = copyPeakRow(peakList.getRow(i));
+//      PeakListRow parent = copyPeakRow(peakList.getRow(i));
+      PeakListRow parent = copyPeakRow(plh.getRowByID(candidates[bestPatternIndex].get(0).getCandID()));
 
       if (resultMap.containsID(parent.getID())) // if we can assign this row multiple times we
                                                 // have to copy the comment, because adding it to
@@ -626,6 +627,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    *         -> pL[parentIndex].mz+maxMass
    */
   private ArrayList<PeakListRow> groupPeaks(PeakListRow[] pL, int parentIndex, double maxDiff) {
+
     ArrayList<PeakListRow> buf = new ArrayList<PeakListRow>();
 
     buf.add(pL[parentIndex]); // this means the result will contain row(parentIndex) itself
@@ -641,17 +643,19 @@ public class IsotopePeakScannerTask extends AbstractTask {
       if (r.getAverageHeight() < minHeight)
         continue;
 
-      if (!rtTolerance.checkWithinTolerance(rt, r.getAverageRT()) && checkRT)
+      if (!(pL[i].getAverageMZ() > mz
+          && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance()))) {
+       
+        if (pL[i].getAverageMZ() > (mz + maxDiff)) // since pL is sorted by ascending mass, we can
+          // stop now
+          return buf;
         continue;
-
-      if (pL[i].getAverageMZ() > mz
-          && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance())) {
-        buf.add(pL[i]);
       }
 
-      if (pL[i].getAverageMZ() > (mz + maxDiff)) // since pL is sorted by ascending mass, we can
-                                                 // stop now
-        return buf;
+      if (checkRT && !rtTolerance.checkWithinTolerance(rt, r.getAverageRT()))
+        continue;
+
+      buf.add(pL[i]);
     }
     return buf;
   }
@@ -744,49 +748,53 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
   private boolean checkParameters() {
     if (charge == 0) {
-      setStatus(TaskStatus.CANCELED);
+      setStatus(TaskStatus.ERROR);
       MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
           "Error: charge may not be 0!");
       return false;
     }
     if (!FormulaUtils.checkMolecularFormula(element)) {
-      setStatus(TaskStatus.CANCELED);
+      setStatus(TaskStatus.ERROR);
       MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
           "Error: Invalid formula!");
       return false;
     }
-    if (massListName.equals("") && ratingType == RatingType.TEMPAVG) {
-      setStatus(TaskStatus.CANCELED);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Error: Rating Type = temporary average but no masslist was selected.\nYou can"
-          + " select a mass list without checking accurate average.");
-      return false;
-    }
-    if (peakList.getNumberOfRawDataFiles() > 1) {
-      setStatus(TaskStatus.CANCELED);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "The number of raw data files of peak list \"" + peakList.getName()
-              + "\" is greater than 1. This is not supported by this module.");
-      return false;
-    }
 
-    RawDataFile[] raws = peakList.getRawDataFiles();
-    boolean foundMassList = false;
-    for (RawDataFile raw : raws) {
-      int scanNumbers[] = raw.getScanNumbers();
-      for(int scan : scanNumbers) {
-        MassList[] massLists = raw.getScan(scan).getMassLists();
-        for (MassList list : massLists) {
-          if (list.getName().equals(massListName))
-            foundMassList = true;
-        } 
+    if (accurateAvgIntensity || ratingType == RatingType.TEMPAVG) {
+      if (massListName.equals("") && ratingType == RatingType.TEMPAVG) {
+        setStatus(TaskStatus.ERROR);
+        MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
+            "Error: Rating Type = temporary average but no masslist was selected.\nYou can"
+                + " select a mass list without checking accurate average.");
+        return false;
       }
-    }
-    if (foundMassList == false) {
-      setStatus(TaskStatus.CANCELED);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(), "Peak list \""
-          + peakList.getName() + "\" does not contain a mass list by the name of " + massListName + ".");
-      return false;
+      if (peakList.getNumberOfRawDataFiles() > 1) {
+        setStatus(TaskStatus.ERROR);
+        MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
+            "The number of raw data files of peak list \"" + peakList.getName()
+                + "\" is greater than 1. This is not supported by this module.");
+        return false;
+      }
+
+      RawDataFile[] raws = peakList.getRawDataFiles();
+      boolean foundMassList = false;
+      for (RawDataFile raw : raws) {
+        int scanNumbers[] = raw.getScanNumbers();
+        for (int scan : scanNumbers) {
+          MassList[] massLists = raw.getScan(scan).getMassLists();
+          for (MassList list : massLists) {
+            if (list.getName().equals(massListName))
+              foundMassList = true;
+          }
+        }
+      }
+      if (foundMassList == false) {
+        setStatus(TaskStatus.ERROR);
+        MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
+            "Peak list \"" + peakList.getName() + "\" does not contain a mass list by the name of "
+                + massListName + ".");
+        return false;
+      }
     }
     return true;
   }
