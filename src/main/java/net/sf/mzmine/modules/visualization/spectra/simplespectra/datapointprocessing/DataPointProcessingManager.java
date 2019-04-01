@@ -310,8 +310,10 @@ public class DataPointProcessingManager implements MZmineModule {
    * Clears the list of processing steps
    */
   public void clearProcessingSteps() {
-    if (processingList == null)
+    if (processingList == null) {
+      logger.warning("The processing queue is null and clearProcessingSteps was called.");
       processingList = new DataPointProcessingQueue();
+    }
     processingList.clear();
   }
 
@@ -329,7 +331,7 @@ public class DataPointProcessingManager implements MZmineModule {
     if(list != null)
       processingList = list;
     else
-      logger.warning("The processing list was about to be set to null");
+      logger.warning("The processing list was about to be set to null.");
   }
 
   public boolean isEnabled() {
