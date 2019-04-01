@@ -326,7 +326,10 @@ public class DataPointProcessingManager implements MZmineModule {
    * @param list New processing list.
    */
   public void setProcessingQueue(@Nonnull DataPointProcessingQueue list) {
-    processingList = list;
+    if(list != null)
+      processingList = list;
+    else
+      logger.warning("The processing list was about to be set to null");
   }
 
   public boolean isEnabled() {
