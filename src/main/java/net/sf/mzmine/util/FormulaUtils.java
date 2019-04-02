@@ -273,7 +273,7 @@ public class FormulaUtils {
    * calculation over the CDK version, which generates formulas without an exact mass)
    * 
    * @param formula
-   * @return
+   * @return the formula or null
    */
   public static IMolecularFormula createMajorIsotopeMolFormula(String formula) {
     try {

@@ -23,11 +23,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
@@ -46,6 +43,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
@@ -74,6 +72,7 @@ public class NeutralLossFilterTask extends AbstractTask {
 
   private double dMassLoss;
   IIsotope[] el;
+  private IMolecularFormula formula;
 
   NeutralLossFilterTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
     this.parameters = parameters;
@@ -88,12 +87,24 @@ public class NeutralLossFilterTask extends AbstractTask {
     suffix = parameters.getParameter(NeutralLossFilterParameters.suffix).getValue();
     checkRT = parameters.getParameter(NeutralLossFilterParameters.checkRT).getValue();
 
+    // calc mass for molecule
+    if (!molecule.isEmpty()) {
+      formula = FormulaUtils.createMajorIsotopeMolFormula(molecule);
+      if (formula != null) {
+        dMassLoss = 0;
+        for (IIsotope i : formula.isotopes())
+          dMassLoss += i.getExactMass() * formula.getIsotopeCount(i);
+        logger.info("Mass of molecule: " + molecule + " = " + dMassLoss);
+      }
+    }
+
     message = "Got paramenters...";
   }
 
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0.0;
@@ -103,8 +114,9 @@ public class NeutralLossFilterTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
-    return message;
+    return "NeutralLossFilter: " + message;
   }
 
   @Override
@@ -280,24 +292,7 @@ public class NeutralLossFilterTask extends AbstractTask {
     ArrayList<Double> diff = new ArrayList<Double>(2);
 
     diff.add(0.0);
-
-    if (!molecule.equals("")) {
-      double diffBuffer = 0.0;
-
-      IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-      IMolecularFormula formula =
-          MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(molecule, builder);
-
-      for (IIsotope iso : formula.isotopes()) {
-        diffBuffer += iso.getExactMass() * formula.getIsotopeCount(iso);
-      }
-      dMassLoss = diffBuffer;
-      diff.add(dMassLoss);
-      logger.info("Mass of molecule: " + molecule + " = " + diffBuffer);
-    } else {
-      diff.add(dMassLoss);
-    }
-
+    diff.add(dMassLoss);
     return diff;
   }
 
