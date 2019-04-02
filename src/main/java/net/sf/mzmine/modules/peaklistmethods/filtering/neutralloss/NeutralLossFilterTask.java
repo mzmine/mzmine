@@ -156,7 +156,7 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
-      if (peakList.getRow(i).getPeakIdentities().length > 0) {
+      if (rows[i].getPeakIdentities().length > 0) {
         finishedRows++;
         continue;
       }
