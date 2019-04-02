@@ -268,10 +268,16 @@ public class FormulaUtils {
   }
 
 
+  /**
+   * Creates a formula with the major isotopes (important to use this method for exact mass
+   * calculation over the CDK version, which generates formulas without an exact mass)
+   * 
+   * @param formula
+   * @return
+   */
   public static IMolecularFormula createMajorIsotopeMolFormula(String formula) {
     try {
-      if (formula.endsWith("-"))
-        System.out.println();
+      // new formula consists of isotopes without exact mass
       IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
       IMolecularFormula f = MolecularFormulaManipulator
           .getMajorIsotopeMolecularFormula(formula.replace(" ", ""), builder);
@@ -293,6 +299,13 @@ public class FormulaUtils {
 
   }
 
+  /**
+   * Searches for all isotopes exactmass=null and replaces them with the major isotope
+   * 
+   * @param f
+   * @return
+   * @throws IOException
+   */
   public static IMolecularFormula replaceAllIsotopesWithoutExactMass(IMolecularFormula f)
       throws IOException {
     for (IIsotope iso : f.isotopes()) {
