@@ -22,7 +22,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import net.sf.mzmine.datamodel.Feature;
@@ -126,10 +129,13 @@ public class NeutralLossFilterTask extends AbstractTask {
     totalRows = peakList.getNumberOfRows();
 
     ArrayList<Double> diff = setUpDiff();
-    if (diff == null) {
-      message = "ERROR: could not set up diff.";
+    if (diff == null || Double.compare(dMassLoss, 0.0d) == 0) {
+      setErrorMessage(
+          "Could not set up neutral loss. Mass loss could not be calculated from the formula or is 0.0");
+      setStatus(TaskStatus.ERROR);
       return;
     }
+
     if (suffix.equals("auto")) {
       if (molecule.equals(""))
         suffix = " NL: " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + "_results";
@@ -150,7 +156,7 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
-      if (peakList.getRow(i).getPeakIdentities().length > 0) {
+      if (rows[i].getPeakIdentities().length > 0) {
         finishedRows++;
         continue;
       }
@@ -220,7 +226,13 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       String comParent = "", comChild = "";
-      PeakListRow child = copyPeakRow(peakList.getRow(i));
+
+      PeakListRow originalChild = getRowFromCandidate(candidates, 0, plh);
+      if (originalChild == null) {
+        finishedRows++;
+        continue;
+      }
+      PeakListRow child = copyPeakRow(originalChild);
 
       if (resultMap.containsID(child.getID()))
         comChild += resultMap.getRowByID(child.getID()).getComment();
@@ -228,14 +240,23 @@ public class NeutralLossFilterTask extends AbstractTask {
       comChild += "Parent ID: " + candidates.get(1).getCandID();
       addComment(child, comChild);
 
-      resultMap.addRow(child); // add results to resultPeakList
+
+      List<PeakListRow> rowBuffer = new ArrayList<PeakListRow>();
+      boolean allPeaksAddable = true;
+
+      rowBuffer.add(child);
 
       for (int k = 1; k < candidates.size(); k++) // we skip k=0 because == groupedPeaks[0] which we
                                                   // added before
       {
-        PeakListRow parent = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));
-        // For neutral loss child and parent are
-        // inverted. since child=higher m/z
+        PeakListRow originalParent = getRowFromCandidate(candidates, 1, plh);
+
+        if (originalParent == null) {
+          allPeaksAddable = false;
+          continue;
+        }
+
+        PeakListRow parent = copyPeakRow(originalParent);
 
         if (resultMap.containsID(parent.getID()))
           comParent += resultMap.getRowByID(parent.getID()).getComment();
@@ -249,8 +270,12 @@ public class NeutralLossFilterTask extends AbstractTask {
                     / parent.getAverageMZ() * 1E6, 2)
                 + " ");
 
-        resultMap.addRow(parent);
+        rowBuffer.add(parent);
       }
+
+      if (allPeaksAddable)
+        for (PeakListRow row : rowBuffer)
+          resultMap.addRow(row);
 
       if (isCanceled())
         return;
@@ -397,5 +422,30 @@ public class NeutralLossFilterTask extends AbstractTask {
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
         new SimplePeakListAppliedMethod("NeutralLossFilter", parameters));
+  }
+
+  /**
+   * Extracts a peak list row from a Candidates array.
+   * 
+   * @param candidates
+   * @param peakIndex the index of the candidate peak, the peak list row should be extracted for.
+   * @param plh
+   * @return null if no peak with the given parameters exists, the specified peak list row
+   *         otherwise.
+   */
+  private @Nullable PeakListRow getRowFromCandidate(@Nonnull Candidates candidates, int peakIndex,
+      @Nonnull PeakListHandler plh) {
+
+    if (peakIndex >= candidates.size())
+      return null;
+
+    Candidate cand = candidates.get(peakIndex);
+
+    if (cand != null) {
+      int id = cand.getCandID();
+      PeakListRow original = plh.getRowByID(id);
+      return original;
+    }
+    return null;
   }
 }
