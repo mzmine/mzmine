@@ -54,6 +54,8 @@ public class SimplePeakListRow implements PeakListRow {
   private PeakInformation information;
   private int myID;
   private double maxDataPointIntensity = 0;
+
+  @Nullable
   private Integer parentRowID;
 
   /**
@@ -417,7 +419,7 @@ public class SimplePeakListRow implements PeakListRow {
 
 
   @Override
-  public void setParentRowID(Integer id) {
+  public void setParentRowID(@Nullable Integer id) {
     parentRowID = id;
   }
 
