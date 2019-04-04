@@ -147,6 +147,8 @@ public class PeakListTableModel extends AbstractTableModel {
           return peak.getTailingFactor();
         case AF:
           return peak.getAsymmetryFactor();
+        case PARENT_ROW_ID:
+          return peakListRow.getParentRowID();
       }
 
     }
