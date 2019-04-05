@@ -86,6 +86,8 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
   private int currentPeakCharge;
   private String currentIsotopePatternDescription;
 
+  private Integer parentChromatogramRowID = null;
+
   private Hashtable<String, RawDataFile> dataFilesIDMap;
 
   private int parsedRows, totalRows;
@@ -165,12 +167,6 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       }
       int rowID = Integer.parseInt(attrs.getValue(PeakListElementName_2_5.ID.getElementName()));
       buildingRow = new SimplePeakListRow(rowID);
-      try {
-        int parentRowID = Integer.parseInt(attrs.getValue(PeakListElementName_2_5.PARENT_ROW_ID.getElementName()));
-        buildingRow.setParentRowID(parentRowID);
-      } catch (NumberFormatException e) {
-        buildingRow.setParentRowID(null);
-      }
       String comment = attrs.getValue(PeakListElementName_2_5.COMMENT.getElementName());
       buildingRow.setComment(comment);
     }
@@ -213,7 +209,13 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
         currentPeakCharge = Integer.valueOf(chargeString);
       else
         currentPeakCharge = 0;
-
+      try {
+        parentChromatogramRowID = Integer.parseInt(
+                attrs.getValue(
+                        PeakListElementName_2_5.PARENT_CHROMATOGRAM_ROW_ID.getElementName()));
+      } catch (NumberFormatException e) {
+        parentChromatogramRowID = null;
+      }
     }
 
     // <MZPEAK>
@@ -400,6 +402,8 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
         peak.setIsotopePattern(newPattern);
         currentIsotopes.clear();
       }
+
+      peak.setParentChromatogramRowID(parentChromatogramRowID);
 
       buildingRow.addPeak(dataFile, peak);
 

@@ -36,7 +36,8 @@ enum PeakListElementName {
                                                       "fragment_scan"), ALL_MS2_FRAGMENT_SCANS(
                                                           "all_MS2_fragment_scans"), INDEX(
                                                               "index"), SHARPNESS(
-                                                                  "sharpness"), PARENT_ROW_ID("parent_row_id");
+                                                                  "sharpness"), PARENT_CHROMATOGRAM_ROW_ID(
+                                                                          "parent_chromatogram_row_id");
   private String elementName;
 
   private PeakListElementName(String itemName) {

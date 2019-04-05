@@ -260,15 +260,16 @@ public class DeconvolutionTask extends AbstractTask {
       // Resolve peaks.
       final PeakResolver resolverModule = resolver.getModule();
       final ParameterSet resolverParams = resolver.getParameterSet();
-      final Feature[] peaks = resolverModule.resolvePeaks(chromatogram, resolverParams, rSession,
+      final ResolvedPeak[] peaks = resolverModule.resolvePeaks(chromatogram, resolverParams, rSession,
           mzCenterFunction, msmsRange, RTRangeMSMS);
 
       // Add peaks to the new peak list.
-      for (final Feature peak : peaks) {
+      for (final ResolvedPeak peak : peaks) {
+
+        peak.setParentChromatogramRowID(currentRow.getID());
 
         final PeakListRow newRow = new SimplePeakListRow(peakId++);
         newRow.addPeak(dataFile, peak);
-        newRow.setParentRowID(currentRow.getID());
         newRow.setPeakInformation(peak.getPeakInformation());
         resolvedPeaks.addRow(newRow);
       }

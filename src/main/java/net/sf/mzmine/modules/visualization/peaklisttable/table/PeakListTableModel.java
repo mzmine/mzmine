@@ -148,7 +148,7 @@ public class PeakListTableModel extends AbstractTableModel {
         case AF:
           return peak.getAsymmetryFactor();
         case PARENT_ROW_ID:
-          return peakListRow.getParentRowID();
+          return peak.getParentChromatogramRowID();
       }
 
     }
