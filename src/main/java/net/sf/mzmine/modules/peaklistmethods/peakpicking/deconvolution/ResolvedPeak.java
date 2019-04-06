@@ -20,6 +20,8 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
 import java.util.Arrays;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -68,6 +70,10 @@ public class ResolvedPeak implements Feature {
   // method.
   private IsotopePattern isotopePattern = null;
   private int charge = 0;
+
+  // PeakListRow.ID of the chromatogram where this feature is detected. Null by default but can be set by
+  // chromatogram deconvolution method.
+  private Integer parentChromatogramRowID = null;
 
   /**
    * Initializes this peak using data points from a given chromatogram - regionStart marks the index
@@ -349,4 +355,13 @@ public class ResolvedPeak implements Feature {
   }
   // End dulab Edit
 
+  public void setParentChromatogramRowID(@Nullable Integer id) {
+    this.parentChromatogramRowID = id;
+  }
+
+  @Override
+  @Nullable
+  public Integer getParentChromatogramRowID() {
+    return this.parentChromatogramRowID;
+  }
 }

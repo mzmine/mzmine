@@ -411,7 +411,5 @@ public class SimplePeakListRow implements PeakListRow {
     this.calculateAverageValues();
   }
   // End Gauthier edit
-
-
 }
 // End DorresteinLab edit

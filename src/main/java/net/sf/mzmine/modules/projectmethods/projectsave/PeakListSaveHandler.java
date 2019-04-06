@@ -245,6 +245,8 @@ public class PeakListSaveHandler {
           p.getFeatureStatus().toString());
       atts.addAttribute("", "", PeakListElementName.CHARGE.getElementName(), "CDATA",
           String.valueOf(p.getCharge()));
+      atts.addAttribute("", "", PeakListElementName.PARENT_CHROMATOGRAM_ROW_ID.getElementName(), "CDATA",
+          p.getParentChromatogramRowID() != null ? String.valueOf(p.getParentChromatogramRowID()) : "");
       hd.startElement("", "", PeakListElementName.PEAK.getElementName(), atts);
 
       fillPeakElement(p, hd);

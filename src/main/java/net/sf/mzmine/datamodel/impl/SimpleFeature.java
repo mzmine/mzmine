@@ -20,6 +20,8 @@ package net.sf.mzmine.datamodel.impl;
 
 import java.util.Arrays;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import io.github.msdk.datamodel.Chromatogram;
@@ -66,6 +68,10 @@ public class SimpleFeature implements Feature {
   private IsotopePattern isotopePattern;
   private int charge = 0;
 
+  // PeakListRow.ID of the chromatogram where this feature is detected. Null by default but can be set by
+  // chromatogram deconvolution method.
+  private Integer parentChromatogramRowID;
+
   /**
    * Initializes a new peak using given values
    * 
@@ -96,6 +102,7 @@ public class SimpleFeature implements Feature {
     this.fwhm = null;
     this.tf = null;
     this.af = null;
+    this.parentChromatogramRowID = null;
   }
 
   /**
@@ -133,6 +140,7 @@ public class SimpleFeature implements Feature {
     this.fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
     this.allMS2FragmentScanNumbers = p.getAllMS2FragmentScanNumbers();
 
+    this.parentChromatogramRowID = p.getParentChromatogramRowID();
   }
 
   /**
@@ -179,6 +187,7 @@ public class SimpleFeature implements Feature {
       }
     }
 
+    this.parentChromatogramRowID = null; //TODO: ask Tomas and update
   }
 
   /**
@@ -414,4 +423,13 @@ public class SimpleFeature implements Feature {
   }
   // End dulab Edit
 
+  public void setParentChromatogramRowID(@Nullable Integer id) {
+    this.parentChromatogramRowID = id;
+  }
+
+  @Override
+  @Nullable
+  public Integer getParentChromatogramRowID() {
+    return this.parentChromatogramRowID;
+  }
 }

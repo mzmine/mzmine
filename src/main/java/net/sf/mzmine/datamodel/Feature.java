@@ -182,4 +182,8 @@ public interface Feature {
   public SimplePeakInformation getPeakInformation();
   // End dulab Edit
 
+  @Nullable
+  default public Integer getParentChromatogramRowID() {
+    return null;
+  }
 }
