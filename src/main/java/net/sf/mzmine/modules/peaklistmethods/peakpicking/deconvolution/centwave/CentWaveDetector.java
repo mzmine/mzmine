@@ -98,7 +98,7 @@ public class CentWaveDetector implements PeakResolver {
   }
 
   @Override
-  public Feature[] resolvePeaks(final Feature chromatogram, final ParameterSet parameters,
+  public ResolvedPeak[] resolvePeaks(final Feature chromatogram, final ParameterSet parameters,
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       double rTRangeMSMS) throws RSessionWrapperException {
 

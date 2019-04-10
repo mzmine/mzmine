@@ -22,12 +22,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.silent.SilentChemObjectBuilder;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
@@ -46,6 +46,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
@@ -74,6 +75,7 @@ public class NeutralLossFilterTask extends AbstractTask {
 
   private double dMassLoss;
   IIsotope[] el;
+  private IMolecularFormula formula;
 
   NeutralLossFilterTask(MZmineProject project, PeakList peakList, ParameterSet parameters) {
     this.parameters = parameters;
@@ -88,12 +90,24 @@ public class NeutralLossFilterTask extends AbstractTask {
     suffix = parameters.getParameter(NeutralLossFilterParameters.suffix).getValue();
     checkRT = parameters.getParameter(NeutralLossFilterParameters.checkRT).getValue();
 
+    // calc mass for molecule
+    if (!molecule.isEmpty()) {
+      formula = FormulaUtils.createMajorIsotopeMolFormula(molecule);
+      if (formula != null) {
+        dMassLoss = 0;
+        for (IIsotope i : formula.isotopes())
+          dMassLoss += i.getExactMass() * formula.getIsotopeCount(i);
+        logger.info("Mass of molecule: " + molecule + " = " + dMassLoss);
+      }
+    }
+
     message = "Got paramenters...";
   }
 
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0.0;
@@ -103,8 +117,9 @@ public class NeutralLossFilterTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
-    return message;
+    return "NeutralLossFilter: " + message;
   }
 
   @Override
@@ -114,10 +129,13 @@ public class NeutralLossFilterTask extends AbstractTask {
     totalRows = peakList.getNumberOfRows();
 
     ArrayList<Double> diff = setUpDiff();
-    if (diff == null) {
-      message = "ERROR: could not set up diff.";
+    if (diff == null || Double.compare(dMassLoss, 0.0d) == 0) {
+      setErrorMessage(
+          "Could not set up neutral loss. Mass loss could not be calculated from the formula or is 0.0");
+      setStatus(TaskStatus.ERROR);
       return;
     }
+
     if (suffix.equals("auto")) {
       if (molecule.equals(""))
         suffix = " NL: " + dMassLoss + " RTtol: " + rtTolerance.getTolerance() + "_results";
@@ -138,7 +156,7 @@ public class NeutralLossFilterTask extends AbstractTask {
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
-      if (peakList.getRow(i).getPeakIdentities().length > 0) {
+      if (rows[i].getPeakIdentities().length > 0) {
         finishedRows++;
         continue;
       }
@@ -208,7 +226,13 @@ public class NeutralLossFilterTask extends AbstractTask {
       }
 
       String comParent = "", comChild = "";
-      PeakListRow child = copyPeakRow(peakList.getRow(i));
+
+      PeakListRow originalChild = getRowFromCandidate(candidates, 0, plh);
+      if (originalChild == null) {
+        finishedRows++;
+        continue;
+      }
+      PeakListRow child = copyPeakRow(originalChild);
 
       if (resultMap.containsID(child.getID()))
         comChild += resultMap.getRowByID(child.getID()).getComment();
@@ -216,14 +240,23 @@ public class NeutralLossFilterTask extends AbstractTask {
       comChild += "Parent ID: " + candidates.get(1).getCandID();
       addComment(child, comChild);
 
-      resultMap.addRow(child); // add results to resultPeakList
+
+      List<PeakListRow> rowBuffer = new ArrayList<PeakListRow>();
+      boolean allPeaksAddable = true;
+
+      rowBuffer.add(child);
 
       for (int k = 1; k < candidates.size(); k++) // we skip k=0 because == groupedPeaks[0] which we
                                                   // added before
       {
-        PeakListRow parent = copyPeakRow(plh.getRowByID(candidates.get(k).getCandID()));
-        // For neutral loss child and parent are
-        // inverted. since child=higher m/z
+        PeakListRow originalParent = getRowFromCandidate(candidates, 1, plh);
+
+        if (originalParent == null) {
+          allPeaksAddable = false;
+          continue;
+        }
+
+        PeakListRow parent = copyPeakRow(originalParent);
 
         if (resultMap.containsID(parent.getID()))
           comParent += resultMap.getRowByID(parent.getID()).getComment();
@@ -237,8 +270,12 @@ public class NeutralLossFilterTask extends AbstractTask {
                     / parent.getAverageMZ() * 1E6, 2)
                 + " ");
 
-        resultMap.addRow(parent);
+        rowBuffer.add(parent);
       }
+
+      if (allPeaksAddable)
+        for (PeakListRow row : rowBuffer)
+          resultMap.addRow(row);
 
       if (isCanceled())
         return;
@@ -280,24 +317,7 @@ public class NeutralLossFilterTask extends AbstractTask {
     ArrayList<Double> diff = new ArrayList<Double>(2);
 
     diff.add(0.0);
-
-    if (!molecule.equals("")) {
-      double diffBuffer = 0.0;
-
-      IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
-      IMolecularFormula formula =
-          MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(molecule, builder);
-
-      for (IIsotope iso : formula.isotopes()) {
-        diffBuffer += iso.getExactMass() * formula.getIsotopeCount(iso);
-      }
-      dMassLoss = diffBuffer;
-      diff.add(dMassLoss);
-      logger.info("Mass of molecule: " + molecule + " = " + diffBuffer);
-    } else {
-      diff.add(dMassLoss);
-    }
-
+    diff.add(dMassLoss);
     return diff;
   }
 
@@ -402,5 +422,30 @@ public class NeutralLossFilterTask extends AbstractTask {
     // Add task description to peakList
     resultPeakList.addDescriptionOfAppliedTask(
         new SimplePeakListAppliedMethod("NeutralLossFilter", parameters));
+  }
+
+  /**
+   * Extracts a peak list row from a Candidates array.
+   * 
+   * @param candidates
+   * @param peakIndex the index of the candidate peak, the peak list row should be extracted for.
+   * @param plh
+   * @return null if no peak with the given parameters exists, the specified peak list row
+   *         otherwise.
+   */
+  private @Nullable PeakListRow getRowFromCandidate(@Nonnull Candidates candidates, int peakIndex,
+      @Nonnull PeakListHandler plh) {
+
+    if (peakIndex >= candidates.size())
+      return null;
+
+    Candidate cand = candidates.get(peakIndex);
+
+    if (cand != null) {
+      int id = cand.getCandID();
+      PeakListRow original = plh.getRowByID(id);
+      return original;
+    }
+    return null;
   }
 }
