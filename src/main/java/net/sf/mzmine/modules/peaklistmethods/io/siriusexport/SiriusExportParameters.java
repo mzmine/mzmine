@@ -15,24 +15,36 @@ package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.MassListParameter;
+import net.sf.mzmine.parameters.parametertypes.*;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
 
 import java.awt.*;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 
 public class SiriusExportParameters extends SimpleParameterSet {
+
+
+  public static final IntegerParameter COSINE_PARAMETER = new IntegerParameter("Cosine threshold (%)", "Threshold for the cosine similarity between two spectra for merging. Set to 0 if the spectra may have different collision energy!", 80, 0, 100);
+
+  public static final IntegerParameter MASS_ACCURACY = new IntegerParameter("expected mass deviation (ppm)", "Expected mass deviation of your measurement in ppm (parts per million).", 10, 1, 100);
+
+  public static final BooleanParameter AVERAGE_OVER_MASS = new BooleanParameter("Average over m/z", "When merging two peaks, the m/z of the merged peak is set to the weighted average of the source peaks. If unchecked, the m/z of the peak with largest intensity is used instead.", false);
 
   public static final ComboParameter<MERGE_MODE> MERGE =
       new ComboParameter<MERGE_MODE>("Merge mode", "How to merge MS/MS spectra",
           MERGE_MODE.values(), MERGE_MODE.MERGE_CONSECUTIVE_SCANS);
 
   public SiriusExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, MERGE, MASS_LIST});
+    super(new Parameter[] {PEAK_LISTS, FILENAME, MERGE, AVERAGE_OVER_MASS,  COSINE_PARAMETER, MASS_ACCURACY,  MASS_LIST, isolationWindowOffset, isolationWindowWidth});
   }
+
+  public static final DoubleParameter isolationWindowOffset = new DoubleParameter("isolation window offset", "isolation window offset from the precursor m/z", NumberFormat.getNumberInstance(Locale.US), 0d);
+  public static final DoubleParameter isolationWindowWidth = new DoubleParameter("isolation window width", "width (left and right from offset) of the isolation window", NumberFormat.getNumberInstance(Locale.US), 1d);
 
 
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
@@ -60,6 +72,8 @@ public class SiriusExportParameters extends SimpleParameterSet {
     NO_MERGE("Do not merge"), MERGE_CONSECUTIVE_SCANS(
         "Merge consecutive scans"), MERGE_OVER_SAMPLES(
             "Merge all MS/MS belonging to the same feature");
+
+
     private final String name;
 
     private MERGE_MODE(String name) {
