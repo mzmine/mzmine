@@ -20,11 +20,17 @@ package net.sf.mzmine.modules.peaklistmethods.identification.gnpsresultsimport;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.stream.file.FileSource;
@@ -37,9 +43,6 @@ import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.grouping.metacorrelate.datastructure.R2RMap;
-import net.sf.mzmine.modules.peaklistmethods.grouping.metacorrelate.msms.similarity.MS2Similarity;
-import net.sf.mzmine.modules.peaklistmethods.grouping.metacorrelate.msms.similarity.R2RMS2Similarity;
 import net.sf.mzmine.modules.peaklistmethods.identification.gnpsresultsimport.GNPSResultsIdentity.ATT;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -124,13 +127,13 @@ public class GNPSResultsImportTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Importing GNPS results for " + peakList);
 
+    // remove zero ids from edges to prevent exception
+    removeZeroIDFromEdge(file);
+
     Graph graph = new DefaultGraph("GNPS");
     if (importGraphData(graph, file)) {
       // import library matches from nodes
       importLibraryMatches(graph);
-
-      // import MS2 similarity from GNPS edges
-      importMS2SimilarityEdges(graph);
 
       // Add task description to peakList
       ((SimplePeakList) peakList).addDescriptionOfAppliedTask(
@@ -146,47 +149,27 @@ public class GNPSResultsImportTask extends AbstractTask {
     }
   }
 
-  private void importMS2SimilarityEdges(Graph graph) {
-    AtomicInteger missingRows = new AtomicInteger(0);
-    AtomicInteger r2rSimilarities = new AtomicInteger(0);
-
-    R2RMap<R2RMS2Similarity> map = peakList.getR2RSimilarityMap();
-
-    graph.edges().forEach(edge -> {
-      // edge type is gnps? (Cosine)
-      String type = (String) edge.getAttribute(EdgeAtt.EDGE_TYPE.getKey());
-      if (type.equals(EdgeType.COSINE.key)) {
-        // get rows
-        int ida = Integer.parseInt(edge.getSourceNode().getId());
-        int idb = Integer.parseInt(edge.getTargetNode().getId());
-        PeakListRow a = peakList.findRowByID(ida);
-        PeakListRow b = peakList.findRowByID(idb);
-        if (a != null && b != null) {
-          r2rSimilarities.getAndIncrement();
-          // get existing similarity
-          R2RMS2Similarity similarity = map != null ? map.get(a, b) : null;
-          // create new if empty
-          if (similarity == null) {
-            similarity = new R2RMS2Similarity(a, b);
-          }
-          // add gnps results
-          double cosine = (double) edge.getAttribute(EdgeAtt.EDGE_SCORE.getKey());
-          MS2Similarity sim = new MS2Similarity(cosine, 1);
-          similarity.addGNPSSim(sim);
-
-          // add r2r similarity
-          peakList.addR2RSimilarity(a, b, similarity);
-        } else
-          missingRows.getAndIncrement();
-      }
-    });
-
-
-    if (missingRows.get() > 0)
-      logger.info(missingRows.get()
-          + " rows (features) that were present in the GNPS results were not found in the peakList. Check if you selected the correct peak list, did some filtering or applied renumbering (IDs have to match).");
-
-    logger.info(r2rSimilarities.get() + " cosine score edges");
+  /**
+   * All edges have id=0 - this causes an exception. Replace all zero ids and save the file
+   * 
+   * @param file2
+   */
+  private void removeZeroIDFromEdge(File file) {
+    try {
+      logger.info("replacing zero ids in graphml");
+      Path path = Paths.get(file.getAbsolutePath());
+      Stream<String> lines = Files.lines(path);
+      List<String> replaced =
+          lines.map(line -> line.replaceAll("edge id=\"0\"", "edge")).collect(Collectors.toList());
+      Files.write(path, replaced);
+      lines.close();
+      logger.info("zero ids in graphml replaces");
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, "graphml NOT LOADED: " + file.getAbsolutePath(), e);
+      setErrorMessage("Cannot load graphml file: " + file.getAbsolutePath());
+      setStatus(TaskStatus.ERROR);
+      cancel();
+    }
   }
 
   private void importLibraryMatches(Graph graph) {
@@ -241,7 +224,7 @@ public class GNPSResultsImportTask extends AbstractTask {
       logger.info(() -> MessageFormat.format("GNPS results: nodes={0} edges={1}",
           graph.getNodeCount(), graph.getEdgeCount()));
     } catch (IOException e) {
-      logger.log(Level.SEVERE, "NOT LOADED", e);
+      logger.log(Level.SEVERE, "graphml NOT LOADED: " + file.getAbsolutePath(), e);
       setErrorMessage("Cannot load graphml file: " + file.getAbsolutePath());
       setStatus(TaskStatus.ERROR);
       cancel();
