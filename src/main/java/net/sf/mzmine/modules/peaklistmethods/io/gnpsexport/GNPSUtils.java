@@ -64,6 +64,8 @@ public class GNPSUtils {
     boolean openWebsite = param.getParameter(GNPSSubmitParameters.OPEN_WEBSITE).getValue();
     String presets = param.getParameter(GNPSSubmitParameters.PRESETS).getValue().toString();
     String email = param.getParameter(GNPSSubmitParameters.EMAIL).getValue();
+    String username = param.getParameter(GNPSSubmitParameters.USER).getValue();
+    String password = param.getParameter(GNPSSubmitParameters.PASSWORD).getValue();
     //
     File folder = file.getParentFile();
     String name = file.getName();
@@ -76,7 +78,7 @@ public class GNPSUtils {
       File meta = !useMeta ? null
           : param.getParameter(GNPSSubmitParameters.META_FILE).getEmbeddedParameter().getValue();
 
-      return submitJob(mgf, quan, meta, null, email, presets, openWebsite);
+      return submitJob(mgf, quan, meta, null, email, username, password, presets, openWebsite);
     } else
       return "";
   }
@@ -90,7 +92,8 @@ public class GNPSUtils {
    * @return
    */
   public static String submitJob(File mgf, File quan, File meta, File[] additionalEdges,
-      String email, String presets, boolean openWebsite) throws MSDKRuntimeException {
+      String email, String username, String password, String presets, boolean openWebsite)
+      throws MSDKRuntimeException {
     try {
       // NEEDED files
       if (mgf.exists() && quan.exists() && !presets.isEmpty()) {
@@ -110,6 +113,8 @@ public class GNPSUtils {
           // OPTIONAL
           // email, meta data, additional edges
           entity.addPart("email", new StringBody(email));
+          entity.addPart("username", new StringBody(username));
+          entity.addPart("password", new StringBody(password));
           if (meta != null && meta.exists())
             entity.addPart("samplemetadata", new FileBody(meta));
 
@@ -119,8 +124,11 @@ public class GNPSUtils {
               if (edge != null && edge.exists())
                 entity.addPart("additionalpairs", new FileBody(edge));
 
+          // old address
+          // HttpPost httppost =
+          // new HttpPost("http://mingwangbeta.ucsd.edu:5050/uploadanalyzefeaturenetworking");
           HttpPost httppost =
-              new HttpPost("http://mingwangbeta.ucsd.edu:5050/uploadanalyzefeaturenetworking");
+              new HttpPost("http://dorresteinappshub.ucsd.edu:5050/uploadanalyzefeaturenetworking");
           httppost.setEntity(entity);
 
           LOG.info("Submitting GNPS job " + httppost.getRequestLine());
