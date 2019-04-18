@@ -19,24 +19,25 @@
 package net.sf.mzmine.modules.visualization.peaklisttable;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
@@ -103,6 +104,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem exportIsotopesItem;
   private final JMenuItem exportMSMSItem;
 
+  private final JMenuItem openCompoundIdUrl;
   ///// kaidu edit
   private final JMenuItem exportToSirius;
   ////
@@ -171,6 +173,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // Identities menu.
     idsMenu = new JMenu("Identities");
     add(idsMenu);
+    openCompoundIdUrl = GUIUtils.addMenuItem(idsMenu, "Open compound ID URL", this);
     clearIdsItem = GUIUtils.addMenuItem(idsMenu, "Clear", this);
     copyIdsItem = GUIUtils.addMenuItem(idsMenu, "Copy", this);
     pasteIdsItem = GUIUtils.addMenuItem(idsMenu, "Paste", this);
@@ -179,6 +182,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak", this);
     deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected row(s)", this);
     addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
+
   }
 
   @Override
@@ -280,6 +284,13 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       // only show if selected rows == 2 and both have MS2
       boolean bothMS2 = selectedRows.length == 2 && nRowsWithFragmentation == 2;
       showMSMSMirrorItem.setEnabled(bothMS2);
+
+      // open id url if available
+      PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
+      String url = null;
+      if (pi != null)
+        url = pi.getPropertyValue(PeakIdentity.PROPERTY_URL);
+      openCompoundIdUrl.setEnabled(url != null && !url.isEmpty());
     }
 
     copyIdsItem
@@ -474,8 +485,22 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
             showPeak.getRepresentativeScanNumber(), showPeak);
       }
     }
+    if (openCompoundIdUrl.equals(src)) {
+      if (clickedPeakListRow != null && clickedPeakListRow.getPreferredPeakIdentity() != null) {
+        String url = clickedPeakListRow.getPreferredPeakIdentity()
+            .getPropertyValue(PeakIdentity.PROPERTY_URL);
+        if (url != null && !url.isEmpty() && Desktop.isDesktopSupported()) {
+          try {
+            Desktop.getDesktop().browse(new URI(url));
+          } catch (IOException | URISyntaxException e1) {
+          }
+        }
+      }
+    }
 
-    if (showMSMSItem.equals(src)) {
+    if (showMSMSItem.equals(src))
+
+    {
       if (allClickedPeakListRows != null && allClickedPeakListRows.length > 1) {
         // show multi msms window of multiple rows
         MultiMSMSWindow multi = new MultiMSMSWindow();
@@ -540,6 +565,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       if (showPeak != null && showPeak.getIsotopePattern() != null) {
 
         SwingUtilities.invokeLater(new Runnable() {
+
           @Override
           public void run() {
             SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(),
@@ -563,7 +589,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // //TODO: what is going on here?
     // TODO: probably remove singlerowidentificationDialog as Sirius works with spectrum, not 1
     // peak.
-    if (siriusItem != null && siriusItem.equals(src)) {
+    if (siriusItem != null && siriusItem.equals(src))
+
+    {
 
       SwingUtilities.invokeLater(new Runnable() {
         @Override
