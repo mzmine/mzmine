@@ -68,7 +68,9 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
       new StringParameter("Email", "Email adresse for notifications about the job", "", false);
   public static final StringParameter USER =
       new StringParameter("Username", "Username for login", "", false);
-  public static final PasswordParameter PASSWORD = new PasswordParameter("Password", "", "", false);
+  public static final PasswordParameter PASSWORD = new PasswordParameter("Password (unencrypted)",
+      "The password is sent without encryption, until the server has has moved to its final destination.",
+      "", false);
 
   /**
    * Export ion identity network edges (if available)
