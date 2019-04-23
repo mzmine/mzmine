@@ -332,6 +332,9 @@ public class CSVExportTask extends AbstractTask {
               case PEAK_STATUS:
                 line.append(peak.getFeatureStatus() + fieldSeparator);
                 break;
+              case PEAK_NAME:
+                line.append(peak.toString() + fieldSeparator);
+                break;
               case PEAK_MZ:
                 line.append(peak.getMZ() + fieldSeparator);
                 break;
