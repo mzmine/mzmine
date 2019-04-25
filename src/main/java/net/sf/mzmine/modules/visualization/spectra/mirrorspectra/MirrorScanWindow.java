@@ -8,6 +8,7 @@ import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.DBEntryField;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.SpectralDBPeakIdentity;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
 
@@ -73,7 +74,7 @@ public class MirrorScanWindow extends JFrame {
 
     //
     double precursorMZB = db.getEntry().getPrecursorMZ();
-    double rtB = db.getEntry().getRetentionTime().orElse(0);
+    Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
     DataPoint[] dpsB = db.getEntry().getDataPoints();
     this.setScans("", precursorMZA, rtA, dpsA, "database", precursorMZB, rtB, dpsB);
   }

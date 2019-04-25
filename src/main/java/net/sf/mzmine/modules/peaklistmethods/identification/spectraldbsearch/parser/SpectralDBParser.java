@@ -16,32 +16,23 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser;
 
-import java.util.Map;
-import java.util.Optional;
-import net.sf.mzmine.datamodel.DataPoint;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import javax.annotation.Nonnull;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.SpectralDBEntry;
 
-public class SpectralDBEntry {
+public interface SpectralDBParser {
 
-  private final Map<DBEntryField, Object> fields;
-  private final DataPoint[] dps;
-
-  public SpectralDBEntry(Map<DBEntryField, Object> fields, DataPoint[] dps) {
-    this.fields = fields;
-    this.dps = dps;
-  }
-
-  public Double getPrecursorMZ() {
-    return (Double) fields.get(DBEntryField.MZ);
-  }
-
-  public Optional<Object> getField(DBEntryField f) {
-    return Optional.ofNullable(fields.get(f));
-  }
-
-  public DataPoint[] getDataPoints() {
-    return dps;
-  }
-
+  /**
+   * Parses the file and creates spectral db entries
+   * 
+   * @param dataBaseFile
+   * @return the list or an empty list if something went wrong (e.g., wrong format)
+   * @throws IOException
+   */
+  @Nonnull
+  public List<SpectralDBEntry> parse(File dataBaseFile) throws IOException;
 }

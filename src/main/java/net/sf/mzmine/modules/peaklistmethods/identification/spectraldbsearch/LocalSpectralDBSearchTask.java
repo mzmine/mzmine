@@ -19,32 +19,25 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.io.File;
-import java.io.StringReader;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitIonParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser.GnpsJsonParser;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser.MonaJsonParser;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser.SpectralDBParser;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSortMode;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -53,6 +46,7 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
+import net.sf.mzmine.util.files.FileTypeFilter;
 
 class LocalSpectralDBSearchTask extends AbstractTask {
 
@@ -72,9 +66,9 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-  private double noiseLevel;
-  private double minSimilarity;
-  private int minMatch;
+  private final double noiseLevel;
+  private final double minSimilarity;
+  private final int minMatch;
 
   LocalSpectralDBSearchTask(PeakList peakList, ParameterSet parameters) {
     this.peakList = peakList;
@@ -118,39 +112,39 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-
     try {
-      List<SpectralDBEntry> list = new ArrayList<>();
-      List<String> lines = Files.readLines(dataBaseFile, Charsets.UTF_8);
-      // create db
-      for (String l : lines) {
-        JsonReader reader = Json.createReader(new StringReader(l));
-        JsonObject json = reader.readObject();
-        list.add(getDBEntry(json));
-        reader.close();
-      }
 
-      for (PeakListRow row : peakList.getRows()) {
-        if (row.getBestFragmentation() != null) {
-          for (SpectralDBEntry ident : list) {
-            SpectraSimilarity sim = spectraDBMatch(row, ident);
-            if (sim != null) {
-              addIdentity(row, ident, sim);
-            }
-            // check for max error (missing masslist)
-            if (errorCounter > MAX_ERROR) {
-              logger.log(Level.WARNING,
-                  "MS/MS data base matching failed. To many missing mass lists ");
-              setStatus(TaskStatus.ERROR);
-              setErrorMessage("MS/MS data base matching failed. To many missing mass lists ");
-              return;
+      List<SpectralDBEntry> list = parseFile(dataBaseFile);
+      if (list.size() > 0) {
+        logger.info(() -> MessageFormat.format(
+            "Checking {0} rows against {1} spectral library entires (min signals={2}; min similarity={3}",
+            peakList.getNumberOfRows(), list.size(), minMatch, minSimilarity));
+        for (PeakListRow row : peakList.getRows()) {
+          if (row.getBestFragmentation() != null) {
+            for (SpectralDBEntry ident : list) {
+              SpectraSimilarity sim = spectraDBMatch(row, ident);
+              if (sim != null) {
+                addIdentity(row, ident, sim);
+              }
+              // check for max error (missing masslist)
+              if (errorCounter > MAX_ERROR) {
+                logger.log(Level.WARNING,
+                    "MS/MS data base matching failed. To many missing mass lists ");
+                setStatus(TaskStatus.ERROR);
+                setErrorMessage("MS/MS data base matching failed. To many missing mass lists ");
+                return;
+              }
             }
           }
+          // next row
+          finishedRows++;
         }
-        // next row
-        finishedRows++;
+      } else {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
+        throw new MSDKRuntimeException(
+            "DB file was empty - or error while parsing " + dataBaseFile);
       }
-
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
       setStatus(TaskStatus.ERROR);
@@ -171,6 +165,26 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   }
 
+  private List<SpectralDBEntry> parseFile(File dataBaseFile) {
+    FileTypeFilter json = new FileTypeFilter("json", "");
+    if (json.accept(dataBaseFile)) {
+      // test Gnps and MONA json parser
+      SpectralDBParser[] parser =
+          new SpectralDBParser[] {new GnpsJsonParser(), new MonaJsonParser()};
+      for (SpectralDBParser p : parser) {
+        try {
+          List<SpectralDBEntry> list = p.parse(dataBaseFile);
+          if (!list.isEmpty())
+            return list;
+        } catch (Exception ex) {
+        }
+      }
+    } else {
+      logger.log(Level.WARNING, "Unsupported file format: " + dataBaseFile.getAbsolutePath());
+    }
+    return new ArrayList<>();
+  }
+
   /**
    * 
    * @param row
@@ -179,8 +193,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    */
   private SpectraSimilarity spectraDBMatch(PeakListRow row, SpectralDBEntry ident) {
     // retention time
-    if (!useRT || !ident.hasRetentionTime() || rtTolerance
-        .checkWithinTolerance(ident.getRetentionTime().getAsDouble(), row.getAverageRT())) {
+    Double rt = (Double) ident.getField(DBEntryField.RT).orElse(null);
+    if (!useRT || rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT())) {
       // precursor mz
       if (mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ())) {
         try {
@@ -199,6 +213,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     }
     return null;
   }
+
 
   /**
    * Thresholded masslist
@@ -220,32 +235,6 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
     DataPoint[] dps = masses.getDataPoints();
     return ScanUtils.getFiltered(dps, noiseLevel);
-  }
-
-  public static DataPoint[] getDataPoints(JsonObject main) {
-    JsonArray data = main.getJsonArray("peaks");
-    DataPoint[] dps = new DataPoint[data.size()];
-    for (int i = 0; i < data.size(); i++) {
-      double mz = data.getJsonArray(i).getJsonNumber(0).doubleValue();
-      double intensity = data.getJsonArray(i).getJsonNumber(1).doubleValue();
-      dps[i] = new SimpleDataPoint(mz, intensity);
-    }
-    return dps;
-  }
-
-  public static SpectralDBEntry getDBEntry(JsonObject main) {
-    String adduct = main.getString(LibrarySubmitIonParameters.ADDUCT.getName(), "");
-    JsonNumber mz = main.getJsonNumber(LibrarySubmitIonParameters.MZ.getName());
-    JsonNumber rt = main.getJsonNumber(LibrarySubmitParameters.EXPORT_RT.getName());
-    String formula = main.getString(LibrarySubmitParameters.FORMULA.getName(), "");
-    String name = main.getString(LibrarySubmitParameters.COMPOUND_NAME.getName(), "");
-    if (formula.equals("N/A"))
-      formula = "";
-
-    DataPoint[] dps = getDataPoints(main);
-
-    return new SpectralDBEntry(name, mz == null ? 0 : mz.doubleValue(),
-        rt == null ? null : rt.doubleValue(), adduct, formula, dps);
   }
 
   private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectraSimilarity sim) {

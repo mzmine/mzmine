@@ -31,9 +31,12 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
   public SpectralDBPeakIdentity(SpectralDBEntry entry, SpectraSimilarity similarity,
       String method) {
     super(
-        MessageFormat.format("{0} as {3} ({1}) {2} cos={4}", entry.getCompoundName(), entry.getPrecursorMZ(),
-            entry.getFormula(), entry.getAdduct(), COS_FORM.format(similarity.getCosine())),
-        entry.getFormula(), method, "", "");
+        MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
+            entry.getField(DBEntryField.NAME).orElse("NONAME"), entry.getPrecursorMZ(),
+            entry.getField(DBEntryField.FORMULA).orElse(""),
+            entry.getField(DBEntryField.IONTYPE).orElse("N/A"),
+            COS_FORM.format(similarity.getCosine())),
+        entry.getField(DBEntryField.FORMULA).orElse("").toString(), method, "", "");
     this.entry = entry;
     this.similarity = similarity;
   }
