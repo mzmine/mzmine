@@ -23,6 +23,9 @@ import java.awt.Desktop;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -294,8 +297,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       // has identity of MS/MS database match
       PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
       showMSMSMirrorMatchDBItem.setEnabled(pi != null && pi instanceof SpectralDBPeakIdentity);
-      
-      // open id url if available 
+
+      // open id url if available
       String url = null;
       if (pi != null)
         url = pi.getPropertyValue(PeakIdentity.PROPERTY_URL);
