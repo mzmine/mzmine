@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.visualization.peaklisttable;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -103,6 +104,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem exportIsotopesItem;
   private final JMenuItem exportMSMSItem;
 
+  private final JMenuItem openCompoundIdUrl;
   ///// kaidu edit
   private final JMenuItem exportToSirius;
   // for building MS/MS library and submission to online libraries
@@ -176,6 +178,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // Identities menu.
     idsMenu = new JMenu("Identities");
     add(idsMenu);
+    openCompoundIdUrl = GUIUtils.addMenuItem(idsMenu, "Open compound ID URL", this);
     clearIdsItem = GUIUtils.addMenuItem(idsMenu, "Clear", this);
     copyIdsItem = GUIUtils.addMenuItem(idsMenu, "Copy", this);
     pasteIdsItem = GUIUtils.addMenuItem(idsMenu, "Paste", this);
@@ -291,6 +294,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       // has identity of MS/MS database match
       PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
       showMSMSMirrorMatchDBItem.setEnabled(pi != null && pi instanceof SpectralDBPeakIdentity);
+      
+      // open id url if available 
+      String url = null;
+      if (pi != null)
+        url = pi.getPropertyValue(PeakIdentity.PROPERTY_URL);
+      openCompoundIdUrl.setEnabled(url != null && !url.isEmpty());
     }
 
     copyIdsItem
@@ -483,6 +492,18 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
         SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(),
             showPeak.getRepresentativeScanNumber(), showPeak);
+      }
+    }
+    if (openCompoundIdUrl.equals(src)) {
+      if (clickedPeakListRow != null && clickedPeakListRow.getPreferredPeakIdentity() != null) {
+        String url = clickedPeakListRow.getPreferredPeakIdentity()
+            .getPropertyValue(PeakIdentity.PROPERTY_URL);
+        if (url != null && !url.isEmpty() && Desktop.isDesktopSupported()) {
+          try {
+            Desktop.getDesktop().browse(new URI(url));
+          } catch (IOException | URISyntaxException e1) {
+          }
+        }
       }
     }
 

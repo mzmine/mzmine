@@ -88,6 +88,7 @@ public class SimplePeakList implements PeakList {
   /**
    * Returns number of raw data files participating in the alignment
    */
+  @Override
   public int getNumberOfRawDataFiles() {
     return dataFiles.length;
   }
@@ -95,10 +96,12 @@ public class SimplePeakList implements PeakList {
   /**
    * Returns all raw data files participating in the alignment
    */
+  @Override
   public RawDataFile[] getRawDataFiles() {
     return dataFiles;
   }
 
+  @Override
   public RawDataFile getRawDataFile(int position) {
     return dataFiles[position];
   }
@@ -106,6 +109,7 @@ public class SimplePeakList implements PeakList {
   /**
    * Returns number of rows in the alignment result
    */
+  @Override
   public int getNumberOfRows() {
     return peakListRows.size();
   }
@@ -116,6 +120,7 @@ public class SimplePeakList implements PeakList {
    * @param row Row of the alignment result
    * @param rawDataFile Raw data file where the peak is detected/estimated
    */
+  @Override
   public Feature getPeak(int row, RawDataFile rawDataFile) {
     return peakListRows.get(row).getPeak(rawDataFile);
   }
@@ -123,6 +128,7 @@ public class SimplePeakList implements PeakList {
   /**
    * Returns all peaks for a raw data file
    */
+  @Override
   public Feature[] getPeaks(RawDataFile rawDataFile) {
     Vector<Feature> peakSet = new Vector<Feature>();
     for (int row = 0; row < getNumberOfRows(); row++) {
@@ -136,24 +142,29 @@ public class SimplePeakList implements PeakList {
   /**
    * Returns all peaks on one row
    */
+  @Override
   public PeakListRow getRow(int row) {
     return peakListRows.get(row);
   }
 
+  @Override
   public PeakListRow[] getRows() {
     return peakListRows.toArray(new PeakListRow[0]);
   }
 
+  @Override
   public PeakListRow[] getRowsInsideMZRange(Range<Double> mzRange) {
     Range<Double> all = Range.all();
     return getRowsInsideScanAndMZRange(all, mzRange);
   }
 
+  @Override
   public PeakListRow[] getRowsInsideScanRange(Range<Double> rtRange) {
     Range<Double> all = Range.all();
     return getRowsInsideScanAndMZRange(rtRange, all);
   }
 
+  @Override
   public PeakListRow[] getRowsInsideScanAndMZRange(Range<Double> rtRange, Range<Double> mzRange) {
     Vector<PeakListRow> rowsInside = new Vector<PeakListRow>();
 
@@ -165,6 +176,7 @@ public class SimplePeakList implements PeakList {
     return rowsInside.toArray(new PeakListRow[0]);
   }
 
+  @Override
   public void addRow(PeakListRow row) {
     List<RawDataFile> myFiles = Arrays.asList(this.getRawDataFiles());
     for (RawDataFile testFile : row.getRawDataFiles()) {
@@ -193,6 +205,7 @@ public class SimplePeakList implements PeakList {
    * @param endRT End of the retention time range
    * @return
    */
+  @Override
   public Feature[] getPeaksInsideScanRange(RawDataFile file, Range<Double> rtRange) {
     Range<Double> all = Range.all();
     return getPeaksInsideScanAndMZRange(file, rtRange, all);
@@ -201,6 +214,7 @@ public class SimplePeakList implements PeakList {
   /**
    * @see net.sf.mzmine.datamodel.PeakList#getPeaksInsideMZRange(double, double)
    */
+  @Override
   public Feature[] getPeaksInsideMZRange(RawDataFile file, Range<Double> mzRange) {
     Range<Double> all = Range.all();
     return getPeaksInsideScanAndMZRange(file, all, mzRange);
@@ -210,6 +224,7 @@ public class SimplePeakList implements PeakList {
    * @see net.sf.mzmine.datamodel.PeakList#getPeaksInsideScanAndMZRange(double, double, double,
    *      double)
    */
+  @Override
   public Feature[] getPeaksInsideScanAndMZRange(RawDataFile file, Range<Double> rtRange,
       Range<Double> mzRange) {
     Vector<Feature> peaksInside = new Vector<Feature>();
@@ -226,6 +241,7 @@ public class SimplePeakList implements PeakList {
   /**
    * @see net.sf.mzmine.datamodel.PeakList#removeRow(net.sf.mzmine.datamodel.PeakListRow)
    */
+  @Override
   public void removeRow(PeakListRow row) {
     peakListRows.remove(row);
 
@@ -241,6 +257,7 @@ public class SimplePeakList implements PeakList {
   /**
    * @see net.sf.mzmine.datamodel.PeakList#removeRow(net.sf.mzmine.datamodel.PeakListRow)
    */
+  @Override
   public void removeRow(int rowNum) {
     removeRow(peakListRows.get(rowNum));
   }
@@ -276,6 +293,7 @@ public class SimplePeakList implements PeakList {
   /**
    * @see net.sf.mzmine.datamodel.PeakList#getPeakRowNum(net.sf.mzmine.datamodel.Feature)
    */
+  @Override
   public int getPeakRowNum(Feature peak) {
 
     PeakListRow rows[] = getRows();
@@ -291,14 +309,17 @@ public class SimplePeakList implements PeakList {
   /**
    * @see net.sf.mzmine.datamodel.PeakList#getDataPointMaxIntensity()
    */
+  @Override
   public double getDataPointMaxIntensity() {
     return maxDataPointIntensity;
   }
 
+  @Override
   public boolean hasRawDataFile(RawDataFile hasFile) {
     return Arrays.asList(dataFiles).contains(hasFile);
   }
 
+  @Override
   public PeakListRow getPeakRow(Feature peak) {
     PeakListRow rows[] = getRows();
 
@@ -310,14 +331,17 @@ public class SimplePeakList implements PeakList {
     return null;
   }
 
+  @Override
   public void setName(String name) {
     this.name = name;
   }
 
+  @Override
   public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod) {
     descriptionOfAppliedTasks.add(appliedMethod);
   }
 
+  @Override
   public PeakListAppliedMethod[] getAppliedMethods() {
     return descriptionOfAppliedTasks.toArray(new PeakListAppliedMethod[0]);
   }
@@ -330,14 +354,20 @@ public class SimplePeakList implements PeakList {
     this.dateCreated = date;
   }
 
+  @Override
   public Range<Double> getRowsMZRange() {
     updateMaxIntensity(); // Update range before returning value
     return mzRange;
   }
 
+  @Override
   public Range<Double> getRowsRTRange() {
     updateMaxIntensity(); // Update range before returning value
     return rtRange;
   }
 
+  @Override
+  public PeakListRow findRowByID(int id) {
+    return stream().filter(r -> r.getID() == id).findFirst().orElse(null);
+  }
 }

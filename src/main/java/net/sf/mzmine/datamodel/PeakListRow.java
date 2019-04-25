@@ -205,5 +205,4 @@ public interface PeakListRow {
   public void setID(int id);
 
   // End DorresteinLab edit
-
 }
