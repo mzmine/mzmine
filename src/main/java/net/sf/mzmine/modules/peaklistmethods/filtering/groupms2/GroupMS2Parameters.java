@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.groupms2;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
@@ -32,9 +33,12 @@ public class GroupMS2Parameters extends SimpleParameterSet {
 
   public static final RTToleranceParameter rtTol = new RTToleranceParameter();
 
+  public static final BooleanParameter limitRTByFeature = new BooleanParameter("Limit by RT edges",
+      "Use the feature's edges (retention time) as a filter.", false);
+
 
   public GroupMS2Parameters() {
-    super(new Parameter[] {PEAK_LISTS, mzTol, rtTol});
+    super(new Parameter[] {PEAK_LISTS, rtTol, mzTol, limitRTByFeature});
   }
 
 }

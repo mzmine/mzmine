@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.groupms2;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.google.common.collect.Range;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -49,6 +50,7 @@ public class GroupMS2Task extends AbstractTask {
   private PeakList list;
   private RTTolerance rtTol;
   private MZTolerance mzTol;
+  private boolean limitRTByFeature;
 
   /**
    * Create the task.
@@ -64,6 +66,7 @@ public class GroupMS2Task extends AbstractTask {
     parameters = parameterSet;
     rtTol = parameters.getParameter(GroupMS2Parameters.rtTol).getValue();
     mzTol = parameters.getParameter(GroupMS2Parameters.mzTol).getValue();
+    limitRTByFeature = parameters.getParameter(GroupMS2Parameters.limitRTByFeature).getValue();
     this.list = list;
     processedRows = 0;
     totalRows = 0;
@@ -101,13 +104,15 @@ public class GroupMS2Task extends AbstractTask {
           int best = f.getRepresentativeScanNumber();
           double frt = f.getRT();
           double fmz = f.getMZ();
+          Range<Double> rtRange = f.getRawDataPointsRTRange();
           int i = best;
           // left
           while (i > 1) {
             try {
               i--;
               Scan scan = raw.getScan(i);
-              if (rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) {
+              if ((!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
+                  && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) {
                 if (scan.getPrecursorMZ() != 0
                     && mzTol.checkWithinTolerance(fmz, scan.getPrecursorMZ()))
                   scans.add(i);
@@ -124,7 +129,8 @@ public class GroupMS2Task extends AbstractTask {
             try {
               i++;
               Scan scan = raw.getScan(i);
-              if (rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) {
+              if ((!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
+                  && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) {
                 if (scan.getPrecursorMZ() != 0
                     && mzTol.checkWithinTolerance(fmz, scan.getPrecursorMZ()))
                   scans.add(i);
