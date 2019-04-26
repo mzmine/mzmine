@@ -39,7 +39,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "Name of file that contains information for peak identification", "json");
+      "(GNPS json, MONA json, NIST msp) Name of file that contains information for peak identification");
 
   public static final MassListParameter massList =
       new MassListParameter("MassList (MS2)", "MassList for MS/MS scans to match");

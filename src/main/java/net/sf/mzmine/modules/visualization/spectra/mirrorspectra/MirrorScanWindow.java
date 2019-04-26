@@ -8,8 +8,8 @@ import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.DBEntryField;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.SpectralDBPeakIdentity;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBPeakIdentity;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
 
 public class MirrorScanWindow extends JFrame {

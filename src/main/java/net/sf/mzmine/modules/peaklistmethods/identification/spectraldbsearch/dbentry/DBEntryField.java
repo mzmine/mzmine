@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry;
 
 public enum DBEntryField {
 
@@ -109,6 +109,20 @@ public enum DBEntryField {
   }
 
   /**
+   * DBENtryField for GNPS json key
+   * 
+   * @param key
+   * @return
+   */
+  public static DBEntryField forGnpsJasonID(String key) {
+    for (DBEntryField f : values()) {
+      if (f.getGnpsJsonID().equals(key))
+        return f;
+    }
+    return null;
+  }
+
+  /**
    *
    * @return The NIST MSP format key or an empty String
    */
@@ -177,5 +191,36 @@ public enum DBEntryField {
       default:
         return "";
     }
+  }
+
+  /**
+   * DBENtryField for NIST msp key
+   * 
+   * @param key
+   * @return
+   */
+  public static DBEntryField forMspID(String key) {
+    for (DBEntryField f : values()) {
+      if (f.getNistMspID().equals(key))
+        return f;
+    }
+    return null;
+  }
+
+  /**
+   * Converts the content to the correct value type
+   * 
+   * @param content
+   * @return
+   * @throws NumberFormatException
+   */
+  public Object convertValue(String content) throws NumberFormatException {
+    if (getObjectClass() == Double.class)
+      return Double.parseDouble(content);
+    if (getObjectClass() == Float.class)
+      return Float.parseFloat(content);
+    if (getObjectClass() == Integer.class)
+      return Integer.parseInt(content);
+    return content;
   }
 }

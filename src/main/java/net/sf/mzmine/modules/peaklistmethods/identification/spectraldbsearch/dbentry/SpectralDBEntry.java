@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry;
 
 import java.util.Map;
 import java.util.Optional;
