@@ -124,6 +124,21 @@ public interface Feature {
    */
   public int[] getAllMS2FragmentScanNumbers();
 
+
+  /**
+   * Set best fragment scan numbers
+   * 
+   * @param fragmentScanNumber
+   */
+  public void setFragmentScanNumber(int fragmentScanNumber);
+
+  /**
+   * Set all fragment scan numbers
+   * 
+   * @param allMS2FragmentScanNumbers
+   */
+  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers);
+
   /**
    * Returns the isotope pattern of this peak or null if no pattern is attached
    */
