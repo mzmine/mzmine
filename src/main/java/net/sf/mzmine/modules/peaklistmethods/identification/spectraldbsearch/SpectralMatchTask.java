@@ -72,6 +72,7 @@ public class SpectralMatchTask extends AbstractTask {
 
   // as this module is started in a series the start entry is saved to track progress
   private int startEntry;
+  private int listsize;
 
   public SpectralMatchTask(PeakList peakList, ParameterSet parameters, int startEntry,
       List<SpectralDBEntry> list) {
@@ -79,6 +80,7 @@ public class SpectralMatchTask extends AbstractTask {
     this.parameters = parameters;
     this.startEntry = startEntry;
     this.list = list;
+    listsize = list.size();
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
     mzTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerance).getValue();
@@ -110,7 +112,7 @@ public class SpectralMatchTask extends AbstractTask {
   public String getTaskDescription() {
     return MessageFormat.format(
         "(entry {2}-{3}) MS/MS spectral database identification in {0} using database {1}",
-        peakList.getName(), dataBaseFile.getName(), startEntry, startEntry + list.size() - 1);
+        peakList.getName(), dataBaseFile.getName(), startEntry, startEntry + listsize - 1);
   }
 
   /**
