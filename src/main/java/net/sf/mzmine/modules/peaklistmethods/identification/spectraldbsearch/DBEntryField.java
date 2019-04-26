@@ -20,7 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 public enum DBEntryField {
 
-  NAME, SYNONYM, COMMENT, IONTYPE, RT(Double.class), MZ(Double.class), CHARGE(
+  ENTRY_ID, NAME, SYNONYM, COMMENT, IONTYPE, RT(Double.class), MZ(Double.class), CHARGE(
       Integer.class), ION_MODE, COLLISION_ENERGY, FORMULA, MOLWEIGHT(Double.class), EXACT_MASS(
           Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
               Integer.class), ACQUISITION, PRINZIPLE_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;
@@ -99,6 +99,78 @@ public enum DBEntryField {
         return "MONA_ID";
       case RESOLUTION:
       case NUM_PEAKS:
+      case ENTRY_ID:
+      case SYNONYM:
+      case MOLWEIGHT:
+        return "";
+      default:
+        return "";
+    }
+  }
+
+  /**
+   *
+   * @return The NIST MSP format key or an empty String
+   */
+  public String getNistMspID() {
+    switch (this) {
+      case ENTRY_ID:
+        return "DB#";
+      case ACQUISITION:
+        return "";
+      case SOFTWARE:
+        return "";
+      case CAS:
+        return "";
+      case CHARGE:
+        return "";
+      case COLLISION_ENERGY:
+        return "Collision_energy";
+      case COMMENT:
+        return "Comments";
+      case DATA_COLLECTOR:
+        return "";
+      case EXACT_MASS:
+        return "ExactMass";
+      case FORMULA:
+        return "Formula";
+      case INCHI:
+        return "";
+      case INCHIKEY:
+        return "InChIKey";
+      case INSTRUMENT:
+        return "Instrument";
+      case INSTRUMENT_TYPE:
+        return "Instrument_type";
+      case IONTYPE:
+        return "Precursor_type";
+      case ION_MODE:
+        return "Ion_mode"; // P / N
+      case ION_SOURCE:
+        return "";
+      case MZ:
+        return "PrecursorMZ";
+      case NAME:
+        return "Name";
+      case PRINZIPLE_INVESTIGATOR:
+        return "";
+      case PUBMED:
+        return "";
+      case RT:
+        return "RT";
+      case SMILES:
+        return "";
+      case MS_LEVEL:
+        return "Spectrum_type";
+      case PUBCHEM:
+        return "";
+      case CHEMSPIDER:
+        return "";
+      case MONA_ID:
+        return "";
+      case NUM_PEAKS:
+        return "Num Peaks";
+      case RESOLUTION:
       case SYNONYM:
       case MOLWEIGHT:
         return "";

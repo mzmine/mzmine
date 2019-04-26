@@ -378,6 +378,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
                 // create ion param
                 LibrarySubmitIonParameters ionParam = createIonParameters(param, ion);
                 DataPoint[] dps = ion.getFilteredDataPoints();
+
                 // submit and save locally
                 map.put(ionParam, dps);
               }

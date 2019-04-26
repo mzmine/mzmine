@@ -57,7 +57,7 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
    */
 
   public enum CompoundSource {
-    Lysate, Isolated, Commercial, Crude, Other;
+  Lysate, Isolated, Commercial, Crude, Other;
   }
 
   public enum Polarity {
@@ -111,8 +111,12 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
       new ComboParameter<>("IONSOURCE", "", IonSource.values(), IonSource.LC_ESI);
 
   // save to local file
-  public static final OptionalParameter<FileNameParameter> LOCALFILE = new OptionalParameter<>(
-      new FileNameParameter("Local file", "Local library file", "json"), false);
+  public static final OptionalParameter<FileNameParameter> LOCALFILE =
+      new OptionalParameter<>(new FileNameParameter("Local file", "Local library file"), false);
+  public static final BooleanParameter EXPORT_GNPS_JSON = new BooleanParameter(
+      "Export GNPS json file", "The GNPS library submission json format", true);
+  public static final BooleanParameter EXPORT_MSP =
+      new BooleanParameter("Export NIST msp file", "The NIST msp library format", true);
   // user and password
   public static final BooleanParameter SUBMIT_GNPS =
       new BooleanParameter("Submit to GNPS", "Submit new entry to GNPS library", true);
@@ -157,7 +161,7 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public LibrarySubmitParameters() {
     super(new Parameter[] {
         // save to local file
-        LOCALFILE,
+        LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP,
         // submit to online library
         SUBMIT_GNPS,
         // username password

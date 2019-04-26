@@ -35,10 +35,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -54,7 +50,6 @@ import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.files.FileAndPathUtil;
@@ -76,9 +71,10 @@ public class LibrarySubmitTask extends AbstractTask {
   private final String USER;
   private final boolean saveLocal;
   private final boolean submitGNPS;
-  private final File file;
-
-  private boolean exportRT;
+  private final boolean exportGNPSJsonFile;
+  private final boolean exportMSPFile;
+  private final File fileJson;
+  private final File fileMSP;
 
 
   public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
@@ -88,17 +84,20 @@ public class LibrarySubmitTask extends AbstractTask {
     LibrarySubmitParameters meta = (LibrarySubmitParameters) e.getKey()
         .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
 
-    exportRT = meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getValue();
     PASS = meta.getParameter(LibrarySubmitParameters.PASSWORD).getValue();
     USER = meta.getParameter(LibrarySubmitParameters.USERNAME).getValue();
     submitGNPS = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
     saveLocal = meta.getParameter(LibrarySubmitParameters.LOCALFILE).getValue();
+    exportGNPSJsonFile = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
+    exportMSPFile = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
     if (saveLocal) {
       File tmpfile =
           meta.getParameter(LibrarySubmitParameters.LOCALFILE).getEmbeddedParameter().getValue();
-      file = FileAndPathUtil.getRealFilePath(tmpfile, "json");
+      fileJson = exportGNPSJsonFile ? FileAndPathUtil.getRealFilePath(tmpfile, "json") : null;
+      fileMSP = exportMSPFile ? FileAndPathUtil.getRealFilePath(tmpfile, "msp") : null;
     } else {
-      file = null;
+      fileJson = null;
+      fileMSP = null;
     }
   }
 
@@ -118,14 +117,18 @@ public class LibrarySubmitTask extends AbstractTask {
       // final check
       // at least 2 data points
       if (dps != null && dps.length > 2) {
-
-        String json = generateJSON(param, dps);
-        log.info(json);
-        if (saveLocal && file != null)
-          writeToLocalFile(file, json);
-
-        if (submitGNPS)
-          submitGNPS(json);
+        // export / submit json?
+        if (fileJson != null || submitGNPS) {
+          String json = GnpsJsonGenerator.generateJSON(param, dps);
+          log.info(json);
+          if (saveLocal && fileJson != null)
+            writeToLocalFile(fileJson, json);
+          if (submitGNPS)
+            submitGNPS(json);
+        }
+        // export msp?
+        if (fileMSP != null)
+          writeToLocalMSPFIle(fileMSP, param, dps);
       }
       done++;
     }
@@ -134,6 +137,35 @@ public class LibrarySubmitTask extends AbstractTask {
   }
 
 
+  /**
+   * Append entry to msp file
+   * 
+   * @param file
+   * @param json
+   */
+  private void writeToLocalMSPFIle(File file, LibrarySubmitIonParameters param, DataPoint[] dps) {
+    try {
+      if (!file.getParentFile().exists())
+        file.getParentFile().mkdirs();
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
+    }
+
+    // export json
+    try {
+      CharSink chs = Files.asCharSink(file, Charsets.UTF_8, FileWriteMode.APPEND);
+      String msp = MSPEntryGenerator.createMSPEntry(param, dps);
+      chs.write(msp + "\n");
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
+    }
+  }
+
+  /**
+   * Submit json library entry to GNPS webserver
+   * 
+   * @param json
+   */
   private void submitGNPS(String json) {
     try {
       CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -191,6 +223,7 @@ public class LibrarySubmitTask extends AbstractTask {
       log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
     }
 
+    // export json
     try {
       CharSink chs = Files.asCharSink(file, Charsets.UTF_8, FileWriteMode.APPEND);
       chs.write(json + "\n");
@@ -199,84 +232,6 @@ public class LibrarySubmitTask extends AbstractTask {
     }
   }
 
-  /**
-   * Whole JSON entry
-   * 
-   * @param param
-   * @param dps
-   * @return
-   */
-  private String generateJSON(LibrarySubmitIonParameters param, DataPoint[] dps) {
-    LibrarySubmitParameters meta = (LibrarySubmitParameters) param
-        .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
-
-    JsonObjectBuilder json = Json.createObjectBuilder();
-    // tag spectrum from mzmine2
-    json.add("softwaresource", "mzmine2");
-    // ion specific
-    json.add("MZ", param.getParameter(LibrarySubmitIonParameters.MZ).getValue());
-    json.add("CHARGE", param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue());
-    json.add("ADDUCT", param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue());
-
-    if (exportRT) {
-      Double rt =
-          meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getEmbeddedParameter().getValue();
-      if (rt != null)
-        json.add("RT", rt);
-    }
-
-    // add data points array
-    json.add("peaks", genJSONData(dps));
-
-    // add meta data
-    for (Parameter<?> p : meta.getParameters()) {
-      if (!p.getName().equals("username") && !p.getName().equals("password")
-          && !p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())
-          && !p.getName().equals(LibrarySubmitParameters.SUBMIT_GNPS.getName())
-          && !p.getName().equals(LibrarySubmitParameters.EXPORT_RT.getName())) {
-        String key = p.getName();
-        Object value = p.getValue();
-        if (value instanceof Double) {
-          if (Double.compare(0d, (Double) value) == 0)
-            json.add(key, 0);
-          else
-            json.add(key, (Double) value);
-        } else if (value instanceof Float) {
-          if (Float.compare(0f, (Float) value) == 0)
-            json.add(key, 0);
-          else
-            json.add(key, (Float) value);
-        } else if (value instanceof Integer)
-          json.add(key, (Integer) value);
-        else {
-          if (value == null || (value instanceof String && ((String) value).isEmpty()))
-            value = "N/A";
-          json.add(key, value.toString());
-        }
-      }
-    }
-
-    // return Json.createObjectBuilder().add("spectrum", json.build()).build().toString();
-    return json.build().toString();
-  }
-
-  /**
-   * JSON of data points array
-   * 
-   * @param dps
-   * @return
-   */
-  private JsonArray genJSONData(DataPoint[] dps) {
-    JsonArrayBuilder data = Json.createArrayBuilder();
-    JsonArrayBuilder signal = Json.createArrayBuilder();
-    for (DataPoint dp : dps) {
-      // round to five digits. thats more than enough
-      signal.add(((int) (dp.getMZ() * 100000)) / 100000.d);
-      signal.add(dp.getIntensity());
-      data.add(signal.build());
-    }
-    return data.build();
-  }
 
   @Override
   public String getTaskDescription() {
