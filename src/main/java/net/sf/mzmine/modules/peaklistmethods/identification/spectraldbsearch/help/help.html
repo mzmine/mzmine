@@ -1,0 +1,39 @@
+<html>
+	<head>
+		<title>Identification - Spectral DB search</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Spectral DB search</h1>
+
+<h2>Description</h2>
+<p>
+Run on any feature list to match all rows agains a local spectral library (formats: MoNA json, NIST msp, GNPS json (internal library submission format)).
+</p>
+
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Masslist</dt>
+	<dd>Masslist of the MS2 scans</dd>
+<dt>Spectral database file</dt>
+	<dd>json/msp from MoNA (MassBank of North America)</dd>
+	<dd>msp NIST format</dd>
+	<dd>json GNPS (format from the spectral DB submission module)</dd>
+<dt>Retention time tolerance</dt>
+	<dd>Optional: Only used if the DB entry has a retention time</dd>
+<dt>Noise level</dt>
+	<dd>An additional noise level (masslists are typically already thresholded)</dd>
+<dt>Min cos similarity</dt>
+	<dd>Minimum cosine similarity between fragmentation scan and DB entry</dd>
+<dt>Minimum matched signals</dt>
+	<dd>Minimum number of signals that need to match the m/z tolerance</dd>
+<dt></dt>
+	<dd></dd>
+</dl>
+
+</body>
+</html>
