@@ -88,8 +88,8 @@ public class LibrarySubmitTask extends AbstractTask {
     USER = meta.getParameter(LibrarySubmitParameters.USERNAME).getValue();
     submitGNPS = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
     saveLocal = meta.getParameter(LibrarySubmitParameters.LOCALFILE).getValue();
-    exportGNPSJsonFile = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
-    exportMSPFile = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
+    exportGNPSJsonFile = meta.getParameter(LibrarySubmitParameters.EXPORT_GNPS_JSON).getValue();
+    exportMSPFile = meta.getParameter(LibrarySubmitParameters.EXPORT_MSP).getValue();
     if (saveLocal) {
       File tmpfile =
           meta.getParameter(LibrarySubmitParameters.LOCALFILE).getEmbeddedParameter().getValue();
@@ -148,7 +148,7 @@ public class LibrarySubmitTask extends AbstractTask {
       if (!file.getParentFile().exists())
         file.getParentFile().mkdirs();
     } catch (Exception e) {
-      log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
+      log.log(Level.SEVERE, "Cannot create folder " + file.getParent() + " ", e);
     }
 
     // export json
@@ -157,7 +157,7 @@ public class LibrarySubmitTask extends AbstractTask {
       String msp = MSPEntryGenerator.createMSPEntry(param, dps);
       chs.write(msp + "\n");
     } catch (Exception e) {
-      log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
+      log.log(Level.SEVERE, "Cannot save to msp file " + file.getAbsolutePath(), e);
     }
   }
 
@@ -228,7 +228,7 @@ public class LibrarySubmitTask extends AbstractTask {
       CharSink chs = Files.asCharSink(file, Charsets.UTF_8, FileWriteMode.APPEND);
       chs.write(json + "\n");
     } catch (Exception e) {
-      log.log(Level.SEVERE, "Cannot create folder " + file.getParent(), e);
+      log.log(Level.SEVERE, "Cannot create or write to file " + file.getAbsolutePath(), e);
     }
   }
 

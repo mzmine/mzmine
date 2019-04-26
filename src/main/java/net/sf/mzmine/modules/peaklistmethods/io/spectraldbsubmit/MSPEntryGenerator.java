@@ -49,7 +49,7 @@ public class MSPEntryGenerator {
 
     boolean exportRT = meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getValue();
     String ionMode =
-        param.getParameter(LibrarySubmitParameters.IONMODE).getValue().equals(Polarity.Positive)
+        meta.getParameter(LibrarySubmitParameters.IONMODE).getValue().equals(Polarity.Positive)
             ? "P"
             : "N";
 
@@ -59,24 +59,24 @@ public class MSPEntryGenerator {
     // tag spectrum from mzmine2
     // ion specific
     s.append(DBEntryField.NAME.getNistMspID() + def
-        + param.getParameter(LibrarySubmitParameters.COMPOUND_NAME).getValue() + br);
+        + meta.getParameter(LibrarySubmitParameters.COMPOUND_NAME).getValue() + br);
     s.append(DBEntryField.INCHIKEY.getNistMspID() + def
-        + param.getParameter(LibrarySubmitParameters.INCHI_AUX).getValue() + br);
+        + meta.getParameter(LibrarySubmitParameters.INCHI_AUX).getValue() + br);
     s.append(DBEntryField.MS_LEVEL.getNistMspID() + def + "MS2" + br);
     s.append(DBEntryField.INSTRUMENT_TYPE.getNistMspID() + def
-        + param.getParameter(LibrarySubmitParameters.INSTRUMENT).getValue() + br);
+        + meta.getParameter(LibrarySubmitParameters.INSTRUMENT).getValue() + br);
     s.append(DBEntryField.INSTRUMENT.getNistMspID() + def
-        + param.getParameter(LibrarySubmitParameters.INSTRUMENT_NAME).getValue() + br);
+        + meta.getParameter(LibrarySubmitParameters.INSTRUMENT_NAME).getValue() + br);
     s.append(DBEntryField.ION_MODE.getNistMspID() + def + ionMode + br);
-    // TODO collision energy
-    s.append(DBEntryField.COLLISION_ENERGY.getNistMspID() + def + "N/A" + br);
+    s.append(DBEntryField.COLLISION_ENERGY.getNistMspID() + def
+        + meta.getParameter(LibrarySubmitParameters.FRAGMENTATION_METHOD).getValue() + br);
     s.append(DBEntryField.FORMULA.getNistMspID() + def
-        + param.getParameter(LibrarySubmitParameters.FORMULA).getValue() + br);
+        + meta.getParameter(LibrarySubmitParameters.FORMULA).getValue() + br);
     s.append(DBEntryField.EXACT_MASS.getNistMspID() + def
-        + param.getParameter(LibrarySubmitParameters.EXACT_MASS).getValue() + br);
+        + meta.getParameter(LibrarySubmitParameters.EXACT_MASS).getValue() + br);
 
     s.append(DBEntryField.MZ.getNistMspID() + def
-        + meta.getParameter(LibrarySubmitIonParameters.MZ).getValue() + br);
+        + param.getParameter(LibrarySubmitIonParameters.MZ).getValue() + br);
     s.append(DBEntryField.IONTYPE.getNistMspID() + def
         + param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue() + br);
 
@@ -84,7 +84,7 @@ public class MSPEntryGenerator {
       Double rt =
           meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getEmbeddedParameter().getValue();
       if (rt != null)
-        s.append(DBEntryField.EXACT_MASS.getNistMspID() + def + rt + br);
+        s.append(DBEntryField.RT.getNistMspID() + def + rt + br);
     }
 
     // num peaks and data
