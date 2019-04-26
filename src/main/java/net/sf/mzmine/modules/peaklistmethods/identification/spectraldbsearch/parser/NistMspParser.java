@@ -99,6 +99,8 @@ public class NistMspParser implements SpectralDBParser {
             // add entry and reset
             SpectralDBEntry entry =
                 new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
+            fields = new EnumMap<>(fields);
+            dps.clear();
             if (entry.getPrecursorMZ() != null) {
               list.add(entry);
               // progress
