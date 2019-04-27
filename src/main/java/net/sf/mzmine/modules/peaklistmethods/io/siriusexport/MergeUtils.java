@@ -1,6 +1,7 @@
 package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 
 import com.google.common.collect.Range;
+import gnu.trove.list.array.TDoubleArrayList;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -10,6 +11,7 @@ import org.apache.commons.math3.special.Erf;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /*
@@ -70,9 +72,26 @@ public class MergeUtils {
     protected double maximalChimericContaminationRelativeToBestPeak;
 
     /**
+     * Remove peaks if they are contained in less than X % of the merged spectra.
+     */
+    protected double peakRemovalThreshold;
+
+    /**
      * do not merge if the chimeric contamination is larger than X times the absolute contamination of the best peak
      */
     protected double maximalAbsoluteChimericContaminationRelativeToBestPeak;
+
+    /**
+     * When merging masses, remove outliers from left and right
+     */
+    protected boolean cutoffOutliers;
+
+    /**
+     * Only consider peaks for cosine calculation which are above this intensity level
+     */
+    protected double intensityCutoffForCosine;
+
+    protected MergedStatistics statistics;
 
     public MergeUtils() {
         this.expectedPPM = 10;
@@ -84,6 +103,34 @@ public class MergeUtils {
         this.maximalChimericIntensity = 0.66;
         this.maximalChimericContaminationRelativeToBestPeak = 1.33;
         this.maximalAbsoluteChimericContaminationRelativeToBestPeak = 1.33;
+        this.peakRemovalThreshold = 0d;
+        this.cutoffOutliers = true;
+        this.intensityCutoffForCosine = 0d;
+        this.statistics = new MergedStatistics();
+    }
+
+    public double getIntensityCutoffForCosine() {
+        return intensityCutoffForCosine;
+    }
+
+    public void setIntensityCutoffForCosine(double intensityCutoffForCosine) {
+        this.intensityCutoffForCosine = intensityCutoffForCosine;
+    }
+
+    public double getPeakRemovalThreshold() {
+        return peakRemovalThreshold;
+    }
+
+    public void setPeakRemovalThreshold(double peakRemovalThreshold) {
+        this.peakRemovalThreshold = peakRemovalThreshold;
+    }
+
+    public boolean isCutoffOutliers() {
+        return cutoffOutliers;
+    }
+
+    public void setCutoffOutliers(boolean cutoffOutliers) {
+        this.cutoffOutliers = cutoffOutliers;
     }
 
     public String getMasslist() {
@@ -157,23 +204,63 @@ public class MergeUtils {
         }
         final List<List<FragmentScan>> allFs = new ArrayList<>(byName.values().stream().filter(x->!x.isEmpty()).collect(Collectors.toList()));
         if (allFs.size()==1) {
-            return mergeConsecutiveScans(name, parentPeak,allFs.get(0));
+            return mergeConsecutiveScans(name, parentPeak,allFs.get(0), true);
         }
         // sort the scans by their best scan
-        allFs.sort(Comparator.comparingDouble(x->x.stream().max(Comparator.comparingDouble(FragmentScan::getScore)).get().getScore()));
+        allFs.sort(Comparator.comparingDouble((List<FragmentScan> x)->x.stream().max(Comparator.comparingDouble(FragmentScan::getScore)).get().getScore()).reversed());
         // now merge spectrum by spectrum. Use cosine threshold between merged spectra
-        MergedSpectrum left = mergeConsecutiveScans(name,parentPeak,allFs.get(0));
+        MergedSpectrum left = mergeConsecutiveScans(name,parentPeak,allFs.get(0),true);
+        final double bestTIC = left.getTIC();
+        statistics.addTic(left.getTIC());
         if (left.data.length==0) return MergedSpectrum.empty();
+        final CosineSpectrum leftCosine = new CosineSpectrum(left.data,parentPeak, expectedPPM);
         for (int k=1; k < allFs.size(); ++k) {
-            MergedSpectrum right = mergeConsecutiveScans(name,parentPeak,allFs.get(k));
-            final double cosine = highResolutionCosine(left.data,right.data,expectedPPM,parentPeak-1.5);
+            MergedSpectrum right = mergeConsecutiveScans(name,parentPeak,allFs.get(k),true);
+            final CosineSpectrum rightCosine = new CosineSpectrum(right.data, parentPeak,expectedPPM);
+            final double cosine =leftCosine.cosine(rightCosine);
+            double tic = right.getTIC();
             if (cosine>=cosineThreshold) {
                 Arrays.sort(right.data, CompareDataPointsByDecreasingInt);
                 left = left.merge(right, merge(left.data, right.data));
+                statistics.addTic(tic);;
+                continue;
+            } else if (cosine < 0.33) {
+                // check data quality
+                if (tic < 0.2*bestTIC || tic < statistics.get10PercentileTIC()) {
+                    // we might just get a low intensive specturm. May happen.
+                    left.removedScansByLowQuality += right.totalNumberOfScans();
+                    continue;
+                }
+                statistics.incrementLowCosine();
+                final double lowRes = lowResolutionCosine(left.data, right.data, parentPeak-1.5);
+                if (lowRes >= cosineThreshold && lowRes >= (0.2+cosine)) {
+                    statistics.warnForLowCosine(name + ": Low highres cosine score of " + cosine + " for aligned features, while lowres cosine is still " + lowRes + ". For " + left.toString() + " and " + right.toString() + ". Please check your expected mass deviation settings. It might be too low.", tic);
+                    statistics.incrementLowResHighResDifference();
+                } else {
+                    statistics.warnForLowCosine(name + ": Low cosine score of " + cosine + " for aligned features from " + left.toString() + " and " + right.toString(), tic);
+                }
+            }
+            left.removedScansByLowCosine += right.totalNumberOfScans();
+        }
+        statistics.flushWarningQueue();
+        return filterOutRarePeaks(this.cutoffOutliers ? cutOffOutliers(left) : left);
+
+    }
+
+    public MergedSpectrum filterOutRarePeaks(MergedSpectrum mergedSpectrum) {
+        int minimumNumberOfScans = (int)Math.floor(this.peakRemovalThreshold*mergedSpectrum.scanIds.length);
+        if (minimumNumberOfScans <= 1) return mergedSpectrum;
+        else return mergedSpectrum.filterByNumberOfScans(minimumNumberOfScans);
+    }
+
+    private MergedSpectrum cutOffOutliers(MergedSpectrum mergedSpectrum) {
+        if (!this.isMergeMasses()) return mergedSpectrum;
+        for (int k=0; k < mergedSpectrum.data.length; ++k) {
+            if (mergedSpectrum.data[k].sources.length >= 4) {
+                mergedSpectrum.data[k] = mergedSpectrum.data[k].cutoffOutliers();
             }
         }
-        return left;
-
+        return mergedSpectrum;
     }
 
     /**
@@ -186,6 +273,21 @@ public class MergeUtils {
     }
 
     /**
+     * Just make some statistics about the TIC in MS/MS spectra to get a "feeling" about what is a good and what a
+     * bad spectrum
+     * @param scans some randomly selected MS/MS scans
+     */
+    public void prefillStatisticsWithTICExamples(Iterable<Scan> scans) {
+        for (Scan scan : scans) {
+            double tic=0d;
+            for (DataPoint p : scan.getDataPoints()) {
+                tic += p.getIntensity();
+            }
+            statistics.addTic(tic);
+        }
+    }
+
+    /**
      * Merge a list of consecutive scans into one spectrum. Each peak in the merged spectrum remembers its original
      * peaks.
      * @param name just for debugging purposes: some name string to identify the origin of the fragment scan
@@ -193,7 +295,11 @@ public class MergeUtils {
      * @param scans a list of scans which should be merged
      * @return merged spectrum
      */
-    public MergedSpectrum mergeConsecutiveScans(String name, double parentPeak, List<FragmentScan> scans) {
+    protected MergedSpectrum mergeConsecutiveScans(String name, double parentPeak, List<FragmentScan> scans) {
+        return mergeConsecutiveScans(name,parentPeak,scans,false);
+    }
+
+    protected MergedSpectrum mergeConsecutiveScans(String name, double parentPeak, List<FragmentScan> scans, boolean innerMerge) {
         if (scans.isEmpty()) return MergedSpectrum.empty();
         // we start with the highest TIC and then merge in both directions
         boolean usecosine = cosineThreshold > 0;
@@ -207,13 +313,13 @@ public class MergeUtils {
         // add all high quality scans to mzOrderedCopy and return index of best scan
         final List<Integer> scanNumbers = new ArrayList<>();
         int bestScan = findhighQualityScans(parentPeak, scans, mzOrderedCopy, scanNumbers);
-        if (mzOrderedCopy.isEmpty()) return MergedSpectrum.empty();
+        if (mzOrderedCopy.isEmpty()||bestScan<0) return MergedSpectrum.empty();
 
         // calculate highres cosine normalization factor
-        final double[] cosines = new double[mzOrderedCopy.size()];
+        final CosineSpectrum[] cosines = new CosineSpectrum[mzOrderedCopy.size()];
         for (int k = 0; k < mzOrderedCopy.size(); ++k) {
             if (usecosine) {
-                cosines[k] = probabilityProduct(mzOrderedCopy.get(k), mzOrderedCopy.get(k), getExpectedPPM(), parentPeak);
+                cosines[k] = new CosineSpectrum(mzOrderedCopy.get(k), parentPeak, expectedPPM);
             }
         }
 
@@ -261,7 +367,10 @@ public class MergeUtils {
         if (mzOrderedCopy.size() >= 4 && ((double) numberOfMerges) / mzOrderedCopy.size() < 0.5) {
             LoggerFactory.getLogger(MergeUtils.class).warn(name + ": Only " + numberOfMerges + " of " + mzOrderedCopy.size() + " spectra are merged. All other have a too low cosine similarity. Cosines between most intensive scan and other scans are: " + Arrays.toString(cosines));
         }
-        return new MergedSpectrum(mergedSpectrum, new RawDataFile[]{scans.get(0).origin}, scanNumbers.stream().mapToInt(x->x).toArray(), numberOfScansRemovedDueToLowQuality, numberOfScansRemovedDueToLowCosine);
+        MergedSpectrum M = new MergedSpectrum(mergedSpectrum, new RawDataFile[]{scans.get(0).origin}, scanNumbers.stream().mapToInt(x -> x).toArray(), numberOfScansRemovedDueToLowQuality, numberOfScansRemovedDueToLowCosine);
+        if (cutoffOutliers) M = cutOffOutliers(M);
+        if (!innerMerge) M = filterOutRarePeaks(M);
+        return M;
     }
 
     /**
@@ -289,7 +398,7 @@ public class MergeUtils {
             int bestOffset=0;
             final FragmentScan bestScanF = scans.get(best);
             for (FragmentScan scan : scans) {
-                int o=0;
+                int o=0, bo=0;
                 double bestTIC = Double.NEGATIVE_INFINITY;
                 if (scan== bestScanF) {
                     for (int k=0; k < scan.ms2ScanNumbers.length; ++k) {
@@ -301,11 +410,16 @@ public class MergeUtils {
                         mzOrderedCopy.add(dps);
                         if (extractedScanNumbers!=null) extractedScanNumbers.add(scan.ms2ScanNumbers[k]);
                         if (tic > bestTIC) {
-                            o=k;
+                            bo=o;
                             bestTIC = tic;
                         }
+                        ++o;
                     }
-                    bestScan = bestOffset + o;
+                    if (bestTIC <= 0) {
+                        LoggerFactory.getLogger(MergeUtils.class).warn("Fragment spectrum with good MS1 has empty MS/MS spectrum. MS1 SCAN ID is " + scan.ms1ScanNumber + ", MS/MS SCAN ID are " + Arrays.toString(scan.ms2ScanNumbers));
+                        return -1;
+                    }
+                    bestScan = bestOffset + bo;
                 } else {
                     // check for thresholds
                     final double ms1Int = scan.precursorIntensity/highestInt;
@@ -357,12 +471,11 @@ public class MergeUtils {
      * Internal method. Merge spectra if cosine is above cosine threshold
      * @return
      */
-    protected MergeDataPoint[] merge(DataPoint[] origin, MergeDataPoint[] left, DataPoint[] right, double cosineLeft, double cosineRight, double cosineThreshold, double parentPeak) {
-        if (cosineLeft==0 || cosineRight==0) return null;
+    protected MergeDataPoint[] merge(DataPoint[] origin, MergeDataPoint[] left, DataPoint[] right, CosineSpectrum cosineLeft, CosineSpectrum cosineRight, double cosineThreshold, double parentPeak) {
+        if (cosineLeft.norm==0 || cosineRight.norm==0) return null;
         if (cosineThreshold > 0) {
-            double cosine = probabilityProduct(origin, right, expectedPPM, parentPeak);
+            double cosine = cosineLeft.cosine(cosineRight);
             final double oldcs = cosine;
-            cosine /= Math.sqrt(cosineLeft * cosineRight);
             if (cosine < cosineThreshold) {
                 if (cosine < 0.25)
                     LoggerFactory.getLogger(MergeUtils.class).warn("Detect a very low cosine between two fragment scans: " + cosine  + " for precursor m/z = " + parentPeak);
@@ -385,10 +498,10 @@ public class MergeUtils {
         // we assume a rather large deviation as signal peaks should be contained in more than one
         // measurement
         final List<MergeDataPoint> append = new ArrayList<>();
-        final double absoluteDeviation = 600 * expectedPPM * 1e-6;
+        final double absoluteDeviation = 400 * expectedPPM * 1e-6;
         for (int k = 0; k < orderedByInt.length; ++k) {
             final DataPoint peak = orderedByInt[k];
-            final double dev = Math.max(absoluteDeviation, peak.getMZ() * 3 * expectedPPM * 1e-6);
+            final double dev = Math.max(absoluteDeviation, peak.getMZ() * 4 * expectedPPM * 1e-6);
             final double lb = peak.getMZ() - dev, ub = peak.getMZ() + dev;
             int mz1 = Arrays.binarySearch(orderedByMz, peak, CompareDataPointsByMz);
             if (mz1 < 0) {
@@ -433,12 +546,42 @@ public class MergeUtils {
         return orderedByMz;
     }
 
-    public static double highResolutionCosine(DataPoint[] left, DataPoint[] right, double expectedPPM, double maxMz) {
-        double a = probabilityProduct(left, left, expectedPPM, maxMz);
-        if(a==0) return 0;
-        double b = probabilityProduct(right, right, expectedPPM, maxMz);
-        if (b==0) return 0;
-        return probabilityProduct(left, right,expectedPPM,maxMz) / Math.sqrt(a * b);
+    public static double lowResolutionCosine(DataPoint[] left, DataPoint[] right, double maxMz) {
+        return lowResolutionDotProduct(left,right,maxMz)/Math.sqrt(lowResolutionDotProduct(left,left,maxMz)*lowResolutionDotProduct(right,right,maxMz));
+    }
+    public static double lowResolutionDotProduct(DataPoint[] left, DataPoint[] right, double maxMz) {
+        int i=0, j=0;
+        double binL = 0d, binR = 0d;
+        long bin = 0;
+        double score = 0d;
+        long maxBin = Math.round(maxMz*10);
+        while (bin < maxBin) {
+            long binLeft=maxBin, binRight=maxBin;
+            if (i < left.length) {
+                binLeft = Math.round(left[i].getMZ()*10);
+                if (binLeft==bin) {
+                    binL += left[i].getIntensity();
+                    ++i;
+                } else if (binLeft < bin)
+                    ++i;
+            }
+            if (j < right.length) {
+                binRight = Math.round(right[j].getMZ()*10);
+
+                if (binRight==bin) {
+                    binR += right[j].getIntensity();
+                    ++j;
+                } else if (binRight < bin)
+                    ++j;
+            }
+            if (binRight != bin && binLeft != bin) {
+                bin = Math.max(binLeft,binRight);
+                score += binL*binR;
+                binL=0d; binR=0d;
+            }
+        }
+        return score;
+
     }
 
     /**
@@ -450,7 +593,7 @@ public class MergeUtils {
      * @param maxMz usually the parent mass. Peaks behind this value are ignored
      * @return
      */
-    public static double probabilityProduct(DataPoint[] left, DataPoint[] right, double expectedPPM, double maxMz) {
+    public static double probabilityProduct(DataPoint[] left, DataPoint[] right, double expectedPPM, double maxMz, double intensityCutoff) {
         int i = 0, j = 0;
         double score = 0d;
         final double allowedDifference = Math.min(1, 1000 * expectedPPM * 5e-6);
@@ -466,7 +609,15 @@ public class MergeUtils {
 
         while (i < nl && j < nr) {
             DataPoint lp = left[i];
+            if (lp.getIntensity() < intensityCutoff) {
+                ++i;
+                continue;
+            }
             DataPoint rp = right[j];
+            if (rp.getIntensity() < intensityCutoff) {
+                ++j;
+                continue;
+            }
             final double difference = lp.getMZ() - rp.getMZ();
             if (Math.abs(difference) <= allowedDifference) {
                 final double mzabs = Math.max(200 * expectedPPM * 1e-6, expectedPPM * 1e-6 * Math.round(lp.getMZ() + rp.getMZ()) / 2d);
@@ -633,8 +784,8 @@ public class MergeUtils {
         protected final MergeDataPoint[] data;
         protected final RawDataFile[] origins;
         protected final int[] scanIds;
-        protected final int removedScansByLowQuality;
-        protected final int removedScansByLowCosine;
+        protected int removedScansByLowQuality;
+        protected int removedScansByLowCosine;
         private final static MergedSpectrum EMPTY = new MergedSpectrum(new MergeDataPoint[0],new RawDataFile[0],new int[0], 0,0);
         public static MergedSpectrum empty() {
             return EMPTY;
@@ -652,6 +803,17 @@ public class MergeUtils {
             this.removedScansByLowCosine = removedScansByLowCosine;
         }
 
+        public String toString() {
+            if (origins.length>0) {
+                final String name = origins[0].getName();
+                if (origins.length>1) {
+                    return "Merged spectrum from " + name + " and " + (origins.length-1) + " others";
+                } else {
+                    return "Merged spectrum from " + name;
+                }
+            } else return "merged spectrum";
+        }
+
         public int totalNumberOfScans() {
             return scanIds.length+removedScansByLowCosine+removedScansByLowQuality;
         }
@@ -663,19 +825,36 @@ public class MergeUtils {
             System.arraycopy(right.scanIds, 0, nscans, scanIds.length, right.scanIds.length);
             return new MergedSpectrum(mergedSpectrum, norigs, nscans, removedScansByLowQuality+right.removedScansByLowQuality, removedScansByLowCosine+right.removedScansByLowCosine);
         }
+
+        public double getTIC() {
+            double tic = 0d;
+            for (MergeDataPoint p : data)
+                tic += p.maxInt;
+            return tic;
+        }
+
+        public MergedSpectrum filterByNumberOfScans(int minimumNumberOfScans) {
+            return new MergedSpectrum(
+                    Arrays.stream(data).filter(x->x.sources.length >= minimumNumberOfScans).toArray(MergeDataPoint[]::new),
+                    origins,
+                    scanIds,
+                    removedScansByLowQuality,
+                    removedScansByLowCosine
+            );
+        }
     }
 
     protected static class MergeDataPoint implements DataPoint {
 
         private final DataPoint[] sources;
-        private final double mz, intensity;
+        private final double mz, sumIntensity;
 
         private final double sumMz, maxInt;
 
         private MergeDataPoint(DataPoint[] sources, double mz, double intens, double sumMz, double maxIntens) {
             this.sources = sources;
             this.mz = mz;
-            this.intensity = intens;
+            this.sumIntensity = intens;
             this.sumMz = sumMz;
             this.maxInt = maxIntens;
         }
@@ -683,9 +862,29 @@ public class MergeUtils {
         private MergeDataPoint(DataPoint single) {
             this.sources = new DataPoint[]{single};
             this.mz = single.getMZ();
-            this.intensity = single.getIntensity();
-            this.sumMz = this.mz * this.intensity;
+            this.sumIntensity = single.getIntensity();
+            this.sumMz = this.mz * this.sumIntensity;
             this.maxInt = single.getIntensity();
+        }
+
+        public String toString() {
+            return String.valueOf(mz) + " " + String.valueOf(sumIntensity);
+        }
+
+        /**
+         * Sort peaks by m/z, remove the 25% quantile from both sides. Recalculate average m/z again
+         */
+        protected MergeDataPoint cutoffOutliers() {
+            DataPoint[] sources = this.sources.clone();
+            Arrays.sort(sources, CompareDataPointsByMz);
+            int quantil = (int)Math.floor(sources.length*0.25);
+            double m = 0d, i = 0d;
+            for (int k=quantil, n = (sources.length-quantil); k < n; ++k) {
+                m += sources[k].getMZ()*sources[k].getIntensity();
+                i += sources[k].getIntensity();
+            }
+            m /= i;
+            return new MergeDataPoint(sources, m, this.sumIntensity, this.sumMz, this.maxInt );
         }
 
         protected MergeDataPoint merge(DataPoint additional, boolean mergeMz) {
@@ -694,13 +893,13 @@ public class MergeUtils {
                 DataPoint[] cop = Arrays.copyOf(sources, sources.length + ad.sources.length);
                 System.arraycopy(ad.sources, 0, cop, sources.length, ad.sources.length );
                 final double sumMz2 = sumMz + additional.getMZ() * additional.getIntensity();
-                final double sumInt = intensity + additional.getIntensity();
+                final double sumInt = sumIntensity + additional.getIntensity();
                 return new MergeDataPoint(cop, mergeMz ? sumMz2 / sumInt : (additional.getIntensity() > maxInt ? additional.getMZ() : mz), sumInt, sumMz2, Math.max(maxInt, additional.getIntensity()));
             } else {
                 DataPoint[] cop = Arrays.copyOf(sources, sources.length + 1);
                 cop[cop.length - 1] = additional;
                 final double sumMz2 = sumMz + additional.getMZ() * additional.getIntensity();
-                final double sumInt = intensity + additional.getIntensity();
+                final double sumInt = sumIntensity + additional.getIntensity();
                 return new MergeDataPoint(cop, mergeMz ? sumMz2 / sumInt : (additional.getIntensity() > maxInt ? additional.getMZ() : mz), sumInt, sumMz2, Math.max(maxInt, additional.getIntensity()));
             }
         }
@@ -732,7 +931,126 @@ public class MergeUtils {
 
         @Override
         public double getIntensity() {
-            return intensity;
+            return maxInt;
+        }
+
+        public double getSumIntensity() {
+            return sumIntensity;
+        }
+
+    }
+
+    protected static class CosineSpectrum {
+        protected final DataPoint[] dataPoints;
+        protected final double norm;
+        protected final double expectedPPM, precursorMz;
+
+        public CosineSpectrum(DataPoint[] dataPoints, double precursorMz, double expectedPPM) {
+            final ArrayList<DataPoint> dps = new ArrayList<>();
+            // in each 100 Da intervall, only keep the 6 most intensive peaks
+            final List<List<DataPoint>> chunks = new ArrayList<>();
+            for (DataPoint dp : dataPoints) {
+                int bin = (int)Math.ceil(dp.getMZ()/100d);
+                while (chunks.size()<=bin) chunks.add(new ArrayList<>());
+                chunks.get(bin).add(dp);
+            }
+            for (List<DataPoint> chunk : chunks) {
+                chunk.sort(Comparator.comparingDouble(x->-x.getIntensity()));
+                for (int k=0; k < Math.min(6,chunk.size()); ++k) {
+                    dps.add(chunk.get(k));
+                }
+            }
+            dps.sort(Comparator.comparingDouble(x->x.getMZ()));
+            this.dataPoints = dps.toArray(new DataPoint[dps.size()]);
+            this.norm = probabilityProduct(this.dataPoints,this.dataPoints, expectedPPM, precursorMz-17, 0d);
+            this.expectedPPM = expectedPPM;
+            this.precursorMz = precursorMz;
+        }
+
+        public double cosine(CosineSpectrum other) {
+            return probabilityProduct(dataPoints, other.dataPoints,expectedPPM, (precursorMz+other.precursorMz)/2d, 0) /Math.sqrt(norm*other.norm);
+        }
+    }
+
+    public static class MergedStatistics {
+
+        protected final TDoubleArrayList tics;
+        protected final AtomicInteger numberOfHighResCosineFails=new AtomicInteger(0);
+        protected final AtomicInteger numberOfLowCosines=new AtomicInteger(0);
+        protected double percentile10TIC =Double.NaN;
+        protected int lastTimeMedianCalc=0;
+        protected final ArrayList<DelayedWarning> warnings;
+        protected final TDoubleArrayList examplesOfNoisePeaks = new TDoubleArrayList();
+
+        public MergedStatistics() {
+            tics = new TDoubleArrayList();
+            this.warnings = new ArrayList<>();
+        }
+
+        protected double get10PercentileTIC() {
+            calculateMedian();
+            return this.percentile10TIC;
+        }
+
+        protected synchronized void warnForLowCosine(String warningMessage, double tic) {
+            final double median = calculateMedian();
+            if (Double.isInfinite(median)) {
+                flushWarningQueue();
+                if (tic >= percentile10TIC) {
+                    LoggerFactory.getLogger(MergeUtils.class).warn(warningMessage);
+                }
+            } else {
+                warnings.add(new DelayedWarning(warningMessage, tic));
+            }
+        }
+
+        protected synchronized void flushWarningQueue() {
+            calculateMedian();
+            for (DelayedWarning w : warnings) {
+                if (w.tic >= percentile10TIC) {
+                    LoggerFactory.getLogger(MergeUtils.class).warn(w.warningMessage);
+                }
+            }
+            warnings.clear();
+        }
+
+        private synchronized double calculateMedian() {
+            if (tics.size()<100) return Double.NaN;
+            if ((tics.size()/((double)lastTimeMedianCalc)) >= 2) {
+                tics.sort();
+                this.percentile10TIC = tics.getQuick((int)(tics.size()*0.1));
+                this.lastTimeMedianCalc = tics.size();
+            }
+            return percentile10TIC;
+        }
+
+        public int getNumberOfHighResCosineFails() {
+            return numberOfHighResCosineFails.get();
+        }
+
+        public int getNumberOfLowCosines() {
+            return numberOfLowCosines.get();
+        }
+
+        protected synchronized void addTic(double tic) {
+            tics.add(tic);
+        }
+
+        protected synchronized void incrementLowCosine() {
+            numberOfLowCosines.incrementAndGet();
+        }
+
+        protected void incrementLowResHighResDifference() {
+            numberOfHighResCosineFails.incrementAndGet();
+        }
+    }
+
+    protected static class DelayedWarning {
+        private final String warningMessage;
+        private final double tic;
+        protected DelayedWarning(String warningMessage, double tic) {
+            this.warningMessage = warningMessage;
+            this.tic = tic;
         }
     }
 

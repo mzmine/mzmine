@@ -35,7 +35,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 
 public class SiriusExportTask extends AbstractTask {
 
-    private final static boolean DEBUG_MODE = true;
+    private boolean DEBUG_MODE;
 
     private final static String plNamePattern = "{}";
     protected static final Comparator<DataPoint> CompareDataPointsByMz = new Comparator<DataPoint>() {
@@ -63,6 +63,8 @@ public class SiriusExportTask extends AbstractTask {
 
     protected Range<Double> isolationWindow;
 
+    protected MergeUtils mergeUtils = new MergeUtils();
+
 
     public double getFinishedPercentage() {
         return (totalRows == 0 ? 0.0 : (double) finishedRows / (double) totalRows);
@@ -85,7 +87,7 @@ public class SiriusExportTask extends AbstractTask {
         this.massListName = parameters.getParameter(SiriusExportParameters.MASS_LIST).getValue();
         this.mergeMsMs = parameters.getParameter(SiriusExportParameters.MERGE).getValue();
 
-        this.cosineThreshold = parameters.getParameter(SiriusExportParameters.COSINE_PARAMETER).getValue() / 100d;
+        this.cosineThreshold = parameters.getParameter(SiriusExportParameters.COSINE_PARAMETER).getValue();
         this.expectedPPM = parameters.getParameter(SiriusExportParameters.MASS_ACCURACY).getValue();
 
         this.mergeMasses = parameters.getParameter(SiriusExportParameters.AVERAGE_OVER_MASS).getValue();
@@ -93,6 +95,15 @@ public class SiriusExportTask extends AbstractTask {
         double offset = parameters.getParameter(SiriusExportParameters.isolationWindowOffset).getValue();
         double width = parameters.getParameter(SiriusExportParameters.isolationWindowWidth).getValue();
         this.isolationWindow = Range.closed(offset - width, offset + width);
+
+        mergeUtils = new MergeUtils();
+        mergeUtils.setCosineThreshold(this.cosineThreshold);
+        mergeUtils.setExpectedPPM(this.expectedPPM);
+        mergeUtils.setIsolationWindow(this.isolationWindow);
+        mergeUtils.setMasslist(this.massListName);
+        mergeUtils.setMergeMasses(this.mergeMasses);
+        mergeUtils.setPeakRemovalThreshold(parameters.getParameter(SiriusExportParameters.PEAK_COUNT_PARAMETER).getValue());
+        DEBUG_MODE = parameters.getParameter(SiriusExportParameters.DEBUG_INFORMATION).getValue();
     }
 
     public void run() {
@@ -101,8 +112,10 @@ public class SiriusExportTask extends AbstractTask {
         // Shall export several files?
         boolean substitute = fileName.getPath().contains(plNamePattern);
 
-        for (PeakList l : peakLists)
+        for (PeakList l : peakLists) {
             this.totalRows += l.getNumberOfRows();
+            prefillStatistics(l.getRows());
+        }
 
         // Process peak lists
         for (PeakList peakList : peakLists) {
@@ -151,6 +164,8 @@ public class SiriusExportTask extends AbstractTask {
 
     public void runSingleRows(PeakListRow[] rows) {
         setStatus(TaskStatus.PROCESSING);
+        // prefill statistics
+        prefillStatistics(rows);
         try (final BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
             for (PeakListRow row : rows)
                 exportPeakListRow(row, bw, getFragmentScansNumbers(row.getRawDataFiles()));
@@ -160,6 +175,12 @@ public class SiriusExportTask extends AbstractTask {
         }
         if (getStatus() == TaskStatus.PROCESSING)
             setStatus(TaskStatus.FINISHED);
+    }
+
+    private void prefillStatistics(PeakListRow[] rows) {
+        ArrayList<PeakListRow> copy = new ArrayList<>(Arrays.asList(rows));
+        Collections.shuffle(copy);
+        mergeUtils.prefillStatisticsWithTICExamples(copy.stream().limit(1000).map(r->r.getBestFragmentation()).filter(x->x!=null).collect(Collectors.toList()));
     }
 
 
@@ -212,13 +233,6 @@ public class SiriusExportTask extends AbstractTask {
         // write correlation spectrum
         writeHeader(writer, row, row.getBestPeak().getDataFile(), polarity, MsType.CORRELATED, -1);
         writeCorrelationSpectrum(writer, row.getBestPeak());
-        final MergeUtils mergeUtils = new MergeUtils();
-        mergeUtils.setCosineThreshold(this.cosineThreshold);
-        mergeUtils.setExpectedPPM(this.expectedPPM);
-        mergeUtils.setIsolationWindow(this.isolationWindow);
-        mergeUtils.setMasslist(this.massListName);
-        mergeUtils.setMergeMasses(this.mergeMasses);
-
 
         /*
          * first we check if we have at least one good fragment scan per
@@ -265,8 +279,10 @@ public class SiriusExportTask extends AbstractTask {
                 }
 
             }
+            if (scans.isEmpty())
+                continue;
             if (mergeMsMs == SiriusExportParameters.MERGE_MODE.MERGE_CONSECUTIVE_SCANS) {
-                MergeUtils.MergedSpectrum dps = mergeUtils.mergeConsecutiveScans(f.getDataFile().getName() + ", m/z = " + f.getMZ() + ", rt = " + f.getRT(), f.getMZ(), scans);
+                MergeUtils.MergedSpectrum dps = mergeUtils.mergeConsecutiveScans(f.getDataFile().getName() + ", m/z = " + f.getMZ() + ", rt = " + f.getRT(), f.getMZ(), scans, true);
                 if (dps!=null && dps.data.length>0) {
                     writeHeader(writer, row, scans.get(0).origin, polarity, MsType.MSMS, dps);
                     writeSpectrum(writer, dps.data);
@@ -412,13 +428,14 @@ public class SiriusExportTask extends AbstractTask {
 
     private void writeSpectrum(BufferedWriter writer, DataPoint[] dps) throws IOException {
         for (DataPoint dp : dps) {
+            final MergeUtils.MergeDataPoint mp = (dp instanceof MergeUtils.MergeDataPoint ? (MergeUtils.MergeDataPoint)dp : null);
             writer.write(String.valueOf(dp.getMZ()));
             writer.write(' ');
-            writer.write(String.valueOf(dp.getIntensity()));
-            if (DEBUG_MODE && dp instanceof MergeUtils.MergeDataPoint) {
+            writer.write(mp != null ? String.valueOf(mp.getSumIntensity()) : String.valueOf(dp.getIntensity()));
+            if (DEBUG_MODE && mp!=null) {
                 writer.write(' ');
                 writer.write('#');
-                writer.write(((MergeUtils.MergeDataPoint) dp).getComment());
+                writer.write(mp.getComment());
             }
             writer.newLine();
 
