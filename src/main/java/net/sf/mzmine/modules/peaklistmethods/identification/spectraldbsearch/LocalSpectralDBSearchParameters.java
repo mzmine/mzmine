@@ -52,9 +52,12 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       new DoubleParameter("Noise level", "Noise level to filter MS2 mass lists",
           MZmineCore.getConfiguration().getIntensityFormat(), 0d);
   public static final DoubleParameter minCosine = new DoubleParameter("Min cos similarity",
-      "Cosine similarity", new DecimalFormat("0.000"), 0.7);
+      "Minimum cosine similarity. (All MS2 signals in the masslist against the spectral library entry. "
+          + "Considers only signals which were found in both the masslist and the library entry)",
+      new DecimalFormat("0.000"), 0.7);
   public static final IntegerParameter minMatch = new IntegerParameter("Min matched signals",
-      "Minimum matched signals (within mz tolerance)", 4);
+      "Minimum number of matched signals in MS2 masslist and spectral library entry (within mz tolerance)",
+      4);
 
   public LocalSpectralDBSearchParameters() {
     super(new Parameter[] {peakLists, massList, dataBaseFile, mzTolerance, rtTolerance,

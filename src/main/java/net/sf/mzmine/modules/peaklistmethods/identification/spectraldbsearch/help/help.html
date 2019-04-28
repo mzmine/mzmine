@@ -26,11 +26,12 @@ Run on any feature list to match all rows agains a local spectral library (forma
 <dt>Retention time tolerance</dt>
 	<dd>Optional: Only used if the DB entry has a retention time</dd>
 <dt>Noise level</dt>
-	<dd>An additional noise level (masslists are typically already thresholded)</dd>
+	<dd>An additional noise level for MS2 masslists (masslists are typically already thresholded)</dd>
 <dt>Min cos similarity</dt>
-	<dd>Minimum cosine similarity between fragmentation scan and DB entry</dd>
+	<dd>Minimum cosine similarity between fragmentation scan and spectral DB entry. Considers only 
+	signals which were found in both spectra.</dd>
 <dt>Minimum matched signals</dt>
-	<dd>Minimum number of signals that need to match the m/z tolerance</dd>
+	<dd>Minimum number of signals within m/z tolerance in an MS2 masslist and the spectral library entry</dd>
 <dt></dt>
 	<dd></dd>
 </dl>

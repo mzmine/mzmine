@@ -68,7 +68,7 @@ public class SpectraSimilarity {
     // align
     List<DataPoint[]> aligned = ScanAlignment.align(mzTol, b, a);
     aligned = ScanAlignment.removeUnaligned(aligned);
-    // overlapping mass diff
+    // overlapping within mass tolerance
     int overlap = aligned.size();
 
     if (overlap >= minMatch) {
