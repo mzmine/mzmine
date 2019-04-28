@@ -35,8 +35,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.ScanUtils;
-
+import net.sf.mzmine.util.scans.ScanUtils;
 import com.google.common.collect.Range;
 
 /**

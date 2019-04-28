@@ -50,7 +50,9 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.Fo
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBPeakIdentity;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
@@ -97,6 +99,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem showXICSetupItem;
   private final JMenuItem showMSMSItem;
   private final JMenuItem showMSMSMirrorItem;
+  private final JMenuItem showMSMSMirrorMatchDBItem;
   private final JMenuItem showAllMSMSItem;
   private final JMenuItem showIsotopePatternItem;
   private final JMenuItem show2DItem;
@@ -107,6 +110,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem openCompoundIdUrl;
   ///// kaidu edit
   private final JMenuItem exportToSirius;
+  // for building MS/MS library and submission to online libraries
+  private final JMenuItem exportMSMSLibrary;
   ////
   private final JMenuItem manuallyDefineItem;
   private final JMenuItem showPeakRowSummaryItem;
@@ -152,6 +157,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     showMSMSItem.setToolTipText("MS/MS of a single or multiple rows");
     showAllMSMSItem = GUIUtils.addMenuItem(showMenu, "All MS/MS", this);
     showMSMSMirrorItem = GUIUtils.addMenuItem(showMenu, "MS/MS mirror (select 2 rows)", this);
+    showMSMSMirrorMatchDBItem =
+        GUIUtils.addMenuItem(showMenu, "MS/MS mirror (DB matched identity)", this);
     showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
     showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu, "Peak row summary", this);
 
@@ -167,6 +174,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     exportIsotopesItem = GUIUtils.addMenuItem(exportMenu, "Isotope pattern", this);
     // kaidu edit
     exportToSirius = GUIUtils.addMenuItem(exportMenu, "Export to SIRIUS", this);
+    exportMSMSLibrary = GUIUtils.addMenuItem(exportMenu, "Export MS/MS library", this);
     //
     exportMSMSItem = GUIUtils.addMenuItem(exportMenu, "MS/MS pattern", this);
 
@@ -182,7 +190,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak", this);
     deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected row(s)", this);
     addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
-
   }
 
   @Override
@@ -202,6 +209,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     manuallyDefineItem.setEnabled(false);
     showMSMSItem.setEnabled(false);
     showMSMSMirrorItem.setEnabled(false);
+    showMSMSMirrorMatchDBItem.setEnabled(false);
     showAllMSMSItem.setEnabled(false);
     showIsotopePatternItem.setEnabled(false);
     showPeakRowSummaryItem.setEnabled(false);
@@ -220,6 +228,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     idsMenu.setEnabled(rowsSelected);
     exportIsotopesItem.setEnabled(rowsSelected);
     exportToSirius.setEnabled(rowsSelected);
+    exportMSMSLibrary.setEnabled(rowsSelected);
     exportMenu.setEnabled(rowsSelected);
 
     final boolean oneRowSelected = selectedRows.length == 1;
@@ -285,8 +294,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       boolean bothMS2 = selectedRows.length == 2 && nRowsWithFragmentation == 2;
       showMSMSMirrorItem.setEnabled(bothMS2);
 
-      // open id url if available
+      // has identity of MS/MS database match
       PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
+      showMSMSMirrorMatchDBItem.setEnabled(pi != null && pi instanceof SpectralDBPeakIdentity);
+
+      // open id url if available
       String url = null;
       if (pi != null)
         url = pi.getPropertyValue(PeakIdentity.PROPERTY_URL);
@@ -498,9 +510,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       }
     }
 
-    if (showMSMSItem.equals(src))
-
-    {
+    if (showMSMSItem.equals(src)) {
       if (allClickedPeakListRows != null && allClickedPeakListRows.length > 1) {
         // show multi msms window of multiple rows
         MultiMSMSWindow multi = new MultiMSMSWindow();
@@ -538,9 +548,19 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         }
       }
     }
+    // mirror of MS/MS and MS/MS library match identity
+    if (showMSMSMirrorMatchDBItem.equals(src)) {
+      PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
+      if (pi != null && pi instanceof SpectralDBPeakIdentity) {
+        SpectralDBPeakIdentity db = (SpectralDBPeakIdentity) pi;
+        // show mirror msms window of two rows
+        MirrorScanWindow mirrorWindow = new MirrorScanWindow();
+        mirrorWindow.setScans(clickedPeakListRow, db);
+        mirrorWindow.setVisible(true);
+      }
+    }
 
     if (showAllMSMSItem.equals(src)) {
-
       final Feature showPeak = getSelectedPeakForMSMS();
       RawDataFile raw = clickedPeakListRow.getBestFragmentation().getDataFile();
       if (showPeak != null && showPeak.getMostIntenseFragmentScanNumber() != 0)
@@ -565,7 +585,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       if (showPeak != null && showPeak.getIsotopePattern() != null) {
 
         SwingUtilities.invokeLater(new Runnable() {
-
           @Override
           public void run() {
             SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(),
@@ -589,9 +608,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // //TODO: what is going on here?
     // TODO: probably remove singlerowidentificationDialog as Sirius works with spectrum, not 1
     // peak.
-    if (siriusItem != null && siriusItem.equals(src))
-
-    {
+    if (siriusItem != null && siriusItem.equals(src)) {
 
       SwingUtilities.invokeLater(new Runnable() {
         @Override
@@ -646,6 +663,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     if (exportToSirius.equals(src)) {
       // export all selected rows
       SiriusExportModule.exportSingleRows(allClickedPeakListRows);
+    }
+    if (exportMSMSLibrary.equals(src)) {
+      // open window with all selected rows
+      MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
+      libraryWindow.setData(allClickedPeakListRows, SortingProperty.MZ, SortingDirection.Ascending);
+      libraryWindow.setVisible(true);
     }
 
     if (exportMSMSItem.equals(src)) {

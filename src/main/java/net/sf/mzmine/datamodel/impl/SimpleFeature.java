@@ -21,7 +21,6 @@ package net.sf.mzmine.datamodel.impl;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 import io.github.msdk.datamodel.Chromatogram;
@@ -31,7 +30,7 @@ import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RawDataFileUtils;
-import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * This class is a simple implementation of the peak interface.
@@ -68,7 +67,8 @@ public class SimpleFeature implements Feature {
   private IsotopePattern isotopePattern;
   private int charge = 0;
 
-  // PeakListRow.ID of the chromatogram where this feature is detected. Null by default but can be set by
+  // PeakListRow.ID of the chromatogram where this feature is detected. Null by default but can be
+  // set by
   // chromatogram deconvolution method.
   private Integer parentChromatogramRowID;
 
@@ -187,7 +187,7 @@ public class SimpleFeature implements Feature {
       }
     }
 
-    this.parentChromatogramRowID = null; //TODO: ask Tomas and update
+    this.parentChromatogramRowID = null; // TODO: ask Tomas and update
   }
 
   /**
@@ -431,5 +431,25 @@ public class SimpleFeature implements Feature {
   @Nullable
   public Integer getParentChromatogramRowID() {
     return this.parentChromatogramRowID;
+  }
+
+  @Override
+  public void setFragmentScanNumber(int fragmentScanNumber) {
+    this.fragmentScanNumber = fragmentScanNumber;
+  }
+
+  @Override
+  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
+    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+    // also set best scan by TIC
+    int best = -1;
+    double tic = 0;
+    if (allMS2FragmentScanNumbers != null) {
+      for (int i : allMS2FragmentScanNumbers) {
+        if (tic < dataFile.getScan(i).getTIC())
+          best = i;
+      }
+    }
+    setFragmentScanNumber(best);
   }
 }

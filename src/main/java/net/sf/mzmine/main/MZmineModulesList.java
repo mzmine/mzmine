@@ -36,6 +36,7 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.significance.SignificanceModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.clearannotations.PeaklistClearAnnotationsModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterModule;
+import net.sf.mzmine.modules.peaklistmethods.filtering.groupms2.GroupMS2Module;
 import net.sf.mzmine.modules.peaklistmethods.filtering.neutralloss.NeutralLossFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.peakcomparisonrowfilter.PeakComparisonRowFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter.PeakFilterModule;
@@ -56,6 +57,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.ms2search.Ms2SearchM
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitModule;
@@ -169,8 +171,9 @@ public class MZmineModulesList {
       ADAP3DecompositionV1_5Module.class, ADAP3DecompositionV2Module.class,
 
       // Peak list filtering
-      DuplicateFilterModule.class, RowsFilterModule.class, PeakComparisonRowFilterModule.class,
-      PeakFilterModule.class, PeaklistClearAnnotationsModule.class, NeutralLossFilterModule.class,
+      GroupMS2Module.class, DuplicateFilterModule.class, RowsFilterModule.class,
+      PeakComparisonRowFilterModule.class, PeakFilterModule.class,
+      PeaklistClearAnnotationsModule.class, NeutralLossFilterModule.class,
 
       // Normalization
       RTNormalizerModule.class, LinearNormalizerModule.class,
@@ -182,11 +185,11 @@ public class MZmineModulesList {
       SignificanceModule.class,
 
       // Identification
-      CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
-      AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
-      LipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
-      FormulaPredictionPeakListModule.class, Ms2SearchModule.class, SiriusProcessingModule.class,
-      GNPSResultsImportModule.class,
+      LocalSpectralDBSearchModule.class, CustomDBSearchModule.class, FormulaPredictionModule.class,
+      FragmentSearchModule.class, AdductSearchModule.class, ComplexSearchModule.class,
+      OnlineDBSearchModule.class, LipidSearchModule.class, CameraSearchModule.class,
+      NistMsSearchModule.class, FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
+      SiriusProcessingModule.class, GNPSResultsImportModule.class,
 
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,

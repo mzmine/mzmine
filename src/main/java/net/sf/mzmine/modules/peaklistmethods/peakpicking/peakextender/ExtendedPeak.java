@@ -15,7 +15,7 @@ import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 public class ExtendedPeak implements Feature {
   private SimplePeakInformation peakInfo;
@@ -314,6 +314,26 @@ public class ExtendedPeak implements Feature {
   @Override
   public SimplePeakInformation getPeakInformation() {
     return peakInfo;
+  }
+
+  @Override
+  public void setFragmentScanNumber(int fragmentScanNumber) {
+    this.fragmentScan = fragmentScanNumber;
+  }
+
+  @Override
+  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
+    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+    // also set best scan by TIC
+    int best = -1;
+    double tic = 0;
+    if (allMS2FragmentScanNumbers != null) {
+      for (int i : allMS2FragmentScanNumbers) {
+        if (tic < dataFile.getScan(i).getTIC())
+          best = i;
+      }
+    }
+    setFragmentScanNumber(best);
   }
   // End dulab Edit
 

@@ -19,7 +19,7 @@
 package net.sf.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
-
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 
 public interface RawDataFile {
@@ -78,12 +78,12 @@ public interface RawDataFile {
   public int[] getScanNumbers(int msLevel, @Nonnull Range<Double> rtRange);
 
   /**
+   * Scan could be null if scanID is not contained in the raw data file
    * 
    * @param scan Desired scan number
    * @return Desired scan
    */
-  @Nonnull
-  public Scan getScan(int scan);
+  public @Nullable Scan getScan(int scan);
 
   @Nonnull
   public Range<Double> getDataMZRange();

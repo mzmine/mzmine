@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>MS2 to feature grouping</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>MS2 to feature grouping</h1>
+
+<h2>Description</h2>
+<p>
+Call this method on any (aligned) feature list to assign all 
+fragmention scans to their corresponding features.
+</p>
+
+
+<h3>Important note:</h3>
+<p>
+This module was also introduced because of a data structure 
+change in MZmine 2.38. All projects that were created with 
+older version should run this module on their feature lists 
+to assign all MS2 scans to their features.
+</p>
+
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Limit by RT edges</dt>
+<dd>Use the feature's retention time edges to filter MS2 scans. Only scans within the feature's RT range are considered</dd>
+</dl>
+
+</body>
+</html>

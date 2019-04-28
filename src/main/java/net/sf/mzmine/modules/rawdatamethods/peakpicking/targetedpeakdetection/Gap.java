@@ -28,7 +28,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 class Gap {
 

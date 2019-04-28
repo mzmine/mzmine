@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -31,8 +30,8 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.maths.CenterFunction;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * ResolvedPeak
@@ -71,7 +70,8 @@ public class ResolvedPeak implements Feature {
   private IsotopePattern isotopePattern = null;
   private int charge = 0;
 
-  // PeakListRow.ID of the chromatogram where this feature is detected. Null by default but can be set by
+  // PeakListRow.ID of the chromatogram where this feature is detected. Null by default but can be
+  // set by
   // chromatogram deconvolution method.
   private Integer parentChromatogramRowID = null;
 
@@ -363,5 +363,25 @@ public class ResolvedPeak implements Feature {
   @Nullable
   public Integer getParentChromatogramRowID() {
     return this.parentChromatogramRowID;
+  }
+
+  @Override
+  public void setFragmentScanNumber(int fragmentScanNumber) {
+    this.fragmentScan = fragmentScanNumber;
+  }
+
+  @Override
+  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers) {
+    this.allMS2FragmentScanNumbers = allMS2FragmentScanNumbers;
+    // also set best scan by TIC
+    int best = -1;
+    double tic = 0;
+    if (allMS2FragmentScanNumbers != null) {
+      for (int i : allMS2FragmentScanNumbers) {
+        if (tic < dataFile.getScan(i).getTIC())
+          best = i;
+      }
+    }
+    setFragmentScanNumber(best);
   }
 }

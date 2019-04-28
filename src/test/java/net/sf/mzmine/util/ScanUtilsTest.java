@@ -33,7 +33,7 @@ import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
+import net.sf.mzmine.util.scans.ScanUtils;
 import org.junit.Assert;
 import org.junit.Test;
 

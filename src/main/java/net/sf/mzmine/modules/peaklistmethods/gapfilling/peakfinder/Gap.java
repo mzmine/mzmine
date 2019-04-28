@@ -29,7 +29,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.util.RangeUtils;
-import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 public class Gap {
 

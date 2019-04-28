@@ -60,22 +60,32 @@ public class SpectrumChartFactory {
     return scan;
   }
 
-  public static PseudoSpectrumDataSet createMSMSDataSet(Scan scan) {
+  public static PseudoSpectrumDataSet createMSMSDataSet(Scan scan, String label) {
+    if (scan != null) {
+      return createMSMSDataSet(scan.getPrecursorMZ(), scan.getRetentionTime(), scan.getDataPoints(),
+          label);
+    } else
+      return null;
+  }
+
+  public static PseudoSpectrumDataSet createMSMSDataSet(double precursorMZ, double rt,
+      DataPoint[] dps, String label) {
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
 
-    if (scan != null) {
-      // data
-      PseudoSpectrumDataSet series =
-          new PseudoSpectrumDataSet(true, MessageFormat.format("MSMS for m/z={0} RT={1}",
-              mzForm.format(scan.getPrecursorMZ()), rtForm.format(scan.getRetentionTime())));
-      // for each row
-      for (DataPoint dp : scan.getDataPoints()) {
-        series.addDP(dp.getMZ(), dp.getIntensity(), null);
-      }
-      return series;
-    } else
-      return null;
+    if (label == null)
+      label = "";
+    else if (!label.isEmpty())
+      label = " (" + label + ")";
+    // data
+    PseudoSpectrumDataSet series =
+        new PseudoSpectrumDataSet(true, MessageFormat.format("MSMS for m/z={0} RT={1}{2}",
+            mzForm.format(precursorMZ), rtForm.format(rt), label));
+    // for each row
+    for (DataPoint dp : dps) {
+      series.addDP(dp.getMZ(), dp.getIntensity(), null);
+    }
+    return series;
   }
 
   /**
@@ -117,15 +127,23 @@ public class SpectrumChartFactory {
    * @param showLegend
    * @return
    */
-  public static EChartPanel createMirrorChartPanel(Scan scan, Scan mirror, boolean showTitle,
-      boolean showLegend) {
+  public static EChartPanel createMirrorChartPanel(Scan scan, Scan mirror, String labelA,
+      String labelB, boolean showTitle, boolean showLegend) {
     if (scan == null || mirror == null)
       return null;
-    PseudoSpectrumDataSet data = createMSMSDataSet(scan);
-    PseudoSpectrumDataSet dataMirror = createMSMSDataSet(mirror);
+
+    return createMirrorChartPanel(labelA, scan.getPrecursorMZ(), scan.getRetentionTime(),
+        scan.getDataPoints(), labelB, mirror.getPrecursorMZ(), mirror.getRetentionTime(),
+        mirror.getDataPoints(), showTitle, showLegend);
+  }
+
+  public static EChartPanel createMirrorChartPanel(String labelA, double precursorMZA, double rtA,
+      DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
+      boolean showTitle, boolean showLegend) {
+    PseudoSpectrumDataSet data = createMSMSDataSet(precursorMZA, rtA, dpsA, labelA);
+    PseudoSpectrumDataSet dataMirror = createMSMSDataSet(precursorMZB, rtB, dpsB, labelB);
 
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat rtForm = MZmineCore.getConfiguration().getRTFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     // set the X axis (retention time) properties
@@ -195,7 +213,7 @@ public class SpectrumChartFactory {
   public static EChartPanel createScanChartPanel(Scan scan, boolean showTitle, boolean showLegend) {
     if (scan == null)
       return null;
-    PseudoSpectrumDataSet dataset = createMSMSDataSet(scan);
+    PseudoSpectrumDataSet dataset = createMSMSDataSet(scan, "");
     JFreeChart chart =
         createChart(dataset, showTitle, showLegend, scan.getRetentionTime(), scan.getPrecursorMZ());
     return createChartPanel(chart);

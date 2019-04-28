@@ -31,9 +31,8 @@ import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.PeptideSorter;
-import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.SortingDirection;
-
+import net.sf.mzmine.util.scans.ScanUtils;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 

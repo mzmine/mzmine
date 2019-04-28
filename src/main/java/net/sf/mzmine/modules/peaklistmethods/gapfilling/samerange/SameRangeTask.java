@@ -42,7 +42,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.RangeUtils;
-import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 class SameRangeTask extends AbstractTask {
 
