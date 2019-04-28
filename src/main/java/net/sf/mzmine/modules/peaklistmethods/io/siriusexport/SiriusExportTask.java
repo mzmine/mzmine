@@ -340,7 +340,7 @@ public class SiriusExportTask extends AbstractTask {
              * precursorScan.getMassList(massListName).getDataPoints() :
              * precursorScan.getDataPoints()); } } }
              */ // Do not include MS1 scans (except for isotope pattern)
-            MassList massList = scan.getMassList(massListName);
+            final MassList massList = scan.getMassList(massListName);
             if (massList == null) {
               setStatus(TaskStatus.ERROR);
               String msg = "Scan " + f.getDataFile().getName() + "#" + scan.getScanNumber()
@@ -348,15 +348,20 @@ public class SiriusExportTask extends AbstractTask {
               setErrorMessage(msg);
               return;
             }
+            final DataPoint exportDataPoints[] = massList.getDataPoints();
+
+            // Skip empty mass lists
+            if (exportDataPoints.length == 0)
+              continue;
+
             if (mergeMsMs == SiriusExportParameters.MERGE_MODE.NO_MERGE) {
               writeHeader(writer, row, f.getDataFile(), polarity, MsType.MSMS,
                   scan.getScanNumber());
-              writeSpectrum(writer,
-                  massListName != null ? massList.getDataPoints() : scan.getDataPoints());
+              writeSpectrum(writer, exportDataPoints);
             } else {
               if (mergeMsMs == SiriusExportParameters.MERGE_MODE.MERGE_OVER_SAMPLES)
                 sources.add(f.getDataFile().getName());
-              toMerge.add(massListName != null ? massList.getDataPoints() : scan.getDataPoints());
+              toMerge.add(exportDataPoints);
             }
           }
         }
