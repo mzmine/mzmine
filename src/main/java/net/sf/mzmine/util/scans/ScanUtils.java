@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.util.scans;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
@@ -680,7 +681,7 @@ public class ScanUtils {
    */
   public static MassList getMassListOrFirst(Scan scan, String massListName) {
     final MassList massList;
-    if (massListName == null || massListName.length() == 0) {
+    if (Strings.isNullOrEmpty(massListName)) {
       MassList[] lists = scan.getMassLists();
       massList = lists.length > 0 ? lists[0] : null;
     } else {

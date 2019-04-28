@@ -21,8 +21,8 @@ package net.sf.mzmine.util.scans.sorting;
 import java.util.Comparator;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 public class ScanSorter implements Comparator<Scan> {
   private MassListSorter comp;

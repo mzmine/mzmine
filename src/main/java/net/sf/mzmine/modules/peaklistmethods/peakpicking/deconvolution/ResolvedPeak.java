@@ -30,8 +30,8 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.maths.CenterFunction;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * ResolvedPeak

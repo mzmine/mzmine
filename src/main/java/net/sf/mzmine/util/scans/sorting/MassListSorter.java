@@ -20,7 +20,7 @@ package net.sf.mzmine.util.scans.sorting;
 
 import java.util.Comparator;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 public class MassListSorter implements Comparator<DataPoint[]> {
   private double noiseLevel;

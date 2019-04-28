@@ -27,8 +27,8 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
-import net.sf.mzmine.util.ScanUtils;
-import net.sf.mzmine.util.ScanUtils.BinningType;
+import net.sf.mzmine.util.scans.ScanUtils;
+import net.sf.mzmine.util.scans.ScanUtils.BinningType;
 import visad.Linear2DSet;
 import visad.Set;
 
