@@ -20,11 +20,14 @@
 
 package net.sf.mzmine.modules.masslistmethods.ADAPchromatogrambuilder;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -32,8 +35,6 @@ import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import java.awt.*;
 
 public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
@@ -44,22 +45,19 @@ public class ADAPChromatogramBuilderParameters extends SimpleParameterSet {
 
   public static final MassListParameter massList = new MassListParameter();
 
-  public static final DoubleParameter minimumScanSpan = new DoubleParameter(
+  public static final IntegerParameter minimumScanSpan = new IntegerParameter(
       "Min group size in # of scans",
       "Minimum scan span over which some peak in the chromatogram must have (continuous) points above the noise level\n"
           + "to be recognized as a chromatogram.\n"
           + "The optimal value depends on the chromatography system setup. The best way to set this parameter\n"
           + "is by studying the raw data and determining what is the typical time span of chromatographic peaks.",
-      MZmineCore.getConfiguration().getRTFormat());
-
-  public static final DoubleParameter minimumHeight = new DoubleParameter("Min height",
-      "Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.",
-      MZmineCore.getConfiguration().getIntensityFormat());
+      5, true, 2, null);
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final StringParameter suffix =
       new StringParameter("Suffix", "This string is added to filename as suffix", "chromatograms");
+
   // Owen Edit
   public static final DoubleParameter IntensityThresh2 = new DoubleParameter(
       "Group intensity threshold",
