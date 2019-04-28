@@ -108,9 +108,9 @@ public class GroupMS2Task extends AbstractTask {
           int i = best;
           // left
           while (i > 1) {
-            try {
-              i--;
-              Scan scan = raw.getScan(i);
+            i--;
+            Scan scan = raw.getScan(i);
+            if (scan != null) {
               if ((!limitRTByFeature || rtRange.contains(scan.getRetentionTime()))
                   && rtTol.checkWithinTolerance(frt, scan.getRetentionTime())) {
                 if (scan.getPrecursorMZ() != 0
@@ -120,7 +120,6 @@ public class GroupMS2Task extends AbstractTask {
                 // end of loop - out of tolerance
                 break;
               }
-            } catch (Exception e) {
             }
           }
           int[] scanNumbers = raw.getScanNumbers();
