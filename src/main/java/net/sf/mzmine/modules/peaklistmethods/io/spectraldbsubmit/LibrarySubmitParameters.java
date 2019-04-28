@@ -32,6 +32,10 @@ package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
 
 import java.text.DecimalFormat;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.CompoundSource;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Instrument;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.IonSource;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Polarity;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -56,50 +60,6 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
    *
    */
 
-  public enum CompoundSource {
-  Lysate, Isolated, Commercial, Crude, Other;
-  }
-
-  public enum Polarity {
-    Positive, Negative;
-  }
-
-  public enum IonSource {
-    LC_ESI("LC-ESI"), DI_ESI("DI-ESI"), EI, APCI, ESI;
-
-    private final String value;
-
-    private IonSource() {
-      this.value = null;
-    }
-
-    private IonSource(String value) {
-      this.value = value;
-    }
-
-    @Override
-    public String toString() {
-      return value != null ? value : super.toString();
-    }
-  }
-  public enum Instrument {
-    qTof, QQQ, Ion_Trap("Ion Trap"), Hybrid_FT("Hybrid FT"), Orbitrap, ToF;
-
-    private final String value;
-
-    private Instrument() {
-      this.value = null;
-    }
-
-    private Instrument(String value) {
-      this.value = value;
-    }
-
-    @Override
-    public String toString() {
-      return value != null ? value : super.toString();
-    }
-  }
 
   public static final ComboParameter<CompoundSource> ACQUISITION =
       new ComboParameter<>("ACQUISITION", "", CompoundSource.values(), CompoundSource.Crude);
