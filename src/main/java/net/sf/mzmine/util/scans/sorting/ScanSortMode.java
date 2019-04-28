@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting;
+package net.sf.mzmine.util.scans.sorting;
 
 public enum ScanSortMode {
   MAX_TIC, // sort by maximum TIC

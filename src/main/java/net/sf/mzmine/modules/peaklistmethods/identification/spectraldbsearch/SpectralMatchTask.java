@@ -36,7 +36,6 @@ import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbe
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectraSimilarity;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBPeakIdentity;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSortMode;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -44,6 +43,7 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
+import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
 public class SpectralMatchTask extends AbstractTask {
 

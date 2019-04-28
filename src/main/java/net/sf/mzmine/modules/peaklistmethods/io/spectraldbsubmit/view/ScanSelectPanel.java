@@ -55,11 +55,11 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.framework.documentfilter.DocumentSizeFilter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.AdductParser;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting.ScanSortMode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
+import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
 public class ScanSelectPanel extends JPanel {
 

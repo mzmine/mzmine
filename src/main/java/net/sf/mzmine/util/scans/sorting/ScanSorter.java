@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.sorting;
+package net.sf.mzmine.util.scans.sorting;
 
 import java.util.Comparator;
 import net.sf.mzmine.datamodel.MassList;
