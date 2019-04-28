@@ -33,17 +33,15 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
-
+import javax.annotation.Nullable;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -149,6 +147,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @see net.sf.mzmine.datamodel.RawDataFile#getNumOfScans()
    */
+  @Override
   public int getNumOfScans() {
     return scans.size();
   }
@@ -156,13 +155,15 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @see net.sf.mzmine.datamodel.RawDataFile#getScan(int)
    */
-  public @Nonnull Scan getScan(int scanNumber) {
+  @Override
+  public @Nullable Scan getScan(int scanNumber) {
     return scans.get(scanNumber);
   }
 
   /**
    * @see net.sf.mzmine.datamodel.RawDataFile#getScanNumbers(int)
    */
+  @Override
   public @Nonnull int[] getScanNumbers(int msLevel) {
     if (scanNumbersCache.containsKey(msLevel))
       return scanNumbersCache.get(msLevel);
@@ -175,6 +176,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @see net.sf.mzmine.datamodel.RawDataFile#getScanNumbers(int, double, double)
    */
+  @Override
   public @Nonnull int[] getScanNumbers(int msLevel, @Nonnull Range<Double> rtRange) {
 
     assert rtRange != null;
@@ -198,6 +200,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @see net.sf.mzmine.datamodel.RawDataFile#getScanNumbers()
    */
+  @Override
   public @Nonnull int[] getScanNumbers() {
 
     if (scanNumbersCache.containsKey(0))
@@ -216,6 +219,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @see net.sf.mzmine.datamodel.RawDataFile#getMSLevels()
    */
+  @Override
   public @Nonnull int[] getMSLevels() {
 
     Set<Integer> msLevelsSet = new HashSet<Integer>();
@@ -235,6 +239,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @see net.sf.mzmine.datamodel.RawDataFile#getDataMaxBasePeakIntensity()
    */
+  @Override
   public double getDataMaxBasePeakIntensity(int msLevel) {
 
     // check if we have this value already cached
@@ -274,6 +279,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @see net.sf.mzmine.datamodel.RawDataFile#getDataMaxTotalIonCurrent()
    */
+  @Override
   public double getDataMaxTotalIonCurrent(int msLevel) {
 
     // check if we have this value already cached
@@ -389,6 +395,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     dataPointsLengths.remove(ID);
   }
 
+  @Override
   public synchronized void addScan(Scan newScan) throws IOException {
 
     // When we are loading the project, scan data file is already prepare
@@ -410,6 +417,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
   /**
    * @see net.sf.mzmine.datamodel.RawDataFileWriter#finishWriting()
    */
+  @Override
   public synchronized RawDataFile finishWriting() throws IOException {
     for (StorableScan scan : scans.values()) {
       scan.updateValues();
@@ -418,10 +426,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return this;
   }
 
+  @Override
   public @Nonnull Range<Double> getDataMZRange() {
     return getDataMZRange(0);
   }
 
+  @Override
   public @Nonnull Range<Double> getDataMZRange(int msLevel) {
 
     // check if we have this value already cached
@@ -453,10 +463,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
   }
 
+  @Override
   public @Nonnull Range<Double> getDataRTRange() {
     return getDataRTRange(0);
   }
 
+  @Override
   public @Nonnull Range<Double> getDataRTRange(int msLevel) {
 
     // check if we have this value already cached
@@ -496,6 +508,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     dataMZRange.put(msLevel, mzRange);
   }
 
+  @Override
   public int getNumOfScans(int msLevel) {
     return getScanNumbers(msLevel).length;
   }
@@ -508,6 +521,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return dataPointsLengths;
   }
 
+  @Override
   public synchronized void close() {
     try {
       if (dataPointsFileName != null) {
@@ -519,14 +533,17 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
   }
 
+  @Override
   public @Nonnull String getName() {
     return dataFileName;
   }
 
+  @Override
   public void setName(@Nonnull String name) {
     this.dataFileName = name;
   }
 
+  @Override
   public String toString() {
     return dataFileName;
   }
