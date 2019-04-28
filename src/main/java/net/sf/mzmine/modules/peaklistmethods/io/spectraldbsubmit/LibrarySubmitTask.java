@@ -62,7 +62,8 @@ import net.sf.mzmine.util.files.FileAndPathUtil;
  */
 public class LibrarySubmitTask extends AbstractTask {
   //
-  private final String s = "http://dorresteinappshub.ucsd.edu:5050/";
+  public static final String GNPS_LIBRARY_SUBMIT_URL =
+      "http://dorresteinappshub.ucsd.edu:5050/depostsinglespectrum";
 
   private Logger log = Logger.getLogger(this.getClass().getName());
   private Map<LibrarySubmitIonParameters, DataPoint[]> map;
@@ -103,7 +104,7 @@ public class LibrarySubmitTask extends AbstractTask {
 
   @Override
   public double getFinishedPercentage() {
-    return (done / map.size());
+    return map.isEmpty() ? 0 : (done / map.size());
   }
 
   @Override
@@ -179,8 +180,7 @@ public class LibrarySubmitTask extends AbstractTask {
         entity.addPart("password", new StringBody(PASS));
         entity.addPart("spectrum", new StringBody(json));
 
-        HttpPost httppost =
-            new HttpPost("http://dorresteinappshub.ucsd.edu:5050/depostsinglespectrum");
+        HttpPost httppost = new HttpPost(GNPS_LIBRARY_SUBMIT_URL);
         httppost.setEntity(entity);
 
         log.info("Submitting GNPS library entry " + httppost.getRequestLine());
