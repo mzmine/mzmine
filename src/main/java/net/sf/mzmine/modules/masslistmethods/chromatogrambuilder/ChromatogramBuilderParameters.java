@@ -18,8 +18,11 @@
 
 package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
@@ -28,6 +31,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import net.sf.mzmine.util.ExitCode;
 
 public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
@@ -56,6 +60,21 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
   public ChromatogramBuilderParameters() {
     super(new Parameter[] {dataFiles, scanSelection, massList, minimumTimeSpan, minimumHeight,
         mzTolerance, suffix});
+  }
+
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    String message =
+        "<html><b>Note:</b> starting with MZmine 2.39, this module is considered deprecated <br>"
+            + "and will be removed in future MZmine versions. Please use the <b>ADAP Chromatogram Builder</b>,<br>"
+            + "which is much faster and generates better results.<br>"
+            + "Contact the developers if you have any questions or concerns.</html>";
+
+    ParameterSetupDialog dialog =
+        new ParameterSetupDialog(parent, valueCheckRequired, this, message);
+    dialog.setVisible(true);
+    return dialog.getExitCode();
+
+
   }
 
 }
