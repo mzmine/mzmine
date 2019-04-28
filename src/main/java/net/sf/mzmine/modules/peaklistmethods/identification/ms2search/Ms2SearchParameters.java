@@ -36,9 +36,8 @@ public class Ms2SearchParameters extends SimpleParameterSet {
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter intensityThreshold =
-      new DoubleParameter("Minimum ion intensity to consider in MS2 comparison",
-          "Minimum ion intensity to consider in MS2 comparison");
+  public static final DoubleParameter intensityThreshold = new DoubleParameter(
+      "Minimum MS2 ion intensity", "Minimum ion intensity to consider in MS2 comparison");
 
   public static final IntegerParameter minimumIonsMatched =
       new IntegerParameter("Minimum ion(s) matched per MS2 comparison",

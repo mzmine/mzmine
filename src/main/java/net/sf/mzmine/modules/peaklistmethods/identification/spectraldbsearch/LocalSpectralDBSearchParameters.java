@@ -48,14 +48,18 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       new OptionalParameter<>(new RTToleranceParameter());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+
   public static final DoubleParameter noiseLevelMS2 =
-      new DoubleParameter("Noise level", "Noise level to filter MS2 mass lists",
+      new DoubleParameter("Minimum MS2 ion intensity",
+          "Signals below this level will be filtered away from MS2 mass lists",
           MZmineCore.getConfiguration().getIntensityFormat(), 0d);
-  public static final DoubleParameter minCosine = new DoubleParameter("Min cos similarity",
+
+  public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cos similarity",
       "Minimum cosine similarity. (All MS2 signals in the masslist against the spectral library entry. "
           + "Considers only signals which were found in both the masslist and the library entry)",
       new DecimalFormat("0.000"), 0.7);
-  public static final IntegerParameter minMatch = new IntegerParameter("Min matched signals",
+
+  public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
       "Minimum number of matched signals in MS2 masslist and spectral library entry (within mz tolerance)",
       4);
 
