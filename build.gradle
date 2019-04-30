@@ -149,6 +149,7 @@ application {
 
 runtime {
     options = ['--compress=2', '--vm=server', '--no-header-files', '--no-man-pages']
+    imageDir = file("$buildDir/$applicationName-$version")
 }
 
 
