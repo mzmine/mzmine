@@ -142,7 +142,9 @@ application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
     applicationName = 'MZmine'
     applicationDefaultJvmArgs = ['-showversion', '-XX:InitialRAMPercentage=20', '-XX:MaxRAMPercentage=80']
-    executableDir = '/'
+    
+    // Note: this currently breaks the start script
+    // executableDir = ''
 }
 
 runtime {
