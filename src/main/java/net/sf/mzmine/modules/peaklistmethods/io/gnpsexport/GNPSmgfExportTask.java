@@ -35,12 +35,10 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
@@ -224,7 +222,11 @@ public class GNPSmgfExportTask extends AbstractTask {
   private void gnpsOutputMerge(PeakListRow row, FileWriter writer, ErrorStatistics stats, HashMap<String,int[]> ms2ScanNumbers) throws IOException {
     final MergeUtils.MergedSpectrum ms2;
     if (mergeMode == SiriusExportParameters.MERGE_MODE.MERGE_CONSECUTIVE_SCANS) {
-      ms2 = mergeUtils.mergeConsecutiveScans(row,row.getBestPeak());
+      //ms2 = mergeUtils.mergeConsecutiveScans(row,row.getBestPeak());
+      final List<MergeUtils.MergedSpectrum> merged = Arrays.stream(row.getPeaks()).map(f->mergeUtils.mergeConsecutiveScans(row,f)).collect(Collectors.toList());;
+      merged.sort(Comparator.comparingDouble(m->-m.getTIC()));
+      ms2 = merged.get(0);
+
     } else {
       ms2 = mergeUtils.mergeScansFromDifferentOrigins(row);
     }
