@@ -103,7 +103,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
    * kaidu edit: add some options for merging MS/MS of feature rows
    */
 
-  public static final PercentParameter COSINE_PARAMETER = new PercentParameter("Cosine threshold (%)", "Threshold for the cosine similarity between two spectra for merging. Set to 0 if the spectra may have different collision energy!", 0.8d, 0d, 1d);
+  public static final PercentParameter COSINE_PARAMETER = new PercentParameter("Cosine threshold (%)", "Threshold for the cosine similarity between two spectra for merging. Set to 0 if the spectra may have different collision energy!", 0.7d, 0d, 1d);
 
   public static final PercentParameter PEAK_COUNT_PARAMETER = new PercentParameter("Peak count threshold ", "After merging, remove all peaks which occur in less than X % of the merged spectra.", 0.2d, 0d, 1d);
 

@@ -2,10 +2,9 @@ package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 
 import com.google.common.collect.Range;
 import gnu.trove.list.array.TDoubleArrayList;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import gnu.trove.list.array.TIntArrayList;
+import io.github.msdk.datamodel.FeatureTableRow;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import org.apache.commons.math3.special.Erf;
 import org.slf4j.LoggerFactory;
@@ -187,6 +186,19 @@ public class MergeUtils {
     //////////////////////////////////////////////////////////////////
 
 
+    public MergedSpectrum mergeScansFromDifferentOrigins(PeakListRow row) {
+        final List<FragmentScan> scans = new ArrayList<>();
+        for (Feature f : row.getPeaks()) {
+            scans.addAll(extractFragmentScansFor(row,f));
+        }
+        return mergeScansFromDifferentOrigins(String.format(Locale.US, "%d %.3f m/z, %.3f rt",row.getID(), row.getAverageMZ(), row.getAverageRT()), row.getAverageMZ(), scans);
+    }
+
+    public MergedSpectrum mergeConsecutiveScans(PeakListRow row, Feature f) {
+        final List<FragmentScan> scans = extractFragmentScansFor(row,f);
+        return mergeScansFromDifferentOrigins(String.format(Locale.US, "%d %.3f m/z, %.3f rt",row.getID(), row.getAverageMZ(), row.getAverageRT()), row.getAverageMZ(), scans);
+    }
+
     /**
      * Merge a list of scans from different origins into one spectrum. Each peak in the merged spectrum remembers its original
      * peaks.
@@ -216,31 +228,34 @@ public class MergeUtils {
         final CosineSpectrum leftCosine = new CosineSpectrum(left.data,parentPeak, expectedPPM);
         for (int k=1; k < allFs.size(); ++k) {
             MergedSpectrum right = mergeConsecutiveScans(name,parentPeak,allFs.get(k),true);
-            final CosineSpectrum rightCosine = new CosineSpectrum(right.data, parentPeak,expectedPPM);
-            final double cosine =leftCosine.cosine(rightCosine);
-            double tic = right.getTIC();
-            if (cosine>=cosineThreshold) {
-                Arrays.sort(right.data, CompareDataPointsByDecreasingInt);
-                left = left.merge(right, merge(left.data, right.data));
-                statistics.addTic(tic);;
-                continue;
-            } else if (cosine < 0.33) {
-                // check data quality
-                if (tic < 0.2*bestTIC || tic < statistics.get10PercentileTIC()) {
-                    // we might just get a low intensive specturm. May happen.
-                    left.removedScansByLowQuality += right.totalNumberOfScans();
+            if (left.precursorCharge == right.precursorCharge && left.polarity.equals(right.polarity)) {
+                final CosineSpectrum rightCosine = new CosineSpectrum(right.data, parentPeak, expectedPPM);
+                final double cosine = leftCosine.cosine(rightCosine);
+                double tic = right.getTIC();
+                if (cosine >= cosineThreshold) {
+                    Arrays.sort(right.data, CompareDataPointsByDecreasingInt);
+                    left = left.merge(right, merge(left.data, right.data));
+                    statistics.addTic(tic);
+                    ;
                     continue;
+                } else if (cosine < 0.33) {
+                    // check data quality
+                    if (tic < 0.2 * bestTIC || tic < statistics.get10PercentileTIC()) {
+                        // we might just get a low intensive specturm. May happen.
+                        left.removedScansByLowQuality += right.totalNumberOfScans();
+                        continue;
+                    }
+                    statistics.incrementLowCosine();
+                    final double lowRes = lowResolutionCosine(left.data, right.data, parentPeak - 1.5);
+                    if (lowRes >= cosineThreshold && lowRes >= (0.2 + cosine)) {
+                        statistics.warnForLowCosine(name + ": Low highres cosine score of " + cosine + " for aligned features, while lowres cosine is still " + lowRes + ". For " + left.toString() + " and " + right.toString() + ". Please check your expected mass deviation settings. It might be too low.", tic);
+                        statistics.incrementLowResHighResDifference();
+                    } else {
+                        statistics.warnForLowCosine(name + ": Low cosine score of " + cosine + " for aligned features from " + left.toString() + " and " + right.toString(), tic);
+                    }
                 }
-                statistics.incrementLowCosine();
-                final double lowRes = lowResolutionCosine(left.data, right.data, parentPeak-1.5);
-                if (lowRes >= cosineThreshold && lowRes >= (0.2+cosine)) {
-                    statistics.warnForLowCosine(name + ": Low highres cosine score of " + cosine + " for aligned features, while lowres cosine is still " + lowRes + ". For " + left.toString() + " and " + right.toString() + ". Please check your expected mass deviation settings. It might be too low.", tic);
-                    statistics.incrementLowResHighResDifference();
-                } else {
-                    statistics.warnForLowCosine(name + ": Low cosine score of " + cosine + " for aligned features from " + left.toString() + " and " + right.toString(), tic);
-                }
+                left.removedScansByLowCosine += right.totalNumberOfScans();
             }
-            left.removedScansByLowCosine += right.totalNumberOfScans();
         }
         statistics.flushWarningQueue();
         return filterOutRarePeaks(this.cutoffOutliers ? cutOffOutliers(left) : left);
@@ -323,6 +338,9 @@ public class MergeUtils {
             }
         }
 
+        final PolarityType polarityType = scans.get(bestScan).polarity;
+        final int charge = scans.get(bestScan).precursorCharge;
+
         // remember how many scans we had initially
         int numberOfTotalScans = 0;
         for (FragmentScan f : scans) numberOfTotalScans += f.ms2ScanNumbers.length;
@@ -367,11 +385,56 @@ public class MergeUtils {
         if (mzOrderedCopy.size() >= 4 && ((double) numberOfMerges) / mzOrderedCopy.size() < 0.5) {
             LoggerFactory.getLogger(MergeUtils.class).warn(name + ": Only " + numberOfMerges + " of " + mzOrderedCopy.size() + " spectra are merged. All other have a too low cosine similarity. Cosines between most intensive scan and other scans are: " + Arrays.toString(cosines));
         }
-        MergedSpectrum M = new MergedSpectrum(mergedSpectrum, new RawDataFile[]{scans.get(0).origin}, scanNumbers.stream().mapToInt(x -> x).toArray(), numberOfScansRemovedDueToLowQuality, numberOfScansRemovedDueToLowCosine);
+        MergedSpectrum M = new MergedSpectrum(mergedSpectrum, new RawDataFile[]{scans.get(0).origin}, scanNumbers.stream().mapToInt(x -> x).toArray(), polarityType, charge,numberOfScansRemovedDueToLowQuality, numberOfScansRemovedDueToLowCosine);
         if (cutoffOutliers) M = cutOffOutliers(M);
         if (!innerMerge) M = filterOutRarePeaks(M);
         return M;
     }
+
+
+    public List<FragmentScan> extractFragmentScansFor(PeakListRow row, Feature f) {
+        final List<MergeUtils.FragmentScan> scans = new ArrayList<>();
+        if (f.getFeatureStatus() == Feature.FeatureStatus.DETECTED
+                && f.getMostIntenseFragmentScanNumber() >= 0) {
+
+            final TIntArrayList scanIds = new TIntArrayList(f.getScanNumbers());
+            scanIds.addAll(f.getAllMS2FragmentScanNumbers());
+            int[] fs = getAllMs2ScanNumbersFor(f.getDataFile());
+
+            int j = Arrays.binarySearch(fs, scanIds.get(0));
+            if (j < 0)
+                j = (-j - 1);
+            for (int k = j; k < fs.length; ++k) {
+                final Scan scan = f.getDataFile().getScan(fs[k]);
+                if (scan.getRetentionTime() > f.getRawDataPointsRTRange().upperEndpoint())
+                    break;
+                if (Math.abs(f.getDataFile().getScan(fs[k]).getPrecursorMZ() - f.getMZ()) < 0.1) {
+                    scanIds.add(fs[k]);
+                }
+            }
+            scanIds.sort();
+            final TIntArrayList ms2Scans = new TIntArrayList();
+            int ms1ScanNumber = -1;
+
+            for (int scanId : scanIds.toArray()) {
+
+                final Scan scan = f.getDataFile().getScan(scanId);
+                if (scan.getMSLevel() == 1) {
+                    if (!ms2Scans.isEmpty())
+                        scans.add(new MergeUtils.FragmentScan(f.getDataFile(), row.getAverageMZ(), ms1ScanNumber, ms2Scans.toArray(), isolationWindow, expectedPPM));
+                    ms1ScanNumber = scan.getScanNumber();
+                    ms2Scans.clear();
+                } else {
+                    ms2Scans.add(scan.getScanNumber());
+                }
+            }
+            if (!ms2Scans.isEmpty()) {
+                scans.add(new MergeUtils.FragmentScan(f.getDataFile(), row.getAverageMZ(), ms1ScanNumber, ms2Scans.toArray(), isolationWindow, expectedPPM));
+            }
+            return scans;
+        } else return new ArrayList<>();
+    }
+
 
     /**
      * extract all high quality scans from the list that satisfy the threshold conditions. Adds them to the provided
@@ -397,6 +460,8 @@ public class MergeUtils {
             }
             int bestOffset=0;
             final FragmentScan bestScanF = scans.get(best);
+            final int precursorCharge = bestScanF.precursorCharge;
+            final PolarityType polarityType = bestScanF.polarity;
             for (FragmentScan scan : scans) {
                 int o=0, bo=0;
                 double bestTIC = Double.NEGATIVE_INFINITY;
@@ -421,6 +486,8 @@ public class MergeUtils {
                     }
                     bestScan = bestOffset + bo;
                 } else {
+                    if (!polarityType.equals(scan.polarity) || precursorCharge!=scan.precursorCharge)
+                        continue;
                     // check for thresholds
                     final double ms1Int = scan.precursorIntensity/highestInt;
                     final double chimericInt = (scan.getChimericIntensityWithPseudocount()/scan.precursorIntensity)/(bestScanF.getChimericIntensityWithPseudocount()/bestScanF.precursorIntensity);
@@ -653,6 +720,24 @@ public class MergeUtils {
 
     }
 
+    final HashMap<String, int[]> fragmentScans = new HashMap<>();
+    protected synchronized int[] getAllMs2ScanNumbersFor(RawDataFile r) {
+        if (fragmentScans.containsKey(r.getName()))
+            return fragmentScans.get(r.getName());
+        int[] scans = new int[0];
+        for (int msLevel : r.getMSLevels()) {
+            if (msLevel > 1) {
+                int[] concat = r.getScanNumbers(msLevel);
+                int offset = scans.length;
+                scans = Arrays.copyOf(scans, scans.length + concat.length);
+                System.arraycopy(concat, 0, scans, offset, concat.length);
+            }
+        }
+        Arrays.sort(scans);
+        fragmentScans.put(r.getName(), scans);
+        return scans;
+    }
+
     /**
      * Internal method for calculating the gaussian integral product
      */
@@ -684,7 +769,7 @@ public class MergeUtils {
     /**
      * An MS/MS scan with some statistics about its precursor in MS
      */
-    protected static class FragmentScan {
+    public static class FragmentScan {
 
         /**
          * The raw data file this scans are derived from
@@ -706,6 +791,12 @@ public class MergeUtils {
          * the sumed up intensity of chimeric peaks
          */
         protected double chimericIntensity;
+
+        /**
+         * precursor charge of fragment scan
+         */
+        protected int precursorCharge;
+        private PolarityType polarity;
 
         public FragmentScan(RawDataFile origin, double precursorMass, int ms1ScanNumber, int[] ms2ScanNumbers, Range<Double> isolationWindow, double massAccuracyInPPM) {
             this.origin = origin;
@@ -736,6 +827,8 @@ public class MergeUtils {
          */
         private void detectPrecursor(double precursorMass, Range<Double> isolationWindow, double ppm) {
             Scan spectrum = origin.getScan(ms1ScanNumber);
+            this.precursorCharge = spectrum.getPrecursorCharge();
+            this.polarity = spectrum.getPolarity();
             DataPoint[] dps = spectrum.getDataPointsByMass(Range.closed(precursorMass+isolationWindow.lowerEndpoint(), precursorMass+isolationWindow.upperEndpoint()));
             // for simplicity, just use the most intensive peak within ppm range
             int bestPeak = -1;
@@ -780,27 +873,31 @@ public class MergeUtils {
         }
     }
 
-    protected static class MergedSpectrum {
-        protected final MergeDataPoint[] data;
-        protected final RawDataFile[] origins;
-        protected final int[] scanIds;
-        protected int removedScansByLowQuality;
-        protected int removedScansByLowCosine;
-        private final static MergedSpectrum EMPTY = new MergedSpectrum(new MergeDataPoint[0],new RawDataFile[0],new int[0], 0,0);
+    public static class MergedSpectrum {
+        public final MergeDataPoint[] data;
+        public final RawDataFile[] origins;
+        public final int[] scanIds;
+        public final PolarityType polarity;
+        public final int precursorCharge;
+        public int removedScansByLowQuality;
+        public int removedScansByLowCosine;
+        private final static MergedSpectrum EMPTY = new MergedSpectrum(new MergeDataPoint[0],new RawDataFile[0],new int[0],PolarityType.UNKNOWN,0, 0,0);
         public static MergedSpectrum empty() {
             return EMPTY;
         }
 
-        public MergedSpectrum(MergeDataPoint[] data, Set<RawDataFile> origins, Set<Integer> scanIds, int removedScansByLowQuality, int removedScansByLowCosine) {
-            this(data, origins.toArray(new RawDataFile[origins.size()]), scanIds.stream().sorted().mapToInt(x->x).toArray(), removedScansByLowQuality, removedScansByLowCosine);
+        public MergedSpectrum(MergeDataPoint[] data, Set<RawDataFile> origins, Set<Integer> scanIds, PolarityType polarity, int precursorCharge, int removedScansByLowQuality, int removedScansByLowCosine) {
+            this(data, origins.toArray(new RawDataFile[origins.size()]), scanIds.stream().sorted().mapToInt(x->x).toArray(), polarity,precursorCharge, removedScansByLowQuality, removedScansByLowCosine);
         }
 
-        public MergedSpectrum(MergeDataPoint[] data, RawDataFile[] origins, int[] scanIds, int removedScansByLowQuality, int removedScansByLowCosine) {
+        public MergedSpectrum(MergeDataPoint[] data, RawDataFile[] origins, int[] scanIds, PolarityType polarity, int precursorCharge, int removedScansByLowQuality, int removedScansByLowCosine) {
             this.data = data;
             this.origins = origins;
             this.scanIds = scanIds;
             this.removedScansByLowQuality = removedScansByLowQuality;
             this.removedScansByLowCosine = removedScansByLowCosine;
+            this.polarity = polarity;
+            this.precursorCharge = precursorCharge;
         }
 
         public String toString() {
@@ -823,7 +920,7 @@ public class MergeUtils {
             System.arraycopy(right.origins, 0, norigs, origins.length, right.origins.length);
             final int[] nscans = Arrays.copyOf(scanIds, scanIds.length+right.scanIds.length);
             System.arraycopy(right.scanIds, 0, nscans, scanIds.length, right.scanIds.length);
-            return new MergedSpectrum(mergedSpectrum, norigs, nscans, removedScansByLowQuality+right.removedScansByLowQuality, removedScansByLowCosine+right.removedScansByLowCosine);
+            return new MergedSpectrum(mergedSpectrum, norigs, nscans, right.polarity, right.precursorCharge, removedScansByLowQuality+right.removedScansByLowQuality, removedScansByLowCosine+right.removedScansByLowCosine);
         }
 
         public double getTIC() {
@@ -838,13 +935,15 @@ public class MergeUtils {
                     Arrays.stream(data).filter(x->x.sources.length >= minimumNumberOfScans).toArray(MergeDataPoint[]::new),
                     origins,
                     scanIds,
+                    polarity,
+                    precursorCharge,
                     removedScansByLowQuality,
                     removedScansByLowCosine
             );
         }
     }
 
-    protected static class MergeDataPoint implements DataPoint {
+    public static class MergeDataPoint implements DataPoint {
 
         private final DataPoint[] sources;
         private final double mz, sumIntensity;

@@ -16,6 +16,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -58,6 +60,8 @@ public class SiriusExportTask extends AbstractTask {
     protected final SiriusExportParameters.MERGE_MODE mergeMsMs;
     protected double cosineThreshold;
     protected double expectedPPM;
+
+    private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
 
     protected boolean mergeMasses;
 
@@ -239,46 +243,7 @@ public class SiriusExportTask extends AbstractTask {
          */
         final List<MergeUtils.FragmentScan> allFragmentScans = new ArrayList<>();
         for (Feature f : row.getPeaks()) {
-            final List<MergeUtils.FragmentScan> scans = new ArrayList<>();
-            if (f.getFeatureStatus() == Feature.FeatureStatus.DETECTED
-                    && f.getMostIntenseFragmentScanNumber() >= 0) {
-
-                final TIntArrayList scanIds = new TIntArrayList(f.getScanNumbers());
-                scanIds.addAll(f.getAllMS2FragmentScanNumbers());
-                int[] fs = fragmentScans.get(f.getDataFile().getName());
-
-                int j = Arrays.binarySearch(fs, scanIds.get(0));
-                if (j < 0)
-                    j = (-j - 1);
-                for (int k=j; k < fs.length; ++k) {
-                    final Scan scan = f.getDataFile().getScan(fs[k]);
-                    if (scan.getRetentionTime() > f.getRawDataPointsRTRange().upperEndpoint())
-                        break;
-                    if (Math.abs(f.getDataFile().getScan(fs[k]).getPrecursorMZ() - f.getMZ()) < 0.1) {
-                        scanIds.add(fs[k]);
-                    }
-                }
-                scanIds.sort();
-                final TIntArrayList ms2Scans = new TIntArrayList();
-                int ms1ScanNumber = -1;
-
-                for (int scanId : scanIds.toArray()) {
-
-                    final Scan scan = f.getDataFile().getScan(scanId);
-                    if (scan.getMSLevel() == 1) {
-                        if (!ms2Scans.isEmpty())
-                            scans.add(new MergeUtils.FragmentScan(f.getDataFile(), row.getAverageMZ(), ms1ScanNumber, ms2Scans.toArray(), isolationWindow, expectedPPM));
-                        ms1ScanNumber = scan.getScanNumber();
-                        ms2Scans.clear();
-                    } else {
-                        ms2Scans.add(scan.getScanNumber());
-                    }
-                }
-                if (!ms2Scans.isEmpty()) {
-                    scans.add(new MergeUtils.FragmentScan(f.getDataFile(), row.getAverageMZ(), ms1ScanNumber, ms2Scans.toArray(), isolationWindow, expectedPPM));
-                }
-
-            }
+            final List<MergeUtils.FragmentScan> scans = mergeUtils.extractFragmentScansFor(row, f);
             if (scans.isEmpty())
                 continue;
             if (mergeMsMs == SiriusExportParameters.MERGE_MODE.MERGE_CONSECUTIVE_SCANS) {
@@ -431,7 +396,7 @@ public class SiriusExportTask extends AbstractTask {
             final MergeUtils.MergeDataPoint mp = (dp instanceof MergeUtils.MergeDataPoint ? (MergeUtils.MergeDataPoint)dp : null);
             writer.write(String.valueOf(dp.getMZ()));
             writer.write(' ');
-            writer.write(mp != null ? String.valueOf(mp.getSumIntensity()) : String.valueOf(dp.getIntensity()));
+            writer.write(mp != null ? intensityForm.format(mp.getSumIntensity()) : intensityForm.format(dp.getIntensity()));
             if (DEBUG_MODE && mp!=null) {
                 writer.write(' ');
                 writer.write('#');

@@ -35,20 +35,22 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import com.google.common.collect.Range;
 import io.github.msdk.MSDKRuntimeException;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitParameters.RowFilter;
+import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.MergeUtils;
+import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -82,6 +84,10 @@ public class GNPSmgfExportTask extends AbstractTask {
 
   private RowFilter filter;
 
+  // by kaidu
+  private MergeUtils mergeUtils;
+  private SiriusExportParameters.MERGE_MODE mergeMode;
+
   GNPSmgfExportTask(ParameterSet parameters) {
     this.peakLists =
         parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
@@ -89,6 +95,15 @@ public class GNPSmgfExportTask extends AbstractTask {
     this.fileName = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
     this.massListName = parameters.getParameter(GNPSExportAndSubmitParameters.MASS_LIST).getValue();
     this.filter = parameters.getParameter(GNPSExportAndSubmitParameters.FILTER).getValue();
+    this.mergeUtils = new MergeUtils();
+    mergeUtils.setPeakRemovalThreshold(parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_COUNT_PARAMETER).getValue());
+    mergeUtils.setCosineThreshold(parameters.getParameter(GNPSExportAndSubmitParameters.COSINE_PARAMETER).getValue());
+    mergeUtils.setExpectedPPM(parameters.getParameter(GNPSExportAndSubmitParameters.MASS_ACCURACY).getValue());
+    mergeUtils.setMergeMasses(parameters.getParameter(GNPSExportAndSubmitParameters.AVERAGE_OVER_MASS).getValue());
+    final double offset = parameters.getParameter(GNPSExportAndSubmitParameters.isolationWindowOffset).getValue();
+    final double width = parameters.getParameter(GNPSExportAndSubmitParameters.isolationWindowWidth).getValue();
+    mergeUtils.setIsolationWindow(Range.closed(offset-width, offset+width));
+    mergeMode = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE).getValue();
   }
 
   @Override
@@ -165,8 +180,8 @@ public class GNPSmgfExportTask extends AbstractTask {
   }
 
   private int export(PeakList peakList, FileWriter writer, File curFile) throws IOException {
-    final String newLine = System.lineSeparator();
-
+    final ErrorStatistics stats = new ErrorStatistics();
+    HashMap<String, int[]> fragmentScansNumbers = getFragmentScansNumbers(peakList.getRawDataFiles());
     // count exported
     int count = 0;
     int countMissingMassList = 0;
@@ -175,88 +190,21 @@ public class GNPSmgfExportTask extends AbstractTask {
       if (!filter.filter(row))
         continue;
 
-      String rowID = Integer.toString(row.getID());
-      double retTimeInSeconds = ((row.getAverageRT() * 60 * 100.0) / 100.);
-
       // Get the MS/MS scan number
       Feature bestPeak = row.getBestPeak();
       if (bestPeak == null)
         continue;
-      int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-      if (rowID != null) {
-        PeakListRow copyRow = copyPeakRow(row);
-        // Best peak always exists, because peak list row has at least one peak
-        bestPeak = copyRow.getBestPeak();
 
-        // Get the heighest peak with a MS/MS scan number (with mass list)
-        boolean missingMassList = false;
-        msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-        while (msmsScanNumber < 1
-            || getScan(bestPeak, msmsScanNumber).getMassList(massListName) == null) {
-          // missing masslist
-          if (msmsScanNumber > 0)
-            missingMassList = true;
 
-          copyRow.removePeak(bestPeak.getDataFile());
-          if (copyRow.getPeaks().length == 0)
-            break;
-
-          bestPeak = copyRow.getBestPeak();
-          msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-        }
-        if (missingMassList)
-          countMissingMassList++;
+      if (mergeMode== SiriusExportParameters.MERGE_MODE.NO_MERGE) {
+        gnpsOutputNoMerge(row, bestPeak, writer, stats);
+      } else {
+        gnpsOutputMerge(row, writer, stats,fragmentScansNumbers);
       }
-      if (msmsScanNumber >= 1) {
-        // MS/MS scan must exist, because msmsScanNumber was > 0
-        Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
 
-        MassList massList = msmsScan.getMassList(massListName);
-
-
-        if (massList == null) {
-          continue;
-        }
-
-        writer.write("BEGIN IONS" + newLine);
-
-        if (rowID != null)
-          writer.write("FEATURE_ID=" + rowID + newLine);
-
-        String mass = mzForm.format(row.getAverageMZ());
-        if (mass != null)
-          writer.write("PEPMASS=" + mass + newLine);
-
-        if (rowID != null) {
-          writer.write("SCANS=" + rowID + newLine);
-          writer.write("RTINSECONDS=" + rtsForm.format(retTimeInSeconds) + newLine);
-        }
-
-        int msmsCharge = msmsScan.getPrecursorCharge();
-        String msmsPolarity = msmsScan.getPolarity().asSingleChar();
-        if (msmsPolarity.equals("0"))
-          msmsPolarity = "";
-        if (msmsCharge == 0) {
-          msmsCharge = 1;
-          msmsPolarity = "";
-        }
-        writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
-
-        writer.write("MSLEVEL=2" + newLine);
-
-        DataPoint peaks[] = massList.getDataPoints();
-        for (DataPoint peak : peaks) {
-          writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
-              + newLine);
-        }
-
-        writer.write("END IONS" + newLine);
-        writer.write(newLine);
-        count++;
-      }
     }
-    if (count == 0)
-      if (countMissingMassList > 0)
+    if (stats.count == 0)
+      if (stats.missingMassList > 0)
         throw new MSDKRuntimeException("No MS/MS scans exported: " + countMissingMassList
             + " scans have no mass list " + massListName);
       else
@@ -271,6 +219,163 @@ public class GNPSmgfExportTask extends AbstractTask {
           countMissingMassList, peakList.getName()));
 
     return count;
+  }
+
+  private void gnpsOutputMerge(PeakListRow row, FileWriter writer, ErrorStatistics stats, HashMap<String,int[]> ms2ScanNumbers) throws IOException {
+    final MergeUtils.MergedSpectrum ms2;
+    if (mergeMode == SiriusExportParameters.MERGE_MODE.MERGE_CONSECUTIVE_SCANS) {
+      ms2 = mergeUtils.mergeConsecutiveScans(row,row.getBestPeak());
+    } else {
+      ms2 = mergeUtils.mergeScansFromDifferentOrigins(row);
+    }
+    double retTimeInSeconds = ((row.getAverageRT() * 60 * 100.0) / 100.);
+    final String newLine = System.lineSeparator();
+    PeakListRow copyRow = copyPeakRow(row);
+    // Best peak always exists, because peak list row has at least one peak
+    Feature bestPeak = copyRow.getBestPeak();
+
+    // Get the heighest peak with a MS/MS scan number (with mass list)
+    boolean missingMassList = false;
+    writer.write("BEGIN IONS" + newLine);
+
+    writer.write("FEATURE_ID=" + row.getID() + newLine);
+
+    String mass = mzForm.format(row.getAverageMZ());
+    if (mass != null)
+        writer.write("PEPMASS=" + mass + newLine);
+
+      writer.write("SCANS=" + row.getID() + newLine);
+      writer.write("RTINSECONDS=" + rtsForm.format(retTimeInSeconds) + newLine);
+
+      int msmsCharge = ms2.precursorCharge;
+      String msmsPolarity = ms2.polarity.asSingleChar();
+      if (msmsPolarity.equals("0"))
+        msmsPolarity = "";
+      if (msmsCharge == 0) {
+        msmsCharge = 1;
+        msmsPolarity = "";
+      }
+      writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
+
+    writer.write("MERGED_STATS=");
+    writer.write(String.valueOf(ms2.scanIds.length));
+    writer.write(" / ");
+    writer.write(String.valueOf(ms2.totalNumberOfScans()));
+    writer.write(" (");
+    writer.write(String.valueOf(ms2.removedScansByLowQuality));
+    writer.write(" removed due to low quality, ");
+    writer.write(String.valueOf(ms2.removedScansByLowCosine));
+    writer.write(" removed due to low cosine).");
+    writer.write(newLine);
+
+      writer.write("MSLEVEL=2" + newLine);
+
+      MergeUtils.MergeDataPoint peaks[] = ms2.data;
+      for (MergeUtils.MergeDataPoint peak : peaks) {
+        writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getSumIntensity())
+                + newLine);
+      }
+
+      writer.write("END IONS" + newLine);
+      writer.write(newLine);
+      stats.count++;
+
+  }
+
+  private HashMap<String, int[]> getFragmentScansNumbers(RawDataFile[] rawDataFiles) {
+    final HashMap<String, int[]> fragmentScans = new HashMap<>();
+    for (RawDataFile r : rawDataFiles) {
+      int[] scans = new int[0];
+      for (int msLevel : r.getMSLevels()) {
+        if (msLevel > 1) {
+          int[] concat = r.getScanNumbers(msLevel);
+          int offset = scans.length;
+          scans = Arrays.copyOf(scans, scans.length + concat.length);
+          System.arraycopy(concat, 0, scans, offset, concat.length);
+        }
+      }
+      Arrays.sort(scans);
+      fragmentScans.put(r.getName(), scans);
+    }
+    return fragmentScans;
+  }
+
+  protected static class ErrorStatistics {
+    protected int missingMassList = 0;
+    protected int count = 0;
+  }
+
+  private void gnpsOutputNoMerge(PeakListRow row, Feature bestPeak, FileWriter writer, ErrorStatistics stats) throws IOException {
+    double retTimeInSeconds = ((row.getAverageRT() * 60 * 100.0) / 100.);
+    final String newLine = System.lineSeparator();
+    int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+      PeakListRow copyRow = copyPeakRow(row);
+      // Best peak always exists, because peak list row has at least one peak
+      bestPeak = copyRow.getBestPeak();
+
+      // Get the heighest peak with a MS/MS scan number (with mass list)
+      boolean missingMassList = false;
+      msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+      while (msmsScanNumber < 1
+              || getScan(bestPeak, msmsScanNumber).getMassList(massListName) == null) {
+        // missing masslist
+        if (msmsScanNumber > 0)
+          missingMassList = true;
+
+        copyRow.removePeak(bestPeak.getDataFile());
+        if (copyRow.getPeaks().length == 0)
+          break;
+
+        bestPeak = copyRow.getBestPeak();
+        msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+      }
+      if (missingMassList)
+        stats.missingMassList++;
+
+    if (msmsScanNumber >= 1) {
+      // MS/MS scan must exist, because msmsScanNumber was > 0
+      Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
+
+      MassList massList = msmsScan.getMassList(massListName);
+
+
+      if (massList == null) {
+        return;
+      }
+
+      writer.write("BEGIN IONS" + newLine);
+
+      writer.write("FEATURE_ID=" + row.getID() + newLine);
+
+      String mass = mzForm.format(row.getAverageMZ());
+      if (mass != null)
+        writer.write("PEPMASS=" + mass + newLine);
+
+      writer.write("SCANS=" + row.getID() + newLine);
+      writer.write("RTINSECONDS=" + rtsForm.format(retTimeInSeconds) + newLine);
+
+      int msmsCharge = msmsScan.getPrecursorCharge();
+      String msmsPolarity = msmsScan.getPolarity().asSingleChar();
+      if (msmsPolarity.equals("0"))
+        msmsPolarity = "";
+      if (msmsCharge == 0) {
+        msmsCharge = 1;
+        msmsPolarity = "";
+      }
+      writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
+
+      writer.write("MSLEVEL=2" + newLine);
+
+      DataPoint peaks[] = massList.getDataPoints();
+      for (DataPoint peak : peaks) {
+        writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
+                + newLine);
+      }
+
+      writer.write("END IONS" + newLine);
+      writer.write(newLine);
+      stats.count++;
+    }
   }
 
   public Scan getScan(Feature f, int msmsscan) {
