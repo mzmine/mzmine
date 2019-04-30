@@ -147,7 +147,8 @@ application {
 
 runtime {
     options = ['--compress=2', '--vm=server', '--no-header-files', '--no-man-pages']
-    imageDir = file("$buildDir/$applicationName-$version")
+    imageDir = file("${buildDir}/${applicationName}-${version}")
+    imageZip = file("${buildDir}/${applicationName}-${version}.zip")
 }
 
 
