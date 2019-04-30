@@ -2,6 +2,8 @@ language: java
 
 script: mvn clean package
 
+install: echo "skipping install"
+
 jdk:
   - openjdk9
   - openjdk10
