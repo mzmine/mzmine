@@ -1,5 +1,6 @@
 .settings/
 target/
+build/
 conf/
 .DS_Store
 .project
