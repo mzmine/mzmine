@@ -5,4 +5,5 @@ conf/
 .DS_Store
 .project
 .classpath
+.gradle
 /bin/
