@@ -18,6 +18,12 @@
 
 package net.sf.mzmine.util.scans.sorting;
 
+/**
+ * Sort all scans (-> masslists -> DataPoint[]) by MAX_TIC or NUMBER_OF_SIGNALS
+ * 
+ * @author Robin Schmid
+ *
+ */
 public enum ScanSortMode {
   MAX_TIC, // sort by maximum TIC
   NUMBER_OF_SIGNALS; // sort by number of signals

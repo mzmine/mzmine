@@ -24,13 +24,27 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.scans.ScanUtils;
 
+/**
+ * Scan needs at least one MassList
+ * 
+ * @author Robin Schmid
+ *
+ */
 public class ScanSorter implements Comparator<Scan> {
   private MassListSorter comp;
   private String massListName;
 
+  /**
+   * Scans need at least one MassList (define name or use empty/null massListName for first
+   * MassList)
+   * 
+   * @param massListName any name or null/empty to use the first MassList of each scan
+   * @param noiseLevel
+   * @param sort sorting mode
+   */
   public ScanSorter(String massListName, double noiseLevel, ScanSortMode sort) {
     this.massListName = massListName;
-    comp = new MassListSorter(sort, noiseLevel);
+    comp = new MassListSorter(noiseLevel, sort);
   }
 
   @Override
