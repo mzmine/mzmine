@@ -145,7 +145,7 @@ public class ScanAlignment {
   }
 
   /**
-   * Remove unaligned before
+   * Remove unaligned before. Missing data points are replaced by 0
    * 
    * @param diffAligned
    * @return array of [data points][intensity in scans]

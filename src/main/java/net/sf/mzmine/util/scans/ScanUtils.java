@@ -621,7 +621,7 @@ public class ScanUtils {
    * Sorted list (best first) of all MS2 fragmentation scans with n signals >= noiseLevel in the
    * specified or first massList, if none was specified
    * 
-   * @param row
+   * @param row all MS2 scans of all features in this row
    * @param massListName the name or null/empty to always use the first masslist
    * @param noiseLevel
    * @param minNumberOfSignals
@@ -682,12 +682,10 @@ public class ScanUtils {
   public static MassList getMassListOrFirst(Scan scan, String massListName) {
     final MassList massList;
     if (Strings.isNullOrEmpty(massListName)) {
-      MassList[] lists = scan.getMassLists();
-      massList = lists.length > 0 ? lists[0] : null;
+      return Arrays.stream(scan.getMassLists()).findFirst().orElse(null);
     } else {
-      massList = scan.getMassList(massListName);
+      return massList = scan.getMassList(massListName);
     }
-    return massList;
   }
 
   /**
