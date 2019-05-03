@@ -1,7 +1,9 @@
 .settings/
 target/
+build/
 conf/
 .DS_Store
 .project
 .classpath
+.gradle
 /bin/

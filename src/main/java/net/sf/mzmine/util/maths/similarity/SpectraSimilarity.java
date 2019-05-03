@@ -16,13 +16,12 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry;
+package net.sf.mzmine.util.maths.similarity;
 
 import java.util.List;
 import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.util.maths.similarity.Similarity;
 import net.sf.mzmine.util.scans.ScanAlignment;
 
 public class SpectraSimilarity {
@@ -55,6 +54,7 @@ public class SpectraSimilarity {
 
 
   /**
+   * Cosine similarity
    * 
    * @param mzTol
    * @param a

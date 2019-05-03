@@ -25,7 +25,7 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 import net.sf.mzmine.util.maths.Transform;
 
 /**
- * Different similarity measures
+ * Different similarity measures such as COSINE SIMILARITY, PEARSON, SPEARMAN,...
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *

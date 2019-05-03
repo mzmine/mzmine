@@ -26,7 +26,7 @@ public class MassListSorter implements Comparator<DataPoint[]> {
   private double noiseLevel;
   private ScanSortMode sort;
 
-  public MassListSorter(ScanSortMode sort, double noiseLevel) {
+  public MassListSorter(double noiseLevel, ScanSortMode sort) {
     this.sort = sort;
     this.noiseLevel = noiseLevel;
   }

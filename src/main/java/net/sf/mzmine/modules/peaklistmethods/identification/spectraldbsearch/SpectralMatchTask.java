@@ -33,7 +33,6 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectraSimilarity;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBPeakIdentity;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -42,6 +41,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
+import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 

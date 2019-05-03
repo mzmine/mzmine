@@ -1,0 +1,161 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.7'
+    id 'org.beryx.runtime' version '1.1.5'
+}
+
+defaultTasks 'clean', 'runtimeZip'
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/'
+    }
+    maven {
+        url = 'file://' + projectDir + '/src/main/lib'
+    }
+    maven {
+        url = 'https://jitpack.io'
+    }
+    maven {
+        url = 'http://repo.maven.apache.org/maven2'
+    }
+    maven {
+        url = 'https://bio.informatik.uni-jena.de/repository/libs-release-oss/'
+    }
+    maven {
+        url = 'https://www.xypron.de/repository'
+    }
+}
+
+dependencies {
+    compile 'com.github.graphstream:gs-core:2.0-alpha'
+    compile 'com.github.graphstream:gs-ui-swing:2.0-alpha'
+    compile 'org.jfree:jfreechart:1.5.0'
+    compile 'org.jfree:jfreechart-fx:1.0.1'
+    compile 'org.jfree:jfreesvg:3.3'
+    compile 'com.orsonpdf:orsonpdf:1.9'
+    compile 'com.google.guava:guava:27.1-jre'
+    compile 'org.apache.commons:commons-math:2.2'
+    compile 'javax.help:javahelp:2.0.05'
+    compile 'edu.ucar:netcdf4:4.5.5'
+    compile 'org.ostermiller:utils:1.07.00'
+    compile 'com.google.code.findbugs:jsr305:3.0.2'
+    compile 'nz.ac.waikato.cms.weka:weka-stable:3.8.3'
+    compile 'net.sourceforge.jmol:jmol:14.29.27'
+    compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'org.slf4j:slf4j-jdk14:1.7.25'
+    compile 'org.apache.poi:poi:4.1.0'
+    compile 'org.apache.poi:poi-ooxml:4.1.0'
+    compile 'org.openscience.cdk:cdk-core:2.2'
+    compile 'org.openscience.cdk:cdk-io:2.2'
+    compile 'org.openscience.cdk:cdk-standard:2.2'
+    compile 'org.openscience.cdk:cdk-silent:2.2'
+    compile 'org.openscience.cdk:cdk-formula:2.2'
+    compile 'org.openscience.cdk:cdk-sdg:2.2'
+    compile 'org.openscience.cdk:cdk-renderbasic:2.2'
+    compile 'org.openscience.cdk:cdk-renderawt:2.2'
+    compile 'org.openscience.cdk:cdk-data:2.2'
+    compile 'org.openscience.cdk:cdk-interfaces:2.2'
+    compile 'org.openscience.cdk:cdk-smiles:2.2'
+    compile 'uk.ac.ebi.jmzml:jmzml:1.7.11'
+    compile 'org.postgresql:postgresql:9.3-1102-jdbc41'
+    compile 'mysql:mysql-connector-java:5.1.34'
+    compile 'org.rsc.chemspider:chemspider-api:1.0.0'
+    compile 'org.nuiton.thirdparty:REngine:1.8-5'
+    compile 'org.nuiton.thirdparty:Rserve:1.8-5'
+    compile 'com.github.jbytecode:RCaller:3.0'
+    compile 'mzmine:macspecificsetup:2.7'
+    compile 'mzmine:jmprojection:1.0'
+    compile 'mzmine:gslibml:0.0.1'
+    compile 'mzmine:visad:20131024'
+    compile 'org.jogamp.jogl:jogl-all-main:2.3.2'
+    compile 'org.jogamp.gluegen:gluegen-rt-main:2.3.2'
+    compile 'java3d:j3dcore:1.6.0'
+    compile 'java3d:j3dutils:1.6.0'
+    compile 'java3d:vecmath:1.6.0'
+    compile 'uk.ac.ebi.pride:jmztab-modular-model:3.0.8'
+    compile 'uk.ac.ebi.pride:jmztab-modular-util:3.0.8'
+    compile 'org.apache.xmlgraphics:fop:1.0'
+    compile 'org.freehep:freehep-graphicsio-emf:2.4'
+    compile 'io.github.msdk:msdk-io-mzml:0.0.19'
+    compile 'io.github.msdk:msdk-io-netcdf:0.0.19'
+    compile 'io.github.msdk:msdk-featuredetection-adap3d:0.0.19'
+    compile 'io.github.msdk:msdk-id-sirius:0.0.19'
+    compile 'org.xerial:sqlite-jdbc:3.8.11.2'
+    compile 'org.du-lab.adap:adap:4.0.1'
+    compile 'gnf:clustering:20130919'
+    compile 'it.unimi.dsi:fastutil:8.2.2'
+    compile 'com.itextpdf:itextpdf:5.5.13'
+    compile 'org.apache.xmlgraphics:batik-util:1.8'
+    compile 'org.apache.xmlgraphics:xmlgraphics-commons:2.0'
+    compile 'org.apache.xmlgraphics:batik-transcoder:1.8'
+    compile 'org.apache.xmlgraphics:batik-awt-util:1.8'
+    compile 'org.apache.xmlgraphics:batik-dom:1.8'
+    compile 'org.apache.xmlgraphics:batik-svggen:1.8'
+    compile 'org.apache.xmlgraphics:batik-svg-dom:1.8'
+    compile 'org.apache.xmlgraphics:batik-anim:1.8'
+    compile 'org.apache.xmlgraphics:batik-rasterizer:1.8'
+    compile 'org.apache.xmlgraphics:batik-swing:1.8'
+    compile 'org.apache.xmlgraphics:batik-gui-util:1.8'
+    compile 'org.apache.xmlgraphics:batik-ttf2svg:1.8'
+    compile 'org.apache.xmlgraphics:batik-parser:1.8'
+    compile 'net.sf.epsgraphics:epsgraphics:1.2'
+    compile 'com.miglayout:miglayout:3.7.4'
+    compile 'javax.xml.bind:jaxb-api:2.3.1'
+    compile 'com.sun.xml.bind:jaxb-core:2.3.0.1'
+    compile 'com.sun.xml.bind:jaxb-impl:2.3.2'
+    compile 'javax.activation:javax.activation-api:1.2.0'
+    compile 'javax.mail:javax.mail-api:1.6.2'
+    compile 'net.java.dev.jna:jna:5.0.0'
+    compile 'org.openjfx:javafx-controls:12.0.1'
+    compile 'org.openjfx:javafx-swing:12.0.1'
+    compile 'org.openjfx:javafx-fxml:12.0.1'
+    compile 'io.swagger:swagger-annotations:1.5.22'
+    compile 'com.squareup.okhttp:okhttp:2.7.5'
+    compile 'com.squareup.okhttp:logging-interceptor:2.7.5'
+    compile 'com.google.code.gson:gson:2.8.5'
+    compile 'io.gsonfire:gson-fire:1.8.0'
+    compile 'org.threeten:threetenbp:1.3.8'
+    testCompile 'junit:junit:4.12'
+}
+
+group = 'io.github.mzmine'
+version = '3.0a'
+description = 'MZmine'
+sourceCompatibility = '12'
+targetCompatibility = '12'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+
+javafx {
+    modules = ['javafx.controls', 'javafx.swing', 'javafx.fxml']
+}
+
+application {
+    mainClassName = "net.sf.mzmine.main.MZmineCore"
+    applicationName = 'MZmine'
+    applicationDefaultJvmArgs = ['-showversion', '-XX:InitialRAMPercentage=20', '-XX:MaxRAMPercentage=80']
+    
+    // Note: this currently breaks the start script
+    // executableDir = ''
+}
+
+runtime {
+    options = ['--compress=2', '--vm=server', '--no-header-files', '--no-man-pages']
+    imageDir = file("${buildDir}/${applicationName}-${version}")
+    imageZip = file("${buildDir}/${applicationName}-${version}.zip")
+}
+
+
+tasks.runtime.doLast {
+    copy {
+        from('src/main/icons')
+        into("$buildDir/icons")
+    }
+}
+
