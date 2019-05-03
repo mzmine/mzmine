@@ -181,10 +181,16 @@ public class ExactMassDetector implements MassDetector {
         // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
         double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
 
-        // We calculate the desired point (at half intensity) with the
-        // linear equation
-        // X = X1 + [(Y - Y1) / m ], where Y = half of total intensity
-        xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
+        if (mLeft == 0.0) {
+          // If slope is zero, we calculate the desired point as the middle point
+          xLeft = (leftX1 + leftX2) / 2;
+        }
+        else {
+          // We calculate the desired point (at half intensity) with the
+          // linear equation
+          // X = X1 + [(Y - Y1) / m ], where Y = half of total intensity
+          xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
+        }
         continue;
       }
 
@@ -206,10 +212,16 @@ public class ExactMassDetector implements MassDetector {
         // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
         double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
 
-        // We calculate the desired point (at half intensity) with the
-        // linear equation
-        // X = X1 + [(Y - Y1) / m ], where Y = half of total intensity
-        xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
+        if (mRight == 0.0) {
+          // If slope is zero, we calculate the desired point as the middle point
+          xRight = (rightX1 + rightX2) / 2;
+        }
+        else {
+          // We calculate the desired point (at half intensity) with the
+          // linear equation
+          // X = X1 + [(Y - Y1) / m ], where Y = half of total intensity
+          xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
+        }
         break;
       }
     }
