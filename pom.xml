@@ -424,17 +424,17 @@
 		<dependency>
 			<groupId>java3d</groupId>
 			<artifactId>j3dcore</artifactId>
-			<version>1.6.0</version>
+			<version>1.6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>java3d</groupId>
 			<artifactId>j3dutils</artifactId>
-			<version>1.6.0</version>
+			<version>1.6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>java3d</groupId>
 			<artifactId>vecmath</artifactId>
-			<version>1.6.0</version>
+			<version>1.6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.ebi.pride</groupId>
