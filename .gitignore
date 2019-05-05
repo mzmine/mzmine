@@ -1,11 +1,12 @@
-.settings/
-target/
-build/
-conf/
 .DS_Store
 .project
 .classpath
 .gradle
-bin/
-src/main/log/mzmine.log
+.settings/
+/target/
+/build/
+/bin/
+/src/main/conf
+/src/main/log/mzmine.log
+/src/main/log/mzmine.log.lck
 
