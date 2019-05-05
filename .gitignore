@@ -6,4 +6,6 @@ conf/
 .project
 .classpath
 .gradle
-/bin/
+bin/
+src/main/log/mzmine.log
+
