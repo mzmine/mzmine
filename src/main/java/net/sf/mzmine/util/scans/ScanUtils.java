@@ -27,13 +27,21 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.MassSpectrumType;
@@ -50,6 +58,8 @@ import net.sf.mzmine.util.scans.sorting.ScanSorter;
  * Scan related utilities
  */
 public class ScanUtils {
+
+  private static final Logger logger = Logger.getLogger(ScanUtils.class.getName());
 
   /**
    * Common utility method to be used as Scan.toString() method in various Scan implementations
@@ -724,5 +734,64 @@ public class ScanUtils {
         n++;
     return n;
   }
+
+
+  /**
+   * Finds the first MS1 scan preceding the given MS2 scan. If no such scan exists, returns null.
+   */
+  public static @Nullable Scan findPrecursorScan(@Nonnull Scan scan) {
+
+    assert scan != null;
+    final RawDataFile dataFile = scan.getDataFile();
+    final int scanNumbers[] = dataFile.getScanNumbers();
+
+    int startIndex = Arrays.binarySearch(scanNumbers, scan.getScanNumber());
+
+    for (int i = startIndex; i >= 0; i--) {
+      Scan s = dataFile.getScan(scanNumbers[i]);
+      if (s.getMSLevel() == 1)
+        return s;
+    }
+
+    // Didn't find any MS1 scan
+    return null;
+  }
+
+
+  /**
+   * Selects best N MS/MS scans from a peak list row
+   */
+  public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull PeakListRow row,
+      @Nonnull String massListName, @Nonnull Integer topN) throws MissingMassListException {
+
+    @SuppressWarnings("null")
+    final @Nonnull List<Scan> allMS2Scans = Arrays.asList(row.getAllMS2Fragmentations());
+
+    return selectBestMS2Scans(allMS2Scans, massListName, topN);
+  }
+
+
+  /**
+   * Selects best N MS/MS scans from a collection of scans
+   */
+  public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull Collection<Scan> scans,
+      @Nonnull String massListName, @Nonnull Integer topN) throws MissingMassListException {
+
+    assert scans != null;
+    assert massListName != null;
+    assert topN != null;
+
+    // Keeps MS2 scans sorted by decreasing quality
+    TreeSet<Scan> sortedScans = new TreeSet<>(
+        Collections.reverseOrder(new ScanSorter(massListName, 0, ScanSortMode.MAX_TIC)));
+    sortedScans.addAll(scans);
+
+    // Filter top N scans into an immutable list
+    final List<Scan> topNScansList =
+        sortedScans.stream().limit(topN).collect(ImmutableList.toImmutableList());
+
+    return topNScansList;
+  }
+
 
 }

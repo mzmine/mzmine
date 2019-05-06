@@ -19,6 +19,9 @@
 package net.sf.mzmine.util.scans.sorting;
 
 import java.util.Comparator;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
@@ -31,8 +34,9 @@ import net.sf.mzmine.util.scans.ScanUtils;
  *
  */
 public class ScanSorter implements Comparator<Scan> {
-  private MassListSorter comp;
-  private String massListName;
+
+  private final String massListName;
+  private final MassListSorter comp;
 
   /**
    * Scans need at least one MassList (define name or use empty/null massListName for first
@@ -42,9 +46,9 @@ public class ScanSorter implements Comparator<Scan> {
    * @param noiseLevel
    * @param sort sorting mode
    */
-  public ScanSorter(String massListName, double noiseLevel, ScanSortMode sort) {
+  public ScanSorter(String massListName, double noiseLevel, ScanSortMode sortMode) {
     this.massListName = massListName;
-    comp = new MassListSorter(noiseLevel, sort);
+    comp = new MassListSorter(noiseLevel, sortMode);
   }
 
   @Override
@@ -55,5 +59,6 @@ public class ScanSorter implements Comparator<Scan> {
       throw new RuntimeException(new MissingMassListException(massListName));
     return comp.compare(ma.getDataPoints(), mb.getDataPoints());
   }
+
 
 }
