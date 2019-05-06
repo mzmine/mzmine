@@ -302,7 +302,7 @@ public class SimpleScan implements Scan {
   }
 
   public String toString() {
-    return ScanUtils.scanToString(this);
+    return ScanUtils.scanToString(this, false);
   }
 
   public @Nonnull RawDataFile getDataFile() {

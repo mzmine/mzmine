@@ -302,7 +302,7 @@ public class StorableScan implements Scan {
 
   @Override
   public String toString() {
-    return ScanUtils.scanToString(this);
+    return ScanUtils.scanToString(this, false);
   }
 
   @Override

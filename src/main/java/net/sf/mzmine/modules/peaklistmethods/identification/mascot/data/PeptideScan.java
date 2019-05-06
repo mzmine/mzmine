@@ -307,7 +307,7 @@ public class PeptideScan implements Scan {
   }
 
   public String getName() {
-    return ScanUtils.scanToString(this);
+    return ScanUtils.scanToString(this, false);
   }
 
   /**

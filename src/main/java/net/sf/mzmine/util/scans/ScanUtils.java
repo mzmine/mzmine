@@ -67,10 +67,12 @@ public class ScanUtils {
    * @param scan Scan to be converted to String
    * @return String representation of the scan
    */
-  public static @Nonnull String scanToString(@Nonnull Scan scan) {
+  public static @Nonnull String scanToString(@Nonnull Scan scan, @Nonnull Boolean includeFileName) {
     StringBuffer buf = new StringBuffer();
     Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
     Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    if (includeFileName)
+      buf.append(scan.getDataFile().getName());
     buf.append("#");
     buf.append(scan.getScanNumber());
     buf.append(" @");

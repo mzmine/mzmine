@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -36,11 +37,14 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -63,6 +67,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentifi
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * Spectrum visualizer using JFreeChart library
@@ -206,7 +211,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     String windowTitle =
         "Spectrum: [" + dataFile.getName() + "; scan #" + currentScan.getScanNumber() + "]";
 
-    String spectrumTitle = dataFile.getName() + " scan" + currentScan.toString();
+    String spectrumTitle = ScanUtils.scanToString(currentScan, true);
 
     DataPoint basePeak = currentScan.getHighestDataPoint();
     if (basePeak != null) {

@@ -160,14 +160,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
       Scan ms1Scan = peakListRow.getBestPeak().getRepresentativeScan();
       Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
-      logger.debug(
-          "Adding MS1 scan " + ScanUtils.scanToString(ms1Scan) + " for SIRIUS identification");
+      logger.debug("Adding MS1 scan " + ScanUtils.scanToString(ms1Scan, true)
+          + " for SIRIUS identification");
 
       // Convert to MSDK data model
       ms1list.add(buildMSDKSpectrum(ms1Scan, massListName));
       for (Scan ms2Scan : top10ms2Scans) {
-        logger.debug(
-            "Adding MS/MS scan " + ScanUtils.scanToString(ms2Scan) + " for SIRIUS identification");
+        logger.debug("Adding MS/MS scan " + ScanUtils.scanToString(ms2Scan, true)
+            + " for SIRIUS identification");
         ms2list.add(buildMSDKSpectrum(ms2Scan, massListName));
       }
 
