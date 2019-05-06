@@ -72,6 +72,9 @@ dependencies {
     compile 'mzmine:visad:20131024'
     compile 'org.jogamp.jogl:jogl-all-main:2.3.2'
     compile 'org.jogamp.gluegen:gluegen-rt-main:2.3.2'
+    compile 'java3d:j3dcore:1.6.0'
+    compile 'java3d:j3dutils:1.6.0'
+    compile 'java3d:vecmath:1.6.0'
     compile 'uk.ac.ebi.pride:jmztab-modular-model:3.0.8'
     compile 'uk.ac.ebi.pride:jmztab-modular-util:3.0.8'
     compile 'org.apache.xmlgraphics:fop:1.0'
@@ -152,11 +155,11 @@ runtime {
 tasks.runtime.doLast {
     copy {
         from('src/main/icons')
-        into("$buildDir/icons")
+        into("${buildDir}/${applicationName}-${version}/icons")
     }
     copy {
         from('src/main/log')
-        into("$buildDir/log")
+        into("${buildDir}/${applicationName}-${version}/log")
     }    
 }
 
