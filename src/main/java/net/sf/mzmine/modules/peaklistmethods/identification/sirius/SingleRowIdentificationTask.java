@@ -49,14 +49,19 @@ import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
 import io.github.msdk.datamodel.IonAnnotation;
 import io.github.msdk.datamodel.IonType;
 import io.github.msdk.datamodel.MsSpectrum;
+import io.github.msdk.datamodel.SimpleMsSpectrum;
 import io.github.msdk.id.sirius.ConstraintsGenerator;
 import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.msdk.util.DataPointSorter;
+import io.github.msdk.util.DataPointSorter.SortingDirection;
+import io.github.msdk.util.DataPointSorter.SortingProperty;
 import io.github.msdk.util.IonTypeUtil;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -155,12 +160,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
       Scan ms1Scan = peakListRow.getBestPeak().getRepresentativeScan();
       Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
-
+      logger.debug(
+          "Adding MS1 scan " + ScanUtils.scanToString(ms1Scan) + " for SIRIUS identification");
 
       // Convert to MSDK data model
-      ms1list.add(new MZmineToMSDKMsScan(ms1Scan));
-      for (Scan s : top10ms2Scans) {
-        ms2list.add(new MZmineToMSDKMsScan(s));
+      ms1list.add(buildMSDKSpectrum(ms1Scan, massListName));
+      for (Scan ms2Scan : top10ms2Scans) {
+        logger.debug(
+            "Adding MS/MS scan " + ScanUtils.scanToString(ms2Scan) + " for SIRIUS identification");
+        ms2list.add(buildMSDKSpectrum(ms2Scan, massListName));
       }
 
     } catch (MissingMassListException f) {
@@ -168,6 +176,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
           "Scan does not contain Mass List with requested name. [" + massListName + "]");
       return;
     }
+
 
     // Use executor to run Sirius Identification Method as an Interruptable thread.
     // Otherwise it may compute for too long (or even forever).
@@ -246,5 +255,36 @@ public class SingleRowIdentificationTask extends AbstractTask {
     window.dispose();
     setErrorMessage(msg);
     this.setStatus(TaskStatus.ERROR);
+  }
+
+  /**
+   * Construct MsSpectrum object from DataPoint array
+   * 
+   * @param points MZ/Intensity pairs
+   * @return new MsSpectrum
+   */
+  private MsSpectrum buildMSDKSpectrum(Scan scan, String massListName)
+      throws MissingMassListException {
+
+    MassList ml = scan.getMassList(massListName);
+    if (ml == null)
+      throw new MissingMassListException(
+          "Scan #" + scan.getScanNumber() + " does not have mass list", massListName);
+
+    DataPoint[] points = ml.getDataPoints();
+
+    SimpleMsSpectrum spectrum = new SimpleMsSpectrum();
+    double mz[] = new double[points.length];
+    float intensity[] = new float[points.length];
+
+    for (int i = 0; i < points.length; i++) {
+      mz[i] = points[i].getMZ();
+      intensity[i] = (float) points[i].getIntensity();
+    }
+    DataPointSorter.sortDataPoints(mz, intensity, points.length, SortingProperty.MZ,
+        SortingDirection.ASCENDING);
+
+    spectrum.setDataPoints(mz, intensity, points.length);
+    return spectrum;
   }
 }
