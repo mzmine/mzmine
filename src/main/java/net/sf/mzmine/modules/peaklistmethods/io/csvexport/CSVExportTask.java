@@ -37,6 +37,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitPa
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
 
 public class CSVExportTask extends AbstractTask {
@@ -333,7 +334,7 @@ public class CSVExportTask extends AbstractTask {
                 line.append(peak.getFeatureStatus() + fieldSeparator);
                 break;
               case PEAK_NAME:
-                line.append(peak.toString() + fieldSeparator);
+                line.append(PeakUtils.peakToString(peak) + fieldSeparator);
                 break;
               case PEAK_MZ:
                 line.append(peak.getMZ() + fieldSeparator);
