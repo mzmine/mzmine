@@ -18,26 +18,18 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.sirius;
 
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_TIMEOUT;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MASS_LIST;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ionizationType;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ELEMENTS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.FINGERID_CANDIDATES;
-import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.MZ_TOLERANCE;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.ION_MASS;
 import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_CANDIDATES;
-
-import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
-import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
-import io.github.msdk.datamodel.IonAnnotation;
-import io.github.msdk.datamodel.IonType;
-import io.github.msdk.datamodel.MsSpectrum;
-import io.github.msdk.id.sirius.ConstraintsGenerator;
-import io.github.msdk.id.sirius.SiriusIdentificationMethod;
-import io.github.msdk.id.sirius.SiriusIonAnnotation;
-import io.github.msdk.util.IonTypeUtil;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SingleRowIdentificationParameters.SIRIUS_TIMEOUT;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ELEMENTS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MASS_LIST;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.MZ_TOLERANCE;
+import static net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusParameters.ionizationType;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -48,18 +40,31 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.unijena.bioinf.ChemistryBase.chem.FormulaConstraints;
+import de.unijena.bioinf.ChemistryBase.ms.Ms2Experiment;
+import io.github.msdk.datamodel.IonAnnotation;
+import io.github.msdk.datamodel.IonType;
+import io.github.msdk.datamodel.MsSpectrum;
+import io.github.msdk.id.sirius.ConstraintsGenerator;
+import io.github.msdk.id.sirius.SiriusIdentificationMethod;
+import io.github.msdk.id.sirius.SiriusIonAnnotation;
+import io.github.msdk.util.IonTypeUtil;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import org.openscience.cdk.formula.MolecularFormulaRange;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.sf.mzmine.util.exceptions.MissingMassListException;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 public class SingleRowIdentificationTask extends AbstractTask {
   private static final Logger logger = LoggerFactory.getLogger(SingleRowIdentificationTask.class);
@@ -140,24 +145,27 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
     NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
     ResultWindow window = new ResultWindow(peakListRow, this);
-    window.setTitle("Sirius identifies peak with " + massFormater.format(parentMass) + " amu");
+    window.setTitle(
+        "SIRIUS/CSI-FingerID identification of " + massFormater.format(parentMass) + " m/z");
     window.setVisible(true);
 
-    SpectrumScanner scanner;
-    List<MsSpectrum> ms1list, ms2list;
-    try {
-      scanner = new SpectrumScanner(peakListRow, massListName);
-      ms1list = scanner.getMsList();
-      ms2list = scanner.getMsMsList();
+    List<MsSpectrum> ms1list = new ArrayList<>(), ms2list = new ArrayList<>();
 
-      if (ms1list == null && ms2list == null) {
-        throw new EmptyListsException("Empty lists for requested Mass List name");
+    try {
+
+      Scan ms1Scan = peakListRow.getBestPeak().getRepresentativeScan();
+      Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
+
+
+      // Convert to MSDK data model
+      ms1list.add(new MZmineToMSDKMsScan(ms1Scan));
+      for (Scan s : top10ms2Scans) {
+        ms2list.add(new MZmineToMSDKMsScan(s));
       }
-    } catch (EmptyListsException e) {
-      showError(window,"Empty lists returned for requested Mass List. [" + massListName + "]");
-      return;
-    } catch (ScanMassListException f) {
-      showError(window,"Scan does not contain Mass List with requested name. [" + massListName + "]");
+
+    } catch (MissingMassListException f) {
+      showError(window,
+          "Scan does not contain Mass List with requested name. [" + massListName + "]");
       return;
     }
 
@@ -167,7 +175,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
     SiriusIdentificationMethod siriusMethod = null;
     List<IonAnnotation> siriusResults = null;
 
-  /* Sirius processing */
+    /* Sirius processing */
     try {
       FormulaConstraints constraints = ConstraintsGenerator.generateConstraint(range);
       IonType type = IonTypeUtil.createIonType(ionType.toString());
@@ -181,8 +189,9 @@ public class SingleRowIdentificationTask extends AbstractTask {
       siriusMethod = method;
     } catch (InterruptedException | TimeoutException ie) {
       logger.error("Timeout on Sirius method expired, abort.");
-      showError(window, String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
-          parentMass) + "Reinitialize the task with larger Sirius Timer value.");
+      showError(window,
+          String.format("Processing of the peaklist with mass %.2f by Sirius module expired.\n",
+              parentMass) + "Reinitialize the task with larger Sirius Timer value.");
       return;
     } catch (ExecutionException ce) {
       logger.error("Concurrency error during Sirius method.");
@@ -191,14 +200,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
       return;
     }
 
-  /* FingerId processing */
-    if (scanner.peakContainsMsMs()) {
+    /* FingerId processing */
+    if (!ms2list.isEmpty()) {
       try {
         latch = new CountDownLatch(siriusResults.size());
         Ms2Experiment experiment = siriusMethod.getExperiment();
         fingerTasks = new LinkedList<>();
 
-      /* Create a new FingerIdWebTask for each Sirius result */
+        /* Create a new FingerIdWebTask for each Sirius result */
         for (IonAnnotation ia : siriusResults) {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) ia;
           FingerIdWebMethodTask task =
@@ -222,12 +231,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
     try {
       if (latch != null)
         latch.await();
-    } catch (InterruptedException e) {}
+    } catch (InterruptedException e) {
+    }
     setStatus(TaskStatus.FINISHED);
   }
 
   /**
    * Shows error dialogue window and sets task status as ERROR
+   * 
    * @param window - where to create dialogue
    * @param msg of the error window
    */

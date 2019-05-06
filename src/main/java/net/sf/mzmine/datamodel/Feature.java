@@ -4,23 +4,24 @@
  * This file is part of MZmine 2.
  * 
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
+ * General License as published by the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  * 
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
+ * General License for more details.
  * 
- * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
- * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
- * USA
+ * You should have received a copy of the GNU General License along with MZmine 2; if not, write to
+ * the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 
 /**
@@ -28,7 +29,7 @@ import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
  */
 public interface Feature {
 
-  public enum FeatureStatus {
+  enum FeatureStatus {
 
     /**
      * Peak was not found
@@ -55,74 +56,88 @@ public interface Feature {
   /**
    * This method returns the status of the peak
    */
-  public @Nonnull FeatureStatus getFeatureStatus();
+  @Nonnull
+  FeatureStatus getFeatureStatus();
 
   /**
    * This method returns raw M/Z value of the peak
    */
-  public double getMZ();
+  double getMZ();
 
   /**
    * This method returns raw retention time of the peak in minutes
    */
-  public double getRT();
+  double getRT();
 
   /**
    * This method returns the raw height of the peak
    */
-  public double getHeight();
+  double getHeight();
 
   /**
    * This method returns the raw area of the peak
    */
-  public double getArea();
+  double getArea();
 
   /**
    * Returns raw data file where this peak is present
    */
-  public @Nonnull RawDataFile getDataFile();
+  @Nonnull
+  RawDataFile getDataFile();
 
   /**
    * This method returns numbers of scans that contain this peak
    */
-  public @Nonnull int[] getScanNumbers();
+  @Nonnull
+  int[] getScanNumbers();
 
   /**
-   * This method returns number of most representative scan of this peak
+   * This method returns the number of most representative scan of this peak
    */
-  public int getRepresentativeScanNumber();
+  int getRepresentativeScanNumber();
+
+  /**
+   * This method returns the best scan
+   */
+  default @Nonnull Scan getRepresentativeScan() {
+    return getDataFile().getScan(getRepresentativeScanNumber());
+  };
 
   /**
    * This method returns m/z and intensity of this peak in a given scan. This m/z and intensity does
    * not need to match any actual raw data point. May return null, if there is no data point in
    * given scan.
    */
-  public @Nullable DataPoint getDataPoint(int scanNumber);
+  @Nullable
+  DataPoint getDataPoint(int scanNumber);
 
   /**
    * Returns the retention time range of all raw data points used to detect this peak
    */
-  public @Nonnull Range<Double> getRawDataPointsRTRange();
+  @Nonnull
+  Range<Double> getRawDataPointsRTRange();
 
   /**
    * Returns the range of m/z values of all raw data points used to detect this peak
    */
-  public @Nonnull Range<Double> getRawDataPointsMZRange();
+  @Nonnull
+  Range<Double> getRawDataPointsMZRange();
 
   /**
    * Returns the range of intensity values of all raw data points used to detect this peak
    */
-  public @Nonnull Range<Double> getRawDataPointsIntensityRange();
+  @Nonnull
+  Range<Double> getRawDataPointsIntensityRange();
 
   /**
    * Returns the number of scan that represents the fragmentation of this peak in MS2 level.
    */
-  public int getMostIntenseFragmentScanNumber();
+  int getMostIntenseFragmentScanNumber();
 
   /**
    * Returns all scan numbers that represent fragmentations of this peak in MS2 level.
    */
-  public int[] getAllMS2FragmentScanNumbers();
+  int[] getAllMS2FragmentScanNumbers();
 
 
   /**
@@ -130,75 +145,76 @@ public interface Feature {
    * 
    * @param fragmentScanNumber
    */
-  public void setFragmentScanNumber(int fragmentScanNumber);
+  void setFragmentScanNumber(int fragmentScanNumber);
 
   /**
    * Set all fragment scan numbers
    * 
    * @param allMS2FragmentScanNumbers
    */
-  public void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers);
+  void setAllMS2FragmentScanNumbers(int[] allMS2FragmentScanNumbers);
 
   /**
    * Returns the isotope pattern of this peak or null if no pattern is attached
    */
-  public @Nullable IsotopePattern getIsotopePattern();
+  @Nullable
+  IsotopePattern getIsotopePattern();
 
   /**
    * Sets the isotope pattern of this peak
    */
-  public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern);
+  void setIsotopePattern(@Nonnull IsotopePattern isotopePattern);
 
   /**
    * Returns the charge of this ion. If the charge is unknown, returns 0.
    */
-  public int getCharge();
+  int getCharge();
 
   /**
    * Sets the charge of this ion
    */
-  public void setCharge(int charge);
+  void setCharge(int charge);
 
   /**
    * This method returns the full width at half maximum (FWHM) of the peak
    */
-  public Double getFWHM();
+  Double getFWHM();
 
   /**
    * This method returns the tailing factor of the peak
    */
-  public Double getTailingFactor();
+  Double getTailingFactor();
 
   /**
    * This method returns the asymmetry factor of the peak
    */
-  public Double getAsymmetryFactor();
+  Double getAsymmetryFactor();
 
   /**
    * Sets the full width at half maximum (FWHM)
    */
-  public void setFWHM(Double fwhm);
+  void setFWHM(Double fwhm);
 
   /**
    * Sets the tailing factor
    */
-  public void setTailingFactor(Double tf);
+  void setTailingFactor(Double tf);
 
   /**
    * Sets the asymmetry factor
    */
-  public void setAsymmetryFactor(Double af);
+  void setAsymmetryFactor(Double af);
 
   // dulab Edit
-  public void outputChromToFile();
+  void outputChromToFile();
 
-  public void setPeakInformation(SimplePeakInformation peakInfoIn);
+  void setPeakInformation(SimplePeakInformation peakInfoIn);
 
-  public SimplePeakInformation getPeakInformation();
+  SimplePeakInformation getPeakInformation();
   // End dulab Edit
 
   @Nullable
-  default public Integer getParentChromatogramRowID() {
+  default Integer getParentChromatogramRowID() {
     return null;
   }
 }
