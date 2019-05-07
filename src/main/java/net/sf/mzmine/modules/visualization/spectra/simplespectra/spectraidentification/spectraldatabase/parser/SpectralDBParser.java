@@ -16,14 +16,15 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.parser;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import javax.annotation.Nonnull;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.SpectralMatchTask;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectralMatchTask;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 
@@ -39,7 +40,7 @@ public interface SpectralDBParser {
    * @throws IOException
    */
   @Nonnull
-  public List<SpectralMatchTask> parse(AbstractTask mainTask, PeakList peakList,
-      ParameterSet parameters, File dataBaseFile) throws IOException;
+  public List<SpectralMatchTask> parse(AbstractTask mainTask, ParameterSet parameters,
+      File dataBaseFile, SpectraPlot spectraPlot, Scan scan) throws IOException;
 
 }

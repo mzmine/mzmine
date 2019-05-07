@@ -95,12 +95,15 @@ public class GNPSExportAndSubmitModule implements MZmineProcessingModule {
 }
 
 /*
- * The GNPSExport module was designed for Feature-Based Molecular Networking on [GNPS](https://gnps.ucsd.edu/ProteoSAFe/static/gnps-splash2.jsp).
- * [See the workflow corresponding documentation here] (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/).
- * [See the tutorial on MZmine2 processing for Feature-Based Molecular Networking](https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-mzmine2/).
- * ====================================================================================
- * If you use the GNPSExport module, please cite MZmine2 papers 
- * and the GNPS article: Wang et al., Nature Biotechnology 34.8 (2016): 828-837
- * [https://doi.org/10.1038/nbt.3597](https://doi.org/10.1038/nbt.3597m)
- # =====================================================================================
+ * The GNPSExport module was designed for Feature-Based Molecular Networking on
+ * [GNPS](https://gnps.ucsd.edu/ProteoSAFe/static/gnps-splash2.jsp). [See the workflow corresponding
+ * documentation here]
+ * (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/). [See the
+ * tutorial on MZmine2 processing for Feature-Based Molecular
+ * Networking](https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-
+ * mzmine2/). ====================================================================================
+ * If you use the GNPSExport module, please cite MZmine2 papers and the GNPS article: Wang et al.,
+ * Nature Biotechnology 34.8 (2016): 828-837
+ * [https://doi.org/10.1038/nbt.3597](https://doi.org/10.1038/nbt.3597m) #
+ * =====================================================================================
  */

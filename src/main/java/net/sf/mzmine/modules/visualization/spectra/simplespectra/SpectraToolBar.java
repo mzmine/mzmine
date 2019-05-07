@@ -109,6 +109,11 @@ public class SpectraToolBar extends JToolBar {
 
     GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
         "Predict sum formulas for annotation");
+
+    addSeparator();
+
+    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SPECTRALDATABASESEARCH",
+        "Compare spectrum with spectral database");
   }
 
   public void setCentroidButton(MassSpectrumType spectrumType) {
