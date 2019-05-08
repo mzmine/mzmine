@@ -21,7 +21,10 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentif
 import java.awt.Color;
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -51,12 +54,11 @@ public class SpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final String METHOD = "MS/MS spectral DB search";
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
   private final File dataBaseFile;
   private final MZTolerance mzTolerance;
-  private int finishedRows = 0;
+  private int finishedSteps = 0;
   private Scan currentScan;
   private SpectraPlot spectraPlot;
   private List<DataPoint[]> alignedSignals;
@@ -101,7 +103,7 @@ public class SpectralMatchTask extends AbstractTask {
   public double getFinishedPercentage() {
     if (totalSteps == 0)
       return 0;
-    return ((double) finishedRows) / totalSteps;
+    return ((double) finishedSteps) / totalSteps;
   }
 
   /**
@@ -121,11 +123,18 @@ public class SpectralMatchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     try {
+      totalSteps = list.size();
+
+      // create TreeMap to sort matching results by cosine similarity
+      Comparator<Double> comparator = Double::compare;
+      Comparator<Double> reverseComparator = comparator.reversed();
+      Map<Double, SpectralDBEntry> matches =
+          new TreeMap<Double, SpectralDBEntry>(reverseComparator);
       for (SpectralDBEntry ident : list) {
         SpectraSimilarity sim = spectraDBMatch(currentScan, ident);
         if (sim != null) {
           count++;
-          addIdentity(ident, sim);
+          matches.put(sim.getCosine(), ident);
         }
         // check for max error (missing masslist)
         if (errorCounter > MAX_ERROR) {
@@ -136,11 +145,20 @@ public class SpectralMatchTask extends AbstractTask {
           return;
         }
         // next row
-        finishedRows++;
+        finishedSteps++;
       }
+      addIdentity(matches);
       logger.info("Added " + count + " spectral library matches");
+
+      // add result frame
+      SpectraIdentificationResultsWindow resultWindow =
+          new SpectraIdentificationResultsWindow(currentScan, matches);
+      resultWindow.setVisible(true);
+
     } catch (Exception e) {
     }
+
+
     // Repaint the window to reflect the change in the peak list
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
@@ -162,11 +180,6 @@ public class SpectralMatchTask extends AbstractTask {
       DataPoint[] spectraMassList = getDataPoints(scan);
       SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
           spectraMassList, minMatch);
-
-      // get data points of matching scans
-      List<DataPoint[]> alignedDataPoints =
-          ScanAlignment.align(mzTolerance, ident.getDataPoints(), spectraMassList);
-      alignedSignals = ScanAlignment.removeUnaligned(alignedDataPoints);
       if (sim != null && sim.getCosine() >= minSimilarity)
         return sim;
     } catch (MissingMassListException e) {
@@ -181,7 +194,7 @@ public class SpectralMatchTask extends AbstractTask {
   /**
    * Thresholded masslist
    * 
-   * @param row
+   * @param scan
    * @return
    * @throws MissingMassListException
    */
@@ -191,7 +204,7 @@ public class SpectralMatchTask extends AbstractTask {
     DataPoint[] massList = null;
     MassDetector massDetector = null;
 
-    // Create a new mass list for MS/MS scan. Check if sprectrum is profile or centroid mode
+    // Create a new mass list for scan. Check if spectrum is profile or centroid mode
     if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED) {
       massDetector = new CentroidMassDetector();
       CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
@@ -206,25 +219,37 @@ public class SpectralMatchTask extends AbstractTask {
     return massList;
   }
 
-  private void addIdentity(SpectralDBEntry ident, SpectraSimilarity sim) {
+  private void addIdentity(Map<Double, SpectralDBEntry> matches) {
 
-    // add new mass list to the spectra for match
-    DataPoint[] dataset = new DataPoint[alignedSignals.size()];
-    for (int i = 0; i < dataset.length; i++) {
-      dataset[i] = alignedSignals.get(i)[1];
+    for (Map.Entry<Double, SpectralDBEntry> match : matches.entrySet()) {
+      try {
+        // get data points of matching scans
+        DataPoint[] spectraMassList = getDataPoints(currentScan);
+        List<DataPoint[]> alignedDataPoints =
+            ScanAlignment.align(mzTolerance, match.getValue().getDataPoints(), spectraMassList);
+        alignedSignals = ScanAlignment.removeUnaligned(alignedDataPoints);
+        // add new mass list to the spectra for match
+        DataPoint[] dataset = new DataPoint[alignedSignals.size()];
+        for (int i = 0; i < dataset.length; i++) {
+          dataset[i] = alignedSignals.get(i)[1];
+        }
+
+        String compoundName = match.getValue().getField(DBEntryField.NAME).toString();
+        DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
+            compoundName.substring(compoundName.indexOf("[") + 1, compoundName.indexOf("]")) + " "
+                + "Score: " + MZmineCore.getConfiguration(). //
+                    getRTFormat().//
+                    format(match.getKey()),
+            dataset);
+        spectraPlot.addDataSet(detectedCompoundsDataset,
+            new Color((int) (Math.random() * 0x1000000)), true);
+
+      } catch (MissingMassListException e) {
+        logger.log(Level.WARNING, "No mass list for the selected spectrum", e);
+        errorCounter++;
+      }
     }
-
-    String compoundName = ident.getField(DBEntryField.NAME).toString();
-    DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
-        compoundName.substring(compoundName.indexOf("[") + 1, compoundName.indexOf("]")) + " "
-            + "Score: " + MZmineCore.getConfiguration(). //
-                getRTFormat().//
-                format(sim.getCosine()),
-        dataset);
-    spectraPlot.addDataSet(detectedCompoundsDataset, new Color((int) (Math.random() * 0x1000000)),
-        true);
     setStatus(TaskStatus.FINISHED);
-
   }
 
   public int getCount() {

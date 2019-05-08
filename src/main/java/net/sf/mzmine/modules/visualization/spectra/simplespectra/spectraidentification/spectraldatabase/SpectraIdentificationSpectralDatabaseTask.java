@@ -35,7 +35,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentifi
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.parser.NistMspParser;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.parser.SpectralDBParser;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.files.FileTypeFilter;
@@ -45,14 +44,9 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private final File dataBaseFile;
-  private final MZTolerance mzTolerance;
-  private int finishedRows = 0;
 
   private ParameterSet parameters;
 
-  private final double noiseLevel;
-  private final double minSimilarity;
-  private final int minMatch;
   private Scan currentScan;
   private SpectraPlot spectraPlot;
 
@@ -66,14 +60,6 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
     this.parameters = parameters;
     dataBaseFile = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.dataBaseFile).getValue();
-    mzTolerance = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
-    noiseLevel = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.noiseLevel)
-        .getValue();
-    minMatch = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.minMatch)
-        .getValue();
-    minSimilarity = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.minCosine).getValue();
     this.currentScan = currentScan;
     this.spectraPlot = spectraPlot;
 
@@ -129,6 +115,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
         throw new MSDKRuntimeException(
             "DB file was empty - or error while parsing " + dataBaseFile);
       }
+
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
       setStatus(TaskStatus.ERROR);

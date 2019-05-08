@@ -37,14 +37,14 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum MS2 ion intensity",
-      "Signals below this level will be filtered away from MS2 mass lists",
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
+      "Signals below this level will be filtered away from mass lists",
       MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
   public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cos similarity",
       "Minimum cosine similarity. (All signals in the masslist are compared against the spectral library entry. "
           + "Considers only signals which were found in both the masslist and the library entry)",
-      new DecimalFormat("0.000"), 0.7);
+      new DecimalFormat("0.000"), 0.95);
 
   public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
       "Minimum number of matched signals in spectra and spectral library entry (within mz tolerance)",
