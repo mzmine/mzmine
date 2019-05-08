@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -50,6 +50,11 @@ import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
 import net.sf.mzmine.util.scans.ScanAlignment;
 
+/**
+ * Spectral match task to compare single spectra with spectral databases
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class SpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -147,7 +152,7 @@ public class SpectralMatchTask extends AbstractTask {
         // next row
         finishedSteps++;
       }
-      addIdentity(matches);
+      addIdentities(matches);
       logger.info("Added " + count + " spectral library matches");
 
       // add result frame
@@ -157,7 +162,6 @@ public class SpectralMatchTask extends AbstractTask {
 
     } catch (Exception e) {
     }
-
 
     // Repaint the window to reflect the change in the peak list
     Desktop desktop = MZmineCore.getDesktop();
@@ -219,7 +223,7 @@ public class SpectralMatchTask extends AbstractTask {
     return massList;
   }
 
-  private void addIdentity(Map<Double, SpectralDBEntry> matches) {
+  private void addIdentities(Map<Double, SpectralDBEntry> matches) {
 
     for (Map.Entry<Double, SpectralDBEntry> match : matches.entrySet()) {
       try {

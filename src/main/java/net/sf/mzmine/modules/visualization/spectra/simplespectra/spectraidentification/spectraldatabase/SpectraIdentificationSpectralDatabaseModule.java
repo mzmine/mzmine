@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,9 +30,14 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
+/**
+ * Module to compare single spectra with spectral databases
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class SpectraIdentificationSpectralDatabaseModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Local spectral database search";
+  public static final String MODULE_NAME = "Local spectral database search for single spectra";
   private static final String MODULE_DESCRIPTION =
       "This method compares a scan with a spectral database";
 

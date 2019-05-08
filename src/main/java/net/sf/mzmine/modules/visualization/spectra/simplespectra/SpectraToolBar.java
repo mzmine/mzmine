@@ -45,6 +45,7 @@ public class SpectraToolBar extends JToolBar {
   static final Icon dbOnlineIcon = new ImageIcon("icons/DBOnlineIcon.png");
   static final Icon dbCustomIcon = new ImageIcon("icons/DBCustomIcon.png");
   static final Icon dbLipidsIcon = new ImageIcon("icons/DBLipidsIcon.png");
+  static final Icon dbSpectraIcon = new ImageIcon("icons/DBSpectraIcon.png");
   static final Icon sumFormulaIcon = new ImageIcon("icons/search.png");
 
   private JButton centroidContinuousButton, dataPointsButton;
@@ -107,13 +108,14 @@ public class SpectraToolBar extends JToolBar {
 
     addSeparator();
 
-    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
-        "Predict sum formulas for annotation");
+    GUIUtils.addButton(this, null, dbSpectraIcon, masterFrame, "SPECTRALDATABASESEARCH",
+        "Compare spectrum with spectral database");
 
     addSeparator();
 
-    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SPECTRALDATABASESEARCH",
-        "Compare spectrum with spectral database");
+    GUIUtils.addButton(this, null, sumFormulaIcon, masterFrame, "SUMFORMULA",
+        "Predict sum formulas for annotation");
+
   }
 
   public void setCentroidButton(MassSpectrumType spectrumType) {

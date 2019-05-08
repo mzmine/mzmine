@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -39,6 +39,11 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.files.FileTypeFilter;
 
+/**
+ * Task to compare single spectra with spectral databases
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -80,7 +85,8 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Spectral database identification of in spectrum using database " + dataBaseFile;
+    return "Spectral database identification of spectrum " + currentScan.getScanDefinition()
+        + " using database " + dataBaseFile;
   }
 
   /**

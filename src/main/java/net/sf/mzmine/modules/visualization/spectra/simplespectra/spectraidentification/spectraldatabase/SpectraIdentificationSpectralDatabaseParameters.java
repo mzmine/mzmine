@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,12 +28,14 @@ import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 /**
+ * Module to compare single spectra with spectral databases
  * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
 public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParameterSet {
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "(GNPS json, MONA json, NIST msp) Name of file that contains information for peak identification");
+      "(GNPS json, MONA json, NIST msp, jdx) Name of file that contains information for peak identification");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
@@ -41,14 +43,14 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       "Signals below this level will be filtered away from mass lists",
       MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
-  public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cos similarity",
-      "Minimum cosine similarity. (All signals in the masslist are compared against the spectral library entry. "
+  public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cosine similarity",
+      "Minimum cosine similarity. (All signals in the masslist are compared against all spectral library entries. "
           + "Considers only signals which were found in both the masslist and the library entry)",
-      new DecimalFormat("0.000"), 0.95);
+      new DecimalFormat("0.00"), 0.95);
 
   public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
       "Minimum number of matched signals in spectra and spectral library entry (within mz tolerance)",
-      4);
+      20);
 
   public SpectraIdentificationSpectralDatabaseParameters() {
     super(new Parameter[] {dataBaseFile, mzTolerance, noiseLevel, minCosine, minMatch});
