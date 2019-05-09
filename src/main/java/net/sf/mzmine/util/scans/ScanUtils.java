@@ -379,6 +379,7 @@ public class ScanUtils {
    */
   public static int findMostIntensivePeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
     int k = findFirstPeakWithin(dataPoints, mzRange);
+    if (k < 0) return -1;
     int mostIntensive = k;
     for (; k < dataPoints.length; ++k) {
       if (!mzRange.contains(dataPoints[k].getMZ()))
@@ -940,6 +941,7 @@ public class ScanUtils {
       nr = findLastPeakWithin(scanRight, mzRange)+1;
       i = findFirstPeakWithin(scanLeft, mzRange);
       j = findFirstPeakWithin(scanRight, mzRange);
+      if (i < 0 || j < 0) return 0d;
     }
 
     while (i < nl && j < nr) {

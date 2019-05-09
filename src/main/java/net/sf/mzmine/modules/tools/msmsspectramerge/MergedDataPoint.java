@@ -33,11 +33,13 @@ public class MergedDataPoint implements DataPoint {
      * @param sources data points to merge
      */
     public MergedDataPoint(MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, DataPoint... sources) {
+        if (sources.length==0)
+            throw new IllegalArgumentException("Expect at least one data point");
         this.sources = sources;
         // calculate intensity
-        this.intensity = intensityMergeMode.merge(sources);
+        this.intensity = sources.length==1 ? sources[0].getIntensity() : intensityMergeMode.merge(sources);
         // calculate m/z
-        this.mz = mzMergeMode.merge(sources);
+        this.mz = sources.length == 1 ? sources[0].getMZ() : mzMergeMode.merge(sources);
 
     }
 

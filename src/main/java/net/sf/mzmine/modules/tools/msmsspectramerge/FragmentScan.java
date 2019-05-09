@@ -70,7 +70,7 @@ class FragmentScan {
         // search for ms1 scans
         int i=0;
         while (i < ms2.length) {
-            int scanNumber = ms2[0];
+            int scanNumber = ms2[i];
             Scan scan = file.getScan(scanNumber);
             Scan precursorScan = ScanUtils.findPrecursorScan(scan);
             Scan precursorScan2 = ScanUtils.findSucceedingPrecursorScan(scan);
@@ -123,8 +123,8 @@ class FragmentScan {
             Scan ms2 = origin.getScan(ms2ScanNumbers[k]);
             double rtRange = (ms2.getRetentionTime() - left.getRetentionTime())/(right.getRetentionTime()-left.getRetentionTime());
             if (rtRange >= 0 && rtRange <= 1) {
-                values[0][k] = rtRange * precursorIntensityLeft + (1-rtRange)*precursorIntensityRight;
-                values[0][k] = rtRange * chimericIntensityLeft + (1-rtRange)*chimericIntensityRight;
+                values[0][k] = (1d-rtRange) * precursorIntensityLeft + (rtRange)*precursorIntensityRight;
+                values[0][k] = (1d-rtRange) * chimericIntensityLeft + (rtRange)*chimericIntensityRight;
             } else {
                 LoggerFactory.getLogger(FragmentScan.class).warn("Retention time is non-monotonic within scan numbers.");
                 values[0][k] = precursorIntensityLeft;

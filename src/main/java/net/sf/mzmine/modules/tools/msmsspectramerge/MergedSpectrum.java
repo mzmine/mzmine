@@ -34,7 +34,7 @@ public class MergedSpectrum {
             this.data[k] = new MergedDataPoint(MzMergeMode.MOST_INTENSIVE, IntensityMergeMode.MAXIMUM, dataPoints[k]);
         }
         this.origins = new RawDataFile[]{single.getDataFile()};
-        this.scanIds = new int[single.getScanNumber()];
+        this.scanIds = new int[]{single.getScanNumber()};
         this.polarity = single.getPolarity();
         this.precursorCharge = single.getPrecursorCharge();
         this.removedScansByLowCosine = 0;

@@ -339,15 +339,9 @@ public class SiriusExportTask extends AbstractTask {
 
     private void writeSpectrum(BufferedWriter writer, DataPoint[] dps) throws IOException {
         for (DataPoint dp : dps) {
-            final MergeUtils.MergeDataPoint mp = (dp instanceof MergeUtils.MergeDataPoint ? (MergeUtils.MergeDataPoint)dp : null);
             writer.write(String.valueOf(dp.getMZ()));
             writer.write(' ');
-            writer.write(mp != null ? intensityForm.format(mp.getSumIntensity()) : intensityForm.format(dp.getIntensity()));
-            if (DEBUG_MODE && mp!=null) {
-                writer.write(' ');
-                writer.write('#');
-                writer.write(mp.getComment());
-            }
+            writer.write(intensityForm.format(dp.getIntensity()));
             writer.newLine();
 
         }

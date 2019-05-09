@@ -37,7 +37,7 @@ public interface MzMergeMode {
             double mz=Double.NEGATIVE_INFINITY, intens=Double.NEGATIVE_INFINITY;
             for (DataPoint d : sources) {
                 if (d.getIntensity()>intens) {
-                    mz += d.getMZ();
+                    mz = d.getMZ();
                     intens = d.getIntensity();
                 }
             }
