@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentif
 
 import java.awt.Color;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.List;
@@ -75,6 +76,7 @@ public class SpectralMatchTask extends AbstractTask {
   private int totalSteps;
 
   private int count = 0;
+  private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
 
   // as this module is started in a series the start entry is saved to track progress
   private int startEntry;
@@ -154,6 +156,15 @@ public class SpectralMatchTask extends AbstractTask {
       }
       addIdentities(matches);
       logger.info("Added " + count + " spectral library matches");
+
+      // check if no match was found
+      if (count == 0) {
+        logger.log(Level.WARNING, "No data base matches found");
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("No data base matches found. Spectral data base matching failed");
+        list = null;
+        return;
+      }
 
       // add result frame
       SpectraIdentificationResultsWindow resultWindow =
@@ -241,9 +252,7 @@ public class SpectralMatchTask extends AbstractTask {
         String compoundName = match.getValue().getField(DBEntryField.NAME).toString();
         DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
             compoundName.substring(compoundName.indexOf("[") + 1, compoundName.indexOf("]")) + " "
-                + "Score: " + MZmineCore.getConfiguration(). //
-                    getRTFormat().//
-                    format(match.getKey()),
+                + "Score: " + COS_FORM.format(match.getKey()),
             dataset);
         spectraPlot.addDataSet(detectedCompoundsDataset,
             new Color((int) (Math.random() * 0x1000000)), true);

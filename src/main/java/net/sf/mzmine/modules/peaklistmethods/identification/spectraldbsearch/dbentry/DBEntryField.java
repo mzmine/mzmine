@@ -209,7 +209,7 @@ public enum DBEntryField {
 
   /**
    *
-   * @return The JDX format key or an empty String
+   * @return The JCAMP-DX format key or an empty String
    */
   public String getJdxID() {
     switch (this) {
@@ -220,7 +220,7 @@ public enum DBEntryField {
       case SOFTWARE:
         return "";
       case CAS:
-        return "";
+        return "##CAS REGISTRY NO";
       case CHARGE:
         return "";
       case COLLISION_ENERGY:
@@ -230,9 +230,9 @@ public enum DBEntryField {
       case DATA_COLLECTOR:
         return "";
       case EXACT_MASS:
-        return "";
+        return "##MW";
       case FORMULA:
-        return "";
+        return "##MOLFORM";
       case INCHI:
         return "";
       case INCHIKEY:
@@ -268,7 +268,7 @@ public enum DBEntryField {
       case MONA_ID:
         return "";
       case NUM_PEAKS:
-        return "";
+        return "##NPOINTS";
       case RESOLUTION:
       case SYNONYM:
       case MOLWEIGHT:

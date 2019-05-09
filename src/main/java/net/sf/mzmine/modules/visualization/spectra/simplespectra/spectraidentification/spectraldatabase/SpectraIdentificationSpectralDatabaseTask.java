@@ -150,7 +150,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
     FileTypeFilter msp = new FileTypeFilter("msp", "");
     FileTypeFilter jdx = new FileTypeFilter("jdx", "");
     if (json.accept(dataBaseFile)) {
-      // test Gnps and MONA json parser
+      // test Gnps, jdx and MONA json parser
       SpectralDBParser[] parser =
           new SpectralDBParser[] {new GnpsJsonParser(), new MonaJsonParser()};
       for (SpectralDBParser p : parser) {
