@@ -12,44 +12,26 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.*;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.util.ExitCode;
 
 import java.awt.*;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
-
-  public static final PercentParameter COSINE_PARAMETER = new PercentParameter("Cosine threshold (%)", "Threshold for the cosine similarity between two spectra for merging. Set to 0 if the spectra may have different collision energy!", 0.8d, 0d, 1d);
-
-  public static final PercentParameter PEAK_COUNT_PARAMETER = new PercentParameter("Peak count threshold ", "After merging, remove all peaks which occur in less than X % of the merged spectra.", 0.2d, 0d, 1d);
-
-  public static final IntegerParameter MASS_ACCURACY = new IntegerParameter("expected mass deviation (ppm)", "Expected mass deviation of your measurement in ppm (parts per million). We recommend to use a rather large value, e.g. 5 for Orbitrap, 15 for Q-ToF, 100 for QQQ.", 10, 1, 100);
-
-  public static final BooleanParameter AVERAGE_OVER_MASS = new BooleanParameter("Average over m/z", "When merging two peaks, the m/z of the merged peak is set to the weighted average of the source peaks. If unchecked, the m/z of the peak with largest intensity is used instead.", false);
-
-  public static final BooleanParameter DEBUG_INFORMATION = new BooleanParameter("Add DEBUG information", "Add statistics about merged peaks for debugging purpose.", false);
-
-  public static final ComboParameter<MERGE_MODE> MERGE =
-      new ComboParameter<MERGE_MODE>("Merge mode", "How to merge MS/MS spectra",
-          MERGE_MODE.values(), MERGE_MODE.MERGE_CONSECUTIVE_SCANS);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> mergeParameter = new OptionalModuleParameter<>("Merge MS/MS", "foobar", new MsMsSpectraMergeParameters(), true);
 
   public SiriusExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, MERGE, AVERAGE_OVER_MASS, PEAK_COUNT_PARAMETER,  COSINE_PARAMETER, MASS_ACCURACY,  MASS_LIST, isolationWindowOffset, isolationWindowWidth, DEBUG_INFORMATION});
+    super(new Parameter[] {PEAK_LISTS, MASS_LIST, FILENAME, mergeParameter});
   }
-
-  public static final DoubleParameter isolationWindowOffset = new DoubleParameter("isolation window offset", "isolation window offset from the precursor m/z", NumberFormat.getNumberInstance(Locale.US), 0d);
-  public static final DoubleParameter isolationWindowWidth = new DoubleParameter("isolation window width", "width (left and right from offset) of the isolation window", NumberFormat.getNumberInstance(Locale.US), 1d);
-
 
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
@@ -71,24 +53,6 @@ public class SiriusExportParameters extends SimpleParameterSet {
    */
 
   public static final MassListParameter MASS_LIST = new MassListParameter();
-
-  public static enum MERGE_MODE {
-    NO_MERGE("Do not merge"), MERGE_CONSECUTIVE_SCANS(
-        "Merge consecutive scans"), MERGE_OVER_SAMPLES(
-            "Merge all MS/MS belonging to the same feature");
-
-
-    private final String name;
-
-    private MERGE_MODE(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
 
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
     String message = "<html>SIRIUS Module Disclaimer:"

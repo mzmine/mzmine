@@ -13,11 +13,9 @@ public class MsMsSpectraMergeParameters extends SimpleParameterSet {
 
     public MsMsSpectraMergeParameters() {
         super(
-                new Parameter[]{massList, MERGE_MODE, MZ_MERGE_MODE, INTENSITY_MERGE_MODE, MASS_ACCURACY, COSINE_PARAMETER, PEAK_COUNT_PARAMETER, isolationWindowOffset,isolationWindowWidth}
+                new Parameter[]{MERGE_MODE, MZ_MERGE_MODE, INTENSITY_MERGE_MODE, MASS_ACCURACY, COSINE_PARAMETER, PEAK_COUNT_PARAMETER, isolationWindowOffset,isolationWindowWidth}
         );
     }
-
-    public static final MassListParameter massList = new MassListParameter();
 
     public static final PercentParameter COSINE_PARAMETER = new PercentParameter("Cosine threshold (%)", "Threshold for the cosine similarity between two spectra for merging. Set to 0 if the spectra may have different collision energy!", 0.8d, 0d, 1d);
 

@@ -14,6 +14,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MsMsSpectraMerge implements MZmineModule {
+
+    private final MsMsSpectraMergeParameters parameters;
+
+    public MsMsSpectraMerge() {
+        this.parameters = (MsMsSpectraMergeParameters) MZmineCore.getConfiguration().getModuleParameters(MsMsSpectraMerge.class);
+    }
+
+    public MsMsSpectraMerge(MsMsSpectraMergeParameters parameters) {
+        this.parameters = parameters;
+    }
+
     @Nonnull
     @Override
     public String getName() {
@@ -26,46 +37,42 @@ public class MsMsSpectraMerge implements MZmineModule {
         return MsMsSpectraMergeParameters.class;
     }
 
-    public static List<MergedSpectrum> merge(PeakListRow row) {
-        final ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(MsMsSpectraMerge.class);
+    public List<MergedSpectrum> merge(PeakListRow row, String massList) {
         final MergeMode mode = parameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE).getValue();
         final double npeaksFilter = parameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue();
         switch (mode) {
             case CONSECUTIVE_SCANS:
-                return Arrays.stream(row.getPeaks()).flatMap(x->mergeConsecutiveScans(x).stream()).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
+                return Arrays.stream(row.getPeaks()).flatMap(x->mergeConsecutiveScans(x,massList).stream()).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
             case SAME_SAMPLE:
-                return Arrays.stream(row.getPeaks()).map(x->mergeFromSameSample(x)).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
+                return Arrays.stream(row.getPeaks()).map(x->mergeFromSameSample(x,massList)).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
             case ACROSS_SAMPLES:
-                MergedSpectrum mergedSpectrum = mergeAcrossSamples(row).filterByRelativeNumberOfScans(npeaksFilter);
+                MergedSpectrum mergedSpectrum = mergeAcrossSamples(row,massList).filterByRelativeNumberOfScans(npeaksFilter);
                 return mergedSpectrum.data.length==0 ? Collections.emptyList() : Collections.singletonList(mergedSpectrum);
-            case NO_MERGE:
-                default:
+            default:
                 return Collections.emptyList();
 
         }
 
     }
 
-    public static MergedSpectrum mergeAcrossSamples(PeakListRow row) {
-        return mergeAcrossFragmentSpectra(Arrays.stream(row.getPeaks()).map(r->mergeFromSameSample(r)).filter(x->x.data.length>0).collect(Collectors.toList()));
+    public MergedSpectrum mergeAcrossSamples(PeakListRow row, String massList) {
+        return mergeAcrossFragmentSpectra(Arrays.stream(row.getPeaks()).map(r->mergeFromSameSample(r,massList)).filter(x->x.data.length>0).collect(Collectors.toList()));
     }
 
-    public static MergedSpectrum mergeFromSameSample(Feature feature) {
-        List<MergedSpectrum> spectra = mergeConsecutiveScans(feature);
+    public MergedSpectrum mergeFromSameSample(Feature feature, String massList) {
+        List<MergedSpectrum> spectra = mergeConsecutiveScans(feature, massList);
         if (spectra.isEmpty()) return MergedSpectrum.empty();
         return mergeAcrossFragmentSpectra(spectra);
     }
 
-    public static List<MergedSpectrum> mergeConsecutiveScans(Feature feature) {
-        final ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(MsMsSpectraMerge.class);
+    public List<MergedSpectrum> mergeConsecutiveScans(Feature feature, String massList) {
         final double ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue().doubleValue();
-        String massList = parameters.getParameter(MsMsSpectraMergeParameters.massList).getValue();
         final double isolationWindowOffset = parameters.getParameter(MsMsSpectraMergeParameters.isolationWindowOffset).getValue();
         final double isolationWindowWidth = parameters.getParameter(MsMsSpectraMergeParameters.isolationWindowWidth).getValue();
         FragmentScan[] allFragmentScans = FragmentScan.getAllFragmentScansFor(feature, massList, Range.closed(isolationWindowOffset, isolationWindowOffset + isolationWindowWidth), ppm);
         final List<MergedSpectrum> mergedSpec = new ArrayList<>();
         for (FragmentScan scan : allFragmentScans) {
-            MergedSpectrum e = mergeConsecutiveScans(scan, Ms2QualityScoreModel.SelectByLowChimericIntensityRelativeToMs1Intensity);
+            MergedSpectrum e = mergeConsecutiveScans(scan, massList, Ms2QualityScoreModel.SelectByLowChimericIntensityRelativeToMs1Intensity);
             if (e.data.length>0)
                 mergedSpec.add(e);
         }
@@ -73,7 +80,8 @@ public class MsMsSpectraMerge implements MZmineModule {
     }
 
 
-    protected static MergedSpectrum mergeAcrossFragmentSpectra(List<MergedSpectrum> fragmentMergedSpectra) {
+    protected MergedSpectrum mergeAcrossFragmentSpectra(List<MergedSpectrum> fragmentMergedSpectra) {
+        if (fragmentMergedSpectra.isEmpty()) return MergedSpectrum.empty();
         int totalNumberOfScans = 0;
         for (MergedSpectrum s : fragmentMergedSpectra) totalNumberOfScans += s.totalNumberOfScans();
         final double[] scores = new double[fragmentMergedSpectra.size()];
@@ -107,7 +115,6 @@ public class MsMsSpectraMerge implements MZmineModule {
         /*
             merge every scan if its cosine is above the cosine threshold
          */
-        final ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(MsMsSpectraMerge.class);
         final double cosineThreshold = parameters.getParameter(MsMsSpectraMergeParameters.COSINE_PARAMETER).getValue();
         final double ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue().doubleValue();
         final MzMergeMode mzMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.MZ_MERGE_MODE).getValue();
@@ -143,7 +150,7 @@ public class MsMsSpectraMerge implements MZmineModule {
         return initial;
     }
 
-    protected static MergedSpectrum mergeConsecutiveScans(FragmentScan scans, Ms2QualityScoreModel scoreModel) {
+    protected MergedSpectrum mergeConsecutiveScans(FragmentScan scans, String massList, Ms2QualityScoreModel scoreModel) {
         int totalNumberOfScans = scans.ms2ScanNumbers.length;
         /*
          * find scan with best quality
@@ -174,13 +181,11 @@ public class MsMsSpectraMerge implements MZmineModule {
         /*
             merge every scan if its cosine is above the cosine threshold
          */
-        final ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(MsMsSpectraMerge.class);
         final double cosineThreshold = parameters.getParameter(MsMsSpectraMergeParameters.COSINE_PARAMETER).getValue();
         final double ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue().doubleValue();
         final MzMergeMode mzMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.MZ_MERGE_MODE).getValue();
         final IntensityMergeMode intensityMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.INTENSITY_MERGE_MODE).getValue();
 
-        String massList = parameters.getParameter(MsMsSpectraMergeParameters.massList).getValue();
         MergedSpectrum initial = new MergedSpectrum(scansToMerge.get(0), massList);
         initial.bestFragmentScanScore =  best;
         final double lowestMassToConsider = Math.min(50d, scans.feature.getMZ()-50d);
@@ -239,7 +244,7 @@ public class MsMsSpectraMerge implements MZmineModule {
      * @param orderedByInt peaks from scan, sorted by descending intensity
      * @return a merged spectrum. Might be the original one if no new peaks were added.
      */
-    protected static MergedDataPoint[] merge(MergedDataPoint[] orderedByMz, DataPoint[] orderedByInt, MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, double expectedPPM) {
+    private static MergedDataPoint[] merge(MergedDataPoint[] orderedByMz, DataPoint[] orderedByInt, MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, double expectedPPM) {
         // we assume a rather large deviation as signal peaks should be contained in more than one
         // measurement
         final List<MergedDataPoint> append = new ArrayList<>();

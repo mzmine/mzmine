@@ -68,7 +68,9 @@ public interface MassSpectrum {
    * This method may need to read data from disk, therefore it may be quite slow. Modules should be
    * aware of that and cache the data points if necessary.
    * 
-   * @return Data points (m/z and intensity pairs) of this scan
+   * @return Data points (m/z and intensity pairs) of this scanQ. Why do I have so many columns in my differentials.tsv even when I'm only using one continuous variable?
+
+A. A couple things could be happening. First, the standalone songbird script assumes that the mapping files only have 1 line for the header, so you need to reformat. In addition, it could be that there are other values in that column (i.e. Not Applicable, NA, nan, ...), and these sorts of values need to be removed in order to properly perform songbird regression on continuous variables. For continuous variables, only numeric characters are accepted otherwise songbird assumes this is a categorical value.
    */
   @Nonnull
   public DataPoint[] getDataPoints();
