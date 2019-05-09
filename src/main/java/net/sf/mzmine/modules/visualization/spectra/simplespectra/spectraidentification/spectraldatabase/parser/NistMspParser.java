@@ -85,13 +85,17 @@ public class NistMspParser implements SpectralDBParser {
               }
             } else {
               // data?
-              String[] data = l.split(" ");
-              if (data.length == 2) {
-                try {
-                  dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
-                      Double.parseDouble(data[1])));
-                  isData = true;
-                } catch (Exception e) {
+              String[] dataAndComment = l.split("\"");
+              for (String dataPair : dataAndComment) {
+                String[] data = dataPair.split(" ");
+                if (data.length == 2) {
+                  try {
+                    dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
+                        Double.parseDouble(data[1])));
+                    isData = true;
+                    break;
+                  } catch (Exception e) {
+                  }
                 }
               }
             }
@@ -102,23 +106,7 @@ public class NistMspParser implements SpectralDBParser {
                 new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
             fields = new EnumMap<>(fields);
             dps.clear();
-            if (entry.getPrecursorMZ() != null) {
-              list.add(entry);
-              // progress
-              if (list.size() % 1000 == 0) {
-                // start new task for every 1000 entries
-                logger.info("Imported " + list.size() + " library entries");
-                SpectralMatchTask task = new SpectralMatchTask(parameters, tasks.size() * 1000 + 1,
-                    list, spectraPlot, scan);
-                MZmineCore.getTaskController().addTask(task);
-                tasks.add(task);
-                // new list
-                list = new ArrayList<>();
-              }
-            } else
-              logger.log(Level.WARNING,
-                  "Entry was not added: No precursor mz" + entry.getField(DBEntryField.NAME));
-            // reset
+            list.add(entry);
             isData = false;
           }
         } catch (Exception ex) {
@@ -128,13 +116,12 @@ public class NistMspParser implements SpectralDBParser {
     }
     if (!list.isEmpty()) {
       // start last task
-      SpectralMatchTask task =
-          new SpectralMatchTask(parameters, tasks.size() * 1000 + 1, list, spectraPlot, scan);
+      SpectralMatchTask task = new SpectralMatchTask(parameters, 1, list, spectraPlot, scan);
       MZmineCore.getTaskController().addTask(task);
       tasks.add(task);
     }
 
-    logger.info((tasks.size() * 1000 + list.size()) + " NIST msp library entries imported");
+    logger.info(list.size() + " NIST msp library entries imported");
     return tasks;
   }
 

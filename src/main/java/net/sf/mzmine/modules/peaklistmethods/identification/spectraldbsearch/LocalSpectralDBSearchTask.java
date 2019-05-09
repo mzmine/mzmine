@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
@@ -110,37 +109,36 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     int count = 0;
-    try {
-      tasks = parseFile(dataBaseFile);
-      totalTasks = tasks.size();
-      if (!tasks.isEmpty()) {
-        // wait for the tasks to finish
-        while (!isCanceled() && !tasks.isEmpty()) {
-          for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i).isFinished() || tasks.get(i).isCanceled()) {
-              count += tasks.get(i).getCount();
-              tasks.remove(i);
-              i--;
-            }
-          }
-          try {
-            Thread.sleep(100);
-          } catch (Exception e) {
-            cancel();
-          }
+    // try {
+    tasks = parseFile(dataBaseFile);
+    totalTasks = tasks.size();
+    // if (!tasks.isEmpty()) {
+    // wait for the tasks to finish
+    while (!isCanceled() && !tasks.isEmpty()) {
+      for (int i = 0; i < tasks.size(); i++) {
+        if (tasks.get(i).isFinished() || tasks.get(i).isCanceled()) {
+          count += tasks.get(i).getCount();
+          tasks.remove(i);
+          i--;
         }
-      } else {
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
-        throw new MSDKRuntimeException(
-            "DB file was empty - or error while parsing " + dataBaseFile);
       }
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage(e.toString());
-      throw new MSDKRuntimeException(e);
+      try {
+        Thread.sleep(100);
+      } catch (Exception e) {
+        cancel();
+      }
     }
+    // } else {
+    // setStatus(TaskStatus.ERROR);
+    // setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
+    // throw new MSDKRuntimeException("DB file was empty - or error while parsing " + dataBaseFile);
+    // }
+    // } catch (Exception e) {
+    // logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
+    // setStatus(TaskStatus.ERROR);
+    // setErrorMessage(e.toString());
+    // throw new MSDKRuntimeException(e);
+    // }
     logger.info("Added " + count + " spectral library matches");
 
     // Add task description to peakList

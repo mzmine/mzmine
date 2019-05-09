@@ -73,18 +73,8 @@ public class GnpsJsonParser implements SpectralDBParser {
           reader = Json.createReader(new StringReader(l));
           JsonObject json = reader.readObject();
           SpectralDBEntry entry = getDBEntry(json);
-          if (entry != null && entry.getPrecursorMZ() != null) {
+          if (entry != null) {
             list.add(entry);
-
-            if (list.size() % 1000 == 0) {
-              logger.info("Imported " + list.size() + " library entries");
-              // start task for every 1000 entries
-              SpectralMatchTask task = new SpectralMatchTask(parameters, tasks.size() * 1000 + 1,
-                  list, spectraPlot, scan);
-              MZmineCore.getTaskController().addTask(task);
-              tasks.add(task);
-              list = new ArrayList<>();
-            }
           } else
             error++;
         } catch (Exception ex) {
@@ -103,10 +93,9 @@ public class GnpsJsonParser implements SpectralDBParser {
     }
 
     // start last task
-    logger.info((tasks.size() * 1000 + list.size()) + " GNPS library entries imported");
+    logger.info(list.size() + " GNPS library entries imported");
     if (!list.isEmpty()) {
-      SpectralMatchTask task =
-          new SpectralMatchTask(parameters, tasks.size() * 1000 + 1, list, spectraPlot, scan);
+      SpectralMatchTask task = new SpectralMatchTask(parameters, 1, list, spectraPlot, scan);
       MZmineCore.getTaskController().addTask(task);
       tasks.add(task);
     }

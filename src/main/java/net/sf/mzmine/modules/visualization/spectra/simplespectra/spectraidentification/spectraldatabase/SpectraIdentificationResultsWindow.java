@@ -229,8 +229,6 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     if (ident.getField(DBEntryField.NUM_PEAKS).orElse("N/A") != "N/A")
       panelCompounds.add(numberPeaks);
 
-    panelCompounds.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
     // instrument info
     JPanel panelInstrument = new JPanel(new GridLayout(0, 1, 0, 5));
     panelInstrument.setPreferredSize(new Dimension(250, 400));
@@ -285,8 +283,6 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     if (ident.getField(DBEntryField.SOFTWARE).orElse("N/A") != "N/A")
       panelInstrument.add(software);
 
-    panelInstrument.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
     boxCompoundAndInstrument.add(panelCompounds, BorderLayout.WEST);
     boxCompoundAndInstrument.add(panelInstrument, BorderLayout.EAST);
     metaDataPanel.add(boxCompoundAndInstrument);
@@ -318,8 +314,6 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     if (ident.getField(DBEntryField.CHEMSPIDER).orElse("N/A") != "N/A")
       panelDB.add(spider);
 
-    panelDB.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
     // // Other info
     JPanel panelOther = new JPanel(new GridLayout(0, 1, 0, 5));
     panelOther.setPreferredSize(new Dimension(250, 200));
@@ -348,8 +342,6 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     comment.setToolTipText("Comment: " + ident.getField(DBEntryField.COMMENT).orElse("N/A"));
     if (ident.getField(DBEntryField.COMMENT).orElse("N/A") != "N/A")
       panelOther.add(comment);
-
-    panelOther.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
     boxDBAndOther.add(panelDB, BorderLayout.WEST);
     boxDBAndOther.add(panelOther, BorderLayout.EAST);

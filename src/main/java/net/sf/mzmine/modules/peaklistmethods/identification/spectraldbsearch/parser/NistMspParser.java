@@ -63,7 +63,6 @@ public class NistMspParser implements SpectralDBParser {
             t.cancel();
           return new ArrayList<>();
         }
-
         try {
           if (l.length() > 1) {
             // meta data?

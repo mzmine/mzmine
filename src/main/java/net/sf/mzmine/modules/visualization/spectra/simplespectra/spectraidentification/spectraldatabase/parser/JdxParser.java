@@ -109,17 +109,6 @@ public class JdxParser implements SpectralDBParser {
             fields = new EnumMap<>(fields);
             dps.clear();
             list.add(entry);
-            // progress
-            if (list.size() % 1000 == 0) {
-              // start new task for every 1000 entries
-              logger.info("Imported " + list.size() + " library entries");
-              SpectralMatchTask task = new SpectralMatchTask(parameters, tasks.size() * 1000 + 1,
-                  list, spectraPlot, scan);
-              MZmineCore.getTaskController().addTask(task);
-              tasks.add(task);
-              // new list
-              list = new ArrayList<>();
-            }
             // reset
             isData = false;
           }
@@ -130,13 +119,12 @@ public class JdxParser implements SpectralDBParser {
     }
     if (!list.isEmpty()) {
       // start last task
-      SpectralMatchTask task =
-          new SpectralMatchTask(parameters, tasks.size() * 1000 + 1, list, spectraPlot, scan);
+      SpectralMatchTask task = new SpectralMatchTask(parameters, 1, list, spectraPlot, scan);
       MZmineCore.getTaskController().addTask(task);
       tasks.add(task);
     }
 
-    logger.info((tasks.size() * 1000 + list.size()) + " jdx library entries imported");
+    logger.info(list.size() + " jdx library entries imported");
     return tasks;
   }
 
