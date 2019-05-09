@@ -32,6 +32,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -40,6 +41,7 @@ import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
 import net.sf.mzmine.modules.visualization.spectra.mirrorspectra.MirrorScanWindow;
@@ -61,14 +63,20 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   public SpectraIdentificationResultsWindow(Scan scan, Map<Double, SpectralDBEntry> matches) {
     setBackground(Color.WHITE);
-    setMinimumSize(new Dimension(1200, 800));
+    setSize(new Dimension(1200, 800));
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     getContentPane().setLayout(new BorderLayout());
+    setTitle("Spectra matching for scan#" + scan.getScanNumber());
 
     pnGrid = new JPanel();
     // any number of rows
     pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
     pnGrid.setAutoscrolls(false);
+
+    // Add the Windows menu
+    JMenuBar menuBar = new JMenuBar();
+    menuBar.add(new WindowsMenu());
+    setJMenuBar(menuBar);
 
     // add charts
     for (Map.Entry<Double, SpectralDBEntry> match : matches.entrySet()) {
