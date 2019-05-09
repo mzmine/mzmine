@@ -16,7 +16,7 @@ import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.*;
+import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -27,7 +27,7 @@ import java.awt.*;
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS", "foobar", new MsMsSpectraMergeParameters(), true);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS", "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.", new MsMsSpectraMergeParameters(), true);
 
   public SiriusExportParameters() {
     super(new Parameter[] {PEAK_LISTS, MASS_LIST, FILENAME, MERGE_PARAMETER});

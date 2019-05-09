@@ -14,6 +14,22 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Module for merging MS/MS spectra. Merging is performed by:
+ * 1. first selecting all consecutive MS/MS and the surrounding MS1 scans
+ * 2. scoring each such list of consecutive MS/MS by the intensity of the precursor peak in the surrounding MS1 divided
+ * by the intensity of chimeric peaks around them
+ * 3. removing MS/MS with considerably low scoring (<20% of best score)
+ * 4. start with MS/MS with best score. Merge iteratively all spectra into this MS/MS which have a cosine score
+ * above the user given threshold.
+ *
+ * The reasoning behind 4. is that the method will first select a MS/MS with, hopefully, low chimeric contamination.
+ * Afterwards it only merges MS/MS into this spectra which do not deviate too much (e.g. have low chimerics, too)
+ *
+ * 5. Merging all merged spectra within a sample belonging to the same feature using the same routine
+ * 6. Merging all merged spectra across samples belonging to the same feature using the same routine
+ * 7. removing peaks from merged spectra which are not consistent across the merged spectra
+ */
 public class MsMsSpectraMerge implements MZmineModule {
 
     private final MsMsSpectraMergeParameters parameters;
@@ -38,6 +54,15 @@ public class MsMsSpectraMerge implements MZmineModule {
         return MsMsSpectraMergeParameters.class;
     }
 
+    /**
+     * Merge MS/MS spectra belonging to the given feature row according to the parameter setting.
+     * The method returns a list of merged spectra. If MERGE_MODE is set to 'across samples', this list
+     * contains only one merged spectrum. Otherwise it will contain one spectrum per sample or even multiple spectra
+     * per sample.
+     * @param row the feature which MS/MS should be merged
+     * @param massList name of the mass list to use when extracting peaks
+     * @return list of merged MS/MS spectra belonging to this feature
+     */
     public List<MergedSpectrum> merge(PeakListRow row, String massList) {
         final MergeMode mode = parameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE).getValue();
         final double npeaksFilter = parameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue();
@@ -54,16 +79,37 @@ public class MsMsSpectraMerge implements MZmineModule {
         }
     }
 
+    /**
+     * Merge across samples. It is recommended to use #merge(PeakListRow,String) instead. Note, that this method will not remove noise peaks
+     * from the merged spectra.
+     * @param row the feature which MS/MS should be merged
+     * @param massList name of the mass list to use when extracting peaks
+     * @return the merged MS/MS of all fragment spectra belonging to the feature row
+     */
     public MergedSpectrum mergeAcrossSamples(PeakListRow row, String massList) {
         return mergeAcrossFragmentSpectra(Arrays.stream(row.getPeaks()).map(r->mergeFromSameSample(r,massList)).filter(x->x.data.length>0).collect(Collectors.toList()));
     }
 
+    /**
+     * Merge all MS/MS belonging to the same sample. It is recommended to use #merge(PeakListRow,String) instead. Note, that this method will not remove noise peaks from the merged spectra.
+     * @param feature the feature which MS/MS should be merged
+     * @param massList name of the mass list to use when extracting peaks
+     * @return the merged MS/MS of all fragment spectra belonging to the feature
+     */
     public MergedSpectrum mergeFromSameSample(Feature feature, String massList) {
         List<MergedSpectrum> spectra = mergeConsecutiveScans(feature, massList);
         if (spectra.isEmpty()) return MergedSpectrum.empty();
         return mergeAcrossFragmentSpectra(spectra);
     }
 
+    /**
+     * Merge all consecutive MS/MS scans of the same feature within the same sample. Two scans are consecutive, if there is
+     * no other MS/MS or MS in between. It is recommended to use #merge(PeakListRow,String) instead.
+     * Note, that this method will not remove noise peaks from the merged spectra.
+     * @param feature the feature which MS/MS should be merged
+     * @param massList name of the mass list to use when extracting peaks
+     * @return all merged spectra of consecutive MS/MS scans of the given feature
+     */
     public List<MergedSpectrum> mergeConsecutiveScans(Feature feature, String massList) {
         final double ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue().doubleValue();
         final double isolationWindowOffset = parameters.getParameter(MsMsSpectraMergeParameters.ISOLATION_WINDOW_OFFSET).getValue();
@@ -78,7 +124,11 @@ public class MsMsSpectraMerge implements MZmineModule {
         return mergedSpec;
     }
 
-
+    /**
+     * Internal method that merges a list of spectra into one.
+     * @param fragmentMergedSpectra list of spectra with meta information
+     * @return merged spectrum
+     */
     protected MergedSpectrum mergeAcrossFragmentSpectra(List<MergedSpectrum> fragmentMergedSpectra) {
         if (fragmentMergedSpectra.isEmpty()) return MergedSpectrum.empty();
         int totalNumberOfScans = 0;
@@ -164,6 +214,13 @@ public class MsMsSpectraMerge implements MZmineModule {
         return initial;
     }
 
+    /**
+     * Internal method for merging a list of consecutive MS/MS scans.
+     * @param scans MS/MS scans with their precursor information
+     * @param massList name of the mass list to use when extracting peaks
+     * @param scoreModel scoring model to use when removing low quality MS/MS and selecting the best quality MS/MS
+     * @return merged spectrum
+     */
     protected MergedSpectrum mergeConsecutiveScans(FragmentScan scans, String massList, Ms2QualityScoreModel scoreModel) {
         int totalNumberOfScans = scans.ms2ScanNumbers.length;
         /*
