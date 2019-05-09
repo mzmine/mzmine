@@ -18,25 +18,21 @@
 
 package net.sf.mzmine.project.impl;
 
+import com.google.common.collect.Range;
+import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.scans.ScanUtils;
+
+import javax.annotation.Nonnull;
+import javax.swing.*;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
-
-import javax.annotation.Nonnull;
-import javax.swing.SwingUtilities;
-
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.PolarityType;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.scans.ScanUtils;
-import com.google.common.collect.Range;
 
 /**
  * Implementation of the Scan interface which stores raw data points in a temporary file, accessed
@@ -124,6 +120,15 @@ public class StorableScan implements Scan {
       return new DataPoint[0];
     }
 
+  }
+
+  public @Nonnull FloatBuffer readDataPointsAsFloatBuffer() {
+    try {
+      return rawDataFile.readDataPointsAsFloatBuffer(storageID);
+    } catch (IOException e) {
+      logger.severe("Could not read data from temporary file " + e.toString());
+      return FloatBuffer.wrap(new float[0]);
+    }
   }
 
   /**
@@ -303,6 +308,46 @@ public class StorableScan implements Scan {
   @Override
   public String toString() {
     return ScanUtils.scanToString(this, false);
+  }
+
+
+  public synchronized void addMassList(final String massListName, ByteBuffer buffer) {
+    try {
+      int id = rawDataFile.storeDataPoints(buffer);
+      StorableMassList storedMassList = new StorableMassList(rawDataFile, id, massListName, this);
+
+      // Add the new mass list
+      massLists.add(storedMassList);
+
+      // Add the mass list to the tree model
+      MZmineProjectImpl project =
+              (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+
+      // Check if we are adding to the current project
+      if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
+        final RawDataTreeModel treeModel = project.getRawDataTreeModel();
+        final MassList newMassList = storedMassList;
+        Runnable swingCode = new Runnable() {
+          @Override
+          public void run() {
+            treeModel.addObject(newMassList);
+          }
+        };
+
+        try {
+          if (SwingUtilities.isEventDispatchThread())
+            swingCode.run();
+          else
+            SwingUtilities.invokeAndWait(swingCode);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+
+      }
+    } catch (IOException e) {
+      logger.severe("Could not write data to temporary file " + e.toString());
+      return;
+    }
   }
 
   @Override

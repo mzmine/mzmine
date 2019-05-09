@@ -18,23 +18,6 @@
 
 package net.sf.mzmine.project.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -42,6 +25,18 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.channels.FileChannel;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and mass lists using the
@@ -355,6 +350,58 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return currentID;
 
   }
+
+
+  public synchronized int storeDataPoints(ByteBuffer peakBuffer) throws IOException {
+
+    if (dataPointsFile == null) {
+      File newFile = RawDataFileImpl.createNewDataPointsFile();
+      openDataPointsFile(newFile);
+    }
+
+    final long currentOffset = dataPointsFile.length();
+
+    final int currentID;
+    if (!dataPointsOffsets.isEmpty())
+      currentID = dataPointsOffsets.lastKey() + 1;
+    else
+      currentID = 1;
+    final int ndatapoints = peakBuffer.limit()/8;
+    dataPointsFile.seek(currentOffset);
+    dataPointsFile.write(peakBuffer.array(), 0, peakBuffer.limit());
+
+    dataPointsOffsets.put(currentID, currentOffset);
+    dataPointsLengths.put(currentID, ndatapoints);
+
+    return currentID;
+
+  }
+
+
+  public synchronized FloatBuffer readDataPointsAsFloatBuffer(int ID) throws IOException {
+
+    final Long currentOffset = dataPointsOffsets.get(ID);
+    final Integer numOfDataPoints = dataPointsLengths.get(ID);
+
+    if ((currentOffset == null) || (numOfDataPoints == null)) {
+      throw new IllegalArgumentException("Unknown storage ID " + ID);
+    }
+
+    final int numOfBytes = numOfDataPoints * 2 * 4;
+
+    if (buffer.capacity() < numOfBytes) {
+      buffer = ByteBuffer.allocate(numOfBytes * 2);
+    } else {
+      buffer.clear();
+    }
+
+    dataPointsFile.seek(currentOffset);
+    dataPointsFile.read(buffer.array(), 0, numOfBytes);
+
+    FloatBuffer floatBuffer = buffer.asFloatBuffer();
+    return floatBuffer;
+  }
+
 
   public synchronized DataPoint[] readDataPoints(int ID) throws IOException {
 
