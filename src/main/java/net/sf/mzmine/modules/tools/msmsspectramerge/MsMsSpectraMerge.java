@@ -51,9 +51,7 @@ public class MsMsSpectraMerge implements MZmineModule {
                 return mergedSpectrum.data.length==0 ? Collections.emptyList() : Collections.singletonList(mergedSpectrum);
             default:
                 return Collections.emptyList();
-
         }
-
     }
 
     public MergedSpectrum mergeAcrossSamples(PeakListRow row, String massList) {
@@ -68,8 +66,8 @@ public class MsMsSpectraMerge implements MZmineModule {
 
     public List<MergedSpectrum> mergeConsecutiveScans(Feature feature, String massList) {
         final double ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue().doubleValue();
-        final double isolationWindowOffset = parameters.getParameter(MsMsSpectraMergeParameters.isolationWindowOffset).getValue();
-        final double isolationWindowWidth = parameters.getParameter(MsMsSpectraMergeParameters.isolationWindowWidth).getValue();
+        final double isolationWindowOffset = parameters.getParameter(MsMsSpectraMergeParameters.ISOLATION_WINDOW_OFFSET).getValue();
+        final double isolationWindowWidth = parameters.getParameter(MsMsSpectraMergeParameters.ISOLATION_WINDOW_WIDTH).getValue();
         FragmentScan[] allFragmentScans = FragmentScan.getAllFragmentScansFor(feature, massList, Range.closed(isolationWindowOffset-isolationWindowWidth, isolationWindowOffset + isolationWindowWidth), ppm);
         final List<MergedSpectrum> mergedSpec = new ArrayList<>();
         for (FragmentScan scan : allFragmentScans) {
@@ -95,7 +93,7 @@ public class MsMsSpectraMerge implements MZmineModule {
         final List<MergedSpectrum> selectedScans = new ArrayList<>();
         MergedSpectrum bestOne = null;
         for (int k=0; k < fragmentMergedSpectra.size(); ++k) {
-            if (scores[k] >= bestScore/4) {
+            if (scores[k] >= bestScore/5d) {
                 if (scores[k]>=bestScore) bestOne = fragmentMergedSpectra.get(k);
                 selectedScans.add(fragmentMergedSpectra.get(k));
             } else {
@@ -131,24 +129,29 @@ public class MsMsSpectraMerge implements MZmineModule {
         final MzMergeMode mzMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.MZ_MERGE_MODE).getValue();
         final IntensityMergeMode intensityMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.INTENSITY_MERGE_MODE).getValue();
         MergedSpectrum initial = bestOne;
-        final double lowestMassToConsider = Math.min(50d, initial.precursorMz);
+        final double lowestMassToConsider = Math.min(50d, initial.precursorMz-50d);
 
-        final DataPoint[] initialMostIntensive = ScanUtils.extractMostIntensivePeaksAcrossMassRange(initial.data, Range.closed(lowestMassToConsider, 150d), 6);
+        final DataPoint[] initialMostIntensive = ScanUtils.extractMostIntensivePeaksAcrossMassRange(initial.data, Range.closed(lowestMassToConsider, lowestMassToConsider+100), 6);
+        final Range<Double> cosineRange = Range.closed(lowestMassToConsider, initial.precursorMz - 20);
         double lowestIntensityToConsider;
         {
-            MergedDataPoint basePeak = Arrays.stream(initial.data).max(Comparator.comparingDouble(u -> u.intensity)).get();
+            Optional<MergedDataPoint> max = Arrays.stream(initial.data).filter(x -> cosineRange.contains(x.getMZ())).max(Comparator.comparingDouble(u -> u.intensity));
+            if (!max.isPresent()) {
+                // no peak beside precursor ion
+                return MergedSpectrum.empty(totalNumberOfScans);
+            }
+            MergedDataPoint basePeak = max.get();
             lowestIntensityToConsider = basePeak.sources[0].getIntensity();
             for (DataPoint p : basePeak.sources) {
                 lowestIntensityToConsider = Math.max(p.getIntensity(), lowestIntensityToConsider);
             }
             lowestIntensityToConsider = lowestIntensityToConsider*0.01;
         }
-        Range<Double> cosineRange = Range.closed(lowestMassToConsider, initial.precursorMz - 20);
         final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive,initialMostIntensive,ppm,lowestIntensityToConsider, cosineRange);
         for (int k=1; k < toMerge.size(); ++k) {
             MergedSpectrum scan = toMerge.get(k);
             DataPoint[] dataPoints = scan.data;
-            final DataPoint[] mostIntensive = ScanUtils.extractMostIntensivePeaksAcrossMassRange(dataPoints, cosineRange, 6);
+            final DataPoint[] mostIntensive = ScanUtils.extractMostIntensivePeaksAcrossMassRange(dataPoints, Range.closed(50d,150d), 6);
             final double norm = ScanUtils.probabilityProductUnnormalized(mostIntensive,mostIntensive,ppm,lowestIntensityToConsider,cosineRange);
             final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive, mostIntensive, ppm, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
             if (cosine >= cosineThreshold) {
@@ -173,15 +176,15 @@ public class MsMsSpectraMerge implements MZmineModule {
                 best=k;
             }
         }
-        if (scores[best]<=0) return MergedSpectrum.empty();
+        if (scores[best]<=0) return MergedSpectrum.empty(totalNumberOfScans);
         final List<Scan> scansToMerge = new ArrayList<>();
         scansToMerge.add(scans.origin.getScan(scans.ms2ScanNumbers[best]));
         if (scansToMerge.get(0).getMassList(massList).getDataPoints().length <= 1)
-            return MergedSpectrum.empty();
+            return MergedSpectrum.empty(totalNumberOfScans);
         /*
             remove scans which are considerably worse than the best scan
          */
-        final double scoreThreshold = best/3d;
+        final double scoreThreshold = best/5d;
         for (int i=1; i < scores.length; ++i) {
             int k = best-i;
             if (k >= 0 && scores[k] > scoreThreshold) {
@@ -319,6 +322,5 @@ public class MsMsSpectraMerge implements MZmineModule {
         }
         return orderedByMz;
     }
-
 
 }

@@ -27,10 +27,10 @@ import java.awt.*;
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> mergeParameter = new OptionalModuleParameter<>("Merge MS/MS", "foobar", new MsMsSpectraMergeParameters(), true);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS", "foobar", new MsMsSpectraMergeParameters(), true);
 
   public SiriusExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, MASS_LIST, FILENAME, mergeParameter});
+    super(new Parameter[] {PEAK_LISTS, MASS_LIST, FILENAME, MERGE_PARAMETER});
   }
 
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();

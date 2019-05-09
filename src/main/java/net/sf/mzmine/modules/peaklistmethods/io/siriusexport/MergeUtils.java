@@ -398,7 +398,7 @@ public class MergeUtils {
                 && f.getMostIntenseFragmentScanNumber() >= 0) {
 
             final TIntArrayList scanIds = new TIntArrayList(f.getScanNumbers());
-            scanIds.addAll(f.getAllMS2FragmentScanNumbers());
+            //scanIds.addAll(f.getAllMS2FragmentScanNumbers());
             int[] fs = getAllMs2ScanNumbersFor(f.getDataFile());
 
             int j = Arrays.binarySearch(fs, scanIds.get(0));

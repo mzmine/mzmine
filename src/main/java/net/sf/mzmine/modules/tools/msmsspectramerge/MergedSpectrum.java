@@ -22,6 +22,9 @@ public class MergedSpectrum {
     public static MergedSpectrum empty() {
         return EMPTY;
     }
+    public static MergedSpectrum empty(int removedScansByLowQuality) {
+        return new MergedSpectrum(new MergedDataPoint[0],new RawDataFile[0],new int[0],0d, PolarityType.UNKNOWN,0, removedScansByLowQuality,0, 0d);
+    }
 
     public MergedSpectrum(MergedDataPoint[] data, Set<RawDataFile> origins, Set<Integer> scanIds, double precursorMz, PolarityType polarity, int precursorCharge, int removedScansByLowQuality, int removedScansByLowCosine) {
         this(data, origins.toArray(new RawDataFile[origins.size()]), scanIds.stream().sorted().mapToInt(x->x).toArray(), precursorMz, polarity,precursorCharge, removedScansByLowQuality, removedScansByLowCosine, 0d);
@@ -65,6 +68,10 @@ public class MergedSpectrum {
         } else return "merged spectrum";
     }
 
+    public double getBestFragmentScanScore() {
+        return bestFragmentScanScore;
+    }
+
     public int totalNumberOfScans() {
         return scanIds.length+removedScansByLowCosine+removedScansByLowQuality;
     }
@@ -86,7 +93,7 @@ public class MergedSpectrum {
     }
 
     public MergedSpectrum filterByRelativeNumberOfScans(double minimumRelativeNumberOfScans) {
-        int minNum = (int)(data.length*minimumRelativeNumberOfScans);
+        int minNum = (int)(scanIds.length*minimumRelativeNumberOfScans);
         if (minNum>1) return filterByNumberOfScans(minNum);
         else return this;
     }

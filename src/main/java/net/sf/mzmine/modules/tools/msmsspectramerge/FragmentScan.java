@@ -94,7 +94,7 @@ class FragmentScan {
         return fragmentScans.toArray(new FragmentScan[0]);
     }
 
-    private FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber, Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow, double massAccuracyInPPM) {
+    FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber, Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow, double massAccuracyInPPM) {
         this.origin = origin;
         this.feature = feature;
         this.massList = massList;
@@ -124,10 +124,10 @@ class FragmentScan {
             double rtRange = (ms2.getRetentionTime() - left.getRetentionTime())/(right.getRetentionTime()-left.getRetentionTime());
             if (rtRange >= 0 && rtRange <= 1) {
                 values[0][k] = (1d-rtRange) * precursorIntensityLeft + (rtRange)*precursorIntensityRight;
-                values[0][k] = (1d-rtRange) * chimericIntensityLeft + (rtRange)*chimericIntensityRight;
+                values[1][k] = (1d-rtRange) * chimericIntensityLeft + (rtRange)*chimericIntensityRight;
             } else {
                 LoggerFactory.getLogger(FragmentScan.class).warn("Retention time is non-monotonic within scan numbers.");
-                values[0][k] = precursorIntensityLeft;
+                values[0][k] = precursorIntensityLeft+precursorIntensityRight;
                 values[1][k] = chimericIntensityLeft+chimericIntensityRight;
             }
         }

@@ -32,7 +32,6 @@ import net.sf.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMerge;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -77,7 +76,7 @@ public class SiriusExportTask extends AbstractTask {
                 .getMatchingPeakLists();
         this.fileName = parameters.getParameter(SiriusExportParameters.FILENAME).getValue();
         this.massListName = parameters.getParameter(SiriusExportParameters.MASS_LIST).getValue();
-        OptionalModuleParameter<MsMsSpectraMergeParameters> parameter = parameters.getParameter(SiriusExportParameters.mergeParameter);
+        OptionalModuleParameter<MsMsSpectraMergeParameters> parameter = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER);
         mergeParameters = parameter.getValue().booleanValue() ? parameter.getEmbeddedParameters() : null;
         mergeMethod = mergeParameters==null ? null : new MsMsSpectraMerge(mergeParameters);
     }
@@ -195,11 +194,11 @@ public class SiriusExportTask extends AbstractTask {
                         // merge MS/MS
                         List<MergedSpectrum> spectra = new MsMsSpectraMerge(mergeParameters).mergeConsecutiveScans(f,massListName);
                         for (MergedSpectrum spectrum : spectra) {
-                            writeHeader(writer,row,f.getDataFile(),polarity,MsType.MSMS,spectrum);
+                            writeHeader(writer,row,f.getDataFile(),polarity,MsType.MSMS,spectrum.filterByRelativeNumberOfScans(mergeParameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue()));
                             writeSpectrum(writer, spectrum.data);
                         }
                     } else {
-                        MergedSpectrum spectrum = mergeMethod.mergeFromSameSample(f,massListName);
+                        MergedSpectrum spectrum = mergeMethod.mergeFromSameSample(f,massListName).filterByRelativeNumberOfScans(mergeParameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue());
                         if (spectrum.data.length>0) {
                             writeHeader(writer, row, f.getDataFile(), polarity, MsType.MSMS, spectrum);
                             writeSpectrum(writer, spectrum.data);
@@ -212,7 +211,7 @@ public class SiriusExportTask extends AbstractTask {
             writeHeader(writer, row, row.getBestPeak().getDataFile(), polarity, MsType.CORRELATED, -1);
             writeCorrelationSpectrum(writer, row.getBestPeak());
             // merge everything into one
-            MergedSpectrum spectrum = mergeMethod.mergeAcrossSamples(row,massListName);
+            MergedSpectrum spectrum = mergeMethod.mergeAcrossSamples(row,massListName).filterByRelativeNumberOfScans(mergeParameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue());
             if (spectrum.data.length>0) {
                 writeHeader(writer, row, row.getBestPeak().getDataFile(), polarity, MsType.MSMS, spectrum);
                 writeSpectrum(writer, spectrum.data);
