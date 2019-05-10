@@ -12,13 +12,14 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.util.ExitCode;
 
 import java.awt.*;
@@ -26,14 +27,11 @@ import java.awt.*;
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
-  public static final ComboParameter<MERGE_MODE> MERGE =
-      new ComboParameter<MERGE_MODE>("Merge mode", "How to merge MS/MS spectra",
-          MERGE_MODE.values(), MERGE_MODE.MERGE_CONSECUTIVE_SCANS);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS", "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.", new MsMsSpectraMergeParameters(), true);
 
   public SiriusExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, MERGE, MASS_LIST});
+    super(new Parameter[] {PEAK_LISTS, MASS_LIST, FILENAME, MERGE_PARAMETER});
   }
-
 
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
@@ -56,27 +54,9 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
   public static final MassListParameter MASS_LIST = new MassListParameter();
 
-  public static enum MERGE_MODE {
-    NO_MERGE("Do not merge"), MERGE_CONSECUTIVE_SCANS(
-        "Merge consecutive scans"), MERGE_OVER_SAMPLES(
-            "Merge all MS/MS belonging to the same feature");
-    private final String name;
-
-    private MERGE_MODE(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
     String message = "<html>SIRIUS Module Disclaimer:"
-        + "<br>    - If you use the SIRIUS export module, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following articles: "
-        + "<br>     <a href=\"http://www.pnas.org/content/112/41/12580.abstract\">Dührkop et al., Proc Natl Acad Sci USA 112(41):12580-12585</a> "
-        + "and <a href=\"https://jcheminf.springeropen.com/articles/10.1186/s13321-016-0116-8\">Boecker et al., Journal of Cheminformatics (2016) 8:5</a>"
+        + "<br>    - If you use the SIRIUS export module, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article: <a href=\"http://dx.doi.org/10.1038/s41592-019-0344-8\"> K. Dührkop, et al. “Sirius 4: a rapid tool for turning tandem mass spectra into metabolite structure information”, Nat methods, 2019.</a>"
         + "<br>    - Sirius can be downloaded at the following address: <a href=\"https://bio.informatik.uni-jena.de/software/sirius/\">https://bio.informatik.uni-jena.de/software/sirius/</a>"
         + "<br>    - Sirius results can be mapped into <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular networks. <a href=\"https://bix-lab.ucsd.edu/display/Public/Mass+spectrometry+data+pre-processing+for+GNPS\">See the documentation</a>.";
     ParameterSetupDialog dialog =

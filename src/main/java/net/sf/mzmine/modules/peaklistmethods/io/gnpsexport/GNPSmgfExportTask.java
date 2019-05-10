@@ -1,16 +1,16 @@
 /*
  * Copyright 2006-2018 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
  * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
  * USA
@@ -18,16 +18,31 @@
 /*
  * This module was prepared by Abi Sarvepalli, Christopher Jensen, and Zheng Zhang at the Dorrestein
  * Lab (University of California, San Diego).
- * 
+ *
  * It is freely available under the GNU GPL licence of MZmine2.
- * 
+ *
  * For any questions or concerns, please refer to:
  * https://groups.google.com/forum/#!forum/molecular_networking_bug_reports
- * 
+ *
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
+
+import io.github.msdk.MSDKRuntimeException;
+import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitParameters.RowFilter;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.PeakUtils;
+import net.sf.mzmine.util.files.FileAndPathUtil;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -38,26 +53,10 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import io.github.msdk.MSDKRuntimeException;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitParameters.RowFilter;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.taskcontrol.AbstractTask;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.files.FileAndPathUtil;
 
 /**
  * Exports all files needed for GNPS
- * 
+ *
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
@@ -71,6 +70,8 @@ public class GNPSmgfExportTask extends AbstractTask {
   private final String plNamePattern = "{}";
   private int currentIndex = 0;
   private final String massListName;
+  private final MsMsSpectraMergeParameters mergeParameters;
+  private final MsMsSpectraMergeModule merger;
 
   // by robin
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
@@ -84,11 +85,18 @@ public class GNPSmgfExportTask extends AbstractTask {
 
   GNPSmgfExportTask(ParameterSet parameters) {
     this.peakLists =
-        parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+            parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
 
     this.fileName = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
     this.massListName = parameters.getParameter(GNPSExportAndSubmitParameters.MASS_LIST).getValue();
     this.filter = parameters.getParameter(GNPSExportAndSubmitParameters.FILTER).getValue();
+    if (parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
+      mergeParameters = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getEmbeddedParameters();
+      merger = new MsMsSpectraMergeModule(mergeParameters);
+    } else {
+      mergeParameters = null;
+      merger = null;
+    }
   }
 
   @Override
@@ -117,7 +125,7 @@ public class GNPSmgfExportTask extends AbstractTask {
         String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
         String newFilename =
-            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+                fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         curFile = new File(newFilename);
       }
       curFile = FileAndPathUtil.getRealFilePath(curFile, "mgf");
@@ -192,7 +200,7 @@ public class GNPSmgfExportTask extends AbstractTask {
         boolean missingMassList = false;
         msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
         while (msmsScanNumber < 1
-            || getScan(bestPeak, msmsScanNumber).getMassList(massListName) == null) {
+                || getScan(bestPeak, msmsScanNumber).getMassList(massListName) == null) {
           // missing masslist
           if (msmsScanNumber > 0)
             missingMassList = true;
@@ -244,12 +252,20 @@ public class GNPSmgfExportTask extends AbstractTask {
 
         writer.write("MSLEVEL=2" + newLine);
 
-        DataPoint peaks[] = massList.getDataPoints();
-        for (DataPoint peak : peaks) {
-          writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
-              + newLine);
+        DataPoint[] dataPoints = massList.getDataPoints();
+        if (merger != null) {
+          MergedSpectrum spectrum = merger.getBestMergedSpectrum(row, massListName);
+          if (spectrum!=null) {
+            dataPoints = spectrum.data;
+            writer.write("MERGED_STATS=");
+            writer.write(spectrum.getMergeStatsDescription());
+            writer.write(newLine);
+          }
         }
-
+        for (DataPoint peak : dataPoints) {
+          writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
+                  + newLine);
+        }
         writer.write("END IONS" + newLine);
         writer.write(newLine);
         count++;
@@ -258,17 +274,17 @@ public class GNPSmgfExportTask extends AbstractTask {
     if (count == 0)
       if (countMissingMassList > 0)
         throw new MSDKRuntimeException("No MS/MS scans exported: " + countMissingMassList
-            + " scans have no mass list " + massListName);
+                + " scans have no mass list " + massListName);
       else
         throw new MSDKRuntimeException("No MS/MS scans exported.");
 
     LOG.info(
-        MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
-            count, peakList.getName()));
+            MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
+                    count, peakList.getName()));
     if (countMissingMassList > 0)
       LOG.warning(MessageFormat.format(
-          "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
-          countMissingMassList, peakList.getName()));
+              "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
+              countMissingMassList, peakList.getName()));
 
     return count;
   }

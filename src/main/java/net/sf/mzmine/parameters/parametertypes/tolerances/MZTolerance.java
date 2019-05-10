@@ -46,7 +46,7 @@ public class MZTolerance {
     return ppmTolerance;
   }
 
-  private double getMzToleranceForMass(final double mzValue) {
+  public double getMzToleranceForMass(final double mzValue) {
     return Math.max(mzTolerance, mzValue / MILLION * ppmTolerance);
   }
 
