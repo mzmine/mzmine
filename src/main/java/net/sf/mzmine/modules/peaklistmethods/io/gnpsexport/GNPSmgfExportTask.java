@@ -51,8 +51,6 @@ import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -256,12 +254,11 @@ public class GNPSmgfExportTask extends AbstractTask {
 
         DataPoint[] dataPoints = massList.getDataPoints();
         if (merger != null) {
-          List<MergedSpectrum> spectrum = merger.merge(row, massListName);
-          Optional<MergedSpectrum> max = spectrum.stream().max((u, v) -> Double.compare(v.getBestFragmentScanScore(), u.getBestFragmentScanScore()));
-          if (max.isPresent() && max.get().data.length > 0) {
-            dataPoints = max.get().data;
+          MergedSpectrum spectrum = merger.getBestMergedSpectrum(row, massListName);
+          if (spectrum!=null) {
+            dataPoints = spectrum.data;
             writer.write("MERGED_STATS=");
-            writer.write(max.get().getMergeStatsDescription());
+            writer.write(spectrum.getMergeStatsDescription());
             writer.write(newLine);
           }
         }

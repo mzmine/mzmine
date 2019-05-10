@@ -86,7 +86,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param massList name of the mass list to use when extracting peaks
      * @return list of merged MS/MS spectra belonging to this feature
      */
-    public List<MergedSpectrum> merge(PeakListRow row, String massList) {
+    public List<MergedSpectrum> getMergedSpectra(PeakListRow row, String massList) {
         final MergeMode mode = parameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE).getValue();
         final double npeaksFilter = parameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue();
         switch (mode) {
@@ -100,6 +100,18 @@ public class MsMsSpectraMergeModule implements MZmineModule {
             default:
                 return Collections.emptyList();
         }
+    }
+
+    /**
+     * Merge MS/MS spectra belonging to the given feature row according to the parameter setting.
+     * The method returns either the completely merged spectrum if MERGE_MODE is set to 'across samples'. Otherwise,
+     * it will return the best merged spectrum across all merged spectra..
+     * @param row the feature which MS/MS should be merged
+     * @param massList name of the mass list to use when extracting peaks
+     * @return merged spectrum or null, if none exist
+     */
+    public MergedSpectrum getBestMergedSpectrum(PeakListRow row, String massList) {
+        return getMergedSpectra(row,massList).stream().max(Comparator.comparingDouble(MergedSpectrum::getBestFragmentScanScore)).orElse(null);
     }
 
     /**

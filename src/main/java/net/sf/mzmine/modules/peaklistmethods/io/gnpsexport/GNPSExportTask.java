@@ -45,8 +45,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -220,23 +218,19 @@ public class GNPSExportTask extends AbstractTask {
         writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
 
         writer.write("MSLEVEL=2" + newLine);
-        boolean merged = false;
+        DataPoint[] dataPoints = massList.getDataPoints();
         if (merger != null) {
-          List<MergedSpectrum> spectrum = merger.merge(row, massListName);
-          Optional<MergedSpectrum> max = spectrum.stream().max((u, v) -> Double.compare(v.getBestFragmentScanScore(), u.getBestFragmentScanScore()));
-          if (max.isPresent() && max.get().data.length>0) {
-            for (DataPoint peak : max.get().data) {
-              writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
-            }
-            merged=true;
+          MergedSpectrum spectrum = merger.getBestMergedSpectrum(row, massListName);
+          if (spectrum!=null) {
+            dataPoints = spectrum.data;
+            writer.write("MERGED_STATS=");
+            writer.write(spectrum.getMergeStatsDescription());
+            writer.write(newLine);
           }
         }
-        if (!merged){
-          // just take the best ones
-          DataPoint peaks[] = massList.getDataPoints();
-          for (DataPoint peak : peaks) {
-            writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
-          }
+        for (DataPoint peak : dataPoints) {
+          writer.write(peak.getMZ() + " " + peak.getIntensity()
+                  + newLine);
         }
 
         writer.write("END IONS" + newLine);
