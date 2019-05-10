@@ -29,6 +29,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -153,6 +154,10 @@ public class MergedSpectrum {
      */
     public int totalNumberOfScans() {
         return scanIds.length+removedScansByLowCosine+removedScansByLowQuality;
+    }
+
+    public String getMergeStatsDescription() {
+        return String.format(Locale.US, "%d / %d (%d removed due to low quality, %d removed due to low cosine).",scanIds.length, totalNumberOfScans(), removedScansByLowQuality, removedScansByLowCosine);
     }
 
     /**

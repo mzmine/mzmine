@@ -29,24 +29,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.MessageFormat;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import io.github.msdk.MSDKRuntimeException;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -59,6 +43,18 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.files.FileAndPathUtil;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.MessageFormat;
+import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Exports all files needed for GNPS
@@ -258,25 +254,20 @@ public class GNPSmgfExportTask extends AbstractTask {
 
         writer.write("MSLEVEL=2" + newLine);
 
-        boolean merged = false;
+        DataPoint[] dataPoints = massList.getDataPoints();
         if (merger != null) {
           List<MergedSpectrum> spectrum = merger.merge(row, massListName);
           Optional<MergedSpectrum> max = spectrum.stream().max((u, v) -> Double.compare(v.getBestFragmentScanScore(), u.getBestFragmentScanScore()));
-          if (max.isPresent() && max.get().data.length>0) {
-            for (DataPoint peak : max.get().data) {
-              writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
-                      + newLine);
-            }
-            merged=true;
+          if (max.isPresent() && max.get().data.length > 0) {
+            dataPoints = max.get().data;
+            writer.write("MERGED_STATS=");
+            writer.write(max.get().getMergeStatsDescription());
+            writer.write(newLine);
           }
         }
-        if (!merged){
-          // just take the best ones
-          DataPoint peaks[] = massList.getDataPoints();
-          for (DataPoint peak : peaks) {
-            writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
-                    + newLine);
-          }
+        for (DataPoint peak : dataPoints) {
+          writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
+                  + newLine);
         }
         writer.write("END IONS" + newLine);
         writer.write(newLine);

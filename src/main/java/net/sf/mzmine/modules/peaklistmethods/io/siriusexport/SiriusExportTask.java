@@ -12,20 +12,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.siriusexport;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.NumberFormat;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
@@ -35,6 +22,15 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class SiriusExportTask extends AbstractTask {
 
@@ -243,14 +239,7 @@ public class SiriusExportTask extends AbstractTask {
         }
         writer.newLine();
         writer.write("MERGED_STATS=");
-        writer.write(String.valueOf(mergedSpectrum.scanIds.length));
-        writer.write(" / ");
-        writer.write(String.valueOf(mergedSpectrum.totalNumberOfScans()));
-        writer.write(" (");
-        writer.write(String.valueOf(mergedSpectrum.removedScansByLowQuality));
-        writer.write(" removed due to low quality, ");
-        writer.write(String.valueOf(mergedSpectrum.removedScansByLowCosine));
-        writer.write(" removed due to low cosine).");
+        writer.write(mergedSpectrum.getMergeStatsDescription());
         writer.newLine();
     }
 
