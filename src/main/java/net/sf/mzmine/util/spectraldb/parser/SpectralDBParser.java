@@ -16,15 +16,15 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser;
+package net.sf.mzmine.util.spectraldb.parser;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
 import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
 public abstract class SpectralDBParser {
   private static Logger logger = Logger.getLogger(SpectralDBParser.class.getName());

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser;
+package net.sf.mzmine.util.spectraldb.parser;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,9 +34,9 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
 import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
 public class GnpsJsonParser extends SpectralDBParser {
   private static Logger logger = Logger.getLogger(GnpsJsonParser.class.getName());

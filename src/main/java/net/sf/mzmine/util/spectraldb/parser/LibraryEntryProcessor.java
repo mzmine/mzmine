@@ -16,10 +16,10 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser;
+package net.sf.mzmine.util.spectraldb.parser;
 
 import java.util.List;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
 /**
  * 

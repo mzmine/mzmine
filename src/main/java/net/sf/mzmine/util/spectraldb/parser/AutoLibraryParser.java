@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser;
+package net.sf.mzmine.util.spectraldb.parser;
 
 import java.io.File;
 import java.io.IOException;

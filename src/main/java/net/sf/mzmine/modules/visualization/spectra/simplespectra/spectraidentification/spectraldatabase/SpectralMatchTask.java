@@ -34,8 +34,6 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
@@ -50,6 +48,8 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
 import net.sf.mzmine.util.scans.ScanAlignment;
+import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
 /**
  * Spectral match task to compare single spectra with spectral databases

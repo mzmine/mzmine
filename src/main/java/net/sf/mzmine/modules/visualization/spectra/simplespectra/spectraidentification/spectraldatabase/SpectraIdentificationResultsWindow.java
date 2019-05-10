@@ -42,10 +42,10 @@ import org.jfree.chart.plot.XYPlot;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
 import net.sf.mzmine.modules.visualization.spectra.mirrorspectra.MirrorScanWindow;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
+import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
 public class SpectraIdentificationResultsWindow extends JFrame {
   /**
