@@ -397,7 +397,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     dataPointsFile.seek(currentOffset);
     dataPointsFile.read(buffer.array(), 0, numOfBytes);
-
+    buffer.limit(numOfBytes);
     FloatBuffer floatBuffer = buffer.asFloatBuffer();
     return floatBuffer;
   }

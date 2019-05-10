@@ -340,7 +340,7 @@ public class MassDetectionTask extends AbstractTask {
               buffer.putFloat(intens);
             }
           }
-          buffer.rewind();
+          buffer.flip();
           ((StorableScan) scan).addMassList(name, buffer);
         } else {
           scan.addMassList(new SimpleMassList(name, scan, Arrays.stream(scan.getDataPoints()).filter(x -> x.getIntensity() >= noiseLevel).toArray(DataPoint[]::new)));
