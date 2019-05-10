@@ -20,14 +20,26 @@ package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.pa
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.SpectralMatchTask;
-import net.sf.mzmine.parameters.ParameterSet;
+import java.util.logging.Logger;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 
-public interface SpectralDBParser {
+public abstract class SpectralDBParser {
+  private static Logger logger = Logger.getLogger(SpectralDBParser.class.getName());
+
+  protected int bufferEntries = 1000;
+  private List<SpectralDBEntry> list;
+  private int processedEntries = 0;
+  // process entries
+  protected LibraryEntryProcessor processor;
+
+  public SpectralDBParser(int bufferEntries, LibraryEntryProcessor processor) {
+    list = new ArrayList<>();
+    this.bufferEntries = bufferEntries;
+    this.processor = processor;
+  }
 
   /**
    * Parses the file and creates spectral db entries
@@ -38,8 +50,39 @@ public interface SpectralDBParser {
    * @return the list or an empty list if something went wrong (e.g., wrong format)
    * @throws IOException
    */
-  @Nonnull
-  public List<SpectralMatchTask> parse(AbstractTask mainTask, PeakList peakList,
-      ParameterSet parameters, File dataBaseFile) throws IOException;
+  public abstract boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException;
+
+  /**
+   * Add DB entry and push every 1000 entries
+   * 
+   * @param entry
+   */
+  protected void addLibraryEntry(SpectralDBEntry entry) {
+    list.add(entry);
+    if (list.size() % bufferEntries == 0) {
+      // start new task for every 1000 entries
+      logger.info("Imported " + list.size() + " library entries");
+      // push entries
+      processor.processNextEntries(list, processedEntries);
+      // new list
+      list = new ArrayList<>();
+      processedEntries += list.size();
+    }
+  }
+
+  /**
+   * Finish and push last entries
+   */
+  protected void finish() {
+    // push entries
+    if (!list.isEmpty()) {
+      logger.info("Imported last " + list.size() + " library entries");
+      processor.processNextEntries(list, processedEntries);
+      processedEntries += list.size();
+      list = null;
+    }
+
+    logger.info(processedEntries + "  library entries imported");
+  }
 
 }

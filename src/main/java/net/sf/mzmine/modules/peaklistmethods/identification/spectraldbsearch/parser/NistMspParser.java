@@ -28,28 +28,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.SpectralMatchTask;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
-import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 
-public class NistMspParser implements SpectralDBParser {
+public class NistMspParser extends SpectralDBParser {
+
+  public NistMspParser(int bufferEntries, LibraryEntryProcessor processor) {
+    super(bufferEntries, processor);
+  }
 
   private static Logger logger = Logger.getLogger(NistMspParser.class.getName());
 
   @Override
-  public @Nonnull List<SpectralMatchTask> parse(AbstractTask mainTask, PeakList peakList,
-      ParameterSet parameters, File dataBaseFile) throws IOException {
+  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
     logger.info("Parsing NIST msp spectral library " + dataBaseFile.getAbsolutePath());
-    List<SpectralMatchTask> tasks = new ArrayList<>();
-    List<SpectralDBEntry> list = new ArrayList<>();
 
+    int correct = 0;
     boolean isData = false;
     Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
     List<DataPoint> dps = new ArrayList<>();
@@ -58,10 +55,8 @@ public class NistMspParser implements SpectralDBParser {
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       for (String l; (l = br.readLine()) != null;) {
         // main task was canceled?
-        if (mainTask.isCanceled()) {
-          for (SpectralMatchTask t : tasks)
-            t.cancel();
-          return new ArrayList<>();
+        if (mainTask != null && mainTask.isCanceled()) {
+          return false;
         }
         try {
           if (l.length() > 1) {
@@ -101,39 +96,20 @@ public class NistMspParser implements SpectralDBParser {
             fields = new EnumMap<>(fields);
             dps.clear();
             if (entry.getPrecursorMZ() != null) {
-              list.add(entry);
-              // progress
-              if (list.size() % 1000 == 0) {
-                // start new task for every 1000 entries
-                logger.info("Imported " + list.size() + " library entries");
-                SpectralMatchTask task =
-                    new SpectralMatchTask(peakList, parameters, tasks.size() * 1000 + 1, list);
-                MZmineCore.getTaskController().addTask(task);
-                tasks.add(task);
-                // new list
-                list = new ArrayList<>();
-              }
-            } else
-              logger.log(Level.WARNING,
-                  "Entry was not added: No precursor mz" + entry.getField(DBEntryField.NAME));
-            // reset
-            isData = false;
+              addLibraryEntry(entry);
+              correct++;
+            }
           }
+          // reset
+          isData = false;
         } catch (Exception ex) {
           logger.log(Level.WARNING, "Error for entry", ex);
         }
       }
+      // finish and process all entries
+      finish();
+      return true;
     }
-    if (!list.isEmpty()) {
-      // start last task
-      SpectralMatchTask task =
-          new SpectralMatchTask(peakList, parameters, tasks.size() * 1000 + 1, list);
-      MZmineCore.getTaskController().addTask(task);
-      tasks.add(task);
-    }
-
-    logger.info((tasks.size() * 1000 + list.size()) + " NIST msp library entries imported");
-    return tasks;
   }
 
 }
