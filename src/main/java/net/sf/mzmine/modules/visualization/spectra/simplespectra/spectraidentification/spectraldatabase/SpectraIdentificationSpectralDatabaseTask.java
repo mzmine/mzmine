@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -29,15 +30,12 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.parser.GnpsJsonParser;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.parser.JdxParser;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.parser.MonaJsonParser;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.parser.NistMspParser;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.parser.SpectralDBParser;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.files.FileTypeFilter;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import net.sf.mzmine.util.spectraldb.parser.AutoLibraryParser;
+import net.sf.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 
 /**
  * Task to compare single spectra with spectral databases
@@ -146,46 +144,31 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
    * @return
    */
   private List<SpectralMatchTask> parseFile(File dataBaseFile) {
-    FileTypeFilter json = new FileTypeFilter("json", "");
-    FileTypeFilter msp = new FileTypeFilter("msp", "");
-    FileTypeFilter jdx = new FileTypeFilter("jdx", "");
-    if (json.accept(dataBaseFile)) {
-      // test Gnps, jdx and MONA json parser
-      SpectralDBParser[] parser =
-          new SpectralDBParser[] {new GnpsJsonParser(), new MonaJsonParser()};
-      for (SpectralDBParser p : parser) {
-        try {
-          List<SpectralMatchTask> list =
-              p.parse(this, parameters, dataBaseFile, spectraPlot, currentScan);
-          if (!list.isEmpty())
-            return list;
-        } catch (Exception ex) {
-        }
+    // one task for every 1000 entries
+    List<SpectralMatchTask> tasks = new ArrayList<>();
+    AutoLibraryParser parser = new AutoLibraryParser(1000, new LibraryEntryProcessor() {
+      @Override
+      public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
+        // start last task
+        SpectralMatchTask task =
+            new SpectralMatchTask(parameters, alreadyProcessed + 1, list, spectraPlot, currentScan);
+        MZmineCore.getTaskController().addTask(task);
+        tasks.add(task);
       }
-    } else if (msp.accept(dataBaseFile)) {
-      // load NIST msp format
-      NistMspParser parser = new NistMspParser();
-      try {
-        List<SpectralMatchTask> list =
-            parser.parse(this, parameters, dataBaseFile, spectraPlot, currentScan);
-        if (!list.isEmpty())
-          return list;
-      } catch (Exception ex) {
-      }
-    } else if (jdx.accept(dataBaseFile)) {
-      // load jdx format
-      JdxParser parser = new JdxParser();
-      try {
-        List<SpectralMatchTask> list =
-            parser.parse(this, parameters, dataBaseFile, spectraPlot, currentScan);
-        if (!list.isEmpty())
-          return list;
-      } catch (Exception ex) {
-      }
-    } else {
-      logger.log(Level.WARNING, "Unsupported file format: " + dataBaseFile.getAbsolutePath());
+    });
+
+    // return tasks
+    try {
+      // parse and create spectral matching tasks for batches of entries
+      if (parser.parse(this, dataBaseFile))
+        return tasks;
+      else
+        return new ArrayList<>();
+    } catch (IOException e) {
+      logger.log(Level.WARNING, "Library parsing error for file " + dataBaseFile.getAbsolutePath(),
+          e);
+      return new ArrayList<>();
     }
-    return new ArrayList<>();
   }
 
 }

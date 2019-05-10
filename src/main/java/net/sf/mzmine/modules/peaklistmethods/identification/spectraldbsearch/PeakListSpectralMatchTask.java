@@ -32,9 +32,6 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBPeakIdentity;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -44,8 +41,11 @@ import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
+import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
-public class SpectralMatchTask extends AbstractTask {
+public class PeakListSpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -74,7 +74,7 @@ public class SpectralMatchTask extends AbstractTask {
   private int startEntry;
   private int listsize;
 
-  public SpectralMatchTask(PeakList peakList, ParameterSet parameters, int startEntry,
+  public PeakListSpectralMatchTask(PeakList peakList, ParameterSet parameters, int startEntry,
       List<SpectralDBEntry> list) {
     this.peakList = peakList;
     this.parameters = parameters;
@@ -125,6 +125,10 @@ public class SpectralMatchTask extends AbstractTask {
       for (PeakListRow row : peakList.getRows()) {
         if (row.getBestFragmentation() != null) {
           for (SpectralDBEntry ident : list) {
+            // needs precursor mz
+            if (ident.getPrecursorMZ() == null)
+              continue;
+
             SpectraSimilarity sim = spectraDBMatch(row, ident);
             if (sim != null) {
               count++;
