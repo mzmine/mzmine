@@ -18,15 +18,19 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid;
 
-import java.util.ArrayList;
-
-import javax.annotation.Nonnull;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+
+/**
+ * Remove peaks below the given noise level.
+ * Note that the module is bypassed in the MassDetectionTask to speed up noise removal. Thus, changes within
+ * this module will have no effect in some cases. This is just a temporary hack to speed up noise removal in MZMine2.
+ */
 public class CentroidMassDetector implements MassDetector {
 
   public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {

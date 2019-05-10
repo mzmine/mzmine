@@ -315,10 +315,14 @@ public class MassDetectionTask extends AbstractTask {
 
   }
 
+  /**
+   * Temporary hack to speed up mass detection with centroid module and not storing peaks on disc.
+   * This hack will be removed with the next MZMine module.
+   */
   public void runFast() {
     int indexOfPeriod = dataFile.getName().indexOf(".");
       setStatus(TaskStatus.PROCESSING);
-      logger.info("Started FAST mass detector on " + dataFile);
+      logger.info("Started mass detector on " + dataFile + ". Use the faster version of mass detection algorithm.");
 
       final Scan scans[] = scanSelection.getMatchingScans(dataFile);
       totalScans = scans.length;
