@@ -61,7 +61,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   private final double minSimilarity;
   private final int minMatch;
 
-  private List<SpectralMatchTask> tasks;
+  private List<PeakListSpectralMatchTask> tasks;
 
   private int totalTasks;
 
@@ -159,15 +159,15 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    * @param dataBaseFile
    * @return
    */
-  private List<SpectralMatchTask> parseFile(File dataBaseFile) {
+  private List<PeakListSpectralMatchTask> parseFile(File dataBaseFile) {
     //
-    List<SpectralMatchTask> tasks = new ArrayList<>();
+    List<PeakListSpectralMatchTask> tasks = new ArrayList<>();
     AutoLibraryParser parser = new AutoLibraryParser(1000, new LibraryEntryProcessor() {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
-        SpectralMatchTask task =
-            new SpectralMatchTask(peakList, parameters, alreadyProcessed + 1, list);
+        PeakListSpectralMatchTask task =
+            new PeakListSpectralMatchTask(peakList, parameters, alreadyProcessed + 1, list);
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }

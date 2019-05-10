@@ -45,7 +45,7 @@ import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
-public class SpectralMatchTask extends AbstractTask {
+public class PeakListSpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -74,7 +74,7 @@ public class SpectralMatchTask extends AbstractTask {
   private int startEntry;
   private int listsize;
 
-  public SpectralMatchTask(PeakList peakList, ParameterSet parameters, int startEntry,
+  public PeakListSpectralMatchTask(PeakList peakList, ParameterSet parameters, int startEntry,
       List<SpectralDBEntry> list) {
     this.peakList = peakList;
     this.parameters = parameters;
