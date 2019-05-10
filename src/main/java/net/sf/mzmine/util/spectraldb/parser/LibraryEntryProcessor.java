@@ -28,6 +28,13 @@ import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
  */
 public interface LibraryEntryProcessor {
 
+  /**
+   * Process next batch of spectral db entries. This should be done in a separate thread. To not
+   * interrupt the parser as this method is called from the parser thread.
+   * 
+   * @param list
+   * @param alreadyProcessed
+   */
   public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed);
 
 }
