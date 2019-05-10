@@ -43,6 +43,7 @@ public class AutoLibraryParser extends SpectralDBParser {
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
     FileTypeFilter json = new FileTypeFilter("json", "");
     FileTypeFilter msp = new FileTypeFilter("msp", "");
+    FileTypeFilter jdx = new FileTypeFilter("jdx", "");
     if (json.accept(dataBaseFile)) {
       // test Gnps and MONA json parser
       SpectralDBParser[] parser =
@@ -61,6 +62,15 @@ public class AutoLibraryParser extends SpectralDBParser {
     } else if (msp.accept(dataBaseFile)) {
       // load NIST msp format
       NistMspParser parser = new NistMspParser(bufferEntries, processor);
+      try {
+        boolean state = parser.parse(mainTask, dataBaseFile);
+        if (state)
+          return state;
+      } catch (Exception ex) {
+      }
+    } else if (jdx.accept(dataBaseFile)) {
+      // load jdx format
+      JdxParser parser = new JdxParser(bufferEntries, processor);
       try {
         boolean state = parser.parse(mainTask, dataBaseFile);
         if (state)
