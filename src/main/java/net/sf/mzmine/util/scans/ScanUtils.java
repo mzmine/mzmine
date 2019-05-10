@@ -366,7 +366,7 @@ public class ScanUtils {
    * @param mzRange m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
-  public static int findMostIntensivePeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
+  public static int findMostIntensePeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
     int k = findFirstPeakWithin(dataPoints, mzRange);
     if (k < 0) return -1;
     int mostIntensive = k;

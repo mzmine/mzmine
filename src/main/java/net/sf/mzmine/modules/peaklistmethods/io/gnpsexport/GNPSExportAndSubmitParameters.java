@@ -106,7 +106,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
       new BooleanParameter("Open folder", "Opens the export folder", false);
 
 
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS", "Merge high qualitative MS/MS instead of exporting just the most intensive one.", new MsMsSpectraMergeParameters(), true);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS (experimental)", "Merge high-quality MS/MS instead of exporting just the most intensive one.", new MsMsSpectraMergeParameters(), true);
 
 
   public GNPSExportAndSubmitParameters() {
