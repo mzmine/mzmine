@@ -91,13 +91,20 @@ public class MsMsSpectraMergeModule implements MZmineModule {
         final double npeaksFilter = parameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue();
         switch (mode) {
             case CONSECUTIVE_SCANS:
+                // merge all consecutive MS/MS, remove peaks if they do not occur consistently in merged spectra, return the list of merged spectra
                 return Arrays.stream(row.getPeaks()).flatMap(x->mergeConsecutiveScans(x,massList).stream()).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
             case SAME_SAMPLE:
+                // first merge all consecutive scans. Afterwards, merge all MS/MS within the same sample.
+                // Remove peaks if they do not occur consistently in merged spectra. Returns a merged MS/MS for each sample
                 return Arrays.stream(row.getPeaks()).map(x->mergeFromSameSample(x,massList)).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
             case ACROSS_SAMPLES:
+                // first merge all consecutive scans. Afterwards merge all MS/MS within the same sample. Finally, merge
+                // all MS/MS across samples that belong to the same feature. Remove peaks if they do not occur consistently in merged spectra.
+                // returns a single merged spectrum
                 MergedSpectrum mergedSpectrum = mergeAcrossSamples(row,massList).filterByRelativeNumberOfScans(npeaksFilter);
                 return mergedSpectrum.data.length==0 ? Collections.emptyList() : Collections.singletonList(mergedSpectrum);
             default:
+                // should never be called
                 return Collections.emptyList();
         }
     }
