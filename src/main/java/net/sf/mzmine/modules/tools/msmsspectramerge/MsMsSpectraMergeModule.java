@@ -28,6 +28,7 @@ import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.scans.ScanUtils;
 import org.apache.commons.math3.special.Erf;
 import org.slf4j.LoggerFactory;
@@ -153,7 +154,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @return all merged spectra of consecutive MS/MS scans of the given feature
      */
     public List<MergedSpectrum> mergeConsecutiveScans(Feature feature, String massList) {
-        final double ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue().doubleValue();
+        MZTolerance ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue();
         final double isolationWindowOffset = parameters.getParameter(MsMsSpectraMergeParameters.ISOLATION_WINDOW_OFFSET).getValue();
         final double isolationWindowWidth = parameters.getParameter(MsMsSpectraMergeParameters.ISOLATION_WINDOW_WIDTH).getValue();
         FragmentScan[] allFragmentScans = FragmentScan.getAllFragmentScansFor(feature, massList, Range.closed(isolationWindowOffset-isolationWindowWidth, isolationWindowOffset + isolationWindowWidth), ppm);
@@ -217,7 +218,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
             merge every scan if its cosine is above the cosine threshold
          */
         final double cosineThreshold = parameters.getParameter(MsMsSpectraMergeParameters.COSINE_PARAMETER).getValue();
-        final double ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue().doubleValue();
+        final MZTolerance massTolerance = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue();
         final MzMergeMode mzMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.MZ_MERGE_MODE).getValue();
         final IntensityMergeMode intensityMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.INTENSITY_MERGE_MODE).getValue();
         MergedSpectrum initial = bestOne;
@@ -239,15 +240,15 @@ public class MsMsSpectraMergeModule implements MZmineModule {
             }
             lowestIntensityToConsider = lowestIntensityToConsider*0.01;
         }
-        final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive,initialMostIntensive,ppm,lowestIntensityToConsider, cosineRange);
+        final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive,initialMostIntensive,massTolerance,lowestIntensityToConsider, cosineRange);
         for (int k=1; k < toMerge.size(); ++k) {
             MergedSpectrum scan = toMerge.get(k);
             DataPoint[] dataPoints = scan.data;
             final DataPoint[] mostIntensive = ScanUtils.extractMostIntensivePeaksAcrossMassRange(dataPoints, Range.closed(50d,150d), 6);
-            final double norm = ScanUtils.probabilityProductUnnormalized(mostIntensive,mostIntensive,ppm,lowestIntensityToConsider,cosineRange);
-            final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive, mostIntensive, ppm, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
+            final double norm = ScanUtils.probabilityProductUnnormalized(mostIntensive,mostIntensive,massTolerance,lowestIntensityToConsider,cosineRange);
+            final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive, mostIntensive, massTolerance, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
             if (cosine >= cosineThreshold) {
-                initial = merge(initial, scan, mzMergeMode, intensityMergeMode, ppm);
+                initial = merge(initial, scan, mzMergeMode, intensityMergeMode, massTolerance);
             } else {
                 initial.removedScansByLowCosine += scan.totalNumberOfScans();
             }
@@ -304,7 +305,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
             merge every scan if its cosine is above the cosine threshold
          */
         final double cosineThreshold = parameters.getParameter(MsMsSpectraMergeParameters.COSINE_PARAMETER).getValue();
-        final double ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue().doubleValue();
+        final MZTolerance mzTolerance = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue();
         final MzMergeMode mzMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.MZ_MERGE_MODE).getValue();
         final IntensityMergeMode intensityMergeMode = parameters.getParameter(MsMsSpectraMergeParameters.INTENSITY_MERGE_MODE).getValue();
 
@@ -315,19 +316,19 @@ public class MsMsSpectraMergeModule implements MZmineModule {
         final DataPoint[] initialMostIntensive = ScanUtils.extractMostIntensivePeaksAcrossMassRange(initial.data, Range.closed(lowestMassToConsider, 150d), 6);
         final double lowestIntensityToConsider = 0.005d * initialMostIntensive[ScanUtils.findMostIntensivePeakWithin(initialMostIntensive, Range.closed(lowestMassToConsider,scans.feature.getMZ()))].getIntensity();
         Range<Double> cosineRange = Range.closed(lowestMassToConsider, scans.feature.getMZ() - 20);
-        final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive,initialMostIntensive,ppm,lowestIntensityToConsider, cosineRange);
+        final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive,initialMostIntensive,mzTolerance,lowestIntensityToConsider, cosineRange);
         for (int k=1; k < scansToMerge.size(); ++k) {
             Scan scan = scansToMerge.get(k);
-            if (!(scan.getPolarity().equals(initial.polarity) && scan.getPrecursorCharge()==initial.precursorCharge && Math.abs(scan.getPrecursorMZ()-initial.precursorMz)<(4e-6*initial.precursorMz*ppm))) {
+            if (!(scan.getPolarity().equals(initial.polarity) && scan.getPrecursorCharge()==initial.precursorCharge && mzTolerance.checkWithinTolerance(scan.getPrecursorMZ(), initial.precursorMz))) {
                 LoggerFactory.getLogger(MsMsSpectraMergeModule.class).warn("Scan " + scan.getScanNumber() + " cannot be merged: it seems to belong to a different feature.");
                 continue;
             }
             DataPoint[] dataPoints = scan.getMassList(massList).getDataPoints();
             final DataPoint[] mostIntensive = ScanUtils.extractMostIntensivePeaksAcrossMassRange(dataPoints, cosineRange, 6);
-            final double norm = ScanUtils.probabilityProductUnnormalized(mostIntensive,mostIntensive,ppm,lowestIntensityToConsider,cosineRange);
-            final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive, mostIntensive, ppm, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
+            final double norm = ScanUtils.probabilityProductUnnormalized(mostIntensive,mostIntensive,mzTolerance,lowestIntensityToConsider,cosineRange);
+            final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive, mostIntensive, mzTolerance, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
             if (cosine >= cosineThreshold) {
-                initial = merge(initial, scan, dataPoints, mzMergeMode, intensityMergeMode, ppm);
+                initial = merge(initial, scan, dataPoints, mzMergeMode, intensityMergeMode, mzTolerance);
             } else {
                 initial.removedScansByLowCosine++;
             }
@@ -336,14 +337,14 @@ public class MsMsSpectraMergeModule implements MZmineModule {
         return initial;
     }
 
-    private static MergedSpectrum merge(MergedSpectrum left, MergedSpectrum right, MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, double ppm) {
+    private static MergedSpectrum merge(MergedSpectrum left, MergedSpectrum right, MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, MZTolerance ppm) {
         DataPoint[] byInt = right.data.clone();
         Arrays.sort(byInt, (u,v)->Double.compare(v.getIntensity(),u.getIntensity()));
         MergedDataPoint[] merge = merge(left.data, byInt, mzMergeMode, intensityMergeMode, ppm);
         return left.merge(right,merge);
     }
 
-    private static MergedSpectrum merge(MergedSpectrum left, Scan right, DataPoint[] rightData, MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, double ppm) {
+    private static MergedSpectrum merge(MergedSpectrum left, Scan right, DataPoint[] rightData, MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, MZTolerance ppm) {
         DataPoint[] byInt = rightData.clone();
         Arrays.sort(byInt, (u,v)->Double.compare(v.getIntensity(),u.getIntensity()));
         MergedDataPoint[] merge = merge(left.data, byInt, mzMergeMode, intensityMergeMode, ppm);
@@ -370,14 +371,14 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param orderedByInt peaks from scan, sorted by descending intensity
      * @return a merged spectrum. Might be the original one if no new peaks were added.
      */
-    private static MergedDataPoint[] merge(MergedDataPoint[] orderedByMz, DataPoint[] orderedByInt, MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, double expectedPPM) {
+    private static MergedDataPoint[] merge(MergedDataPoint[] orderedByMz, DataPoint[] orderedByInt, MzMergeMode mzMergeMode, IntensityMergeMode intensityMergeMode, MZTolerance expectedPPM) {
         // we assume a rather large deviation as signal peaks should be contained in more than one
         // measurement
+        expectedPPM = new MZTolerance(expectedPPM.getMzTolerance()*4, expectedPPM.getPpmTolerance()*4);
         final List<MergedDataPoint> append = new ArrayList<>();
-        final double absoluteDeviation = 400 * expectedPPM * 1e-6;
         for (int k = 0; k < orderedByInt.length; ++k) {
             final DataPoint peak = orderedByInt[k];
-            final double dev = Math.max(absoluteDeviation, peak.getMZ() * 4 * expectedPPM * 1e-6);
+            final double dev = expectedPPM.getMzToleranceForMass(peak.getMZ());
             final double lb = peak.getMZ() - dev, ub = peak.getMZ() + dev;
             int mz1 = Arrays.binarySearch(orderedByMz, peak, Comparator.comparingDouble(DataPoint::getMZ));
             if (mz1 < 0) {

@@ -18,35 +18,24 @@
 
 package net.sf.mzmine.util.scans;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.text.Format;
-import java.util.*;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
-
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 import net.sf.mzmine.util.scans.sorting.ScanSorter;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.*;
+import java.text.Format;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  * Scan related utilities
@@ -909,12 +898,12 @@ public class ScanUtils {
    *
    * @param scanLeft the first spectrum
    * @param scanRight the second spectrum
-   * @param expectedMassDeviationInPPM the width of the gaussians (corresponds to the expected mass deviation). Rather use a larger than a small value! Value is given in ppm. For peaks with m/z below 200, a absolute value of ppm*1e-6*200 is used.
+   * @param expectedMassDeviationInPPM the width of the gaussians (corresponds to the expected mass deviation). Rather use a larger than a small value! Value is given in ppm and Dalton.
    * @param noiseLevel the lowest intensity for a peak to be considered
    * @param mzRange the m/z range in which the peaks are compared. use null for the whole spectrum
    *
    */
-  public static double probabilityProduct(DataPoint[] scanLeft, DataPoint[] scanRight, double expectedMassDeviationInPPM, double noiseLevel, @Nullable  Range<Double> mzRange) {
+  public static double probabilityProduct(DataPoint[] scanLeft, DataPoint[] scanRight, MZTolerance expectedMassDeviationInPPM, double noiseLevel, @Nullable  Range<Double> mzRange) {
     double d = probabilityProductUnnormalized(scanLeft, scanRight, expectedMassDeviationInPPM, noiseLevel, mzRange);
     double l = probabilityProductUnnormalized(scanLeft, scanLeft, expectedMassDeviationInPPM, noiseLevel, mzRange);
     double r = probabilityProductUnnormalized(scanRight, scanRight, expectedMassDeviationInPPM, noiseLevel, mzRange);
@@ -924,12 +913,11 @@ public class ScanUtils {
 
   /**
    * Calculates the probability product without normalization. Usually, this method is only useful if you plan to normalize the spectra (or value) yourself.
-   * @see #probabilityProduct(DataPoint[], DataPoint[], double, double, Range)
+   * @see #probabilityProduct(DataPoint[], DataPoint[], MZTolerance, double, Range)
    */
-  public static double probabilityProductUnnormalized(DataPoint[] scanLeft, DataPoint[] scanRight, double expectedMassDeviationInPPM, double noiseLevel, @Nullable  Range<Double> mzRange) {
+  public static double probabilityProductUnnormalized(DataPoint[] scanLeft, DataPoint[] scanRight, MZTolerance expectedMassDeviationInPPM, double noiseLevel, @Nullable  Range<Double> mzRange) {
     int i, j;
     double score = 0d;
-    final double allowedDifference = Math.min(1, 1000 * expectedMassDeviationInPPM * 5e-6);
     final int nl, nr;//=left.length, nr=right.length;
     if (mzRange==null) {
       nl = scanLeft.length;
@@ -943,7 +931,8 @@ public class ScanUtils {
       j = findFirstPeakWithin(scanRight, mzRange);
       if (i < 0 || j < 0) return 0d;
     }
-
+    // gaussians are set to zero above allowedDifference to speed up computation
+    final double allowedDifference = expectedMassDeviationInPPM.getMzToleranceForMass(1000d)*5;
     while (i < nl && j < nr) {
       DataPoint lp = scanLeft[i];
       if (lp.getIntensity() < noiseLevel) {
@@ -957,7 +946,7 @@ public class ScanUtils {
       }
       final double difference = lp.getMZ() - rp.getMZ();
       if (Math.abs(difference) <= allowedDifference) {
-        final double mzabs = Math.max(200 * expectedMassDeviationInPPM * 1e-6, expectedMassDeviationInPPM * 1e-6 * Math.round(lp.getMZ() + rp.getMZ()) / 2d);
+        final double mzabs = expectedMassDeviationInPPM.getMzToleranceForMass(Math.round((lp.getMZ() + rp.getMZ()) / 2d));
         final double variance = mzabs * mzabs;
         double matchScore = probabilityProductScore(lp, rp, variance);
         score += matchScore;
@@ -988,6 +977,10 @@ public class ScanUtils {
     }
     return score;
   }
+
+  /**
+   * Calculates the product of the integrals of two gaussians centered in lp and rp with given variance
+   */
   private static double probabilityProductScore(DataPoint lp, DataPoint rp, double variance) {
     final double mzDiff = Math.abs(lp.getMZ() - rp.getMZ());
     final double constTerm = 1.0 / (Math.PI * variance * 4);

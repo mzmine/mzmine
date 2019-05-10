@@ -30,6 +30,7 @@ package net.sf.mzmine.modules.tools.msmsspectramerge;
 
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.scans.ScanUtils;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ class FragmentScan {
     private PolarityType polarity;
 
 
-    static FragmentScan[] getAllFragmentScansFor(Feature feature, String massList, Range<Double> isolationWindow, double massAccuracyInPPM) {
+    static FragmentScan[] getAllFragmentScansFor(Feature feature, String massList, Range<Double> isolationWindow, MZTolerance massAccuracy) {
         final RawDataFile file = feature.getDataFile();
         final int[] ms2 = feature.getAllMS2FragmentScanNumbers().clone();
         Arrays.sort(ms2);
@@ -111,14 +112,14 @@ class FragmentScan {
                     precursorScan2 != null ? precursorScan2.getScanNumber() : null,
                     subms2,
                     isolationWindow,
-                    massAccuracyInPPM
+                    massAccuracy
             ));
             i = j;
         }
         return fragmentScans.toArray(new FragmentScan[0]);
     }
 
-    FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber, Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow, double massAccuracyInPPM) {
+    FragmentScan(RawDataFile origin, Feature feature, String massList, Integer ms1ScanNumber, Integer ms1ScanNumber2, int[] ms2ScanNumbers, Range<Double> isolationWindow, MZTolerance massAccuracy) {
         this.origin = origin;
         this.feature = feature;
         this.massList = massList;
@@ -126,10 +127,10 @@ class FragmentScan {
         this.ms1SucceedingScanNumber = ms1ScanNumber2;
         this.ms2ScanNumbers = ms2ScanNumbers;
         double[] precInfo = new double[2];
-        detectPrecursor(ms1ScanNumber, feature.getMZ(), isolationWindow, massAccuracyInPPM, precInfo);
+        detectPrecursor(ms1ScanNumber, feature.getMZ(), isolationWindow, massAccuracy, precInfo);
         this.precursorIntensityLeft = precInfo[0];
         this.chimericIntensityLeft = precInfo[1];
-        detectPrecursor(ms1SucceedingScanNumber, feature.getMZ(), isolationWindow, massAccuracyInPPM, precInfo);
+        detectPrecursor(ms1SucceedingScanNumber, feature.getMZ(), isolationWindow, massAccuracy, precInfo);
         this.precursorIntensityRight = precInfo[0];
         this.chimericIntensityRight = precInfo[1];
     }
@@ -161,16 +162,16 @@ class FragmentScan {
     /**
      * search for precursor peak in MS1
      */
-    private void detectPrecursor(int ms1Scan, double precursorMass, Range<Double> isolationWindow, double ppm, double[] precInfo) {
+    private void detectPrecursor(int ms1Scan, double precursorMass, Range<Double> isolationWindow, MZTolerance massAccuracy, double[] precInfo) {
         Scan spectrum = origin.getScan(ms1Scan);
         this.precursorCharge = spectrum.getPrecursorCharge();
         this.polarity = spectrum.getPolarity();
         DataPoint[] dps = spectrum.getDataPointsByMass(Range.closed(precursorMass+isolationWindow.lowerEndpoint(), precursorMass+isolationWindow.upperEndpoint()));
-        // for simplicity, just use the most intensive peak within ppm range
+        // for simplicity, just use the most intensive peak within massAccuracy range
         int bestPeak = -1;
         double highestIntensity = 0d;
         for (int mppm = 1; mppm < 3; ++mppm) {
-            final double maxDiff = (mppm * ppm) * 1e-6 * Math.max(200, precursorMass);
+            final double maxDiff = massAccuracy.getMzToleranceForMass(precursorMass)*mppm;
             for (int i = 0; i < dps.length; ++i) {
                 final DataPoint p = dps[i];
                 if (p.getIntensity() <= highestIntensity)
@@ -193,7 +194,7 @@ class FragmentScan {
         for (int i = 0; i < dps.length; ++i) {
             if (i != bestPeak && dps[i].getIntensity()>threshold) {
                 // check for isotope peak
-                final double maxDiff = ppm * 1e-6 * Math.max(200, precursorMass) + 0.03;
+                final double maxDiff = massAccuracy.getMzToleranceForMass(precursorMass) + 0.03;
                 for (int k = 1; k < 5; ++k) {
                     final double isoMz = precursorMass + k * 1.0015;
                     final double diff = isoMz - dps[i].getMZ();

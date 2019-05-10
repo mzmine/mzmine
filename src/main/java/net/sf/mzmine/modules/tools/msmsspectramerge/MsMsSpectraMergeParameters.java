@@ -27,8 +27,8 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
+import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -45,7 +45,7 @@ public class MsMsSpectraMergeParameters extends SimpleParameterSet {
 
     public static final PercentParameter PEAK_COUNT_PARAMETER = new PercentParameter("Peak count threshold ", "After merging, remove all peaks which occur in less than X % of the merged spectra.", 0.2d, 0d, 1d);
 
-    public static final IntegerParameter MASS_ACCURACY = new IntegerParameter("expected mass deviation (ppm)", "Expected mass deviation of your measurement in ppm (parts per million). We recommend to use a rather large value, e.g. 10 for Orbitrap, 15 for Q-ToF, 100 for QQQ.", 15, 1, 100);
+    public static final MZToleranceParameter MASS_ACCURACY = new MZToleranceParameter("Expected mass deviation", "Expected mass deviation of your measurement in ppm (parts per million) and Dalton. We recommend to use a rather large value, e.g. 10 for Orbitrap, 15 for Q-ToF, 100 for QQQ.");
 
     public static final ComboParameter<MzMergeMode> MZ_MERGE_MODE = new ComboParameter<MzMergeMode>("m/z merge mode", "How to merge the m/z values of peaks from different spectra with similar mass. Choose 'most intensive' to pick always the m/z of the best peak - this is a very conservative and safe option. However, 'weighted average (cuttoff outliers)' will often have better results.", MzMergeMode.values(), MzMergeMode.WEIGHTED_AVERAGE_CUTOFF_OUTLIERS);
 
