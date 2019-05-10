@@ -64,9 +64,9 @@ public abstract class SpectralDBParser {
       logger.info("Imported " + list.size() + " library entries");
       // push entries
       processor.processNextEntries(list, processedEntries);
+      processedEntries += list.size();
       // new list
       list = new ArrayList<>();
-      processedEntries += list.size();
     }
   }
 
