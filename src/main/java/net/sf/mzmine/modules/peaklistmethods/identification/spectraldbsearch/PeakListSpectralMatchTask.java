@@ -125,6 +125,10 @@ public class PeakListSpectralMatchTask extends AbstractTask {
       for (PeakListRow row : peakList.getRows()) {
         if (row.getBestFragmentation() != null) {
           for (SpectralDBEntry ident : list) {
+            // needs precursor mz
+            if (ident.getPrecursorMZ() == null)
+              continue;
+
             SpectraSimilarity sim = spectraDBMatch(row, ident);
             if (sim != null) {
               count++;

@@ -64,7 +64,7 @@ public class GnpsJsonParser extends SpectralDBParser {
           reader = Json.createReader(new StringReader(l));
           JsonObject json = reader.readObject();
           SpectralDBEntry entry = getDBEntry(json);
-          if (entry != null && entry.getPrecursorMZ() != null) {
+          if (entry != null) {
             correct++;
             // add entry and process
             addLibraryEntry(entry);

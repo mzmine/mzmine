@@ -95,10 +95,9 @@ public class NistMspParser extends SpectralDBParser {
                 new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
             fields = new EnumMap<>(fields);
             dps.clear();
-            if (entry.getPrecursorMZ() != null) {
-              addLibraryEntry(entry);
-              correct++;
-            }
+            // add and push
+            addLibraryEntry(entry);
+            correct++;
           }
           // reset
           isData = false;

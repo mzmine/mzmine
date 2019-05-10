@@ -112,7 +112,7 @@ public class MonaJsonParser extends SpectralDBParser {
           reader = Json.createReader(new StringReader(l));
           JsonObject json = reader.readObject();
           SpectralDBEntry entry = getDBEntry(json);
-          if (entry != null && entry.getPrecursorMZ() != null) {
+          if (entry != null) {
             addLibraryEntry(entry);
             correct++;
           } else
