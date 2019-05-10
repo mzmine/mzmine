@@ -33,7 +33,7 @@ public interface Task extends Runnable {
   public String getErrorMessage();
 
   /**
-   * The standard TaskPriority assing to this task
+   * The standard TaskPriority assign to this task
    * 
    * @return
    */

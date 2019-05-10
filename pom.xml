@@ -117,6 +117,16 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
+		<repository>
+			 <id>jzy3d-snapshots</id>
+			 <name>Jzy3d Snapshots</name>
+			 <url>http://maven.jzy3d.org/snapshots </url>
+		</repository>
+		<repository>
+			 <id>jzy3d-releases</id>
+			 <name>Jzy3d Releases</name>
+			 <url>http://maven.jzy3d.org/releases </url>
+		</repository>
 	</repositories>
 
 	<dependencies>
@@ -702,7 +712,31 @@
 			<version>${threetenbp.version}</version>
 		</dependency>
 		<!-- End of swagger dependencies -->
-
+		
+		<!-- Fxyz dependencies -->
+		
+		<dependency>
+		  	<groupId>org.fxyz3d</groupId>
+		  	<artifactId>fxyz3d</artifactId>
+		  	<version>0.5.0</version>
+		</dependency>
+		<dependency>
+  			<groupId>org.fxyz3d</groupId>
+		  	<artifactId>fxyz3d-client</artifactId>
+		  	<version>0.5.0</version>
+		</dependency>
+		<dependency>
+		  	<groupId>org.fxyz3d</groupId>
+		  	<artifactId>fxyz3d-importers</artifactId>
+		  	<version>0.5.0</version>
+		</dependency>
+		<dependency>
+  			<groupId>org.jzy3d</groupId>
+  			<artifactId>jzy3d-api</artifactId>
+  			<version>1.0.0</version>
+		</dependency>
+		<!-- End of Fxyz dependencies-->
+		
 	</dependencies>
 
 </project>
