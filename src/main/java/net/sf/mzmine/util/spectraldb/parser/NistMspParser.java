@@ -78,13 +78,16 @@ public class NistMspParser extends SpectralDBParser {
               }
             } else {
               // data?
-              String[] data = l.split(" ");
-              if (data.length == 2) {
-                try {
-                  dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
-                      Double.parseDouble(data[1])));
-                  isData = true;
-                } catch (Exception e) {
+              String[] dataAndComment = l.split("\"");
+              for (String dataPair : dataAndComment) {
+                String[] data = dataPair.split(" ");
+                if (data.length == 2) {
+                  try {
+                    dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
+                        Double.parseDouble(data[1])));
+                    isData = true;
+                  } catch (Exception e) {
+                  }
                 }
               }
             }
