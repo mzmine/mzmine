@@ -36,7 +36,7 @@ import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitParameters.RowFilter;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
-import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMerge;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -73,7 +73,7 @@ public class GNPSmgfExportTask extends AbstractTask {
   private int currentIndex = 0;
   private final String massListName;
   private final MsMsSpectraMergeParameters mergeParameters;
-  private final MsMsSpectraMerge merger;
+  private final MsMsSpectraMergeModule merger;
 
   // by robin
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
@@ -94,7 +94,7 @@ public class GNPSmgfExportTask extends AbstractTask {
     this.filter = parameters.getParameter(GNPSExportAndSubmitParameters.FILTER).getValue();
     if (parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
       mergeParameters = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getEmbeddedParameters();
-      merger = new MsMsSpectraMerge(mergeParameters);
+      merger = new MsMsSpectraMergeModule(mergeParameters);
     } else {
       mergeParameters = null;
       merger = null;

@@ -16,7 +16,7 @@ import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MergeMode;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
-import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMerge;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -54,7 +54,7 @@ public class SiriusExportTask extends AbstractTask {
     private final String massListName;
     protected long finishedRows, totalRows;
 
-    private final MsMsSpectraMerge mergeMethod;
+    private final MsMsSpectraMergeModule mergeMethod;
     private final MsMsSpectraMergeParameters mergeParameters;
 
     private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
@@ -74,7 +74,7 @@ public class SiriusExportTask extends AbstractTask {
         this.massListName = parameters.getParameter(SiriusExportParameters.MASS_LIST).getValue();
         OptionalModuleParameter<MsMsSpectraMergeParameters> parameter = parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER);
         mergeParameters = parameter.getValue().booleanValue() ? parameter.getEmbeddedParameters() : null;
-        mergeMethod = mergeParameters==null ? null : new MsMsSpectraMerge(mergeParameters);
+        mergeMethod = mergeParameters==null ? null : new MsMsSpectraMergeModule(mergeParameters);
     }
 
     public void run() {
@@ -188,7 +188,7 @@ public class SiriusExportTask extends AbstractTask {
                     writeCorrelationSpectrum(writer, f);
                     if (mergeMode==MergeMode.CONSECUTIVE_SCANS) {
                         // merge MS/MS
-                        List<MergedSpectrum> spectra = new MsMsSpectraMerge(mergeParameters).mergeConsecutiveScans(f,massListName);
+                        List<MergedSpectrum> spectra = new MsMsSpectraMergeModule(mergeParameters).mergeConsecutiveScans(f,massListName);
                         for (MergedSpectrum spectrum : spectra) {
                             writeHeader(writer,row,f.getDataFile(),polarity,MsType.MSMS,spectrum.filterByRelativeNumberOfScans(mergeParameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue()));
                             writeSpectrum(writer, spectrum.data);

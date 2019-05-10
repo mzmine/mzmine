@@ -53,15 +53,15 @@ import java.util.stream.Collectors;
  * 6. Merging all merged spectra across samples belonging to the same feature using the same routine
  * 7. removing peaks from merged spectra which are not consistent across the merged spectra
  */
-public class MsMsSpectraMerge implements MZmineModule {
+public class MsMsSpectraMergeModule implements MZmineModule {
 
     private final MsMsSpectraMergeParameters parameters;
 
-    public MsMsSpectraMerge() {
-        this.parameters = (MsMsSpectraMergeParameters) MZmineCore.getConfiguration().getModuleParameters(MsMsSpectraMerge.class);
+    public MsMsSpectraMergeModule() {
+        this.parameters = (MsMsSpectraMergeParameters) MZmineCore.getConfiguration().getModuleParameters(MsMsSpectraMergeModule.class);
     }
 
-    public MsMsSpectraMerge(MsMsSpectraMergeParameters parameters) {
+    public MsMsSpectraMergeModule(MsMsSpectraMergeParameters parameters) {
         this.parameters = parameters;
     }
 
@@ -300,7 +300,7 @@ public class MsMsSpectraMerge implements MZmineModule {
         for (int k=1; k < scansToMerge.size(); ++k) {
             Scan scan = scansToMerge.get(k);
             if (!(scan.getPolarity().equals(initial.polarity) && scan.getPrecursorCharge()==initial.precursorCharge && Math.abs(scan.getPrecursorMZ()-initial.precursorMz)<(4e-6*initial.precursorMz*ppm))) {
-                LoggerFactory.getLogger(MsMsSpectraMerge.class).warn("Scan " + scan.getScanNumber() + " cannot be merged: it seems to belong to a different feature.");
+                LoggerFactory.getLogger(MsMsSpectraMergeModule.class).warn("Scan " + scan.getScanNumber() + " cannot be merged: it seems to belong to a different feature.");
                 continue;
             }
             DataPoint[] dataPoints = scan.getMassList(massList).getDataPoints();

@@ -103,6 +103,7 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection.Ta
 import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
 import net.sf.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
 import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
@@ -201,7 +202,7 @@ public class MZmineModulesList {
 
       // Tools
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class,
-      IsotopePatternPreviewModule.class
+      IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class
 
   };
 }
