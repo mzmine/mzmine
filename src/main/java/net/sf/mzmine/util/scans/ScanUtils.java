@@ -860,7 +860,7 @@ public class ScanUtils {
   }
 
   /**
-   * Move the mass window given by binRange across the spectrum, keep only the numberOfPeaksPerBin most intensive peaks
+   * Move the mass window given by binRange across the spectrum, keep only the numberOfPeaksPerBin most intense peaks
    * within the window. This is a very simple and robust method to remove most noise in the spectrum without having to estimate any
    * noise intensity parameter.
    * @param dataPoints spectrum
@@ -868,7 +868,7 @@ public class ScanUtils {
    * @param numberOfPeaksPerBin number of peaks to keep within the sliding mass window
    * @return
    */
-  public static DataPoint[] extractMostIntensivePeaksAcrossMassRange(DataPoint[] dataPoints, Range<Double> binRange, int numberOfPeaksPerBin) {
+  public static DataPoint[] extractMostIntensePeaksAcrossMassRange(DataPoint[] dataPoints, Range<Double> binRange, int numberOfPeaksPerBin) {
     double offset = binRange.lowerEndpoint();
     final double width = binRange.upperEndpoint()-binRange.lowerEndpoint();
     final HashMap<Integer, List<DataPoint>> bins = new HashMap<>();
