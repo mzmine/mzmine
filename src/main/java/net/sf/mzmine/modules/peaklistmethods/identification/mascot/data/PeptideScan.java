@@ -18,23 +18,17 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot.data;
 
-import java.util.Arrays;
-import java.util.TreeSet;
-import java.util.Vector;
-
-import javax.annotation.Nonnull;
-
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.datamodel.PolarityType;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import com.google.common.collect.Range;
+import com.google.common.primitives.Ints;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.util.PeptideSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.scans.ScanUtils;
-import com.google.common.collect.Range;
-import com.google.common.primitives.Ints;
+
+import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.TreeSet;
+import java.util.Vector;
 
 public class PeptideScan implements Scan {
 
@@ -384,6 +378,11 @@ public class PeptideScan implements Scan {
   @Override
   public MassList getMassList(@Nonnull String name) {
     // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public MassList addMassListWithoutNotification(MassList massList) {
     return null;
   }
 

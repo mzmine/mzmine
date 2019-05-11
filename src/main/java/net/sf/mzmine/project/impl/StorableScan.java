@@ -27,7 +27,6 @@ import net.sf.mzmine.util.scans.ScanUtils;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -310,72 +309,9 @@ public class StorableScan implements Scan {
     return ScanUtils.scanToString(this, false);
   }
 
-
-  public synchronized void addMassList(final String massListName, ByteBuffer buffer) {
-    try {
-      int id = rawDataFile.storeDataPoints(buffer);
-      StorableMassList storedMassList = new StorableMassList(rawDataFile, id, massListName, this);
-
-      // Add the new mass list
-      massLists.add(storedMassList);
-
-      // Add the mass list to the tree model
-      MZmineProjectImpl project =
-              (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
-
-      // Check if we are adding to the current project
-      if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
-        final RawDataTreeModel treeModel = project.getRawDataTreeModel();
-        final MassList newMassList = storedMassList;
-        Runnable swingCode = new Runnable() {
-          @Override
-          public void run() {
-            treeModel.addObject(newMassList);
-          }
-        };
-
-        try {
-          if (SwingUtilities.isEventDispatchThread())
-            swingCode.run();
-          else
-            SwingUtilities.invokeAndWait(swingCode);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-
-      }
-    } catch (IOException e) {
-      logger.severe("Could not write data to temporary file " + e.toString());
-      return;
-    }
-  }
-
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
-
-    // Remove all mass lists with same name, if there are any
-    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
-    for (MassList ml : currentMassLists) {
-      if (ml.getName().equals(massList.getName()))
-        removeMassList(ml);
-    }
-
-    StorableMassList storedMassList;
-    if (massList instanceof StorableMassList) {
-      storedMassList = (StorableMassList) massList;
-    } else {
-      DataPoint massListDataPoints[] = massList.getDataPoints();
-      try {
-        int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
-        storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
-      } catch (IOException e) {
-        logger.severe("Could not write data to temporary file " + e.toString());
-        return;
-      }
-    }
-
-    // Add the new mass list
-    massLists.add(storedMassList);
+    MassList storedMassList = addMassListWithoutNotification(massList);
 
     // Add the mass list to the tree model
     MZmineProjectImpl project =
@@ -433,6 +369,35 @@ public class StorableScan implements Scan {
 
     }
 
+  }
+
+  @Override
+  public MassList addMassListWithoutNotification(@Nonnull MassList massList) {
+    // Remove all mass lists with same name, if there are any
+    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
+    for (MassList ml : currentMassLists) {
+      if (ml.getName().equals(massList.getName()))
+        removeMassList(ml);
+    }
+
+    StorableMassList storedMassList;
+    if (massList instanceof StorableMassList) {
+      storedMassList = (StorableMassList) massList;
+    } else {
+      DataPoint massListDataPoints[] = massList.getDataPoints();
+      try {
+        int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
+        storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
+      } catch (IOException e) {
+        logger.severe("Could not write data to temporary file " + e.toString());
+        return null;
+      }
+    }
+
+    // Add the new mass list
+    massLists.add(storedMassList);
+
+    return storedMassList;
   }
 
   @Override

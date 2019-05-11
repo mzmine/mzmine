@@ -18,9 +18,11 @@
 
 package net.sf.mzmine.datamodel;
 
+import com.google.common.collect.Range;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.google.common.collect.Range;
+import java.util.List;
 
 public interface RawDataFile {
 
@@ -79,7 +81,7 @@ public interface RawDataFile {
 
   /**
    * Scan could be null if scanID is not contained in the raw data file
-   * 
+   *
    * @param scan Desired scan number
    * @return Desired scan
    */
@@ -105,5 +107,7 @@ public interface RawDataFile {
    * Close the file in case it is removed from the project
    */
   public void close();
+
+  public void notifyUpdatedMassLists(List<MassList> massList);
 
 }

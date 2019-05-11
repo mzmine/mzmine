@@ -18,10 +18,10 @@
 
 package net.sf.mzmine.datamodel;
 
+import com.google.common.collect.Range;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import com.google.common.collect.Range;
 
 /**
  * This class represent one spectrum of a raw data file.
@@ -94,5 +94,12 @@ public interface Scan extends MassSpectrum {
   public void addMassList(@Nonnull MassList massList);
 
   public void removeMassList(@Nonnull MassList massList);
+
+  /**
+    This will add a mass list, but won't trigger an update in the event queue.
+   You have to call RawDataFile#notifyUpdatedMassLists() to trigger the update afterwards
+   * @param massList
+   */
+  public MassList addMassListWithoutNotification(@Nonnull MassList massList);
 
 }

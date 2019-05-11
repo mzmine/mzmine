@@ -19,15 +19,13 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleMassList;
 import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import net.sf.mzmine.project.impl.StorableScan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import ucar.ma2.ArrayDouble;
@@ -40,10 +38,7 @@ import ucar.nc2.Variable;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -117,15 +112,6 @@ public class MassDetectionTask extends AbstractTask {
    * @see Runnable#run()
    */
   public void run() {
-    if (!(massDetector.getModule() instanceof CentroidMassDetector) || this.saveToCDF) {
-      runSlow();
-    } else {
-      runFast();
-    }
-  }
-
-
-  public void runSlow() {
     int indexOfPeriod = dataFile.getName().indexOf(".");
 
     // String massOutLocation =
@@ -160,7 +146,7 @@ public class MassDetectionTask extends AbstractTask {
 
       final Scan scans[] = scanSelection.getMatchingScans(dataFile);
       totalScans = scans.length;
-
+      final List<MassList> massLists = new ArrayList<>();
       // Process scans one by one
       for (Scan scan : scans) {
 
@@ -173,28 +159,31 @@ public class MassDetectionTask extends AbstractTask {
         SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
 
         // Add new mass list to the scan
-        scan.addMassList(newMassList);
+        massLists.add(scan.addMassListWithoutNotification(newMassList));
 
-        curTotalIntensity = 0;
-        for (int a = 0; a < mzPeaks.length; a++) {
-          DataPoint curMzPeak = mzPeaks[a];
-          allMZ.add(curMzPeak.getMZ());
-          allIntensities.add(curMzPeak.getIntensity());
+        if (this.saveToCDF) {
 
-          curTotalIntensity += curMzPeak.getIntensity();
+          curTotalIntensity = 0;
+          for (int a = 0; a < mzPeaks.length; a++) {
+            DataPoint curMzPeak = mzPeaks[a];
+            allMZ.add(curMzPeak.getMZ());
+            allIntensities.add(curMzPeak.getIntensity());
+
+            curTotalIntensity += curMzPeak.getIntensity();
+          }
+
+          scanAcquisitionTime.add(scan.getRetentionTime());
+          pointsInScans.add(0);
+          startIndex.add(mzPeaks.length + lastPointCount);
+          totalIntensity.add(curTotalIntensity);
+
+
+          lastPointCount = mzPeaks.length + lastPointCount;
         }
-
-        scanAcquisitionTime.add(scan.getRetentionTime());
-        pointsInScans.add(0);
-        startIndex.add(mzPeaks.length + lastPointCount);
-        totalIntensity.add(curTotalIntensity);
-
-
-        lastPointCount = mzPeaks.length + lastPointCount;
 
         processedScans++;
       }
-
+      dataFile.notifyUpdatedMassLists(massLists);
       setStatus(TaskStatus.FINISHED);
 
       logger.info("Finished mass detector on " + dataFile);
@@ -313,47 +302,5 @@ public class MassDetectionTask extends AbstractTask {
       }
     }
 
-  }
-
-  /**
-   * Temporary hack to speed up mass detection with centroid module and not storing peaks on disc.
-   * This hack will be removed with the next MZMine module.
-   */
-  public void runFast() {
-    int indexOfPeriod = dataFile.getName().indexOf(".");
-      setStatus(TaskStatus.PROCESSING);
-      logger.info("Started mass detector on " + dataFile + ". Use the faster version of mass detection algorithm.");
-
-      final Scan scans[] = scanSelection.getMatchingScans(dataFile);
-      totalScans = scans.length;
-      final double noiseLevel = massDetector.getParameterSet().getParameter(CentroidMassDetectorParameters.noiseLevel).getValue();
-      // Process scans one by one
-      for (Scan scan : scans) {
-        if (scan instanceof StorableScan) {
-          FloatBuffer floatBuffer = ((StorableScan) scan).readDataPointsAsFloatBuffer();
-          final ByteBuffer buffer = ByteBuffer.allocate(floatBuffer.limit()*4);
-          while (floatBuffer.hasRemaining()) {
-            float mz = floatBuffer.get();
-            float intens = floatBuffer.get();
-            if (intens >= noiseLevel) {
-              buffer.putFloat(mz);
-              buffer.putFloat(intens);
-            }
-          }
-          buffer.rewind();
-          ((StorableScan) scan).addMassList(name, buffer);
-        } else {
-          scan.addMassList(new SimpleMassList(name, scan, Arrays.stream(scan.getDataPoints()).filter(x -> x.getIntensity() >= noiseLevel).toArray(DataPoint[]::new)));
-        }
-
-
-        if (isCanceled())
-          return;
-        processedScans++;
-      }
-
-      setStatus(TaskStatus.FINISHED);
-
-      logger.info("Finished mass detector on " + dataFile);
   }
 }
