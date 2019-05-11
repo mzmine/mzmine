@@ -54,9 +54,9 @@ public class MsMsSpectraMergeParameters extends SimpleParameterSet {
     public static final ComboParameter<MergeMode> MERGE_MODE = new ComboParameter<MergeMode>("Select spectra to merge", "'across samples' is a convenient option that will merge all MS/MS which belong to the same feature. Note that a clustering is performed automatically to filter out MS/MS which are wrongly associated with the same feature. However, 'same sample' might sometimes be the safer option if you do not thrust your alignment algorithm.",
                     MergeMode.values(), MergeMode.ACROSS_SAMPLES);
 
-
-    public static final DoubleParameter ISOLATION_WINDOW_OFFSET = new DoubleParameter("isolation window offset", "isolation window offset from the precursor m/z", NumberFormat.getNumberInstance(Locale.US), 0d);
-    public static final DoubleParameter ISOLATION_WINDOW_WIDTH = new DoubleParameter("isolation window width", "width (left and right from offset) of the isolation window", NumberFormat.getNumberInstance(Locale.US), 3d);
+    public static final DoubleParameter ISOLATION_WINDOW_OFFSET = new DoubleParameter("Isolation window offset", "isolation window offset from the precursor m/z", NumberFormat.getNumberInstance(Locale.US), 0d);
+    
+    public static final DoubleParameter ISOLATION_WINDOW_WIDTH = new DoubleParameter("Isolation window width", "width (left and right from offset) of the isolation window", NumberFormat.getNumberInstance(Locale.US), 3d);
 
 
 }

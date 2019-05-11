@@ -23,20 +23,32 @@
 
 package net.sf.mzmine.modules.tools.msmsspectramerge;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.apache.commons.math3.special.Erf;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.*;
-import net.sf.mzmine.main.MZmineCore;
+
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.scans.ScanUtils;
-import org.apache.commons.math3.special.Erf;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Module for merging MS/MS spectra. Merging is performed by:
@@ -55,16 +67,6 @@ import java.util.stream.Collectors;
  * 7. removing peaks from merged spectra which are not consistent across the merged spectra
  */
 public class MsMsSpectraMergeModule implements MZmineModule {
-
-    private final MsMsSpectraMergeParameters parameters;
-
-    public MsMsSpectraMergeModule() {
-        this.parameters = (MsMsSpectraMergeParameters) MZmineCore.getConfiguration().getModuleParameters(MsMsSpectraMergeModule.class);
-    }
-
-    public MsMsSpectraMergeModule(MsMsSpectraMergeParameters parameters) {
-        this.parameters = parameters;
-    }
 
     @Nonnull
     @Override
@@ -87,22 +89,22 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param massList name of the mass list to use when extracting peaks
      * @return list of merged MS/MS spectra belonging to this feature
      */
-    public List<MergedSpectrum> getMergedSpectra(PeakListRow row, String massList) {
+    public List<MergedSpectrum> getMergedSpectra(ParameterSet parameters, PeakListRow row, String massList) {
         final MergeMode mode = parameters.getParameter(MsMsSpectraMergeParameters.MERGE_MODE).getValue();
         final double npeaksFilter = parameters.getParameter(MsMsSpectraMergeParameters.PEAK_COUNT_PARAMETER).getValue();
         switch (mode) {
             case CONSECUTIVE_SCANS:
                 // merge all consecutive MS/MS, remove peaks if they do not occur consistently in merged spectra, return the list of merged spectra
-                return Arrays.stream(row.getPeaks()).flatMap(x->mergeConsecutiveScans(x,massList).stream()).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
+                return Arrays.stream(row.getPeaks()).flatMap(x->mergeConsecutiveScans(parameters, x,massList).stream()).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
             case SAME_SAMPLE:
                 // first merge all consecutive scans. Afterwards, merge all MS/MS within the same sample.
                 // Remove peaks if they do not occur consistently in merged spectra. Returns a merged MS/MS for each sample
-                return Arrays.stream(row.getPeaks()).map(x->mergeFromSameSample(x,massList)).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
+                return Arrays.stream(row.getPeaks()).map(x->mergeFromSameSample(parameters, x,massList)).filter(x->x.data.length>0).map(x->x.filterByRelativeNumberOfScans(npeaksFilter)).collect(Collectors.toList());
             case ACROSS_SAMPLES:
                 // first merge all consecutive scans. Afterwards merge all MS/MS within the same sample. Finally, merge
                 // all MS/MS across samples that belong to the same feature. Remove peaks if they do not occur consistently in merged spectra.
                 // returns a single merged spectrum
-                MergedSpectrum mergedSpectrum = mergeAcrossSamples(row,massList).filterByRelativeNumberOfScans(npeaksFilter);
+                MergedSpectrum mergedSpectrum = mergeAcrossSamples(parameters, row,massList).filterByRelativeNumberOfScans(npeaksFilter);
                 return mergedSpectrum.data.length==0 ? Collections.emptyList() : Collections.singletonList(mergedSpectrum);
             default:
                 // should never be called
@@ -118,8 +120,8 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param massList name of the mass list to use when extracting peaks
      * @return merged spectrum or null, if none exist
      */
-    public MergedSpectrum getBestMergedSpectrum(PeakListRow row, String massList) {
-        return getMergedSpectra(row,massList).stream().max(Comparator.comparingDouble(MergedSpectrum::getBestFragmentScanScore)).orElse(null);
+    public MergedSpectrum getBestMergedSpectrum(ParameterSet parameters, PeakListRow row, String massList) {
+        return getMergedSpectra(parameters, row,massList).stream().max(Comparator.comparingDouble(MergedSpectrum::getBestFragmentScanScore)).orElse(null);
     }
 
     /**
@@ -129,8 +131,8 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param massList name of the mass list to use when extracting peaks
      * @return the merged MS/MS of all fragment spectra belonging to the feature row
      */
-    public MergedSpectrum mergeAcrossSamples(PeakListRow row, String massList) {
-        return mergeAcrossFragmentSpectra(Arrays.stream(row.getPeaks()).map(r->mergeFromSameSample(r,massList)).filter(x->x.data.length>0).collect(Collectors.toList()));
+    public MergedSpectrum mergeAcrossSamples(ParameterSet parameters, PeakListRow row, String massList) {
+        return mergeAcrossFragmentSpectra(parameters, Arrays.stream(row.getPeaks()).map(r->mergeFromSameSample(parameters, r,massList)).filter(x->x.data.length>0).collect(Collectors.toList()));
     }
 
     /**
@@ -139,10 +141,10 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param massList name of the mass list to use when extracting peaks
      * @return the merged MS/MS of all fragment spectra belonging to the feature
      */
-    public MergedSpectrum mergeFromSameSample(Feature feature, String massList) {
-        List<MergedSpectrum> spectra = mergeConsecutiveScans(feature, massList);
+    public MergedSpectrum mergeFromSameSample(ParameterSet parameters, Feature feature, String massList) {
+        List<MergedSpectrum> spectra = mergeConsecutiveScans(parameters, feature, massList);
         if (spectra.isEmpty()) return MergedSpectrum.empty();
-        return mergeAcrossFragmentSpectra(spectra);
+        return mergeAcrossFragmentSpectra(parameters, spectra);
     }
 
     /**
@@ -153,14 +155,14 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param massList name of the mass list to use when extracting peaks
      * @return all merged spectra of consecutive MS/MS scans of the given feature
      */
-    public List<MergedSpectrum> mergeConsecutiveScans(Feature feature, String massList) {
+    public List<MergedSpectrum> mergeConsecutiveScans(ParameterSet parameters, Feature feature, String massList) {
         MZTolerance ppm = parameters.getParameter(MsMsSpectraMergeParameters.MASS_ACCURACY).getValue();
         final double isolationWindowOffset = parameters.getParameter(MsMsSpectraMergeParameters.ISOLATION_WINDOW_OFFSET).getValue();
         final double isolationWindowWidth = parameters.getParameter(MsMsSpectraMergeParameters.ISOLATION_WINDOW_WIDTH).getValue();
         FragmentScan[] allFragmentScans = FragmentScan.getAllFragmentScansFor(feature, massList, Range.closed(isolationWindowOffset-isolationWindowWidth, isolationWindowOffset + isolationWindowWidth), ppm);
         final List<MergedSpectrum> mergedSpec = new ArrayList<>();
         for (FragmentScan scan : allFragmentScans) {
-            MergedSpectrum e = mergeConsecutiveScans(scan, massList, Ms2QualityScoreModel.SelectByLowChimericIntensityRelativeToMs1Intensity);
+            MergedSpectrum e = mergeConsecutiveScans(parameters, scan, massList, Ms2QualityScoreModel.SelectByLowChimericIntensityRelativeToMs1Intensity);
             if (e.data.length>0)
                 mergedSpec.add(e);
         }
@@ -172,7 +174,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param fragmentMergedSpectra list of spectra with meta information
      * @return merged spectrum
      */
-    protected MergedSpectrum mergeAcrossFragmentSpectra(List<MergedSpectrum> fragmentMergedSpectra) {
+    protected MergedSpectrum mergeAcrossFragmentSpectra(ParameterSet parameters, List<MergedSpectrum> fragmentMergedSpectra) {
         if (fragmentMergedSpectra.isEmpty()) return MergedSpectrum.empty();
         int totalNumberOfScans = 0;
         for (MergedSpectrum s : fragmentMergedSpectra) totalNumberOfScans += s.totalNumberOfScans();
@@ -264,7 +266,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
      * @param scoreModel scoring model to use when removing low quality MS/MS and selecting the best quality MS/MS
      * @return merged spectrum
      */
-    protected MergedSpectrum mergeConsecutiveScans(FragmentScan scans, String massList, Ms2QualityScoreModel scoreModel) {
+    protected MergedSpectrum mergeConsecutiveScans(ParameterSet parameters, FragmentScan scans, String massList, Ms2QualityScoreModel scoreModel) {
         int totalNumberOfScans = scans.ms2ScanNumbers.length;
         /*
          * find scan with best quality

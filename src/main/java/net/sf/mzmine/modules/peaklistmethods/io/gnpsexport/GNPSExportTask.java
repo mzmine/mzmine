@@ -29,7 +29,18 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
 
-import net.sf.mzmine.datamodel.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.regex.Pattern;
+
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -40,12 +51,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.regex.Pattern;
 
 /**
  * Exports all files needed for GNPS
@@ -59,7 +64,7 @@ public class GNPSExportTask extends AbstractTask {
   private final String plNamePattern = "{}";
   private int currentIndex = 0;
   private final MsMsSpectraMergeParameters mergeParameters;
-  private final MsMsSpectraMergeModule merger;
+  
   private final String massListName;
 
   GNPSExportTask(ParameterSet parameters) {
@@ -72,10 +77,8 @@ public class GNPSExportTask extends AbstractTask {
 
     if (parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
       mergeParameters = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getEmbeddedParameters();
-      merger = new MsMsSpectraMergeModule(mergeParameters);
     } else {
       mergeParameters = null;
-      merger = null;
     }
   }
 
@@ -219,8 +222,9 @@ public class GNPSExportTask extends AbstractTask {
 
         writer.write("MSLEVEL=2" + newLine);
         DataPoint[] dataPoints = massList.getDataPoints();
-        if (merger != null) {
-          MergedSpectrum spectrum = merger.getBestMergedSpectrum(row, massListName);
+        if (mergeParameters != null) {
+          MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
+          MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row, massListName);
           if (spectrum!=null) {
             dataPoints = spectrum.data;
             writer.write("MERGED_STATS=");
