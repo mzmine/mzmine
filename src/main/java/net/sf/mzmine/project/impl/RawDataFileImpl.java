@@ -20,14 +20,14 @@ package net.sf.mzmine.project.impl;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.RawDataFileWriter;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
+import net.sf.mzmine.main.MZmineCore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -577,6 +577,37 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
       }
     } catch (IOException e) {
       logger.warning("Could not close file " + dataPointsFileName + ": " + e.toString());
+    }
+  }
+
+  @Override
+  public void notifyUpdatedMassLists(List<MassList> massList) {
+
+    // Add the mass list to the tree model
+    MZmineProjectImpl project =
+            (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+
+    // Check if we are adding to the current project
+    if (Arrays.asList(project.getDataFiles()).contains(this)) {
+      final RawDataTreeModel treeModel = project.getRawDataTreeModel();
+      Runnable swingCode = new Runnable() {
+        @Override
+        public void run() {
+          for (MassList ml : massList) {
+            treeModel.addObject(ml);
+          }
+        }
+      };
+
+      try {
+        if (SwingUtilities.isEventDispatchThread())
+          swingCode.run();
+        else
+          SwingUtilities.invokeAndWait(swingCode);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
     }
   }
 

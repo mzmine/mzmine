@@ -352,30 +352,7 @@ public class StorableScan implements Scan {
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
-
-    // Remove all mass lists with same name, if there are any
-    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
-    for (MassList ml : currentMassLists) {
-      if (ml.getName().equals(massList.getName()))
-        removeMassList(ml);
-    }
-
-    StorableMassList storedMassList;
-    if (massList instanceof StorableMassList) {
-      storedMassList = (StorableMassList) massList;
-    } else {
-      DataPoint massListDataPoints[] = massList.getDataPoints();
-      try {
-        int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
-        storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
-      } catch (IOException e) {
-        logger.severe("Could not write data to temporary file " + e.toString());
-        return;
-      }
-    }
-
-    // Add the new mass list
-    massLists.add(storedMassList);
+    MassList storedMassList = addMassListWithoutNotification(massList);
 
     // Add the mass list to the tree model
     MZmineProjectImpl project =
@@ -433,6 +410,35 @@ public class StorableScan implements Scan {
 
     }
 
+  }
+
+  @Override
+  public MassList addMassListWithoutNotification(@Nonnull MassList massList) {
+    // Remove all mass lists with same name, if there are any
+    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
+    for (MassList ml : currentMassLists) {
+      if (ml.getName().equals(massList.getName()))
+        removeMassList(ml);
+    }
+
+    StorableMassList storedMassList;
+    if (massList instanceof StorableMassList) {
+      storedMassList = (StorableMassList) massList;
+    } else {
+      DataPoint massListDataPoints[] = massList.getDataPoints();
+      try {
+        int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
+        storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
+      } catch (IOException e) {
+        logger.severe("Could not write data to temporary file " + e.toString());
+        return null;
+      }
+    }
+
+    // Add the new mass list
+    massLists.add(storedMassList);
+
+    return storedMassList;
   }
 
   @Override
