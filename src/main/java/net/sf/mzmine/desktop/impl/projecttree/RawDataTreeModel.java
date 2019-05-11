@@ -18,8 +18,10 @@
 
 package net.sf.mzmine.desktop.impl.projecttree;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -47,7 +49,9 @@ public class RawDataTreeModel extends DefaultTreeModel {
   private Hashtable<Object, DefaultMutableTreeNode> treeObjects =
       new Hashtable<Object, DefaultMutableTreeNode>();
 
-  private ProjectTreeNode rootNode;
+  private final ProjectTreeNode rootNode;
+
+  private final List<Object> newObjects = new ArrayList<>();
 
   public RawDataTreeModel(MZmineProject project) {
 
@@ -55,6 +59,23 @@ public class RawDataTreeModel extends DefaultTreeModel {
 
     rootNode = (ProjectTreeNode) super.getRoot();
 
+  }
+
+  public void addObjectWithoutGUIUpdate(final Object object) {
+    synchronized (newObjects) {
+      newObjects.add(object);
+    }
+  }
+
+  public void updateGUIWithNewObjects() {
+    SwingUtilities.invokeLater(() -> {
+      synchronized (newObjects) {
+        while (! newObjects.isEmpty()) {
+          Object o = newObjects.remove(0);
+          addObject(o);
+        }
+      }
+    });
   }
 
   /**

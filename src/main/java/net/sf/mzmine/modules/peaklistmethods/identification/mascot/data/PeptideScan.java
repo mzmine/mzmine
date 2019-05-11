@@ -381,10 +381,6 @@ public class PeptideScan implements Scan {
     return null;
   }
 
-  @Override
-  public MassList addMassListWithoutNotification(MassList massList) {
-    return null;
-  }
 
   @Override
   public void addMassList(@Nonnull MassList massList) {

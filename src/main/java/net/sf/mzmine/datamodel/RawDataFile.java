@@ -18,11 +18,10 @@
 
 package net.sf.mzmine.datamodel;
 
-import com.google.common.collect.Range;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
+
+import com.google.common.collect.Range;
 
 public interface RawDataFile {
 
@@ -107,7 +106,5 @@ public interface RawDataFile {
    * Close the file in case it is removed from the project
    */
   public void close();
-
-  public void notifyUpdatedMassLists(List<MassList> massList);
 
 }

@@ -18,20 +18,26 @@
 
 package net.sf.mzmine.project.impl;
 
-import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.*;
-import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.scans.ScanUtils;
-
-import javax.annotation.Nonnull;
-import javax.swing.*;
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
+
+import javax.annotation.Nonnull;
+import javax.swing.SwingUtilities;
+
+import com.google.common.collect.Range;
+
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.PolarityType;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * Implementation of the Scan interface which stores raw data points in a temporary file, accessed
@@ -119,15 +125,6 @@ public class StorableScan implements Scan {
       return new DataPoint[0];
     }
 
-  }
-
-  public @Nonnull FloatBuffer readDataPointsAsFloatBuffer() {
-    try {
-      return rawDataFile.readDataPointsAsFloatBuffer(storageID);
-    } catch (IOException e) {
-      logger.severe("Could not read data from temporary file " + e.toString());
-      return FloatBuffer.wrap(new float[0]);
-    }
   }
 
   /**
@@ -311,7 +308,30 @@ public class StorableScan implements Scan {
 
   @Override
   public synchronized void addMassList(final @Nonnull MassList massList) {
-    MassList storedMassList = addMassListWithoutNotification(massList);
+
+    // Remove all mass lists with same name, if there are any
+    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
+    for (MassList ml : currentMassLists) {
+      if (ml.getName().equals(massList.getName()))
+        removeMassList(ml);
+    }
+
+    StorableMassList storedMassList;
+    if (massList instanceof StorableMassList) {
+      storedMassList = (StorableMassList) massList;
+    } else {
+      DataPoint massListDataPoints[] = massList.getDataPoints();
+      try {
+        int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
+        storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
+      } catch (IOException e) {
+        logger.severe("Could not write data to temporary file " + e.toString());
+        return;
+      }
+    }
+
+    // Add the new mass list
+    massLists.add(storedMassList);
 
     // Add the mass list to the tree model
     MZmineProjectImpl project =
@@ -320,23 +340,7 @@ public class StorableScan implements Scan {
     // Check if we are adding to the current project
     if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
       final RawDataTreeModel treeModel = project.getRawDataTreeModel();
-      final MassList newMassList = storedMassList;
-      Runnable swingCode = new Runnable() {
-        @Override
-        public void run() {
-          treeModel.addObject(newMassList);
-        }
-      };
-
-      try {
-        if (SwingUtilities.isEventDispatchThread())
-          swingCode.run();
-        else
-          SwingUtilities.invokeAndWait(swingCode);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
+      treeModel.addObjectWithoutGUIUpdate(storedMassList);
     }
 
   }
@@ -371,34 +375,6 @@ public class StorableScan implements Scan {
 
   }
 
-  @Override
-  public MassList addMassListWithoutNotification(@Nonnull MassList massList) {
-    // Remove all mass lists with same name, if there are any
-    MassList currentMassLists[] = massLists.toArray(new MassList[0]);
-    for (MassList ml : currentMassLists) {
-      if (ml.getName().equals(massList.getName()))
-        removeMassList(ml);
-    }
-
-    StorableMassList storedMassList;
-    if (massList instanceof StorableMassList) {
-      storedMassList = (StorableMassList) massList;
-    } else {
-      DataPoint massListDataPoints[] = massList.getDataPoints();
-      try {
-        int mlStorageID = rawDataFile.storeDataPoints(massListDataPoints);
-        storedMassList = new StorableMassList(rawDataFile, mlStorageID, massList.getName(), this);
-      } catch (IOException e) {
-        logger.severe("Could not write data to temporary file " + e.toString());
-        return null;
-      }
-    }
-
-    // Add the new mass list
-    massLists.add(storedMassList);
-
-    return storedMassList;
-  }
 
   @Override
   public @Nonnull MassList[] getMassLists() {

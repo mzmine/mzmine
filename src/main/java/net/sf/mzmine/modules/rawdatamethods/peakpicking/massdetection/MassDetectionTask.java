@@ -18,14 +18,22 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleMassList;
+import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import ucar.ma2.ArrayDouble;
@@ -35,12 +43,6 @@ import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
 
 // import ucar.ma2.*;
 
@@ -146,7 +148,6 @@ public class MassDetectionTask extends AbstractTask {
 
       final Scan scans[] = scanSelection.getMatchingScans(dataFile);
       totalScans = scans.length;
-      final List<MassList> massLists = new ArrayList<>();
       // Process scans one by one
       for (Scan scan : scans) {
 
@@ -159,7 +160,7 @@ public class MassDetectionTask extends AbstractTask {
         SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
 
         // Add new mass list to the scan
-        massLists.add(scan.addMassListWithoutNotification(newMassList));
+        scan.addMassList(newMassList);
 
         if (this.saveToCDF) {
 
@@ -183,7 +184,13 @@ public class MassDetectionTask extends AbstractTask {
 
         processedScans++;
       }
-      dataFile.notifyUpdatedMassLists(massLists);
+
+      // Update the GUI with all new mass lists
+      MZmineProjectImpl project =
+          (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+      final RawDataTreeModel treeModel = project.getRawDataTreeModel();
+      treeModel.updateGUIWithNewObjects();;
+
       setStatus(TaskStatus.FINISHED);
 
       logger.info("Finished mass detector on " + dataFile);

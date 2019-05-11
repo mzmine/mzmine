@@ -308,10 +308,6 @@ public class SimpleScan implements Scan {
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  public MassList addMassListWithoutNotification(MassList massList) {
-    throw new UnsupportedOperationException();
-  }
 
   @Override
   public synchronized void removeMassList(@Nonnull MassList massList) {
