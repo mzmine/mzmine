@@ -226,7 +226,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
         MergedSpectrum initial = bestOne;
         final double lowestMassToConsider = Math.min(50d, initial.precursorMz-50d);
 
-        final DataPoint[] initialMostIntensive = ScanUtils.extractMostIntensePeaksAcrossMassRange(initial.data, Range.closed(lowestMassToConsider, lowestMassToConsider+100), 6);
+        final DataPoint[] initialMostIntense = ScanUtils.extractMostIntensePeaksAcrossMassRange(initial.data, Range.closed(lowestMassToConsider, lowestMassToConsider+100), 6);
         final Range<Double> cosineRange = Range.closed(lowestMassToConsider, initial.precursorMz - 20);
         double lowestIntensityToConsider;
         {
@@ -242,13 +242,13 @@ public class MsMsSpectraMergeModule implements MZmineModule {
             }
             lowestIntensityToConsider = lowestIntensityToConsider*0.01;
         }
-        final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive,initialMostIntensive,massTolerance,lowestIntensityToConsider, cosineRange);
+        final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntense,initialMostIntense,massTolerance,lowestIntensityToConsider, cosineRange);
         for (int k=1; k < toMerge.size(); ++k) {
             MergedSpectrum scan = toMerge.get(k);
             DataPoint[] dataPoints = scan.data;
-            final DataPoint[] mostIntensive = ScanUtils.extractMostIntensePeaksAcrossMassRange(dataPoints, Range.closed(50d,150d), 6);
-            final double norm = ScanUtils.probabilityProductUnnormalized(mostIntensive,mostIntensive,massTolerance,lowestIntensityToConsider,cosineRange);
-            final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive, mostIntensive, massTolerance, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
+            final DataPoint[] mostIntense = ScanUtils.extractMostIntensePeaksAcrossMassRange(dataPoints, Range.closed(50d,150d), 6);
+            final double norm = ScanUtils.probabilityProductUnnormalized(mostIntense,mostIntense,massTolerance,lowestIntensityToConsider,cosineRange);
+            final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntense, mostIntense, massTolerance, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
             if (cosine >= cosineThreshold) {
                 initial = merge(initial, scan, mzMergeMode, intensityMergeMode, massTolerance);
             } else {
@@ -315,10 +315,10 @@ public class MsMsSpectraMergeModule implements MZmineModule {
         initial.bestFragmentScanScore =  best;
         final double lowestMassToConsider = Math.min(50d, scans.feature.getMZ()-50d);
 
-        final DataPoint[] initialMostIntensive = ScanUtils.extractMostIntensePeaksAcrossMassRange(initial.data, Range.closed(lowestMassToConsider, 150d), 6);
-        final double lowestIntensityToConsider = 0.005d * initialMostIntensive[ScanUtils.findMostIntensePeakWithin(initialMostIntensive, Range.closed(lowestMassToConsider,scans.feature.getMZ()))].getIntensity();
+        final DataPoint[] initialMostIntense = ScanUtils.extractMostIntensePeaksAcrossMassRange(initial.data, Range.closed(lowestMassToConsider, 150d), 6);
+        final double lowestIntensityToConsider = 0.005d * initialMostIntense[ScanUtils.findMostIntensePeakWithin(initialMostIntense, Range.closed(lowestMassToConsider,scans.feature.getMZ()))].getIntensity();
         Range<Double> cosineRange = Range.closed(lowestMassToConsider, scans.feature.getMZ() - 20);
-        final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive,initialMostIntensive,mzTolerance,lowestIntensityToConsider, cosineRange);
+        final double initialCosine = ScanUtils.probabilityProductUnnormalized(initialMostIntense,initialMostIntense,mzTolerance,lowestIntensityToConsider, cosineRange);
         for (int k=1; k < scansToMerge.size(); ++k) {
             Scan scan = scansToMerge.get(k);
             if (!(scan.getPolarity().equals(initial.polarity) && scan.getPrecursorCharge()==initial.precursorCharge && mzTolerance.checkWithinTolerance(scan.getPrecursorMZ(), initial.precursorMz))) {
@@ -326,9 +326,9 @@ public class MsMsSpectraMergeModule implements MZmineModule {
                 continue;
             }
             DataPoint[] dataPoints = scan.getMassList(massList).getDataPoints();
-            final DataPoint[] mostIntensive = ScanUtils.extractMostIntensePeaksAcrossMassRange(dataPoints, cosineRange, 6);
-            final double norm = ScanUtils.probabilityProductUnnormalized(mostIntensive,mostIntensive,mzTolerance,lowestIntensityToConsider,cosineRange);
-            final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntensive, mostIntensive, mzTolerance, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
+            final DataPoint[] mostIntense = ScanUtils.extractMostIntensePeaksAcrossMassRange(dataPoints, cosineRange, 6);
+            final double norm = ScanUtils.probabilityProductUnnormalized(mostIntense,mostIntense,mzTolerance,lowestIntensityToConsider,cosineRange);
+            final double cosine = ScanUtils.probabilityProductUnnormalized(initialMostIntense, mostIntense, mzTolerance, lowestIntensityToConsider,cosineRange) / Math.sqrt(norm*initialCosine);
             if (cosine >= cosineThreshold) {
                 initial = merge(initial, scan, dataPoints, mzMergeMode, intensityMergeMode, mzTolerance);
             } else {
@@ -395,7 +395,7 @@ public class MsMsSpectraMergeModule implements MZmineModule {
             ++mz0;
             if (mz0 <= mz1) {
                 // merge!
-                int mostIntensive = mz0;
+                int mostIntense = mz0;
                 double bestScore = Double.NEGATIVE_INFINITY;
                 for (int i = mz0; i <= mz1; ++i) {
                     final double massDiff = orderedByMz[i].getMZ() - peak.getMZ();
@@ -403,11 +403,11 @@ public class MsMsSpectraMergeModule implements MZmineModule {
                             Erf.erfc(3 * massDiff) / (dev * Math.sqrt(2)) * orderedByMz[i].getIntensity();
                     if (score > bestScore) {
                         bestScore = score;
-                        mostIntensive = i;
+                        mostIntense = i;
                     }
                 }
 
-                orderedByMz[mostIntensive] = orderedByMz[mostIntensive].merge(peak, mzMergeMode, intensityMergeMode);
+                orderedByMz[mostIntense] = orderedByMz[mostIntense].merge(peak, mzMergeMode, intensityMergeMode);
 
             } else {
                 // append

@@ -167,7 +167,7 @@ class FragmentScan {
         this.precursorCharge = spectrum.getPrecursorCharge();
         this.polarity = spectrum.getPolarity();
         DataPoint[] dps = spectrum.getDataPointsByMass(Range.closed(precursorMass+isolationWindow.lowerEndpoint(), precursorMass+isolationWindow.upperEndpoint()));
-        // for simplicity, just use the most intensive peak within massAccuracy range
+        // for simplicity, just use the most intense peak within massAccuracy range
         int bestPeak = -1;
         double highestIntensity = 0d;
         for (int mppm = 1; mppm < 3; ++mppm) {

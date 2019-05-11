@@ -29,7 +29,7 @@ import net.sf.mzmine.util.scans.ScanUtils;
 public interface MzMergeMode {
 
     public static MzMergeMode[] values() {
-        return new MzMergeMode[]{MOST_INTENSIVE, WEIGHTED_AVERAGE_CUTOFF_OUTLIERS, WEIGHTED_AVERAGE};
+        return new MzMergeMode[]{MOST_INTENSE, WEIGHTED_AVERAGE_CUTOFF_OUTLIERS, WEIGHTED_AVERAGE};
     }
 
     public double merge(DataPoint[] sources);
@@ -52,7 +52,7 @@ public interface MzMergeMode {
         }
     };
 
-    public static MzMergeMode MOST_INTENSIVE = new MzMergeMode() {
+    public static MzMergeMode MOST_INTENSE = new MzMergeMode() {
         @Override
         public double merge(DataPoint[] sources) {
             double mz=Double.NEGATIVE_INFINITY, intens=Double.NEGATIVE_INFINITY;
@@ -66,7 +66,7 @@ public interface MzMergeMode {
         }
         @Override
         public String toString() {
-            return "most intensive";
+            return "most intense";
         }
     };
 

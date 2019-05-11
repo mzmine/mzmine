@@ -106,7 +106,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
       new BooleanParameter("Open folder", "Opens the export folder", false);
 
 
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS (experimental)", "Merge high-quality MS/MS instead of exporting just the most intensive one.", new MsMsSpectraMergeParameters(), true);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS (experimental)", "Merge high-quality MS/MS instead of exporting just the most intense one.", new MsMsSpectraMergeParameters(), true);
 
 
   public GNPSExportAndSubmitParameters() {
@@ -118,7 +118,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
     String message = "<html>GNPS Module Disclaimer:"
         + "<br>    - If you use the GNPS export module for <a href=\"http://gnps.ucsd.edu/\">GNPS web-platform</a>, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
         + "<br>     <a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Wang et al., Nature Biotechnology 34.8 (2016): 828-837</a>."
-        + "<br>    - <a href=\"https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0\">See the documentation</a> about MZmine2 data pre-processing for <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular "
+        + "<br>    - <a href=\"https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0\">See the documentation</a> about MZmine 2 data pre-processing for <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular "
         + "<br>     networking and MS/MS spectral library search.";
     ParameterSetupDialog dialog =
         new ParameterSetupDialog(parent, valueCheckRequired, this, message);

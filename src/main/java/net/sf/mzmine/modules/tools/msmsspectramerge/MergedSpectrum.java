@@ -110,7 +110,7 @@ public class MergedSpectrum {
         DataPoint[] dataPoints = single.getMassList(massList).getDataPoints();
         this.data = new MergedDataPoint[dataPoints.length];
         for (int k=0; k < dataPoints.length; ++k) {
-            this.data[k] = new MergedDataPoint(MzMergeMode.MOST_INTENSIVE, IntensityMergeMode.MAXIMUM, dataPoints[k]);
+            this.data[k] = new MergedDataPoint(MzMergeMode.MOST_INTENSE, IntensityMergeMode.MAXIMUM, dataPoints[k]);
         }
         this.origins = new RawDataFile[]{single.getDataFile()};
         this.scanIds = new int[]{single.getScanNumber()};
