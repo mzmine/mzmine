@@ -36,8 +36,9 @@ public class SingleRowIdentificationParameters extends SimpleParameterSet {
   public static final NeutralMassParameter NEUTRAL_MASS =
       new NeutralMassParameter("Neutral mass", "Value to use in the search query");
 
+  // Max count of 10,000 is enforced by ChemSpider API
   public static final IntegerParameter MAX_RESULTS =
-      new IntegerParameter("Number of results", "Maximum number of results to display", 20, 1, Integer.MAX_VALUE);
+      new IntegerParameter("Number of results", "Maximum number of results to display", 20, 1, 10000);
 
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
