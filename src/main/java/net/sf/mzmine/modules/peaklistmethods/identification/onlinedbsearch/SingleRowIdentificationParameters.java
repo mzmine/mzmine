@@ -37,7 +37,7 @@ public class SingleRowIdentificationParameters extends SimpleParameterSet {
       new NeutralMassParameter("Neutral mass", "Value to use in the search query");
 
   public static final IntegerParameter MAX_RESULTS =
-      new IntegerParameter("Number of results", "Maximum number of results to display", 20, 1, 100);
+      new IntegerParameter("Number of results", "Maximum number of results to display", 20, 1, Integer.MAX_VALUE);
 
   public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
