@@ -19,6 +19,8 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import java.awt.Window;
+import java.text.NumberFormat;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -34,14 +36,15 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 import net.sf.mzmine.util.ExitCode;
 
-import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-
 public class MassDetectionParameters extends SimpleParameterSet {
+
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   public static final MassDetector massDetectors[] =
       {new CentroidMassDetector(), new ExactMassDetector(), new LocalMaxMassDetector(),
@@ -61,11 +64,10 @@ public class MassDetectionParameters extends SimpleParameterSet {
       "masses");
 
   public static final FileNameParameter outFilename =
-      new FileNameParameter("CDF Filename (optional)",
-          "Name of the begining of the centroided CDF file. "
-              + "The rest of the file name will be the current file being processed."
+      new FileNameParameter("Output netCDF filename (optional)",
+          "If selected, centroided spectra will be written to this file netCDF file. "
               + "If the file already exists, it will be overwritten.",
-          "CDF");
+          "cdf");
 
   public static final OptionalParameter<FileNameParameter> outFilenameOption =
       new OptionalParameter<>(outFilename);
@@ -83,36 +85,50 @@ public class MassDetectionParameters extends SimpleParameterSet {
     if (exitCode != ExitCode.OK)
       return exitCode;
 
-    // Do an additional check for centroid/continuous data and show a
-    // warning if there is a potential problem
-    boolean centroidData = false;
-    ScanSelection scanSel = getParameter(scanSelection).getValue();
     RawDataFile selectedFiles[] = getParameter(dataFiles).getValue().getMatchingRawDataFiles();
 
     // If no file selected (e.g. in batch mode setup), just return
     if ((selectedFiles == null) || (selectedFiles.length == 0))
       return exitCode;
 
+
+    // Do an additional check for centroid/continuous data and show a
+    // warning if there is a potential problem
+    long numCentroided = 0, numProfile = 0;
+    ScanSelection scanSel = getParameter(scanSelection).getValue();
+
     for (RawDataFile file : selectedFiles) {
       Scan scans[] = scanSel.getMatchingScans(file);
       for (Scan s : scans) {
         if (s.getSpectrumType() == MassSpectrumType.CENTROIDED)
-          centroidData = true;
+          numCentroided++;
+        else
+          numProfile++;
       }
     }
+
+    // If no scans found, let's just stop here
+    if (numCentroided + numProfile == 0)
+      return exitCode;
+
+    // Do we have mostly centroided scans?
+    final double proportionCentroided = (numCentroided / (numCentroided + numProfile));
+    final boolean mostlyCentroided = proportionCentroided > 0.5;
+    logger.finest("Proportion of scans estimated to be centroided: "
+        + NumberFormat.getNumberInstance().format(proportionCentroided));
 
     // Check the selected mass detector
     String massDetectorName = getParameter(massDetector).getValue().toString();
 
-    if ((centroidData) && (!massDetectorName.startsWith("Centroid"))) {
+    if (mostlyCentroided && (!massDetectorName.startsWith("Centroid"))) {
       String msg =
-          "One or more selected files contains centroided data points. The selected mass detector could give unexpected results.";
+          "MZmine thinks you are running the profile mode mass detector on (mostly) centroided scans. This will likely produce wrong results. Try the Centroid mass detector instead.";
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
-    if ((!centroidData) && (massDetectorName.startsWith("Centroid"))) {
+    if ((!mostlyCentroided) && (massDetectorName.startsWith("Centroid"))) {
       String msg =
-          "None one of the selected files contain centroided data points. The selected mass detector could give unexpected results.";
+          "MZmine thinks you are running the centroid mass detector on (mostly) profile scans. This will likely produce wrong results.";
       MZmineCore.getDesktop().displayMessage(null, msg);
     }
 
