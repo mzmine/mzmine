@@ -1,6 +1,27 @@
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package net.sf.mzmine.modules.visualization.new3d;
 
-import javafx.application.Application;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
+//import javafx.application.Application;
 import javafx.scene.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -13,7 +34,7 @@ import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
-public class MoleculeSampleApp extends Application{
+public class New3DVisualizerStage{
 	final Group root = new Group();
     final Xform axisGroup = new Xform();
     final Xform moleculeGroup = new Xform();
@@ -35,6 +56,9 @@ public class MoleculeSampleApp extends Application{
     private static final double ROTATION_SPEED = 2.0;
     private static final double TRACK_SPEED = 0.3;
     
+    private static final Logger LOG = Logger.getLogger(New3DVisualizerStage.class.getName());
+
+    
     double mousePosX;
     double mousePosY;
     double mouseOldX;
@@ -46,7 +70,7 @@ public class MoleculeSampleApp extends Application{
     //       root.getChildren().add(world);
     //   }
     private void buildCamera() {
-        System.out.println("buildCamera()");
+        LOG.log(Level.INFO, "buildCamera()"); 
         root.getChildren().add(cameraXform);
         cameraXform.getChildren().add(cameraXform2);
         cameraXform2.getChildren().add(cameraXform3);
@@ -61,7 +85,7 @@ public class MoleculeSampleApp extends Application{
     }
 
     private void buildAxes() {
-        System.out.println("buildAxes()");
+        LOG.log(Level.INFO, "buildAxes()"); 
         final PhongMaterial redMaterial = new PhongMaterial();
         redMaterial.setDiffuseColor(Color.DARKRED);
         redMaterial.setSpecularColor(Color.RED);
@@ -234,16 +258,14 @@ public class MoleculeSampleApp extends Application{
         world.getChildren().addAll(moleculeGroup);
     }
 
-    @Override
-    public void start(Stage primaryStage) {
+    public void startStage(Stage primaryStage) {
         
        // setUserAgentStylesheet(STYLESHEET_MODENA);
-        System.out.println("start()");
+        LOG.log(Level.INFO, "start()"); 
 
         root.getChildren().add(world);
         root.setDepthTest(DepthTest.ENABLE);
 
-        // buildScene();
         buildCamera();
         buildAxes();
         buildMolecule();
@@ -253,24 +275,11 @@ public class MoleculeSampleApp extends Application{
         handleKeyboard(scene, world);
         handleMouse(scene, world);
 
-        primaryStage.setTitle("Molecule Sample Application");
+        primaryStage.setTitle("Sample Application");
         primaryStage.setScene(scene);
         primaryStage.show();
 
         scene.setCamera(camera);
-    }
-
-    /**
-     * The main() method is ignored in correctly deployed JavaFX application.
-     * main() serves only as fallback in case the application can not be
-     * launched through deployment artifacts, e.g., in IDEs with limited FX
-     * support. NetBeans ignores main().
-     *
-     * @param args the command line arguments
-     */
-    
-    public static void main(String[] args) {
-        launch(args);
     }
 
 }
