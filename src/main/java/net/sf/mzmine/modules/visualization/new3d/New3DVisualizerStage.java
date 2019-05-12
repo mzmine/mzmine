@@ -274,24 +274,4 @@ public class New3DVisualizerStage extends Stage{
         world.getChildren().addAll(moleculeGroup);
     }
 
-    public void startStage(Stage primaryStage) {
-        
-       // setUserAgentStylesheet(STYLESHEET_MODENA);
-        LOG.log(Level.INFO, "start()"); 
-
-        root.getChildren().add(world);
-        root.setDepthTest(DepthTest.ENABLE);
-
-        buildCamera();
-        buildAxes();
-        buildMolecule();
-
-
-        primaryStage.setTitle("Sample Application");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-
-        
-    }
-
 }
