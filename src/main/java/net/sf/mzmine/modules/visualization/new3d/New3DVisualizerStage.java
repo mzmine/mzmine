@@ -34,7 +34,7 @@ import javafx.event.EventHandler;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
-public class New3DVisualizerStage{
+public class New3DVisualizerStage extends Stage{
 	final Group root = new Group();
     final Xform axisGroup = new Xform();
     final Xform moleculeGroup = new Xform();
@@ -66,9 +66,25 @@ public class New3DVisualizerStage{
     double mouseDeltaX;
     double mouseDeltaY;
     
-    //   private void buildScene() {
-    //       root.getChildren().add(world);
-    //   }
+    public New3DVisualizerStage(String title){
+    	root.getChildren().add(world);
+        root.setDepthTest(DepthTest.ENABLE);
+        
+        buildCamera();
+        buildAxes();
+        buildMolecule();
+        
+        Scene scene = new Scene(root, 1024, 768, true);
+        scene.setFill(Color.GREY);
+        handleKeyboard(scene, world);
+        handleMouse(scene, world);
+        
+        scene.setCamera(camera);
+        
+        this.setTitle(title);
+        this.setScene(scene);
+    	
+    }
     private void buildCamera() {
         LOG.log(Level.INFO, "buildCamera()"); 
         root.getChildren().add(cameraXform);
@@ -270,16 +286,12 @@ public class New3DVisualizerStage{
         buildAxes();
         buildMolecule();
 
-        Scene scene = new Scene(root, 1024, 768, true);
-        scene.setFill(Color.GREY);
-        handleKeyboard(scene, world);
-        handleMouse(scene, world);
 
         primaryStage.setTitle("Sample Application");
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        scene.setCamera(camera);
+        
     }
 
 }

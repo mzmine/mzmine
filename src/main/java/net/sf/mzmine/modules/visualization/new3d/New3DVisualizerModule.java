@@ -100,8 +100,8 @@ public class New3DVisualizerModule implements MZmineRunnableModule  {
 	    	
 	    	Platform.runLater(new Runnable() {
     	       public void run() {
-    	    	   New3DVisualizerStage newStage = new New3DVisualizerStage();
-    	    	   newStage.startStage(new Stage());
+    	    	   New3DVisualizerStage newStage = new New3DVisualizerStage("Sample Molecule");
+    	    	   newStage.show();
     	       }
 	    	});
 	   
