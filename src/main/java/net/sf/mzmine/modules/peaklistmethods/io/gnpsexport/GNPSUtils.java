@@ -63,6 +63,7 @@ public class GNPSUtils {
     boolean useMeta = param.getParameter(GNPSSubmitParameters.META_FILE).getValue();
     boolean openWebsite = param.getParameter(GNPSSubmitParameters.OPEN_WEBSITE).getValue();
     String presets = param.getParameter(GNPSSubmitParameters.PRESETS).getValue().toString();
+    String title = param.getParameter(GNPSSubmitParameters.JOB_TITLE).getValue();
     String email = param.getParameter(GNPSSubmitParameters.EMAIL).getValue();
     String username = param.getParameter(GNPSSubmitParameters.USER).getValue();
     String password = param.getParameter(GNPSSubmitParameters.PASSWORD).getValue();
@@ -78,7 +79,8 @@ public class GNPSUtils {
       File meta = !useMeta ? null
           : param.getParameter(GNPSSubmitParameters.META_FILE).getEmbeddedParameter().getValue();
 
-      return submitJob(mgf, quan, meta, null, email, username, password, presets, openWebsite);
+      return submitJob(mgf, quan, meta, null, title, email, username, password, presets,
+          openWebsite);
     } else
       return "";
   }
@@ -92,8 +94,8 @@ public class GNPSUtils {
    * @return
    */
   public static String submitJob(File mgf, File quan, File meta, File[] additionalEdges,
-      String email, String username, String password, String presets, boolean openWebsite)
-      throws MSDKRuntimeException {
+      String title, String email, String username, String password, String presets,
+      boolean openWebsite) throws MSDKRuntimeException {
     try {
       // NEEDED files
       if (mgf.exists() && quan.exists() && !presets.isEmpty()) {
@@ -105,6 +107,7 @@ public class GNPSUtils {
           // NEEDED
           // tool, presets, quant table, mgf
           entity.addPart("featuretool", new StringBody("MZMINE2"));
+          entity.addPart("description", new StringBody(title == null ? "" : title));
           entity.addPart("networkingpreset", new StringBody(presets));
           entity.addPart("featurequantification", new FileBody(quan));
           entity.addPart("featurems2", new FileBody(mgf));
