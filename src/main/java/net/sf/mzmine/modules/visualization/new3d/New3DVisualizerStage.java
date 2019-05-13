@@ -79,17 +79,17 @@ public class New3DVisualizerStage extends Stage{
         buildAxes();
         buildMolecule();
         
-        CameraTransformer cameraTransform = new CameraTransformer();
-        cameraTransform.getChildren().add(camera);
-        cameraTransform.ry.setAngle(-30.0);
-        cameraTransform.rx.setAngle(-15.0);
-        
-        SpringMesh spring = new SpringMesh(10, 2, 2, 8 * 2 * Math.PI, 200, 100, 0, 0);
-        spring.setCullFace(CullFace.NONE);
-        spring.setTextureModeVertices3D(1530, p -> p.f);
-        
-        Group group = new Group(cameraTransform, spring);
-        root.getChildren().add(group);
+//        CameraTransformer cameraTransform = new CameraTransformer();
+//        cameraTransform.getChildren().add(camera);
+//        cameraTransform.ry.setAngle(-30.0);
+//        cameraTransform.rx.setAngle(-15.0);
+//        
+//        SpringMesh spring = new SpringMesh(10, 2, 2, 8 * 2 * Math.PI, 200, 100, 0, 0);
+//        spring.setCullFace(CullFace.NONE);
+//        spring.setTextureModeVertices3D(1530, p -> p.f);
+//        
+//        Group group = new Group(cameraTransform, spring);
+//        root.getChildren().add(group);
         
         Scene scene = new Scene(root, 1024, 768, true);
         scene.setFill(Color.GREY);
