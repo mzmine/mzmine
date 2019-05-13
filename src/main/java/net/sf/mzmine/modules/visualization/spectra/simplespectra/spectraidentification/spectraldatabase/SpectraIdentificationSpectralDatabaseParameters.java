@@ -24,6 +24,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
@@ -35,7 +36,9 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParameterSet {
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "(GNPS json, MONA json, NIST msp, jdx) Name of file that contains information for peak identification");
+      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
+
+  public static final MassListParameter massList = new MassListParameter();
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
@@ -53,7 +56,7 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       20);
 
   public SpectraIdentificationSpectralDatabaseParameters() {
-    super(new Parameter[] {dataBaseFile, mzTolerance, noiseLevel, minCosine, minMatch});
+    super(new Parameter[] {dataBaseFile, massList, mzTolerance, noiseLevel, minCosine, minMatch});
   }
 
 }

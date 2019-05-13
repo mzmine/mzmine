@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
+import static java.util.stream.Collectors.toMap;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -25,25 +26,34 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.LayoutManager;
 import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.mirrorspectra.MirrorScanWindow;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
+import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.util.components.ComponentCellRenderer;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
@@ -60,17 +70,19 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   private Font scoreFont = new Font("Dialog", Font.BOLD, 36);
   private Font headerFont = new Font("Dialog", Font.BOLD, 16);
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
+  private JScrollPane scrollPane;
+  private Map<SpectralDBEntry, Double> totalMatches;
 
-  public SpectraIdentificationResultsWindow(Scan scan, Map<Double, SpectralDBEntry> matches) {
-    setBackground(Color.WHITE);
-    setSize(new Dimension(1200, 800));
+  public SpectraIdentificationResultsWindow(Scan scan) {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    setSize(new Dimension(1200, 800));
     getContentPane().setLayout(new BorderLayout());
-    setTitle("Spectra matching for scan#" + scan.getScanNumber());
+    setTitle("Processing...");
 
     pnGrid = new JPanel();
     // any number of rows
     pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
+    pnGrid.setBackground(Color.WHITE);
     pnGrid.setAutoscrolls(false);
 
     // Add the Windows menu
@@ -78,28 +90,38 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     menuBar.add(new WindowsMenu());
     setJMenuBar(menuBar);
 
-    // add charts
-    for (Map.Entry<Double, SpectralDBEntry> match : matches.entrySet()) {
-      setScanAndShow(scan, match.getValue(), match.getKey());
-    }
-    setVisible(true);
-    JScrollPane scrollPane = new JScrollPane(pnGrid);
+    // show progress of processes
+    TaskControllerImpl taskController = (TaskControllerImpl) MZmineCore.getTaskController();
+
+    // add new task table for database matching
+    JTable taskTable = new JTable(taskController.getTaskQueue());
+    taskTable.setVisible(true);
+    taskTable.setCellSelectionEnabled(false);
+    taskTable.setColumnSelectionAllowed(false);
+    taskTable.setDefaultRenderer(JComponent.class, new ComponentCellRenderer());
+    JScrollPane scrollPaneProgressPanel = new JScrollPane(taskTable);
+    getContentPane().add(scrollPaneProgressPanel, BorderLayout.SOUTH);
+    scrollPaneProgressPanel
+        .setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scrollPaneProgressPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    scrollPaneProgressPanel.setPreferredSize(new Dimension(1200, 120));
+
+    scrollPane = new JScrollPane(pnGrid);
     getContentPane().add(scrollPane, BorderLayout.CENTER);
     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setViewportView(pnGrid);
-    scrollPane.getViewport().setBorder(BorderFactory.createLineBorder(Color.black));
 
+    totalMatches = new HashMap<SpectralDBEntry, Double>();
+
+    setVisible(true);
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     validate();
     repaint();
-    pack();
   }
 
   public boolean setScanAndShow(Scan scan, SpectralDBEntry ident, Double simScore) {
-    // clear
     pnGrid.add(addSpectra(scan, ident, simScore));
-    // show1
     pnGrid.revalidate();
     pnGrid.repaint();
     return true;
@@ -386,4 +408,26 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     return panel;
   }
 
+  public synchronized void addMatches(Scan scan, Map<SpectralDBEntry, Double> matches) {
+    for (Map.Entry<SpectralDBEntry, Double> match : matches.entrySet()) {
+      // add matches of task to total matches
+      totalMatches.put(match.getKey(), match.getValue());
+      setScanAndShow(scan, match.getKey(), match.getValue());
+    }
+  }
+
+  public void sortTotalMatches(Scan scan) {
+    pnGrid.removeAll();
+    getContentPane().remove(0);
+    Map<SpectralDBEntry, Double> sorted = totalMatches.entrySet().stream()
+        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+        .collect(toMap(e -> e.getKey(), e -> e.getValue(), (e1, e2) -> e2, LinkedHashMap::new));
+    if (totalMatches.size() == 0) {
+      JLabel noMatchesFound = new JLabel("Sorry, no matches found!", SwingConstants.CENTER);
+      noMatchesFound.setFont(headerFont);
+      noMatchesFound.setForeground(Color.RED);
+      pnGrid.add(noMatchesFound, BorderLayout.CENTER);
+    }
+    addMatches(scan, sorted);
+  }
 }

@@ -55,6 +55,8 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
 
   private List<SpectralMatchTask> tasks;
 
+  private SpectraIdentificationResultsWindow resultWindow;
+
   private int totalTasks;
 
   SpectraIdentificationSpectralDatabaseTask(ParameterSet parameters, Scan currentScan,
@@ -94,6 +96,11 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     int count = 0;
+
+    // add result frame
+    resultWindow = new SpectraIdentificationResultsWindow(currentScan);
+    resultWindow.setVisible(true);
+
     try {
       tasks = parseFile(dataBaseFile);
       totalTasks = tasks.size();
@@ -127,7 +134,10 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
       throw new MSDKRuntimeException(e);
     }
     logger.info("Added " + count + " spectral library matches");
-
+    resultWindow.sortTotalMatches(currentScan);
+    resultWindow.setTitle("Matched " + count + " compunds for scan#" + currentScan.getScanNumber());
+    resultWindow.revalidate();
+    resultWindow.repaint();
     // Repaint the window
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
@@ -150,8 +160,8 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
-        SpectralMatchTask task =
-            new SpectralMatchTask(parameters, alreadyProcessed + 1, list, spectraPlot, currentScan);
+        SpectralMatchTask task = new SpectralMatchTask(parameters, alreadyProcessed + 1, list,
+            spectraPlot, currentScan, resultWindow);
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }
@@ -169,6 +179,14 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
           e);
       return new ArrayList<>();
     }
+  }
+
+  public SpectraIdentificationResultsWindow getResultWindow() {
+    return resultWindow;
+  }
+
+  public void setResultWindow(SpectraIdentificationResultsWindow resultWindow) {
+    this.resultWindow = resultWindow;
   }
 
 }
