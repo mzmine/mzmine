@@ -113,7 +113,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
               i--;
             }
           }
-          // wait for all sub task to finish
+          // wait for all sub tasks to finish
           try {
             Thread.sleep(100);
           } catch (Exception e) {
