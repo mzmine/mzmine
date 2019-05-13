@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry;
+package net.sf.mzmine.util.spectraldb.entry;
 
 import java.text.DecimalFormat;
 import java.text.MessageFormat;

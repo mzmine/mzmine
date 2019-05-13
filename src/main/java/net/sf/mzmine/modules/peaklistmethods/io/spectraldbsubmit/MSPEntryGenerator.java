@@ -30,8 +30,8 @@
 package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Polarity;
+import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 
 public class MSPEntryGenerator {
 

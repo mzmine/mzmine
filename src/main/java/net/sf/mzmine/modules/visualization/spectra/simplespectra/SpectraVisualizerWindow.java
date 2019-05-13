@@ -63,6 +63,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.Single
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -578,6 +579,16 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         @Override
         public void run() {
           SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
+    }
+
+    if (command.equals("SPECTRALDATABASESEARCH")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          SpectraIdentificationSpectralDatabaseModule.showSpectraIdentificationDialog(currentScan,
+              spectrumPlot);
         }
       });
     }

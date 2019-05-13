@@ -363,6 +363,7 @@ public class SpectraPlot extends EChartPanel {
   /**
    * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
    */
+  @Override
   public void mouseClicked(MouseEvent event) {
 
     // let the parent handle the event (selection etc.)

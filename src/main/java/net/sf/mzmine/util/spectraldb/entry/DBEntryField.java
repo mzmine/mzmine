@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry;
+package net.sf.mzmine.util.spectraldb.entry;
 
 public enum DBEntryField {
 
@@ -202,6 +202,91 @@ public enum DBEntryField {
   public static DBEntryField forMspID(String key) {
     for (DBEntryField f : values()) {
       if (f.getNistMspID().equals(key))
+        return f;
+    }
+    return null;
+  }
+
+  /**
+   *
+   * @return The JCAMP-DX format key or an empty String
+   */
+  public String getJdxID() {
+    switch (this) {
+      case ENTRY_ID:
+        return "";
+      case ACQUISITION:
+        return "";
+      case SOFTWARE:
+        return "";
+      case CAS:
+        return "##CAS REGISTRY NO";
+      case CHARGE:
+        return "";
+      case COLLISION_ENERGY:
+        return "";
+      case COMMENT:
+        return "";
+      case DATA_COLLECTOR:
+        return "";
+      case EXACT_MASS:
+        return "##MW";
+      case FORMULA:
+        return "##MOLFORM";
+      case INCHI:
+        return "";
+      case INCHIKEY:
+        return "";
+      case INSTRUMENT:
+        return "";
+      case INSTRUMENT_TYPE:
+        return "";
+      case IONTYPE:
+        return "";
+      case ION_MODE:
+        return "";
+      case ION_SOURCE:
+        return "";
+      case MZ:
+        return "";
+      case NAME:
+        return "##TITLE";
+      case PRINZIPLE_INVESTIGATOR:
+        return "";
+      case PUBMED:
+        return "";
+      case RT:
+        return "RT";
+      case SMILES:
+        return "";
+      case MS_LEVEL:
+        return "";
+      case PUBCHEM:
+        return "";
+      case CHEMSPIDER:
+        return "";
+      case MONA_ID:
+        return "";
+      case NUM_PEAKS:
+        return "##NPOINTS";
+      case RESOLUTION:
+      case SYNONYM:
+      case MOLWEIGHT:
+        return "";
+      default:
+        return "";
+    }
+  }
+
+  /**
+   * DBENtryField for JDX key
+   * 
+   * @param key
+   * @return
+   */
+  public static DBEntryField forJdxID(String key) {
+    for (DBEntryField f : values()) {
+      if (f.getJdxID().equals(key))
         return f;
     }
     return null;

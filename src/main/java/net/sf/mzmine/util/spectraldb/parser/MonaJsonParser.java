@@ -16,22 +16,19 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.parser;
+package net.sf.mzmine.util.spectraldb.parser;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
@@ -41,14 +38,10 @@ import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.SpectralMatchTask;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.DBEntryField;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.dbentry.SpectralDBEntry;
-import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
 // main:
 // -- compound: inchi, inchiKey,
@@ -89,29 +82,29 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
  * @author Robin Schmid
  *
  */
-public class MonaJsonParser implements SpectralDBParser {
+public class MonaJsonParser extends SpectralDBParser {
 
   private static final String COMPOUND = "compound", MONA_ID = "id", META_DATA = "metaData",
       SPECTRUM = "spectrum", SPLASH = "splash", SUBMITTER = "submitter";
 
   private static Logger logger = Logger.getLogger(MonaJsonParser.class.getName());
 
-  @Override
-  public @Nonnull List<SpectralMatchTask> parse(AbstractTask mainTask, PeakList peakList,
-      ParameterSet parameters, File dataBaseFile) throws IOException {
-    logger.info("Parsing MONA spectral json library " + dataBaseFile.getAbsolutePath());
-    List<SpectralMatchTask> tasks = new ArrayList<>();
-    List<SpectralDBEntry> list = new ArrayList<>();
+  public MonaJsonParser(int bufferEntries, LibraryEntryProcessor processor) {
+    super(bufferEntries, processor);
+  }
 
+  @Override
+  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
+    logger.info("Parsing MONA spectral json library " + dataBaseFile.getAbsolutePath());
+
+    int correct = 0;
     int error = 0;
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       for (String l; (l = br.readLine()) != null;) {
         // main task was canceled?
-        if (mainTask.isCanceled()) {
-          for (SpectralMatchTask t : tasks)
-            t.cancel();
-          return new ArrayList<>();
+        if (mainTask != null && mainTask.isCanceled()) {
+          return false;
         }
 
         JsonReader reader = null;
@@ -119,18 +112,9 @@ public class MonaJsonParser implements SpectralDBParser {
           reader = Json.createReader(new StringReader(l));
           JsonObject json = reader.readObject();
           SpectralDBEntry entry = getDBEntry(json);
-          if (entry != null && entry.getPrecursorMZ() != null) {
-            list.add(entry);
-            // progress
-            if (list.size() % 1000 == 0) {
-              logger.info("Imported " + list.size() + " library entries");
-              // start task for every 1000 entries
-              SpectralMatchTask task =
-                  new SpectralMatchTask(peakList, parameters, tasks.size() * 1000 + 1, list);
-              MZmineCore.getTaskController().addTask(task);
-              tasks.add(task);
-              list = new ArrayList<>();
-            }
+          if (entry != null) {
+            addLibraryEntry(entry);
+            correct++;
           } else
             error++;
         } catch (Exception ex) {
@@ -141,21 +125,16 @@ public class MonaJsonParser implements SpectralDBParser {
             reader.close();
         }
         // to many errors? wrong data format?
-        if (error > 5 && list.isEmpty() && tasks.isEmpty()) {
+        if (error > 5 && correct < 4) {
           logger.log(Level.WARNING, "This file was no MONA spectral json library");
-          return tasks;
+          return false;
         }
       }
     }
-    // start last task
-    logger.info((tasks.size() * 1000 + list.size()) + " MONA library entries imported");
-    if (!list.isEmpty()) {
-      SpectralMatchTask task =
-          new SpectralMatchTask(peakList, parameters, tasks.size() * 1000 + 1, list);
-      MZmineCore.getTaskController().addTask(task);
-      tasks.add(task);
-    }
-    return tasks;
+
+    //
+    finish();
+    return true;
   }
 
   public SpectralDBEntry getDBEntry(JsonObject main) {
