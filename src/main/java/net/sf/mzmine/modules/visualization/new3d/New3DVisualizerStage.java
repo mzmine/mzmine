@@ -19,6 +19,10 @@
 package net.sf.mzmine.modules.visualization.new3d;
 
 import java.util.logging.Logger;
+
+import org.fxyz3d.shapes.primitives.SpringMesh;
+import org.fxyz3d.utils.CameraTransformer;
+
 import java.util.logging.Level;
 
 //import javafx.application.Application;
@@ -27,6 +31,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.CullFace;
 import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
@@ -73,6 +78,18 @@ public class New3DVisualizerStage extends Stage{
         buildCamera();
         buildAxes();
         buildMolecule();
+        
+        CameraTransformer cameraTransform = new CameraTransformer();
+        cameraTransform.getChildren().add(camera);
+        cameraTransform.ry.setAngle(-30.0);
+        cameraTransform.rx.setAngle(-15.0);
+        
+        SpringMesh spring = new SpringMesh(10, 2, 2, 8 * 2 * Math.PI, 200, 100, 0, 0);
+        spring.setCullFace(CullFace.NONE);
+        spring.setTextureModeVertices3D(1530, p -> p.f);
+        
+        Group group = new Group(cameraTransform, spring);
+        root.getChildren().add(group);
         
         Scene scene = new Scene(root, 1024, 768, true);
         scene.setFill(Color.GREY);

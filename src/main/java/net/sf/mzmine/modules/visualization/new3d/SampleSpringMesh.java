@@ -52,12 +52,13 @@ public class SampleSpringMesh extends Stage {
         Group group = new Group(cameraTransform, spring);
         
 
-        Scene scene = new Scene(group, 600, 400, true, SceneAntialiasing.BALANCED);
+        Scene scene = new Scene(group, 600, 400, true);
         scene.setFill(Color.BISQUE);
         scene.setCamera(camera);
         
-        this.setScene(scene);	    
         this.setTitle(title);
+        this.setScene(scene);	    
+        
 	}
 	
 }
