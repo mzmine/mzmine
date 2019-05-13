@@ -47,47 +47,45 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.scans.ScanUtils;
 
-public class New3DVisualizerModule implements MZmineRunnableModule  {
+public class New3DVisualizerModule implements MZmineRunnableModule {
 
-	  private static final Logger LOG = Logger.getLogger(ThreeDVisualizerModule.class.getName());
+	private static final Logger LOG = Logger.getLogger(ThreeDVisualizerModule.class.getName());
 
-	  private static final String MODULE_NAME = "New 3D visualizer";
-	  private static final String MODULE_DESCRIPTION = "New 3D visualizer."; // TODO
+	private static final String MODULE_NAME = "New 3D visualizer";
+	private static final String MODULE_DESCRIPTION = "New 3D visualizer."; // TODO
 
-	  @Override
-	  public @Nonnull String getName() {
-	    return MODULE_NAME;
-	  }
+	@Override
+	public @Nonnull String getName() {
+		return MODULE_NAME;
+	}
 
-	  @Override
-	  public @Nonnull String getDescription() {
-	    return MODULE_DESCRIPTION;
-	  }
+	@Override
+	public @Nonnull String getDescription() {
+		return MODULE_DESCRIPTION;
+	}
 
-	  @Override
-	  @Nonnull
-	  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-	      @Nonnull Collection<Task> tasks) {
+	@Override
+	@Nonnull
+	public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
+			@Nonnull Collection<Task> tasks) {
 
-	    final RawDataFile[] dataFiles = parameters.getParameter(ThreeDVisualizerParameters.dataFiles)
-	        .getValue().getMatchingRawDataFiles();
-	    final ScanSelection scanSel =
-	        parameters.getParameter(ThreeDVisualizerParameters.scanSelection).getValue();
-	    Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
-	    Range<Double> rtRange = ScanUtils.findRtRange(scans);
+		final RawDataFile[] dataFiles = parameters.getParameter(ThreeDVisualizerParameters.dataFiles).getValue()
+				.getMatchingRawDataFiles();
+		final ScanSelection scanSel = parameters.getParameter(ThreeDVisualizerParameters.scanSelection).getValue();
+		Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
+		Range<Double> rtRange = ScanUtils.findRtRange(scans);
 
-	    final Desktop desktop = MZmineCore.getDesktop();
+		final Desktop desktop = MZmineCore.getDesktop();
 
-	    // Check scan numbers.
-	    if (scans.length == 0) {
-	      desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(), "No scans found");
-	      return ExitCode.ERROR;
+		// Check scan numbers.
+		if (scans.length == 0) {
+			desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(), "No scans found");
+			return ExitCode.ERROR;
 
-	    }
+		}
 
-	    ParameterSet myParameters =
-	        MZmineCore.getConfiguration().getModuleParameters(ThreeDVisualizerModule.class);
-	    try {
+		ParameterSet myParameters = MZmineCore.getConfiguration().getModuleParameters(ThreeDVisualizerModule.class);
+		try {
 			/*
 			 * ThreeDVisualizerWindow window = new ThreeDVisualizerWindow(dataFiles[0],
 			 * scans, rtRange,
@@ -96,61 +94,66 @@ public class New3DVisualizerModule implements MZmineRunnableModule  {
 			 * myParameters.getParameter(ThreeDVisualizerParameters.mzResolution).getValue()
 			 * ); window.setVisible(true);
 			 */
+
 			
-	    	
-	    	Platform.runLater(new Runnable() {
-    	       public void run() {
-    	    	   New3DVisualizerStage newStage = new New3DVisualizerStage("Sample Molecule");
-    	    	   newStage.show();
-    	       }
-	    	});
-	   
-	    	
-	    } catch (Throwable e) {
-	      e.printStackTrace();
-	      // Missing Java3D may cause UnsatisfiedLinkError or
-	      // NoClassDefFoundError.
-	      final String msg =
-	          "Error initializing Java3D. Please file an issue at https://github.com/mzmine/mzmine2/issues and include the complete output of your MZmine console.";
-	      LOG.log(Level.SEVERE, msg, e);
-	      desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(), msg);
-	    }
+//			  Platform.runLater(new Runnable() {
+//				  public void run() { 
+//					  New3DVisualizerStage
+//					  newStage = new New3DVisualizerStage("Sample Molecule"); 
+//					  newStage.show();
+//					  }
+//			  });
+			 
 
-	    return ExitCode.OK;
+			
+			  Platform.runLater(new Runnable(){ 
+				  public void run() { SampleSpringMesh
+				  newStage = new SampleSpringMesh("Sample Molecule");
+				  newStage.show();
+			  	} 
+			  });
 
-	  }
+		} catch (Throwable e) {
+			e.printStackTrace();
+			// Missing Java3D may cause UnsatisfiedLinkError or
+			// NoClassDefFoundError.
+			final String msg = "Error initializing Java3D. Please file an issue at https://github.com/mzmine/mzmine2/issues and include the complete output of your MZmine console.";
+			LOG.log(Level.SEVERE, msg, e);
+			desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(), msg);
+		}
 
-	  public static void setupNew3DVisualizer(final RawDataFile dataFile) {
-	    setupNew3DVisualizer(dataFile, null, null);
-	  }
+		return ExitCode.OK;
 
-	  public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
-	      final Range<Double> rtRange) {
+	}
 
-	    final ParameterSet myParameters =
-	        MZmineCore.getConfiguration().getModuleParameters(ThreeDVisualizerModule.class);
-	    final ThreeDVisualizerModule myInstance =
-	        MZmineCore.getModuleInstance(ThreeDVisualizerModule.class);
-	    myParameters.getParameter(ThreeDVisualizerParameters.dataFiles)
-	        .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[] {dataFile});
-	    myParameters.getParameter(ThreeDVisualizerParameters.scanSelection)
-	        .setValue(new ScanSelection(rtRange, 1));
-	    myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(mzRange);
-	    if (myParameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
-	        true) == ExitCode.OK) {
-	      myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(),
-	          myParameters.cloneParameterSet(), new ArrayList<Task>());
-	    }
-	  }
+	public static void setupNew3DVisualizer(final RawDataFile dataFile) {
+		setupNew3DVisualizer(dataFile, null, null);
+	}
 
-	  @Override
-	  public @Nonnull MZmineModuleCategory getModuleCategory() {
-	    return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-	  }
+	public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
+			final Range<Double> rtRange) {
 
-	  @Override
-	  public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	    return ThreeDVisualizerParameters.class;
-	  }
-	
+		final ParameterSet myParameters = MZmineCore.getConfiguration()
+				.getModuleParameters(ThreeDVisualizerModule.class);
+		final ThreeDVisualizerModule myInstance = MZmineCore.getModuleInstance(ThreeDVisualizerModule.class);
+		myParameters.getParameter(ThreeDVisualizerParameters.dataFiles)
+				.setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[] { dataFile });
+		myParameters.getParameter(ThreeDVisualizerParameters.scanSelection).setValue(new ScanSelection(rtRange, 1));
+		myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(mzRange);
+		if (myParameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+			myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(), myParameters.cloneParameterSet(),
+					new ArrayList<Task>());
+		}
+	}
+
+	@Override
+	public @Nonnull MZmineModuleCategory getModuleCategory() {
+		return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+	}
+
+	@Override
+	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+		return ThreeDVisualizerParameters.class;
+	}
+
 }
