@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
@@ -123,15 +122,13 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
       } else {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
-        throw new MSDKRuntimeException(
-            "DB file was empty - or error while parsing " + dataBaseFile);
+        return;
       }
 
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
       setStatus(TaskStatus.ERROR);
       setErrorMessage(e.toString());
-      throw new MSDKRuntimeException(e);
     }
     logger.info("Added " + count + " spectral library matches");
     resultWindow.sortTotalMatches(currentScan);

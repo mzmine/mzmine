@@ -139,14 +139,6 @@ public class SpectralMatchTask extends AbstractTask {
           count++;
           matches.put(ident, sim.getCosine());
         }
-        // check for max error (missing masslist)
-        if (errorCounter > MAX_ERROR) {
-          logger.log(Level.WARNING, "Spectral data base matching failed");
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Spectral data base matching failed");
-          list = null;
-          return;
-        }
         // next row
         finishedSteps++;
       }
@@ -160,8 +152,10 @@ public class SpectralMatchTask extends AbstractTask {
         list = null;
         return;
       }
-
     } catch (Exception e) {
+      setStatus(TaskStatus.ERROR);
+      logger.log(Level.SEVERE, "Spectral data base matching failed", e);
+      setErrorMessage("Spectral data base matching failed");
     }
 
     // Repaint the window to reflect the change in the peak list
