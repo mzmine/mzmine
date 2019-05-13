@@ -61,6 +61,8 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
       "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
       Preset.HIGHRES);
 
+  public static final StringParameter JOB_TITLE = new StringParameter("Job title",
+      "The title of the new GNPS feature-based molecular networking job", "", false);
   /**
    * Email to be notified on job status
    */
@@ -87,6 +89,6 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
       new BooleanParameter("Open website", "Website of GNPS job", true);
 
   public GNPSSubmitParameters() {
-    super(new Parameter[] {META_FILE, PRESETS, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
+    super(new Parameter[] {META_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
   }
 }
