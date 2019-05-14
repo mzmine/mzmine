@@ -96,12 +96,12 @@ public class New3DVisualizerModule implements MZmineRunnableModule {
 			 */
 
 			
-//			  Platform.runLater(new Runnable() {
-//				  public void run() { 
-//					  New3DVisualizerStage newStage = new New3DVisualizerStage("Sample Molecule"); 
-//					  newStage.show();
-//				  }
-//			  });
+			  Platform.runLater(new Runnable() {
+				  public void run() { 
+					  New3DVisualizerStage newStage = new New3DVisualizerStage("Sample Plot"); 
+					  newStage.show();
+				  }
+			  });
 			 
 
 			
@@ -113,11 +113,14 @@ public class New3DVisualizerModule implements MZmineRunnableModule {
 //			  	} 
 //			  });
 			  
-			  Platform.runLater(new Runnable() {
-			       public void run() {             
-			           new SampleSpringMesh(new Stage());
-			       }
-			  });
+//			  Platform.runLater(new Runnable() {
+//			       public void run() {             
+//			           //new SampleSpringMesh(new Stage());
+//			    	   //new SurfacePlotMesh 
+//			    	   SpringStage newStage = new SpringStage("Sample Spring"); 
+//			    	   newStage.show();
+//			       }
+//			  });
 
 		} catch (Throwable e) {
 			e.printStackTrace();

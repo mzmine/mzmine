@@ -29,11 +29,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
 import javafx.stage.Stage;
 
-public class SampleSpringMesh{
+public class SpringStage extends Stage{
 
     final PerspectiveCamera camera = new PerspectiveCamera(true);
     
-    public SampleSpringMesh(Stage primaryStage) {
+    public SpringStage(String title) {
 	    camera.setNearClip(0.1);
 	    camera.setFarClip(10000.0);
 	    camera.setTranslateX(10);
@@ -56,9 +56,8 @@ public class SampleSpringMesh{
         scene.setFill(Color.BISQUE);
         scene.setCamera(camera);
         
-        primaryStage.setTitle("Spring Mesh");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        this.setTitle(title);
+        this.setScene(scene);
         
 	}
 	
