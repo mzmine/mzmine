@@ -30,6 +30,7 @@ import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.shape.CullFace;
 import javafx.stage.Stage;
 
 public class New3DVisualizerStage extends Stage{
@@ -64,7 +65,7 @@ public class New3DVisualizerStage extends Stage{
     	buildCamera();
  	    
  	    SurfacePlotMesh surfaceMesh = new SurfacePlotMesh();
- 	    surfaceMesh.setCullFace(null);
+ 	    surfaceMesh.setCullFace(CullFace.NONE);
  	    
  	    root.getChildren().add(surfaceMesh);
  	    
