@@ -209,6 +209,92 @@ public enum DBEntryField {
 
   /**
    *
+   * @return The mgf format (used by GNPS)
+   */
+  public String getMgfID() {
+    switch (this) {
+      case ENTRY_ID:
+        return "SPECTRUMID";
+      case ACQUISITION:
+        return "";
+      case SOFTWARE:
+        return "";
+      case CAS:
+        return "";
+      case CHARGE:
+        return "CHARGE";
+      case COLLISION_ENERGY:
+        return "";
+      case COMMENT:
+        return "ORGANISM";
+      case DATA_COLLECTOR:
+        return "DATACOLLECTOR";
+      case EXACT_MASS:
+        return "ExactMass";
+      case FORMULA:
+        return "Formula";
+      case INCHI:
+        return "INCHI";
+      case INCHIKEY:
+        return "INCHIAUX";
+      case INSTRUMENT:
+        return "SOURCE_INSTRUMENT";
+      case INSTRUMENT_TYPE:
+        return "Instrument_type";
+      case IONTYPE:
+        return "Precursor_type";
+      case ION_MODE:
+        return "IONMODE"; // Positive Negative
+      case ION_SOURCE:
+        return "";
+      case MZ:
+        return "PEPMASS";
+      case NAME:
+        return "Name";
+      case PRINZIPLE_INVESTIGATOR:
+        return "PI";
+      case PUBMED:
+        return "PUBMED";
+      case RT:
+        return "";
+      case SMILES:
+        return "SMILES";
+      case MS_LEVEL:
+        return "MSLEVEL";
+      case PUBCHEM:
+        return "";
+      case CHEMSPIDER:
+        return "";
+      case MONA_ID:
+        return "";
+      case NUM_PEAKS:
+        return "";
+      case RESOLUTION:
+      case SYNONYM:
+      case MOLWEIGHT:
+        return "";
+      // SUBMITUSER
+      // LIBRARYQUALITY
+    }
+    return "";
+  }
+
+  /**
+   * DBENtryField for mgf (GNPS) key
+   * 
+   * @param key
+   * @return
+   */
+  public static DBEntryField forMgfID(String key) {
+    for (DBEntryField f : values()) {
+      if (f.getMgfID().equals(key))
+        return f;
+    }
+    return null;
+  }
+
+  /**
+   *
    * @return The JCAMP-DX format key or an empty String
    */
   public String getJdxID() {

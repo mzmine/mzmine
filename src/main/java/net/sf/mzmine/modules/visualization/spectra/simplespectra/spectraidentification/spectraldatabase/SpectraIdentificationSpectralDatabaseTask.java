@@ -35,6 +35,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import net.sf.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
+import net.sf.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 
 /**
  * Task to compare single spectra with spectral databases
@@ -172,7 +173,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
         return tasks;
       else
         return new ArrayList<>();
-    } catch (IOException e) {
+    } catch (UnsupportedFormatException | IOException e) {
       logger.log(Level.WARNING, "Library parsing error for file " + dataBaseFile.getAbsolutePath(),
           e);
       return new ArrayList<>();
