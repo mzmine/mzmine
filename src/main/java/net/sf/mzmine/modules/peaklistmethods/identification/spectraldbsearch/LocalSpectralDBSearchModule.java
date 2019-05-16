@@ -30,7 +30,7 @@ import net.sf.mzmine.util.ExitCode;
 
 public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Spectra database search";
+  public static final String MODULE_NAME = "Local spectra database search";
   private static final String MODULE_DESCRIPTION =
       "This method searches all peaklist rows against a local spectral database.";
 

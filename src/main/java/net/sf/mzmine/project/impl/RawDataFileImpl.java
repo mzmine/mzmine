@@ -21,6 +21,7 @@ package net.sf.mzmine.project.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.channels.FileChannel;
@@ -34,13 +35,10 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -346,7 +344,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     if (buffer.capacity() < numOfBytes) {
       buffer = ByteBuffer.allocate(numOfBytes * 2);
     } else {
-      buffer.clear();
+      // JDK 9 breaks compatibility with JRE8: need to cast
+      // https://stackoverflow.com/questions/48693695/java-nio-buffer-not-loading-clear-method-on-runtime
+      ((Buffer) buffer).clear();
     }
 
     FloatBuffer floatBuffer = buffer.asFloatBuffer();
@@ -379,7 +379,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     if (buffer.capacity() < numOfBytes) {
       buffer = ByteBuffer.allocate(numOfBytes * 2);
     } else {
-      buffer.clear();
+      // JDK 9 breaks compatibility with JRE8: need to cast
+      // https://stackoverflow.com/questions/48693695/java-nio-buffer-not-loading-clear-method-on-runtime
+      ((Buffer) buffer).clear();
     }
 
     dataPointsFile.seek(currentOffset);
