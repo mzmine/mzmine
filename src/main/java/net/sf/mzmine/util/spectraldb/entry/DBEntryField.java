@@ -250,7 +250,7 @@ public enum DBEntryField {
       case MZ:
         return "PEPMASS";
       case NAME:
-        return "Name";
+        return "NAME";
       case PRINZIPLE_INVESTIGATOR:
         return "PI";
       case PUBMED:
