@@ -30,9 +30,9 @@ import net.sf.mzmine.util.ExitCode;
 
 public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Local MS/MS database search";
+  public static final String MODULE_NAME = "Local spectra database search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches all peaklist rows with a fragmentation scan against a local MS/MS spectral database and supports different DB file formats, e.g., NIST .msp, MoNA .json, GNPS .json, ...).";
+      "This method searches all peaklist rows against a local spectral database.";
 
   @Override
   public @Nonnull String getName() {

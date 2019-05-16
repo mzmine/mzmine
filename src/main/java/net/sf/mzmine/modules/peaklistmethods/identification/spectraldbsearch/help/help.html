@@ -11,27 +11,32 @@
 
 <h2>Description</h2>
 <p>
-Run on any feature list to match all rows agains a local spectral library (formats: MoNA json, NIST msp, GNPS json (internal library submission format)).
+Run on any feature list to match all rows against a local spectral library (formats: MoNA json, NIST msp, GNPS json (internal library submission format), JCAMP-DX jdx).
 </p>
 
 
 <h4>Method parameters</h4>
 <dl>
+<dt>Peaklist</dt>
+	<dd>Select any peaklist</dd>
 <dt>Masslist</dt>
-	<dd>Masslist of the MS2 scans</dd>
+	<dd>Masslist of scans</dd>
 <dt>Spectral database file</dt>
 	<dd>json/msp from MoNA (MassBank of North America)</dd>
 	<dd>msp NIST format</dd>
-	<dd>json GNPS (format from the spectral DB submission module)</dd>
+	<dd>JCAMP-DX jdx</dd>
+<dd>json GNPS (format from the spectral DB submission module)</dd>
+	<dt>MS level</dt>
+	<dd>Set MS level to "1" to compare MS1 spectra (e.g. GC-EI-MS data) or set it to "2" or higher for MS/MS scans</dd>
 <dt>Retention time tolerance</dt>
 	<dd>Optional: Only used if the DB entry has a retention time</dd>
 <dt>Noise level</dt>
-	<dd>An additional noise level for MS2 masslists (masslists are typically already thresholded)</dd>
+	<dd>An additional noise level for masslists (masslists are typically already thresholded)</dd>
 <dt>Min cos similarity</dt>
 	<dd>Minimum cosine similarity between fragmentation scan and spectral DB entry. Considers only 
 	signals which were found in both spectra.</dd>
 <dt>Minimum matched signals</dt>
-	<dd>Minimum number of signals within m/z tolerance in an MS2 masslist and the spectral library entry</dd>
+	<dd>Minimum number of signals within m/z tolerance in a masslist and the spectral library entry</dd>
 <dt></dt>
 	<dd></dd>
 </dl>

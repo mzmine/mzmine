@@ -39,33 +39,35 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
-      "(GNPS json, MONA json, NIST msp) Name of file that contains information for peak identification");
+      "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
+
+  public static final IntegerParameter msLevel = new IntegerParameter("MS level",
+      "Choose the MS level of the scans that should be compared with the database. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2");
 
   public static final MassListParameter massList =
-      new MassListParameter("MassList (MS2)", "MassList for MS/MS scans to match");
+      new MassListParameter("MassList", "MassList for either MS1 or MS/MS scans to match");
 
   public static final OptionalParameter<RTToleranceParameter> rtTolerance =
       new OptionalParameter<>(new RTToleranceParameter());
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final DoubleParameter noiseLevelMS2 =
-      new DoubleParameter("Minimum MS2 ion intensity",
-          "Signals below this level will be filtered away from MS2 mass lists",
-          MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
+      "Signals below this level will be filtered away from mass lists",
+      MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
   public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cos similarity",
-      "Minimum cosine similarity. (All MS2 signals in the masslist against the spectral library entry. "
+      "Minimum cosine similarity. (All signals in the masslist against the spectral library entry. "
           + "Considers only signals which were found in both the masslist and the library entry)",
       new DecimalFormat("0.000"), 0.7);
 
   public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
-      "Minimum number of matched signals in MS2 masslist and spectral library entry (within mz tolerance)",
+      "Minimum number of matched signals in masslist and spectral library entry (within mz tolerance)",
       4);
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, massList, dataBaseFile, mzTolerance, rtTolerance,
-        noiseLevelMS2, minCosine, minMatch});
+    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, mzTolerance, rtTolerance,
+        noiseLevel, minCosine, minMatch});
   }
 
 }

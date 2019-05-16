@@ -49,7 +49,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final String METHOD = "MS/MS spectral DB search";
+  private static final String METHOD = "Spectral DB search";
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
   private final PeakList peakList;
@@ -63,6 +63,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
 
   private ParameterSet parameters;
 
+  private final int msLevel;
   private final double noiseLevel;
   private final double minSimilarity;
   private final int minMatch;
@@ -84,7 +85,8 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
     mzTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerance).getValue();
-    noiseLevel = parameters.getParameter(LocalSpectralDBSearchParameters.noiseLevelMS2).getValue();
+    msLevel = parameters.getParameter(LocalSpectralDBSearchParameters.msLevel).getValue();
+    noiseLevel = parameters.getParameter(LocalSpectralDBSearchParameters.noiseLevel).getValue();
 
     useRT = parameters.getParameter(LocalSpectralDBSearchParameters.rtTolerance).getValue();
     rtTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.rtTolerance)
@@ -111,7 +113,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return MessageFormat.format(
-        "(entry {2}-{3}) MS/MS spectral database identification in {0} using database {1}",
+        "(entry {2}-{3}) spectral database identification in {0} using database {1}",
         peakList.getName(), dataBaseFile.getName(), startEntry, startEntry + listsize - 1);
   }
 
@@ -123,11 +125,21 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     try {
       for (PeakListRow row : peakList.getRows()) {
-        if (row.getBestFragmentation() != null) {
+
+        // check for MS1 or MSMS scan
+        Scan scan;
+        if (msLevel == 1) {
+          scan = row.getBestPeak().getRepresentativeScan();
+        } else if (msLevel >= 2) {
+          scan = row.getBestFragmentation();
+        } else {
+          logger.log(Level.WARNING, "Data base matching failed. MS level is not set correctly");
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage("Data base matching failed. MS level is not set correctly");
+          return;
+        }
+        if (scan != null) {
           for (SpectralDBEntry ident : list) {
-            // needs precursor mz
-            if (ident.getPrecursorMZ() == null)
-              continue;
 
             SpectraSimilarity sim = spectraDBMatch(row, ident);
             if (sim != null) {
@@ -136,10 +148,9 @@ public class PeakListSpectralMatchTask extends AbstractTask {
             }
             // check for max error (missing masslist)
             if (errorCounter > MAX_ERROR) {
-              logger.log(Level.WARNING,
-                  "MS/MS data base matching failed. To many missing mass lists ");
+              logger.log(Level.WARNING, "Data base matching failed. To many missing mass lists ");
               setStatus(TaskStatus.ERROR);
-              setErrorMessage("MS/MS data base matching failed. To many missing mass lists ");
+              setErrorMessage("Data base matching failed. To many missing mass lists ");
               list = null;
               return;
             }
@@ -171,16 +182,21 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     Double rt = (Double) ident.getField(DBEntryField.RT).orElse(null);
     if (!useRT || rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT())) {
       // precursor mz
-      if (mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ())) {
+      Boolean precursorMzTol = false;
+      if (msLevel >= 2) {
+        precursorMzTol =
+            mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
+      }
+      if (msLevel == 1 || precursorMzTol) {
         try {
-          // check MS2 similarity
+          // check spectra similarity
           DataPoint[] rowMassList = getDataPoints(row);
           SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
               rowMassList, minMatch);
           if (sim != null && sim.getCosine() >= minSimilarity)
             return sim;
         } catch (MissingMassListException e) {
-          logger.log(Level.WARNING, "No mass list in MS2 spectrum for rowID=" + row.getID(), e);
+          logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
           errorCounter++;
           return null;
         }
@@ -188,7 +204,6 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     }
     return null;
   }
-
 
   /**
    * Thresholded masslist
@@ -198,23 +213,27 @@ public class PeakListSpectralMatchTask extends AbstractTask {
    * @throws MissingMassListException
    */
   private DataPoint[] getDataPoints(PeakListRow row) throws MissingMassListException {
-    // first entry is the best scan
-    List<Scan> scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minMatch,
-        ScanSortMode.MAX_TIC);
-    if (scans.isEmpty())
-      return new DataPoint[0];
-
-    MassList masses = scans.get(0).getMassList(massListName);
+    MassList masses;
+    if (msLevel == 1) {
+      masses = row.getBestPeak().getRepresentativeScan().getMassList(massListName);
+    } else if (msLevel >= 2) {
+      // first entry is the best scan
+      List<Scan> scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minMatch,
+          ScanSortMode.MAX_TIC);
+      if (scans.isEmpty())
+        return new DataPoint[0];
+      masses = scans.get(0).getMassList(massListName);
+    } else
+      masses = null;
     if (masses == null)
       return new DataPoint[0];
-
     DataPoint[] dps = masses.getDataPoints();
     return ScanUtils.getFiltered(dps, noiseLevel);
   }
 
   private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectraSimilarity sim) {
     // add new identity to the row
-    row.addPeakIdentity(new SpectralDBPeakIdentity(ident, sim, METHOD), true);
+    row.addPeakIdentity(new SpectralDBPeakIdentity(ident, sim, METHOD), false);
 
     // Notify the GUI about the change in the project
     MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
