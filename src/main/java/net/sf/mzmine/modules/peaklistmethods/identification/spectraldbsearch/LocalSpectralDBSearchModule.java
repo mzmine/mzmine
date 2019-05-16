@@ -30,9 +30,9 @@ import net.sf.mzmine.util.ExitCode;
 
 public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
 
-  public static final String MODULE_NAME = "Local MS/MS database search (JSON)";
+  public static final String MODULE_NAME = "Spectra database search";
   private static final String MODULE_DESCRIPTION =
-      "This method searches all peaklist rows with a fragmentation scan against a local MS/MS spectral database.";
+      "This method searches all peaklist rows against a local spectral database.";
 
   @Override
   public @Nonnull String getName() {
@@ -49,8 +49,8 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
 
-    PeakList peakLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists).getValue()
-        .getMatchingPeakLists();
+    PeakList peakLists[] = parameters.getParameter(LocalSpectralDBSearchParameters.peakLists)
+        .getValue().getMatchingPeakLists();
 
     for (PeakList peakList : peakLists) {
       Task newTask = new LocalSpectralDBSearchTask(peakList, parameters);

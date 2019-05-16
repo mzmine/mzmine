@@ -31,8 +31,6 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
@@ -43,23 +41,11 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final String METHOD = "MS/MS spectral DB search";
-  private static final int MAX_ERROR = 3;
-  private int errorCounter = 0;
   private final PeakList peakList;
   private final @Nonnull String massListName;
   private final File dataBaseFile;
-  private final MZTolerance mzTolerance;
-  private final RTTolerance rtTolerance;
-  private final boolean useRT;
-  private int finishedRows = 0;
-  private final int totalRows;
 
   private ParameterSet parameters;
-
-  private final double noiseLevel;
-  private final double minSimilarity;
-  private final int minMatch;
 
   private List<PeakListSpectralMatchTask> tasks;
 
@@ -70,16 +56,6 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
-    mzTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerance).getValue();
-    noiseLevel = parameters.getParameter(LocalSpectralDBSearchParameters.noiseLevelMS2).getValue();
-
-    useRT = parameters.getParameter(LocalSpectralDBSearchParameters.rtTolerance).getValue();
-    rtTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.rtTolerance)
-        .getEmbeddedParameter().getValue();
-
-    minMatch = parameters.getParameter(LocalSpectralDBSearchParameters.minMatch).getValue();
-    minSimilarity = parameters.getParameter(LocalSpectralDBSearchParameters.minCosine).getValue();
-    totalRows = peakList.getNumberOfRows();
   }
 
   /**
@@ -97,8 +73,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "MS/MS spectral database identification of " + peakList + " using database "
-        + dataBaseFile;
+    return "Spectral database identification of " + peakList + " using database " + dataBaseFile;
   }
 
   /**
@@ -108,37 +83,35 @@ class LocalSpectralDBSearchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     int count = 0;
-    // try {
-    tasks = parseFile(dataBaseFile);
-    totalTasks = tasks.size();
-    // if (!tasks.isEmpty()) {
-    // wait for the tasks to finish
-    while (!isCanceled() && !tasks.isEmpty()) {
-      for (int i = 0; i < tasks.size(); i++) {
-        if (tasks.get(i).isFinished() || tasks.get(i).isCanceled()) {
-          count += tasks.get(i).getCount();
-          tasks.remove(i);
-          i--;
+    try {
+      tasks = parseFile(dataBaseFile);
+      totalTasks = tasks.size();
+      if (!tasks.isEmpty()) {
+        // wait for the tasks to finish
+        while (!isCanceled() && !tasks.isEmpty()) {
+          for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).isFinished() || tasks.get(i).isCanceled()) {
+              count += tasks.get(i).getCount();
+              tasks.remove(i);
+              i--;
+            }
+          }
+          // wait for all sub tasks to finish
+          try {
+            Thread.sleep(100);
+          } catch (Exception e) {
+            cancel();
+          }
         }
+      } else {
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
       }
-      // wait for all sub tasks to finish
-      try {
-        Thread.sleep(100);
-      } catch (Exception e) {
-        cancel();
-      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage(e.toString());
     }
-    // } else {
-    // setStatus(TaskStatus.ERROR);
-    // setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
-    // throw new MSDKRuntimeException("DB file was empty - or error while parsing " + dataBaseFile);
-    // }
-    // } catch (Exception e) {
-    // logger.log(Level.SEVERE, "Could not read file " + dataBaseFile, e);
-    // setStatus(TaskStatus.ERROR);
-    // setErrorMessage(e.toString());
-    // throw new MSDKRuntimeException(e);
-    // }
     logger.info("Added " + count + " spectral library matches");
 
     // Add task description to peakList
@@ -160,7 +133,7 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    * @param dataBaseFile
    * @return
    */
-  private List<PeakListSpectralMatchTask> parseFile(File dataBaseFile) {
+  private List<PeakListSpectralMatchTask> parseFile(File dataBaseFile) throws IOException {
     //
     List<PeakListSpectralMatchTask> tasks = new ArrayList<>();
     AutoLibraryParser parser = new AutoLibraryParser(1000, new LibraryEntryProcessor() {
@@ -175,16 +148,10 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     });
 
     // return tasks
-    try {
-      if (parser.parse(this, dataBaseFile))
-        return tasks;
-      else
-        return new ArrayList<>();
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Library parsing error for file " + dataBaseFile.getAbsolutePath(),
-          e);
+    if (parser.parse(this, dataBaseFile))
+      return tasks;
+    else
       return new ArrayList<>();
-    }
   }
 
 }
