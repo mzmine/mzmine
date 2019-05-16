@@ -64,6 +64,7 @@ public class New3DVisualizerStage extends Stage{
     	buildCamera();
  	    
  	    SurfacePlotMesh surfaceMesh = new SurfacePlotMesh();
+ 	    surfaceMesh.setCullFace(null);
  	    
  	    root.getChildren().add(surfaceMesh);
  	    
@@ -92,16 +93,13 @@ public class New3DVisualizerStage extends Stage{
     }
 
     private void handleMouse(Scene scene, final Node root) {
-        scene.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override public void handle(MouseEvent me) {
+        scene.setOnMousePressed(me -> {
                 mousePosX = me.getSceneX();
                 mousePosY = me.getSceneY();
                 mouseOldX = me.getSceneX();
                 mouseOldY = me.getSceneY();
-            }
-        });
-        scene.setOnMouseDragged(new EventHandler<MouseEvent>() {
-            @Override public void handle(MouseEvent me) {
+            });
+        scene.setOnMouseDragged(me -> {
                 mouseOldX = mousePosX;
                 mouseOldY = mousePosY;
                 mousePosX = me.getSceneX();
@@ -130,9 +128,6 @@ public class New3DVisualizerStage extends Stage{
                     cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*MOUSE_SPEED*modifier*TRACK_SPEED);  
                     cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*MOUSE_SPEED*modifier*TRACK_SPEED);  
                 }
-            }
-        });
+        	});
     }
-    
-    
 }
