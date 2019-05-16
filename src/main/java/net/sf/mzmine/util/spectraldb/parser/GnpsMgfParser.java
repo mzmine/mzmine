@@ -118,6 +118,18 @@ public class GnpsMgfParser extends SpectralDBParser {
                         if (!content.isEmpty()) {
                           try {
                             Object value = field.convertValue(content);
+
+                            // name
+                            if (field.equals(DBEntryField.NAME)) {
+                              String name = ((String) value);
+                              int lastSpace = name.lastIndexOf(' ');
+                              if (lastSpace != -1 && lastSpace < name.length() - 2) {
+                                String adductCandidate = name.substring(lastSpace + 1);
+                                
+                                check for valid adduct with the adduct parser from export - use as adduct
+                              }
+                            }
+
                             fields.put(field, value);
                           } catch (Exception e) {
                             logger.log(Level.WARNING, "Cannot convert value type of " + content
