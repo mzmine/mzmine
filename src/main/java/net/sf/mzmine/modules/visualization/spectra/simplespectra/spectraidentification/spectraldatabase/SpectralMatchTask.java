@@ -210,10 +210,16 @@ public class SpectralMatchTask extends AbstractTask {
         }
 
         String compoundName = match.getKey().getField(DBEntryField.NAME).toString();
+        String shortName = compoundName;
+        // TODO remove or specify more - special naming format?
+        int start = compoundName.indexOf("[");
+        int end = compoundName.indexOf("]");
+        if (start != -1 && start + 1 < compoundName.length() && end != -1
+            && end < compoundName.length())
+          shortName = compoundName.substring(start + 1, end);
+
         DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
-            compoundName.substring(compoundName.indexOf("[") + 1, compoundName.indexOf("]")) + " "
-                + "Score: " + COS_FORM.format(match.getValue()),
-            dataset);
+            shortName + " " + "Score: " + COS_FORM.format(match.getValue()), dataset);
         spectraPlot.addDataSet(detectedCompoundsDataset,
             new Color((int) (Math.random() * 0x1000000)), true);
 
