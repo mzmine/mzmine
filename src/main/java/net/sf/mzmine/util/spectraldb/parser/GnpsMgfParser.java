@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.AdductParser;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
@@ -125,8 +126,11 @@ public class GnpsMgfParser extends SpectralDBParser {
                               int lastSpace = name.lastIndexOf(' ');
                               if (lastSpace != -1 && lastSpace < name.length() - 2) {
                                 String adductCandidate = name.substring(lastSpace + 1);
-                                
-                                check for valid adduct with the adduct parser from export - use as adduct
+                                // check for valid adduct with the adduct parser from export
+                                // use as adduct
+                                String adduct = AdductParser.parse(adductCandidate);
+                                if (adduct != null && !adduct.isEmpty())
+                                  fields.put(DBEntryField.IONTYPE, adduct);
                               }
                             }
 
