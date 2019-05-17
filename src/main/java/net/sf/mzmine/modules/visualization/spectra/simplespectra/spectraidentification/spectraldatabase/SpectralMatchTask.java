@@ -80,6 +80,10 @@ public class SpectralMatchTask extends AbstractTask {
   private int startEntry;
   private int listsize;
 
+  // precursor mz as user parameter (extracted from scan and then checked by user)
+  private double precursorMZ;
+  private boolean usePrecursorMZ;
+
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan, SpectraIdentificationResultsWindow resultWindow) {
     this.startEntry = startEntry;
@@ -102,6 +106,11 @@ public class SpectralMatchTask extends AbstractTask {
         .getValue();
     minSimilarity = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.minCosine).getValue();
+    usePrecursorMZ = parameters
+        .getParameter(SpectraIdentificationSpectralDatabaseParameters.usePrecursorMZ).getValue();
+    precursorMZ =
+        parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.usePrecursorMZ)
+            .getEmbeddedParameter().getValue();
   }
 
   /**
@@ -129,12 +138,24 @@ public class SpectralMatchTask extends AbstractTask {
    */
   @Override
   public void run() {
+    // check for mass list
+    DataPoint[] spectraMassList;
+    try {
+      spectraMassList = getDataPoints(currentScan);
+    } catch (MissingMassListException e) {
+      // no mass list
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage(MessageFormat.format("No masslist for name: {0} in scan {1} of raw file {2}",
+          massListName, currentScan.getScanNumber(), currentScan.getDataFile().getName()));
+      return;
+    }
+
     setStatus(TaskStatus.PROCESSING);
     try {
       totalSteps = list.size();
       matches = new HashMap<SpectralDBEntry, Double>();
       for (SpectralDBEntry ident : list) {
-        SpectraSimilarity sim = spectraDBMatch(currentScan, ident);
+        SpectraSimilarity sim = spectraDBMatch(spectraMassList, ident);
         if (sim != null) {
           count++;
           matches.put(ident, sim.getCosine());
@@ -156,6 +177,7 @@ public class SpectralMatchTask extends AbstractTask {
       setStatus(TaskStatus.ERROR);
       logger.log(Level.SEVERE, "Spectral data base matching failed", e);
       setErrorMessage("Spectral data base matching failed");
+      return;
     }
 
     // Repaint the window to reflect the change in the peak list
@@ -173,25 +195,32 @@ public class SpectralMatchTask extends AbstractTask {
    * @param ident
    * @return spectral similarity or null if no match
    */
-  private SpectraSimilarity spectraDBMatch(Scan scan, SpectralDBEntry ident) {
-    try {
+  private SpectraSimilarity spectraDBMatch(DataPoint[] spectraMassList, SpectralDBEntry ident) {
+    // do not check precursorMZ or precursorMZ within tolerances
+    if (!usePrecursorMZ || (ident.getPrecursorMZ() != null
+        && mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ))) {
       // check spectra similarity
-      DataPoint[] spectraMassList = getDataPoints(scan);
       SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
           spectraMassList, minMatch);
       if (sim != null && sim.getCosine() >= minSimilarity)
         return sim;
-    } catch (MissingMassListException e) {
-      logger.log(Level.WARNING, "No mass list for the selected spectrum", e);
-      errorCounter++;
-      return null;
     }
     return null;
   }
 
+  /**
+   * Get data points of mass list
+   * 
+   * @param scan
+   * @return
+   * @throws MissingMassListException
+   */
   private DataPoint[] getDataPoints(Scan scan) throws MissingMassListException {
     MassList massList = scan.getMassList(massListName);
-    return massList.getDataPoints();
+    if (massList == null)
+      throw new MissingMassListException(massListName);
+    else
+      return massList.getDataPoints();
   }
 
   private void addIdentities(Map<SpectralDBEntry, Double> matches) {

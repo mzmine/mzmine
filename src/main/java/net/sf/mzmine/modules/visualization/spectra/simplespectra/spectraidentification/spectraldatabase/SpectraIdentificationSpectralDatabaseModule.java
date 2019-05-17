@@ -67,10 +67,12 @@ public class SpectraIdentificationSpectralDatabaseModule implements MZmineProces
   public static void showSpectraIdentificationDialog(final Scan scan,
       final SpectraPlot spectraPlot) {
 
-    final ParameterSet parameters = new SpectraIdentificationSpectralDatabaseParameters();
+    final SpectraIdentificationSpectralDatabaseParameters parameters =
+        new SpectraIdentificationSpectralDatabaseParameters();
 
     // Run task.
-    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(scan, MZmineCore.getDesktop().getMainWindow(),
+        true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SpectraIdentificationSpectralDatabaseTask(
           parameters.cloneParameterSet(), scan, spectraPlot));
