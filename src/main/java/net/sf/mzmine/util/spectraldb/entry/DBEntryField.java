@@ -116,7 +116,7 @@ public enum DBEntryField {
    */
   public static DBEntryField forGnpsJasonID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getGnpsJsonID().equals(key))
+      if (f.getGnpsJsonID().equalsIgnoreCase(key))
         return f;
     }
     return null;
@@ -201,7 +201,7 @@ public enum DBEntryField {
    */
   public static DBEntryField forMspID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getNistMspID().equals(key))
+      if (f.getNistMspID().equalsIgnoreCase(key))
         return f;
     }
     return null;
@@ -287,7 +287,7 @@ public enum DBEntryField {
    */
   public static DBEntryField forMgfID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getMgfID().equals(key))
+      if (f.getMgfID().equalsIgnoreCase(key))
         return f;
     }
     return null;
@@ -372,7 +372,7 @@ public enum DBEntryField {
    */
   public static DBEntryField forJdxID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getJdxID().equals(key))
+      if (f.getJdxID().equalsIgnoreCase(key))
         return f;
     }
     return null;
