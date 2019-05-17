@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -65,6 +66,7 @@ import net.sf.mzmine.modules.visualization.spectra.mirrorspectra.MirrorScanWindo
 import net.sf.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
@@ -99,7 +101,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem showXICSetupItem;
   private final JMenuItem showMSMSItem;
   private final JMenuItem showMSMSMirrorItem;
-  private final JMenuItem showMSMSMirrorMatchDBItem;
+  private final JMenuItem showSpectralDBResults;
   private final JMenuItem showAllMSMSItem;
   private final JMenuItem showIsotopePatternItem;
   private final JMenuItem show2DItem;
@@ -157,8 +159,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     showMSMSItem.setToolTipText("MS/MS of a single or multiple rows");
     showAllMSMSItem = GUIUtils.addMenuItem(showMenu, "All MS/MS", this);
     showMSMSMirrorItem = GUIUtils.addMenuItem(showMenu, "MS/MS mirror (select 2 rows)", this);
-    showMSMSMirrorMatchDBItem =
-        GUIUtils.addMenuItem(showMenu, "MS/MS mirror (DB matched identity)", this);
+    showSpectralDBResults = GUIUtils.addMenuItem(showMenu, "Spectral DB search results", this);
     showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
     showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu, "Peak row summary", this);
 
@@ -209,7 +210,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     manuallyDefineItem.setEnabled(false);
     showMSMSItem.setEnabled(false);
     showMSMSMirrorItem.setEnabled(false);
-    showMSMSMirrorMatchDBItem.setEnabled(false);
+    showSpectralDBResults.setEnabled(false);
     showAllMSMSItem.setEnabled(false);
     showIsotopePatternItem.setEnabled(false);
     showPeakRowSummaryItem.setEnabled(false);
@@ -294,11 +295,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       boolean bothMS2 = selectedRows.length == 2 && nRowsWithFragmentation == 2;
       showMSMSMirrorItem.setEnabled(bothMS2);
 
-      // has identity of MS/MS database match
-      PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
-      showMSMSMirrorMatchDBItem.setEnabled(pi != null && pi instanceof SpectralDBPeakIdentity);
+      // has identity of spectral database match
+      showSpectralDBResults.setEnabled(hasSpectralDBIdentities(clickedPeakListRow));
 
       // open id url if available
+      PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
       String url = null;
       if (pi != null)
         url = pi.getPropertyValue(PeakIdentity.PROPERTY_URL);
@@ -309,6 +310,20 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         .setEnabled(oneRowSelected && allClickedPeakListRows[0].getPreferredPeakIdentity() != null);
 
     super.show(invoker, x, y);
+  }
+
+  /**
+   * 
+   * @param clickedRow
+   * @return true if any peakidentity is instance of {@link SpectralDBPeakIdentity}
+   */
+  private boolean hasSpectralDBIdentities(PeakListRow clickedRow) {
+    if (clickedRow == null)
+      return false;
+    for (PeakIdentity pi : clickedRow.getPeakIdentities())
+      if (pi instanceof SpectralDBPeakIdentity)
+        return true;
+    return false;
   }
 
   /**
@@ -548,15 +563,20 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         }
       }
     }
-    // mirror of MS/MS and MS/MS library match identity
-    if (showMSMSMirrorMatchDBItem.equals(src)) {
-      PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
-      if (pi != null && pi instanceof SpectralDBPeakIdentity) {
-        SpectralDBPeakIdentity db = (SpectralDBPeakIdentity) pi;
-        // show mirror msms window of two rows
-        MirrorScanWindow mirrorWindow = new MirrorScanWindow();
-        mirrorWindow.setScans(clickedPeakListRow, db);
-        mirrorWindow.setVisible(true);
+    // show spectral db matches
+    if (showSpectralDBResults.equals(src)) {
+      // TODO use the scan that was matched against the library
+      Scan scan = clickedPeakListRow.getBestFragmentation();
+      if (scan != null) {
+        List<SpectralDBPeakIdentity> spectralID =
+            Arrays.stream(clickedPeakListRow.getPeakIdentities())
+                .filter(pi -> pi instanceof SpectralDBPeakIdentity)
+                .map(pi -> ((SpectralDBPeakIdentity) pi)).collect(Collectors.toList());
+        if (!spectralID.isEmpty()) {
+          SpectraIdentificationResultsWindow window = new SpectraIdentificationResultsWindow();
+          window.addMatches(scan, spectralID);
+          window.setVisible(true);
+        }
       }
     }
 
