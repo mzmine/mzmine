@@ -20,7 +20,6 @@ package net.sf.mzmine.util.spectraldb.parser;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.util.files.FileTypeFilter;
@@ -40,9 +39,11 @@ public class AutoLibraryParser extends SpectralDBParser {
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   @Override
-  public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
+  public boolean parse(AbstractTask mainTask, File dataBaseFile)
+      throws UnsupportedFormatException, IOException {
     FileTypeFilter json = new FileTypeFilter("json", "");
     FileTypeFilter msp = new FileTypeFilter("msp", "");
+    FileTypeFilter mgf = new FileTypeFilter("mgf", "");
     FileTypeFilter jdx = new FileTypeFilter("jdx", "");
     if (json.accept(dataBaseFile)) {
       // test Gnps and MONA json parser
@@ -57,29 +58,33 @@ public class AutoLibraryParser extends SpectralDBParser {
           else
             continue;
         } catch (Exception ex) {
+          // do nothing and try next json format
         }
       }
-    } else if (msp.accept(dataBaseFile)) {
-      // load NIST msp format
-      NistMspParser parser = new NistMspParser(bufferEntries, processor);
-      try {
-        boolean state = parser.parse(mainTask, dataBaseFile);
-        if (state)
-          return state;
-      } catch (Exception ex) {
+    } else {
+      final SpectralDBParser parser;
+      // msp, jdx or mgf
+      if (msp.accept(dataBaseFile)) {
+        // load NIST msp format
+        parser = new NistMspParser(bufferEntries, processor);
+      } else if (jdx.accept(dataBaseFile)) {
+        // load jdx format
+        parser = new JdxParser(bufferEntries, processor);
+      } else if (mgf.accept(dataBaseFile)) {
+        parser = new GnpsMgfParser(bufferEntries, processor);
+      } else {
+        throw (new UnsupportedFormatException(
+            "Format not supported: " + dataBaseFile.getAbsolutePath()));
       }
-    } else if (jdx.accept(dataBaseFile)) {
-      // load jdx format
-      JdxParser parser = new JdxParser(bufferEntries, processor);
-      try {
-        boolean state = parser.parse(mainTask, dataBaseFile);
-        if (state)
-          return state;
-      } catch (Exception ex) {
-      }
+
+      // parse the file
+      boolean state = parser.parse(mainTask, dataBaseFile);
+      if (state)
+        return state;
     }
-    logger.log(Level.WARNING, "Unsupported file format: " + dataBaseFile.getAbsolutePath());
-    return false;
+
+    throw (new UnsupportedFormatException(
+        "Format not supported: " + dataBaseFile.getAbsolutePath()));
   }
 
 }

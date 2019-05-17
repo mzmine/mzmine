@@ -18,15 +18,19 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
+import java.awt.Window;
 import java.text.DecimalFormat;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * Module to compare single spectra with spectral databases
@@ -42,6 +46,11 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
+  public static final OptionalParameter<DoubleParameter> usePrecursorMZ =
+      new OptionalParameter<>(new DoubleParameter("Use precursor m/z",
+          "Use precursor m/z as a filter. Precursor m/z of library entry and this scan need to be within m/z tolerance. Entries without precursor m/z are skipped.",
+          MZmineCore.getConfiguration().getMZFormat(), 0d));
+
   public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
       "Signals below this level will be filtered away from mass lists",
       MZmineCore.getConfiguration().getIntensityFormat(), 0d);
@@ -56,7 +65,19 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       20);
 
   public SpectraIdentificationSpectralDatabaseParameters() {
-    super(new Parameter[] {dataBaseFile, massList, mzTolerance, noiseLevel, minCosine, minMatch});
+    super(new Parameter[] {dataBaseFile, massList, mzTolerance, usePrecursorMZ, noiseLevel,
+        minCosine, minMatch});
   }
 
+
+  public ExitCode showSetupDialog(Scan scan, Window parent, boolean valueCheckRequired) {
+    // set precursor mz to parameter if MS2 scan
+    // otherwise leave the value to the one specified before
+    if (scan.getPrecursorMZ() != 0)
+      this.getParameter(usePrecursorMZ).getEmbeddedParameter().setValue(scan.getPrecursorMZ());
+    else
+      this.getParameter(usePrecursorMZ).setValue(false);
+
+    return super.showSetupDialog(parent, valueCheckRequired);
+  }
 }

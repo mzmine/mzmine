@@ -116,7 +116,8 @@ public enum DBEntryField {
    */
   public static DBEntryField forGnpsJasonID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getGnpsJsonID().equals(key))
+      // equalsIgnoreCase is more robust against changes in library consistency
+      if (f.getGnpsJsonID().equalsIgnoreCase(key))
         return f;
     }
     return null;
@@ -201,7 +202,95 @@ public enum DBEntryField {
    */
   public static DBEntryField forMspID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getNistMspID().equals(key))
+      // equalsIgnoreCase is more robust against changes in library consistency
+      if (f.getNistMspID().equalsIgnoreCase(key))
+        return f;
+    }
+    return null;
+  }
+
+  /**
+   *
+   * @return The mgf format (used by GNPS)
+   */
+  public String getMgfID() {
+    switch (this) {
+      case ENTRY_ID:
+        return "SPECTRUMID";
+      case ACQUISITION:
+        return "";
+      case SOFTWARE:
+        return "";
+      case CAS:
+        return "";
+      case CHARGE:
+        return "CHARGE";
+      case COLLISION_ENERGY:
+        return "";
+      case COMMENT:
+        return "ORGANISM";
+      case DATA_COLLECTOR:
+        return "DATACOLLECTOR";
+      case EXACT_MASS:
+        return "ExactMass";
+      case FORMULA:
+        return "Formula";
+      case INCHI:
+        return "INCHI";
+      case INCHIKEY:
+        return "INCHIAUX";
+      case INSTRUMENT:
+        return "SOURCE_INSTRUMENT";
+      case INSTRUMENT_TYPE:
+        return "Instrument_type";
+      case IONTYPE:
+        return "Precursor_type";
+      case ION_MODE:
+        return "IONMODE"; // Positive Negative
+      case ION_SOURCE:
+        return "";
+      case MZ:
+        return "PEPMASS";
+      case NAME:
+        return "NAME";
+      case PRINZIPLE_INVESTIGATOR:
+        return "PI";
+      case PUBMED:
+        return "PUBMED";
+      case RT:
+        return "";
+      case SMILES:
+        return "SMILES";
+      case MS_LEVEL:
+        return "MSLEVEL";
+      case PUBCHEM:
+        return "";
+      case CHEMSPIDER:
+        return "";
+      case MONA_ID:
+        return "";
+      case NUM_PEAKS:
+        return "";
+      case RESOLUTION:
+      case SYNONYM:
+      case MOLWEIGHT:
+        return "";
+      // SUBMITUSER
+      // LIBRARYQUALITY
+    }
+    return "";
+  }
+
+  /**
+   * DBENtryField for mgf (GNPS) key
+   * 
+   * @param key
+   * @return
+   */
+  public static DBEntryField forMgfID(String key) {
+    for (DBEntryField f : values()) {
+      // equalsIgnoreCase is more robust against changes in library consistency
+      if (f.getMgfID().equalsIgnoreCase(key))
         return f;
     }
     return null;
@@ -286,7 +375,8 @@ public enum DBEntryField {
    */
   public static DBEntryField forJdxID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getJdxID().equals(key))
+      // equalsIgnoreCase is more robust against changes in library consistency
+      if (f.getJdxID().equalsIgnoreCase(key))
         return f;
     }
     return null;

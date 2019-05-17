@@ -50,7 +50,8 @@ public abstract class SpectralDBParser {
    * @return the list or an empty list if something went wrong (e.g., wrong format)
    * @throws IOException
    */
-  public abstract boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException;
+  public abstract boolean parse(AbstractTask mainTask, File dataBaseFile)
+      throws UnsupportedFormatException, IOException;
 
   /**
    * Add DB entry and push every 1000 entries

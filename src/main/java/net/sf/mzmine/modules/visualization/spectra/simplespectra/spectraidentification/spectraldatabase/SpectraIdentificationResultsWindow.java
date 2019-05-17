@@ -18,7 +18,6 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
-import static java.util.stream.Collectors.toMap;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -26,9 +25,9 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.LayoutManager;
 import java.text.DecimalFormat;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import javax.swing.BorderFactory;
@@ -43,6 +42,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
@@ -55,7 +55,7 @@ import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.Pseud
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.components.ComponentCellRenderer;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
-import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 public class SpectraIdentificationResultsWindow extends JFrame {
   /**
@@ -71,9 +71,10 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   private Font headerFont = new Font("Dialog", Font.BOLD, 16);
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   private JScrollPane scrollPane;
-  private Map<SpectralDBEntry, Double> totalMatches;
+  private List<SpectralDBPeakIdentity> totalMatches;
+  private Map<SpectralDBPeakIdentity, JPanel> matchPanels;
 
-  public SpectraIdentificationResultsWindow(Scan scan) {
+  public SpectraIdentificationResultsWindow() {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setSize(new Dimension(1200, 800));
     getContentPane().setLayout(new BorderLayout());
@@ -82,8 +83,15 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     pnGrid = new JPanel();
     // any number of rows
     pnGrid.setLayout(new GridLayout(0, 1, 0, 25));
+
     pnGrid.setBackground(Color.WHITE);
     pnGrid.setAutoscrolls(false);
+
+    // add label (is replaced later
+    JLabel noMatchesFound = new JLabel("Sorry, no matches found!", SwingConstants.CENTER);
+    noMatchesFound.setFont(headerFont);
+    noMatchesFound.setForeground(Color.RED);
+    pnGrid.add(noMatchesFound, BorderLayout.CENTER);
 
     // Add the Windows menu
     JMenuBar menuBar = new JMenuBar();
@@ -112,7 +120,8 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
     scrollPane.setViewportView(pnGrid);
 
-    totalMatches = new HashMap<SpectralDBEntry, Double>();
+    totalMatches = new ArrayList<>();
+    matchPanels = new HashMap<>();
 
     setVisible(true);
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -120,14 +129,14 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     repaint();
   }
 
-  public boolean setScanAndShow(Scan scan, SpectralDBEntry ident, Double simScore) {
-    pnGrid.add(addSpectra(scan, ident, simScore));
-    pnGrid.revalidate();
-    pnGrid.repaint();
-    return true;
-  }
-
-  private JPanel addSpectra(Scan scan, SpectralDBEntry ident, Double simScore) {
+  /**
+   * Creates a new panel for the library match
+   * 
+   * @param scan
+   * @param hit
+   * @return
+   */
+  private JPanel createPanel(Scan scan, SpectralDBPeakIdentity hit) {
     JPanel panel = new JPanel(new BorderLayout());
 
     JSplitPane spectrumPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -150,17 +159,19 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     panelTitle.setPreferredSize(new Dimension(250, 75));
     panelTitle.setMinimumSize(new Dimension(250, 75));
     panelTitle.setMaximumSize(new Dimension(250, 75));
-    String name = (String) ident.getField(DBEntryField.NAME).orElse("N/A");
+    String name = (String) hit.getEntry().getField(DBEntryField.NAME).orElse("N/A");
     JLabel title = new JLabel();
     if (name.length() >= 20) {
       title = new JLabel(name.substring(0, 19) + "...");
     } else {
       title = new JLabel(name);
     }
-    title.setToolTipText((String) ident.getField(DBEntryField.NAME).orElse("N/A"));
+    title.setToolTipText((String) hit.getEntry().getField(DBEntryField.NAME).orElse("N/A"));
     title.setFont(headerFont);
     title.setForeground(Color.WHITE);
     panelTitle.add(title);
+
+    double simScore = hit.getSimilarity().getCosine();
 
     // score result
     JPanel panelScore = new JPanel();
@@ -195,68 +206,80 @@ public class SpectraIdentificationResultsWindow extends JFrame {
         "This section shows all the compound information listed in the used database");
     compoundInfo.setFont(headerFont);
     panelCompounds.add(compoundInfo);
-    JLabel synonym = new JLabel("Synonym: " + ident.getField(DBEntryField.SYNONYM).orElse("N/A"));
-    synonym.setText("Synonym: " + ident.getField(DBEntryField.SYNONYM).orElse("N/A"));
-    if (ident.getField(DBEntryField.SYNONYM).orElse("N/A") != "N/A")
+    JLabel synonym =
+        new JLabel("Synonym: " + hit.getEntry().getField(DBEntryField.SYNONYM).orElse("N/A"));
+    synonym.setText("Synonym: " + hit.getEntry().getField(DBEntryField.SYNONYM).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.SYNONYM).orElse("N/A") != "N/A")
       panelCompounds.add(synonym);
-    JLabel formula = new JLabel("Formula: " + ident.getField(DBEntryField.FORMULA).orElse("N/A"));
-    formula.setToolTipText("Formula: " + ident.getField(DBEntryField.FORMULA).orElse("N/A"));
-    if (ident.getField(DBEntryField.FORMULA).orElse("N/A") != "N/A")
+    JLabel formula =
+        new JLabel("Formula: " + hit.getEntry().getField(DBEntryField.FORMULA).orElse("N/A"));
+    formula
+        .setToolTipText("Formula: " + hit.getEntry().getField(DBEntryField.FORMULA).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.FORMULA).orElse("N/A") != "N/A")
       panelCompounds.add(formula);
-    JLabel molarWeight =
-        new JLabel("Molar Weight: " + ident.getField(DBEntryField.MOLWEIGHT).orElse("N/A"));
-    molarWeight
-        .setToolTipText("Molar Weight: " + ident.getField(DBEntryField.MOLWEIGHT).orElse("N/A"));
-    if (ident.getField(DBEntryField.MOLWEIGHT).orElse("N/A") != "N/A")
+    JLabel molarWeight = new JLabel(
+        "Molar Weight: " + hit.getEntry().getField(DBEntryField.MOLWEIGHT).orElse("N/A"));
+    molarWeight.setToolTipText(
+        "Molar Weight: " + hit.getEntry().getField(DBEntryField.MOLWEIGHT).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.MOLWEIGHT).orElse("N/A") != "N/A")
       panelCompounds.add(molarWeight);
     JLabel exactMass =
-        new JLabel("Exact mass: " + ident.getField(DBEntryField.EXACT_MASS).orElse("N/A"));
-    exactMass
-        .setToolTipText("Exact mass: " + ident.getField(DBEntryField.EXACT_MASS).orElse("N/A"));
-    if (ident.getField(DBEntryField.EXACT_MASS).orElse("N/A") != "N/A")
+        new JLabel("Exact mass: " + hit.getEntry().getField(DBEntryField.EXACT_MASS).orElse("N/A"));
+    exactMass.setToolTipText(
+        "Exact mass: " + hit.getEntry().getField(DBEntryField.EXACT_MASS).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.EXACT_MASS).orElse("N/A") != "N/A")
       panelCompounds.add(exactMass);
-    JLabel ionType = new JLabel("Ion type: " + ident.getField(DBEntryField.IONTYPE).orElse("N/A"));
-    ionType.setToolTipText("Ion type: " + ident.getField(DBEntryField.IONTYPE).orElse("N/A"));
-    if (ident.getField(DBEntryField.IONTYPE).orElse("N/A") != "N/A")
+    JLabel ionType =
+        new JLabel("Ion type: " + hit.getEntry().getField(DBEntryField.IONTYPE).orElse("N/A"));
+    ionType
+        .setToolTipText("Ion type: " + hit.getEntry().getField(DBEntryField.IONTYPE).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.IONTYPE).orElse("N/A") != "N/A")
       panelCompounds.add(ionType);
-    JLabel rt = new JLabel("Retention time: " + ident.getField(DBEntryField.RT).orElse("N/A"));
-    rt.setToolTipText("Retention time: " + ident.getField(DBEntryField.RT).orElse("N/A"));
-    if (ident.getField(DBEntryField.RT).orElse("N/A") != "N/A")
+    JLabel rt =
+        new JLabel("Retention time: " + hit.getEntry().getField(DBEntryField.RT).orElse("N/A"));
+    rt.setToolTipText("Retention time: " + hit.getEntry().getField(DBEntryField.RT).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.RT).orElse("N/A") != "N/A")
       panelCompounds.add(rt);
-    JLabel mz = new JLabel("m/z: " + ident.getField(DBEntryField.MZ).orElse("N/A"));
-    mz.setToolTipText("m/z: " + ident.getField(DBEntryField.MZ).orElse("N/A"));
-    if (ident.getField(DBEntryField.MZ).orElse("N/A") != "N/A")
+    JLabel mz = new JLabel("m/z: " + hit.getEntry().getField(DBEntryField.MZ).orElse("N/A"));
+    mz.setToolTipText("m/z: " + hit.getEntry().getField(DBEntryField.MZ).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.MZ).orElse("N/A") != "N/A")
       panelCompounds.add(mz);
-    JLabel charge = new JLabel("Charge: " + ident.getField(DBEntryField.CHARGE).orElse("N/A"));
-    charge.setToolTipText("Charge: " + ident.getField(DBEntryField.CHARGE).orElse("N/A"));
-    if (ident.getField(DBEntryField.CHARGE).orElse("N/A") != "N/A")
+    JLabel charge =
+        new JLabel("Charge: " + hit.getEntry().getField(DBEntryField.CHARGE).orElse("N/A"));
+    charge.setToolTipText("Charge: " + hit.getEntry().getField(DBEntryField.CHARGE).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.CHARGE).orElse("N/A") != "N/A")
       panelCompounds.add(charge);
-    JLabel ionMode = new JLabel("Ion mode: " + ident.getField(DBEntryField.ION_MODE).orElse("N/A"));
-    ionMode.setToolTipText("Ion mode: " + ident.getField(DBEntryField.ION_MODE).orElse("N/A"));
-    if (ident.getField(DBEntryField.ION_MODE).orElse("N/A") != "N/A")
+    JLabel ionMode =
+        new JLabel("Ion mode: " + hit.getEntry().getField(DBEntryField.ION_MODE).orElse("N/A"));
+    ionMode.setToolTipText(
+        "Ion mode: " + hit.getEntry().getField(DBEntryField.ION_MODE).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.ION_MODE).orElse("N/A") != "N/A")
       panelCompounds.add(ionMode);
-    JLabel inchi = new JLabel("INCHI: " + ident.getField(DBEntryField.INCHI).orElse("N/A"));
-    inchi.setToolTipText("INCHI: " + ident.getField(DBEntryField.INCHI).orElse("N/A"));
-    if (ident.getField(DBEntryField.INCHI).orElse("N/A") != "N/A")
+    JLabel inchi =
+        new JLabel("INCHI: " + hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A"));
+    inchi.setToolTipText("INCHI: " + hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A") != "N/A")
       panelCompounds.add(inchi);
     JLabel inchiKey =
-        new JLabel("INCHI Key: " + ident.getField(DBEntryField.INCHIKEY).orElse("N/A"));
-    inchiKey.setToolTipText("INCHI Key: " + ident.getField(DBEntryField.INCHIKEY).orElse("N/A"));
-    if (ident.getField(DBEntryField.INCHI).orElse("N/A") != "N/A")
+        new JLabel("INCHI Key: " + hit.getEntry().getField(DBEntryField.INCHIKEY).orElse("N/A"));
+    inchiKey.setToolTipText(
+        "INCHI Key: " + hit.getEntry().getField(DBEntryField.INCHIKEY).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A") != "N/A")
       panelCompounds.add(inchiKey);
-    JLabel smiles = new JLabel("SMILES: " + ident.getField(DBEntryField.SMILES).orElse("N/A"));
-    smiles.setToolTipText("SMILES: " + ident.getField(DBEntryField.SMILES).orElse("N/A"));
-    if (ident.getField(DBEntryField.SMILES).orElse("N/A") != "N/A")
+    JLabel smiles =
+        new JLabel("SMILES: " + hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A"));
+    smiles.setToolTipText("SMILES: " + hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A") != "N/A")
       panelCompounds.add(smiles);
-    JLabel cas = new JLabel("CAS: " + ident.getField(DBEntryField.CAS).orElse("N/A"));
-    cas.setToolTipText("CAS: " + ident.getField(DBEntryField.CAS).orElse("N/A"));
-    if (ident.getField(DBEntryField.CAS).orElse("N/A") != "N/A")
+    JLabel cas = new JLabel("CAS: " + hit.getEntry().getField(DBEntryField.CAS).orElse("N/A"));
+    cas.setToolTipText("CAS: " + hit.getEntry().getField(DBEntryField.CAS).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.CAS).orElse("N/A") != "N/A")
       panelCompounds.add(cas);
-    JLabel numberPeaks =
-        new JLabel("Number of peaks: " + ident.getField(DBEntryField.NUM_PEAKS).orElse("N/A"));
-    numberPeaks
-        .setToolTipText("Number of peaks: " + ident.getField(DBEntryField.NUM_PEAKS).orElse("N/A"));
-    if (ident.getField(DBEntryField.NUM_PEAKS).orElse("N/A") != "N/A")
+    JLabel numberPeaks = new JLabel(
+        "Number of peaks: " + hit.getEntry().getField(DBEntryField.NUM_PEAKS).orElse("N/A"));
+    numberPeaks.setToolTipText(
+        "Number of peaks: " + hit.getEntry().getField(DBEntryField.NUM_PEAKS).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.NUM_PEAKS).orElse("N/A") != "N/A")
       panelCompounds.add(numberPeaks);
 
     // instrument info
@@ -268,49 +291,52 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     instrumentInfo.setToolTipText(
         "This section shows all the instrument information listed in the used database");
     JLabel instrumentType = new JLabel(
-        "Instrument type: " + ident.getField(DBEntryField.INSTRUMENT_TYPE).orElse("N/A"));
+        "Instrument type: " + hit.getEntry().getField(DBEntryField.INSTRUMENT_TYPE).orElse("N/A"));
     instrumentType.setToolTipText(
-        "Instrument type: " + ident.getField(DBEntryField.INSTRUMENT_TYPE).orElse("N/A"));
-    if (ident.getField(DBEntryField.INSTRUMENT_TYPE).orElse("N/A") != "N/A")
+        "Instrument type: " + hit.getEntry().getField(DBEntryField.INSTRUMENT_TYPE).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.INSTRUMENT_TYPE).orElse("N/A") != "N/A")
       panelInstrument.add(instrumentType);
     JLabel instrument =
-        new JLabel("Instrument: " + ident.getField(DBEntryField.INSTRUMENT).orElse("N/A"));
-    instrument
-        .setToolTipText("Instrument: " + ident.getField(DBEntryField.INSTRUMENT).orElse("N/A"));
-    if (ident.getField(DBEntryField.INSTRUMENT).orElse("N/A") != "N/A")
+        new JLabel("Instrument: " + hit.getEntry().getField(DBEntryField.INSTRUMENT).orElse("N/A"));
+    instrument.setToolTipText(
+        "Instrument: " + hit.getEntry().getField(DBEntryField.INSTRUMENT).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.INSTRUMENT).orElse("N/A") != "N/A")
       panelInstrument.add(instrument);
     JLabel ionSource =
-        new JLabel("Ion source: " + ident.getField(DBEntryField.ION_SOURCE).orElse("N/A"));
-    ionSource
-        .setToolTipText("Ion source: " + ident.getField(DBEntryField.ION_SOURCE).orElse("N/A"));
-    if (ident.getField(DBEntryField.ION_SOURCE).orElse("N/A") != "N/A")
+        new JLabel("Ion source: " + hit.getEntry().getField(DBEntryField.ION_SOURCE).orElse("N/A"));
+    ionSource.setToolTipText(
+        "Ion source: " + hit.getEntry().getField(DBEntryField.ION_SOURCE).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.ION_SOURCE).orElse("N/A") != "N/A")
       panelInstrument.add(ionSource);
     JLabel resolution =
-        new JLabel("Resolution: " + ident.getField(DBEntryField.RESOLUTION).orElse("N/A"));
-    resolution
-        .setToolTipText("Resolution: " + ident.getField(DBEntryField.RESOLUTION).orElse("N/A"));
-    if (ident.getField(DBEntryField.RESOLUTION).orElse("N/A") != "N/A")
+        new JLabel("Resolution: " + hit.getEntry().getField(DBEntryField.RESOLUTION).orElse("N/A"));
+    resolution.setToolTipText(
+        "Resolution: " + hit.getEntry().getField(DBEntryField.RESOLUTION).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.RESOLUTION).orElse("N/A") != "N/A")
       panelInstrument.add(resolution);
-    JLabel msLevel = new JLabel("MS level: " + ident.getField(DBEntryField.MS_LEVEL).orElse("N/A"));
-    msLevel.setToolTipText("MS level: " + ident.getField(DBEntryField.MS_LEVEL).orElse("N/A"));
-    if (ident.getField(DBEntryField.MS_LEVEL).orElse("N/A") != "N/A")
+    JLabel msLevel =
+        new JLabel("MS level: " + hit.getEntry().getField(DBEntryField.MS_LEVEL).orElse("N/A"));
+    msLevel.setToolTipText(
+        "MS level: " + hit.getEntry().getField(DBEntryField.MS_LEVEL).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.MS_LEVEL).orElse("N/A") != "N/A")
       panelInstrument.add(msLevel);
-    JLabel collision = new JLabel(
-        "Collision energy: " + ident.getField(DBEntryField.COLLISION_ENERGY).orElse("N/A"));
+    JLabel collision = new JLabel("Collision energy: "
+        + hit.getEntry().getField(DBEntryField.COLLISION_ENERGY).orElse("N/A"));
     collision.setToolTipText(
-        "Collision enery: " + ident.getField(DBEntryField.COLLISION_ENERGY).orElse("N/A"));
-    if (ident.getField(DBEntryField.COLLISION_ENERGY).orElse("N/A") != "N/A")
+        "Collision enery: " + hit.getEntry().getField(DBEntryField.COLLISION_ENERGY).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.COLLISION_ENERGY).orElse("N/A") != "N/A")
       panelInstrument.add(collision);
-    JLabel acquisition =
-        new JLabel("Acquisition: " + ident.getField(DBEntryField.ACQUISITION).orElse("N/A"));
-    acquisition
-        .setToolTipText("Acquisition: " + ident.getField(DBEntryField.ACQUISITION).orElse("N/A"));
-    if (ident.getField(DBEntryField.ACQUISITION).orElse("N/A") != "N/A")
+    JLabel acquisition = new JLabel(
+        "Acquisition: " + hit.getEntry().getField(DBEntryField.ACQUISITION).orElse("N/A"));
+    acquisition.setToolTipText(
+        "Acquisition: " + hit.getEntry().getField(DBEntryField.ACQUISITION).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.ACQUISITION).orElse("N/A") != "N/A")
       panelInstrument.add(acquisition);
     JLabel software =
-        new JLabel("Software: " + ident.getField(DBEntryField.SOFTWARE).orElse("N/A"));
-    software.setToolTipText("Software: " + ident.getField(DBEntryField.SOFTWARE).orElse("N/A"));
-    if (ident.getField(DBEntryField.SOFTWARE).orElse("N/A") != "N/A")
+        new JLabel("Software: " + hit.getEntry().getField(DBEntryField.SOFTWARE).orElse("N/A"));
+    software.setToolTipText(
+        "Software: " + hit.getEntry().getField(DBEntryField.SOFTWARE).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.SOFTWARE).orElse("N/A") != "N/A")
       panelInstrument.add(software);
 
     boxCompoundAndInstrument.add(panelCompounds, BorderLayout.WEST);
@@ -326,22 +352,27 @@ public class SpectraIdentificationResultsWindow extends JFrame {
         .setToolTipText("This section shows links to other databases of the matched compound");
     databaseLinks.setFont(headerFont);
     panelDB.add(databaseLinks);
-    JLabel pubmed = new JLabel("PUBMED: " + ident.getField(DBEntryField.PUBMED).orElse("N/A"));
-    pubmed.setToolTipText("PUBMED: " + ident.getField(DBEntryField.PUBMED).orElse("N/A"));
-    if (ident.getField(DBEntryField.PUBMED).orElse("N/A") != "N/A")
+    JLabel pubmed =
+        new JLabel("PUBMED: " + hit.getEntry().getField(DBEntryField.PUBMED).orElse("N/A"));
+    pubmed.setToolTipText("PUBMED: " + hit.getEntry().getField(DBEntryField.PUBMED).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.PUBMED).orElse("N/A") != "N/A")
       panelDB.add(pubmed);
-    JLabel pubchem = new JLabel("PUBCHEM: " + ident.getField(DBEntryField.PUBCHEM).orElse("N/A"));
-    pubchem.setToolTipText("PUBCHEM: " + ident.getField(DBEntryField.PUBCHEM).orElse("N/A"));
-    if (ident.getField(DBEntryField.PUBCHEM).orElse("N/A") != "N/A")
+    JLabel pubchem =
+        new JLabel("PUBCHEM: " + hit.getEntry().getField(DBEntryField.PUBCHEM).orElse("N/A"));
+    pubchem
+        .setToolTipText("PUBCHEM: " + hit.getEntry().getField(DBEntryField.PUBCHEM).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.PUBCHEM).orElse("N/A") != "N/A")
       panelDB.add(pubchem);
-    JLabel mona = new JLabel("MONA ID: " + ident.getField(DBEntryField.MONA_ID).orElse("N/A"));
-    mona.setToolTipText("MONA ID: " + ident.getField(DBEntryField.MONA_ID).orElse("N/A"));
-    if (ident.getField(DBEntryField.MONA_ID).orElse("N/A") != "N/A")
+    JLabel mona =
+        new JLabel("MONA ID: " + hit.getEntry().getField(DBEntryField.MONA_ID).orElse("N/A"));
+    mona.setToolTipText("MONA ID: " + hit.getEntry().getField(DBEntryField.MONA_ID).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.MONA_ID).orElse("N/A") != "N/A")
       panelDB.add(mona);
     JLabel spider =
-        new JLabel("Chemspider: " + ident.getField(DBEntryField.CHEMSPIDER).orElse("N/A"));
-    spider.setToolTipText("Chemspider: " + ident.getField(DBEntryField.CHEMSPIDER).orElse("N/A"));
-    if (ident.getField(DBEntryField.CHEMSPIDER).orElse("N/A") != "N/A")
+        new JLabel("Chemspider: " + hit.getEntry().getField(DBEntryField.CHEMSPIDER).orElse("N/A"));
+    spider.setToolTipText(
+        "Chemspider: " + hit.getEntry().getField(DBEntryField.CHEMSPIDER).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.CHEMSPIDER).orElse("N/A") != "N/A")
       panelDB.add(spider);
 
     // // Other info
@@ -352,25 +383,28 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     otherInfo.setFont(headerFont);
     panelOther.add(otherInfo);
     JLabel investigator = new JLabel("Prinziple investigator: "
-        + ident.getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A"));
+        + hit.getEntry().getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A"));
     investigator.setToolTipText("Prinziple investigator: "
-        + ident.getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A"));
-    if (ident.getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A") != "N/A")
+        + hit.getEntry().getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A") != "N/A")
       panelOther.add(investigator);
-    JLabel collector =
-        new JLabel("Data collector: " + ident.getField(DBEntryField.DATA_COLLECTOR).orElse("N/A"));
+    JLabel collector = new JLabel(
+        "Data collector: " + hit.getEntry().getField(DBEntryField.DATA_COLLECTOR).orElse("N/A"));
     collector.setToolTipText(
-        "Data collector: " + ident.getField(DBEntryField.DATA_COLLECTOR).orElse("N/A"));
-    if (ident.getField(DBEntryField.DATA_COLLECTOR).orElse("N/A") != "N/A")
+        "Data collector: " + hit.getEntry().getField(DBEntryField.DATA_COLLECTOR).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.DATA_COLLECTOR).orElse("N/A") != "N/A")
       panelOther.add(collector);
     JLabel entry =
-        new JLabel("DB entry ID: " + ident.getField(DBEntryField.ENTRY_ID).orElse("N/A"));
-    entry.setToolTipText("DB entry ID: " + ident.getField(DBEntryField.ENTRY_ID).orElse("N/A"));
-    if (ident.getField(DBEntryField.ENTRY_ID).orElse("N/A") != "N/A")
+        new JLabel("DB entry ID: " + hit.getEntry().getField(DBEntryField.ENTRY_ID).orElse("N/A"));
+    entry.setToolTipText(
+        "DB entry ID: " + hit.getEntry().getField(DBEntryField.ENTRY_ID).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.ENTRY_ID).orElse("N/A") != "N/A")
       panelOther.add(entry);
-    JLabel comment = new JLabel("Comment: " + ident.getField(DBEntryField.COMMENT).orElse("N/A"));
-    comment.setToolTipText("Comment: " + ident.getField(DBEntryField.COMMENT).orElse("N/A"));
-    if (ident.getField(DBEntryField.COMMENT).orElse("N/A") != "N/A")
+    JLabel comment =
+        new JLabel("Comment: " + hit.getEntry().getField(DBEntryField.COMMENT).orElse("N/A"));
+    comment
+        .setToolTipText("Comment: " + hit.getEntry().getField(DBEntryField.COMMENT).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.COMMENT).orElse("N/A") != "N/A")
       panelOther.add(comment);
 
     boxDBAndOther.add(panelDB, BorderLayout.WEST);
@@ -379,7 +413,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
     // get mirror spectra window
     MirrorScanWindow mirrorWindow = new MirrorScanWindow();
-    mirrorWindow.setScans(scan, ident);
+    mirrorWindow.setScans(scan, hit.getEntry());
 
     // get spectra plot
     EChartPanel spectraPlots = mirrorWindow.getMirrorSpecrumPlot();
@@ -408,26 +442,82 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     return panel;
   }
 
-  public synchronized void addMatches(Scan scan, Map<SpectralDBEntry, Double> matches) {
-    for (Map.Entry<SpectralDBEntry, Double> match : matches.entrySet()) {
-      // add matches of task to total matches
-      totalMatches.put(match.getKey(), match.getValue());
-      setScanAndShow(scan, match.getKey(), match.getValue());
+  /**
+   * Add a new match and sort the view
+   * 
+   * @param scan
+   * @param match
+   */
+  public synchronized void addMatches(Scan scan, SpectralDBPeakIdentity match) {
+    if (!totalMatches.contains(match)) {
+      // add
+      totalMatches.add(match);
+      matchPanels.put(match, createPanel(scan, match));
+
+      // sort and show
+      sortTotalMatches();
     }
   }
 
-  public void sortTotalMatches(Scan scan) {
-    pnGrid.removeAll();
-    getContentPane().remove(0);
-    Map<SpectralDBEntry, Double> sorted = totalMatches.entrySet().stream()
-        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-        .collect(toMap(e -> e.getKey(), e -> e.getValue(), (e1, e2) -> e2, LinkedHashMap::new));
-    if (totalMatches.size() == 0) {
-      JLabel noMatchesFound = new JLabel("Sorry, no matches found!", SwingConstants.CENTER);
-      noMatchesFound.setFont(headerFont);
-      noMatchesFound.setForeground(Color.RED);
-      pnGrid.add(noMatchesFound, BorderLayout.CENTER);
+  /**
+   * add all matches and sort the view
+   * 
+   * @param scan
+   * @param matches
+   */
+  public synchronized void addMatches(Scan scan, List<SpectralDBPeakIdentity> matches) {
+    // add all
+    for (SpectralDBPeakIdentity match : matches) {
+      if (!totalMatches.contains(match)) {
+        // add
+        totalMatches.add(match);
+        matchPanels.put(match, createPanel(scan, match));
+      }
     }
-    addMatches(scan, sorted);
+    // sort and show
+    sortTotalMatches();
+  }
+
+  /**
+   * Sort all matches and renew panels
+   * 
+   */
+  public void sortTotalMatches() {
+    if (totalMatches.isEmpty()) {
+      return;
+    }
+
+    // reversed sorting (highest cosine first
+    totalMatches.sort((SpectralDBPeakIdentity a, SpectralDBPeakIdentity b) -> Double
+        .compare(b.getSimilarity().getCosine(), a.getSimilarity().getCosine()));
+
+    // renew layout and show
+    renewLayout();
+  }
+
+  /**
+   * Add a spectral library hit
+   * 
+   * @param ident
+   * @param simScore
+   */
+  public void renewLayout() {
+    SwingUtilities.invokeLater(() -> {
+      // any number of rows
+      JPanel pnGrid = new JPanel(new GridLayout(0, 1, 0, 25));
+      pnGrid.setBackground(Color.WHITE);
+      pnGrid.setAutoscrolls(false);
+      // add all panel in order
+      for (SpectralDBPeakIdentity match : totalMatches) {
+        JPanel pn = matchPanels.get(match);
+        if (pn != null)
+          pnGrid.add(pn);
+      }
+      // show
+      scrollPane.setViewportView(pnGrid);
+      scrollPane.revalidate();
+      scrollPane.repaint();
+      this.pnGrid = pnGrid;
+    });
   }
 }

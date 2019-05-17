@@ -159,7 +159,8 @@ public class PeakListSpectralMatchTask extends AbstractTask {
         // next row
         finishedRows++;
       }
-      logger.info("Added " + count + " spectral library matches");
+      if (count > 0)
+        logger.info("Added " + count + " spectral library matches");
     } catch (Exception e) {
     }
     // Repaint the window to reflect the change in the peak list
@@ -184,8 +185,9 @@ public class PeakListSpectralMatchTask extends AbstractTask {
       // precursor mz
       Boolean precursorMzTol = false;
       if (msLevel >= 2) {
-        precursorMzTol =
-            mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
+        if (ident.getPrecursorMZ() != null)
+          precursorMzTol =
+              mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
       }
       if (msLevel == 1 || precursorMzTol) {
         try {
