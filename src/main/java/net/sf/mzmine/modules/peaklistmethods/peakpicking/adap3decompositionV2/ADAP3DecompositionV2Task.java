@@ -171,7 +171,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         for (final BetterComponent component : components) {
             if (component.spectrum.length == 0 || component.getIntensity() < 1e-12) continue;
 
-            // Create a reference peal
+            // Create a reference peak
             Feature refPeak = getFeature(dataFile, component);
 
             // Add spectrum
@@ -258,7 +258,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
         // Calculate peak area
         double area = 0.0;
         for (int i = 1; i < chromatogram.length; ++i) {
-            double base = chromatogram.xs[i] - chromatogram.xs[i - 1];
+            double base = (chromatogram.xs[i] - chromatogram.xs[i - 1]) * 60d;
             double height = 0.5 * (chromatogram.ys[i] + chromatogram.ys[i - 1]);
             area += base * height;
         }
