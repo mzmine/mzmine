@@ -184,8 +184,9 @@ public class PeakListSpectralMatchTask extends AbstractTask {
       // precursor mz
       Boolean precursorMzTol = false;
       if (msLevel >= 2) {
-        precursorMzTol =
-            mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
+        if (ident.getPrecursorMZ() != null)
+          precursorMzTol =
+              mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
       }
       if (msLevel == 1 || precursorMzTol) {
         try {
