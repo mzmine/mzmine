@@ -46,7 +46,7 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     public static final DoubleParameter PREF_WINDOW_WIDTH =
             new DoubleParameter("Deconvolution window width (min)",
                     "Preferred width of deconvolution windows (in minutes).",
-                    NumberFormat.getNumberInstance(), 0.05);
+                    NumberFormat.getNumberInstance(), 0.2);
 
     // ------------------------------------------------------------------------
     // ----- End of First-phase parameters ------------------------------------
