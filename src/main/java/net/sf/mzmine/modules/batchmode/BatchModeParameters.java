@@ -18,15 +18,43 @@
 
 package net.sf.mzmine.modules.batchmode;
 
+import java.awt.Window;
+import java.util.logging.Logger;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListComponent;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListParameter;
+import net.sf.mzmine.util.ExitCode;
 
 public class BatchModeParameters extends SimpleParameterSet {
+  // Logger.
+  private static final Logger LOG = Logger.getLogger(BatchModeParameters.class.getName());
 
+  public static final FileNameListParameter lastFiles =
+      new FileNameListParameter("Last used files", "Last used batch files");
   public static final BatchQueueParameter batchQueue = new BatchQueueParameter();
 
   public BatchModeParameters() {
-    super(new Parameter[] {batchQueue});
+    super(new Parameter[] {batchQueue, lastFiles});
   }
 
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+    //
+    final BatchSetupComponent batchComponent =
+        ((BatchSetupComponent) dialog.getComponentForParameter(batchQueue));
+
+    // listen for clicks on a last used file
+    // load this file to batch
+    FileNameListComponent lastUsedFilesComponent =
+        ((FileNameListComponent) dialog.getComponentForParameter(lastFiles));
+
+    // listen for load/save and add to last used files
+    batchComponent.setLastUsedFilesComponent(lastUsedFilesComponent);
+
+    dialog.setVisible(true);
+    return dialog.getExitCode();
+  }
 }

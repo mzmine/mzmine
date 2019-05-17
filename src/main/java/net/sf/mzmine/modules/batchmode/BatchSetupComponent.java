@@ -30,8 +30,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -51,7 +51,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -60,6 +62,7 @@ import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListComponent;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsSelectionType;
@@ -70,10 +73,6 @@ import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.DragOrderedJList;
 import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 public class BatchSetupComponent extends JPanel implements ActionListener, MouseListener {
 
@@ -94,6 +93,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener, Mouse
   private BatchQueue batchQueue;
 
   // Widgets.
+  private FileNameListComponent lastUsedFilesComponent;
   private final JComboBox<Object> methodsCombo;
   private final JList<Object> currentStepsList;
   private final JButton btnAdd;
@@ -191,6 +191,25 @@ public class BatchSetupComponent extends JPanel implements ActionListener, Mouse
 
     this.addMouseListener(this);
   }
+
+  /**
+   * Add last used files component
+   * 
+   * @param lastUsedFilesComponent
+   */
+  public void setLastUsedFilesComponent(FileNameListComponent lastUsedFilesComponent) {
+    this.lastUsedFilesComponent = lastUsedFilesComponent;
+    // load file on click on last files
+    lastUsedFilesComponent.setClickConsumer(file -> {
+      try {
+        loadBatchSteps(file);
+      } catch (ParserConfigurationException | IOException | SAXException e) {
+        LOG.log(Level.SEVERE, "Error while setting the last used file " + file.getAbsolutePath(),
+            e);
+      }
+    });
+  }
+
 
   @Override
   public void actionPerformed(final ActionEvent e) {
@@ -382,6 +401,9 @@ public class BatchSetupComponent extends JPanel implements ActionListener, Mouse
     transformer.transform(new DOMSource(document), new StreamResult(new FileOutputStream(file)));
 
     LOG.info("Saved " + batchQueue.size() + " batch step(s) to " + file.getName());
+    // add to last used files
+    if (lastUsedFilesComponent != null)
+      lastUsedFilesComponent.addFile(file);
   }
 
   /**
@@ -429,6 +451,10 @@ public class BatchSetupComponent extends JPanel implements ActionListener, Mouse
     }
     currentStepsList.setListData(batchQueue);
     selectStep(index);
+
+    // add to last used files
+    if (lastUsedFilesComponent != null)
+      lastUsedFilesComponent.addFile(file);
   }
 
   // Handle mouse events
