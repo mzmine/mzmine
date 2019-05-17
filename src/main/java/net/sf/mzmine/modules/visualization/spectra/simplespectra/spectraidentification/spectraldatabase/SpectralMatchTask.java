@@ -22,9 +22,8 @@ import java.awt.Color;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -44,6 +43,7 @@ import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
 import net.sf.mzmine.util.scans.ScanAlignment;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
  * Spectral match task to compare single spectra with spectral databases
@@ -70,7 +70,7 @@ public class SpectralMatchTask extends AbstractTask {
   private List<SpectralDBEntry> list;
   private int totalSteps;
 
-  private Map<SpectralDBEntry, Double> matches;
+  private List<SpectralDBPeakIdentity> matches;
   private SpectraIdentificationResultsWindow resultWindow;
 
   private int count = 0;
@@ -153,12 +153,14 @@ public class SpectralMatchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     try {
       totalSteps = list.size();
-      matches = new HashMap<SpectralDBEntry, Double>();
+      matches = new ArrayList<>();
       for (SpectralDBEntry ident : list) {
         SpectraSimilarity sim = spectraDBMatch(spectraMassList, ident);
         if (sim != null) {
           count++;
-          matches.put(ident, sim.getCosine());
+          // use SpectralDBPeakIdentity to store all resutls similar to peaklist method
+          matches.add(new SpectralDBPeakIdentity(ident, sim,
+              SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
         }
         // next row
         finishedSteps++;
@@ -223,14 +225,15 @@ public class SpectralMatchTask extends AbstractTask {
       return massList.getDataPoints();
   }
 
-  private void addIdentities(Map<SpectralDBEntry, Double> matches) {
+  private void addIdentities(List<SpectralDBPeakIdentity> matches) {
 
-    for (Map.Entry<SpectralDBEntry, Double> match : matches.entrySet()) {
+    for (SpectralDBPeakIdentity match : matches) {
       try {
+        // TODO put into separate method and add comments
         // get data points of matching scans
         DataPoint[] spectraMassList = getDataPoints(currentScan);
         List<DataPoint[]> alignedDataPoints =
-            ScanAlignment.align(mzTolerance, match.getKey().getDataPoints(), spectraMassList);
+            ScanAlignment.align(mzTolerance, match.getEntry().getDataPoints(), spectraMassList);
         alignedSignals = ScanAlignment.removeUnaligned(alignedDataPoints);
         // add new mass list to the spectra for match
         DataPoint[] dataset = new DataPoint[alignedSignals.size()];
@@ -238,7 +241,7 @@ public class SpectralMatchTask extends AbstractTask {
           dataset[i] = alignedSignals.get(i)[1];
         }
 
-        String compoundName = match.getKey().getField(DBEntryField.NAME).toString();
+        String compoundName = match.getEntry().getField(DBEntryField.NAME).toString();
         String shortName = compoundName;
         // TODO remove or specify more - special naming format?
         int start = compoundName.indexOf("[");
@@ -248,7 +251,8 @@ public class SpectralMatchTask extends AbstractTask {
           shortName = compoundName.substring(start + 1, end);
 
         DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
-            shortName + " " + "Score: " + COS_FORM.format(match.getValue()), dataset);
+            shortName + " " + "Score: " + COS_FORM.format(match.getSimilarity().getCosine()),
+            dataset);
         spectraPlot.addDataSet(detectedCompoundsDataset,
             new Color((int) (Math.random() * 0x1000000)), true);
 

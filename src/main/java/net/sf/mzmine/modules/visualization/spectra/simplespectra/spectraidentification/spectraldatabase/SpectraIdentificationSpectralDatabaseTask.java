@@ -98,7 +98,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
     int count = 0;
 
     // add result frame
-    resultWindow = new SpectraIdentificationResultsWindow(currentScan);
+    resultWindow = new SpectraIdentificationResultsWindow();
     resultWindow.setVisible(true);
 
     try {
@@ -133,7 +133,6 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
       setErrorMessage(e.toString());
     }
     logger.info("Added " + count + " spectral library matches");
-    resultWindow.sortTotalMatches(currentScan);
     resultWindow.setTitle("Matched " + count + " compunds for scan#" + currentScan.getScanNumber());
     resultWindow.revalidate();
     resultWindow.repaint();
