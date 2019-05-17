@@ -87,6 +87,12 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     pnGrid.setBackground(Color.WHITE);
     pnGrid.setAutoscrolls(false);
 
+    // add label (is replaced later
+    JLabel noMatchesFound = new JLabel("Sorry, no matches found!", SwingConstants.CENTER);
+    noMatchesFound.setFont(headerFont);
+    noMatchesFound.setForeground(Color.RED);
+    pnGrid.add(noMatchesFound, BorderLayout.CENTER);
+
     // Add the Windows menu
     JMenuBar menuBar = new JMenuBar();
     menuBar.add(new WindowsMenu());
@@ -478,10 +484,6 @@ public class SpectraIdentificationResultsWindow extends JFrame {
    */
   public void sortTotalMatches() {
     if (totalMatches.isEmpty()) {
-      JLabel noMatchesFound = new JLabel("Sorry, no matches found!", SwingConstants.CENTER);
-      noMatchesFound.setFont(headerFont);
-      noMatchesFound.setForeground(Color.RED);
-      pnGrid.add(noMatchesFound, BorderLayout.CENTER);
       return;
     }
 
