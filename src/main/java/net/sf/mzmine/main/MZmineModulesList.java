@@ -119,6 +119,7 @@ import net.sf.mzmine.modules.visualization.productionfilter.ProductIonFilterVisu
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -132,7 +133,6 @@ public class MZmineModulesList {
   public static final Class<?> MODULES[] = new Class<?>[] {
 
       // Project methods
-
       ProjectLoadModule.class, ProjectSaveModule.class, ProjectSaveAsModule.class,
       ProjectCloseModule.class,
 
@@ -202,7 +202,10 @@ public class MZmineModulesList {
 
       // Tools
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class,
-      IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class
+      IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class,
+
+      // all other regular MZmineRunnableModule (not MZmineProcessingModule) NOT LISTED IN MENU
+      SpectraIdentificationSpectralDatabaseModule.class
 
   };
 }
