@@ -116,6 +116,7 @@ public enum DBEntryField {
    */
   public static DBEntryField forGnpsJasonID(String key) {
     for (DBEntryField f : values()) {
+      // equalsIgnoreCase is more robust against changes in library consistency
       if (f.getGnpsJsonID().equalsIgnoreCase(key))
         return f;
     }
@@ -201,6 +202,7 @@ public enum DBEntryField {
    */
   public static DBEntryField forMspID(String key) {
     for (DBEntryField f : values()) {
+      // equalsIgnoreCase is more robust against changes in library consistency
       if (f.getNistMspID().equalsIgnoreCase(key))
         return f;
     }
@@ -287,6 +289,7 @@ public enum DBEntryField {
    */
   public static DBEntryField forMgfID(String key) {
     for (DBEntryField f : values()) {
+      // equalsIgnoreCase is more robust against changes in library consistency
       if (f.getMgfID().equalsIgnoreCase(key))
         return f;
     }
@@ -372,6 +375,7 @@ public enum DBEntryField {
    */
   public static DBEntryField forJdxID(String key) {
     for (DBEntryField f : values()) {
+      // equalsIgnoreCase is more robust against changes in library consistency
       if (f.getJdxID().equalsIgnoreCase(key))
         return f;
     }
