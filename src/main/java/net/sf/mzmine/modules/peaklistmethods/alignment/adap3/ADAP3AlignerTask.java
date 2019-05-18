@@ -27,6 +27,7 @@ import dulab.adap.workflow.AlignmentParameters;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,7 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 import javax.annotation.Nullable;
+import net.sf.mzmine.util.adap.ADAPInterface;
 
 /**
  * @author aleksandrsmirnov
@@ -187,88 +189,78 @@ public class ADAP3AlignerTask extends AbstractTask {
 
         Collections.sort(alignedComponents);
 
-        for (final ReferenceComponent component : alignedComponents) {
-            final Peak peak = component.getBestPeak();
-
-            PeakListRow refRow = findPeakListRow(component.getSampleID(), peak.getInfo().peakID);
-            if (refRow == null)
-                throw new IllegalStateException(String.format(
-                        "Cannot find a peak list row for fileId = %d and peakId = %d",
-                        component.getSampleID(), peak.getInfo().peakID));
+        for (final ReferenceComponent referenceComponent : alignedComponents) {
 
             SimplePeakListRow newRow = new SimplePeakListRow(++rowID);
+            for (int i = 0; i < referenceComponent.size(); ++i) {
 
-            newRow.addPeak(refRow.getRawDataFiles()[0], refRow.getBestPeak());
-
-            for (int i = 0; i < component.size(); ++i) {
+                Component component = referenceComponent.getComponent(i);
+                Peak peak = component.getBestPeak();
+                peak.getInfo().mzValue(component.getMZ());
 
                 PeakListRow row = findPeakListRow(
-                        component.getSampleID(i),
-                        component.getComponent(i).getBestPeak().getInfo().peakID);
+                        referenceComponent.getSampleID(i),
+                        peak.getInfo().peakID);
 
                 if (row == null)
                     throw new IllegalStateException(String.format(
                             "Cannot find a peak list row for fileId = %d and peakId = %d",
-                            component.getSampleID(), peak.getInfo().peakID));
+                            referenceComponent.getSampleID(), peak.getInfo().peakID));
 
-                if (row != refRow)
-                    newRow.addPeak(row.getRawDataFiles()[0], row.getBestPeak());
+                RawDataFile file = row.getRawDataFiles()[0];
+
+                newRow.addPeak(file, ADAPInterface.peakToFeature(file, peak));
             }
 
-            PeakIdentity identity = refRow.getPreferredPeakIdentity();
+            newRow.setComment("Alignment Score = " + referenceComponent.getScore());
 
-            if (identity != null)
-                newRow.addPeakIdentity(identity, true);
-
-            newRow.setComment("Alignment Score = " + component.getScore());
-
-            // -----------------------------------------------
-            // Determine the quantitative mass and intensities
-            // -----------------------------------------------
-
-            double mass = getQuantitativeMass(component);
-            double mzTolerance = parameters.getParameter(ADAP3AlignerParameters.MZ_RANGE)
-                    .getValue()
-                    .getMzTolerance();
-
-            SimplePeakInformation information = new SimplePeakInformation();
-            information.addProperty("REFERENCE FILE", refRow.getRawDataFiles()[0].getName());
-            information.addProperty("QUANTITATION MASS", Double.toString(mass));
-
-            List<Component> components =
-                    new ArrayList<>(component.getComponents());
-
-            for (int i = 0; i < components.size(); ++i) {
-
-                Component c = components.get(i);
-
-                PeakList peakList = findPeakList(component.getSampleID(i));
-                if (peakList == null)
-                    throw new IllegalArgumentException("Cannot find peak list " + component.getSampleID(i));
-
-                RawDataFile file = peakList.getRawDataFile(0);
-
-                double minDistance = Double.MAX_VALUE;
-                double intensity = 0.0;
-
-                for (Entry<Double, Double> e : c.getSpectrum().entrySet()) {
-                    double mz = e.getKey();
-                    double distance = Math.abs(mz - mass);
-
-                    if (distance > mzTolerance) continue;
-
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        intensity = e.getValue();
-                    }
-                }
-
-                information.addProperty(
-                        "QUANTITATION INTENSITY for " + file.getName(),
-                        Double.toString(intensity));
-            }
-
-            newRow.setPeakInformation(information);
+//            // -----------------------------------------------
+//            // Determine the quantitative mass and intensities
+//            // -----------------------------------------------
+//
+//            double mass = getQuantitativeMass(component);
+//            double mzTolerance = parameters.getParameter(ADAP3AlignerParameters.MZ_RANGE)
+//                    .getValue()
+//                    .getMzTolerance();
+//
+//            SimplePeakInformation information = new SimplePeakInformation();
+//            information.addProperty("REFERENCE FILE", refRow.getRawDataFiles()[0].getName());
+//            information.addProperty("QUANTITATION MASS", Double.toString(mass));
+//
+//            List<Component> components =
+//                    new ArrayList<>(component.getComponents());
+//
+//            for (int i = 0; i < components.size(); ++i) {
+//
+//                Component c = components.get(i);
+//
+//                PeakList peakList = findPeakList(component.getSampleID(i));
+//                if (peakList == null)
+//                    throw new IllegalArgumentException("Cannot find peak list " + component.getSampleID(i));
+//
+//                RawDataFile file = peakList.getRawDataFile(0);
+//
+//                double minDistance = Double.MAX_VALUE;
+//                double intensity = 0.0;
+//
+//                for (Entry<Double, Double> e : c.getSpectrum().entrySet()) {
+//                    double mz = e.getKey();
+//                    double distance = Math.abs(mz - mass);
+//
+//                    if (distance > mzTolerance) continue;
+//
+//                    if (distance < minDistance) {
+//                        minDistance = distance;
+//                        intensity = e.getValue();
+//                    }
+//                }
+//
+//                information.addProperty(
+//                        "QUANTITATION INTENSITY for " + file.getName(),
+//                        Double.toString(intensity));
+//            }
+//
+//            newRow.setPeakInformation(information);
 
             alignedPeakList.addRow(newRow);
         }
@@ -338,7 +330,9 @@ public class ADAP3AlignerTask extends AbstractTask {
                 .maxShift(2 * parameters.getParameter(
                         ADAP3AlignerParameters.RET_TIME_RANGE).getValue().getTolerance())
                 .eicScore(parameters.getParameter(
-                        ADAP3AlignerParameters.EIC_SCORE).getValue());
+                        ADAP3AlignerParameters.EIC_SCORE).getValue())
+                .mzRange(parameters.getParameter(
+                        ADAP3AlignerParameters.MZ_RANGE).getValue().getMzTolerance());
 
         params.optimizationParameters = new OptimizationParameters()
                 .gradientTolerance(1e-6)
@@ -391,67 +385,70 @@ public class ADAP3AlignerTask extends AbstractTask {
         return peakList;
     }
 
-    /**
-     * Find Quantitative Mass for a list of components, as the m/z-value that
-     * is closest to the average of components' m/z-values.
-     *
-     * @param refComponent reference component
-     * @return quantitative mass
-     */
-
-    private double getQuantitativeMass(final ReferenceComponent refComponent) {
-        List<Component> components = refComponent.getComponents();
-
-        // ------------------------------------------
-        // Round up m/z-values to the closest integer
-        // ------------------------------------------
-
-        List<Long> integerMZs = new ArrayList<>(components.size());
-        for (Component c : components) integerMZs.add(Math.round(c.getMZ()));
-
-        // ----------------------------------------
-        // Find the most frequent integer m/z-value
-        // ----------------------------------------
-
-        Map<Long, Integer> counts = new HashMap<>();
-        for (Long mz : integerMZs) {
-            Integer count = counts.get(mz);
-            if (count == null) count = 0;
-            counts.put(mz, count + 1);
-        }
-
-        Long bestMZ = null;
-        int maxCount = 0;
-        for (Entry<Long, Integer> e : counts.entrySet()) {
-            int count = e.getValue();
-
-            if (maxCount < count) {
-                maxCount = count;
-                bestMZ = e.getKey();
-            }
-        }
-
-        if (bestMZ == null)
-            throw new IllegalArgumentException("Cannot find the most frequent m/z-value");
-
-        // ----------------------------------------------------
-        // Find m/z-value that is the closest to the integer mz
-        // ----------------------------------------------------
-
-        double minDistance = Double.MAX_VALUE;
-        Double quantitativeMass = null;
-        for (Component c : components) {
-            double mz = c.getMZ();
-            double distance = Math.abs(mz - bestMZ.doubleValue());
-            if (distance < minDistance) {
-                minDistance = distance;
-                quantitativeMass = mz;
-            }
-        }
-
-        if (quantitativeMass == null)
-            throw new IllegalArgumentException("Cannot find the quantitative mass");
-
-        return quantitativeMass;
-    }
+//    /**
+//     * Find Quantitative Mass for a list of components, as the m/z-value that
+//     * is closest to the average of components' m/z-values.
+//     *
+//     * @param refComponent reference component
+//     * @return quantitative mass
+//     */
+//
+//    private double getQuantitativeMass(List<Component> components) {
+//
+//        components.sort(Comparator.comparingDouble(c -> -c.getIntensity()));
+//
+//        for (Component component : components)
+//
+//        // ------------------------------------------
+//        // Round up m/z-values to the closest integer
+//        // ------------------------------------------
+//
+//        List<Long> integerMZs = new ArrayList<>(components.size());
+//        for (Component c : components) integerMZs.add(Math.round(c.getMZ()));
+//
+//        // ----------------------------------------
+//        // Find the most frequent integer m/z-value
+//        // ----------------------------------------
+//
+//        Map<Long, Integer> counts = new HashMap<>();
+//        for (Long mz : integerMZs) {
+//            Integer count = counts.get(mz);
+//            if (count == null) count = 0;
+//            counts.put(mz, count + 1);
+//        }
+//
+//        Long bestMZ = null;
+//        int maxCount = 0;
+//        for (Entry<Long, Integer> e : counts.entrySet()) {
+//            int count = e.getValue();
+//
+//            if (maxCount < count) {
+//                maxCount = count;
+//                bestMZ = e.getKey();
+//            }
+//        }
+//
+//        if (bestMZ == null)
+//            throw new IllegalArgumentException("Cannot find the most frequent m/z-value");
+//
+//        // ----------------------------------------------------
+//        // Find m/z-value that is the closest to the integer mz
+//        // ----------------------------------------------------
+//
+//        double minDistance = Double.MAX_VALUE;
+//        Double quantitativeMass = null;
+//        for (Component c : components) {
+//            double mz = c.getMZ();
+//            double distance = Math.abs(mz - bestMZ.doubleValue());
+//            if (distance < minDistance) {
+//                minDistance = distance;
+//                quantitativeMass = mz;
+//            }
+//        }
+//
+//        if (quantitativeMass == null)
+//            throw new IllegalArgumentException("Cannot find the quantitative mass");
+//
+//        return quantitativeMass;
+//    }
 }
