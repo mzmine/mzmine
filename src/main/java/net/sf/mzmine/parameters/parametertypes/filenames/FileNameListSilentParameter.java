@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -36,7 +37,9 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
 
   private static final String FILE_ELEMENT = "file";
   private String name;
-  private List<File> value;
+  private @Nonnull List<File> value;
+
+  private List<FileNameListChangedListener> listener;
 
   public FileNameListSilentParameter(String name) {
     this.name = name;
@@ -52,13 +55,28 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   @Override
+  @Nonnull
   public List<File> getValue() {
     return value;
   }
 
   @Override
   public void setValue(List<File> value) {
-    this.value = value;
+    if (value == null)
+      this.value = new ArrayList<>();
+    else
+      this.value = value;
+    fireChanged();
+  }
+
+  public void addFile(File f) {
+    if (f == null)
+      return;
+
+    // add to last files if not already inserted
+    value.remove(f);
+    value.add(0, f);
+    fireChanged();
   }
 
   @Override
@@ -70,9 +88,6 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    String fileString = xmlElement.getTextContent();
-    if (fileString.length() == 0)
-      return;
     // add all still existing files
     value = new ArrayList<>();
     NodeList nodes = xmlElement.getChildNodes();
@@ -82,12 +97,11 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
       if (f.exists())
         value.add(f);
     }
+    fireChanged();
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
-      return;
     // add new element for each file
     Document parentDocument = xmlElement.getOwnerDocument();
     for (File f : value) {
@@ -103,4 +117,16 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
     return true;
   }
 
+  private void fireChanged() {
+    if (listener != null)
+      listener.stream().forEach(l -> l.fileListChanged(value));
+  }
+
+  public void addFileListChangedListener(FileNameListChangedListener list) {
+    if (list == null)
+      return;
+    if (listener == null)
+      listener = new ArrayList<>();
+    listener.add(list);
+  }
 }
