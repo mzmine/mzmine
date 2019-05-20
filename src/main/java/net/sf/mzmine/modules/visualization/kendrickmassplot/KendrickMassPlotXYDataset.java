@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -39,11 +39,14 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
   private String customXAxisKMBase;
   private double[] xValues;
   private double[] yValues;
+  private ParameterSet parameters;
 
   public KendrickMassPlotXYDataset(ParameterSet parameters) {
 
     PeakList peakList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
         .getMatchingPeakLists()[0];
+
+    this.parameters = parameters;
 
     this.selectedRows =
         parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(peakList);
@@ -66,15 +69,17 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
         .getValue() == true) {
       for (int i = 0; i < selectedRows.length; i++) {
         xValues[i] =
-            ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase)) + 1)
+            Math.ceil(selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase))
                 - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase);
       }
     } else {
       for (int i = 0; i < selectedRows.length; i++) {
+
         // simply plot m/z values as x axis
         if (xAxisKMBase.equals("m/z")) {
           xValues[i] = selectedRows[i].getAverageMZ();
         }
+
         // plot Kendrick masses as x axis
         else if (xAxisKMBase.equals("KM")) {
           xValues[i] = selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase);
@@ -86,9 +91,17 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
     yValues = new double[selectedRows.length];
     for (int i = 0; i < selectedRows.length; i++) {
       yValues[i] =
-          ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase)) + 1)
-              - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase);
+          Math.ceil((selectedRows[i].getAverageMZ()) * getKendrickMassFactor(customYAxisKMBase))
+              - (selectedRows[i].getAverageMZ()) * getKendrickMassFactor(customYAxisKMBase);
     }
+  }
+
+  public ParameterSet getParameters() {
+    return parameters;
+  }
+
+  public void setParameters(ParameterSet parameters) {
+    this.parameters = parameters;
   }
 
   @Override
@@ -126,6 +139,14 @@ class KendrickMassPlotXYDataset extends AbstractXYDataset {
 
   public double[] getyValues() {
     return yValues;
+  }
+
+  public void setxValues(double[] values) {
+    xValues = values;
+  }
+
+  public void setyValues(double[] values) {
+    yValues = values;
   }
 
   private double getKendrickMassFactor(String formula) {

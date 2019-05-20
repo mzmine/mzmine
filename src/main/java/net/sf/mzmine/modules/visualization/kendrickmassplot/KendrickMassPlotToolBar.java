@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,8 +21,13 @@ package net.sf.mzmine.modules.visualization.kendrickmassplot;
 import java.awt.Color;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -38,35 +43,179 @@ public class KendrickMassPlotToolBar extends JToolBar {
   static final Icon backColorIcon = new ImageIcon("icons/bgicon.png");
   static final Icon gridIcon = new ImageIcon("icons/gridicon.png");
   static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
+  static final Icon arrowUpIcon = new ImageIcon("icons/arrowupicon.png");
+  static final Icon arrowDownIcon = new ImageIcon("icons/arrowdownicon.png");
+  DecimalFormat shiftFormat = new DecimalFormat("0.##;-0.##");
 
-  public KendrickMassPlotToolBar(ActionListener masterFrame) {
+  public KendrickMassPlotToolBar(ActionListener masterFrame, // listener
+      double xAxisShift, double yAxisShift, double zAxisShift, // shifts
+      int xAxisCharge, int yAxisCharge, int zAxisCharge, // charge
+      int xAxisDivisor, int yAxisDivisor, int zAxisDivisor, // divisor
+      boolean useCustomXAxis, boolean useCustomZAxis // custom axis
+  ) {
 
     super(JToolBar.VERTICAL);
+
+    shiftFormat.format(xAxisShift);
+    shiftFormat.format(yAxisShift);
+    shiftFormat.format(zAxisShift);
 
     setFloatable(false);
     setFocusable(false);
     setMargin(new Insets(5, 5, 5, 5));
     setBackground(Color.white);
 
-    GUIUtils.addButton(this, null, blockSizeIcon, masterFrame, "TOGGLE_BLOCK_SIZE",
-        "Toggle block size");
+    // list for all components
+    ArrayList<JComponent> componentsList = new ArrayList<JComponent>();
 
-    addSeparator();
+    // toggle buttons
+    componentsList.add(GUIUtils.addButton(this, null, blockSizeIcon, masterFrame,
+        "TOGGLE_BLOCK_SIZE", "Toggle block size"));
 
-    GUIUtils.addButton(this, null, backColorIcon, masterFrame, "TOGGLE_BACK_COLOR",
-        "Toggle background color white/black");
+    componentsList.add(GUIUtils.addLabel(this, ""));
 
-    addSeparator();
+    componentsList.add(GUIUtils.addButton(this, null, backColorIcon, masterFrame,
+        "TOGGLE_BACK_COLOR", "Toggle background color white/black"));
 
-    GUIUtils.addButton(this, null, gridIcon, masterFrame, "TOGGLE_GRID", "Toggle grid");
+    componentsList
+        .add(GUIUtils.addButton(this, null, gridIcon, masterFrame, "TOGGLE_GRID", "Toggle grid"));
 
-    addSeparator();
+    componentsList.add(GUIUtils.addLabel(this, ""));
 
-    GUIUtils.addButton(this, null, annotationsIcon, masterFrame, "TOGGLE_ANNOTATIONS",
-        "Toggle annotations");
+    componentsList.add(GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
+        "TOGGLE_ANNOTATIONS", "Toggle annotations"));
 
-    addSeparator();
+    // add empty row
+    addEmptyRow(componentsList);
 
+    // yAxis components
+
+    // header
+    componentsList.add(GUIUtils.addLabel(this, "Y-Axis:"));
+    componentsList.add(GUIUtils.addLabel(this, null));
+    componentsList.add(GUIUtils.addLabel(this, null));
+
+    // labels
+    componentsList.add(GUIUtils.addLabel(this, "Shift", null, JLabel.CENTER, null));
+    componentsList.add(GUIUtils.addLabel(this, "Charge", null, JLabel.CENTER, null));
+    componentsList.add(GUIUtils.addLabel(this, "Divisor", null, JLabel.CENTER, null));
+
+    // arrow up
+    componentsList.add(
+        GUIUtils.addButton(this, null, arrowUpIcon, masterFrame, "SHIFT_KMD_UP_Y", "Shift KMD up"));
+    componentsList.add(GUIUtils.addButton(this, null, arrowUpIcon, masterFrame,
+        "CHANGE_CHARGE_UP_Y", "Increase charge"));
+    componentsList.add(GUIUtils.addButton(this, null, arrowUpIcon, masterFrame,
+        "CHANGE_DIVISOR_UP_Y", "Increase divisor"));
+
+    // arrow down
+    componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+        "SHIFT_KMD_DOWN_Y", "Shift KMD down"));
+    componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+        "CHANGE_CHARGE_DOWN_Y", "Decrease charge"));
+    componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+        "CHANGE_DIVISOR_DOWN_Y", "Decrease divisor"));
+
+    // current
+    componentsList.add(GUIUtils.addLabel(this, //
+        String.valueOf(shiftFormat.format(yAxisShift)), null, JLabel.CENTER, null));
+    componentsList.add(GUIUtils.addLabel(this, //
+        String.valueOf(shiftFormat.format(yAxisCharge)), null, JLabel.CENTER, null));
+    componentsList.add(GUIUtils.addLabel(this, //
+        String.valueOf(shiftFormat.format(yAxisDivisor)), null, JLabel.CENTER, null));
+
+    // xAxis
+    if (useCustomXAxis) {
+
+      // add empty row
+      addEmptyRow(componentsList);
+
+      // header
+      componentsList.add(GUIUtils.addLabel(this, "X-Axis:"));
+      componentsList.add(GUIUtils.addLabel(this, null));
+      componentsList.add(GUIUtils.addLabel(this, null));
+
+      // labels
+      componentsList.add(GUIUtils.addLabel(this, "Shift", null, JLabel.CENTER, null));
+      componentsList.add(GUIUtils.addLabel(this, "Charge", null, JLabel.CENTER, null));
+      componentsList.add(GUIUtils.addLabel(this, "Divisor", null, JLabel.CENTER, null));
+
+      // arrow up
+      componentsList.add(GUIUtils.addButton(this, null, arrowUpIcon, masterFrame, "SHIFT_KMD_UP_X",
+          "Shift KMD up"));
+      componentsList.add(GUIUtils.addButton(this, null, arrowUpIcon, masterFrame,
+          "CHANGE_CHARGE_UP_X", "Increase charge"));
+      componentsList.add(GUIUtils.addButton(this, null, arrowUpIcon, masterFrame,
+          "CHANGE_DIVISOR_UP_X", "Increase divisor"));
+
+      // arrow down
+      componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+          "SHIFT_KMD_DOWN_X", "Shift KMD down"));
+      componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+          "CHANGE_CHARGE_DOWN_X", "Decrease charge"));
+      componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+          "CHANGE_DIVISOR_DOWN_X", "Decrease divisor"));
+
+      // current
+      componentsList.add(GUIUtils.addLabel(this, //
+          String.valueOf(shiftFormat.format(xAxisShift)), null, JLabel.CENTER, null));
+      componentsList.add(GUIUtils.addLabel(this, //
+          String.valueOf(shiftFormat.format(xAxisCharge)), null, JLabel.CENTER, null));
+      componentsList.add(GUIUtils.addLabel(this, //
+          String.valueOf(shiftFormat.format(xAxisDivisor)), null, JLabel.CENTER, null));
+    }
+
+    // zAxis
+    if (useCustomZAxis) {
+
+      // add empty row
+      addEmptyRow(componentsList);
+
+      // header
+      componentsList.add(GUIUtils.addLabel(this, "Z-Axis:"));
+      componentsList.add(GUIUtils.addLabel(this, null));
+      componentsList.add(GUIUtils.addLabel(this, null));
+
+      // labels
+      componentsList.add(GUIUtils.addLabel(this, "Shift", null, JLabel.CENTER, null));
+      componentsList.add(GUIUtils.addLabel(this, "Charge", null, JLabel.CENTER, null));
+      componentsList.add(GUIUtils.addLabel(this, "Divisor", null, JLabel.CENTER, null));
+
+      // arrow up
+      componentsList.add(GUIUtils.addButton(this, null, arrowUpIcon, masterFrame, "SHIFT_KMD_UP_Z",
+          "Shift KMD up"));
+      componentsList.add(GUIUtils.addButton(this, null, arrowUpIcon, masterFrame,
+          "CHANGE_CHARGE_UP_Z", "Increase charge"));
+      componentsList.add(GUIUtils.addButton(this, null, arrowUpIcon, masterFrame,
+          "CHANGE_DIVISOR_UP_Z", "Increase divisor"));
+
+      // arrow down
+      componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+          "SHIFT_KMD_DOWN_Z", "Shift KMD down"));
+      componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+          "CHANGE_CHARGE_DOWN_Z", "Decrease charge"));
+      componentsList.add(GUIUtils.addButton(this, null, arrowDownIcon, masterFrame,
+          "CHANGE_DIVISOR_DOWN_Z", "Decrease divisor"));
+
+      // current
+      componentsList.add(GUIUtils.addLabel(this, //
+          String.valueOf(shiftFormat.format(zAxisShift)), null, JLabel.CENTER, null));
+      componentsList.add(GUIUtils.addLabel(this, //
+          String.valueOf(shiftFormat.format(zAxisCharge)), null, JLabel.CENTER, null));
+      componentsList.add(GUIUtils.addLabel(this, //
+          String.valueOf(shiftFormat.format(zAxisDivisor)), null, JLabel.CENTER, null));
+    }
+    JComponent[] components = new JComponent[componentsList.size()];
+
+    JPanel componentsPanel =
+        GUIUtils.makeTablePanel(components.length / 3, 3, componentsList.toArray(components));
+    componentsPanel.setBackground(Color.WHITE);
+    this.add(componentsPanel);
   }
 
+  private void addEmptyRow(ArrayList<JComponent> componentsList) {
+    componentsList.add(GUIUtils.addLabel(this, ""));
+    componentsList.add(GUIUtils.addLabel(this, ""));
+    componentsList.add(GUIUtils.addLabel(this, ""));
+  }
 }
