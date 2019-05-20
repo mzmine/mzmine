@@ -22,8 +22,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import org.jfree.chart.ChartMouseEvent;
+import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
@@ -33,6 +36,7 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.FormulaUtils;
+import net.sf.mzmine.util.dialogs.FeatureOverviewWindow;
 
 /**
  * Window for Kendrick mass plots
@@ -129,6 +133,46 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     menuBar.add(new WindowsMenu());
     setJMenuBar(menuBar);
 
+    // mouse listener
+    chartPanel.addChartMouseListener(new ChartMouseListener() {
+
+      @Override
+      public void chartMouseClicked(ChartMouseEvent event) {
+        XYPlot plot = (XYPlot) chart.getPlot();
+        double xValue = plot.getDomainCrosshairValue();
+        double yValue = plot.getRangeCrosshairValue();
+
+        if (plot.getDataset() instanceof KendrickMassPlotXYZDataset) {
+          KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
+          double[] xValues = new double[dataset.getItemCount(0)];
+          for (int i = 0; i < xValues.length; i++) {
+            if ((event.getTrigger().getButton() == MouseEvent.BUTTON1)
+                && (event.getTrigger().getClickCount() == 2)) {
+              if (dataset.getX(0, i).doubleValue() == xValue
+                  && dataset.getY(0, i).doubleValue() == yValue) {
+                new FeatureOverviewWindow(selectedRows[i]);
+              }
+            }
+          }
+        }
+        if (plot.getDataset() instanceof KendrickMassPlotXYDataset) {
+          KendrickMassPlotXYDataset dataset = (KendrickMassPlotXYDataset) plot.getDataset();
+          double[] xValues = new double[dataset.getItemCount(0)];
+          for (int i = 0; i < xValues.length; i++) {
+            if ((event.getTrigger().getButton() == MouseEvent.BUTTON1)
+                && (event.getTrigger().getClickCount() == 2)) {
+              if (dataset.getX(0, i).doubleValue() == xValue
+                  && dataset.getY(0, i).doubleValue() == yValue) {
+                new FeatureOverviewWindow(selectedRows[i]);
+              }
+            }
+          }
+        }
+      }
+
+      @Override
+      public void chartMouseMoved(ChartMouseEvent event) {}
+    });
     pack();
   }
 

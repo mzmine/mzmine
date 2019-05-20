@@ -456,8 +456,20 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
   }
 
+  public TICToolBar getToolBar() {
+    return toolBar;
+  }
+
+  public void setToolBar(TICToolBar toolBar) {
+    this.toolBar = toolBar;
+  }
+
   public TICPlot getTICPlot() {
     return ticPlot;
+  }
+
+  public void setTICPlot(TICPlot ticPlot) {
+    this.ticPlot = ticPlot;
   }
 
 }
