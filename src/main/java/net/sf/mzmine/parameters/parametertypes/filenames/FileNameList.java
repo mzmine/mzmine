@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.swing.JPanel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -32,21 +33,22 @@ import net.sf.mzmine.parameters.UserParameter;
  * Simple Parameter implementation
  * 
  */
-public class FileNameListParameter implements UserParameter<List<File>, FileNameListComponent> {
+public class FileNameList implements UserParameter<List<File>, JPanel> {
 
   private static final String FILE_ELEMENT = "file";
   private String name, description;
   private List<File> value;
   private String extension;
 
-  public FileNameListParameter(String name, String description) {
+  public FileNameList(String name, String description) {
     this(name, description, null);
   }
 
-  public FileNameListParameter(String name, String description, String extension) {
+  public FileNameList(String name, String description, String extension) {
     this.name = name;
     this.description = description;
     this.extension = extension;
+    value = new ArrayList<>();
   }
 
   /**
@@ -66,8 +68,8 @@ public class FileNameListParameter implements UserParameter<List<File>, FileName
   }
 
   @Override
-  public FileNameListComponent createEditingComponent() {
-    return new FileNameListComponent();
+  public JPanel createEditingComponent() {
+    return new JPanel();
   }
 
   @Override
@@ -81,21 +83,17 @@ public class FileNameListParameter implements UserParameter<List<File>, FileName
   }
 
   @Override
-  public FileNameListParameter cloneParameter() {
-    FileNameListParameter copy = new FileNameListParameter(name, description);
+  public FileNameList cloneParameter() {
+    FileNameList copy = new FileNameList(name, description);
     copy.setValue(new ArrayList<>(this.getValue()));
     return copy;
   }
 
   @Override
-  public void setValueFromComponent(FileNameListComponent component) {
-    this.value = component.getValue();
-  }
+  public void setValueFromComponent(JPanel component) {}
 
   @Override
-  public void setValueToComponent(FileNameListComponent component, List<File> newValue) {
-    component.setValue(newValue);
-  }
+  public void setValueToComponent(JPanel component, List<File> newValue) {}
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
