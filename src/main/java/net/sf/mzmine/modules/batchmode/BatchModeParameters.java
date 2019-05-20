@@ -23,15 +23,14 @@ import java.util.logging.Logger;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.filenames.FileNameList;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class BatchModeParameters extends SimpleParameterSet {
   // Logger.
   private static final Logger LOG = Logger.getLogger(BatchModeParameters.class.getName());
 
-  public static final FileNameList lastFiles =
-      new FileNameList("Last used files", "Last used batch files");
+  public static final FileNameListSilentParameter lastFiles = new FileNameListSilentParameter("Last used files");
   public static final BatchQueueParameter batchQueue = new BatchQueueParameter();
 
   public BatchModeParameters() {

@@ -116,10 +116,9 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
         compValue = new File(compValue.getPath() + "." + extension);
 
       // add to last files if not already inserted
-      if (!lastFiles.contains(compValue)) {
-        lastFiles.add(compValue);
-        setLastFiles(lastFiles);
-      }
+      lastFiles.remove(compValue);
+      lastFiles.add(0, compValue);
+      setLastFiles(lastFiles);
     }
     this.value = compValue;
   }

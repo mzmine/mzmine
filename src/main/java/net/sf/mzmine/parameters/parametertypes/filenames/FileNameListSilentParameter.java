@@ -22,32 +22,24 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.swing.JPanel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 
 /**
  * Simple Parameter implementation
  * 
  */
-public class FileNameList implements UserParameter<List<File>, JPanel> {
+public class FileNameListSilentParameter implements Parameter<List<File>> {
 
   private static final String FILE_ELEMENT = "file";
-  private String name, description;
+  private String name;
   private List<File> value;
-  private String extension;
 
-  public FileNameList(String name, String description) {
-    this(name, description, null);
-  }
-
-  public FileNameList(String name, String description, String extension) {
+  public FileNameListSilentParameter(String name) {
     this.name = name;
-    this.description = description;
-    this.extension = extension;
     value = new ArrayList<>();
   }
 
@@ -57,19 +49,6 @@ public class FileNameList implements UserParameter<List<File>, JPanel> {
   @Override
   public String getName() {
     return name;
-  }
-
-  /**
-   * @see net.sf.mzmine.data.Parameter#getDescription()
-   */
-  @Override
-  public String getDescription() {
-    return description;
-  }
-
-  @Override
-  public JPanel createEditingComponent() {
-    return new JPanel();
   }
 
   @Override
@@ -83,17 +62,11 @@ public class FileNameList implements UserParameter<List<File>, JPanel> {
   }
 
   @Override
-  public FileNameList cloneParameter() {
-    FileNameList copy = new FileNameList(name, description);
+  public FileNameListSilentParameter cloneParameter() {
+    FileNameListSilentParameter copy = new FileNameListSilentParameter(name);
     copy.setValue(new ArrayList<>(this.getValue()));
     return copy;
   }
-
-  @Override
-  public void setValueFromComponent(JPanel component) {}
-
-  @Override
-  public void setValueToComponent(JPanel component, List<File> newValue) {}
 
   @Override
   public void loadValueFromXML(Element xmlElement) {

@@ -105,10 +105,9 @@ public class JLastFilesButton extends JButton implements LastFilesComponent {
       return;
 
     // add to last files if not already inserted
-    if (!lastFiles.contains(f)) {
-      lastFiles.add(f);
-      setLastFiles(lastFiles);
-    }
+    lastFiles.remove(f);
+    lastFiles.add(0, f);
+    setLastFiles(lastFiles);
   }
 
 }
