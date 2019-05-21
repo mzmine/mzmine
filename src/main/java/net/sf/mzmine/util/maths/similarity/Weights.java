@@ -18,32 +18,30 @@
 
 package net.sf.mzmine.util.maths.similarity;
 
-public class SpectraSimilarity {
-  private double cosine;
-  private int overlap;
+public class Weights {
+  public static final Weights MASSBANK = new Weights("MassBank", 0.5, 2);
+  public static final Weights NIST_GC = new Weights("NIST (GC)", 0.6, 3);
+  public static final Weights NIST11 = new Weights("NIST11 (LC)", 0.53, 1.3);
+  public static final Weights[] VALUES = new Weights[] {MASSBANK, NIST11, NIST_GC};
 
-  public SpectraSimilarity(double cosine, int overlap) {
-    super();
-    this.cosine = cosine;
-    this.overlap = overlap;
+  private String name;
+  private double mz, intensity;
+
+  private Weights(String name, double intensity, double mz) {
+    this.name = name;
+    this.mz = mz;
+    this.intensity = intensity;
   }
 
-  /**
-   * Number of overlapping signals
-   * 
-   * @return
-   */
-  public int getOverlap() {
-    return overlap;
+  public double getIntensity() {
+    return intensity;
   }
 
-  /**
-   * Cosine similarity
-   * 
-   * @return
-   */
-  public double getCosine() {
-    return cosine;
+  public double getMz() {
+    return mz;
   }
 
+  public String getName() {
+    return name;
+  }
 }

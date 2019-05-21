@@ -39,6 +39,8 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.SpectralSimilarityUtil;
+import net.sf.mzmine.util.maths.similarity.Weights;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
@@ -180,31 +182,35 @@ public class PeakListSpectralMatchTask extends AbstractTask {
    */
   private SpectraSimilarity spectraDBMatch(PeakListRow row, SpectralDBEntry ident) {
     // retention time
-    Double rt = (Double) ident.getField(DBEntryField.RT).orElse(null);
-    if (!useRT || rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT())) {
-      // precursor mz
-      Boolean precursorMzTol = false;
-      if (msLevel >= 2) {
-        if (ident.getPrecursorMZ() != null)
-          precursorMzTol =
-              mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
-      }
-      if (msLevel == 1 || precursorMzTol) {
-        try {
-          // check spectra similarity
-          DataPoint[] rowMassList = getDataPoints(row);
-          SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
-              rowMassList, minMatch);
-          if (sim != null && sim.getCosine() >= minSimilarity)
-            return sim;
-        } catch (MissingMassListException e) {
-          logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
-          errorCounter++;
-          return null;
-        }
+    // MS level 1 or check precursorMZ
+    if (checkRT(row, ident) && (msLevel == 1 || checkPrecursorMZ(row, ident))) {
+      try {
+        // check spectra similarity
+        DataPoint[] rowMassList = getDataPoints(row);
+        SpectraSimilarity sim = SpectralSimilarityUtil.createMS2SimWeightedCosine(mzTolerance,
+            ident.getDataPoints(), rowMassList, minMatch, Weights.MASSBANK);
+        if (sim != null && sim.getCosine() >= minSimilarity)
+          return sim;
+      } catch (MissingMassListException e) {
+        logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
+        errorCounter++;
+        return null;
       }
     }
     return null;
+  }
+
+
+  private boolean checkPrecursorMZ(PeakListRow row, SpectralDBEntry ident) {
+    if (ident.getPrecursorMZ() == null)
+      return false;
+    else
+      return mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
+  }
+
+  private boolean checkRT(PeakListRow row, SpectralDBEntry ident) {
+    Double rt = (Double) ident.getField(DBEntryField.RT).orElse(null);
+    return (!useRT || rt == null || rtTolerance.checkWithinTolerance(rt, row.getAverageRT()));
   }
 
   /**
