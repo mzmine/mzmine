@@ -32,15 +32,17 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineProcessingStep;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
-import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
-import net.sf.mzmine.util.maths.similarity.SpectralSimilarityUtil;
-import net.sf.mzmine.util.maths.similarity.Weights;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
@@ -67,7 +69,6 @@ public class PeakListSpectralMatchTask extends AbstractTask {
 
   private final int msLevel;
   private final double noiseLevel;
-  private final double minSimilarity;
   private final int minMatch;
   private List<SpectralDBEntry> list;
 
@@ -76,6 +77,11 @@ public class PeakListSpectralMatchTask extends AbstractTask {
   // as this module is started in a series the start entry is saved to track progress
   private int startEntry;
   private int listsize;
+  private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
+
+  // remove 13C isotopes
+  private boolean removeIsotopes;
+  private MassListDeisotoperParameters deisotopeParam;
 
   public PeakListSpectralMatchTask(PeakList peakList, ParameterSet parameters, int startEntry,
       List<SpectralDBEntry> list) {
@@ -95,7 +101,13 @@ public class PeakListSpectralMatchTask extends AbstractTask {
         .getEmbeddedParameter().getValue();
 
     minMatch = parameters.getParameter(LocalSpectralDBSearchParameters.minMatch).getValue();
-    minSimilarity = parameters.getParameter(LocalSpectralDBSearchParameters.minCosine).getValue();
+    simFunction =
+        parameters.getParameter(LocalSpectralDBSearchParameters.similarityFunction).getValue();
+    removeIsotopes =
+        parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping).getValue();
+    deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
+        .getEmbeddedParameters();
+
     totalRows = peakList.getNumberOfRows();
   }
 
@@ -125,46 +137,54 @@ public class PeakListSpectralMatchTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    try {
-      for (PeakListRow row : peakList.getRows()) {
+    for (PeakListRow row : peakList.getRows()) {
 
-        // check for MS1 or MSMS scan
-        Scan scan;
-        if (msLevel == 1) {
-          scan = row.getBestPeak().getRepresentativeScan();
-        } else if (msLevel >= 2) {
-          scan = row.getBestFragmentation();
-        } else {
-          logger.log(Level.WARNING, "Data base matching failed. MS level is not set correctly");
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Data base matching failed. MS level is not set correctly");
-          return;
-        }
-        if (scan != null) {
+      // check for MS1 or MSMS scan
+      Scan scan;
+      if (msLevel == 1) {
+        scan = row.getBestPeak().getRepresentativeScan();
+      } else if (msLevel >= 2) {
+        scan = row.getBestFragmentation();
+      } else {
+        logger.log(Level.WARNING, "Data base matching failed. MS level is not set correctly");
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Data base matching failed. MS level is not set correctly");
+        return;
+      }
+      if (scan != null) {
+        try {
+          // get mass list and perform deisotoping if active
+          DataPoint[] rowMassList = getDataPoints(row);
+          if (removeIsotopes)
+            rowMassList = removeIsotopes(rowMassList);
+
+          // match against all library entries
           for (SpectralDBEntry ident : list) {
-
-            SpectraSimilarity sim = spectraDBMatch(row, ident);
+            SpectraSimilarity sim = spectraDBMatch(row, rowMassList, ident);
             if (sim != null) {
               count++;
               addIdentity(row, ident, sim);
             }
-            // check for max error (missing masslist)
-            if (errorCounter > MAX_ERROR) {
-              logger.log(Level.WARNING, "Data base matching failed. To many missing mass lists ");
-              setStatus(TaskStatus.ERROR);
-              setErrorMessage("Data base matching failed. To many missing mass lists ");
-              list = null;
-              return;
-            }
           }
+        } catch (MissingMassListException e) {
+          logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
+          errorCounter++;
         }
-        // next row
-        finishedRows++;
+        // check for max error (missing masslist)
+        if (errorCounter > MAX_ERROR) {
+          logger.log(Level.WARNING, "Data base matching failed. To many missing mass lists ");
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage("Data base matching failed. To many missing mass lists ");
+          list = null;
+          return;
+        }
       }
-      if (count > 0)
-        logger.info("Added " + count + " spectral library matches");
-    } catch (Exception e) {
+      // next row
+      finishedRows++;
     }
+    if (count > 0)
+      logger.info("Added " + count + " spectral library matches");
+
     // Repaint the window to reflect the change in the peak list
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
@@ -175,31 +195,49 @@ public class PeakListSpectralMatchTask extends AbstractTask {
   }
 
   /**
+   * Remove 13C isotopes from masslist
+   * 
+   * @param a
+   * @return
+   */
+  private DataPoint[] removeIsotopes(DataPoint[] a) {
+    return MassListDeisotoper.filterIsotopes(a, deisotopeParam);
+  }
+
+  /**
    * 
    * @param row
    * @param ident
    * @return spectral similarity or null if no match
    */
-  private SpectraSimilarity spectraDBMatch(PeakListRow row, SpectralDBEntry ident) {
+  private SpectraSimilarity spectraDBMatch(PeakListRow row, DataPoint[] rowMassList,
+      SpectralDBEntry ident) {
     // retention time
     // MS level 1 or check precursorMZ
     if (checkRT(row, ident) && (msLevel == 1 || checkPrecursorMZ(row, ident))) {
-      try {
-        // check spectra similarity
-        DataPoint[] rowMassList = getDataPoints(row);
-        SpectraSimilarity sim = SpectralSimilarityUtil.createMS2SimWeightedCosine(mzTolerance,
-            ident.getDataPoints(), rowMassList, minMatch, Weights.MASSBANK);
-        if (sim != null && sim.getCosine() >= minSimilarity)
-          return sim;
-      } catch (MissingMassListException e) {
-        logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
-        errorCounter++;
-        return null;
-      }
+      DataPoint[] dps = ident.getDataPoints();
+      if (removeIsotopes)
+        dps = removeIsotopes(dps);
+
+      // check spectra similarity
+      SpectraSimilarity sim = createSimilarity(rowMassList, dps);
+      if (sim != null)
+        return sim;
     }
     return null;
   }
 
+  /**
+   * Uses the similarity function and filter to create similarity.
+   * 
+   * @param a
+   * @param b
+   * @return positive match with similarity or null if criteria was not met
+   */
+  private SpectraSimilarity createSimilarity(DataPoint[] a, DataPoint[] b) {
+    return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzTolerance,
+        minMatch, a, b);
+  }
 
   private boolean checkPrecursorMZ(PeakListRow row, SpectralDBEntry ident) {
     if (ident.getPrecursorMZ() == null)

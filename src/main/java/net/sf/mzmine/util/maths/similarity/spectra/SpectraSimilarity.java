@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity;
+package net.sf.mzmine.util.maths.similarity.spectra;
 
 public class SpectraSimilarity {
   private double cosine;
