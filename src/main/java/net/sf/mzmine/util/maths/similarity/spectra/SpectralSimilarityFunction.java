@@ -24,6 +24,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import net.sf.mzmine.util.maths.similarity.spectra.impl.CompositeCosineSpectralSimilarity;
 import net.sf.mzmine.util.maths.similarity.spectra.impl.WeightedCosineSpectralSimilarity;
 import net.sf.mzmine.util.scans.ScanAlignment;
 
@@ -35,8 +36,8 @@ import net.sf.mzmine.util.scans.ScanAlignment;
  */
 public abstract class SpectralSimilarityFunction implements MZmineModule {
 
-  public static SpectralSimilarityFunction[] FUNCTIONS =
-      new SpectralSimilarityFunction[] {new WeightedCosineSpectralSimilarity()};
+  public static SpectralSimilarityFunction[] FUNCTIONS = new SpectralSimilarityFunction[] {
+      new WeightedCosineSpectralSimilarity(), new CompositeCosineSpectralSimilarity()};
 
   /**
    * 
@@ -49,7 +50,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
    */
   @Nullable
   public abstract SpectraSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol,
-      int minMatch, DataPoint[] a, DataPoint[] b);
+      int minMatch, DataPoint[] library, DataPoint[] query);
 
 
   /**

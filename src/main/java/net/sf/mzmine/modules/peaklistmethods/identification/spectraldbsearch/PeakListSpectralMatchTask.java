@@ -220,7 +220,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
         dps = removeIsotopes(dps);
 
       // check spectra similarity
-      SpectraSimilarity sim = createSimilarity(rowMassList, dps);
+      SpectraSimilarity sim = createSimilarity(dps, rowMassList);
       if (sim != null)
         return sim;
     }
@@ -234,9 +234,9 @@ public class PeakListSpectralMatchTask extends AbstractTask {
    * @param b
    * @return positive match with similarity or null if criteria was not met
    */
-  private SpectraSimilarity createSimilarity(DataPoint[] a, DataPoint[] b) {
+  private SpectraSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
     return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzTolerance,
-        minMatch, a, b);
+        minMatch, library, query);
   }
 
   private boolean checkPrecursorMZ(PeakListRow row, SpectralDBEntry ident) {

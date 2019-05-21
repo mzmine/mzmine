@@ -223,7 +223,7 @@ public class SpectralMatchTask extends AbstractTask {
         dps = removeIsotopes(dps);
 
       // check spectra similarity
-      SpectraSimilarity sim = createSimilarity(spectraMassList, dps);
+      SpectraSimilarity sim = createSimilarity(dps, spectraMassList);
       return sim;
     }
     return null;
@@ -243,13 +243,13 @@ public class SpectralMatchTask extends AbstractTask {
   /**
    * Uses the similarity function and filter to create similarity.
    * 
-   * @param a
-   * @param b
+   * @param library
+   * @param query
    * @return positive match with similarity or null if criteria was not met
    */
-  private SpectraSimilarity createSimilarity(DataPoint[] a, DataPoint[] b) {
+  private SpectraSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
     return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzTolerance,
-        minMatch, a, b);
+        minMatch, library, query);
   }
 
   private boolean checkPrecursorMZ(double precursorMZ, SpectralDBEntry ident) {
