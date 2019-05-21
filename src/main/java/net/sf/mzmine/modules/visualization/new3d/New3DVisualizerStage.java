@@ -18,9 +18,12 @@
 
 package net.sf.mzmine.modules.visualization.new3d;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.fxyz3d.geometry.Point3D;
+import org.fxyz3d.shapes.primitives.Surface3DMesh;
 import org.fxyz3d.shapes.primitives.SurfacePlotMesh;
 
 import javafx.event.EventHandler;
@@ -29,8 +32,12 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.StackPane;
 import javafx.scene.shape.CullFace;
+import javafx.scene.shape.DrawMode;
 import javafx.stage.Stage;
 
 public class New3DVisualizerStage extends Stage{
@@ -41,14 +48,14 @@ public class New3DVisualizerStage extends Stage{
     final Xform cameraXform2 = new Xform();
     final Xform cameraXform3 = new Xform();
     private static final double CAMERA_NEAR_CLIP = 0.1;
-    private static final double CAMERA_FAR_CLIP = 500.0;
-    private static final double CAMERA_INITIAL_DISTANCE = -50;
+    private static final double CAMERA_FAR_CLIP = 5000.0;
+    private static final double CAMERA_INITIAL_DISTANCE = -500;
     private static final double CAMERA_INITIAL_X_ANGLE = 70.0;
     private static final double CAMERA_INITIAL_Y_ANGLE = 320.0;
     private static final double CONTROL_MULTIPLIER = 0.1;
     private static final double SHIFT_MULTIPLIER = 10.0;
     private static final double MOUSE_SPEED = 0.1;
-    private static final double ROTATION_SPEED = 2.0;
+    private static final double ROTATION_SPEED = 1.0;
     private static final double TRACK_SPEED = 0.3;
     private static final Logger LOG = Logger.getLogger(MoleculeStage.class.getName());
     
@@ -59,20 +66,28 @@ public class New3DVisualizerStage extends Stage{
     double mouseDeltaX;
     double mouseDeltaY;
     
-    public New3DVisualizerStage(String title) {
+    public New3DVisualizerStage(ArrayList<Point3D> list3dPoints,String title) {
     	
     	root.setDepthTest(DepthTest.ENABLE);
     	buildCamera();
- 	    
- 	    SurfacePlotMesh surfaceMesh = new SurfacePlotMesh();
- 	    surfaceMesh.setCullFace(CullFace.NONE);
- 	    
- 	    root.getChildren().add(surfaceMesh);
- 	    
- 	    Scene scene = new Scene(root,600, 400, true);
- 	    handleMouse(scene, root);
-        scene.setCamera(camera);
+    	
+//    	StackPane frame = new StackPane();
+//        frame.getChildren().add(root);
         
+ 	    Surface3DMesh surfaceMesh = new Surface3DMesh(list3dPoints);
+ 	    surfaceMesh.setDrawMode(DrawMode.FILL);
+ 	    //addMouseScrolling(surfaceMesh);
+ 	    root.getChildren().add(surfaceMesh);
+ 	    //makeZoomable(root);
+ 	    
+
+ 	    Scene scene = new Scene(root,600, 400, true);
+ 	    
+ 	    scene.setCamera(camera);
+ 	    
+        handleMouse(scene);
+        //makeZoomable(frame);
+
         this.setTitle(title);
         this.setScene(scene);
     		
@@ -93,7 +108,7 @@ public class New3DVisualizerStage extends Stage{
         cameraXform.rx.setAngle(CAMERA_INITIAL_X_ANGLE);
     }
 
-    private void handleMouse(Scene scene, final Node root) {
+    private void handleMouse(Scene scene) {
         scene.setOnMousePressed(me -> {
                 mousePosX = me.getSceneX();
                 mousePosY = me.getSceneY();
@@ -131,4 +146,61 @@ public class New3DVisualizerStage extends Stage{
                 }
         	});
     }
+    
+    public void addMouseScrolling(Node node) {
+        node.setOnScroll((ScrollEvent event) -> {
+            // Adjust the zoom factor as per your requirement
+        	LOG.log(Level.INFO, "scrolling()");
+            double zoomFactor = 1.05;
+            double deltaY = event.getDeltaY();
+            if (deltaY < 0){
+                zoomFactor = 2.0 - zoomFactor;
+            }
+            node.setScaleX(node.getScaleX() * zoomFactor);
+            node.setScaleY(node.getScaleY() * zoomFactor);
+        });
+    }
+    
+    public void makeZoomable(StackPane control) {
+
+        final double MAX_SCALE = 20.0;
+        final double MIN_SCALE = 0.1;
+    	LOG.log(Level.INFO, "scrolling()");
+
+        control.addEventFilter(ScrollEvent.ANY, new EventHandler<ScrollEvent>() {
+            @Override
+            public void handle(ScrollEvent event) {
+            	LOG.log(Level.INFO, "scrolling()");
+                double delta = 1.02;
+
+                double scale = control.getScaleX();
+
+                if (event.getDeltaY() < 0) {
+                    scale /= delta;
+                } else {
+                    scale *= delta;
+                }
+
+                //scale = clamp(scale, MIN_SCALE, MAX_SCALE);
+
+                root.setScaleX(scale);
+                root.setScaleY(scale);
+                event.consume();
+
+            }
+
+        });
+    }
+    
+    public static double clamp(double value, double min, double max) {
+
+        if (Double.compare(value, min) < 0)
+            return min;
+
+        if (Double.compare(value, max) > 0)
+            return max;
+
+        return value;
+    }  
+    
 }

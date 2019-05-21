@@ -57,7 +57,7 @@ class ThreeDBottomPanel extends JPanel implements TreeModelListener {
 
   private RawDataFile dataFile;
 
-  ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame, RawDataFile dataFile) {
+  ThreeDBottomPanel(New3DVisualizerWindow masterFrame, RawDataFile dataFile) {
 
     this.dataFile = dataFile;
 
@@ -73,7 +73,7 @@ class ThreeDBottomPanel extends JPanel implements TreeModelListener {
     peakListSelector = new JComboBox<PeakList>();
     peakListSelector.setBackground(Color.white);
     peakListSelector.setFont(smallFont);
-    peakListSelector.addActionListener(masterFrame);
+    //peakListSelector.addActionListener(masterFrame);
     peakListSelector.setActionCommand("PEAKLIST_CHANGE");
     add(peakListSelector);
 
@@ -83,7 +83,7 @@ class ThreeDBottomPanel extends JPanel implements TreeModelListener {
     showIdChkBox.setSelected(true);
     showIdChkBox.setBackground(Color.white);
     showIdChkBox.setFont(smallFont);
-    showIdChkBox.addActionListener(masterFrame);
+    //showIdChkBox.addActionListener(masterFrame);
     showIdChkBox.setActionCommand("PEAKLIST_CHANGE");
     // TODO Improve functionality of this button, currently it's behavior is
     // confusing with "Show peaks value" button

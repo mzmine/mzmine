@@ -84,43 +84,25 @@ public class New3DVisualizerModule implements MZmineRunnableModule {
 
 		}
 
-		ParameterSet myParameters = MZmineCore.getConfiguration().getModuleParameters(ThreeDVisualizerModule.class);
+		ParameterSet myParameters = MZmineCore.getConfiguration().getModuleParameters(New3DVisualizerModule.class);
 		try {
-			/*
-			 * ThreeDVisualizerWindow window = new ThreeDVisualizerWindow(dataFiles[0],
-			 * scans, rtRange,
-			 * myParameters.getParameter(ThreeDVisualizerParameters.rtResolution).getValue()
-			 * , myParameters.getParameter(ThreeDVisualizerParameters.mzRange).getValue(),
-			 * myParameters.getParameter(ThreeDVisualizerParameters.mzResolution).getValue()
-			 * ); window.setVisible(true);
-			 */
-
 			
-			  Platform.runLater(new Runnable() {
-				  public void run() { 
-					  New3DVisualizerStage newStage = new New3DVisualizerStage("Sample Plot"); 
-					  newStage.show();
-				  }
-			  });
+			  New3DVisualizerWindow window = new New3DVisualizerWindow(dataFiles[0],
+			  scans, rtRange,
+			  myParameters.getParameter(ThreeDVisualizerParameters.rtResolution).getValue()
+			  , myParameters.getParameter(ThreeDVisualizerParameters.mzRange).getValue(),
+			  myParameters.getParameter(ThreeDVisualizerParameters.mzResolution).getValue()
+			  )
+			 ; window.setVisible(true);
 			 
 
 			
-//			  Platform.runLater(new Runnable(){ 
-//				  public void run() { 
-//					  SampleSpringMesh
-//				  newStage = new SampleSpringMesh("Sample Molecule");
-//				  newStage.show();
-//			  	} 
-//			  });
-			  
-//			  Platform.runLater(new Runnable() {
-//			       public void run() {             
-//			           //new SampleSpringMesh(new Stage());
-//			    	   //new SurfacePlotMesh 
-//			    	   SpringStage newStage = new SpringStage("Sample Spring"); 
-//			    	   newStage.show();
-//			       }
-//			  });
+			
+			/*
+			 * Platform.runLater(new Runnable() { public void run() { New3DVisualizerStage
+			 * newStage = new New3DVisualizerStage("Sample Plot"); newStage.show(); } });
+			 */
+			 
 
 		} catch (Throwable e) {
 			e.printStackTrace();

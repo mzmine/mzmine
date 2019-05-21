@@ -56,26 +56,20 @@ import com.google.common.collect.Range;
 /**
  * 3D visualizer frame.
  */
-public class ThreeDVisualizerWindow extends JFrame implements MouseWheelListener, ActionListener {
+public class New3DVisualizerWindow extends JFrame{
 
   private static final long serialVersionUID = 1L;
 
   // Logger.
-  private static final Logger LOG = Logger.getLogger(ThreeDVisualizerWindow.class.getName());
+  private static final Logger LOG = Logger.getLogger(New3DVisualizerWindow.class.getName());
 
   // Title font.
   private static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 12);
 
-  // Zoom matrices.
-  private static final double[] ZOOM_IN_MATRIX =
-      MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, 1.03, 0.0, 0.0, 0.0);
-  private static final double[] ZOOM_OUT_MATRIX =
-      MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, 0.97, 0.0, 0.0, 0.0);
-
   // Plot size preference.
   private static final Dimension PREFERRED_PLOT_SIZE = new Dimension(700, 500);
 
-  private final ThreeDDisplay display;
+ // private final ThreeDDisplay display;
   private final ThreeDBottomPanel bottomPanel;
   private JDialog propertiesDialog;
 
@@ -98,7 +92,7 @@ public class ThreeDVisualizerWindow extends JFrame implements MouseWheelListener
    * @throws RemoteException if there are VisAD problems.
    * @throws VisADException if there are VisAD problems.
    */
-  public ThreeDVisualizerWindow(final RawDataFile file, final Scan scans[], final Range<Double> rt,
+  public New3DVisualizerWindow(final RawDataFile file, final Scan scans[], final Range<Double> rt,
       final int rtRes, final Range<Double> mz, final int mzRes)
       throws VisADException, RemoteException {
 
@@ -114,19 +108,19 @@ public class ThreeDVisualizerWindow extends JFrame implements MouseWheelListener
     mzRange = mz;
 
     // Create 3D display and configure its component.
-    display = new ThreeDDisplay();
-    final Component plot3D = display.getComponent();
-    plot3D.setPreferredSize(PREFERRED_PLOT_SIZE);
-    plot3D.addMouseWheelListener(this);
+   // display = new ThreeDDisplay();
+   // final Component plot3D = display.getComponent();
+    //plot3D.setPreferredSize(PREFERRED_PLOT_SIZE);
+//    plot3D.addMouseWheelListener(this);
 
     // Create bottom panel.
     bottomPanel = new ThreeDBottomPanel(this, file);
 
     // Layout panel.
     setLayout(new BorderLayout());
-    add(plot3D, BorderLayout.CENTER);
+  //  add(plot3D, BorderLayout.CENTER);
     add(createTitleLabel(file.getName()), BorderLayout.NORTH);
-    add(new ThreeDToolBar(this), BorderLayout.EAST);
+    //add(new ThreeDToolBar(this), BorderLayout.EAST);
     add(bottomPanel, BorderLayout.SOUTH);
 
     // Add the Windows menu
@@ -148,100 +142,13 @@ public class ThreeDVisualizerWindow extends JFrame implements MouseWheelListener
 
     // Add sampling task.
     MZmineCore.getTaskController().addTask(
-        new ThreeDSamplingTask(file, scans, rtRange, mzRange, rtRes, mzRes, display, bottomPanel),
+        new ThreeDSamplingTask(file, scans, rtRange, mzRange, rtRes, mzRes, bottomPanel),
         TaskPriority.HIGH);
 
     MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
   }
 
-  /**
-   * Clean up.
-   */
-  @Override
-  public void dispose() {
-
-    super.dispose();
-    MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
-
-    // Cleanup display.
-    if (display != null) {
-
-      try {
-        display.destroy();
-      } catch (VisADException e) {
-        LOG.log(Level.WARNING, "Unable to destroy display", e);
-      } catch (RemoteException e) {
-        LOG.log(Level.WARNING, "Unable to destroy display", e);
-      }
-
-      // Dispose of dialog.
-      if (propertiesDialog != null) {
-        propertiesDialog.dispose();
-      }
-    }
-  }
-
-  @Override
-  public void mouseWheelMoved(final MouseWheelEvent e) {
-
-    // Zoom in/out.
-    try {
-      final ProjectionControl pControl = display.getProjectionControl();
-      pControl.setMatrix(MouseBehaviorJ3D.static_multiply_matrix(
-          e.getWheelRotation() < 0 ? ZOOM_IN_MATRIX : ZOOM_OUT_MATRIX, pControl.getMatrix()));
-    } catch (VisADException ex) {
-      LOG.log(Level.WARNING, "Unable to zoom", ex);
-    } catch (RemoteException ex) {
-      LOG.log(Level.WARNING, "Unable to zoom", ex);
-    }
-  }
-
-  @Override
-  public void actionPerformed(final ActionEvent e) {
-
-    final String command = e.getActionCommand();
-
-    if ("PROPERTIES".equals(command)) {
-
-      // Create the dialog if necessary.
-      if (propertiesDialog == null) {
-        propertiesDialog = new ThreeDPropertiesDialog(display);
-        propertiesDialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-      }
-      propertiesDialog.setVisible(true);
-    }
-
-    if ("PEAKLIST_CHANGE".equals(command)) {
-
-      final PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-      if (selectedPeakList != null) {
-
-        LOG.finest("Loading a peak list " + selectedPeakList + " to a 3D view of " + dataFile);
-
-        try {
-          display.setPeaks(selectedPeakList,
-              selectedPeakList.getPeaksInsideScanAndMZRange(dataFile, rtRange, mzRange),
-              bottomPanel.showCompoundNameSelected());
-        } catch (RemoteException ex) {
-          LOG.log(Level.WARNING, "Unable to set peaks", ex);
-        } catch (VisADException ex) {
-          LOG.log(Level.WARNING, "Unable to set peaks", ex);
-        }
-      }
-    }
-
-    if ("SHOW_ANNOTATIONS".equals(command)) {
-      try {
-        display.toggleShowingPeaks();
-      } catch (VisADException ex) {
-        LOG.log(Level.WARNING, "Unable to show peak labels", ex);
-      } catch (RemoteException ex) {
-        LOG.log(Level.WARNING, "Unable to show peak labels", ex);
-      }
-    }
-  }
-
-  /**
+ /**
    * Create title label.
    *
    * @param text title text.
