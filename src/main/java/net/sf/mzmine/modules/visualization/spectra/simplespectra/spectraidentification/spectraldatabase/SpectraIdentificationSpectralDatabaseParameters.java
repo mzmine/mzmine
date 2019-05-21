@@ -19,18 +19,21 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
 import java.awt.Window;
-import java.text.DecimalFormat;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
+import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 
 /**
  * Module to compare single spectra with spectral databases
@@ -55,20 +58,23 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       "Signals below this level will be filtered away from mass lists",
       MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
-  public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cosine similarity",
-      "Minimum cosine similarity. (All signals in the masslist are compared against all spectral library entries. "
-          + "Considers only signals which were found in both the masslist and the library entry)",
-      new DecimalFormat("0.00"), 0.95);
-
   public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
       "Minimum number of matched signals in spectra and spectral library entry (within mz tolerance)",
       20);
 
-  public SpectraIdentificationSpectralDatabaseParameters() {
-    super(new Parameter[] {dataBaseFile, massList, mzTolerance, usePrecursorMZ, noiseLevel,
-        minCosine, minMatch});
-  }
+  public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
+      new OptionalModuleParameter<MassListDeisotoperParameters>("13C deisotoping",
+          "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
 
+  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
+      new ModuleComboParameter<>("Similarity",
+          "Algorithm to calculate similarity and filter matches",
+          SpectralSimilarityFunction.FUNCTIONS);
+
+  public SpectraIdentificationSpectralDatabaseParameters() {
+    super(new Parameter[] {massList, dataBaseFile, usePrecursorMZ, noiseLevel, deisotoping,
+        mzTolerance, minMatch, similarityFunction});
+  }
 
   public ExitCode showSetupDialog(Scan scan, Window parent, boolean valueCheckRequired) {
     // set precursor mz to parameter if MS2 scan
