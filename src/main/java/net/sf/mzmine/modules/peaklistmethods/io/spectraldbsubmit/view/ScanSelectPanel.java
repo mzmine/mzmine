@@ -79,7 +79,6 @@ public class ScanSelectPanel extends JPanel {
 
   private JToggleButton btnToggleUse;
   private JTextField txtAdduct;
-  private PeakListRow row;
   private ScanSortMode sort;
   // null or empty to use first masslist
   private @Nullable String massListName;
@@ -115,13 +114,36 @@ public class ScanSelectPanel extends JPanel {
   private JLabel lblChargeMz;
   private JButton btnFromScan;
 
+  // data either row or scans
+  private PeakListRow row;
+  private Scan[] scansEntry;
+
   /**
    * Create the panel.
    */
   public ScanSelectPanel(PeakListRow row, ScanSortMode sort, double noiseLevel,
       int minNumberOfSignals, String massListName) {
-    setBorder(new LineBorder(UIManager.getColor("textHighlight")));
+    this(sort, noiseLevel, minNumberOfSignals, massListName);
     this.row = row;
+    // create chart with current sort mode
+    setSortMode(sort);
+    createChart();
+    setMZandChargeFromScan();
+  }
+
+  public ScanSelectPanel(Scan[] scansEntry, ScanSortMode sort, double noiseLevel,
+      int minNumberOfSignals, String massListName) {
+    this(sort, noiseLevel, minNumberOfSignals, massListName);
+    this.scansEntry = scansEntry;
+    // create chart with current sort mode
+    setSortMode(sort);
+    createChart();
+    setMZandChargeFromScan();
+  }
+
+  public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals,
+      String massListName) {
+    setBorder(new LineBorder(UIManager.getColor("textHighlight")));
     this.massListName = massListName;
     this.sort = sort;
     this.noiseLevel = noiseLevel;
@@ -235,12 +257,8 @@ public class ScanSelectPanel extends JPanel {
     lbMassListError.setForeground(new Color(220, 20, 60));
     lbMassListError.setVisible(false);
     add(lbMassListError, BorderLayout.NORTH);
-
-    // create chart with current sort mode
-    setSortMode(sort);
-    createChart();
-    setMZandChargeFromScan();
   }
+
 
   /**
    * 
@@ -249,11 +267,17 @@ public class ScanSelectPanel extends JPanel {
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
       double mz = scan.getPrecursorMZ();
-      if (mz == 0)
-        mz = row.getAverageMZ();
+      if (mz == 0) {
+        if (row != null)
+          mz = row.getAverageMZ();
+      }
       int charge = scan.getPrecursorCharge();
-      if (charge == 0)
-        charge = row.getRowCharge();
+      if (charge == 0) {
+        if (row != null)
+          charge = row.getRowCharge();
+        else
+          charge = 0;
+      }
 
       // set as text
       txtCharge.setText(String.valueOf(charge));
@@ -323,11 +347,18 @@ public class ScanSelectPanel extends JPanel {
    * Creates a sorted list of all scans that match the minimum criteria
    */
   private void createSortedScanList() {
+    if (row == null && scansEntry == null)
+      return;
     // get all scans that match filter criteria
     try {
-      // first entry is the best scan
-      scans =
-          ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals, sort);
+      if (row != null) {
+        // first entry is the best scan
+        scans =
+            ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals, sort);
+      } else if (scansEntry != null) {
+        scans =
+            ScanUtils.listAllScans(scansEntry, massListName, noiseLevel, minNumberOfSignals, sort);
+      }
       selectedScanI = 0;
 
       // no error
@@ -399,9 +430,8 @@ public class ScanSelectPanel extends JPanel {
       setValidSelection(true);
     } else {
       // add error label
-      JLabel error =
-          new JLabel(MessageFormat.format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria",
-              row.getAllMS2Fragmentations().length));
+      JLabel error = new JLabel(MessageFormat
+          .format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria", getTotalScans()));
       error.setFont(new Font("Tahoma", Font.BOLD, 13));
       error.setHorizontalAlignment(SwingConstants.CENTER);
       error.setForeground(new Color(220, 20, 60));
@@ -417,6 +447,14 @@ public class ScanSelectPanel extends JPanel {
 
     revalidate();
     repaint();
+  }
+
+  private int getTotalScans() {
+    if (row != null)
+      return row.getAllMS2Fragmentations().length;
+    if (scansEntry != null)
+      return scansEntry.length;
+    return 0;
   }
 
   private void setValidSelection(boolean state) {

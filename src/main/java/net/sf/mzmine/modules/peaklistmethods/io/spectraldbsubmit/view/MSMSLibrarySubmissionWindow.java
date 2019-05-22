@@ -54,6 +54,7 @@ import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
@@ -111,7 +112,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private boolean showCrosshair = true;
   private JPanel pnSideMenu;
 
-  private PeakListRow[] rows;
   private JPanel pnSettings;
   private JPanel pnButtons;
 
@@ -124,6 +124,10 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private GridBagPanel pnMetaData;
   private GridBagPanel pnSubmitParam;
   private String helpID;
+
+  // data either rows or list of entries with 1 or multiple scans
+  private PeakListRow[] rows;
+  private List<Scan[]> scanList;
 
   /**
    * Create the frame.
@@ -523,6 +527,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     setData(rows);
   }
 
+
   /**
    * Create charts and show
    * 
@@ -539,6 +544,43 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
 
     updateAllChartSelectors();
   }
+
+  /**
+   * Set data as single scan
+   * 
+   * @param scan
+   */
+  public void setData(Scan scan) {
+    setData(new Scan[] {scan});
+  }
+
+  /**
+   * set data as set of scans of one entry
+   * 
+   * @param scans
+   */
+  public void setData(Scan[] scans) {
+    scanList = new ArrayList<>();
+    scanList.add(scans);
+  }
+
+  /**
+   * Set data as set of entries with 1 or multiple scans
+   * 
+   * @param scanList
+   */
+  public void setData(List<Scan[]> scanList) {
+    this.scanList = scanList;
+    rows = null;
+
+    double rt = scanList.stream().flatMap(Arrays::stream).mapToDouble(Scan::getRetentionTime)
+        .average().orElse(0d);
+
+    // set rt
+    setRetentionTimeToComponent(rt);
+    updateAllChartSelectors();
+  }
+
 
   private void setRetentionTimeToComponent(double rt) {
     OptionalParameterComponent<DoubleComponent> cb =
@@ -563,18 +605,37 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
       if (minSignals != null && noiseLevel != null && massListName != null) {
         ScanSortMode sort = (ScanSortMode) getComboSortMode().getSelectedItem();
 
-        // MS2 of all rows
-        for (int i = 0; i < rows.length; i++) {
-          PeakListRow row = rows[i];
-          ScanSelectPanel pn = new ScanSelectPanel(row, sort, noiseLevel, minSignals, massListName);
-          pnScanSelect[i] = pn;
-          pn.addChartChangedListener(chart -> regroupCharts());
-          pnCharts.add(pn);
+        if (rows != null) {
+          // create MS2 of all rows
+          for (int i = 0; i < rows.length; i++) {
+            PeakListRow row = rows[i];
+            ScanSelectPanel pn =
+                new ScanSelectPanel(row, sort, noiseLevel, minSignals, massListName);
+            pnScanSelect[i] = pn;
+            pn.addChartChangedListener(chart -> regroupCharts());
+            pnCharts.add(pn);
 
-          // add to group
-          EChartPanel c = pn.getChart();
-          if (c != null) {
-            group.add(new ChartViewWrapper(c));
+            // add to group
+            EChartPanel c = pn.getChart();
+            if (c != null) {
+              group.add(new ChartViewWrapper(c));
+            }
+          }
+        } else if (scanList != null) {
+          // all selectors of scanlist
+          for (int i = 0; i < scanList.size(); i++) {
+            Scan[] scansEntry = scanList.get(i);
+            ScanSelectPanel pn =
+                new ScanSelectPanel(scansEntry, sort, noiseLevel, minSignals, massListName);
+            pnScanSelect[i] = pn;
+            pn.addChartChangedListener(chart -> regroupCharts());
+            pnCharts.add(pn);
+
+            // add to group
+            EChartPanel c = pn.getChart();
+            if (c != null) {
+              group.add(new ChartViewWrapper(c));
+            }
           }
         }
       }
@@ -731,4 +792,5 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private ComboComponent<ScanSortMode> getComboSortMode() {
     return (ComboComponent<ScanSortMode>) getComponentForParameter(LibrarySubmitParameters.sorting);
   }
+
 }

@@ -18,24 +18,40 @@
 
 package net.sf.mzmine.util.scans;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.text.Format;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.MassSpectrumType;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 import net.sf.mzmine.util.scans.sorting.ScanSorter;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.*;
-import java.text.Format;
-import java.util.*;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 /**
  * Scan related utilities
@@ -318,8 +334,9 @@ public class ScanUtils {
   }
 
   /**
-   * sort the data points by their m/z value. This method should be called before using other search methods to do binary search in
-   * logarithmic time.
+   * sort the data points by their m/z value. This method should be called before using other search
+   * methods to do binary search in logarithmic time.
+   * 
    * @param dataPoints spectrum that should be sorted
    */
   public static void sortDataPointsByMz(DataPoint[] dataPoints) {
@@ -327,48 +344,63 @@ public class ScanUtils {
   }
 
   /**
-   * Returns the index of the datapoint with lowest m/z within the given datapoints which is within the given mass range
+   * Returns the index of the datapoint with lowest m/z within the given datapoints which is within
+   * the given mass range
+   * 
    * @param dataPoints sorted(!) list of datapoints
    * @param mzRange m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findFirstPeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    final int insertionPoint = Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.lowerEndpoint(), 0d), (u,v)->Double.compare(u.getMZ(),v.getMZ()));
-    if (insertionPoint<0) {
+    final int insertionPoint =
+        Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.lowerEndpoint(), 0d),
+            (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
+    if (insertionPoint < 0) {
       final int k = -insertionPoint - 1;
-      if (k < dataPoints.length && mzRange.contains(dataPoints[k].getMZ())) return k;
-      else return -1;
+      if (k < dataPoints.length && mzRange.contains(dataPoints[k].getMZ()))
+        return k;
+      else
+        return -1;
     } else {
       return insertionPoint;
     }
   }
 
   /**
-   * Returns the index of the datapoint with largest m/z within the given datapoints which is within the given mass range
+   * Returns the index of the datapoint with largest m/z within the given datapoints which is within
+   * the given mass range
+   * 
    * @param dataPoints sorted(!) list of datapoints
    * @param mzRange m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findLastPeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
-    final int insertionPoint = Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.upperEndpoint(), 0d), (u,v)->Double.compare(u.getMZ(),v.getMZ()));
-    if (insertionPoint<0) {
+    final int insertionPoint =
+        Arrays.binarySearch(dataPoints, new SimpleDataPoint(mzRange.upperEndpoint(), 0d),
+            (u, v) -> Double.compare(u.getMZ(), v.getMZ()));
+    if (insertionPoint < 0) {
       final int k = -insertionPoint - 2;
-      if (k >= 0 && mzRange.contains(dataPoints[k].getMZ())) return k;
-      else return -1;
+      if (k >= 0 && mzRange.contains(dataPoints[k].getMZ()))
+        return k;
+      else
+        return -1;
     } else {
       return insertionPoint;
     }
   }
 
   /**
-   * Returns the index of the datapoint with highest intensity within the given datapoints which is within the given mass range
+   * Returns the index of the datapoint with highest intensity within the given datapoints which is
+   * within the given mass range
+   * 
    * @param dataPoints sorted(!) list of datapoints
    * @param mzRange m/z range to search in
    * @return index of datapoint or -1, if no datapoint is in range
    */
   public static int findMostIntensePeakWithin(DataPoint[] dataPoints, Range<Double> mzRange) {
     int k = findFirstPeakWithin(dataPoints, mzRange);
-    if (k < 0) return -1;
+    if (k < 0)
+      return -1;
     int mostIntense = k;
     for (; k < dataPoints.length; ++k) {
       if (!mzRange.contains(dataPoints[k].getMZ()))
@@ -707,8 +739,42 @@ public class ScanUtils {
   @Nonnull
   public static List<Scan> listAllFragmentScans(PeakListRow row, @Nullable String massListName,
       double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
-    List<Scan> filtered = new ArrayList<Scan>();
     Scan[] scans = row.getAllMS2Fragmentations();
+    return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+  }
+
+  /**
+   * List of all scans with n signals >= noiseLevel in the specified or first massList, if none was
+   * specified
+   * 
+   * @param massListName the name or null/empty to always use the first masslist
+   * @param noiseLevel
+   * @param minNumberOfSignals
+   * @return
+   */
+  @Nonnull
+  public static List<Scan> listAllScans(Scan[] scans, @Nullable String massListName,
+      double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
+      throws MissingMassListException {
+    List<Scan> filtered = listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+    // first entry is the best scan
+    filtered.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    return filtered;
+  }
+
+  /**
+   * List of all scans with n signals >= noiseLevel in the specified or first massList, if none was
+   * specified
+   * 
+   * @param massListName the name or null/empty to always use the first masslist
+   * @param noiseLevel
+   * @param minNumberOfSignals
+   * @return
+   */
+  @Nonnull
+  public static List<Scan> listAllScans(Scan[] scans, @Nullable String massListName,
+      double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
+    List<Scan> filtered = new ArrayList<>();
     for (Scan scan : scans) {
       // find mass list: with name or first
       final MassList massList = getMassListOrFirst(scan, massListName);
@@ -860,27 +926,30 @@ public class ScanUtils {
   }
 
   /**
-   * Move the mass window given by binRange across the spectrum, keep only the numberOfPeaksPerBin most intense peaks
-   * within the window. This is a very simple and robust method to remove most noise in the spectrum without having to estimate any
-   * noise intensity parameter.
+   * Move the mass window given by binRange across the spectrum, keep only the numberOfPeaksPerBin
+   * most intense peaks within the window. This is a very simple and robust method to remove most
+   * noise in the spectrum without having to estimate any noise intensity parameter.
+   * 
    * @param dataPoints spectrum
    * @param binRange sliding mass window. Is shifted in each step by its width.
    * @param numberOfPeaksPerBin number of peaks to keep within the sliding mass window
    * @return
    */
-  public static DataPoint[] extractMostIntensePeaksAcrossMassRange(DataPoint[] dataPoints, Range<Double> binRange, int numberOfPeaksPerBin) {
+  public static DataPoint[] extractMostIntensePeaksAcrossMassRange(DataPoint[] dataPoints,
+      Range<Double> binRange, int numberOfPeaksPerBin) {
     double offset = binRange.lowerEndpoint();
-    final double width = binRange.upperEndpoint()-binRange.lowerEndpoint();
+    final double width = binRange.upperEndpoint() - binRange.lowerEndpoint();
     final HashMap<Integer, List<DataPoint>> bins = new HashMap<>();
     for (DataPoint p : dataPoints) {
-      final int bin = (int)Math.floor((p.getMZ()-offset)/width);
-      if (bin >= 0) bins.computeIfAbsent(bin,(x)->new ArrayList<>()).add(p);
+      final int bin = (int) Math.floor((p.getMZ() - offset) / width);
+      if (bin >= 0)
+        bins.computeIfAbsent(bin, (x) -> new ArrayList<>()).add(p);
     }
     final List<DataPoint> finalDataPoints = new ArrayList<>();
     for (Integer bin : bins.keySet()) {
       List<DataPoint> list = bins.get(bin);
-      Collections.sort(list, (u, v)->Double.compare(v.getIntensity(),u.getIntensity()));
-      for (int i=0; i < Math.min(list.size(), numberOfPeaksPerBin); ++i)
+      Collections.sort(list, (u, v) -> Double.compare(v.getIntensity(), u.getIntensity()));
+      for (int i = 0; i < Math.min(list.size(), numberOfPeaksPerBin); ++i)
         finalDataPoints.add(list.get(i));
     }
     DataPoint[] spectrum = finalDataPoints.toArray(new DataPoint[0]);
@@ -889,50 +958,60 @@ public class ScanUtils {
   }
 
   /**
-   * Generalization of the cosine similarity for high resolution.
-   * See Algorithmic Mass Spectrometry by Sebastian Böcker, chapter 4.2
-   * While the cosine similarity transforms the spectrum into a finite dimensional vector, the probability product
-   * transforms it into a mixture of continuous gaussians.
+   * Generalization of the cosine similarity for high resolution. See Algorithmic Mass Spectrometry
+   * by Sebastian Böcker, chapter 4.2 While the cosine similarity transforms the spectrum into a
+   * finite dimensional vector, the probability product transforms it into a mixture of continuous
+   * gaussians.
    *
-   * As for cosine similarity it is recommended to first take the square root of all peak intensities, before calling this method.
+   * As for cosine similarity it is recommended to first take the square root of all peak
+   * intensities, before calling this method.
    *
    * @param scanLeft the first spectrum
    * @param scanRight the second spectrum
-   * @param expectedMassDeviationInPPM the width of the gaussians (corresponds to the expected mass deviation). Rather use a larger than a small value! Value is given in ppm and Dalton.
+   * @param expectedMassDeviationInPPM the width of the gaussians (corresponds to the expected mass
+   *        deviation). Rather use a larger than a small value! Value is given in ppm and Dalton.
    * @param noiseLevel the lowest intensity for a peak to be considered
    * @param mzRange the m/z range in which the peaks are compared. use null for the whole spectrum
    *
    */
-  public static double probabilityProduct(DataPoint[] scanLeft, DataPoint[] scanRight, MZTolerance expectedMassDeviationInPPM, double noiseLevel, @Nullable  Range<Double> mzRange) {
-    double d = probabilityProductUnnormalized(scanLeft, scanRight, expectedMassDeviationInPPM, noiseLevel, mzRange);
-    double l = probabilityProductUnnormalized(scanLeft, scanLeft, expectedMassDeviationInPPM, noiseLevel, mzRange);
-    double r = probabilityProductUnnormalized(scanRight, scanRight, expectedMassDeviationInPPM, noiseLevel, mzRange);
-    return d / Math.sqrt(l*r);
+  public static double probabilityProduct(DataPoint[] scanLeft, DataPoint[] scanRight,
+      MZTolerance expectedMassDeviationInPPM, double noiseLevel, @Nullable Range<Double> mzRange) {
+    double d = probabilityProductUnnormalized(scanLeft, scanRight, expectedMassDeviationInPPM,
+        noiseLevel, mzRange);
+    double l = probabilityProductUnnormalized(scanLeft, scanLeft, expectedMassDeviationInPPM,
+        noiseLevel, mzRange);
+    double r = probabilityProductUnnormalized(scanRight, scanRight, expectedMassDeviationInPPM,
+        noiseLevel, mzRange);
+    return d / Math.sqrt(l * r);
 
   }
 
   /**
-   * Calculates the probability product without normalization. Usually, this method is only useful if you plan to normalize the spectra (or value) yourself.
+   * Calculates the probability product without normalization. Usually, this method is only useful
+   * if you plan to normalize the spectra (or value) yourself.
+   * 
    * @see #probabilityProduct(DataPoint[], DataPoint[], MZTolerance, double, Range)
    */
-  public static double probabilityProductUnnormalized(DataPoint[] scanLeft, DataPoint[] scanRight, MZTolerance expectedMassDeviationInPPM, double noiseLevel, @Nullable  Range<Double> mzRange) {
+  public static double probabilityProductUnnormalized(DataPoint[] scanLeft, DataPoint[] scanRight,
+      MZTolerance expectedMassDeviationInPPM, double noiseLevel, @Nullable Range<Double> mzRange) {
     int i, j;
     double score = 0d;
-    final int nl, nr;//=left.length, nr=right.length;
-    if (mzRange==null) {
+    final int nl, nr;// =left.length, nr=right.length;
+    if (mzRange == null) {
       nl = scanLeft.length;
       nr = scanRight.length;
-      i=0;
-      j=0;
+      i = 0;
+      j = 0;
     } else {
-      nl = findLastPeakWithin(scanLeft,mzRange)+1;
-      nr = findLastPeakWithin(scanRight, mzRange)+1;
+      nl = findLastPeakWithin(scanLeft, mzRange) + 1;
+      nr = findLastPeakWithin(scanRight, mzRange) + 1;
       i = findFirstPeakWithin(scanLeft, mzRange);
       j = findFirstPeakWithin(scanRight, mzRange);
-      if (i < 0 || j < 0) return 0d;
+      if (i < 0 || j < 0)
+        return 0d;
     }
     // gaussians are set to zero above allowedDifference to speed up computation
-    final double allowedDifference = expectedMassDeviationInPPM.getMzToleranceForMass(1000d)*5;
+    final double allowedDifference = expectedMassDeviationInPPM.getMzToleranceForMass(1000d) * 5;
     while (i < nl && j < nr) {
       DataPoint lp = scanLeft[i];
       if (lp.getIntensity() < noiseLevel) {
@@ -946,7 +1025,8 @@ public class ScanUtils {
       }
       final double difference = lp.getMZ() - rp.getMZ();
       if (Math.abs(difference) <= allowedDifference) {
-        final double mzabs = expectedMassDeviationInPPM.getMzToleranceForMass(Math.round((lp.getMZ() + rp.getMZ()) / 2d));
+        final double mzabs = expectedMassDeviationInPPM
+            .getMzToleranceForMass(Math.round((lp.getMZ() + rp.getMZ()) / 2d));
         final double variance = mzabs * mzabs;
         double matchScore = probabilityProductScore(lp, rp, variance);
         score += matchScore;
@@ -956,7 +1036,8 @@ public class ScanUtils {
           if (Math.abs(difference2) <= allowedDifference) {
             matchScore = probabilityProductScore(lp2, rp, variance);
             score += matchScore;
-          } else break;
+          } else
+            break;
         }
         for (int l = j + 1; l < nr; ++l) {
           DataPoint rp2 = scanRight[l];
@@ -964,7 +1045,8 @@ public class ScanUtils {
           if (Math.abs(difference2) <= allowedDifference) {
             matchScore = probabilityProductScore(lp, rp2, variance);
             score += matchScore;
-          } else break;
+          } else
+            break;
         }
         ++i;
         ++j;
@@ -979,7 +1061,8 @@ public class ScanUtils {
   }
 
   /**
-   * Calculates the product of the integrals of two gaussians centered in lp and rp with given variance
+   * Calculates the product of the integrals of two gaussians centered in lp and rp with given
+   * variance
    */
   private static double probabilityProductScore(DataPoint lp, DataPoint rp, double variance) {
     final double mzDiff = Math.abs(lp.getMZ() - rp.getMZ());
