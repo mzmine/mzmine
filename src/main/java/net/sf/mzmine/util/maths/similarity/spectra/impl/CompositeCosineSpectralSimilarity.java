@@ -18,7 +18,9 @@
 
 package net.sf.mzmine.util.maths.similarity.spectra.impl;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -56,6 +58,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
     int overlap = calcOverlap(aligned);
 
     if (overlap >= minMatch) {
+      // relative factor ranges from 0-1
       double relativeFactor = calcRelativeNeighbourFactor(aligned);
 
       // weighted cosine
@@ -65,8 +68,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
 
       // composite dot product identity score
       // NIST search similar
-      double composite =
-          1000 / (queryN + overlap) * (queryN * diffCosine + overlap * relativeFactor);
+      double composite = (queryN * diffCosine + overlap * relativeFactor) / (queryN + overlap);
 
 
       if (composite >= minCos)
@@ -86,6 +88,9 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
   private double calcRelativeNeighbourFactor(List<DataPoint[]> aligned) {
     // remove all unaligned signals
     List<DataPoint[]> filtered = removeUnaligned(aligned);
+    // sort by mz
+    sortByMZ(filtered);
+
     // overlapping within mass tolerance
     int overlap = calcOverlap(aligned);
 
@@ -101,9 +106,31 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
       double ratioQuery = match2[1].getIntensity() / match1[1].getIntensity();
       factor += Math.min(ratioLibrary, ratioQuery) / Math.max(ratioLibrary, ratioQuery);
     }
-    return factor / (overlap - 1);
+    // factor ranges from 0-1 * overlap
+    return factor / (overlap);
   }
 
+  /**
+   * Sort aligned datapoints by their minimum mz values (ascending)
+   * 
+   * @param filtered
+   * @return
+   */
+  private void sortByMZ(List<DataPoint[]> filtered) {
+    filtered.sort((a, b) -> {
+      return Double.compare(getMinMZ(a), getMinMZ(b));
+    });
+  }
+
+  /**
+   * Minimum mz of all aligned datapoints
+   * 
+   * @param dp
+   * @return
+   */
+  private double getMinMZ(DataPoint[] dp) {
+    return Arrays.stream(dp).filter(Objects::nonNull).mapToDouble(DataPoint::getMZ).min().orElse(0);
+  }
 
   @Override
   @Nonnull
