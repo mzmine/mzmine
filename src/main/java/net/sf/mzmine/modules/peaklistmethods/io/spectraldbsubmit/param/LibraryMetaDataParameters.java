@@ -32,10 +32,10 @@ package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param;
 
 import java.text.DecimalFormat;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.CompoundSource;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Instrument;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.IonSource;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Polarity;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.CompoundSource;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.Instrument;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.IonSource;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
