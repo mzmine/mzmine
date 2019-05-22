@@ -23,7 +23,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.net.URL;
-
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -34,12 +33,11 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-
+import org.openscience.cdk.interfaces.IAtomContainer;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.components.MultiLineLabel;
-import org.openscience.cdk.interfaces.IAtomContainer;
 
 public class MolStructureViewer extends JFrame {
 
@@ -65,6 +63,7 @@ public class MolStructureViewer extends JFrame {
 
     if (structure2DAddress != null) {
       Thread loading2DThread = new Thread(new Runnable() {
+        @Override
         public void run() {
           load2DStructure(structure2DAddress);
         }
@@ -76,6 +75,7 @@ public class MolStructureViewer extends JFrame {
 
     if (structure3DAddress != null) {
       Thread loading3DThread = new Thread(new Runnable() {
+        @Override
         public void run() {
           load3DStructure(structure3DAddress);
         }
@@ -237,5 +237,9 @@ public class MolStructureViewer extends JFrame {
       splitPane.setDividerLocation(500);
     }
 
+  }
+
+  public JSplitPane getSplitPane() {
+    return splitPane;
   }
 }
