@@ -119,7 +119,11 @@ import net.sf.mzmine.modules.visualization.productionfilter.ProductIonFilterVisu
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -205,7 +209,9 @@ public class MZmineModulesList {
       IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class,
 
       // all other regular MZmineRunnableModule (not MZmineProcessingModule) NOT LISTED IN MENU
-      SpectraIdentificationSpectralDatabaseModule.class
+      SpectraIdentificationSpectralDatabaseModule.class, CustomDBSpectraSearchModule.class,
+      LipidSpectraSearchModule.class, OnlineDBSpectraSearchModule.class,
+      SumFormulaSpectraSearchModule.class
 
   };
 }
