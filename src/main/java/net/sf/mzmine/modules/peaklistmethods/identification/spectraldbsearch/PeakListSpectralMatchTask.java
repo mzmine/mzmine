@@ -59,7 +59,8 @@ public class PeakListSpectralMatchTask extends AbstractTask {
   private final PeakList peakList;
   private final @Nonnull String massListName;
   private final File dataBaseFile;
-  private final MZTolerance mzTolerance;
+  private final MZTolerance mzToleranceSpectra;
+  private final MZTolerance mzTolerancePrecursor;
   private final RTTolerance rtTolerance;
   private final boolean useRT;
   private int finishedRows = 0;
@@ -92,7 +93,8 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     listsize = list.size();
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
-    mzTolerance = parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerance).getValue();
+    mzToleranceSpectra =
+        parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerance).getValue();
     msLevel = parameters.getParameter(LocalSpectralDBSearchParameters.msLevel).getValue();
     noiseLevel = parameters.getParameter(LocalSpectralDBSearchParameters.noiseLevel).getValue();
 
@@ -107,6 +109,11 @@ public class PeakListSpectralMatchTask extends AbstractTask {
         parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping).getValue();
     deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
         .getEmbeddedParameters();
+    if (msLevel > 1)
+      mzTolerancePrecursor =
+          parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerancePrecursor).getValue();
+    else
+      mzTolerancePrecursor = null;
 
     totalRows = peakList.getNumberOfRows();
   }
@@ -235,7 +242,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
    * @return positive match with similarity or null if criteria was not met
    */
   private SpectraSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
-    return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzTolerance,
+    return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzToleranceSpectra,
         minMatch, library, query);
   }
 
@@ -243,7 +250,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     if (ident.getPrecursorMZ() == null)
       return false;
     else
-      return mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
+      return mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), row.getAverageMZ());
   }
 
   private boolean checkRT(PeakListRow row, SpectralDBEntry ident) {

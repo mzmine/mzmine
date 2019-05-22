@@ -63,7 +63,8 @@ public class SpectralMatchTask extends AbstractTask {
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
   private final File dataBaseFile;
-  private final MZTolerance mzTolerance;
+  private final MZTolerance mzToleranceSpectra;
+  private final MZTolerance mzTolerancePrecursor;
   private int finishedSteps = 0;
   private Scan currentScan;
   private SpectraPlot spectraPlot;
@@ -107,8 +108,13 @@ public class SpectralMatchTask extends AbstractTask {
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.massList)
         .getValue();
-    mzTolerance = parameters
+    mzToleranceSpectra = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
+    if (usePrecursorMZ)
+      mzTolerancePrecursor = parameters
+          .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
+    else
+      mzTolerancePrecursor = null;
     noiseLevel = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.noiseLevel)
         .getValue();
 
@@ -248,13 +254,13 @@ public class SpectralMatchTask extends AbstractTask {
    * @return positive match with similarity or null if criteria was not met
    */
   private SpectraSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
-    return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzTolerance,
+    return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzToleranceSpectra,
         minMatch, library, query);
   }
 
   private boolean checkPrecursorMZ(double precursorMZ, SpectralDBEntry ident) {
     return ident.getPrecursorMZ() != null
-        && mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ);
+        && mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ);
   }
 
 
@@ -284,8 +290,8 @@ public class SpectralMatchTask extends AbstractTask {
         // TODO put into separate method and add comments
         // get data points of matching scans
         DataPoint[] spectraMassList = getDataPoints(currentScan);
-        List<DataPoint[]> alignedDataPoints =
-            ScanAlignment.align(mzTolerance, match.getEntry().getDataPoints(), spectraMassList);
+        List<DataPoint[]> alignedDataPoints = ScanAlignment.align(mzToleranceSpectra,
+            match.getEntry().getDataPoints(), spectraMassList);
         alignedSignals = ScanAlignment.removeUnaligned(alignedDataPoints);
         // add new mass list to the spectra for match
         DataPoint[] dataset = new DataPoint[alignedSignals.size()];

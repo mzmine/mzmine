@@ -19,10 +19,12 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
 import java.awt.Window;
+import javax.swing.JComponent;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
@@ -30,6 +32,7 @@ import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
@@ -53,6 +56,8 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       new OptionalParameter<>(new DoubleParameter("Use precursor m/z",
           "Use precursor m/z as a filter. Precursor m/z of library entry and this scan need to be within m/z tolerance. Entries without precursor m/z are skipped.",
           MZmineCore.getConfiguration().getMZFormat(), 0d));
+  public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
+      "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries");
 
   public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
       "Signals below this level will be filtered away from mass lists",
@@ -72,8 +77,29 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
           SpectralSimilarityFunction.FUNCTIONS);
 
   public SpectraIdentificationSpectralDatabaseParameters() {
-    super(new Parameter[] {massList, dataBaseFile, usePrecursorMZ, noiseLevel, deisotoping,
-        mzTolerance, minMatch, similarityFunction});
+    super(new Parameter[] {massList, dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, noiseLevel,
+        deisotoping, mzTolerance, minMatch, similarityFunction});
+  }
+
+
+
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    if ((getParameters() == null) || (getParameters().length == 0))
+      return ExitCode.OK;
+    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+
+    // only enable precursor mz tolerance if precursor mz is used
+    OptionalModuleComponent usePreComp =
+        (OptionalModuleComponent) dialog.getComponentForParameter(usePrecursorMZ);
+    JComponent mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
+    mzTolPrecursor.setEnabled(getParameter(usePrecursorMZ).getValue());
+    usePreComp.addItemListener(e -> {
+      mzTolPrecursor.setEnabled(usePreComp.isSelected());
+    });
+
+    dialog.setVisible(true);
+    return dialog.getExitCode();
   }
 
   public ExitCode showSetupDialog(Scan scan, Window parent, boolean valueCheckRequired) {
@@ -84,6 +110,6 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
     else
       this.getParameter(usePrecursorMZ).setValue(false);
 
-    return super.showSetupDialog(parent, valueCheckRequired);
+    return this.showSetupDialog(parent, valueCheckRequired);
   }
 }
