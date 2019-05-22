@@ -85,20 +85,21 @@ public class LibrarySubmitTask extends AbstractTask {
     this.map = map;
     // get file, user and pass
     Entry<LibrarySubmitIonParameters, DataPoint[]> e = map.entrySet().iterator().next();
-    LibrarySubmitParameters meta = (LibrarySubmitParameters) e.getKey()
-        .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
+    LibrarySubmitParameters paramSubmit = (LibrarySubmitParameters) e.getKey()
+        .getParameter(LibrarySubmitIonParameters.SUBMIT_PARAM).getValue();
 
-    submitGNPS = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
+    submitGNPS = paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
     GnpsLibrarySubmitParameters gnpsParam =
-        meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getEmbeddedParameters();
+        paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getEmbeddedParameters();
     PASS = gnpsParam.getParameter(GnpsLibrarySubmitParameters.pass).getValue();
     USER = gnpsParam.getParameter(GnpsLibrarySubmitParameters.user).getValue();
-    saveLocal = meta.getParameter(LibrarySubmitParameters.LOCALFILE).getValue();
-    exportGNPSJsonFile = meta.getParameter(LibrarySubmitParameters.EXPORT_GNPS_JSON).getValue();
-    exportMSPFile = meta.getParameter(LibrarySubmitParameters.EXPORT_MSP).getValue();
+    saveLocal = paramSubmit.getParameter(LibrarySubmitParameters.LOCALFILE).getValue();
+    exportGNPSJsonFile =
+        paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_GNPS_JSON).getValue();
+    exportMSPFile = paramSubmit.getParameter(LibrarySubmitParameters.EXPORT_MSP).getValue();
     if (saveLocal) {
-      File tmpfile =
-          meta.getParameter(LibrarySubmitParameters.LOCALFILE).getEmbeddedParameter().getValue();
+      File tmpfile = paramSubmit.getParameter(LibrarySubmitParameters.LOCALFILE)
+          .getEmbeddedParameter().getValue();
       fileJson = exportGNPSJsonFile ? FileAndPathUtil.getRealFilePath(tmpfile, "json") : null;
       fileMSP = exportMSPFile ? FileAndPathUtil.getRealFilePath(tmpfile, "msp") : null;
     } else {

@@ -71,10 +71,12 @@ import net.sf.mzmine.parameters.parametertypes.MassListComponent;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.DialogLoggerUtil;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.components.GridBagPanel;
+import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
 /**
@@ -120,6 +122,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private JScrollPane scrollMeta;
   private GridBagPanel pnMetaData;
   private GridBagPanel pnSubmitParam;
+  private String helpID;
 
   /**
    * Create the frame.
@@ -148,6 +151,13 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     // buttons
     pnButtons = new JPanel();
     pnSideMenu.add(pnButtons, BorderLayout.SOUTH);
+
+
+    this.helpID = GUIUtils.generateHelpID(paramSubmit);
+    if (helpID != null) {
+      HelpButton btnHelp = new HelpButton(helpID);
+      pnButtons.add(btnHelp);
+    }
 
     JButton btnCheck = new JButton("Check");
     btnCheck.addActionListener(e -> {
