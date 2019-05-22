@@ -34,6 +34,7 @@ import net.sf.mzmine.parameters.UserParameter;
  */
 public class FileNameParameter implements UserParameter<File, FileNameComponent> {
 
+  private static final String CURRENT_FILE_ELEMENT = "current_file";
   private static final String LAST_FILE_ELEMENT = "last_file";
   private String name, description;
   private File value;
@@ -97,6 +98,8 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   }
 
   public void setLastFiles(List<File> lastFiles) {
+    if (name.equals("Database file"))
+      System.out.println();
     this.lastFiles = lastFiles;
   }
 
@@ -132,29 +135,35 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    String fileString = xmlElement.getTextContent();
-    if (fileString.length() != 0)
-      this.value = new File(fileString);
-
+    NodeList current = xmlElement.getElementsByTagName(CURRENT_FILE_ELEMENT);
+    if (current.getLength() == 1)
+      setValue(new File(current.item(0).getTextContent()));
     // add all still existing files
     lastFiles = new ArrayList<>();
-    NodeList nodes = xmlElement.getChildNodes();
-    for (int i = 0; i < nodes.getLength(); i++) {
-      Node n = nodes.item(i);
-      File f = new File(n.getTextContent());
-      if (f.exists())
-        lastFiles.add(f);
+
+    NodeList last = xmlElement.getElementsByTagName(LAST_FILE_ELEMENT);
+    for (int i = 0; i < last.getLength(); i++) {
+      Node n = last.item(i);
+      if (n.getTextContent() != null) {
+        File f = new File(n.getTextContent());
+        if (f.exists())
+          lastFiles.add(f);
+      }
     }
+    setLastFiles(lastFiles);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value != null)
-      xmlElement.setTextContent(value.getPath());
+    // add new element for each file
+    Document parentDocument = xmlElement.getOwnerDocument();
+    if (value != null) {
+      Element paramElement = parentDocument.createElement(CURRENT_FILE_ELEMENT);
+      paramElement.setTextContent(value.getAbsolutePath());
+      xmlElement.appendChild(paramElement);
+    }
 
     if (lastFiles != null) {
-      // add new element for each file
-      Document parentDocument = xmlElement.getOwnerDocument();
       for (File f : lastFiles) {
         Element paramElement = parentDocument.createElement(LAST_FILE_ELEMENT);
         paramElement.setTextContent(f.getAbsolutePath());
