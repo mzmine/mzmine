@@ -89,7 +89,7 @@ public class LibraryMetaDataParameters extends SimpleParameterSet {
       new StringParameter("SMILES", "Structure as SMILES code", "", false);
   public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
   public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
-      "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"), 0d);
+      "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"));
 
   public static final OptionalParameter<DoubleParameter> EXPORT_RT = new OptionalParameter<>(
       new DoubleParameter("RT", "Retention time", MZmineCore.getConfiguration().getRTFormat(), 0d),
