@@ -31,8 +31,8 @@ package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Polarity;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitParameters;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 
 public class MSPEntryGenerator {
@@ -46,12 +46,12 @@ public class MSPEntryGenerator {
    */
   public static String createMSPEntry(LibrarySubmitIonParameters param, DataPoint[] dps) {
 
-    LibrarySubmitParameters meta = (LibrarySubmitParameters) param
+    LibraryMetaDataParameters meta = (LibraryMetaDataParameters) param
         .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
 
-    boolean exportRT = meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getValue();
+    boolean exportRT = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getValue();
     String ionMode =
-        meta.getParameter(LibrarySubmitParameters.IONMODE).getValue().equals(Polarity.Positive)
+        meta.getParameter(LibraryMetaDataParameters.IONMODE).getValue().equals(Polarity.Positive)
             ? "P"
             : "N";
 
@@ -61,21 +61,21 @@ public class MSPEntryGenerator {
     // tag spectrum from mzmine2
     // ion specific
     s.append(DBEntryField.NAME.getNistMspID() + def
-        + meta.getParameter(LibrarySubmitParameters.COMPOUND_NAME).getValue() + br);
+        + meta.getParameter(LibraryMetaDataParameters.COMPOUND_NAME).getValue() + br);
     s.append(DBEntryField.INCHIKEY.getNistMspID() + def
-        + meta.getParameter(LibrarySubmitParameters.INCHI_AUX).getValue() + br);
+        + meta.getParameter(LibraryMetaDataParameters.INCHI_AUX).getValue() + br);
     s.append(DBEntryField.MS_LEVEL.getNistMspID() + def + "MS2" + br);
     s.append(DBEntryField.INSTRUMENT_TYPE.getNistMspID() + def
-        + meta.getParameter(LibrarySubmitParameters.INSTRUMENT).getValue() + br);
+        + meta.getParameter(LibraryMetaDataParameters.INSTRUMENT).getValue() + br);
     s.append(DBEntryField.INSTRUMENT.getNistMspID() + def
-        + meta.getParameter(LibrarySubmitParameters.INSTRUMENT_NAME).getValue() + br);
+        + meta.getParameter(LibraryMetaDataParameters.INSTRUMENT_NAME).getValue() + br);
     s.append(DBEntryField.ION_MODE.getNistMspID() + def + ionMode + br);
     s.append(DBEntryField.COLLISION_ENERGY.getNistMspID() + def
-        + meta.getParameter(LibrarySubmitParameters.FRAGMENTATION_METHOD).getValue() + br);
+        + meta.getParameter(LibraryMetaDataParameters.FRAGMENTATION_METHOD).getValue() + br);
     s.append(DBEntryField.FORMULA.getNistMspID() + def
-        + meta.getParameter(LibrarySubmitParameters.FORMULA).getValue() + br);
+        + meta.getParameter(LibraryMetaDataParameters.FORMULA).getValue() + br);
     s.append(DBEntryField.EXACT_MASS.getNistMspID() + def
-        + meta.getParameter(LibrarySubmitParameters.EXACT_MASS).getValue() + br);
+        + meta.getParameter(LibraryMetaDataParameters.EXACT_MASS).getValue() + br);
 
     s.append(DBEntryField.MZ.getNistMspID() + def
         + param.getParameter(LibrarySubmitIonParameters.MZ).getValue() + br);
@@ -84,7 +84,7 @@ public class MSPEntryGenerator {
 
     if (exportRT) {
       Double rt =
-          meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getEmbeddedParameter().getValue();
+          meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getEmbeddedParameter().getValue();
       if (rt != null)
         s.append(DBEntryField.RT.getNistMspID() + def + rt + br);
     }

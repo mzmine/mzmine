@@ -21,12 +21,12 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.text.NumberFormat;
 import java.text.ParseException;
-
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
+import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 
 public class DoubleComponent extends JPanel {
 
@@ -105,5 +105,13 @@ public class DoubleComponent extends JPanel {
       }
       return verified;
     }
+  }
+
+  public JTextField getTextField() {
+    return textField;
+  }
+
+  public void addDocumentListener(DelayedDocumentListener dl) {
+    textField.getDocument().addDocumentListener(dl);
   }
 }

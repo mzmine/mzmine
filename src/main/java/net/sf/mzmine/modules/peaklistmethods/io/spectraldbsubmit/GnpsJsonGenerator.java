@@ -34,8 +34,8 @@ import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 
@@ -54,10 +54,10 @@ public class GnpsJsonGenerator {
    * @return
    */
   public static String generateJSON(LibrarySubmitIonParameters param, DataPoint[] dps) {
-    LibrarySubmitParameters meta = (LibrarySubmitParameters) param
+    LibraryMetaDataParameters meta = (LibraryMetaDataParameters) param
         .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
 
-    boolean exportRT = meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getValue();
+    boolean exportRT = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getValue();
 
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine2
@@ -72,7 +72,7 @@ public class GnpsJsonGenerator {
 
     if (exportRT) {
       Double rt =
-          meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getEmbeddedParameter().getValue();
+          meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getEmbeddedParameter().getValue();
       if (rt != null)
         json.add(DBEntryField.RT.getGnpsJsonID(), rt);
     }
@@ -82,10 +82,7 @@ public class GnpsJsonGenerator {
 
     // add meta data
     for (Parameter<?> p : meta.getParameters()) {
-      if (!p.getName().equals("username") && !p.getName().equals("password")
-          && !p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())
-          && !p.getName().equals(LibrarySubmitParameters.SUBMIT_GNPS.getName())
-          && !p.getName().equals(LibrarySubmitParameters.EXPORT_RT.getName())) {
+      if (!p.getName().equals(LibraryMetaDataParameters.EXPORT_RT.getName())) {
         String key = p.getName();
         Object value = p.getValue();
         if (value instanceof Double) {

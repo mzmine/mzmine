@@ -30,21 +30,18 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param;
 
-import java.text.DecimalFormat;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.CompoundSource;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Instrument;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.IonSource;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Polarity;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
 /**
  * 
@@ -53,23 +50,17 @@ import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParamete
  */
 public class LibrarySubmitParameters extends SimpleParameterSet {
 
-  /**
-   * TODO difference of COMPOUND MASS and EXACT mass
-   * 
-   * @author r_schm33
-   *
-   */
+  // scan selection and preprocessing
+  public static final MassListParameter massList = new MassListParameter();
+  public static final DoubleParameter noiseLevel = new DoubleParameter("Noise level",
+      "Noise level to filter masslists", MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+  public static final IntegerParameter minSignals = new IntegerParameter("Min signals",
+      "Minimum signals in a masslist (all other masslists are discarded)", 3);
 
+  public static final ComboParameter<ScanSortMode> sorting = new ComboParameter<>("Sorting",
+      "Sorting mode for filtered mass lists", ScanSortMode.values(), ScanSortMode.MAX_TIC);
 
-  public static final ComboParameter<CompoundSource> ACQUISITION =
-      new ComboParameter<>("ACQUISITION", "", CompoundSource.values(), CompoundSource.Crude);
-  public static final ComboParameter<Polarity> IONMODE =
-      new ComboParameter<>("IONMODE", "", Polarity.values(), Polarity.Positive);
-  public static final ComboParameter<Instrument> INSTRUMENT =
-      new ComboParameter<>("INSTRUMENT", "", Instrument.values(), Instrument.Orbitrap);
-  public static final ComboParameter<IonSource> ION_SOURCE =
-      new ComboParameter<>("IONSOURCE", "", IonSource.values(), IonSource.LC_ESI);
-
+  // submission and creation of libraries
   // save to local file
   public static final OptionalParameter<FileNameParameter> LOCALFILE =
       new OptionalParameter<>(new FileNameParameter("Local file", "Local library file"), false);
@@ -82,54 +73,12 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
       new OptionalModuleParameter<>("Submit to GNPS", "Submit new entry to GNPS library",
           new GnpsLibrarySubmitParameters(), true);
 
-  // all general parameters
-  public static final StringParameter DESCRIPTION =
-      new StringParameter("description", "", "", false);
-  public static final StringParameter COMPOUND_NAME =
-      new StringParameter("COMPOUND_NAME", "", "", true);
-  public static final StringParameter PI =
-      new StringParameter("PI", "Principle investigator", "", true);
-  public static final StringParameter DATACOLLECTOR =
-      new StringParameter("DATACOLLECTOR", "", "", true);
-
-  public static final StringParameter FRAGMENTATION_METHOD =
-      new StringParameter("FRAGMENTATION_METHOD", "", "", false);
-  public static final StringParameter INSTRUMENT_NAME =
-      new StringParameter("INSTRUMENT_NAME", "", "", false);
-  public static final StringParameter DATA_COLLECTOR =
-      new StringParameter("DATACOLLECTOR", "", "", false);
-  public static final StringParameter PUBMED = new StringParameter("PUBMED", "", "", false);
-  public static final StringParameter INCHI_AUX = new StringParameter("INCHIAUX", "", "", false);
-  public static final StringParameter INCHI =
-      new StringParameter("INCHI", "Structure as INCHI", "", false);
-  public static final StringParameter CAS = new StringParameter("CASNUMBER", "", "", false);
-  public static final StringParameter SMILES =
-      new StringParameter("SMILES", "Structure as SMILES code", "", false);
-  public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
-  public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
-      "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"), 0d);
-
-
-  public static final OptionalParameter<DoubleParameter> EXPORT_RT = new OptionalParameter<>(
-      new DoubleParameter("RT", "Retention time", MZmineCore.getConfiguration().getRTFormat(), 0d),
-      false);
-
-  // is not used: this would override MZ (the precursor MZ)
-  // public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS",
-  // "Exact precursor m/z", MZmineCore.getConfiguration().getMZFormat(), 0d);
 
   public LibrarySubmitParameters() {
-    super(new Parameter[] {
+    super(new Parameter[] {massList, noiseLevel, minSignals, sorting,
         // save to local file
         LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP,
         // submit to online library
-        SUBMIT_GNPS,
-        // Always set
-        PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, EXPORT_RT, INSTRUMENT_NAME,
-        INSTRUMENT, ION_SOURCE, ACQUISITION, IONMODE, FRAGMENTATION_METHOD,
-        // newly introduced
-        FORMULA,
-        // optional
-        SMILES, INCHI, INCHI_AUX, CAS, PUBMED});
+        SUBMIT_GNPS});
   }
 }
