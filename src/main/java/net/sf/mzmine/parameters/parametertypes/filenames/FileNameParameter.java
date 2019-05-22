@@ -98,8 +98,6 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
   }
 
   public void setLastFiles(List<File> lastFiles) {
-    if (name.equals("Database file"))
-      System.out.println();
     this.lastFiles = lastFiles;
   }
 
