@@ -4,8 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import com.google.common.collect.Lists;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import net.sf.mzmine.util.DataPointSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 /**
  * Scan or mass list alignment based on data points array
@@ -15,68 +19,57 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  */
 public class ScanAlignment {
 
+  public static DataPointSorter sorter =
+      new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending);
+
   /**
-   * Aligned data points in mzTolerance
+   * Aligned data points within mzTolerance. Sort by intensity and match every signal only once
    * 
    * @param a
    * @param b
    * @return List of aligned data points
    */
   public static List<DataPoint[]> align(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
-    List<DataPoint[]> list = new ArrayList<>();
-    for (DataPoint dp : a)
-      list.add(new DataPoint[] {dp, null});
+    // sort by intensity
+    Arrays.sort(a, sorter);
 
-    for (DataPoint dpb : b) {
-      // find match
-      DataPoint[] dp = findMatch(mzTol, list, dpb, 1);
-      // add or create new
-      if (dp == null)
-        list.add(new DataPoint[] {null, dpb});
-      else
-        dp[1] = dpb;
+    // sort b
+    ArrayList<DataPoint> bsorted = Lists.newArrayList(b);
+    bsorted.sort(sorter);
+
+    // add all datapoints of a to the aligned list
+    List<DataPoint[]> list = new ArrayList<>();
+    for (DataPoint dpa : a) {
+      // match or null
+      DataPoint dpb = findMatch(mzTol, dpa, bsorted);
+      list.add(new DataPoint[] {dpa, dpb});
     }
+
+    // insert all remaining DP from sorted b
+    for (DataPoint dp : bsorted) {
+      list.add(new DataPoint[] {null, dp});
+    }
+
     return list;
   }
 
   /**
+   * Removes the matched datapoint from the sorted b list
    * 
-   * @param a
-   * @param b
-   * @return List of aligned data points
+   * @param mzTol
+   * @param dpa
+   * @param bsorted sorted by intensity
+   * @return
    */
-  public static List<DataPoint[]> align(MZTolerance mzTol, List<DataPoint[]> scans) {
-    if (scans.size() < 2)
-      return null;
-
-    // index of max TIC to start with
-    int maxIndex = indexOfMaxTIC(scans);
-
-    List<DataPoint[]> list = new ArrayList<>();
-    for (DataPoint dp : scans.get(0)) {
-      DataPoint[] dps = new DataPoint[scans.size()];
-      dps[maxIndex] = dp;
-      list.add(dps);
-    }
-
-    for (int i = 0; i < scans.size(); i++) {
-      if (i == maxIndex)
-        continue;
-
-      for (DataPoint dpb : scans.get(i)) {
-        // find match
-        DataPoint[] dps = findMatch(mzTol, list, dpb, i);
-        // add or create new
-        if (dps == null) {
-          dps = new DataPoint[scans.size()];
-          dps[i] = dpb;
-          list.add(dps);
-        } else {
-          dps[i] = dpb;
-        }
+  private static DataPoint findMatch(MZTolerance mzTol, DataPoint dpa, List<DataPoint> bsorted) {
+    for (DataPoint dpb : bsorted) {
+      if (mzTol.checkWithinTolerance(dpa.getMZ(), dpb.getMZ())) {
+        // remove from list and return
+        bsorted.remove(dpb);
+        return dpb;
       }
     }
-    return list;
+    return null;
   }
 
   public static double getTIC(DataPoint[] scan) {
@@ -94,38 +87,6 @@ public class ScanAlignment {
       }
     }
     return maxI;
-  }
-
-
-  /**
-   * Most intense
-   * 
-   * @param mzTol
-   * @param list
-   * @param dpb
-   * @param indexB
-   * @return
-   */
-  private static DataPoint[] findMatch(MZTolerance mzTol, List<DataPoint[]> list, DataPoint dpb,
-      int indexB) {
-    DataPoint[] best = null;
-    for (DataPoint[] dparray : list) {
-      // continue if smaller than already inserted
-      if (dparray[indexB] != null && dparray[indexB].getIntensity() > dpb.getIntensity())
-        continue;
-
-      boolean outOfMZTol = false;
-      for (int i = 0; i < dparray.length && !outOfMZTol; i++) {
-        DataPoint dp = dparray[i];
-        if (dp != null && i != indexB) {
-          if (mzTol.checkWithinTolerance(dp.getMZ(), dpb.getMZ()))
-            best = dparray;
-          else
-            outOfMZTol = true;
-        }
-      }
-    }
-    return best;
   }
 
   /**
@@ -158,6 +119,34 @@ public class ScanAlignment {
       for (int d = 0; d < dps.length; d++) {
         DataPoint dp = dps[d];
         data[i][d] = dp != null ? dp.getIntensity() : 0;
+      }
+    }
+    return data;
+  }
+
+  /**
+   * Might want to remove unaligned before. Missing data points are replaced by 0. <br>
+   * weighted values = Intensity^weightI * m/z^weightMZ <br>
+   * Calculation similar to MassBank / NIST
+   * 
+   * @param diffAligned
+   * @param weightIntensity
+   * @param weightMZ
+   * @return array of [data points][intensity in scans]
+   */
+  public static double[][] toIntensityMatrixWeighted(List<DataPoint[]> diffAligned,
+      double weightIntensity, double weightMZ) {
+    double[][] data = new double[diffAligned.size()][];
+    for (int i = 0; i < data.length; i++) {
+      DataPoint[] dps = diffAligned.get(i);
+      data[i] = new double[dps.length];
+      for (int d = 0; d < dps.length; d++) {
+        DataPoint dp = dps[d];
+        if (dp != null)
+          data[i][d] =
+              Math.pow(dp.getIntensity(), weightIntensity) * Math.pow(dp.getMZ(), weightMZ);
+        else
+          data[i][d] = 0;
       }
     }
     return data;

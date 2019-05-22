@@ -95,4 +95,8 @@ public class OptionalModuleComponent extends JPanel implements ActionListener {
   public void setToolTipText(String toolTip) {
     checkBox.setToolTipText(toolTip);
   }
+
+  public void addItemListener(ItemListener il) {
+    checkBox.addItemListener(il);
+  }
 }

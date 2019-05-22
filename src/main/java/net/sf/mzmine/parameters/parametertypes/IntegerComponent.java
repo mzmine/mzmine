@@ -112,7 +112,12 @@ public class IntegerComponent extends JPanel {
   public JTextField getTextField() {
     return textField;
   }
-
+  
+  /**
+   * Add a document listener to the underlying textfield (see {@link DelayedDocumentListener}
+   * 
+   * @param dl
+   */
   public void addDocumentListener(DelayedDocumentListener dl) {
     textField.getDocument().addDocumentListener(dl);
   }
