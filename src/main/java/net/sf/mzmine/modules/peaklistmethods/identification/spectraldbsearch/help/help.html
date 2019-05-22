@@ -25,20 +25,25 @@ Run on any feature list to match all rows against a local spectral library (form
 	<dd>json/msp from MoNA (MassBank of North America)</dd>
 	<dd>msp NIST format</dd>
 	<dd>JCAMP-DX jdx</dd>
+	<dd>mgf format from GNPS</dd>
 <dd>json GNPS (format from the spectral DB submission module)</dd>
 	<dt>MS level</dt>
 	<dd>Set MS level to "1" to compare MS1 spectra (e.g. GC-EI-MS data) or set it to "2" or higher for MS/MS scans</dd>
+<dt>Precursor m/z tolerance </dt>
+	<dd>Only used for MS level > 1. Filter all library entries by precursor m/z. </dd>	
+<dt>13C deisotoping </dt>
+	<dd>Deletes 13C isotope signals in the query and library mass spectra</dd>	
+	<dd>Monotonic shape: Especially, for small molecules. 13C isotope pattern with first signal as the most abundant</dd>	
+<dt>Spectral m/z tolerance </dt>
+	<dd>Tolerance to match signals in the two spectra (library and query) </dd>	
 <dt>Retention time tolerance</dt>
 	<dd>Optional: Only used if the DB entry has a retention time</dd>
 <dt>Noise level</dt>
 	<dd>An additional noise level for masslists (masslists are typically already thresholded)</dd>
-<dt>Min cos similarity</dt>
-	<dd>Minimum cosine similarity between fragmentation scan and spectral DB entry. Considers only 
-	signals which were found in both spectra.</dd>
 <dt>Minimum matched signals</dt>
 	<dd>Minimum number of signals within m/z tolerance in a masslist and the spectral library entry</dd>
-<dt></dt>
-	<dd></dd>
+<dt>Similarity</dt>
+	<dd>Different similarity functions to match query and library spectra</dd>
 </dl>
 
 </body>

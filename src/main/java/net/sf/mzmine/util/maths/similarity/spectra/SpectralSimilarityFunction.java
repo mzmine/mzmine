@@ -24,8 +24,8 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.util.maths.similarity.spectra.impl.CompositeCosineSpectralSimilarity;
-import net.sf.mzmine.util.maths.similarity.spectra.impl.WeightedCosineSpectralSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.impl.composite.CompositeCosineSpectralSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.impl.cosine.WeightedCosineSpectralSimilarity;
 import net.sf.mzmine.util.scans.ScanAlignment;
 
 /**

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra.impl;
+package net.sf.mzmine.util.maths.similarity.spectra.impl.composite;
 
 import java.util.Arrays;
 import java.util.List;

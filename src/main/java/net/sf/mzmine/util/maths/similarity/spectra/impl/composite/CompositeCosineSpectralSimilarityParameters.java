@@ -16,12 +16,11 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra.impl;
+package net.sf.mzmine.util.maths.similarity.spectra.impl.composite;
 
 import java.text.DecimalFormat;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.util.maths.similarity.spectra.Weights;
@@ -29,7 +28,7 @@ import net.sf.mzmine.util.maths.similarity.spectra.Weights;
 /**
  * 
  */
-public class WeightedCosineSpectralSimilarityParameters extends SimpleParameterSet {
+public class CompositeCosineSpectralSimilarityParameters extends SimpleParameterSet {
 
   public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
       "Weights for m/z and intensity", Weights.VALUES, Weights.MASSBANK);
@@ -38,13 +37,8 @@ public class WeightedCosineSpectralSimilarityParameters extends SimpleParameterS
           + "Considers only signals which were found in both the masslist and the library entry)",
       new DecimalFormat("0.000"), 0.7);
 
-  public static final BooleanParameter removeUnmatched = new BooleanParameter(
-      "Remove unmatched signals",
-      "CAUTION: Remove unmatched signals before cosine calculation. (Does only use signals which are present in both the query and library spectrum) Leeds to higher cosine similarity but also to a higher false positive rate. Especially good for noisy library or query spectra.",
-      false);
-
-  public WeightedCosineSpectralSimilarityParameters() {
-    super(new Parameter[] {weight, minCosine, removeUnmatched});
+  public CompositeCosineSpectralSimilarityParameters() {
+    super(new Parameter[] {weight, minCosine});
   }
 
 }

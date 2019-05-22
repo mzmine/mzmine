@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra.impl;
+package net.sf.mzmine.util.maths.similarity.spectra.impl.cosine;
 
 import java.util.List;
 import javax.annotation.Nonnull;
