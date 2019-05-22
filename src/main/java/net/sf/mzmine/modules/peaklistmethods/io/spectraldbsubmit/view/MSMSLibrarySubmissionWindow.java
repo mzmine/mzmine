@@ -57,6 +57,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitTask;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibraryMetaDataParameters;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
@@ -89,8 +90,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
 
   private Logger log = Logger.getLogger(this.getClass().getName());
   protected Map<String, JComponent> parametersAndComponents;
-  protected LibrarySubmitParameters paramSubmit = new LibrarySubmitParameters();
-  protected LibraryMetaDataParameters paramMeta = new LibraryMetaDataParameters();
+  protected final LibrarySubmitParameters paramSubmit;
+  protected final LibraryMetaDataParameters paramMeta = new LibraryMetaDataParameters();
 
   // annotations for MSMS
   private List<AbstractMSMSIdentity> msmsAnnotations;
@@ -134,6 +135,10 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     contentPane.setLayout(new BorderLayout(0, 0));
     setContentPane(contentPane);
+
+    // load parameter
+    paramSubmit = (LibrarySubmitParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(LibrarySubmitModule.class);
 
 
     pnSideMenu = new JPanel();
