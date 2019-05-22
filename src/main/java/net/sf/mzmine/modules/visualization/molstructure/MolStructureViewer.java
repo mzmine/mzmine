@@ -238,8 +238,4 @@ public class MolStructureViewer extends JFrame {
     }
 
   }
-
-  public JSplitPane getSplitPane() {
-    return splitPane;
-  }
 }
