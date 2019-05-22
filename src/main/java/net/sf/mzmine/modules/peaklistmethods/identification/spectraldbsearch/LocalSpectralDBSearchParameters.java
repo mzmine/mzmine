@@ -18,11 +18,16 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
+import java.awt.Window;
+import javax.swing.JComponent;
+import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerComponent;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
@@ -32,6 +37,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 
 /**
@@ -49,7 +55,11 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
           "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
 
   public static final IntegerParameter msLevel = new IntegerParameter("MS level",
-      "Choose the MS level of the scans that should be compared with the database. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2");
+      "Choose the MS level of the scans that should be compared with the database. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
+      2, 1, 1000);
+
+  public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
+      "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries");
 
   public static final MassListParameter massList =
       new MassListParameter("MassList", "MassList for either MS1 or MS/MS scans to match");
@@ -57,7 +67,9 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   public static final OptionalParameter<RTToleranceParameter> rtTolerance =
       new OptionalParameter<>(new RTToleranceParameter());
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance =
+      new MZToleranceParameter("Spectral m/z tolerance",
+          "Spectral m/z tolerance is used to match all signals in the query and library spectra");
 
   public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
       "Signals below this level will be filtered away from mass lists",
@@ -73,8 +85,33 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
           SpectralSimilarityFunction.FUNCTIONS);
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, noiseLevel, deisotoping,
-        mzTolerance, rtTolerance, minMatch, similarityFunction});
+    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, mzTolerancePrecursor,
+        noiseLevel, deisotoping, mzTolerance, rtTolerance, minMatch, similarityFunction});
+  }
+
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    if ((getParameters() == null) || (getParameters().length == 0))
+      return ExitCode.OK;
+    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+
+    int level = getParameter(msLevel).getValue() == null ? 2 : getParameter(msLevel).getValue();
+
+    IntegerComponent msLevelComp = (IntegerComponent) dialog.getComponentForParameter(msLevel);
+    JComponent mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
+    mzTolPrecursor.setEnabled(level > 1);
+    msLevelComp.addDocumentListener(new DelayedDocumentListener(e -> {
+      try {
+        int level2 = Integer.parseInt(msLevelComp.getText());
+        mzTolPrecursor.setEnabled(level2 > 1);
+      } catch (Exception ex) {
+        // do nothing user might be still typing
+        mzTolPrecursor.setEnabled(false);
+      }
+    }));
+
+    dialog.setVisible(true);
+    return dialog.getExitCode();
   }
 
 }
