@@ -19,11 +19,12 @@
 package net.sf.mzmine.util.components;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 
 /**
  * Simple JPanel with a GridBagLayout for easier use of the grid bag constraints. It automatically
@@ -96,6 +97,20 @@ public class GridBagPanel extends JPanel {
     super.add(component);
 
     layout.setConstraints(component, constraints);
+  }
+
+  public void addSeparator(int gridx, int gridy, int width) {
+    JSeparator sep = new JSeparator(JSeparator.HORIZONTAL);
+    sep.setPreferredSize(new Dimension(2, 1));
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridx = gridx;
+    gbc.gridy = gridy;
+    gbc.gridwidth = width;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1;
+
+    add(sep, gbc);
+
   }
 
 }

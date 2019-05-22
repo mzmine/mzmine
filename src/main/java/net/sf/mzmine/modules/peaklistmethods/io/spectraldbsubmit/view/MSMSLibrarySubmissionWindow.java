@@ -231,6 +231,13 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
 
       comp.setToolTipText(up.getDescription());
 
+
+      // add separator
+      if (p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())) {
+        pnSubmitParam.addSeparator(0, rowCounter, 2);
+        rowCounter++;
+      }
+
       JLabel label = new JLabel(p.getName());
       pnSubmitParam.add(label, 0, rowCounter);
       label.setLabelFor(comp);
@@ -240,6 +247,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
       JComboBox t = new JComboBox();
       int comboh = t.getPreferredSize().height;
       int comph = comp.getPreferredSize().height;
+
 
       int verticalWeight = comph > 2 * comboh ? 1 : 0;
       pnSubmitParam.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight, GridBagConstraints.VERTICAL);
