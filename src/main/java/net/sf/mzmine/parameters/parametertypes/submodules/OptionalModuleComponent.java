@@ -19,14 +19,13 @@
 package net.sf.mzmine.parameters.parametertypes.submodules;
 
 import java.awt.FlowLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 
@@ -68,6 +67,7 @@ public class OptionalModuleComponent extends JPanel implements ActionListener {
     setButton.setEnabled(selected);
   }
 
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     Object src = event.getSource();
@@ -80,9 +80,13 @@ public class OptionalModuleComponent extends JPanel implements ActionListener {
     if (src == setButton) {
       ParameterSetupDialog dialog = (ParameterSetupDialog) SwingUtilities
           .getAncestorOfClass(ParameterSetupDialog.class, this);
-      if (dialog == null)
-        return;
-      embeddedParameters.showSetupDialog(dialog, dialog.isValueCheckRequired());
+      if (dialog != null)
+        embeddedParameters.showSetupDialog(dialog, dialog.isValueCheckRequired());
+      else {
+        // regular window? or null
+        Window window = (Window) SwingUtilities.getAncestorOfClass(Window.class, this);
+        embeddedParameters.showSetupDialog(window, false);
+      }
     }
 
   }

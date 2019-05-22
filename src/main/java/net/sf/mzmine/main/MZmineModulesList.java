@@ -67,6 +67,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
@@ -205,7 +206,7 @@ public class MZmineModulesList {
       IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class,
 
       // all other regular MZmineRunnableModule (not MZmineProcessingModule) NOT LISTED IN MENU
-      SpectraIdentificationSpectralDatabaseModule.class
+      SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class
 
   };
 }
