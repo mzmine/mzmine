@@ -76,10 +76,11 @@ public class New3DVisualizerStage extends Stage{
         
  	    Surface3DMesh surfaceMesh = new Surface3DMesh(list3dPoints);
  	    surfaceMesh.setDrawMode(DrawMode.FILL);
+ 	    surfaceMesh.setCullFace(CullFace.BACK);
+ 	    LOG.log(Level.INFO, "Mesh is created"); 	
  	    //addMouseScrolling(surfaceMesh);
  	    root.getChildren().add(surfaceMesh);
  	    //makeZoomable(root);
- 	    
 
  	    Scene scene = new Scene(root,600, 400, true);
  	    
@@ -146,61 +147,5 @@ public class New3DVisualizerStage extends Stage{
                 }
         	});
     }
-    
-    public void addMouseScrolling(Node node) {
-        node.setOnScroll((ScrollEvent event) -> {
-            // Adjust the zoom factor as per your requirement
-        	LOG.log(Level.INFO, "scrolling()");
-            double zoomFactor = 1.05;
-            double deltaY = event.getDeltaY();
-            if (deltaY < 0){
-                zoomFactor = 2.0 - zoomFactor;
-            }
-            node.setScaleX(node.getScaleX() * zoomFactor);
-            node.setScaleY(node.getScaleY() * zoomFactor);
-        });
-    }
-    
-    public void makeZoomable(StackPane control) {
-
-        final double MAX_SCALE = 20.0;
-        final double MIN_SCALE = 0.1;
-    	LOG.log(Level.INFO, "scrolling()");
-
-        control.addEventFilter(ScrollEvent.ANY, new EventHandler<ScrollEvent>() {
-            @Override
-            public void handle(ScrollEvent event) {
-            	LOG.log(Level.INFO, "scrolling()");
-                double delta = 1.02;
-
-                double scale = control.getScaleX();
-
-                if (event.getDeltaY() < 0) {
-                    scale /= delta;
-                } else {
-                    scale *= delta;
-                }
-
-                //scale = clamp(scale, MIN_SCALE, MAX_SCALE);
-
-                root.setScaleX(scale);
-                root.setScaleY(scale);
-                event.consume();
-
-            }
-
-        });
-    }
-    
-    public static double clamp(double value, double min, double max) {
-
-        if (Double.compare(value, min) < 0)
-            return min;
-
-        if (Double.compare(value, max) > 0)
-            return max;
-
-        return value;
-    }  
     
 }

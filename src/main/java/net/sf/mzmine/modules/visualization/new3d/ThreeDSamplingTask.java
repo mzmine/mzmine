@@ -108,8 +108,6 @@ class ThreeDSamplingTask extends AbstractTask {
 
     logger.info("Started sampling 3D plot of " + dataFile);
     
-    ArrayList<Point3D> list3DPoints = new ArrayList<Point3D>();
-    
     try {
 
 //      Set domainSet = new Linear2DSet(display.getDomainTuple(), rtRange.lowerEndpoint(),
@@ -155,7 +153,7 @@ class ThreeDSamplingTask extends AbstractTask {
           int intensityValuesIndex = (rtResolution * mzIndex) + scanBinIndex;
           if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex]) {
             intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
-            list3DPoints.add(new Point3D((double)scanBinIndex,(double)intensityValues[0][intensityValuesIndex],(double)mzIndex));
+            //list3DPoints.add(new Point3D((double)scanBinIndex,(double)intensityValues[0][intensityValuesIndex],(double)mzIndex));
           }
           if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
             maxBinnedIntensity = (double) binnedIntensities[mzIndex];
@@ -198,15 +196,23 @@ class ThreeDSamplingTask extends AbstractTask {
 
           double slope = (nextValue - prevValue) / (nextIndex - prevIndex);
           intensityValues[0][valueIndex] = (float) (prevValue + (slope * (rtIndex - prevIndex)));
-          list3DPoints.add(new Point3D((double)rtIndex,(double)intensityValues[0][valueIndex],(double)mzIndex));
 
         }
 
       }
       
+      float[][] finalIntensityValues = new float[rtResolution][mzResolution];
+      for (int rtIndex = 0; rtIndex < rtResolution; rtIndex++) {
+    	  for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
+    		  int valueIndex = (rtResolution * mzIndex) + rtIndex;
+    		  finalIntensityValues[rtIndex][mzIndex] = (float) (intensityValues[0][valueIndex]/maxBinnedIntensity);
+    	  }
+      }
+      
+      Platform.setImplicitExit(false);
       Platform.runLater(new Runnable() { 
     	  public void run() {
-		      New3DVisualizerStage newStage = new New3DVisualizerStage(list3DPoints,"Sample Plot"); 
+		      New3DJavafxStage newStage = new New3DJavafxStage(finalIntensityValues); 
 		      newStage.show();
 	      }
       });
