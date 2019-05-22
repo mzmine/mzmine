@@ -50,6 +50,9 @@ import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.GnpsLibrarySubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitParameters;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.files.FileAndPathUtil;
@@ -85,9 +88,11 @@ public class LibrarySubmitTask extends AbstractTask {
     LibrarySubmitParameters meta = (LibrarySubmitParameters) e.getKey()
         .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
 
-    PASS = meta.getParameter(LibrarySubmitParameters.PASSWORD).getValue();
-    USER = meta.getParameter(LibrarySubmitParameters.USERNAME).getValue();
     submitGNPS = meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getValue();
+    GnpsLibrarySubmitParameters gnpsParam =
+        meta.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).getEmbeddedParameters();
+    PASS = gnpsParam.getParameter(GnpsLibrarySubmitParameters.pass).getValue();
+    USER = gnpsParam.getParameter(GnpsLibrarySubmitParameters.user).getValue();
     saveLocal = meta.getParameter(LibrarySubmitParameters.LOCALFILE).getValue();
     exportGNPSJsonFile = meta.getParameter(LibrarySubmitParameters.EXPORT_GNPS_JSON).getValue();
     exportMSPFile = meta.getParameter(LibrarySubmitParameters.EXPORT_MSP).getValue();

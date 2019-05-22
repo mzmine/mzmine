@@ -28,7 +28,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param;
 
 import java.text.DecimalFormat;
 import net.sf.mzmine.main.MZmineCore;
@@ -42,9 +42,9 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
-import net.sf.mzmine.parameters.parametertypes.PasswordParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 
 /**
  * 
@@ -78,10 +78,10 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final BooleanParameter EXPORT_MSP =
       new BooleanParameter("Export NIST msp file", "The NIST msp library format", true);
   // user and password
-  public static final BooleanParameter SUBMIT_GNPS =
-      new BooleanParameter("Submit to GNPS", "Submit new entry to GNPS library", true);
-  public static final StringParameter USERNAME = new StringParameter("username", "", "", true);
-  public static final PasswordParameter PASSWORD = new PasswordParameter("password", "", "", true);
+  public static final OptionalModuleParameter<GnpsLibrarySubmitParameters> SUBMIT_GNPS =
+      new OptionalModuleParameter<>("Submit to GNPS", "Submit new entry to GNPS library",
+          new GnpsLibrarySubmitParameters(), true);
+
   // all general parameters
   public static final StringParameter DESCRIPTION =
       new StringParameter("description", "", "", false);
@@ -124,8 +124,6 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
         LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP,
         // submit to online library
         SUBMIT_GNPS,
-        // username password
-        USERNAME, PASSWORD,
         // Always set
         PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, EXPORT_RT, INSTRUMENT_NAME,
         INSTRUMENT, ION_SOURCE, ACQUISITION, IONMODE, FRAGMENTATION_METHOD,

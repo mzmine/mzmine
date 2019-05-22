@@ -28,7 +28,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
