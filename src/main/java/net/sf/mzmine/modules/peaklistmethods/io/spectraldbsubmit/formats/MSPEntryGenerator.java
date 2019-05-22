@@ -29,6 +29,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibraryMetaDataParameters;
@@ -92,8 +94,9 @@ public class MSPEntryGenerator {
     // num peaks and data
     s.append(DBEntryField.NUM_PEAKS.getNistMspID() + def + dps.length + br);
 
+    NumberFormat mzForm = new DecimalFormat("0.######");
     for (DataPoint dp : dps) {
-      s.append(dp.getMZ() + " " + dp.getIntensity() + br);
+      s.append(mzForm.format(dp.getMZ()) + " " + dp.getIntensity() + br);
     }
     s.append(br);
     return s.toString();

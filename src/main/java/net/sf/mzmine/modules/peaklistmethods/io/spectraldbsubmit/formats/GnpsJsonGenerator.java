@@ -29,6 +29,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -116,11 +118,12 @@ public class GnpsJsonGenerator {
    * @return
    */
   private static JsonArray genJSONData(DataPoint[] dps) {
+    NumberFormat mzForm = new DecimalFormat("0.######");
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();
     for (DataPoint dp : dps) {
       // round to five digits. thats more than enough
-      signal.add(((int) (dp.getMZ() * 100000)) / 100000.d);
+      signal.add(mzForm.format(dp.getMZ()));
       signal.add(dp.getIntensity());
       data.add(signal.build());
     }
