@@ -32,15 +32,21 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineProcessingStep;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
-import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 import net.sf.mzmine.util.scans.ScanAlignment;
+import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
@@ -57,7 +63,8 @@ public class SpectralMatchTask extends AbstractTask {
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
   private final File dataBaseFile;
-  private final MZTolerance mzTolerance;
+  private final MZTolerance mzToleranceSpectra;
+  private final MZTolerance mzTolerancePrecursor;
   private int finishedSteps = 0;
   private Scan currentScan;
   private SpectraPlot spectraPlot;
@@ -65,7 +72,6 @@ public class SpectralMatchTask extends AbstractTask {
   private String massListName;
 
   private final double noiseLevel;
-  private final double minSimilarity;
   private final int minMatch;
   private List<SpectralDBEntry> list;
   private int totalSteps;
@@ -84,6 +90,11 @@ public class SpectralMatchTask extends AbstractTask {
   private double precursorMZ;
   private boolean usePrecursorMZ;
 
+  private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
+  // deisotoping of masslists
+  private boolean removeIsotopes;
+  private MassListDeisotoperParameters deisotopeParam;
+
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan, SpectraIdentificationResultsWindow resultWindow) {
     this.startEntry = startEntry;
@@ -97,20 +108,29 @@ public class SpectralMatchTask extends AbstractTask {
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.massList)
         .getValue();
-    mzTolerance = parameters
+    mzToleranceSpectra = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
+    if (usePrecursorMZ)
+      mzTolerancePrecursor = parameters
+          .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
+    else
+      mzTolerancePrecursor = null;
     noiseLevel = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.noiseLevel)
         .getValue();
 
     minMatch = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.minMatch)
         .getValue();
-    minSimilarity = parameters
-        .getParameter(SpectraIdentificationSpectralDatabaseParameters.minCosine).getValue();
     usePrecursorMZ = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.usePrecursorMZ).getValue();
     precursorMZ =
         parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.usePrecursorMZ)
             .getEmbeddedParameter().getValue();
+    simFunction =
+        parameters.getParameter(LocalSpectralDBSearchParameters.similarityFunction).getValue();
+    removeIsotopes =
+        parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping).getValue();
+    deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
+        .getEmbeddedParameters();
   }
 
   /**
@@ -149,6 +169,10 @@ public class SpectralMatchTask extends AbstractTask {
           massListName, currentScan.getScanNumber(), currentScan.getDataFile().getName()));
       return;
     }
+
+    // remove 13C isotopes
+    if (removeIsotopes)
+      spectraMassList = removeIsotopes(spectraMassList);
 
     setStatus(TaskStatus.PROCESSING);
     try {
@@ -199,16 +223,47 @@ public class SpectralMatchTask extends AbstractTask {
    */
   private SpectraSimilarity spectraDBMatch(DataPoint[] spectraMassList, SpectralDBEntry ident) {
     // do not check precursorMZ or precursorMZ within tolerances
-    if (!usePrecursorMZ || (ident.getPrecursorMZ() != null
-        && mzTolerance.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ))) {
+    if (!usePrecursorMZ || (checkPrecursorMZ(precursorMZ, ident))) {
+      DataPoint[] dps = ident.getDataPoints();
+      if (removeIsotopes)
+        dps = removeIsotopes(dps);
+
       // check spectra similarity
-      SpectraSimilarity sim = SpectraSimilarity.createMS2Sim(mzTolerance, ident.getDataPoints(),
-          spectraMassList, minMatch);
-      if (sim != null && sim.getCosine() >= minSimilarity)
-        return sim;
+      SpectraSimilarity sim = createSimilarity(dps, spectraMassList);
+      return sim;
     }
     return null;
   }
+
+
+  /**
+   * Remove 13C isotopes from masslist
+   * 
+   * @param a
+   * @return
+   */
+  private DataPoint[] removeIsotopes(DataPoint[] a) {
+    return MassListDeisotoper.filterIsotopes(a, deisotopeParam);
+  }
+
+  /**
+   * Uses the similarity function and filter to create similarity.
+   * 
+   * @param library
+   * @param query
+   * @return positive match with similarity or null if criteria was not met
+   */
+  private SpectraSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
+    return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzToleranceSpectra,
+        minMatch, library, query);
+  }
+
+  private boolean checkPrecursorMZ(double precursorMZ, SpectralDBEntry ident) {
+    return ident.getPrecursorMZ() != null
+        && mzTolerancePrecursor.checkWithinTolerance(ident.getPrecursorMZ(), precursorMZ);
+  }
+
+
 
   /**
    * Get data points of mass list
@@ -221,8 +276,11 @@ public class SpectralMatchTask extends AbstractTask {
     MassList massList = scan.getMassList(massListName);
     if (massList == null)
       throw new MissingMassListException(massListName);
-    else
-      return massList.getDataPoints();
+    else {
+      // thresholded list
+      DataPoint[] dps = massList.getDataPoints();
+      return ScanUtils.getFiltered(dps, noiseLevel);
+    }
   }
 
   private void addIdentities(List<SpectralDBPeakIdentity> matches) {
@@ -232,8 +290,8 @@ public class SpectralMatchTask extends AbstractTask {
         // TODO put into separate method and add comments
         // get data points of matching scans
         DataPoint[] spectraMassList = getDataPoints(currentScan);
-        List<DataPoint[]> alignedDataPoints =
-            ScanAlignment.align(mzTolerance, match.getEntry().getDataPoints(), spectraMassList);
+        List<DataPoint[]> alignedDataPoints = ScanAlignment.align(mzToleranceSpectra,
+            match.getEntry().getDataPoints(), spectraMassList);
         alignedSignals = ScanAlignment.removeUnaligned(alignedDataPoints);
         // add new mass list to the spectra for match
         DataPoint[] dataset = new DataPoint[alignedSignals.size()];

@@ -19,12 +19,13 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-
 import javax.swing.InputVerifier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
+import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 
 public class IntegerComponent extends JPanel {
 
@@ -66,7 +67,7 @@ public class IntegerComponent extends JPanel {
   private boolean checkBounds(final int number) {
     return (minimum == null || number >= minimum) && (maximum == null || number <= maximum);
   }
-  
+
   /**
    * Sets the number of columns in this TextField.
    */
@@ -107,5 +108,14 @@ public class IntegerComponent extends JPanel {
 
       return verified;
     }
+  }
+
+  /**
+   * Add a document listener to the underlying textfield (see {@link DelayedDocumentListener}
+   * 
+   * @param dl
+   */
+  public void addDocumentListener(DocumentListener dl) {
+    textField.getDocument().addDocumentListener(dl);
   }
 }

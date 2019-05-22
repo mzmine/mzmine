@@ -16,13 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity;
-
-import java.util.List;
-import javax.annotation.Nullable;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.util.scans.ScanAlignment;
+package net.sf.mzmine.util.maths.similarity.spectra;
 
 public class SpectraSimilarity {
   private double cosine;
@@ -50,34 +44,6 @@ public class SpectraSimilarity {
    */
   public double getCosine() {
     return cosine;
-  }
-
-
-  /**
-   * Cosine similarity
-   * 
-   * @param mzTol
-   * @param a
-   * @param b
-   * @param minMatch minimum overlapping signals in the two mass lists a and b
-   * @return
-   */
-  @Nullable
-  public static SpectraSimilarity createMS2Sim(MZTolerance mzTol, DataPoint[] a, DataPoint[] b,
-      double minMatch) {
-    // align
-    List<DataPoint[]> aligned = ScanAlignment.align(mzTol, b, a);
-    aligned = ScanAlignment.removeUnaligned(aligned);
-    // overlapping within mass tolerance
-    int overlap = aligned.size();
-
-    if (overlap >= minMatch) {
-      // cosine
-      double[][] diffArray = ScanAlignment.toIntensityArray(aligned);
-      double diffCosine = Similarity.COSINE.calc(diffArray);
-      return new SpectraSimilarity(diffCosine, overlap);
-    }
-    return null;
   }
 
 }
