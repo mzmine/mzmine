@@ -26,6 +26,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
@@ -75,6 +76,11 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       new OptionalModuleParameter<>("13C deisotoping",
           "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
 
+  public static final BooleanParameter cropSpectraToOverlap = new BooleanParameter(
+      "Crop spectra to overlap",
+      "Crop query and library spectra to overlapping m/z range (+- spectra m/z tolerance). This is helptful if spectra were acquired with different fragmentation energies / methods.",
+      true);
+
   public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
       new ModuleComboParameter<>("Similarity",
           "Algorithm to calculate similarity and filter matches",
@@ -82,7 +88,7 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
 
   public SpectraIdentificationSpectralDatabaseParameters() {
     super(new Parameter[] {massList, dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, noiseLevel,
-        deisotoping, mzTolerance, minMatch, similarityFunction});
+        deisotoping, cropSpectraToOverlap, mzTolerance, minMatch, similarityFunction});
   }
 
 

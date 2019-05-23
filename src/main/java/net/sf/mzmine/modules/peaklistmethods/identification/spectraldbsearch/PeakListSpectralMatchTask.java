@@ -43,6 +43,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
 import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
+import net.sf.mzmine.util.scans.ScanAlignment;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
@@ -84,6 +85,8 @@ public class PeakListSpectralMatchTask extends AbstractTask {
   private boolean removeIsotopes;
   private MassListDeisotoperParameters deisotopeParam;
 
+  private final boolean cropSpectraToOverlap;
+
   public PeakListSpectralMatchTask(PeakList peakList, ParameterSet parameters, int startEntry,
       List<SpectralDBEntry> list) {
     this.peakList = peakList;
@@ -109,6 +112,8 @@ public class PeakListSpectralMatchTask extends AbstractTask {
         parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping).getValue();
     deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
         .getEmbeddedParameters();
+    cropSpectraToOverlap =
+        parameters.getParameter(LocalSpectralDBSearchParameters.cropSpectraToOverlap).getValue();
     if (msLevel > 1)
       mzTolerancePrecursor =
           parameters.getParameter(LocalSpectralDBSearchParameters.mzTolerancePrecursor).getValue();
@@ -231,12 +236,21 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     // retention time
     // MS level 1 or check precursorMZ
     if (checkRT(row, ident) && (msLevel == 1 || checkPrecursorMZ(row, ident))) {
-      DataPoint[] dps = ident.getDataPoints();
+      DataPoint[] library = ident.getDataPoints();
       if (removeIsotopes)
-        dps = removeIsotopes(dps);
+        library = removeIsotopes(library);
+
+      // crop the spectra to their overlapping mz range
+      // helpful when comparing spectra, acquired with different fragmentation energy
+      DataPoint[] query = rowMassList;
+      if (cropSpectraToOverlap) {
+        DataPoint[][] cropped = ScanAlignment.cropToOverlap(mzToleranceSpectra, library, query);
+        library = cropped[0];
+        query = cropped[1];
+      }
 
       // check spectra similarity
-      SpectraSimilarity sim = createSimilarity(dps, rowMassList);
+      SpectraSimilarity sim = createSimilarity(library, query);
       if (sim != null)
         return sim;
     }

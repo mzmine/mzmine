@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.DataPointSorter;
@@ -19,8 +20,12 @@ import net.sf.mzmine.util.SortingProperty;
  */
 public class ScanAlignment {
 
-  public static DataPointSorter sorter =
+  public static final DataPointSorter sorter =
       new DataPointSorter(SortingProperty.Intensity, SortingDirection.Descending);
+
+  // hide the constructor
+  private ScanAlignment() {}
+
 
   /**
    * Aligned data points within mzTolerance. Sort by intensity and match every signal only once
@@ -51,6 +56,69 @@ public class ScanAlignment {
     }
 
     return list;
+  }
+
+  /**
+   * get overlapping MZ range (lowerBound - mzTol and upperbound+ mzTol)
+   * 
+   * @param mzTol
+   * @param a
+   * @param b
+   * @return
+   */
+  public static Range<Double> getOverlapMZ(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
+    Range<Double> ra = getMZRange(a);
+    Range<Double> rb = getMZRange(b);
+
+    // no overlap
+    if (!ra.isConnected(rb))
+      return Range.singleton(0d);
+
+    Range<Double> intersect = ra.intersection(rb);
+    // add mzTol
+    double min = intersect.lowerEndpoint();
+    min = mzTol.getToleranceRange(min).lowerEndpoint();
+    double max = intersect.upperEndpoint();
+    max = mzTol.getToleranceRange(max).upperEndpoint();
+    return Range.closed(min, max);
+
+  }
+
+  /**
+   * 
+   * crop to overlapping MZ range (lowerBound - mzTol and upperbound+ mzTol)
+   * 
+   * @param mzTol
+   * @param a
+   * @param b
+   * @return DataPoint[a,b][cropped datapoints]
+   */
+  public static DataPoint[][] cropToOverlap(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
+    Range<Double> overlap = getOverlapMZ(mzTol, a, b);
+    DataPoint[] newa =
+        Arrays.stream(a).filter(d -> overlap.contains(d.getMZ())).toArray(DataPoint[]::new);
+    DataPoint[] newb =
+        Arrays.stream(b).filter(d -> overlap.contains(d.getMZ())).toArray(DataPoint[]::new);
+    return new DataPoint[][] {newa, newb};
+  }
+
+  /**
+   * Closed mz range of all data points
+   * 
+   * @param dps
+   * @return
+   */
+  public static Range<Double> getMZRange(DataPoint[] dps) {
+    if (dps == null || dps.length == 0)
+      return Range.singleton(0d);
+    double min = dps[0].getMZ();
+    double max = dps[0].getMZ();
+    for (int i = 1; i < dps.length; i++) {
+      DataPoint dp = dps[i];
+      min = Math.min(min, dp.getMZ());
+      max = Math.max(max, dp.getMZ());
+    }
+    return Range.closed(min, max);
   }
 
   /**
