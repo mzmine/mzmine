@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -18,16 +18,12 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula;
 
-import java.util.Collection;
 import javax.annotation.Nonnull;
-import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
 /**
@@ -35,7 +31,7 @@ import net.sf.mzmine.util.ExitCode;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SumFormulaSpectraSearchModule implements MZmineProcessingModule {
+public class SumFormulaSpectraSearchModule implements MZmineModule {
 
   private static final String MODULE_NAME = "Sum formula prediction";
   private static final String MODULE_DESCRIPTION =
@@ -46,23 +42,16 @@ public class SumFormulaSpectraSearchModule implements MZmineProcessingModule {
     return MODULE_NAME;
   }
 
-  @Override
   public @Nonnull String getDescription() {
     return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    return ExitCode.OK;
   }
 
   public static void showSpectraIdentificationDialog(final Scan scan,
       final SpectraPlot spectraPlot) {
 
-    final ParameterSet parameters = new SpectraIdentificationSumFormulaParameters();
+    final SpectraIdentificationSumFormulaParameters parameters =
+        (SpectraIdentificationSumFormulaParameters) MZmineCore.getConfiguration()
+            .getModuleParameters(SumFormulaSpectraSearchModule.class);
 
     // Run task.
     if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
@@ -70,11 +59,6 @@ public class SumFormulaSpectraSearchModule implements MZmineProcessingModule {
       MZmineCore.getTaskController().addTask(new SpectraIdentificationSumFormulaTask(
           parameters.cloneParameterSet(), scan, spectraPlot));
     }
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
   }
 
   @Override

@@ -26,6 +26,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerComponent;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
@@ -51,15 +52,21 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
-      new OptionalModuleParameter<MassListDeisotoperParameters>("13C deisotoping",
+      new OptionalModuleParameter<>("13C deisotoping",
           "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
+
+  public static final BooleanParameter cropSpectraToOverlap = new BooleanParameter(
+      "Crop spectra to m/z overlap",
+      "Crop query and library spectra to overlapping m/z range (+- spectra m/z tolerance). This is helptful if spectra were acquired with different fragmentation energies / methods.",
+      true);
 
   public static final IntegerParameter msLevel = new IntegerParameter("MS level",
       "Choose the MS level of the scans that should be compared with the database. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
       2, 1, 1000);
 
-  public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
-      "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries");
+  public static final MZToleranceParameter mzTolerancePrecursor =
+      new MZToleranceParameter("Precursor m/z tolerance",
+          "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
 
   public static final MassListParameter massList =
       new MassListParameter("MassList", "MassList for either MS1 or MS/MS scans to match");
@@ -67,9 +74,10 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   public static final OptionalParameter<RTToleranceParameter> rtTolerance =
       new OptionalParameter<>(new RTToleranceParameter());
 
-  public static final MZToleranceParameter mzTolerance =
-      new MZToleranceParameter("Spectral m/z tolerance",
-          "Spectral m/z tolerance is used to match all signals in the query and library spectra");
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      "Spectral m/z tolerance",
+      "Spectral m/z tolerance is used to match all signals in the query and library spectra (usually higher than precursor m/z tolerance)",
+      0.0015, 10);
 
   public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
       "Signals below this level will be filtered away from mass lists",
@@ -84,9 +92,11 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
           "Algorithm to calculate similarity and filter matches",
           SpectralSimilarityFunction.FUNCTIONS);
 
+
   public LocalSpectralDBSearchParameters() {
     super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, mzTolerancePrecursor,
-        noiseLevel, deisotoping, mzTolerance, rtTolerance, minMatch, similarityFunction});
+        noiseLevel, deisotoping, cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch,
+        similarityFunction});
   }
 
   @Override
