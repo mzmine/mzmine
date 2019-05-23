@@ -305,12 +305,11 @@ public class ScanSelectPanel extends JPanel {
           mz = row.getAverageMZ();
       }
       int charge = scan.getPrecursorCharge();
-      if (charge == 0) {
-        if (row != null)
-          charge = row.getRowCharge();
-        else
-          charge = 1;
-      }
+      if (charge == 0 && row != null)
+        charge = row.getRowCharge();
+
+      if (charge == 0)
+        charge = 1;
 
       // set as text
       txtCharge.setText(String.valueOf(charge));

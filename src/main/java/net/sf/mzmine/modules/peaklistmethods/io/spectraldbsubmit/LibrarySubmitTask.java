@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -55,6 +56,8 @@ import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.MSPEntr
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.GnpsLibrarySubmitParameters;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.ResultsTextPane;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.files.FileAndPathUtil;
@@ -66,6 +69,11 @@ import net.sf.mzmine.util.files.FileAndPathUtil;
  *
  */
 public class LibrarySubmitTask extends AbstractTask {
+
+  private enum Result {
+    ERROR, SUCCED, INFO;
+  }
+
   //
   public static final String GNPS_LIBRARY_SUBMIT_URL =
       "http://dorresteinappshub.ucsd.edu:5050/depostsinglespectrum";
@@ -82,8 +90,12 @@ public class LibrarySubmitTask extends AbstractTask {
   private final File fileJson;
   private final File fileMSP;
 
+  // window to show results
+  private final MSMSLibrarySubmissionWindow window;
 
-  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
+  public LibrarySubmitTask(MSMSLibrarySubmissionWindow window,
+      Map<LibrarySubmitIonParameters, DataPoint[]> map) {
+    this.window = window;
     this.map = map;
     // get file, user and pass
     Entry<LibrarySubmitIonParameters, DataPoint[]> e = map.entrySet().iterator().next();
@@ -110,6 +122,12 @@ public class LibrarySubmitTask extends AbstractTask {
     }
   }
 
+  public LibrarySubmitTask(Map<LibrarySubmitIonParameters, DataPoint[]> map) {
+    this(null, map);
+  }
+
+
+
   @Override
   public double getFinishedPercentage() {
     return map.isEmpty() ? 0 : (done / map.size());
@@ -130,19 +148,75 @@ public class LibrarySubmitTask extends AbstractTask {
         if (fileJson != null || submitGNPS) {
           String json = GnpsJsonGenerator.generateJSON(param, dps);
           log.info(json);
-          if (saveLocal && fileJson != null)
-            writeToLocalFile(fileJson, json);
+          if (saveLocal && fileJson != null) {
+            if (writeToLocalGnpsJsonFile(fileJson, json))
+              writeResults("GNPS json entry successfully writen" + fileJson.getAbsolutePath(),
+                  Result.SUCCED);
+            else
+              writeResults("Error while writing GNPS json entry to " + fileJson.getAbsolutePath(),
+                  Result.ERROR);
+          }
           if (submitGNPS)
             submitGNPS(json);
         }
         // export msp?
-        if (fileMSP != null)
-          writeToLocalMSPFIle(fileMSP, param, dps);
+        if (fileMSP != null) {
+          if (writeToLocalMSPFIle(fileMSP, param, dps))
+            writeResults("MSP entry successfully writen to " + fileMSP.getAbsolutePath(),
+                Result.SUCCED);
+          else
+            writeResults("Error while writing msp entry to " + fileMSP.getAbsolutePath(),
+                Result.ERROR);
+        }
       }
       done++;
     }
 
     setStatus(TaskStatus.FINISHED);
+  }
+
+  /**
+   * Show results in window
+   * 
+   * @param message
+   * @param type
+   * @param isLink
+   */
+  public void writeResults(final String message, final Result type) {
+    writeResults(message, type, false);
+  }
+
+  public void writeResults(final String message, final Result type, boolean isLink) {
+    writeResults(message, message, type, isLink);
+  }
+
+  public void writeResults(final String url, final String message, final Result type,
+      boolean isLink) {
+    if (window != null && window.getTxtResults() != null) {
+      final ResultsTextPane pane = window.getTxtResults();
+      SwingUtilities.invokeLater(() -> {
+        switch (type) {
+          case ERROR:
+            if (isLink)
+              pane.appendErrorLink(message, url);
+            else
+              pane.appendErrorText(message);
+            break;
+          case INFO:
+            if (isLink)
+              pane.appendInfoLink(message, url);
+            else
+              pane.appendInfoText(message);
+            break;
+          case SUCCED:
+            if (isLink)
+              pane.appendSuccedLink(message, url);
+            else
+              pane.appendSuccedText(message);
+            break;
+        }
+      });
+    }
   }
 
 
@@ -152,7 +226,8 @@ public class LibrarySubmitTask extends AbstractTask {
    * @param file
    * @param json
    */
-  private void writeToLocalMSPFIle(File file, LibrarySubmitIonParameters param, DataPoint[] dps) {
+  private boolean writeToLocalMSPFIle(File file, LibrarySubmitIonParameters param,
+      DataPoint[] dps) {
     try {
       if (!file.getParentFile().exists())
         file.getParentFile().mkdirs();
@@ -165,8 +240,10 @@ public class LibrarySubmitTask extends AbstractTask {
       CharSink chs = Files.asCharSink(file, Charsets.UTF_8, FileWriteMode.APPEND);
       String msp = MSPEntryGenerator.createMSPEntry(param, dps);
       chs.write(msp + "\n");
+      return true;
     } catch (Exception e) {
       log.log(Level.SEVERE, "Cannot save to msp file " + file.getAbsolutePath(), e);
+      return false;
     }
   }
 
@@ -194,16 +271,24 @@ public class LibrarySubmitTask extends AbstractTask {
         log.info("Submitting GNPS library entry " + httppost.getRequestLine());
         CloseableHttpResponse response = httpclient.execute(httppost);
         try {
+          writeResults("GNPS submit entry response status: " + response.getStatusLine(),
+              Result.INFO);
           log.info("GNPS submit entry response status: " + response.getStatusLine());
           HttpEntity resEntity = response.getEntity();
           if (resEntity != null) {
             log.info("GNPS submit entry response content length: " + resEntity.getContentLength());
+            writeResults(
+                "GNPS submit entry response content length: " + resEntity.getContentLength(),
+                Result.SUCCED);
 
             String body = IOUtils.toString(resEntity.getContent());
-            String url =
-                "Submission task: https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=" + body;
-            log.log(Level.INFO, url);
+            String url = "https://gnps.ucsd.edu/ProteoSAFe/status.jsp?task=" + body;
+            log.log(Level.INFO, "Submission task: " + url);
+            writeResults(url, Result.SUCCED, true);
             EntityUtils.consume(resEntity);
+          } else {
+            log.warning("Not submitted to GNPS:\n" + json);
+            writeResults("Not submitted to GNPS\n" + json, Result.ERROR);
           }
         } finally {
           response.close();
@@ -223,7 +308,7 @@ public class LibrarySubmitTask extends AbstractTask {
    * @param file
    * @param json
    */
-  private void writeToLocalFile(File file, String json) {
+  private boolean writeToLocalGnpsJsonFile(File file, String json) {
     try {
       if (!file.getParentFile().exists())
         file.getParentFile().mkdirs();
@@ -235,8 +320,10 @@ public class LibrarySubmitTask extends AbstractTask {
     try {
       CharSink chs = Files.asCharSink(file, Charsets.UTF_8, FileWriteMode.APPEND);
       chs.write(json + "\n");
+      return true;
     } catch (Exception e) {
       log.log(Level.SEVERE, "Cannot create or write to file " + file.getAbsolutePath(), e);
+      return false;
     }
   }
 

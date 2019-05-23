@@ -47,6 +47,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
@@ -133,6 +135,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   // data either rows or list of entries with 1 or multiple scans
   private PeakListRow[] rows;
   private List<Scan[]> scanList;
+  private ResultsTextPane txtResults;
 
   /**
    * Create the frame.
@@ -140,10 +143,25 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   public MSMSLibrarySubmissionWindow() {
     setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     setBounds(100, 100, 854, 619);
+
+    JPanel main = new JPanel(new BorderLayout());
+    JSplitPane split = new JSplitPane();
+    split.setOrientation(JSplitPane.VERTICAL_SPLIT);
+    main.add(split);
+    setContentPane(main);
+
     contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     contentPane.setLayout(new BorderLayout(0, 0));
-    setContentPane(contentPane);
+    split.setLeftComponent(contentPane);
+
+    txtResults = new ResultsTextPane();
+    txtResults.setEditable(false);
+    JScrollPane scrollResults = new JScrollPane(txtResults);
+    scrollResults.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+    split.setRightComponent(scrollResults);
+    split.setResizeWeight(0.92);
+
 
     // load parameter
     paramSubmit = (LibrarySubmitParameters) MZmineCore.getConfiguration()
@@ -526,7 +544,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
           // start task
           log.info(
               "Added task to export library entries: " + ions + " MS/MS spectra were selected");
-          LibrarySubmitTask task = new LibrarySubmitTask(map);
+          LibrarySubmitTask task = new LibrarySubmitTask(this, map);
           MZmineCore.getTaskController().addTask(task);
         }
       }
@@ -884,4 +902,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     return (ComboComponent<ScanSortMode>) getComponentForParameter(LibrarySubmitParameters.sorting);
   }
 
+
+  public ResultsTextPane getTxtResults() {
+    return txtResults;
+  }
 }
