@@ -66,7 +66,7 @@ public class MSPEntryGenerator {
         + meta.getParameter(LibraryMetaDataParameters.COMPOUND_NAME).getValue() + br);
     s.append(DBEntryField.INCHIKEY.getNistMspID() + def
         + meta.getParameter(LibraryMetaDataParameters.INCHI_AUX).getValue() + br);
-    s.append(DBEntryField.MS_LEVEL.getNistMspID() + def
+    s.append(DBEntryField.MS_LEVEL.getNistMspID() + def + "MS"
         + meta.getParameter(LibraryMetaDataParameters.MS_LEVEL).getValue() + br);
     s.append(DBEntryField.INSTRUMENT_TYPE.getNistMspID() + def
         + meta.getParameter(LibraryMetaDataParameters.INSTRUMENT).getValue() + br);
