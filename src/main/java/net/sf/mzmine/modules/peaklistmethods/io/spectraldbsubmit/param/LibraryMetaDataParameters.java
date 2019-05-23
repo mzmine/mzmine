@@ -92,7 +92,7 @@ public class LibraryMetaDataParameters extends SimpleParameterSet {
   public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
       "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"), 0d);
   public static final IntegerParameter MS_LEVEL =
-      new IntegerParameter("MSLEVEL", "MS level of scan", 2, 1, 100);
+      new IntegerParameter("MSLEVEL", "MS level of scan", 2, true, 1, 100);
 
   public static final OptionalParameter<DoubleParameter> EXPORT_RT = new OptionalParameter<>(
       new DoubleParameter("RT", "Retention time", MZmineCore.getConfiguration().getRTFormat(), 0d),

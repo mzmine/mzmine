@@ -100,4 +100,11 @@ public class OptionalModuleComponent extends JPanel implements ActionListener {
   public void addItemListener(ItemListener il) {
     checkBox.addItemListener(il);
   }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    setButton.setEnabled(enabled);
+    checkBox.setEnabled(enabled);
+  }
 }

@@ -31,9 +31,11 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -71,6 +73,7 @@ import net.sf.mzmine.parameters.parametertypes.DoubleComponent;
 import net.sf.mzmine.parameters.parametertypes.IntegerComponent;
 import net.sf.mzmine.parameters.parametertypes.MassListComponent;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameterComponent;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.DialogLoggerUtil;
 import net.sf.mzmine.util.GUIUtils;
@@ -125,6 +128,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private GridBagPanel pnSubmitParam;
   private String helpID;
 
+  //
+  private boolean isFragmentScan = false;
   // data either rows or list of entries with 1 or multiple scans
   private PeakListRow[] rows;
   private List<Scan[]> scanList;
@@ -207,7 +212,111 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     minc.addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
     ComboComponent<ScanSortMode> sortc = getComboSortMode();
     sortc.addItemListener(e -> updateSortModeOnAllSelectors());
+
+    IntegerComponent mslevel = getMSLevelComponent();
+    mslevel.addDocumentListener(new DelayedDocumentListener(e -> {
+      updateParameterSetFromComponents();
+      Integer level = paramMeta.getParameter(LibraryMetaDataParameters.MS_LEVEL).getValue();
+      setFragmentScan(level != null && level > 1);
+    }));
   }
+
+
+  /**
+   * Sort rows
+   * 
+   * @param rows
+   * @param raw
+   * @param sorting
+   * @param direction
+   */
+  public void setData(PeakListRow[] rows, SortingProperty sorting, SortingDirection direction,
+      boolean isFragmentScan) {
+    Arrays.sort(rows, new PeakListRowSorter(sorting, direction));
+    setData(rows, isFragmentScan);
+  }
+
+
+  /**
+   * Create charts and show
+   * 
+   * @param rows
+   * @param raw
+   */
+  public void setData(PeakListRow[] rows, boolean isFragmentScan) {
+    scanList = null;
+    this.rows = rows;
+    this.pnScanSelect = new ScanSelectPanel[rows.length];
+
+    setFragmentScan(isFragmentScan);
+    // set rt
+    double rt = Arrays.stream(rows).mapToDouble(PeakListRow::getAverageRT).average().orElse(-1);
+    setRetentionTimeToComponent(rt);
+    updateAllChartSelectors();
+  }
+
+  /**
+   * Set data as single scan
+   * 
+   * @param scan
+   */
+  public void setData(Scan scan) {
+    setData(new Scan[] {scan});
+  }
+
+  /**
+   * set data as set of scans of one entry
+   * 
+   * @param scans
+   */
+  public void setData(Scan[] scans) {
+    scanList = new ArrayList<>();
+    scanList.add(scans);
+    setData(scanList);
+  }
+
+  /**
+   * Set data as set of entries with 1 or multiple scans
+   * 
+   * @param scanList
+   */
+  public void setData(List<Scan[]> scanList) {
+    this.scanList = scanList;
+    rows = null;
+    this.pnScanSelect = new ScanSelectPanel[scanList.size()];
+
+    double rt = scanList.stream().flatMap(Arrays::stream).mapToDouble(Scan::getRetentionTime)
+        .average().orElse(0d);
+
+    // any scan matches MS level 1? --> set level to ms1
+    int minMSLevel =
+        scanList.stream().flatMap(Arrays::stream).mapToInt(Scan::getMSLevel).min().orElse(1);
+    getMSLevelComponent().setText(minMSLevel < 2 ? "1" : "" + minMSLevel);
+    setFragmentScan(minMSLevel > 1);
+
+    // set rt
+    setRetentionTimeToComponent(rt);
+    updateAllChartSelectors();
+  }
+
+
+  /**
+   * Set whether this is a fragment scan or MS1 and enables some user parameters (e.g., precursor
+   * mz, adduct, charge, GNPS submission)
+   * 
+   * @param isFragmentScan
+   */
+  public void setFragmentScan(boolean isFragmentScan) {
+    this.isFragmentScan = isFragmentScan;
+    streamSelection().forEach(pn -> pn.setFragmentScan(isFragmentScan));
+    // disable gnps
+    if (!isFragmentScan) {
+      paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).setValue(false);
+      getGnpsSubmitComponent().setSelected(false);;
+    }
+    getGnpsSubmitComponent().setEnabled(isFragmentScan);
+  }
+
 
   private void createSubmitParamPanel() {
     // Main panel which holds all the components in a grid
@@ -339,13 +448,23 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     // check
     ArrayList<String> messages = new ArrayList<>();
 
-    if (paramSubmit.checkParameterValues(messages) && paramMeta.checkParameterValues(messages)) {
+    boolean checkIon =
+        streamSelection().filter(pn -> !pn.checkParameterValues(messages)).count() == 0;
+    boolean checkSubmit = paramSubmit.checkParameterValues(messages);
+    boolean checkMeta = paramMeta.checkParameterValues(messages);
+    if (checkMeta && checkSubmit && checkIon) {
       return true;
     } else {
       String message = messages.stream().collect(Collectors.joining("\n"));
       MZmineCore.getDesktop().displayMessage(this, message);
       return false;
     }
+  }
+
+  private Stream<ScanSelectPanel> streamSelection() {
+    if (pnScanSelect == null)
+      return Stream.empty();
+    return Arrays.stream(pnScanSelect).filter(Objects::nonNull);
   }
 
   private JComponent getComponentForParameter(UserParameter p) {
@@ -358,51 +477,68 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private void submitSpectra() {
     if (checkParameters()) {
       // check number of ions
-      int ions = Arrays.stream(pnScanSelect).mapToInt(pn -> pn.isValidAndSelected() ? 1 : 0).sum();
-      int adducts = Arrays.stream(pnScanSelect)
-          .mapToInt(pn -> pn.isValidAndSelected() && pn.hasAdduct() ? 1 : 0).sum();
-      // every valid selected ion needs an adduct
-      if (ions != adducts) {
-        MZmineCore.getDesktop().displayErrorMessage(this, "ERROR",
-            MessageFormat.format(
-                "Not all adducts are set: {0} ion spectra selected and only {1}  adducts set", ions,
-                adducts));
-        return;
+      int ions = countSelectedIons();
+      // for ms level >1 (fragmentation scan MS/MS)
+      int mslevel = paramMeta.getParameter(LibraryMetaDataParameters.MS_LEVEL).getValue();
+      if (mslevel == 1)
+        paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).setValue(false);
+      else {
+        int adducts = countSelectedAdducts();
+        // every valid selected ion needs an adduct for MS2
+        if (ions != adducts) {
+          MZmineCore.getDesktop().displayErrorMessage(this, "ERROR",
+              MessageFormat.format(
+                  "Not all adducts are set: {0} ion spectra selected and only {1}  adducts set",
+                  ions, adducts));
+          return;
+        }
+      }
+
+      //
+      if (ions == 0) {
+        log.info("No MS/MS spectrum selected or valid");
+        DialogLoggerUtil.showMessageDialogForTime(this, "Error",
+            "No MS/MS spectrum selected or valid", 1500);
       } else {
-        if (ions == 0) {
-          log.info("No MS/MS spectrum selected or valid");
-          DialogLoggerUtil.showMessageDialogForTime(this, "Error",
-              "No MS/MS spectrum selected or valid", 1500);
+        String message = ions + " MS/MS spectra were selected. Submit?";
+        if (mslevel > 1) {
+          message +=
+              " (" + streamSelection().filter(pn -> pn.isValidAndSelected() && pn.hasAdduct())
+                  .map(ScanSelectPanel::getAdduct).collect(Collectors.joining(", ")) + ")";
         } else {
+          message += " (MS1)";
+        }
+        // show accept dialog
+        if (DialogLoggerUtil.showDialogYesNo(this, "Submission?", message)) {
+          // create library / submit to GNPS
+          HashMap<LibrarySubmitIonParameters, DataPoint[]> map = new HashMap<>(ions);
+          for (ScanSelectPanel ion : pnScanSelect) {
+            if (ion.isValidAndSelected()) {
+              // create ion param
+              LibrarySubmitIonParameters ionParam =
+                  createIonParameters(paramSubmit, paramMeta, ion);
+              DataPoint[] dps = ion.getFilteredDataPoints();
 
-          String allAdducts =
-              Arrays.stream(pnScanSelect).filter(pn -> pn.isValidAndSelected() && pn.hasAdduct())
-                  .map(ScanSelectPanel::getAdduct).collect(Collectors.joining(", "));
-          // show accept dialog
-          if (DialogLoggerUtil.showDialogYesNo(this, "Submission?",
-              ions + " MS/MS spectra were selected. Submit? (" + allAdducts + ")")) {
-            // submit to GNPS
-            HashMap<LibrarySubmitIonParameters, DataPoint[]> map = new HashMap<>(ions);
-            for (ScanSelectPanel ion : pnScanSelect) {
-              if (ion.isValidAndSelected()) {
-                // create ion param
-                LibrarySubmitIonParameters ionParam =
-                    createIonParameters(paramSubmit, paramMeta, ion);
-                DataPoint[] dps = ion.getFilteredDataPoints();
-
-                // submit and save locally
-                map.put(ionParam, dps);
-              }
+              // submit and save locally
+              map.put(ionParam, dps);
             }
-            // start task
-            log.info("Added task to export library entries: " + ions
-                + " MS/MS spectra were selected (" + allAdducts + ")");
-            LibrarySubmitTask task = new LibrarySubmitTask(map);
-            MZmineCore.getTaskController().addTask(task);
           }
+          // start task
+          log.info(
+              "Added task to export library entries: " + ions + " MS/MS spectra were selected");
+          LibrarySubmitTask task = new LibrarySubmitTask(map);
+          MZmineCore.getTaskController().addTask(task);
         }
       }
     }
+  }
+
+  public int countSelectedIons() {
+    return (int) streamSelection().filter(ScanSelectPanel::isValidAndSelected).count();
+  }
+
+  public int countSelectedAdducts() {
+    return (int) streamSelection().filter(pn -> pn.isValidAndSelected() && pn.hasAdduct()).count();
   }
 
   /**
@@ -418,9 +554,22 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     LibrarySubmitIonParameters ionParam = new LibrarySubmitIonParameters();
     ionParam.getParameter(LibrarySubmitIonParameters.META_PARAM).setValue(paramMeta);
     ionParam.getParameter(LibrarySubmitIonParameters.SUBMIT_PARAM).setValue(paramSubmit);
-    ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT).setValue(ion.getAdduct());
-    ionParam.getParameter(LibrarySubmitIonParameters.CHARGE).setValue(ion.getPrecursorCharge());
-    ionParam.getParameter(LibrarySubmitIonParameters.MZ).setValue(ion.getPrecursorMZ());
+    if (isFragmentScan) {
+      String adduct = ion.getAdduct();
+      double precursorMZ = ion.getPrecursorMZ();
+      int charge = ion.getPrecursorCharge();
+      ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT)
+          .setValue(adduct == null || adduct.isEmpty() ? null : adduct);
+      ionParam.getParameter(LibrarySubmitIonParameters.CHARGE)
+          .setValue(charge == 0 ? null : charge);
+      ionParam.getParameter(LibrarySubmitIonParameters.MZ)
+          .setValue(precursorMZ == 0d ? null : precursorMZ);
+    } else {
+      // MS1
+      ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT).setValue(null);
+      ionParam.getParameter(LibrarySubmitIonParameters.CHARGE).setValue(null);
+      ionParam.getParameter(LibrarySubmitIonParameters.MZ).setValue(null);
+    }
     return (LibrarySubmitIonParameters) ionParam.cloneParameterSet();
   }
 
@@ -514,75 +663,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     menu.add(item);
   }
 
-  /**
-   * Sort rows
-   * 
-   * @param rows
-   * @param raw
-   * @param sorting
-   * @param direction
-   */
-  public void setData(PeakListRow[] rows, SortingProperty sorting, SortingDirection direction) {
-    Arrays.sort(rows, new PeakListRowSorter(sorting, direction));
-    setData(rows);
-  }
-
-
-  /**
-   * Create charts and show
-   * 
-   * @param rows
-   * @param raw
-   */
-  public void setData(PeakListRow[] rows) {
-    scanList = null;
-    this.rows = rows;
-    this.pnScanSelect = new ScanSelectPanel[rows.length];
-
-    // set rt
-    double rt = Arrays.stream(rows).mapToDouble(PeakListRow::getAverageRT).average().orElse(-1);
-    setRetentionTimeToComponent(rt);
-
-    updateAllChartSelectors();
-  }
-
-  /**
-   * Set data as single scan
-   * 
-   * @param scan
-   */
-  public void setData(Scan scan) {
-    setData(new Scan[] {scan});
-  }
-
-  /**
-   * set data as set of scans of one entry
-   * 
-   * @param scans
-   */
-  public void setData(Scan[] scans) {
-    scanList = new ArrayList<>();
-    scanList.add(scans);
-    setData(scanList);
-  }
-
-  /**
-   * Set data as set of entries with 1 or multiple scans
-   * 
-   * @param scanList
-   */
-  public void setData(List<Scan[]> scanList) {
-    this.scanList = scanList;
-    rows = null;
-    this.pnScanSelect = new ScanSelectPanel[scanList.size()];
-
-    double rt = scanList.stream().flatMap(Arrays::stream).mapToDouble(Scan::getRetentionTime)
-        .average().orElse(0d);
-
-    // set rt
-    setRetentionTimeToComponent(rt);
-    updateAllChartSelectors();
-  }
 
 
   private void setRetentionTimeToComponent(double rt) {
@@ -642,6 +722,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
           }
         }
       }
+      streamSelection().forEach(pn -> pn.setFragmentScan(isFragmentScan));
     }
 
     pnCharts.revalidate();
@@ -778,7 +859,14 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
       op.accept(group.getList().get(i).getChart());
   }
 
+  private OptionalModuleComponent getGnpsSubmitComponent() {
+    return (OptionalModuleComponent) getComponentForParameter(LibrarySubmitParameters.SUBMIT_GNPS);
+  }
 
+
+  private IntegerComponent getMSLevelComponent() {
+    return (IntegerComponent) getComponentForParameter(LibraryMetaDataParameters.MS_LEVEL);
+  }
 
   private IntegerComponent getMinSignalComponent() {
     return (IntegerComponent) getComponentForParameter(LibrarySubmitParameters.minSignals);

@@ -114,9 +114,14 @@ public class ScanSelectPanel extends JPanel {
   private JLabel lblChargeMz;
   private JButton btnFromScan;
 
+  // MS1 or MS2
+  private boolean isFragmentScan = true;
+
   // data either row or scans
   private PeakListRow row;
   private Scan[] scansEntry;
+  private JLabel lblAdduct;
+  private JPanel pnData;
 
   /**
    * Create the panel.
@@ -206,11 +211,11 @@ public class ScanSelectPanel extends JPanel {
     group.add(btnSignals);
     group.add(btnMaxTic);
 
-    JPanel pnData = new JPanel();
+    pnData = new JPanel();
     pnMenu.add(pnData, BorderLayout.CENTER);
     pnData.setLayout(new MigLayout("", "[grow][][]", "[][][][][][][][]"));
 
-    JLabel lblAdduct = new JLabel("Adduct:");
+    lblAdduct = new JLabel("Adduct:");
     pnData.add(lblAdduct, "cell 0 0 3 1");
 
     txtAdduct = new JTextField();
@@ -259,11 +264,39 @@ public class ScanSelectPanel extends JPanel {
     add(lbMassListError, BorderLayout.NORTH);
   }
 
+  /**
+   * Fragment scan with adduct, precursor mz and charge or MS1
+   * 
+   * @param isFragmentScan
+   */
+  public void setFragmentScan(boolean isFragmentScan) {
+    this.isFragmentScan = isFragmentScan;
+
+    lblChargeMz.setVisible(isFragmentScan);
+    lblAdduct.setVisible(isFragmentScan);
+    txtAdduct.setVisible(isFragmentScan);
+    txtCharge.setVisible(isFragmentScan);
+    txtPrecursorMZ.setVisible(isFragmentScan);
+    btnFromScan.setVisible(isFragmentScan);
+    pnData.revalidate();
+    pnData.repaint();
+
+    // if data is from rows - get new list of scans
+    if (row != null) {
+      createSortedScanList();
+      setMZandChargeFromScan();
+    }
+  }
+
 
   /**
    * 
    */
   public void setMZandChargeFromScan() {
+    // MS1
+    if (!isFragmentScan)
+      return;
+
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
       double mz = scan.getPrecursorMZ();
@@ -276,7 +309,7 @@ public class ScanSelectPanel extends JPanel {
         if (row != null)
           charge = row.getRowCharge();
         else
-          charge = 0;
+          charge = 1;
       }
 
       // set as text
@@ -291,18 +324,46 @@ public class ScanSelectPanel extends JPanel {
 
   public double getPrecursorMZ() {
     try {
-      return Double.parseDouble(txtPrecursorMZ.getText());
+      double c = Double.parseDouble(txtPrecursorMZ.getText());
+      txtCharge.setBorder(BorderFactory.createLineBorder(Color.black));
+      return c;
     } catch (Exception e) {
+      txtCharge.setBorder(BorderFactory.createLineBorder(Color.red));
       return 0;
     }
   }
 
   public int getPrecursorCharge() {
     try {
-      return Integer.parseInt(txtCharge.getText());
+      int c = Integer.parseInt(txtCharge.getText());
+      txtCharge.setBorder(BorderFactory.createLineBorder(Color.black));
+      return c;
     } catch (Exception e) {
+      txtCharge.setBorder(BorderFactory.createLineBorder(Color.red));
       return 0;
     }
+  }
+
+
+  public boolean checkParameterValues(List<String> messages) {
+    // no parameters for MS1 scan
+    if (!isFragmentScan)
+      return true;
+
+    // for MS/MS scans:
+    String adduct = getAdduct();
+    if (adduct.isEmpty())
+      messages.add("Adduct is not set properly: " + txtAdduct.getText());
+
+    int charge = getPrecursorCharge();
+    if (charge <= 0)
+      messages.add("Charge is not set properly: " + txtCharge.getText());
+
+    double mz = getPrecursorCharge();
+    if (mz <= 0)
+      messages.add("Precursor m/z is not set properly: " + txtPrecursorMZ.getText());
+
+    return !(adduct.isEmpty() || charge <= 0 || mz <= 0);
   }
 
   /**
@@ -352,9 +413,15 @@ public class ScanSelectPanel extends JPanel {
     // get all scans that match filter criteria
     try {
       if (row != null) {
-        // first entry is the best scan
-        scans =
-            ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals, sort);
+        if (isFragmentScan) {
+          // first entry is the best fragmentation scan
+          scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals,
+              sort);
+        } else {
+          // get most representative MS 1 scans of all features
+          scans =
+              ScanUtils.listAllMS1Scans(row, massListName, noiseLevel, minNumberOfSignals, sort);
+        }
       } else if (scansEntry != null) {
         scans =
             ScanUtils.listAllScans(scansEntry, massListName, noiseLevel, minNumberOfSignals, sort);
@@ -558,4 +625,5 @@ public class ScanSelectPanel extends JPanel {
   public boolean hasAdduct() {
     return !getAdduct().isEmpty();
   }
+
 }

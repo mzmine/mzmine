@@ -114,6 +114,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem exportToSirius;
   // for building MS/MS library and submission to online libraries
   private final JMenuItem exportMSMSLibrary;
+  private final JMenuItem exportMS1Library;
   ////
   private final JMenuItem manuallyDefineItem;
   private final JMenuItem showPeakRowSummaryItem;
@@ -176,6 +177,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // kaidu edit
     exportToSirius = GUIUtils.addMenuItem(exportMenu, "Export to SIRIUS", this);
     exportMSMSLibrary = GUIUtils.addMenuItem(exportMenu, "Export MS/MS library", this);
+    exportMS1Library = GUIUtils.addMenuItem(exportMenu, "Export MS1 library", this);
     //
     exportMSMSItem = GUIUtils.addMenuItem(exportMenu, "MS/MS pattern", this);
 
@@ -230,6 +232,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     exportIsotopesItem.setEnabled(rowsSelected);
     exportToSirius.setEnabled(rowsSelected);
     exportMSMSLibrary.setEnabled(rowsSelected);
+    exportMS1Library.setEnabled(rowsSelected);
     exportMenu.setEnabled(rowsSelected);
 
     final boolean oneRowSelected = selectedRows.length == 1;
@@ -687,7 +690,15 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     if (exportMSMSLibrary.equals(src)) {
       // open window with all selected rows
       MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
-      libraryWindow.setData(allClickedPeakListRows, SortingProperty.MZ, SortingDirection.Ascending);
+      libraryWindow.setData(allClickedPeakListRows, SortingProperty.MZ, SortingDirection.Ascending,
+          true);
+      libraryWindow.setVisible(true);
+    }
+    if (exportMS1Library.equals(src)) {
+      // open window with all selected rows
+      MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
+      libraryWindow.setData(allClickedPeakListRows, SortingProperty.MZ, SortingDirection.Ascending,
+          false);
       libraryWindow.setVisible(true);
     }
 

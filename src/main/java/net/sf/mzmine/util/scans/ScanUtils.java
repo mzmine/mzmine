@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -41,6 +42,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -741,6 +743,55 @@ public class ScanUtils {
       double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
     Scan[] scans = row.getAllMS2Fragmentations();
     return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+  }
+
+  /**
+   * Sorted list of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n
+   * signals >= noiseLevel in the specified or first massList, if none was specified
+   * 
+   * @param row all representative MS1 scans of all features in this row
+   * @param massListName the name or null/empty to always use the first masslist
+   * @param noiseLevel
+   * @param minNumberOfSignals
+   * @param sort the sorting property (best first, index=0)
+   * @return
+   */
+  @Nonnull
+  public static List<Scan> listAllMS1Scans(PeakListRow row, @Nullable String massListName,
+      double noiseLevel, int minNumberOfSignals, ScanSortMode sort)
+      throws MissingMassListException {
+    List<Scan> scans = listAllMS1Scans(row, massListName, noiseLevel, minNumberOfSignals);
+    // first entry is the best scan
+    scans.sort(Collections.reverseOrder(new ScanSorter(massListName, noiseLevel, sort)));
+    return scans;
+  }
+
+  /**
+   * List of all MS1 {@link Feature#getRepresentativeScan()} of all features. scans with n signals
+   * >= noiseLevel in the specified or first massList, if none was specified
+   * 
+   * @param row
+   * @param massListName the name or null/empty to always use the first masslist
+   * @param noiseLevel
+   * @param minNumberOfSignals
+   * @return
+   */
+  @Nonnull
+  public static List<Scan> listAllMS1Scans(PeakListRow row, @Nullable String massListName,
+      double noiseLevel, int minNumberOfSignals) throws MissingMassListException {
+    Scan[] scans = getAllMostIntenseMS1Scans(row);
+    return listAllScans(scans, massListName, noiseLevel, minNumberOfSignals);
+  }
+
+  /**
+   * Array of all {@link Feature#getRepresentativeScan()} of all features
+   * 
+   * @param row
+   * @return
+   */
+  public static Scan[] getAllMostIntenseMS1Scans(PeakListRow row) {
+    return Arrays.stream(row.getPeaks()).map(Feature::getRepresentativeScan)
+        .filter(Objects::nonNull).toArray(Scan[]::new);
   }
 
   /**
