@@ -535,6 +535,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
    * @param raw
    */
   public void setData(PeakListRow[] rows) {
+    scanList = null;
     this.rows = rows;
     this.pnScanSelect = new ScanSelectPanel[rows.length];
 
@@ -562,6 +563,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   public void setData(Scan[] scans) {
     scanList = new ArrayList<>();
     scanList.add(scans);
+    setData(scanList);
   }
 
   /**
@@ -572,6 +574,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   public void setData(List<Scan[]> scanList) {
     this.scanList = scanList;
     rows = null;
+    this.pnScanSelect = new ScanSelectPanel[scanList.size()];
 
     double rt = scanList.stream().flatMap(Arrays::stream).mapToDouble(Scan::getRetentionTime)
         .average().orElse(0d);
