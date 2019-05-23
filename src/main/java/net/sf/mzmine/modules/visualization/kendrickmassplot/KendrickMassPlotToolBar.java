@@ -45,13 +45,17 @@ public class KendrickMassPlotToolBar extends JToolBar {
   static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
   static final Icon arrowUpIcon = new ImageIcon("icons/arrowupicon.png");
   static final Icon arrowDownIcon = new ImageIcon("icons/arrowdownicon.png");
+  static final Icon kmdIcon = new ImageIcon("icons/KMDIcon.png");
+  static final Icon rkmIcon = new ImageIcon("icons/RKMIcon.png");
+  // To Do add icon for RKM and KMD
   DecimalFormat shiftFormat = new DecimalFormat("0.##;-0.##");
 
   public KendrickMassPlotToolBar(ActionListener masterFrame, // listener
       double xAxisShift, double yAxisShift, double zAxisShift, // shifts
       int xAxisCharge, int yAxisCharge, int zAxisCharge, // charge
       int xAxisDivisor, int yAxisDivisor, int zAxisDivisor, // divisor
-      boolean useCustomXAxis, boolean useCustomZAxis // custom axis
+      boolean useCustomXAxis, boolean useCustomZAxis, // custom axis
+      boolean useXAxisRKM, boolean useYAxisRKM, boolean useZAxisRKM // RKM or KMD icon
   ) {
 
     super(JToolBar.VERTICAL);
@@ -124,6 +128,16 @@ public class KendrickMassPlotToolBar extends JToolBar {
     componentsList.add(GUIUtils.addLabel(this, //
         String.valueOf(shiftFormat.format(yAxisDivisor)), null, JLabel.CENTER, null));
 
+    // use remainders instead of defects check box
+    if (useYAxisRKM == false) {
+      componentsList.add(GUIUtils.addButton(this, null, kmdIcon, masterFrame, "TOGGLE_RKM_KMD_Y",
+          "Toggle RKM (remainders of Kendrick masses) and KMD (Kendrick mass defect)"));
+    } else {
+      componentsList.add(GUIUtils.addButton(this, null, rkmIcon, masterFrame, "TOGGLE_RKM_KMD_Y",
+          "Toggle RKM (remainders of Kendrick masses) and KMD (Kendrick mass defect)"));
+    }
+    componentsList.add(GUIUtils.addLabel(this, null));
+    componentsList.add(GUIUtils.addLabel(this, null));
     // xAxis
     if (useCustomXAxis) {
 
@@ -163,6 +177,17 @@ public class KendrickMassPlotToolBar extends JToolBar {
           String.valueOf(shiftFormat.format(xAxisCharge)), null, JLabel.CENTER, null));
       componentsList.add(GUIUtils.addLabel(this, //
           String.valueOf(shiftFormat.format(xAxisDivisor)), null, JLabel.CENTER, null));
+
+      // use remainders instead of defects check box
+      if (useXAxisRKM == false) {
+        componentsList.add(GUIUtils.addButton(this, null, kmdIcon, masterFrame, "TOGGLE_RKM_KMD_X",
+            "Toggle RKM (remainders of Kendrick masses) and KMD (Kendrick mass defect)"));
+      } else {
+        componentsList.add(GUIUtils.addButton(this, null, rkmIcon, masterFrame, "TOGGLE_RKM_KMD_X",
+            "Toggle RKM (remainders of Kendrick masses) and KMD (Kendrick mass defect)"));
+      }
+      componentsList.add(GUIUtils.addLabel(this, null));
+      componentsList.add(GUIUtils.addLabel(this, null));
     }
 
     // zAxis
@@ -204,6 +229,17 @@ public class KendrickMassPlotToolBar extends JToolBar {
           String.valueOf(shiftFormat.format(zAxisCharge)), null, JLabel.CENTER, null));
       componentsList.add(GUIUtils.addLabel(this, //
           String.valueOf(shiftFormat.format(zAxisDivisor)), null, JLabel.CENTER, null));
+
+      // use remainders instead of defects check box
+      if (useZAxisRKM == false) {
+        componentsList.add(GUIUtils.addButton(this, null, kmdIcon, masterFrame, "TOGGLE_RKM_KMD_Z",
+            "Toggle RKM (remainders of Kendrick masses) and KMD (Kendrick mass defect)"));
+      } else {
+        componentsList.add(GUIUtils.addButton(this, null, rkmIcon, masterFrame, "TOGGLE_RKM_KMD_Z",
+            "Toggle RKM (remainders of Kendrick masses) and KMD (Kendrick mass defect)"));
+      }
+      componentsList.add(GUIUtils.addLabel(this, null));
+      componentsList.add(GUIUtils.addLabel(this, null));
     }
     JComponent[] components = new JComponent[componentsList.size()];
 
