@@ -56,7 +56,7 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
           "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
 
   public static final BooleanParameter cropSpectraToOverlap = new BooleanParameter(
-      "Crop spectra to overlap",
+      "Crop spectra to m/z overlap",
       "Crop query and library spectra to overlapping m/z range (+- spectra m/z tolerance). This is helptful if spectra were acquired with different fragmentation energies / methods.",
       true);
 
