@@ -21,7 +21,7 @@ package net.sf.mzmine.util.spectraldb.entry;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
-import net.sf.mzmine.util.maths.similarity.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
 
 public class SpectralDBPeakIdentity extends SimplePeakIdentity {
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");

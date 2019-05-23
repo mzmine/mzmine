@@ -21,12 +21,11 @@ package net.sf.mzmine.parameters.parametertypes.submodules;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.awt.event.ItemListener;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 
@@ -68,6 +67,7 @@ public class OptionalModuleComponent extends JPanel implements ActionListener {
     setButton.setEnabled(selected);
   }
 
+  @Override
   public void actionPerformed(ActionEvent event) {
 
     Object src = event.getSource();
@@ -90,5 +90,9 @@ public class OptionalModuleComponent extends JPanel implements ActionListener {
   @Override
   public void setToolTipText(String toolTip) {
     checkBox.setToolTipText(toolTip);
+  }
+
+  public void addItemListener(ItemListener il) {
+    checkBox.addItemListener(il);
   }
 }

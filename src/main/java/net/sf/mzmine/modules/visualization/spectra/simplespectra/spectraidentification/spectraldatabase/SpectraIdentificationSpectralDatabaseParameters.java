@@ -19,18 +19,24 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
 import java.awt.Window;
-import java.text.DecimalFormat;
+import javax.swing.JComponent;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
+import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 
 /**
  * Module to compare single spectra with spectral databases
@@ -50,25 +56,51 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       new OptionalParameter<>(new DoubleParameter("Use precursor m/z",
           "Use precursor m/z as a filter. Precursor m/z of library entry and this scan need to be within m/z tolerance. Entries without precursor m/z are skipped.",
           MZmineCore.getConfiguration().getMZFormat(), 0d));
+  public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
+      "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries");
 
   public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
       "Signals below this level will be filtered away from mass lists",
       MZmineCore.getConfiguration().getIntensityFormat(), 0d);
 
-  public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cosine similarity",
-      "Minimum cosine similarity. (All signals in the masslist are compared against all spectral library entries. "
-          + "Considers only signals which were found in both the masslist and the library entry)",
-      new DecimalFormat("0.00"), 0.95);
-
   public static final IntegerParameter minMatch = new IntegerParameter("Minimum  matched signals",
       "Minimum number of matched signals in spectra and spectral library entry (within mz tolerance)",
       20);
 
+  public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
+      new OptionalModuleParameter<MassListDeisotoperParameters>("13C deisotoping",
+          "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
+
+  public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
+      new ModuleComboParameter<>("Similarity",
+          "Algorithm to calculate similarity and filter matches",
+          SpectralSimilarityFunction.FUNCTIONS);
+
   public SpectraIdentificationSpectralDatabaseParameters() {
-    super(new Parameter[] {dataBaseFile, massList, mzTolerance, usePrecursorMZ, noiseLevel,
-        minCosine, minMatch});
+    super(new Parameter[] {massList, dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, noiseLevel,
+        deisotoping, mzTolerance, minMatch, similarityFunction});
   }
 
+
+
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    if ((getParameters() == null) || (getParameters().length == 0))
+      return ExitCode.OK;
+    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+
+    // only enable precursor mz tolerance if precursor mz is used
+    OptionalModuleComponent usePreComp =
+        (OptionalModuleComponent) dialog.getComponentForParameter(usePrecursorMZ);
+    JComponent mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
+    mzTolPrecursor.setEnabled(getParameter(usePrecursorMZ).getValue());
+    usePreComp.addItemListener(e -> {
+      mzTolPrecursor.setEnabled(usePreComp.isSelected());
+    });
+
+    dialog.setVisible(true);
+    return dialog.getExitCode();
+  }
 
   public ExitCode showSetupDialog(Scan scan, Window parent, boolean valueCheckRequired) {
     // set precursor mz to parameter if MS2 scan
@@ -78,6 +110,6 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
     else
       this.getParameter(usePrecursorMZ).setValue(false);
 
-    return super.showSetupDialog(parent, valueCheckRequired);
+    return this.showSetupDialog(parent, valueCheckRequired);
   }
 }
