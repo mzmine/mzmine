@@ -40,6 +40,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -89,7 +90,9 @@ public class LibraryMetaDataParameters extends SimpleParameterSet {
       new StringParameter("SMILES", "Structure as SMILES code", "", false);
   public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
   public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
-      "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"));
+      "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"), 0d);
+  public static final IntegerParameter MS_LEVEL =
+      new IntegerParameter("MSLEVEL", "MS level of scan", 2, 1, 100);
 
   public static final OptionalParameter<DoubleParameter> EXPORT_RT = new OptionalParameter<>(
       new DoubleParameter("RT", "Retention time", MZmineCore.getConfiguration().getRTFormat(), 0d),
@@ -101,8 +104,8 @@ public class LibraryMetaDataParameters extends SimpleParameterSet {
   public LibraryMetaDataParameters() {
     super(new Parameter[] {
         // Always set
-        PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, EXPORT_RT, INSTRUMENT_NAME,
-        INSTRUMENT, ION_SOURCE, ACQUISITION, IONMODE, FRAGMENTATION_METHOD,
+        MS_LEVEL, PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, EXPORT_RT,
+        INSTRUMENT_NAME, INSTRUMENT, ION_SOURCE, ACQUISITION, IONMODE, FRAGMENTATION_METHOD,
         // newly introduced
         FORMULA,
         // optional

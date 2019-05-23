@@ -66,7 +66,8 @@ public class MSPEntryGenerator {
         + meta.getParameter(LibraryMetaDataParameters.COMPOUND_NAME).getValue() + br);
     s.append(DBEntryField.INCHIKEY.getNistMspID() + def
         + meta.getParameter(LibraryMetaDataParameters.INCHI_AUX).getValue() + br);
-    s.append(DBEntryField.MS_LEVEL.getNistMspID() + def + "MS2" + br);
+    s.append(DBEntryField.MS_LEVEL.getNistMspID() + def
+        + meta.getParameter(LibraryMetaDataParameters.MS_LEVEL).getValue() + br);
     s.append(DBEntryField.INSTRUMENT_TYPE.getNistMspID() + def
         + meta.getParameter(LibraryMetaDataParameters.INSTRUMENT).getValue() + br);
     s.append(DBEntryField.INSTRUMENT.getNistMspID() + def
@@ -76,13 +77,20 @@ public class MSPEntryGenerator {
         + meta.getParameter(LibraryMetaDataParameters.FRAGMENTATION_METHOD).getValue() + br);
     s.append(DBEntryField.FORMULA.getNistMspID() + def
         + meta.getParameter(LibraryMetaDataParameters.FORMULA).getValue() + br);
-    s.append(DBEntryField.EXACT_MASS.getNistMspID() + def
-        + meta.getParameter(LibraryMetaDataParameters.EXACT_MASS).getValue() + br);
 
-    s.append(DBEntryField.MZ.getNistMspID() + def
-        + param.getParameter(LibrarySubmitIonParameters.MZ).getValue() + br);
-    s.append(DBEntryField.IONTYPE.getNistMspID() + def
-        + param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue() + br);
+    Double exact = meta.getParameter(LibraryMetaDataParameters.EXACT_MASS).getValue();
+    if (exact != null)
+      s.append(DBEntryField.EXACT_MASS.getNistMspID() + def + exact + br);
+
+    Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
+    if (precursorMZ != null)
+      s.append(DBEntryField.MZ.getNistMspID() + def
+          + param.getParameter(LibrarySubmitIonParameters.MZ).getValue() + br);
+
+    String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
+    if (adduct == null || adduct.trim().isEmpty())
+      s.append(DBEntryField.IONTYPE.getNistMspID() + def
+          + param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue() + br);
 
     if (exportRT) {
       Double rt =

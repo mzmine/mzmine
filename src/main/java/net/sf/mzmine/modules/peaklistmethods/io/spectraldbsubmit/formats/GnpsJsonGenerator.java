@@ -65,12 +65,17 @@ public class GnpsJsonGenerator {
     // tag spectrum from mzmine2
     json.add(DBEntryField.SOFTWARE.getGnpsJsonID(), "mzmine2");
     // ion specific
-    json.add(DBEntryField.MZ.getGnpsJsonID(),
-        param.getParameter(LibrarySubmitIonParameters.MZ).getValue());
-    json.add(DBEntryField.CHARGE.getGnpsJsonID(),
-        param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue());
-    json.add(DBEntryField.IONTYPE.getGnpsJsonID(),
-        param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue());
+    Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
+    if (precursorMZ != null)
+      json.add(DBEntryField.MZ.getGnpsJsonID(), precursorMZ);
+
+    Integer charge = param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue();
+    if (charge != null)
+      json.add(DBEntryField.CHARGE.getGnpsJsonID(), charge);
+
+    String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
+    if (adduct == null || adduct.trim().isEmpty())
+      json.add(DBEntryField.IONTYPE.getGnpsJsonID(), adduct);
 
     if (exportRT) {
       Double rt =
