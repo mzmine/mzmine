@@ -48,9 +48,11 @@ public class AutoLibraryParser extends SpectralDBParser {
     if (json.accept(dataBaseFile)) {
       // test Gnps and MONA json parser
       SpectralDBParser[] parser =
-          new SpectralDBParser[] {new GnpsJsonParser(bufferEntries, processor),
-              new MonaJsonParser(bufferEntries, processor)};
+          new SpectralDBParser[] {new MonaJsonParser(bufferEntries, processor),
+              new GnpsJsonParser(bufferEntries, processor)};
       for (SpectralDBParser p : parser) {
+        if (mainTask.isCanceled())
+          return false;
         try {
           boolean state = p.parse(mainTask, dataBaseFile);
           if (state)
@@ -82,9 +84,11 @@ public class AutoLibraryParser extends SpectralDBParser {
       if (state)
         return state;
     }
-
-    throw (new UnsupportedFormatException(
-        "Format not supported: " + dataBaseFile.getAbsolutePath()));
+    if (mainTask.isCanceled())
+      return false;
+    else
+      throw (new UnsupportedFormatException(
+          "Format not supported: " + dataBaseFile.getAbsolutePath()));
   }
 
 }

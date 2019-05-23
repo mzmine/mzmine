@@ -178,6 +178,12 @@ public class SpectralMatchTask extends AbstractTask {
       totalSteps = list.size();
       matches = new ArrayList<>();
       for (SpectralDBEntry ident : list) {
+        if (isCanceled()) {
+          logger.info("Added " + count + " spectral library matches (before being cancelled)");
+          repaintWindow();
+          return;
+        }
+
         SpectraSimilarity sim = spectraDBMatch(spectraMassList, ident);
         if (sim != null) {
           count++;
@@ -206,12 +212,16 @@ public class SpectralMatchTask extends AbstractTask {
     }
 
     // Repaint the window to reflect the change in the peak list
-    Desktop desktop = MZmineCore.getDesktop();
-    if (!(desktop instanceof HeadLessDesktop))
-      desktop.getMainWindow().repaint();
+    repaintWindow();
 
     list = null;
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void repaintWindow() {
+    Desktop desktop = MZmineCore.getDesktop();
+    if (!(desktop instanceof HeadLessDesktop))
+      desktop.getMainWindow().repaint();
   }
 
   /**

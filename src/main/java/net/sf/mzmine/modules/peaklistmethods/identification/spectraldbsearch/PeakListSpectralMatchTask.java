@@ -145,6 +145,11 @@ public class PeakListSpectralMatchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     for (PeakListRow row : peakList.getRows()) {
+      if (isCanceled()) {
+        logger.info("Added " + count + " spectral library matches (before being cancelled)");
+        repaintWindow();
+        return;
+      }
 
       // check for MS1 or MSMS scan
       Scan scan;
@@ -193,12 +198,16 @@ public class PeakListSpectralMatchTask extends AbstractTask {
       logger.info("Added " + count + " spectral library matches");
 
     // Repaint the window to reflect the change in the peak list
-    Desktop desktop = MZmineCore.getDesktop();
-    if (!(desktop instanceof HeadLessDesktop))
-      desktop.getMainWindow().repaint();
+    repaintWindow();
 
     list = null;
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void repaintWindow() {
+    Desktop desktop = MZmineCore.getDesktop();
+    if (!(desktop instanceof HeadLessDesktop))
+      desktop.getMainWindow().repaint();
   }
 
   /**
