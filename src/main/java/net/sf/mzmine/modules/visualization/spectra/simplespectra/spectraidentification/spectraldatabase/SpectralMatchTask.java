@@ -110,11 +110,10 @@ public class SpectralMatchTask extends AbstractTask {
         .getValue();
     mzToleranceSpectra = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
-    if (usePrecursorMZ)
-      mzTolerancePrecursor = parameters
-          .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
-    else
-      mzTolerancePrecursor = null;
+    mzTolerancePrecursor = parameters
+        .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerancePrecursor)
+        .getValue();
+
     noiseLevel = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.noiseLevel)
         .getValue();
 
