@@ -19,12 +19,10 @@
 package net.sf.mzmine.parameters.parametertypes.tolerances;
 
 import java.util.Collection;
-
-import net.sf.mzmine.parameters.UserParameter;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import net.sf.mzmine.parameters.UserParameter;
 
 public class MZToleranceParameter implements UserParameter<MZTolerance, MZToleranceComponent> {
 
@@ -41,6 +39,12 @@ public class MZToleranceParameter implements UserParameter<MZTolerance, MZTolera
   public MZToleranceParameter(String name, String description) {
     this.name = name;
     this.description = description;
+  }
+
+  public MZToleranceParameter(String name, String description, double deltaMZ, double ppm) {
+    this.name = name;
+    this.description = description;
+    value = new MZTolerance(deltaMZ, ppm);
   }
 
   @Override

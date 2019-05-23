@@ -26,13 +26,14 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
@@ -50,14 +51,18 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
 
   public static final MassListParameter massList = new MassListParameter();
 
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+      "Spectral m/z tolerance",
+      "Tolerance to match spectral signals in the query and library spectra (usually higher than precursor m/z tolerance (if used))",
+      0.0015, 10);
 
   public static final OptionalParameter<DoubleParameter> usePrecursorMZ =
       new OptionalParameter<>(new DoubleParameter("Use precursor m/z",
           "Use precursor m/z as a filter. Precursor m/z of library entry and this scan need to be within m/z tolerance. Entries without precursor m/z are skipped.",
           MZmineCore.getConfiguration().getMZFormat(), 0d));
-  public static final MZToleranceParameter mzTolerancePrecursor = new MZToleranceParameter(
-      "Precursor m/z tolerance", "Precursor m/z tolerance is used to filter library entries");
+  public static final MZToleranceParameter mzTolerancePrecursor =
+      new MZToleranceParameter("Precursor m/z tolerance",
+          "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
 
   public static final DoubleParameter noiseLevel = new DoubleParameter("Minimum ion intensity",
       "Signals below this level will be filtered away from mass lists",
@@ -68,8 +73,13 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       20);
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
-      new OptionalModuleParameter<MassListDeisotoperParameters>("13C deisotoping",
+      new OptionalModuleParameter<>("13C deisotoping",
           "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
+
+  public static final BooleanParameter cropSpectraToOverlap = new BooleanParameter(
+      "Crop spectra to m/z overlap",
+      "Crop query and library spectra to overlapping m/z range (+- spectra m/z tolerance). This is helptful if spectra were acquired with different fragmentation energies / methods.",
+      true);
 
   public static final ModuleComboParameter<SpectralSimilarityFunction> similarityFunction =
       new ModuleComboParameter<>("Similarity",
@@ -78,7 +88,7 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
 
   public SpectraIdentificationSpectralDatabaseParameters() {
     super(new Parameter[] {massList, dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, noiseLevel,
-        deisotoping, mzTolerance, minMatch, similarityFunction});
+        deisotoping, cropSpectraToOverlap, mzTolerance, minMatch, similarityFunction});
   }
 
 
@@ -90,8 +100,8 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
     ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
 
     // only enable precursor mz tolerance if precursor mz is used
-    OptionalModuleComponent usePreComp =
-        (OptionalModuleComponent) dialog.getComponentForParameter(usePrecursorMZ);
+    OptionalParameterComponent usePreComp =
+        (OptionalParameterComponent) dialog.getComponentForParameter(usePrecursorMZ);
     JComponent mzTolPrecursor = dialog.getComponentForParameter(mzTolerancePrecursor);
     mzTolPrecursor.setEnabled(getParameter(usePrecursorMZ).getValue());
     usePreComp.addItemListener(e -> {

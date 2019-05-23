@@ -95,6 +95,9 @@ public class SpectralMatchTask extends AbstractTask {
   private boolean removeIsotopes;
   private MassListDeisotoperParameters deisotopeParam;
 
+  // crop to overlapping range (+- mzTol)
+  private final boolean cropSpectraToOverlap;
+
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan, SpectraIdentificationResultsWindow resultWindow) {
     this.startEntry = startEntry;
@@ -110,11 +113,10 @@ public class SpectralMatchTask extends AbstractTask {
         .getValue();
     mzToleranceSpectra = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
-    if (usePrecursorMZ)
-      mzTolerancePrecursor = parameters
-          .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
-    else
-      mzTolerancePrecursor = null;
+    mzTolerancePrecursor = parameters
+        .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerancePrecursor)
+        .getValue();
+
     noiseLevel = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.noiseLevel)
         .getValue();
 
@@ -131,6 +133,8 @@ public class SpectralMatchTask extends AbstractTask {
         parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping).getValue();
     deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
         .getEmbeddedParameters();
+    cropSpectraToOverlap =
+        parameters.getParameter(LocalSpectralDBSearchParameters.cropSpectraToOverlap).getValue();
   }
 
   /**
@@ -179,6 +183,12 @@ public class SpectralMatchTask extends AbstractTask {
       totalSteps = list.size();
       matches = new ArrayList<>();
       for (SpectralDBEntry ident : list) {
+        if (isCanceled()) {
+          logger.info("Added " + count + " spectral library matches (before being cancelled)");
+          repaintWindow();
+          return;
+        }
+
         SpectraSimilarity sim = spectraDBMatch(spectraMassList, ident);
         if (sim != null) {
           count++;
@@ -207,12 +217,16 @@ public class SpectralMatchTask extends AbstractTask {
     }
 
     // Repaint the window to reflect the change in the peak list
-    Desktop desktop = MZmineCore.getDesktop();
-    if (!(desktop instanceof HeadLessDesktop))
-      desktop.getMainWindow().repaint();
+    repaintWindow();
 
     list = null;
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void repaintWindow() {
+    Desktop desktop = MZmineCore.getDesktop();
+    if (!(desktop instanceof HeadLessDesktop))
+      desktop.getMainWindow().repaint();
   }
 
   /**
@@ -224,13 +238,19 @@ public class SpectralMatchTask extends AbstractTask {
   private SpectraSimilarity spectraDBMatch(DataPoint[] spectraMassList, SpectralDBEntry ident) {
     // do not check precursorMZ or precursorMZ within tolerances
     if (!usePrecursorMZ || (checkPrecursorMZ(precursorMZ, ident))) {
-      DataPoint[] dps = ident.getDataPoints();
+      DataPoint[] library = ident.getDataPoints();
       if (removeIsotopes)
-        dps = removeIsotopes(dps);
+        library = removeIsotopes(library);
+
+      DataPoint[] query = spectraMassList;
+      if (cropSpectraToOverlap) {
+        DataPoint[][] cropped = ScanAlignment.cropToOverlap(mzToleranceSpectra, library, query);
+        library = cropped[0];
+        query = cropped[1];
+      }
 
       // check spectra similarity
-      SpectraSimilarity sim = createSimilarity(dps, spectraMassList);
-      return sim;
+      return createSimilarity(library, query);
     }
     return null;
   }
