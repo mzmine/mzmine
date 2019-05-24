@@ -44,7 +44,7 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
         MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
             entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
-            entry.getField(DBEntryField.FORMULA).orElse(""), // molevular formula
+            entry.getField(DBEntryField.FORMULA).orElse(""), // molecular formula
             entry.getField(DBEntryField.IONTYPE).orElse(""), // Ion type
             COS_FORM.format(similarity.getCosine())), // cosine similarity
         entry.getField(DBEntryField.FORMULA).orElse("").toString(), method, "", "");
