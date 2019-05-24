@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import java.util.stream.IntStream;
+
 import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.main.MZmineCore;
@@ -37,27 +38,24 @@ import org.apache.commons.math.distribution.FDistribution;
 import org.apache.commons.math.distribution.FDistributionImpl;
 import smile.stat.hypothesis.TTest;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class SignificanceTask extends AbstractTask {
 
   private static final double LOG_OF_2 = Math.log(2.0);
 
-  private static final String FOLD_CHANGE_KEY = "LOG2_FOLD_CHANGE";
-  private static final String P_VALUE_KEY = "STUDENT_P_VALUE";
-  private static final String T_VALUE_KEY = "STUDENT_T_VALUE";
+  private static final String P_VALUE_KEY = "ANOVA_P_VALUE";
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
   private double finishedPercentage = 0.0;
 
   private final PeakListRow[] peakListRows;
   private final UserParameter userParameter;
-//    private String controlGroupName;
-//    private String experimentalGroupName;
 
   public SignificanceTask(PeakListRow[] peakListRows, ParameterSet parameters) {
     this.peakListRows = peakListRows;
     this.userParameter = parameters.getParameter(SignificanceParameters.selectionData).getValue();
-//        this.controlGroupName = parameters.getParameter(SignificanceParameters.controlGroupName).getValue();
-//        this.experimentalGroupName = parameters.getParameter(SignificanceParameters.experimentalGroupName).getValue();
   }
 
   public String getTaskDescription() {
@@ -128,71 +126,21 @@ public class SignificanceTask extends AbstractTask {
             .toArray();
       }
 
-      oneWayAnova(intensityGroups);
+      Double pValue = oneWayAnova(intensityGroups);
 
-      // Calculating log2 fold change
+      if (pValue == null) {
+        continue;
+      }
 
-//      double controlAverageIntensity = Arrays.stream(controlGroupIntensities)
-//          .average()
-//          .orElse(0.0);
-//
-//      double experimentalAverageIntensity = Arrays.stream(experimentalGroupIntensities)
-//          .average()
-//          .orElse(0.0);
-//
-//      double log2FoldChange = 0.0;
-//      if (controlAverageIntensity > 0.0 && experimentalAverageIntensity > 0.0) {
-//        log2FoldChange = log2(experimentalAverageIntensity / controlAverageIntensity);
-//      } else if (experimentalAverageIntensity > 0.0) {
-//        log2FoldChange = Double.POSITIVE_INFINITY;
-//      } else if (controlAverageIntensity > 0.0) {
-//        log2FoldChange = Double.NEGATIVE_INFINITY;
-//      }
-//
-//      // Calculating Student's t-test
-//
-//      TTest tTest = null;
-//      try {
-//        tTest = TTest.test(controlGroupIntensities, experimentalGroupIntensities, false);
-//      } catch (IllegalArgumentException e) {
-//        logger.warning(e.getMessage());
-//      }
-
-      // Saving results
-
-//      PeakInformation peakInformation = row.getPeakInformation();
-//      if (peakInformation == null) {
-//        peakInformation = new SimplePeakInformation();
-//      }
-//
-//      if (tTest != null) {
-//        peakInformation.getAllProperties().put(P_VALUE_KEY, Double.toString(tTest.pvalue));
-//        peakInformation.getAllProperties().put(T_VALUE_KEY, Double.toString(tTest.t));
-//      }
-//
-//      peakInformation.getAllProperties().put(FOLD_CHANGE_KEY, Double.toString(log2FoldChange));
-//
-//      row.setPeakInformation(peakInformation);
+      // Save results
+      PeakInformation peakInformation = row.getPeakInformation();
+      if (peakInformation == null) {
+        peakInformation = new SimplePeakInformation();
+      }
+      peakInformation.getAllProperties().put(P_VALUE_KEY, pValue.toString());
+      row.setPeakInformation(peakInformation);
     }
   }
-
-  private static double log2(double x) {
-    return Math.log(x) / LOG_OF_2;
-  }
-
-//  private Set<RawDataFile> getGroup(String template) {
-//
-//    Set<RawDataFile> groupFiles = new HashSet<>();
-//    for (PeakListRow row : peakListRows) {
-//      for (RawDataFile file : row.getRawDataFiles()) {
-//        if (file.getName().contains(template)) {
-//          groupFiles.add(file);
-//        }
-//      }
-//    }
-//
-//    return groupFiles;
-//  }
 
   private List<Set<RawDataFile>> getGroups(UserParameter factor) {
 
@@ -220,7 +168,7 @@ public class SignificanceTask extends AbstractTask {
     for (Object paramValue : paramValues) {
       groups.add(paramMap.entrySet()
           .stream()
-          .filter(paramValue::equals)
+          .filter(e -> paramValue.equals(e.getValue()))
           .map(Entry::getKey)
           .collect(Collectors.toSet()));
     }
@@ -228,7 +176,8 @@ public class SignificanceTask extends AbstractTask {
     return groups;
   }
 
-  private void oneWayAnova(double[][] intensityGroups) {
+  @Nullable
+  private Double oneWayAnova(@Nonnull double[][] intensityGroups) {
 
     int numGroups = intensityGroups.length;
     long numIntensities = Arrays.stream(intensityGroups)
@@ -260,24 +209,29 @@ public class SignificanceTask extends AbstractTask {
     long degreesOfFreedomOfTreatment = numGroups - 1;
     long degreesOfFreedomOfError = numIntensities - numGroups;
 
-    // TODO: if degrees == 0
+    if (degreesOfFreedomOfTreatment == 0 || degreesOfFreedomOfError == 0) {
+      return null;
+    }
 
     double meanSquareOfTreatment = sumOfSquaresOfTreatment / degreesOfFreedomOfTreatment;
     double meanSquareOfError = sumOfSquaresOfError / degreesOfFreedomOfError;
 
-    // TODO: if MSE == 0
+    if (meanSquareOfError == 0.0) {
+      return null;
+    }
 
     double anovaStatistics = meanSquareOfTreatment / meanSquareOfError;
 
-    FDistribution distribution = new FDistributionImpl(degreesOfFreedomOfTreatment, degreesOfFreedomOfError);
-    double pValue;
+    FDistribution distribution = new FDistributionImpl(degreesOfFreedomOfTreatment,
+        degreesOfFreedomOfError);
+    Double pValue;
     try {
       pValue = 1.0 - distribution.cumulativeProbability(anovaStatistics);
-    }
-    catch (MathException e) {
-      pValue = 1.0;
+    } catch (MathException e) {
+      logger.warning("Error during F-distribution calculation: " + e.getMessage());
+      pValue = null;
     }
 
-
+    return pValue;
   }
 }
