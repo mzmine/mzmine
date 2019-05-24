@@ -28,39 +28,34 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param;
 
 import java.text.DecimalFormat;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.CompoundSource;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Instrument;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.IonSource;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.Polarity;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.CompoundSource;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.Instrument;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.IonSource;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats.GnpsValues.Polarity;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
-import net.sf.mzmine.parameters.parametertypes.PasswordParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 /**
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class LibrarySubmitParameters extends SimpleParameterSet {
+public class LibraryMetaDataParameters extends SimpleParameterSet {
+
 
   /**
    * TODO difference of COMPOUND MASS and EXACT mass
    * 
-   * @author r_schm33
-   *
    */
-
-
   public static final ComboParameter<CompoundSource> ACQUISITION =
       new ComboParameter<>("ACQUISITION", "", CompoundSource.values(), CompoundSource.Crude);
   public static final ComboParameter<Polarity> IONMODE =
@@ -70,18 +65,6 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final ComboParameter<IonSource> ION_SOURCE =
       new ComboParameter<>("IONSOURCE", "", IonSource.values(), IonSource.LC_ESI);
 
-  // save to local file
-  public static final OptionalParameter<FileNameParameter> LOCALFILE =
-      new OptionalParameter<>(new FileNameParameter("Local file", "Local library file"), false);
-  public static final BooleanParameter EXPORT_GNPS_JSON = new BooleanParameter(
-      "Export GNPS json file", "The GNPS library submission json format", true);
-  public static final BooleanParameter EXPORT_MSP =
-      new BooleanParameter("Export NIST msp file", "The NIST msp library format", true);
-  // user and password
-  public static final BooleanParameter SUBMIT_GNPS =
-      new BooleanParameter("Submit to GNPS", "Submit new entry to GNPS library", true);
-  public static final StringParameter USERNAME = new StringParameter("username", "", "", true);
-  public static final PasswordParameter PASSWORD = new PasswordParameter("password", "", "", true);
   // all general parameters
   public static final StringParameter DESCRIPTION =
       new StringParameter("description", "", "", false);
@@ -108,7 +91,8 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   public static final StringParameter FORMULA = new StringParameter("FORMULA", "", "", false);
   public static final DoubleParameter EXACT_MASS = new DoubleParameter("EXACTMASS",
       "Monoisotopic neutral mass of compound", new DecimalFormat("0.000###"), 0d);
-
+  public static final IntegerParameter MS_LEVEL =
+      new IntegerParameter("MSLEVEL", "MS level of scan", 2, true, 1, 100);
 
   public static final OptionalParameter<DoubleParameter> EXPORT_RT = new OptionalParameter<>(
       new DoubleParameter("RT", "Retention time", MZmineCore.getConfiguration().getRTFormat(), 0d),
@@ -117,18 +101,11 @@ public class LibrarySubmitParameters extends SimpleParameterSet {
   // is not used: this would override MZ (the precursor MZ)
   // public static final DoubleParameter MOLECULE_MASS = new DoubleParameter("MOLECULEMASS",
   // "Exact precursor m/z", MZmineCore.getConfiguration().getMZFormat(), 0d);
-
-  public LibrarySubmitParameters() {
+  public LibraryMetaDataParameters() {
     super(new Parameter[] {
-        // save to local file
-        LOCALFILE, EXPORT_GNPS_JSON, EXPORT_MSP,
-        // submit to online library
-        SUBMIT_GNPS,
-        // username password
-        USERNAME, PASSWORD,
         // Always set
-        PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, EXPORT_RT, INSTRUMENT_NAME,
-        INSTRUMENT, ION_SOURCE, ACQUISITION, IONMODE, FRAGMENTATION_METHOD,
+        MS_LEVEL, PI, DATA_COLLECTOR, DESCRIPTION, COMPOUND_NAME, EXACT_MASS, EXPORT_RT,
+        INSTRUMENT_NAME, INSTRUMENT, ION_SOURCE, ACQUISITION, IONMODE, FRAGMENTATION_METHOD,
         // newly introduced
         FORMULA,
         // optional
