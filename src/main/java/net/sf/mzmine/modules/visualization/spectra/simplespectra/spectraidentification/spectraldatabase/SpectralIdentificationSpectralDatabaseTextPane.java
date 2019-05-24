@@ -17,7 +17,6 @@
  */
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
-import java.awt.Dimension;
 import javax.swing.JTextPane;
 
 public class SpectralIdentificationSpectralDatabaseTextPane extends JTextPane {
@@ -47,7 +46,6 @@ public class SpectralIdentificationSpectralDatabaseTextPane extends JTextPane {
     this.setText(parsedStr);
     this.setToolTipText(databaseEntry);
     this.setEditable(false);
-    this.setPreferredSize(new Dimension(250, 100));
   }
 
 }
