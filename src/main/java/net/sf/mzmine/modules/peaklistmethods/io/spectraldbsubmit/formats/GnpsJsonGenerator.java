@@ -27,13 +27,17 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.formats;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObjectBuilder;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibraryMetaDataParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 
@@ -52,25 +56,30 @@ public class GnpsJsonGenerator {
    * @return
    */
   public static String generateJSON(LibrarySubmitIonParameters param, DataPoint[] dps) {
-    LibrarySubmitParameters meta = (LibrarySubmitParameters) param
+    LibraryMetaDataParameters meta = (LibraryMetaDataParameters) param
         .getParameter(LibrarySubmitIonParameters.META_PARAM).getValue();
 
-    boolean exportRT = meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getValue();
+    boolean exportRT = meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getValue();
 
     JsonObjectBuilder json = Json.createObjectBuilder();
     // tag spectrum from mzmine2
     json.add(DBEntryField.SOFTWARE.getGnpsJsonID(), "mzmine2");
     // ion specific
-    json.add(DBEntryField.MZ.getGnpsJsonID(),
-        param.getParameter(LibrarySubmitIonParameters.MZ).getValue());
-    json.add(DBEntryField.CHARGE.getGnpsJsonID(),
-        param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue());
-    json.add(DBEntryField.IONTYPE.getGnpsJsonID(),
-        param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue());
+    Double precursorMZ = param.getParameter(LibrarySubmitIonParameters.MZ).getValue();
+    if (precursorMZ != null)
+      json.add(DBEntryField.MZ.getGnpsJsonID(), precursorMZ);
+
+    Integer charge = param.getParameter(LibrarySubmitIonParameters.CHARGE).getValue();
+    if (charge != null)
+      json.add(DBEntryField.CHARGE.getGnpsJsonID(), charge);
+
+    String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
+    if (adduct != null && !adduct.trim().isEmpty())
+      json.add(DBEntryField.IONTYPE.getGnpsJsonID(), adduct);
 
     if (exportRT) {
       Double rt =
-          meta.getParameter(LibrarySubmitParameters.EXPORT_RT).getEmbeddedParameter().getValue();
+          meta.getParameter(LibraryMetaDataParameters.EXPORT_RT).getEmbeddedParameter().getValue();
       if (rt != null)
         json.add(DBEntryField.RT.getGnpsJsonID(), rt);
     }
@@ -80,10 +89,7 @@ public class GnpsJsonGenerator {
 
     // add meta data
     for (Parameter<?> p : meta.getParameters()) {
-      if (!p.getName().equals("username") && !p.getName().equals("password")
-          && !p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())
-          && !p.getName().equals(LibrarySubmitParameters.SUBMIT_GNPS.getName())
-          && !p.getName().equals(LibrarySubmitParameters.EXPORT_RT.getName())) {
+      if (!p.getName().equals(LibraryMetaDataParameters.EXPORT_RT.getName())) {
         String key = p.getName();
         Object value = p.getValue();
         if (value instanceof Double) {
@@ -117,11 +123,12 @@ public class GnpsJsonGenerator {
    * @return
    */
   private static JsonArray genJSONData(DataPoint[] dps) {
+    NumberFormat mzForm = new DecimalFormat("0.######");
     JsonArrayBuilder data = Json.createArrayBuilder();
     JsonArrayBuilder signal = Json.createArrayBuilder();
     for (DataPoint dp : dps) {
       // round to five digits. thats more than enough
-      signal.add(((int) (dp.getMZ() * 100000)) / 100000.d);
+      signal.add(mzForm.format(dp.getMZ()));
       signal.add(dp.getIntensity());
       data.add(signal.build());
     }

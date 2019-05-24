@@ -1,0 +1,76 @@
+<html>
+	<head>
+		<title>Spectral library creation/submission to GNPS</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Spectral library creation/submission to GNPS</h1>
+
+<h2>Description</h2>
+<p>
+This module allows to create local spectral libraries and the direct submission of library entries to the GNPS library. Please provide rich metadata if you submit to GNPS.
+</p>
+
+
+<h3>Scan selection and preprocessing</h3>
+<dl>
+<dt>Mass lists</dt>
+	<dd>Any scan needs a mass list (run mass detection)</dd>
+<dt>Noise level</dt>
+	<dd>A mass list is usually already thresholded - still this noise level is a fast way to remove noisy signals</dd>
+<dt>Min signals</dt>
+	<dd>Spectra are filtered out if their number of signals is below min signals</dd>
+<dt>Sorting</dt>
+	<dd>Sorting mode to show the "best" spectra first</dd>
+<dt></dt>
+	<dd></dd>
+</dl>
+
+<h3>Export and submission</h3>
+<dl>
+<dt>Local file</dt>
+	<dd>Specify a local file (file format will be added based on further format selections)</dd>
+<dt>Export GNPS json file</dt>
+	<dd>Export library as GNPS json (library submission) format</dd>
+<dt>Export NIST msp file</dt>
+	<dd>Export library as msp file format which is used by different software tools</dd>
+<dt>Submit to GNPS</dt>
+	<dd>Directly submit all library entries to the GNPS library (username and password is mandatory)</dd>
+</dl>
+
+<h3>Metadata</h3>
+<dl>
+<dt>PI</dt>
+	<dd>Prinziple investigator</dd>
+<dt>Exact mass</dt>
+	<dd>The exact mass of the neutral uncharged molecule</dd>
+<dt>RT (retention time)</dt>
+	<dd>Export retention time (optional)</dd>
+<dt>INCHIAUX</dt>
+	<dd>InChIKey</dd>
+<dt>Pubmed</dt>
+	<dd>Pubmed ID of publication</dd>
+</dl>
+
+
+<h3>Spectrum related metadata</h3>
+<dl>
+<dt>Adduct</dt>
+	<dd>The ion type of this spectrum</dd>
+<dt>Charge</dt>
+	<dd>Charge of the precursor of this spectrum</dd>
+<dt>Precursor m/z</dt>
+	<dd>Precursor m/z of this spectrum</dd>
+</dl>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Limit by RT edges</dt>
+<dd>Use the feature's retention time edges to filter MS2 scans. Only scans within the feature's RT range are considered</dd>
+</dl>
+
+</body>
+</html>

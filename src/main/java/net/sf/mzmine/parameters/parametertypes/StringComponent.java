@@ -17,9 +17,9 @@
  */
 package net.sf.mzmine.parameters.parametertypes;
 
-import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentListener;
 
 public class StringComponent extends JPanel {
 
@@ -46,5 +46,9 @@ public class StringComponent extends JPanel {
   @Override
   public void setToolTipText(String toolTip) {
     textField.setToolTipText(toolTip);
+  }
+
+  public void addDocumentListener(DocumentListener dl) {
+    textField.getDocument().addDocumentListener(dl);;
   }
 }
