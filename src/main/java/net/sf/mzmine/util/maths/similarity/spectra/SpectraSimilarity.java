@@ -18,9 +18,12 @@
 
 package net.sf.mzmine.util.maths.similarity.spectra;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.util.DataPointSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.scans.ScanAlignment;
 
 public class SpectraSimilarity {
@@ -38,20 +41,25 @@ public class SpectraSimilarity {
     this.overlap = overlap;
   }
 
-  public SpectraSimilarity(String name, double cosine, int overlap, DataPoint[] library,
-      DataPoint[] query, List<DataPoint[]> alignedDP) {
+  public SpectraSimilarity(String name, double cosine, int overlap, DataPoint[] librarySpec,
+      DataPoint[] querySpec, List<DataPoint[]> alignedDP) {
+    DataPointSorter sorter = new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
     this.name = name;
     this.cosine = cosine;
     this.overlap = overlap;
-    this.library = library;
-    this.query = query;
+    this.library = librarySpec;
+    this.query = querySpec;
+    if (this.library != null)
+      Arrays.sort(this.library, sorter);
+    if (this.query != null)
+      Arrays.sort(this.query, sorter);
     if (alignedDP != null) {
       // filter unaligned
-      List<DataPoint[]> filtered = new ArrayList<>(alignedDP);
-      ScanAlignment.removeUnaligned(filtered);
-      aligned = new DataPoint[2][];
-      aligned[0] = filtered.get(0);
-      aligned[1] = filtered.get(1);
+      List<DataPoint[]> filtered = ScanAlignment.removeUnaligned(alignedDP);
+      aligned = ScanAlignment.convertBackToMassLists(filtered);
+
+      for (DataPoint[] dp : aligned)
+        Arrays.sort(dp, sorter);
     }
   }
 

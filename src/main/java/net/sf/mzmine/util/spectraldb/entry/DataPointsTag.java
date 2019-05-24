@@ -20,4 +20,21 @@ package net.sf.mzmine.util.spectraldb.entry;
 
 public enum DataPointsTag {
   ORIGINAL, FILTERED, ALIGNED, MERGED;
+
+  /**
+   * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
+   * 
+   * @return
+   */
+  public String toRemainderString() {
+    switch (this) {
+      case ORIGINAL:
+        return "filtered";
+      case FILTERED:
+        return "unaligned";
+      case ALIGNED:
+        return "aligned";
+    }
+    return "";
+  }
 }

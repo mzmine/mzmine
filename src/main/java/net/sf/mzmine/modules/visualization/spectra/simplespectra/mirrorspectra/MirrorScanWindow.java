@@ -18,16 +18,21 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.XYPlot;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
+import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
+import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
-import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
+import net.sf.mzmine.util.spectraldb.entry.DataPointsTag;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
@@ -93,8 +98,8 @@ public class MirrorScanWindow extends JFrame {
    * @param row
    * @param db
    */
-  public void setScans(PeakListRow row, SpectralDBPeakIdentity db) {
-    Scan scan = row.getBestFragmentation();
+  public void setScans(SpectralDBPeakIdentity db) {
+    Scan scan = db.getQueryScan();
     if (scan == null)
       return;
     // scan a
@@ -106,21 +111,81 @@ public class MirrorScanWindow extends JFrame {
     double precursorMZB = db.getEntry().getPrecursorMZ();
     Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
     DataPoint[] dpsB = db.getEntry().getDataPoints();
-    this.setScans("", precursorMZA, rtA, dpsA, "database", precursorMZB, rtB, dpsB);
+
+
+    contentPane.removeAll();
+    // create without data
+    mirrorSpecrumPlot = SpectrumChartFactory.createMirrorChartPanel(
+        "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getName(),
+        precursorMZB, rtB, null, false, true);
+    mirrorSpecrumPlot.setMaximumDrawWidth(4200);
+    mirrorSpecrumPlot.setMaximumDrawHeight(2500);
+    // add data
+    DataPointsTag[] tags =
+        new DataPointsTag[] {DataPointsTag.ORIGINAL, DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
+    Color[] colors = new Color[] {Color.black, new Color(0xF57C00), new Color(0x388E3C)};
+    DataPoint[][] query = new DataPoint[tags.length][];
+    DataPoint[][] library = new DataPoint[tags.length][];
+    for (int i = 0; i < tags.length; i++) {
+      DataPointsTag tag = tags[i];
+      query[i] = db.getQueryDataPoints(tag);
+      library[i] = db.getLibraryDataPoints(tag);
+    }
+
+    // add datasets and renderer
+    // set up renderer
+    CombinedDomainXYPlot domainPlot =
+        (CombinedDomainXYPlot) mirrorSpecrumPlot.getChart().getXYPlot();
+    NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
+    axis.setLabel("m/z");
+    XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
+    XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
+
+    // add all datapoints to a dataset that are not present in subsequent masslist
+    for (int i = 0; i < tags.length; i++) {
+      DataPointsTag tag = tags[i];
+      PseudoSpectrumDataSet qdata =
+          new PseudoSpectrumDataSet(true, "Query " + tag.toRemainderString());
+      for (DataPoint dp : query[i]) {
+        // not contained in other
+        if (notInSubsequentMassList(dp, query, i))
+          qdata.addDP(dp.getMZ(), dp.getIntensity(), null);
+      }
+
+      PseudoSpectrumDataSet ldata =
+          new PseudoSpectrumDataSet(true, "Library " + tag.toRemainderString());
+      for (DataPoint dp : library[i]) {
+        if (notInSubsequentMassList(dp, library, i))
+          ldata.addDP(dp.getMZ(), dp.getIntensity(), null);
+      }
+
+      Color color = colors[i];
+      PseudoSpectraRenderer renderer = new PseudoSpectraRenderer(color, false);
+      PseudoSpectraRenderer renderer2 = new PseudoSpectraRenderer(color, false);
+
+      queryPlot.setDataset(i, qdata);
+      queryPlot.setRenderer(i, renderer);
+
+      libraryPlot.setDataset(i, ldata);
+      libraryPlot.setRenderer(i, renderer2);
+    }
+
+    contentPane.add(mirrorSpecrumPlot, BorderLayout.CENTER);
+    contentPane.revalidate();
+    contentPane.repaint();
   }
 
 
-  public void setScans(Scan scan, SpectralDBEntry ident) {
-    if (scan == null)
-      return;
-    // scan a
-    double rtA = scan.getRetentionTime();
-    DataPoint[] dpsA = scan.getDataPoints();
 
-    //
-    Double rtB = (Double) ident.getField(DBEntryField.RT).orElse(0d);
-    DataPoint[] dpsB = ident.getDataPoints();
-    this.setScans(scan.getScanDefinition(), 0.0, rtA, dpsA, "database", 0.0, rtB, dpsB);
+  private boolean notInSubsequentMassList(DataPoint dp, DataPoint[][] query, int current) {
+    for (int i = current + 1; i < query.length; i++) {
+      for (DataPoint b : query[i]) {
+        if (Double.compare(dp.getMZ(), b.getMZ()) == 0
+            && Double.compare(dp.getIntensity(), b.getIntensity()) == 0)
+          return false;
+      }
+    }
+    return true;
   }
 
   public EChartPanel getMirrorSpecrumPlot() {

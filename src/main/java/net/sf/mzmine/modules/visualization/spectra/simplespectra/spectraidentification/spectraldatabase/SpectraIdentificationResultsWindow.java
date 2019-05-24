@@ -46,9 +46,6 @@ import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.CombinedDomainXYPlot;
-import org.jfree.chart.plot.XYPlot;
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
@@ -56,12 +53,9 @@ import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
-import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
-import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
-import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.components.ComponentCellRenderer;
@@ -151,7 +145,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
    * @param hit
    * @return
    */
-  private JPanel createPanel(Scan scan, SpectralDBPeakIdentity hit) {
+  private JPanel createPanel(SpectralDBPeakIdentity hit) {
     JPanel panel = new JPanel(new BorderLayout());
 
     JSplitPane spectrumPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -441,30 +435,30 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
     // get mirror spectra window
     MirrorScanWindow mirrorWindow = new MirrorScanWindow();
-    mirrorWindow.setScans(scan, hit.getEntry());
+    mirrorWindow.setScans(hit);
 
-    // get spectra plot
-    EChartPanel spectraPlots = mirrorWindow.getMirrorSpecrumPlot();
-    // spectraPlots.setPreferredSize(new Dimension(500, 400));
-
-    // set up renderer
-    PseudoSpectraRenderer renderer1 = new PseudoSpectraRenderer(Color.blue, false);
-    PseudoSpectraRenderer renderer2 = new PseudoSpectraRenderer(randomCol, false);
-
-    spectraPlots.getChart().getLegend().setVisible(false);
-    CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) spectraPlots.getChart().getXYPlot();
-    NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
-    axis.setLabel("m/z");
-    XYPlot spectrumPlot = (XYPlot) domainPlot.getSubplots().get(0);
-    spectrumPlot.setRenderer(renderer1);
-    XYPlot databaseSpectrumPlot = (XYPlot) domainPlot.getSubplots().get(1);
-    databaseSpectrumPlot.setRenderer(renderer2);
+    // // get spectra plot
+    // EChartPanel spectraPlots = mirrorWindow.getMirrorSpecrumPlot();
+    // // spectraPlots.setPreferredSize(new Dimension(500, 400));
+    //
+    // // set up renderer
+    // PseudoSpectraRenderer renderer1 = new PseudoSpectraRenderer(Color.blue, false);
+    // PseudoSpectraRenderer renderer2 = new PseudoSpectraRenderer(randomCol, false);
+    //
+    // spectraPlots.getChart().getLegend().setVisible(false);
+    // CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) spectraPlots.getChart().getXYPlot();
+    // NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
+    // axis.setLabel("m/z");
+    // XYPlot spectrumPlot = (XYPlot) domainPlot.getSubplots().get(0);
+    // spectrumPlot.setRenderer(renderer1);
+    // XYPlot databaseSpectrumPlot = (XYPlot) domainPlot.getSubplots().get(1);
+    // databaseSpectrumPlot.setRenderer(renderer2);
 
     JScrollPane metaDataPanelScrollPane =
         new JScrollPane(metaDataPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-    spectrumPane.add(spectraPlots);
+    spectrumPane.add(mirrorWindow.getMirrorSpecrumPlot());
     spectrumPane.add(metaDataPanelScrollPane);
     spectrumPane.setResizeWeight(1);
     spectrumPane.setEnabled(false);
@@ -480,11 +474,11 @@ public class SpectraIdentificationResultsWindow extends JFrame {
    * @param scan
    * @param match
    */
-  public synchronized void addMatches(Scan scan, SpectralDBPeakIdentity match) {
+  public synchronized void addMatches(SpectralDBPeakIdentity match) {
     if (!totalMatches.contains(match)) {
       // add
       totalMatches.add(match);
-      matchPanels.put(match, createPanel(scan, match));
+      matchPanels.put(match, createPanel(match));
 
       // sort and show
       sortTotalMatches();
@@ -497,13 +491,13 @@ public class SpectraIdentificationResultsWindow extends JFrame {
    * @param scan
    * @param matches
    */
-  public synchronized void addMatches(Scan scan, List<SpectralDBPeakIdentity> matches) {
+  public synchronized void addMatches(List<SpectralDBPeakIdentity> matches) {
     // add all
     for (SpectralDBPeakIdentity match : matches) {
       if (!totalMatches.contains(match)) {
         // add
         totalMatches.add(match);
-        matchPanels.put(match, createPanel(scan, match));
+        matchPanels.put(match, createPanel(match));
       }
     }
     // sort and show

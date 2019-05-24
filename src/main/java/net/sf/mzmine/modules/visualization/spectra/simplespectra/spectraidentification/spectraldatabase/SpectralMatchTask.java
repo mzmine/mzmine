@@ -340,7 +340,7 @@ public class SpectralMatchTask extends AbstractTask {
         errorCounter++;
       }
     }
-    resultWindow.addMatches(currentScan, matches);
+    resultWindow.addMatches(matches);
     resultWindow.revalidate();
     resultWindow.repaint();
     setStatus(TaskStatus.FINISHED);

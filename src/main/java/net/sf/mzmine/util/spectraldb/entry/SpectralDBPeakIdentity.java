@@ -20,9 +20,13 @@ package net.sf.mzmine.util.spectraldb.entry;
 
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.util.DataPointSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
 
 public class SpectralDBPeakIdentity extends SimplePeakIdentity {
@@ -90,7 +94,10 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
     switch (tag) {
       case ORIGINAL:
         DataPoint[] dp = getQueryDataPoints();
-        return dp == null ? new DataPoint[0] : getQueryDataPoints();
+        if (dp == null)
+          return new DataPoint[0];
+        Arrays.sort(dp, new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
+        return dp;
       case FILTERED:
         return similarity.getQuery();
       case ALIGNED:

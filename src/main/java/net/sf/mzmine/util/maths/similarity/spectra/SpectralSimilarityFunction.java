@@ -63,7 +63,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
    * @return
    */
   public List<DataPoint[]> alignDataPoints(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
-    return ScanAlignment.align(mzTol, b, a);
+    return ScanAlignment.align(mzTol, a, b);
   }
 
   /**
