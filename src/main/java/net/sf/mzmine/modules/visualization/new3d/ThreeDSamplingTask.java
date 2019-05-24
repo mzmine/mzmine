@@ -212,7 +212,7 @@ class ThreeDSamplingTask extends AbstractTask {
       Platform.setImplicitExit(false);
       Platform.runLater(new Runnable() { 
     	  public void run() {
-		      New3DJavafxStage newStage = new New3DJavafxStage(finalIntensityValues); 
+		      New3DJavafxStage newStage = new New3DJavafxStage(finalIntensityValues,rtResolution,mzResolution); 
 		      newStage.show();
 	      }
       });
