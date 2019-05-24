@@ -22,9 +22,13 @@ import java.awt.Color;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CombinedDomainXYPlot;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.ui.RectangleEdge;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Scan;
@@ -169,6 +173,18 @@ public class MirrorScanWindow extends JFrame {
       libraryPlot.setDataset(i, ldata);
       libraryPlot.setRenderer(i, renderer2);
     }
+
+    // add legend
+    LegendItem item;
+    LegendItemCollection collection = new LegendItemCollection();
+    for (int i = 0; i < tags.length; i++) {
+      item = new LegendItem(tags[i].toRemainderString(), colors[i]);
+      collection.add(item);
+    }
+    mirrorSpecrumPlot.getChart().removeLegend();
+    LegendTitle legend = new LegendTitle(() -> collection);
+    legend.setPosition(RectangleEdge.BOTTOM);
+    mirrorSpecrumPlot.getChart().addLegend(legend);
 
     contentPane.add(mirrorSpecrumPlot, BorderLayout.CENTER);
     contentPane.revalidate();

@@ -437,23 +437,6 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     MirrorScanWindow mirrorWindow = new MirrorScanWindow();
     mirrorWindow.setScans(hit);
 
-    // // get spectra plot
-    // EChartPanel spectraPlots = mirrorWindow.getMirrorSpecrumPlot();
-    // // spectraPlots.setPreferredSize(new Dimension(500, 400));
-    //
-    // // set up renderer
-    // PseudoSpectraRenderer renderer1 = new PseudoSpectraRenderer(Color.blue, false);
-    // PseudoSpectraRenderer renderer2 = new PseudoSpectraRenderer(randomCol, false);
-    //
-    // spectraPlots.getChart().getLegend().setVisible(false);
-    // CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) spectraPlots.getChart().getXYPlot();
-    // NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
-    // axis.setLabel("m/z");
-    // XYPlot spectrumPlot = (XYPlot) domainPlot.getSubplots().get(0);
-    // spectrumPlot.setRenderer(renderer1);
-    // XYPlot databaseSpectrumPlot = (XYPlot) domainPlot.getSubplots().get(1);
-    // databaseSpectrumPlot.setRenderer(renderer2);
-
     JScrollPane metaDataPanelScrollPane =
         new JScrollPane(metaDataPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
