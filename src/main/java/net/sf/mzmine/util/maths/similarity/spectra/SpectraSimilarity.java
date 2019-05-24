@@ -18,15 +18,43 @@
 
 package net.sf.mzmine.util.maths.similarity.spectra;
 
+import java.util.ArrayList;
+import java.util.List;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.util.scans.ScanAlignment;
+
 public class SpectraSimilarity {
   private double cosine;
   private int overlap;
+  private String name;
 
-  public SpectraSimilarity(double cosine, int overlap) {
-    super();
+  private DataPoint[] library;
+  private DataPoint[] query;
+  private DataPoint[][] aligned;
+
+  public SpectraSimilarity(String name, double cosine, int overlap) {
+    this.name = name;
     this.cosine = cosine;
     this.overlap = overlap;
   }
+
+  public SpectraSimilarity(String name, double cosine, int overlap, DataPoint[] library,
+      DataPoint[] query, List<DataPoint[]> alignedDP) {
+    this.name = name;
+    this.cosine = cosine;
+    this.overlap = overlap;
+    this.library = library;
+    this.query = query;
+    if (alignedDP != null) {
+      // filter unaligned
+      List<DataPoint[]> filtered = new ArrayList<>(alignedDP);
+      ScanAlignment.removeUnaligned(filtered);
+      aligned = new DataPoint[2][];
+      aligned[0] = filtered.get(0);
+      aligned[1] = filtered.get(1);
+    }
+  }
+
 
   /**
    * Number of overlapping signals
@@ -46,4 +74,19 @@ public class SpectraSimilarity {
     return cosine;
   }
 
+  public String getFunctionName() {
+    return name;
+  }
+
+  public DataPoint[] getLibrary() {
+    return library;
+  }
+
+  public DataPoint[] getQuery() {
+    return query;
+  }
+
+  public DataPoint[][] getAligned() {
+    return aligned;
+  }
 }

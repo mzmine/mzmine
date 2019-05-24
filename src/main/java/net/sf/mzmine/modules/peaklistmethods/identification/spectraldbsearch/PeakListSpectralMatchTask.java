@@ -171,7 +171,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
       if (scan != null) {
         try {
           // get mass list and perform deisotoping if active
-          DataPoint[] rowMassList = getDataPoints(row);
+          DataPoint[] rowMassList = getDataPoints(row, true);
           if (removeIsotopes)
             rowMassList = removeIsotopes(rowMassList);
 
@@ -288,28 +288,43 @@ public class PeakListSpectralMatchTask extends AbstractTask {
    * @return
    * @throws MissingMassListException
    */
-  private DataPoint[] getDataPoints(PeakListRow row) throws MissingMassListException {
-    MassList masses;
+  private DataPoint[] getDataPoints(PeakListRow row, boolean noiseFilter)
+      throws MissingMassListException {
+    Scan scan = getScan(row);
+    if (scan == null || scan.getMassList(massListName) == null)
+      return new DataPoint[0];
+
+    MassList masses = scan.getMassList(massListName);
+    DataPoint[] dps = masses.getDataPoints();
+    if (noiseFilter)
+      return ScanUtils.getFiltered(dps, noiseLevel);
+    else
+      return dps;
+  }
+
+  public Scan getScan(PeakListRow row) throws MissingMassListException {
+    final Scan scan;
     if (msLevel == 1) {
-      masses = row.getBestPeak().getRepresentativeScan().getMassList(massListName);
+      scan = row.getBestPeak().getRepresentativeScan();
     } else if (msLevel >= 2) {
       // first entry is the best scan
       List<Scan> scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minMatch,
           ScanSortMode.MAX_TIC);
       if (scans.isEmpty())
-        return new DataPoint[0];
-      masses = scans.get(0).getMassList(massListName);
+        return null;
+      else
+        scan = scans.get(0);
     } else
-      masses = null;
-    if (masses == null)
-      return new DataPoint[0];
-    DataPoint[] dps = masses.getDataPoints();
-    return ScanUtils.getFiltered(dps, noiseLevel);
+      scan = null;
+
+    return scan;
   }
 
-  private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectraSimilarity sim) {
+  private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectraSimilarity sim)
+      throws MissingMassListException {
     // add new identity to the row
-    row.addPeakIdentity(new SpectralDBPeakIdentity(ident, sim, METHOD), false);
+    row.addPeakIdentity(new SpectralDBPeakIdentity(getScan(row), massListName, ident, sim, METHOD),
+        false);
 
     // Notify the GUI about the change in the project
     MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);

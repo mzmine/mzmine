@@ -37,7 +37,7 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
    */
   @Override
   public SpectraSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
-      DataPoint[] a, DataPoint[] b) {
+      DataPoint[] library, DataPoint[] query) {
     Weights weights =
         parameters.getParameter(WeightedCosineSpectralSimilarityParameters.weight).getValue();
     double minCos =
@@ -46,7 +46,7 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
         .getParameter(WeightedCosineSpectralSimilarityParameters.removeUnmatched).getValue();
 
     // align
-    List<DataPoint[]> aligned = align(mzTol, a, b);
+    List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
     // removes all signals which were not found in both masslists
     if (removeUnmatched)
       aligned = removeUnaligned(aligned);
@@ -59,13 +59,12 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
           ScanAlignment.toIntensityMatrixWeighted(aligned, weights.getIntensity(), weights.getMz());
       double diffCosine = Similarity.COSINE.calc(diffArray);
       if (diffCosine >= minCos)
-        return new SpectraSimilarity(diffCosine, overlap);
+        return new SpectraSimilarity(getName(), diffCosine, overlap, library, query, aligned);
       else
         return null;
     }
     return null;
   }
-
 
   @Override
   @Nonnull

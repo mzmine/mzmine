@@ -20,6 +20,8 @@ package net.sf.mzmine.util.spectraldb.entry;
 
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
 
@@ -29,8 +31,11 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
   private final SpectralDBEntry entry;
   private final SpectraSimilarity similarity;
 
-  public SpectralDBPeakIdentity(SpectralDBEntry entry, SpectraSimilarity similarity,
-      String method) {
+  private Scan queryScan;
+  private String massListName;
+
+  public SpectralDBPeakIdentity(Scan queryScan, String massListName, SpectralDBEntry entry,
+      SpectraSimilarity similarity, String method) {
     super(
         MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
@@ -41,6 +46,8 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
         entry.getField(DBEntryField.FORMULA).orElse("").toString(), method, "", "");
     this.entry = entry;
     this.similarity = similarity;
+    this.queryScan = queryScan;
+    this.massListName = massListName;
   }
 
   public SpectralDBEntry getEntry() {
@@ -49,6 +56,49 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
 
   public SpectraSimilarity getSimilarity() {
     return similarity;
+  }
+
+  public Scan getQueryScan() {
+    return queryScan;
+  }
+
+  public String getMassListName() {
+    return massListName;
+  }
+
+  public DataPoint[] getQueryDataPoints() {
+    if (massListName == null || queryScan == null || queryScan.getMassList(massListName) == null)
+      return null;
+    return queryScan.getMassList(massListName).getDataPoints();
+  }
+
+  public DataPoint[] getLibraryDataPoints(DataPointsTag tag) {
+    switch (tag) {
+      case ORIGINAL:
+        return entry.getDataPoints();
+      case FILTERED:
+        return similarity.getLibrary();
+      case ALIGNED:
+        return similarity.getAligned()[0];
+      case MERGED:
+        return new DataPoint[0];
+    }
+    return new DataPoint[0];
+  }
+
+  public DataPoint[] getQueryDataPoints(DataPointsTag tag) {
+    switch (tag) {
+      case ORIGINAL:
+        DataPoint[] dp = getQueryDataPoints();
+        return dp == null ? new DataPoint[0] : getQueryDataPoints();
+      case FILTERED:
+        return similarity.getQuery();
+      case ALIGNED:
+        return similarity.getAligned()[1];
+      case MERGED:
+        return new DataPoint[0];
+    }
+    return new DataPoint[0];
   }
 
 }

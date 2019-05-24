@@ -193,7 +193,7 @@ public class SpectralMatchTask extends AbstractTask {
         if (sim != null) {
           count++;
           // use SpectralDBPeakIdentity to store all resutls similar to peaklist method
-          matches.add(new SpectralDBPeakIdentity(ident, sim,
+          matches.add(new SpectralDBPeakIdentity(currentScan, massListName, ident, sim,
               SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
         }
         // next row

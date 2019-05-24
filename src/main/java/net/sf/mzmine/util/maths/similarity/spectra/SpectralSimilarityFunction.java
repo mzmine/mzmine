@@ -54,14 +54,15 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
 
 
   /**
-   * Align two mass lists
+   * Align two mass lists. Override if alignement is changed in a specific spectral similarity
+   * function.
    * 
    * @param mzTol
    * @param a
    * @param b
    * @return
    */
-  protected List<DataPoint[]> align(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
+  public List<DataPoint[]> alignDataPoints(MZTolerance mzTol, DataPoint[] a, DataPoint[] b) {
     return ScanAlignment.align(mzTol, b, a);
   }
 

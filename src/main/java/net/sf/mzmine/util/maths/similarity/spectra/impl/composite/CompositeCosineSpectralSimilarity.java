@@ -53,7 +53,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
         parameters.getParameter(CompositeCosineSpectralSimilarityParameters.minCosine).getValue();
 
     // align
-    List<DataPoint[]> aligned = align(mzTol, library, query);
+    List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
     int queryN = query.length;
     int overlap = calcOverlap(aligned);
 
@@ -72,7 +72,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
 
 
       if (composite >= minCos)
-        return new SpectraSimilarity(composite, overlap);
+        return new SpectraSimilarity(getName(), composite, overlap, library, query, aligned);
       else
         return null;
     }
