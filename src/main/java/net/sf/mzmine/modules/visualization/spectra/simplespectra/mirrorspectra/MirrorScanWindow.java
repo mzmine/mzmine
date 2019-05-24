@@ -112,7 +112,7 @@ public class MirrorScanWindow extends JFrame {
     DataPoint[] dpsA = scan.getDataPoints();
 
     //
-    double precursorMZB = db.getEntry().getPrecursorMZ();
+    Double precursorMZB = db.getEntry().getPrecursorMZ();
     Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
     DataPoint[] dpsB = db.getEntry().getDataPoints();
 
@@ -121,7 +121,7 @@ public class MirrorScanWindow extends JFrame {
     // create without data
     mirrorSpecrumPlot = SpectrumChartFactory.createMirrorChartPanel(
         "Query: " + scan.getScanDefinition(), precursorMZA, rtA, null, "Library: " + db.getName(),
-        precursorMZB, rtB, null, false, true);
+        precursorMZB == null ? 0 : precursorMZB, rtB, null, false, true);
     mirrorSpecrumPlot.setMaximumDrawWidth(4200);
     mirrorSpecrumPlot.setMaximumDrawHeight(2500);
     // add data
