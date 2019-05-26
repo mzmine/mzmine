@@ -37,6 +37,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -306,7 +307,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   @Override
   public void displayResults() {
     if (displayResults || getController().isLastTaskRunning()) {
-      getTargetPlot().addDataSet(compressIsotopeDataSets(getResults()), color, false);
+      getTargetPlot().addDataSet(new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), color, false);
     }
   }
 

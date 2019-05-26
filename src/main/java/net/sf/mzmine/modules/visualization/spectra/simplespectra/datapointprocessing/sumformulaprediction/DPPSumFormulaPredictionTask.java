@@ -333,7 +333,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     if(displayResults || getController().isLastTaskRunning()) {
       SpectraPlotUtils.clearDatasetLabelGenerators(getTargetPlot(), DPPResultsDataSet.class);
       DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(getTargetPlot());
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Sum formula prediction results", getResults()), color, false, labelGen);
+      getTargetPlot().addDataSet(new DPPResultsDataSet("Sum formula prediction results (" + getResults().length + ")", getResults()), color, false, labelGen);
     }
   }
 }

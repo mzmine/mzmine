@@ -337,9 +337,7 @@ public class DataPointProcessingManager implements MZmineModule {
 
   public boolean isEnabled() {
     getParameters();
-    Parameter<?> p = getParameters().getParameter(DataPointProcessingParameters.spectraProcessing);
-    
-    return (boolean) p.getValue();
+    return getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
   }
 
   public void setEnabled(boolean enabled) {

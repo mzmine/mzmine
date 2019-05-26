@@ -97,7 +97,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   public void displayResults() {
     // if this is the last task, display even if not checked.
     if (getController().isLastTaskRunning() || displayResults) {
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results", getResults()),
+      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results (" + getResults().length + ")", getResults()),
           color, false);
     }
   }
