@@ -27,6 +27,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController.ControllerStatus;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
@@ -336,7 +337,9 @@ public class DataPointProcessingManager implements MZmineModule {
 
   public boolean isEnabled() {
     getParameters();
-    return getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
+    Parameter<?> p = getParameters().getParameter(DataPointProcessingParameters.spectraProcessing);
+    
+    return (boolean) p.getValue();
   }
 
   public void setEnabled(boolean enabled) {

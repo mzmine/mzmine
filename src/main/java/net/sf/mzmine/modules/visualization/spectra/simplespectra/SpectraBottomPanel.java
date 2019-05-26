@@ -22,20 +22,21 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.logging.Logger;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
-
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -56,6 +57,8 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
   private JPanel topPanel, bottomPanel;
   private JComboBox<String> msmsSelector;
   private JComboBox<PeakList> peakListSelector;
+  private JCheckBox processingCbx;
+  private JButton processingParametersBtn ;
 
   private RawDataFile dataFile;
   private SpectraVisualizerWindow masterFrame;
@@ -78,7 +81,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     topPanel.setBackground(Color.white);
     topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
     add(topPanel, BorderLayout.CENTER);
-    
+
     topPanel.add(Box.createHorizontalStrut(10));
 
     JButton prevScanBtn =
@@ -96,10 +99,19 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     peakListSelector.addActionListener(masterFrame);
     peakListSelector.setActionCommand("PEAKLIST_CHANGE");
     topPanel.add(peakListSelector);
-    
-    JButton processingParametersBtn = GUIUtils.addButton(topPanel, "Spectra processing", null, masterFrame, "SET_PROCESSING_PARAMETERS");
+
+
+    processingCbx = GUIUtils.addCheckbox(topPanel, "Enable Processing", masterFrame,
+        "ENABLE_PROCESSING", "Enables quick scan processing.");
+    processingCbx.setBackground(Color.white);
+    processingCbx.setFont(smallFont);
+    updateProcessingCheckbox();
+
+    processingParametersBtn = GUIUtils.addButton(topPanel, "Spectra processing", null,
+        masterFrame, "SET_PROCESSING_PARAMETERS");
     processingParametersBtn.setBackground(Color.white);
     processingParametersBtn.setFont(smallFont);
+    updateProcessingButton();
 
     topPanel.add(Box.createHorizontalGlue());
 
@@ -108,7 +120,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     nextScanBtn.setFont(smallFont);
 
     topPanel.add(Box.createHorizontalStrut(10));
-    
+
     bottomPanel = new JPanel();
     bottomPanel.setBackground(Color.white);
     bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
@@ -218,4 +230,11 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
       rebuildPeakListSelector();
   }
 
+  public void updateProcessingCheckbox() {
+    processingCbx.setSelected(DataPointProcessingManager.getInst().isEnabled());
+  }
+  
+  public void updateProcessingButton() {
+    processingParametersBtn.setEnabled(DataPointProcessingManager.getInst().isEnabled()); 
+  }
 }

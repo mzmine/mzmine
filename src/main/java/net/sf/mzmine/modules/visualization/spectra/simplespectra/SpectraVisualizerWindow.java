@@ -100,6 +100,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
   // Current scan data set
   private ScanDataSet spectrumDataSet;
 
+  private ParameterSet paramSet;
+
   private static final double zoomCoefficient = 1.2f;
 
   public SpectraVisualizerWindow(RawDataFile dataFile) {
@@ -132,8 +134,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     pack();
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+    paramSet = MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
     WindowSettingsParameter settings =
         paramSet.getParameter(SpectraVisualizerParameters.windowSettings);
 
@@ -590,7 +591,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         }
       });
     }
-    
+
     if (command.equals("SPECTRALDATABASESEARCH")) {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
@@ -611,6 +612,18 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
               && DataPointProcessingManager.getInst().isEnabled()) {
             getSpectrumPlot().checkAndRunController();
           }
+        }
+      });
+    }
+
+    if (command.equals("ENABLE_PROCESSING")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+          inst.setEnabled(!inst.isEnabled());
+          bottomPanel.updateProcessingButton();
+          getSpectrumPlot().checkAndRunController();
         }
       });
     }

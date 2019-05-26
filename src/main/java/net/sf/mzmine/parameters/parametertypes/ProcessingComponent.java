@@ -98,14 +98,17 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       setParameters(getSelectedItem(tvProcessing));
     } else if (e.getActionCommand().equals("BTN_LOAD")) {
       final File file = chooser.getLoadFile(this);
-
-      DataPointProcessingQueue queue = DataPointProcessingQueue.loadFromFile(file);
-      setTreeViewProcessingItemsFromQueue(queue);
-      sendQueue();
+      if (file != null) {
+        DataPointProcessingQueue queue = DataPointProcessingQueue.loadFromFile(file);
+        setTreeViewProcessingItemsFromQueue(queue);
+        sendQueue();
+      }
     } else if (e.getActionCommand().equals("BTN_SAVE")) {
       final File file = chooser.getSaveFile(this, XML_EXTENSION);
-      DataPointProcessingQueue queue = getProcessingQueueFromTreeView();
-      queue.saveToFile(file);
+      if (file != null) {
+        DataPointProcessingQueue queue = getProcessingQueueFromTreeView();
+        queue.saveToFile(file);
+      }
     }
     // else if(e.getActionCommand().equals("BTN_SET_DEFAULT")) {
     // final File file = chooser.getLoadFile(DPPSetupWindow.getInstance().getFrame());

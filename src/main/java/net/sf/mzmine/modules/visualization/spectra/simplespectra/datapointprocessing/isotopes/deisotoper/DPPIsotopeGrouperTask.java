@@ -291,10 +291,10 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   }
 
 
-  @Override
+  /*@Override
   public String getTaskDescription() {
     return "Deisotoping of Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
-  }
+  }*/
 
   @Override
   public double getFinishedPercentage() {

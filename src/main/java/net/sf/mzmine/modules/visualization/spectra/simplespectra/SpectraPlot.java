@@ -430,7 +430,8 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
-    checkAndRunController();
+    if (dataSet instanceof ScanDataSet)
+      checkAndRunController();
   }
 
   // add Dataset with label generator
@@ -466,7 +467,8 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
-    checkAndRunController();
+    if (dataSet instanceof ScanDataSet)
+      checkAndRunController();
   }
 
 
@@ -497,20 +499,25 @@ public class SpectraPlot extends EChartPanel {
 
     // if controller != null, processing on the current spectra has already been executed. When
     // loading a new spectrum, the controller is set to null in removeAllDataSets()
-    if (controller != null || !isProcessingAllowed())
+    DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+    
+    if (!isProcessingAllowed() || !inst.isEnabled())
       return;
+    
+    if(controller != null)
+      controller = null;
 
+    // if a controller is re-run then delete previous results
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof DPPResultsDataSet) {
-        // if the processing was executed already, back out
-        return;
+         plot.setDataset(i, null);
       }
     }
+    
     // if enabled, do the data point processing as set up by the user
     XYDataset dataSet = getMainScanDataSet();
-    if (dataSet instanceof ScanDataSet && DataPointProcessingManager.getInst().isEnabled()) {
-      DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+    if (dataSet instanceof ScanDataSet) {
 
       controller = new DataPointProcessingController(inst.getProcessingQueue(), this,
           getMainScanDataSet().getDataPoints());

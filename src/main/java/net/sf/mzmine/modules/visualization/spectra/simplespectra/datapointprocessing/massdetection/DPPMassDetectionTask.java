@@ -54,11 +54,6 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
     color = parameterSet.getParameter(DPPMassDetectionParameters.datasetColor).getValue();
   }
 
-  @Override
-  public String getTaskDescription() {
-    return "Mass detection for Scan #"
-        + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
-  }
 
   @Override
   public double getFinishedPercentage() {
