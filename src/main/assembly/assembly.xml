@@ -31,6 +31,10 @@
 			</excludes>
 		</fileSet>
 		<fileSet>
+			<directory>src/main/log</directory>
+			<outputDirectory>log</outputDirectory>
+		</fileSet>
+		<fileSet>
 			<directory>src/main/icons</directory>
 			<outputDirectory>icons</outputDirectory>
 			<fileMode>0644</fileMode>

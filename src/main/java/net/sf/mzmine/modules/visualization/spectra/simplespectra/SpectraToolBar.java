@@ -46,6 +46,7 @@ public class SpectraToolBar extends JToolBar {
   static final Icon dbOnlineIcon = new ImageIcon("icons/DBOnlineIcon.png");
   static final Icon dbCustomIcon = new ImageIcon("icons/DBCustomIcon.png");
   static final Icon dbLipidsIcon = new ImageIcon("icons/DBLipidsIcon.png");
+  static final Icon dbSpectraIcon = new ImageIcon("icons/DBSpectraIcon.png");
   static final Icon sumFormulaIcon = new ImageIcon("icons/search.png");
   static final Icon processingIcon = new ImageIcon("icons/btnspectraprocessing.png");
 
@@ -92,6 +93,9 @@ public class SpectraToolBar extends JToolBar {
     GUIUtils.addButton(this, null, exportIcon, masterFrame, "EXPORT_SPECTRA",
         "Export spectra to spectra file");
 
+    GUIUtils.addButton(this, null, exportIcon, masterFrame, "CREATE_LIBRARY_ENTRY",
+        "Create spectral library entry");
+
     addSeparator();
 
     GUIUtils.addButton(this, null, dbOnlineIcon, masterFrame, "ONLINEDATABASESEARCH",
@@ -106,6 +110,11 @@ public class SpectraToolBar extends JToolBar {
 
     GUIUtils.addButton(this, null, dbLipidsIcon, masterFrame, "LIPIDSEARCH",
         "Select target lipid classes for annotation");
+
+    addSeparator();
+
+    GUIUtils.addButton(this, null, dbSpectraIcon, masterFrame, "SPECTRALDATABASESEARCH",
+        "Compare spectrum with spectral database");
 
     addSeparator();
 

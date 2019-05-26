@@ -91,7 +91,7 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
       "Criterion to choose a model peak in a cluster: either peak with the highest m/z-value or with the highest sharpness",
       new String[] {TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_MZ,
           TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_SHARPNESS},
-      TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_MZ);
+      TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_SHARPNESS);
 
   public static final ListDoubleRangeParameter MZ_VALUES = new ListDoubleRangeParameter(
       "Exclude m/z-values", "M/z-values to exclude while selecting model peak", false, null);

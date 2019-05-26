@@ -2,7 +2,6 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2;
 
 import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Chromatogram;
-import dulab.adap.datamodel.Peak;
 import dulab.adap.datamodel.PeakInfo;
 import net.sf.mzmine.datamodel.*;
 
@@ -11,8 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
 import java.util.logging.Logger;
 
@@ -97,10 +94,11 @@ public class ADAP3DecompositionV2Utils {
         continue;
       }
 
-      peaks.add(new BetterPeak(chromatogram, info));
+      BetterPeak betterPeak = new BetterPeak(row.getID(), chromatogram, info);
+      betterPeak.setParentId(peak.getParentChromatogramRowID());
+      peaks.add(betterPeak);
     }
 
-    // return FeatureTools.mergePeaks(peaks);
     return peaks;
   }
 

@@ -22,7 +22,6 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -30,7 +29,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
-
+import javax.swing.event.DocumentListener;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -105,6 +104,7 @@ public class MassListComponent extends JPanel implements ActionListener {
 
   /**
    * Method returns the list of all identified MassList names in scans
+   * 
    * @return unique MassList names
    */
   public static List<String> getMassListNames() {
@@ -124,5 +124,9 @@ public class MassListComponent extends JPanel implements ActionListener {
     }
 
     return names;
+  }
+
+  public void addDocumentListener(DocumentListener dl) {
+    nameField.getDocument().addDocumentListener(dl);
   }
 }

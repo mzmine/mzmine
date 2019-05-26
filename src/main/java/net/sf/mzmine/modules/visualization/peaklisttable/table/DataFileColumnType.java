@@ -28,7 +28,8 @@ public enum DataFileColumnType {
           Double.class), DURATION("Duration", Double.class), HEIGHT("Height", Double.class), AREA(
               "Area", Double.class), CHARGE("Charge", Integer.class), DATAPOINTS("# Data points",
                   Integer.class), FWHM("FWHM", Double.class), TF("Tailing factor",
-                      Double.class), AF("Asymmetry factor", Double.class);
+                      Double.class), AF("Asymmetry factor",
+                          Double.class), PARENT_ROW_ID("Parent Row ID", Integer.class);
 
   private final String columnName;
   private final Class<?> columnClass;

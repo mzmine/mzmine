@@ -34,9 +34,6 @@ public class ConsoleFormatter extends Formatter {
 
   public String format(LogRecord record) {
 
-    String loggerNameElements[] = record.getLoggerName().split("\\.");
-    String loggerName = loggerNameElements[loggerNameElements.length - 1];
-
     StringBuilder output = new StringBuilder(512);
     Date eventTime = new Date(record.getMillis());
 
@@ -45,7 +42,7 @@ public class ConsoleFormatter extends Formatter {
     output.append('|');
     output.append(record.getLevel());
     output.append('|');
-    output.append(loggerName);
+    output.append(record.getLoggerName());
     output.append("]: ");
     output.append(record.getMessage());
 

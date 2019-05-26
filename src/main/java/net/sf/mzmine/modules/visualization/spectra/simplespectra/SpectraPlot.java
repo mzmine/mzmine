@@ -191,6 +191,8 @@ public class SpectraPlot extends EChartPanel {
 
       GUIUtils.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
           "EXPORT_SPECTRA");
+      GUIUtils.addMenuItem(popupMenu, "Create spectral library entry", masterPlot,
+          "CREATE_LIBRARY_ENTRY");
 
       popupMenu.addSeparator();
 
@@ -377,6 +379,7 @@ public class SpectraPlot extends EChartPanel {
   /**
    * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
    */
+  @Override
   public void mouseClicked(MouseEvent event) {
 
     // let the parent handle the event (selection etc.)

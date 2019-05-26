@@ -71,4 +71,11 @@ public class MZToleranceComponent extends JPanel {
     ppmToleranceField.setToolTipText(toolTip);
   }
 
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    mzToleranceField.setEditable(enabled);
+    ppmToleranceField.setEditable(enabled);
+  }
+
 }

@@ -26,9 +26,8 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.xml.transform.TransformerConfigurationException;
-
+import org.xml.sax.SAXException;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -42,8 +41,6 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.StreamCopy;
-
-import org.xml.sax.SAXException;
 
 public class ProjectSavingTask extends AbstractTask {
 
@@ -77,6 +74,7 @@ public class ProjectSavingTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     if (currentSavedObjectName == null)
       return "Saving project";
@@ -86,6 +84,7 @@ public class ProjectSavingTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
 
     if (totalSaveItems == 0)
@@ -109,7 +108,7 @@ public class ProjectSavingTask extends AbstractTask {
         return 0;
     }
 
-    double progress = ((double) finishedSaveItems + currentItemProgress) / totalSaveItems;
+    double progress = (finishedSaveItems + currentItemProgress) / totalSaveItems;
 
     return progress;
   }
@@ -117,6 +116,7 @@ public class ProjectSavingTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#cancel()
    */
+  @Override
   public void cancel() {
 
     logger.info("Canceling saving of project to " + saveFile);
@@ -137,10 +137,9 @@ public class ProjectSavingTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
-
     try {
-
       logger.info("Saving project to " + saveFile);
       setStatus(TaskStatus.PROCESSING);
 
@@ -223,8 +222,10 @@ public class ProjectSavingTask extends AbstractTask {
       }
 
       logger.info("Finished saving the project to " + saveFile);
-
       setStatus(TaskStatus.FINISHED);
+
+      // add to last loaded projects
+      MZmineCore.getConfiguration().getLastProjectsParameter().addFile(saveFile);
 
     } catch (Throwable e) {
 

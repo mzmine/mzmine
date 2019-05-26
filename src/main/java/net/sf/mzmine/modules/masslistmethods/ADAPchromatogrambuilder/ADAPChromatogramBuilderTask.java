@@ -258,7 +258,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
         return;
       }
 
-      if (mzPeak == null) {
+      if (mzPeak == null || Double.isNaN(mzPeak.getMZ()) || Double.isNaN(mzPeak.getIntensity())) {
         // System.out.println("null Peak");
         continue;
       }

@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -45,6 +44,9 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -61,7 +63,8 @@ public class GNPSExportTask extends AbstractTask {
   private final File fileName;
   private final String plNamePattern = "{}";
   private int currentIndex = 0;
-
+  private final MsMsSpectraMergeParameters mergeParameters;
+  
   private final String massListName;
 
   GNPSExportTask(ParameterSet parameters) {
@@ -71,6 +74,12 @@ public class GNPSExportTask extends AbstractTask {
     this.fileName = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
 
     this.massListName = parameters.getParameter(GNPSExportAndSubmitParameters.MASS_LIST).getValue();
+
+    if (parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
+      mergeParameters = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getEmbeddedParameters();
+    } else {
+      mergeParameters = null;
+    }
   }
 
   @Override
@@ -182,8 +191,8 @@ public class GNPSExportTask extends AbstractTask {
 
         if (massList == null) {
           MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-              "There is no mass list called " + massListName + " for MS/MS scan #" + msmsScanNumber
-                  + " (" + bestPeak.getDataFile() + ")");
+                  "There is no mass list called " + massListName + " for MS/MS scan #" + msmsScanNumber
+                          + " (" + bestPeak.getDataFile() + ")");
           return;
         }
 
@@ -212,10 +221,20 @@ public class GNPSExportTask extends AbstractTask {
         writer.write("CHARGE=" + msmsCharge + msmsPolarity + newLine);
 
         writer.write("MSLEVEL=2" + newLine);
-
-        DataPoint peaks[] = massList.getDataPoints();
-        for (DataPoint peak : peaks) {
-          writer.write(peak.getMZ() + " " + peak.getIntensity() + newLine);
+        DataPoint[] dataPoints = massList.getDataPoints();
+        if (mergeParameters != null) {
+          MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
+          MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row, massListName);
+          if (spectrum!=null) {
+            dataPoints = spectrum.data;
+            writer.write("MERGED_STATS=");
+            writer.write(spectrum.getMergeStatsDescription());
+            writer.write(newLine);
+          }
+        }
+        for (DataPoint peak : dataPoints) {
+          writer.write(peak.getMZ() + " " + peak.getIntensity()
+                  + newLine);
         }
 
         writer.write("END IONS" + newLine);

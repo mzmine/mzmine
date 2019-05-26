@@ -32,6 +32,8 @@ import io.github.msdk.id.sirius.SiriusIdentificationMethod;
 import io.github.msdk.id.sirius.SiriusIonAnnotation;
 import io.github.msdk.util.IonTypeUtil;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -45,10 +47,14 @@ import java.util.concurrent.TimeoutException;
 
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.MZmineToMSDKMsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.TaskPriority;
+import net.sf.mzmine.util.exceptions.MissingMassListException;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 import org.openscience.cdk.formula.MolecularFormulaRange;
 import org.slf4j.Logger;
@@ -65,7 +71,7 @@ public class SiriusThread implements Runnable {
   private static final ExecutorService service = Executors.newSingleThreadExecutor();
 
   // Identification params
-  private final PeakListRow row;
+  private final PeakListRow peakListRow;
   private final String massListName;
   private final IonizationType ionType;
   private final MolecularFormulaRange range;
@@ -91,7 +97,7 @@ public class SiriusThread implements Runnable {
    * @param parameters
    * @param latch
    */
-  public SiriusThread(PeakListRow row, ParameterSet parameters, Semaphore semaphore,
+  public SiriusThread(PeakListRow peakListRow, ParameterSet parameters, Semaphore semaphore,
       CountDownLatch latch, PeakListIdentificationTask task) {
     ionType = parameters.getParameter(PeakListIdentificationParameters.ionizationType).getValue();
     range = parameters.getParameter(PeakListIdentificationParameters.ELEMENTS).getValue();
@@ -105,34 +111,33 @@ public class SiriusThread implements Runnable {
     this.task = task;
 
     this.semaphore = semaphore;
-    this.row = row;
+    this.peakListRow = peakListRow;
     this.latch = latch;
 
     MZTolerance mzTolerance =
         parameters.getParameter(PeakListIdentificationParameters.MZ_TOLERANCE).getValue();
-    double mz = row.getAverageMZ();
+    double mz = peakListRow.getAverageMZ();
     double upperPoint = mzTolerance.getToleranceRange(mz).upperEndpoint();
     deviationPpm = (upperPoint - mz) / (mz * 1E-6);
   }
 
   @Override
   public void run() {
-    List<MsSpectrum> ms1list, ms2list;
-    SpectrumScanner scanner;
+    List<MsSpectrum> ms1list = new ArrayList<>(), ms2list = new ArrayList<>();
 
     try {
-      scanner = new SpectrumScanner(row, massListName);
-      ms1list = scanner.getMsList();
-      ms2list = scanner.getMsMsList();
 
-      if (ms1list == null && ms2list == null) { // Skip this row
-        throw new EmptyListsException("Empty spectra lists");
+      Scan ms1Scan = peakListRow.getBestPeak().getRepresentativeScan();
+      Collection<Scan> top10ms2Scans = ScanUtils.selectBestMS2Scans(peakListRow, massListName, 10);
+
+
+      // Convert to MSDK data model
+      ms1list.add(new MZmineToMSDKMsScan(ms1Scan));
+      for (Scan s : top10ms2Scans) {
+        ms2list.add(new MZmineToMSDKMsScan(s));
       }
-    } catch (EmptyListsException el) {
-      logger.info("Skipped row {}, empty lists.", row.getID());
-      releaseResources();
-      return;
-    } catch (ScanMassListException e) {
+
+    } catch (MissingMassListException f) {
       releaseResources();
       task.remoteCancel("Scan does not have requested Mass List name [" + massListName + "]");
       return;
@@ -150,7 +155,7 @@ public class SiriusThread implements Runnable {
      */
     try {
       final SiriusIdentificationMethod method = new SiriusIdentificationMethod(ms1list, ms2list,
-          row.getAverageMZ(), siriusIon, siriusCandidates, constraints, deviationPpm);
+          peakListRow.getAverageMZ(), siriusIon, siriusCandidates, constraints, deviationPpm);
 
       // On some spectra it may never stop (halting problem), that's why interruptable thread is
       // used
@@ -160,9 +165,9 @@ public class SiriusThread implements Runnable {
       siriusResults = f.get(siriusTimer, TimeUnit.SECONDS);
       siriusMethod = method;
 
-      if (!scanner.peakContainsMsMs()) {
+      if (ms2list.isEmpty()) {
         /* If no MSMS spectra - add sirius results */
-        addSiriusCompounds(siriusResults, row, siriusCandidates);
+        addSiriusCompounds(siriusResults, peakListRow, siriusCandidates);
       } else {
         /* Initiate FingerId processing */
         Ms2Experiment experiment = siriusMethod.getExperiment();
@@ -170,7 +175,7 @@ public class SiriusThread implements Runnable {
           SiriusIonAnnotation annotation = (SiriusIonAnnotation) siriusResults.get(index);
           try {
             FingerIdWebMethodTask task =
-                new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, row);
+                new FingerIdWebMethodTask(annotation, experiment, fingeridCandidates, peakListRow);
             MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
             Thread.sleep(1000);
           } catch (InterruptedException interrupt) {
@@ -179,14 +184,14 @@ public class SiriusThread implements Runnable {
             /* If interrupted, store last item */
             List<IonAnnotation> lastItem = new LinkedList<>();
             lastItem.add(annotation);
-            addSiriusCompounds(lastItem, row, 1);
+            addSiriusCompounds(lastItem, peakListRow, 1);
           }
         }
       }
     } catch (InterruptedException | TimeoutException ie) {
-      logger.error("Timeout on Sirius method expired, abort. Row id = {}", row.getID());
+      logger.error("Timeout on Sirius method expired, abort. Row id = {}", peakListRow.getID());
     } catch (ExecutionException ce) {
-      logger.error("Concurrency error during Sirius method.  Row id = {}", row.getID());
+      logger.error("Concurrency error during Sirius method.  Row id = {}", peakListRow.getID());
     } finally {
       // Do not forget to release resources!
       releaseResources();

@@ -52,6 +52,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters;
@@ -62,11 +63,13 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.Single
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * Spectrum visualizer using JFreeChart library
@@ -210,7 +213,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     String windowTitle =
         "Spectrum: [" + dataFile.getName() + "; scan #" + currentScan.getScanNumber() + "]";
 
-    String spectrumTitle = dataFile.getName() + " scan" + currentScan.toString();
+    String spectrumTitle = ScanUtils.scanToString(currentScan, true);
 
     DataPoint basePeak = currentScan.getHighestDataPoint();
     if (basePeak != null) {
@@ -420,6 +423,13 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
       AxesSetupDialog dialog = new AxesSetupDialog(this, spectrumPlot.getXYPlot());
       dialog.setVisible(true);
     }
+    // library entry creation
+    if (command.equals("CREATE_LIBRARY_ENTRY")) {
+      // open window with all selected rows
+      MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
+      libraryWindow.setData(currentScan);
+      libraryWindow.setVisible(true);
+    }
 
     if (command.equals("EXPORT_SPECTRA")) {
 
@@ -577,6 +587,16 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
         @Override
         public void run() {
           SumFormulaSpectraSearchModule.showSpectraIdentificationDialog(currentScan, spectrumPlot);
+        }
+      });
+    }
+    
+    if (command.equals("SPECTRALDATABASESEARCH")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          SpectraIdentificationSpectralDatabaseModule.showSpectraIdentificationDialog(currentScan,
+              spectrumPlot);
         }
       });
     }

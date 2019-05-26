@@ -39,7 +39,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionTy
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * 3D visualizer module

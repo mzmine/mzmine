@@ -35,6 +35,7 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
+import net.sf.mzmine.parameters.parametertypes.PasswordParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
@@ -60,11 +61,18 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
       "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
       Preset.HIGHRES);
 
+  public static final StringParameter JOB_TITLE = new StringParameter("Job title",
+      "The title of the new GNPS feature-based molecular networking job", "", false);
   /**
    * Email to be notified on job status
    */
   public static final StringParameter EMAIL =
       new StringParameter("Email", "Email adresse for notifications about the job", "", false);
+  public static final StringParameter USER =
+      new StringParameter("Username", "Username for login", "", false);
+  public static final PasswordParameter PASSWORD = new PasswordParameter("Password (unencrypted)",
+      "The password is sent without encryption, until the server has has moved to its final destination.",
+      "", false);
 
   /**
    * Export ion identity network edges (if available)
@@ -81,6 +89,6 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
       new BooleanParameter("Open website", "Website of GNPS job", true);
 
   public GNPSSubmitParameters() {
-    super(new Parameter[] {META_FILE, PRESETS, EMAIL, OPEN_WEBSITE});
+    super(new Parameter[] {META_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
   }
 }

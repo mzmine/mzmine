@@ -55,7 +55,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
   }
 
   @Override
-  public Feature[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
+  public ResolvedPeak[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       double rTRangeMSMS) {
 
@@ -119,7 +119,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
       }
     }
 
-    return resolvedPeaks.toArray(new Feature[resolvedPeaks.size()]);
+    return resolvedPeaks.toArray(new ResolvedPeak[resolvedPeaks.size()]);
   }
 
   /**

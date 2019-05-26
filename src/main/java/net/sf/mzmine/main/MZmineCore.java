@@ -142,6 +142,7 @@ public final class MZmineCore {
       // Create the Swing GUI in the event-dispatching thread, as is
       // generally recommended
       Runnable desktopInit = new Runnable() {
+        @Override
         public void run() {
 
           logger.fine("Initializing GUI");
@@ -160,7 +161,6 @@ public final class MZmineCore {
 
               mainWindow.getMainMenu().addMenuItemForModule((MZmineRunnableModule) module);
             }
-
           }
         };
 
@@ -193,6 +193,19 @@ public final class MZmineCore {
       ParameterSet paramSet = configuration.getPreferences();
       WindowSettingsParameter settings = paramSet.getParameter(MZminePreferences.windowSetttings);
       settings.applySettingsToWindow(desktop.getMainWindow());
+
+      // add last project menu items
+      if (desktop instanceof MainWindow) {
+        ((MainWindow) desktop).createLastUsedProjectsMenu(configuration.getLastProjects());
+        // listen for changes
+        configuration.getLastProjectsParameter().addFileListChangedListener(list -> {
+          // new list of last used projects
+          Desktop desk = getDesktop();
+          if (desk instanceof MainWindow) {
+            ((MainWindow) desk).createLastUsedProjectsMenu(list);
+          }
+        });
+      }
 
       // show the GUI
       logger.info("Showing main window");

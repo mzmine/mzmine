@@ -11,17 +11,38 @@
 <h2>Description</h2>
 <p>
     This module exports all files needed for GNPS' feature based molecular networking. This includes the quant table (csv export) and an mgf with all MS2 spectra.
-    Optionally, a new GNPS job is submitted. This job can be cloned into a personal GNPS account. 
+    Optionally, a new GNPS job is submitted. This job can either be directly linked with a GNPS user profile (username and password are optional) or can be cloned into a personal GNPS account later on.<br>
+    <b>IMPORTANT:</b> The password is sent <b>without</b> encryption (until the server has moved to its final location with https).
 </p>
 
 <h2>Instructions</h2>
 <p>
-    Run this method on any peak list. MS2 spectra need to be associated to the features (usually done in peak deconvolution step).
+    Run this method on any peak list. MS2 spectra need to be associated to the features (usually done in the peak deconvolution step).
 </p>
+
+
+<h2>Parameters</h2>
+<dl>
+    <dt>Meta data file (optional)</dt>
+    <dd>Meta data for all raw data files (see GNPS documentation below)</dd>
+
+    <dt>Presets</dt>
+    <dd>GNPS parameter presets (clone the resulting job on the GNPS website to reconfigure parameters)</dd>
+    
+    <dt>Email (optional)</dt>
+    <dd>Receive a notification as soon as the job finishes</dd>
+    
+    <dt>Username and password (optional)</dt>
+    <dd>GNPS login credentials to link the new job to the user profile. </dd>
+    <dd><b>IMPORTANT:</b> The password is sent <b>without</b> encryption (until the server has moved to its final location with https).</dd>
+
+    <dt>Open website</dt>
+    <dd>Open the GNPS job in the standard web browser</dd>
+</dl>
 
 <h2>Documentation</h2>
 <p>
-    Please refer to the following documentation for detailed tutorial:
+    Please refer to the following documentation for a detailed tutorial:
     <ul>    
         <li> If you use the GNPS export module for 
             <a href="http://gnps.ucsd.edu/">GNPS web-platform<a/>, cite 
@@ -33,30 +54,6 @@
             molecular networking and MS/MS spectral library search.
     </ul>
 </p>
-<!--
-<h2>Parameters</h2>
-<dl>
-    <dt>FEATURE_ID</dt>
-    <dd>Row number in the peak list</dd>
 
-    <dt>PEPMASS</dt>
-    <dd>Mass of the peak. If each row in the peak list contains several peaks (e.g. after performing alignment), the
-        mass of the highest peak is chosen
-    </dd>
-
-    <dt>RTINSECONDS</dt>
-    <dd>Retention time of the peak. If each row in the peak list contains several peaks, the average retention time
-    is chosen</dd>
-
-    <dt>SCANS</dt>
-    <dd>The same as FEATURE_ID</dd>    
-
-    <dt>CHARGE</dt>
-    <dd>The charge for the specified row</dd>
-
-    <dt>MSLEVEL</dt>
-    <dd>Always equals 2</dd>
-</dl>
--->
 </body>
 </html>

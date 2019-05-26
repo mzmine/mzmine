@@ -20,7 +20,8 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import java.io.File;
 import java.util.logging.Logger;
-
+import java.util.ArrayList;
+import java.util.List;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -29,8 +30,10 @@ import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
+import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
+import net.sf.mzmine.main.MZmineCore;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Dimension;
 import ucar.nc2.Variable;
@@ -41,6 +44,11 @@ import ucar.ma2.DataType;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import ucar.ma2.DataType;
+import ucar.nc2.Attribute;
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFileWriter;
+import ucar.nc2.Variable;
 
 import ucar.nc2.Attribute;
 
@@ -81,10 +89,6 @@ public class MassDetectionTask extends AbstractTask {
 
     this.outFilename = MassDetectionParameters.outFilenameOption.getEmbeddedParameter().getValue();
 
-    // this.outFilename = parameters.getParameter(
-    // MassDetectionParameters.outFilenameOption
-    // .getEmbeddedParameter())
-    // .getValue();
   }
 
   /**
