@@ -43,7 +43,7 @@ import javax.annotation.Nullable;
 
 public class SignificanceTask extends AbstractTask {
 
-  private static final double LOG_OF_2 = Math.log(2.0);
+  private static final String EMPTY_STRING = "";
 
   private static final String P_VALUE_KEY = "ANOVA_P_VALUE";
 
@@ -128,16 +128,14 @@ public class SignificanceTask extends AbstractTask {
 
       Double pValue = oneWayAnova(intensityGroups);
 
-      if (pValue == null) {
-        continue;
-      }
-
       // Save results
       PeakInformation peakInformation = row.getPeakInformation();
       if (peakInformation == null) {
         peakInformation = new SimplePeakInformation();
       }
-      peakInformation.getAllProperties().put(P_VALUE_KEY, pValue.toString());
+      peakInformation.getAllProperties().put(
+          P_VALUE_KEY,
+          pValue == null ? EMPTY_STRING : pValue.toString());
       row.setPeakInformation(peakInformation);
     }
   }

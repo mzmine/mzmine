@@ -59,7 +59,12 @@ public class SignificanceParameters extends SimpleParameterSet {
         UserParameter[] newChoices = project.getParameters();
         getParameter(SignificanceParameters.selectionData).setChoices(newChoices);
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+        // Add a message
+        String message = "<html>To view the results of ANOVA test, export the peak list to CSV file "
+            + "and look for column ANOVA_P_VALUE. Click Help for details.</html>";
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+            parent, valueCheckRequired, this, message);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }

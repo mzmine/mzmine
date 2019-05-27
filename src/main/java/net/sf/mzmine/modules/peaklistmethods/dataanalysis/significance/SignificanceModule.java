@@ -31,8 +31,8 @@ import net.sf.mzmine.util.ExitCode;
 
 public class SignificanceModule implements MZmineRunnableModule {
 
-    private static final String MODULE_NAME = "ANOVA Test";
-    private static final String MODULE_DESCRIPTION = "Calculates ANOVA test of aligned features.";
+    private static final String MODULE_NAME = "One-way ANOVA Test";
+    private static final String MODULE_DESCRIPTION = "Calculates one-way ANOVA test on the intensities of aligned features.";
 
     @Override
     public @Nonnull String getName() {
