@@ -165,14 +165,14 @@ public class MirrorScanWindow extends JFrame {
           new PseudoSpectrumDataSet(true, "Query " + tag.toRemainderString());
       for (DataPoint dp : query[i]) {
         // not contained in other
-        if (notInSubsequentMassList(dp, query, i))
+        if (notInSubsequentMassList(dp, query, i) && mostIntenseQuery > 0)
           qdata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseQuery * 100, null);
       }
 
       PseudoSpectrumDataSet ldata =
           new PseudoSpectrumDataSet(true, "Library " + tag.toRemainderString());
       for (DataPoint dp : library[i]) {
-        if (notInSubsequentMassList(dp, library, i))
+        if (notInSubsequentMassList(dp, library, i) && mostIntenseDB > 0)
           ldata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseDB * 100, null);
       }
 
