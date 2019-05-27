@@ -20,12 +20,16 @@ package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.Scan;
@@ -183,6 +187,8 @@ public class PeakListSpectralMatchTask extends AbstractTask {
               addIdentity(row, ident, sim);
             }
           }
+          // sort identities based on similarity score
+          sortIdentities(row);
         } catch (MissingMassListException e) {
           logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
           errorCounter++;
@@ -325,9 +331,35 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     // add new identity to the row
     row.addPeakIdentity(new SpectralDBPeakIdentity(getScan(row), massListName, ident, sim, METHOD),
         false);
+  }
 
-    // Notify the GUI about the change in the project
-    MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
+  private void sortIdentities(PeakListRow row) {
+
+    // get all row identities
+    PeakIdentity[] identities = row.getPeakIdentities();
+
+    // filter for SpectralDBPeakIdentity and write to map
+    Map<Double, SpectralDBPeakIdentity> identitiesMap = new TreeMap<>();
+    for (PeakIdentity identity : identities) {
+      if (identity instanceof SpectralDBPeakIdentity) {
+        Double cos = ((SpectralDBPeakIdentity) identity).getSimilarity().getCosine();
+        identitiesMap.put(cos, (SpectralDBPeakIdentity) identity);
+        row.removePeakIdentity(identity);
+      }
+    }
+
+    // sort the map by similarity
+    Map<Double, SpectralDBPeakIdentity> identitesMapSorted =
+        new TreeMap<>(Collections.reverseOrder());
+    identitesMapSorted.putAll(identitiesMap);
+
+    // update row identities
+    for (Map.Entry<Double, SpectralDBPeakIdentity> entry : identitesMapSorted.entrySet()) {
+      row.addPeakIdentity(entry.getValue(), false);
+
+      // Notify the GUI about the change in the project
+      MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
+    }
   }
 
   public int getCount() {
