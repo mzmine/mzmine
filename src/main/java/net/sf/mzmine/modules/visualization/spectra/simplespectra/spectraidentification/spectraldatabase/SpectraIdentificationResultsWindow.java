@@ -43,7 +43,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -55,11 +54,8 @@ import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
-import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
-import net.sf.mzmine.util.components.ComponentCellRenderer;
 import net.sf.mzmine.util.components.MultiLineLabel;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
@@ -85,7 +81,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   public SpectraIdentificationResultsWindow() {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    setSize(new Dimension(1300, 900));
+    setSize(new Dimension(1400, 900));
     getContentPane().setLayout(new BorderLayout());
     setTitle("Processing...");
 
@@ -106,22 +102,6 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     JMenuBar menuBar = new JMenuBar();
     menuBar.add(new WindowsMenu());
     setJMenuBar(menuBar);
-
-    // show progress of processes
-    TaskControllerImpl taskController = (TaskControllerImpl) MZmineCore.getTaskController();
-
-    // add new task table for database matching
-    JTable taskTable = new JTable(taskController.getTaskQueue());
-    taskTable.setVisible(true);
-    taskTable.setCellSelectionEnabled(false);
-    taskTable.setColumnSelectionAllowed(false);
-    taskTable.setDefaultRenderer(JComponent.class, new ComponentCellRenderer());
-    JScrollPane scrollPaneProgressPanel = new JScrollPane(taskTable);
-    getContentPane().add(scrollPaneProgressPanel, BorderLayout.SOUTH);
-    scrollPaneProgressPanel
-        .setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    scrollPaneProgressPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-    scrollPaneProgressPanel.setPreferredSize(new Dimension(1200, 120));
 
     scrollPane = new JScrollPane(pnGrid);
     getContentPane().add(scrollPane, BorderLayout.CENTER);
