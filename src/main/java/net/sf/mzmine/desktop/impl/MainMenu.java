@@ -94,7 +94,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
     add(projectMenu);
 
     lastProjectsSub = new JMenu("Open last project ...");
-    lastProjectsSub.setVisible(false);
+    lastProjectsSub.setEnabled(false);
     projectMenu.add(lastProjectsSub);
     projectMenuIndex++;
     projectIOMenuIndex++;
@@ -339,10 +339,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
       lastProjectsSub.removeAll();
 
       if (list == null || list.isEmpty()) {
-        lastProjectsSub.setVisible(false);
+        lastProjectsSub.setEnabled(false);
         return;
       }
-      lastProjectsSub.setVisible(true);
+      lastProjectsSub.setEnabled(true);
 
       // add items to load last used projects directly
       lastProjects.stream().map(File::getAbsolutePath).forEach(name -> {
