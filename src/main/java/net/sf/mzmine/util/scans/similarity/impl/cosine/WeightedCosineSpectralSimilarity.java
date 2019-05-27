@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra.impl.cosine;
+package net.sf.mzmine.util.scans.similarity.impl.cosine;
 
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -25,10 +25,10 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.maths.similarity.Similarity;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarity;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
-import net.sf.mzmine.util.maths.similarity.spectra.Weights;
 import net.sf.mzmine.util.scans.ScanAlignment;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarity;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import net.sf.mzmine.util.scans.similarity.Weights;
 
 public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction {
 

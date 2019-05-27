@@ -37,7 +37,7 @@ import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 
 /**
  * Module to compare single spectra with spectral databases

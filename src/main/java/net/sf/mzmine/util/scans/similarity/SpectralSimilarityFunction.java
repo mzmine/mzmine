@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra;
+package net.sf.mzmine.util.scans.similarity;
 
 import java.util.List;
 import javax.annotation.Nullable;
@@ -24,9 +24,9 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.util.maths.similarity.spectra.impl.composite.CompositeCosineSpectralSimilarity;
-import net.sf.mzmine.util.maths.similarity.spectra.impl.cosine.WeightedCosineSpectralSimilarity;
 import net.sf.mzmine.util.scans.ScanAlignment;
+import net.sf.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectralSimilarity;
+import net.sf.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 
 /**
  * https://bioconductor.org/packages/devel/bioc/vignettes/msPurity/inst/doc/msPurity-lcmsms-data-processing-and-spectral-matching-vignette.html
