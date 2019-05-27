@@ -45,6 +45,16 @@ import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
  * @author Robin Schmid
  */
 public class MirrorScanWindow extends JFrame {
+  // for SpectralDBIdentity
+
+  public static final DataPointsTag[] tags =
+      new DataPointsTag[] {DataPointsTag.ORIGINAL, DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
+  // colors for the different DataPointsTags:
+  public static final Color[] colors = new Color[] {Color.black, // black = filtered
+      new Color(0xF57C00), // orange = unaligned
+      new Color(0x388E3C) // green = aligned
+  };
+
 
   private JPanel contentPane;
   private EChartPanel mirrorSpecrumPlot;
@@ -125,9 +135,6 @@ public class MirrorScanWindow extends JFrame {
     mirrorSpecrumPlot.setMaximumDrawWidth(4200);
     mirrorSpecrumPlot.setMaximumDrawHeight(2500);
     // add data
-    DataPointsTag[] tags =
-        new DataPointsTag[] {DataPointsTag.ORIGINAL, DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
-    Color[] colors = new Color[] {Color.black, new Color(0xF57C00), new Color(0x388E3C)};
     DataPoint[][] query = new DataPoint[tags.length][];
     DataPoint[][] library = new DataPoint[tags.length][];
     for (int i = 0; i < tags.length; i++) {
