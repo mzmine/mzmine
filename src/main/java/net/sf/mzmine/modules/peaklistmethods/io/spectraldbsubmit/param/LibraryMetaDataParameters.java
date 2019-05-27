@@ -71,7 +71,7 @@ public class LibraryMetaDataParameters extends SimpleParameterSet {
   public static final StringParameter COMPOUND_NAME =
       new StringParameter("COMPOUND_NAME", "", "", true);
   public static final StringParameter PI =
-      new StringParameter("PI", "Principle investigator", "", true);
+      new StringParameter("PI", "Principal investigator", "", true);
   public static final StringParameter DATACOLLECTOR =
       new StringParameter("DATACOLLECTOR", "", "", true);
 

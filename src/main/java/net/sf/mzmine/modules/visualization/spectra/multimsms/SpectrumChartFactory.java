@@ -140,8 +140,10 @@ public class SpectrumChartFactory {
   public static EChartPanel createMirrorChartPanel(String labelA, double precursorMZA, double rtA,
       DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
       boolean showTitle, boolean showLegend) {
-    PseudoSpectrumDataSet data = createMSMSDataSet(precursorMZA, rtA, dpsA, labelA);
-    PseudoSpectrumDataSet dataMirror = createMSMSDataSet(precursorMZB, rtB, dpsB, labelB);
+    PseudoSpectrumDataSet data =
+        dpsA == null ? null : createMSMSDataSet(precursorMZA, rtA, dpsA, labelA);
+    PseudoSpectrumDataSet dataMirror =
+        dpsB == null ? null : createMSMSDataSet(precursorMZB, rtB, dpsB, labelB);
 
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
     NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();

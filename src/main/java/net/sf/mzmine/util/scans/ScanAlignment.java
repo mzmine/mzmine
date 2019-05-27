@@ -219,4 +219,25 @@ public class ScanAlignment {
     }
     return data;
   }
+
+
+  /**
+   * Converts a list of aligned datapoints back to mass lists
+   * 
+   * @param aligned aligned list(DataPoint)[dimension]
+   * @return
+   */
+  public static DataPoint[][] convertBackToMassLists(List<DataPoint[]> aligned) {
+    int dpCount = aligned.size();
+    int maxDimensions = aligned.stream().mapToInt(dps -> dps.length).max().orElse(0);
+
+    DataPoint[][] data = new DataPoint[maxDimensions][dpCount];
+    for (int dp = 0; dp < dpCount; dp++) {
+      for (int dim = 0; dim < maxDimensions; dim++) {
+        if (dim < aligned.get(dp).length)
+          data[dim][dp] = aligned.get(dp)[dim];
+      }
+    }
+    return data;
+  }
 }
