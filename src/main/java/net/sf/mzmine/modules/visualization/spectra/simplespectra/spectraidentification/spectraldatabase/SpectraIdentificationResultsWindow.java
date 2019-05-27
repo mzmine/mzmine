@@ -441,10 +441,10 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     metaDataPanel.add(otherInfo, constraintsMetaDataPanel);
     SpectralIdentificationSpectralDatabaseTextPane investigator =
         new SpectralIdentificationSpectralDatabaseTextPane("Principal investigator: "
-            + hit.getEntry().getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A"));
+            + hit.getEntry().getField(DBEntryField.PRINCIPAL_INVESTIGATOR).orElse("N/A"));
     investigator.setToolTipText("Principal investigator: "
-        + hit.getEntry().getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.PRINZIPLE_INVESTIGATOR).orElse("N/A") != "N/A")
+        + hit.getEntry().getField(DBEntryField.PRINCIPAL_INVESTIGATOR).orElse("N/A"));
+    if (hit.getEntry().getField(DBEntryField.PRINCIPAL_INVESTIGATOR).orElse("N/A") != "N/A")
       panelOther.add(investigator);
     SpectralIdentificationSpectralDatabaseTextPane collector =
         new SpectralIdentificationSpectralDatabaseTextPane("Data collector: "

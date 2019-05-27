@@ -225,7 +225,7 @@ public class MonaJsonParser extends SpectralDBParser {
           break;
         case NUM_PEAKS:
           break;
-        case PRINZIPLE_INVESTIGATOR:
+        case PRINCIPAL_INVESTIGATOR:
           value = readMetaData(main, "author");
           break;
         case CHEMSPIDER:
