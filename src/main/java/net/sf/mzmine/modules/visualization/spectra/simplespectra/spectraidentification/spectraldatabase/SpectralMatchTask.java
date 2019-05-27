@@ -43,7 +43,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarity;
 import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 import net.sf.mzmine.util.scans.ScanAlignment;
 import net.sf.mzmine.util.scans.ScanUtils;
@@ -189,7 +189,7 @@ public class SpectralMatchTask extends AbstractTask {
           return;
         }
 
-        SpectraSimilarity sim = spectraDBMatch(spectraMassList, ident);
+        SpectralSimilarity sim = spectraDBMatch(spectraMassList, ident);
         if (sim != null) {
           count++;
           // use SpectralDBPeakIdentity to store all results similar to peaklist method
@@ -235,7 +235,7 @@ public class SpectralMatchTask extends AbstractTask {
    * @param ident
    * @return spectral similarity or null if no match
    */
-  private SpectraSimilarity spectraDBMatch(DataPoint[] spectraMassList, SpectralDBEntry ident) {
+  private SpectralSimilarity spectraDBMatch(DataPoint[] spectraMassList, SpectralDBEntry ident) {
     // do not check precursorMZ or precursorMZ within tolerances
     if (!usePrecursorMZ || (checkPrecursorMZ(precursorMZ, ident))) {
       DataPoint[] library = ident.getDataPoints();
@@ -273,7 +273,7 @@ public class SpectralMatchTask extends AbstractTask {
    * @param query
    * @return positive match with similarity or null if criteria was not met
    */
-  private SpectraSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
+  private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
     return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzToleranceSpectra,
         minMatch, library, query);
   }

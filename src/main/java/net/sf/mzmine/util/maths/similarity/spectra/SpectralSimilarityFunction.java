@@ -49,7 +49,7 @@ public abstract class SpectralSimilarityFunction implements MZmineModule {
    * @return A spectra similarity if all requirements were met - otherwise null
    */
   @Nullable
-  public abstract SpectraSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol,
+  public abstract SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol,
       int minMatch, DataPoint[] library, DataPoint[] query);
 
 

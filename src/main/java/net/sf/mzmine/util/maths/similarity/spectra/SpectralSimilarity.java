@@ -26,7 +26,7 @@ import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.scans.ScanAlignment;
 
-public class SpectraSimilarity {
+public class SpectralSimilarity {
   private double cosine;
   private int overlap;
   private String name;
@@ -35,13 +35,13 @@ public class SpectraSimilarity {
   private DataPoint[] query;
   private DataPoint[][] aligned;
 
-  public SpectraSimilarity(String name, double cosine, int overlap) {
+  public SpectralSimilarity(String name, double cosine, int overlap) {
     this.name = name;
     this.cosine = cosine;
     this.overlap = overlap;
   }
 
-  public SpectraSimilarity(String name, double cosine, int overlap, DataPoint[] librarySpec,
+  public SpectralSimilarity(String name, double cosine, int overlap, DataPoint[] librarySpec,
       DataPoint[] querySpec, List<DataPoint[]> alignedDP) {
     DataPointSorter sorter = new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
     this.name = name;

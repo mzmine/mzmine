@@ -27,19 +27,19 @@ import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarity;
 
 public class SpectralDBPeakIdentity extends SimplePeakIdentity {
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
 
   private final SpectralDBEntry entry;
-  private final SpectraSimilarity similarity;
+  private final SpectralSimilarity similarity;
 
   private Scan queryScan;
   private String massListName;
 
   public SpectralDBPeakIdentity(Scan queryScan, String massListName, SpectralDBEntry entry,
-      SpectraSimilarity similarity, String method) {
+      SpectralSimilarity similarity, String method) {
     super(
         MessageFormat.format("{0} as {3} ({1}) {2} cos={4}",
             entry.getField(DBEntryField.NAME).orElse("NONAME"), // Name
@@ -58,7 +58,7 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
     return entry;
   }
 
-  public SpectraSimilarity getSimilarity() {
+  public SpectralSimilarity getSimilarity() {
     return similarity;
   }
 

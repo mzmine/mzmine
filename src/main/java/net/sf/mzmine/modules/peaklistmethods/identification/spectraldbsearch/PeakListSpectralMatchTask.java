@@ -45,7 +45,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarity;
 import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 import net.sf.mzmine.util.scans.ScanAlignment;
 import net.sf.mzmine.util.scans.ScanUtils;
@@ -181,7 +181,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
 
           // match against all library entries
           for (SpectralDBEntry ident : list) {
-            SpectraSimilarity sim = spectraDBMatch(row, rowMassList, ident);
+            SpectralSimilarity sim = spectraDBMatch(row, rowMassList, ident);
             if (sim != null) {
               count++;
               addIdentity(row, ident, sim);
@@ -237,7 +237,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
    * @param ident
    * @return spectral similarity or null if no match
    */
-  private SpectraSimilarity spectraDBMatch(PeakListRow row, DataPoint[] rowMassList,
+  private SpectralSimilarity spectraDBMatch(PeakListRow row, DataPoint[] rowMassList,
       SpectralDBEntry ident) {
     // retention time
     // MS level 1 or check precursorMZ
@@ -256,7 +256,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
       }
 
       // check spectra similarity
-      SpectraSimilarity sim = createSimilarity(library, query);
+      SpectralSimilarity sim = createSimilarity(library, query);
       if (sim != null)
         return sim;
     }
@@ -270,7 +270,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
    * @param b
    * @return positive match with similarity or null if criteria was not met
    */
-  private SpectraSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
+  private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
     return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzToleranceSpectra,
         minMatch, library, query);
   }
@@ -326,7 +326,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     return scan;
   }
 
-  private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectraSimilarity sim)
+  private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectralSimilarity sim)
       throws MissingMassListException {
     // add new identity to the row
     row.addPeakIdentity(new SpectralDBPeakIdentity(getScan(row), massListName, ident, sim, METHOD),

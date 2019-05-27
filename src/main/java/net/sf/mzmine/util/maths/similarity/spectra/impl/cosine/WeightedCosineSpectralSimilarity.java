@@ -25,7 +25,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.maths.similarity.Similarity;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
+import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarity;
 import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 import net.sf.mzmine.util.maths.similarity.spectra.Weights;
 import net.sf.mzmine.util.scans.ScanAlignment;
@@ -36,7 +36,7 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
    * Returns mass and intensity values detected in given scan
    */
   @Override
-  public SpectraSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
+  public SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
       DataPoint[] library, DataPoint[] query) {
     Weights weights =
         parameters.getParameter(WeightedCosineSpectralSimilarityParameters.weight).getValue();
@@ -59,7 +59,7 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
           ScanAlignment.toIntensityMatrixWeighted(aligned, weights.getIntensity(), weights.getMz());
       double diffCosine = Similarity.COSINE.calc(diffArray);
       if (diffCosine >= minCos)
-        return new SpectraSimilarity(getName(), diffCosine, overlap, library, query, aligned);
+        return new SpectralSimilarity(getName(), diffCosine, overlap, library, query, aligned);
       else
         return null;
     }
