@@ -30,6 +30,12 @@ import net.sf.mzmine.util.scans.similarity.SpectralSimilarity;
 import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import net.sf.mzmine.util.scans.similarity.Weights;
 
+/**
+ * Weighted (mz and intensity) cosine similarity. Similar to the NIST search / MassBank search
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
 public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction {
 
   /**

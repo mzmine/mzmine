@@ -177,7 +177,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     title.setForeground(Color.WHITE);
     panelTitle.add(title);
 
-    double simScore = hit.getSimilarity().getCosine();
+    double simScore = hit.getSimilarity().getScore();
 
     // score result
     JPanel panelScore = new JPanel();
@@ -544,7 +544,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
     // reversed sorting (highest cosine first
     totalMatches.sort((SpectralDBPeakIdentity a, SpectralDBPeakIdentity b) -> Double
-        .compare(b.getSimilarity().getCosine(), a.getSimilarity().getCosine()));
+        .compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
 
     // renew layout and show
     renewLayout();

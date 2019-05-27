@@ -46,7 +46,7 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
             entry.getField(DBEntryField.MZ).orElse(""), // precursor m/z
             entry.getField(DBEntryField.FORMULA).orElse(""), // molecular formula
             entry.getField(DBEntryField.IONTYPE).orElse(""), // Ion type
-            COS_FORM.format(similarity.getCosine())), // cosine similarity
+            COS_FORM.format(similarity.getScore())), // cosine similarity
         entry.getField(DBEntryField.FORMULA).orElse("").toString(), method, "", "");
     this.entry = entry;
     this.similarity = similarity;
@@ -83,7 +83,7 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
       case FILTERED:
         return similarity.getLibrary();
       case ALIGNED:
-        return similarity.getAligned()[0];
+        return similarity.getAlignedDataPoints()[0];
       case MERGED:
         return new DataPoint[0];
     }
@@ -101,7 +101,7 @@ public class SpectralDBPeakIdentity extends SimplePeakIdentity {
       case FILTERED:
         return similarity.getQuery();
       case ALIGNED:
-        return similarity.getAligned()[1];
+        return similarity.getAlignedDataPoints()[1];
       case MERGED:
         return new DataPoint[0];
     }

@@ -20,32 +20,64 @@ package net.sf.mzmine.util.scans.similarity;
 
 import java.util.Arrays;
 import java.util.List;
+import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.scans.ScanAlignment;
 
+/**
+ * The result of a {@link SpectralSimilarityFunction}.
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
 public class SpectralSimilarity {
-  private double cosine;
+  // similarity score (depends on similarity function)
+  private double score;
+  // aligned signals in library and query spectrum
   private int overlap;
-  private String name;
+  // similarity function name
+  private String funcitonName;
 
-  private DataPoint[] library;
-  private DataPoint[] query;
-  private DataPoint[][] aligned;
+  // spectral data can be nullable to save memory
+  // library and query spectrum (may be filtered)
+  private @Nullable DataPoint[] library;
+  private @Nullable DataPoint[] query;
+  // aligned data points (found in both the library[0] and the query[1] sepctrum)
+  // alinged[library, query][data points]
+  private @Nullable DataPoint[][] aligned;
 
-  public SpectralSimilarity(String name, double cosine, int overlap) {
-    this.name = name;
-    this.cosine = cosine;
+  /**
+   * The result of a {@link SpectralSimilarityFunction}.
+   * 
+   * @param funcitonName Similarity function name
+   * @param score similarity score
+   * @param overlap count of aligned data points in library and query spectrum
+   */
+  public SpectralSimilarity(String funcitonName, double score, int overlap) {
+    this.funcitonName = funcitonName;
+    this.score = score;
     this.overlap = overlap;
   }
 
-  public SpectralSimilarity(String name, double cosine, int overlap, DataPoint[] librarySpec,
-      DataPoint[] querySpec, List<DataPoint[]> alignedDP) {
+  /**
+   * The result of a {@link SpectralSimilarityFunction}.
+   * 
+   * @param funcitonName Similarity function name
+   * @param score similarity score
+   * @param overlap count of aligned data points in library and query spectrum
+   * @param librarySpec library spectrum (or other) which was matched to querySpec (may be filtered)
+   * @param querySpec query spectrum which was matched to librarySpec (may be filtered)
+   * @param alignedDP aligned data points (alignedDP.get(data point index)[library/query spectrum])
+   */
+  public SpectralSimilarity(String funcitonName, double score, int overlap,
+      @Nullable DataPoint[] librarySpec, @Nullable DataPoint[] querySpec,
+      @Nullable List<DataPoint[]> alignedDP) {
     DataPointSorter sorter = new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
-    this.name = name;
-    this.cosine = cosine;
+    this.funcitonName = funcitonName;
+    this.score = score;
     this.overlap = overlap;
     this.library = librarySpec;
     this.query = querySpec;
@@ -65,7 +97,7 @@ public class SpectralSimilarity {
 
 
   /**
-   * Number of overlapping signals
+   * Number of overlapping signals in both spectra
    * 
    * @return
    */
@@ -78,23 +110,43 @@ public class SpectralSimilarity {
    * 
    * @return
    */
-  public double getCosine() {
-    return cosine;
+  public double getScore() {
+    return score;
   }
 
+  /**
+   * SPectralSimilarityFunction name
+   * 
+   * @return
+   */
   public String getFunctionName() {
-    return name;
+    return funcitonName;
   }
 
+  /**
+   * Library spectrum (usually filtered)
+   * 
+   * @return
+   */
   public DataPoint[] getLibrary() {
     return library;
   }
 
+  /**
+   * Query spectrum (usually filtered)
+   * 
+   * @return
+   */
   public DataPoint[] getQuery() {
     return query;
   }
 
-  public DataPoint[][] getAligned() {
+  /**
+   * All aligned data points of library(0) and query(1) spectrum
+   * 
+   * @return DataPoint[library, query][datapoints]
+   */
+  public DataPoint[][] getAlignedDataPoints() {
     return aligned;
   }
 }

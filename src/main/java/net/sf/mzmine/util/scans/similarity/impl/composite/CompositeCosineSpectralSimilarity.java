@@ -34,7 +34,8 @@ import net.sf.mzmine.util.scans.similarity.Weights;
 
 /**
  * Similar to NIST search algorithm for GC-MS data with lots of signals (more an identity check than
- * similarity)
+ * similarity).<br>
+ * Uses the relative intensity ratios of adjacent signals.
  * 
  * @author
  *

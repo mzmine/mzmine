@@ -329,7 +329,7 @@ public class SpectralMatchTask extends AbstractTask {
           shortName = compoundName.substring(start + 1, end);
 
         DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
-            shortName + " " + "Score: " + COS_FORM.format(match.getSimilarity().getCosine()),
+            shortName + " " + "Score: " + COS_FORM.format(match.getSimilarity().getScore()),
             dataset);
         spectraPlot.addDataSet(detectedCompoundsDataset,
             new Color((int) (Math.random() * 0x1000000)), true);

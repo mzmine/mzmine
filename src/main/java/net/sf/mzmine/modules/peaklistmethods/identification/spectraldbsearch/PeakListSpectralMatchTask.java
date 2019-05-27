@@ -342,7 +342,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     Map<Double, SpectralDBPeakIdentity> identitiesMap = new TreeMap<>();
     for (PeakIdentity identity : identities) {
       if (identity instanceof SpectralDBPeakIdentity) {
-        Double cos = ((SpectralDBPeakIdentity) identity).getSimilarity().getCosine();
+        Double cos = ((SpectralDBPeakIdentity) identity).getSimilarity().getScore();
         identitiesMap.put(cos, (SpectralDBPeakIdentity) identity);
         row.removePeakIdentity(identity);
       }

@@ -29,13 +29,16 @@ import net.sf.mzmine.util.scans.similarity.impl.composite.CompositeCosineSpectra
 import net.sf.mzmine.util.scans.similarity.impl.cosine.WeightedCosineSpectralSimilarity;
 
 /**
- * https://bioconductor.org/packages/devel/bioc/vignettes/msPurity/inst/doc/msPurity-lcmsms-data-processing-and-spectral-matching-vignette.html
+ * Abstract class to implement differnt spactal similarity functions to match 2 spectra
  * 
- * @author
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
 public abstract class SpectralSimilarityFunction implements MZmineModule {
 
+  /**
+   * The collection of SpectralSImilarityFunctions
+   */
   public static SpectralSimilarityFunction[] FUNCTIONS = new SpectralSimilarityFunction[] {
       new WeightedCosineSpectralSimilarity(), new CompositeCosineSpectralSimilarity()};
 
