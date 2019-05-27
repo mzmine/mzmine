@@ -137,7 +137,8 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
       setErrorMessage(e.toString());
     }
     logger.info("Added " + count + " spectral library matches");
-    resultWindow.setTitle("Matched " + count + " compunds for scan#" + currentScan.getScanNumber());
+    resultWindow
+        .setTitle("Matched " + count + " compounds for scan#" + currentScan.getScanNumber());
     resultWindow.revalidate();
     resultWindow.repaint();
     // Repaint the window

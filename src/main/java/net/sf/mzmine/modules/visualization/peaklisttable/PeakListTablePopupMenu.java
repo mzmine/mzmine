@@ -575,6 +575,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       if (!spectralID.isEmpty()) {
         SpectraIdentificationResultsWindow window = new SpectraIdentificationResultsWindow();
         window.addMatches(spectralID);
+        window.setTitle("Matched " + spectralID.size() + " compounds for feature list row"
+            + clickedPeakListRow.getID());
         window.setVisible(true);
       }
     }

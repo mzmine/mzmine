@@ -19,6 +19,7 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.Arrays;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -119,13 +120,9 @@ public class MirrorScanWindow extends JFrame {
     // scan a
     double precursorMZA = scan.getPrecursorMZ();
     double rtA = scan.getRetentionTime();
-    DataPoint[] dpsA = scan.getDataPoints();
 
-    //
     Double precursorMZB = db.getEntry().getPrecursorMZ();
     Double rtB = (Double) db.getEntry().getField(DBEntryField.RT).orElse(0d);
-    DataPoint[] dpsB = db.getEntry().getDataPoints();
-
 
     contentPane.removeAll();
     // create without data
@@ -152,6 +149,12 @@ public class MirrorScanWindow extends JFrame {
     XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
     XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
 
+    // get highest data intensity to calc relative intensity
+    double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+    double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+
     // add all datapoints to a dataset that are not present in subsequent masslist
     for (int i = 0; i < tags.length; i++) {
       DataPointsTag tag = tags[i];
@@ -159,15 +162,15 @@ public class MirrorScanWindow extends JFrame {
           new PseudoSpectrumDataSet(true, "Query " + tag.toRemainderString());
       for (DataPoint dp : query[i]) {
         // not contained in other
-        if (notInSubsequentMassList(dp, query, i))
-          qdata.addDP(dp.getMZ(), dp.getIntensity(), null);
+        if (notInSubsequentMassList(dp, query, i) && mostIntenseQuery > 0)
+          qdata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseQuery * 100d, null);
       }
 
       PseudoSpectrumDataSet ldata =
           new PseudoSpectrumDataSet(true, "Library " + tag.toRemainderString());
       for (DataPoint dp : library[i]) {
-        if (notInSubsequentMassList(dp, library, i))
-          ldata.addDP(dp.getMZ(), dp.getIntensity(), null);
+        if (notInSubsequentMassList(dp, library, i) && mostIntenseDB > 0)
+          ldata.addDP(dp.getMZ(), dp.getIntensity() / mostIntenseDB * 100d, null);
       }
 
       Color color = colors[i];
