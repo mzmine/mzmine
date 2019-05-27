@@ -20,8 +20,6 @@ package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.so
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
@@ -55,6 +53,8 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
         parameters.getParameter(SortSpectralDBIdentitiesParameters.minScore).getValue();
     minScore = parameters.getParameter(SortSpectralDBIdentitiesParameters.minScore)
         .getEmbeddedParameter().getValue();
+    if (minScore == null)
+      minScore = 0d;
   }
 
   /**
@@ -89,7 +89,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
         return;
       }
       // sort identities of row
-      sortIdentities(row);
+      sortIdentities(row, filterByMinScore, minScore);
       finishedRows++;
     }
 
@@ -111,6 +111,17 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
    * @param row
    */
   public static void sortIdentities(PeakListRow row) {
+    sortIdentities(row, false, 1.0d);
+  }
+
+  /**
+   * Sort database matches by score
+   * 
+   * @param row
+   * @param filterMinSimilarity
+   * @param minScore
+   */
+  public static void sortIdentities(PeakListRow row, boolean filterMinSimilarity, double minScore) {
     // get all row identities
     PeakIdentity[] identities = row.getPeakIdentities();
     if (identities == null || identities.length == 0)
@@ -119,11 +130,12 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
     // filter for SpectralDBPeakIdentity and write to map
     List<SpectralDBPeakIdentity> match = new ArrayList<>();
 
-    Map<Double, SpectralDBPeakIdentity> identitiesMap = new TreeMap<>();
     for (PeakIdentity identity : identities) {
       if (identity instanceof SpectralDBPeakIdentity) {
-        match.add((SpectralDBPeakIdentity) identity);
         row.removePeakIdentity(identity);
+        if (!filterMinSimilarity
+            || ((SpectralDBPeakIdentity) identity).getSimilarity().getScore() >= minScore)
+          match.add((SpectralDBPeakIdentity) identity);
       }
     }
     if (match.isEmpty())
