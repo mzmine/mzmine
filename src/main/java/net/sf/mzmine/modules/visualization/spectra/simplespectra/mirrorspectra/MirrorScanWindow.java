@@ -150,13 +150,10 @@ public class MirrorScanWindow extends JFrame {
     XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
 
     // get highest data intensity to calc relative intensity
-    double mostIntenseQuery = scan.getHighestDataPoint().getIntensity();
-    double[] dpLibrary = new double[db.getLibraryDataPoints(DataPointsTag.ORIGINAL).length];
-    for (int i = 0; i < dpLibrary.length; i++) {
-      dpLibrary[i] = db.getLibraryDataPoints(DataPointsTag.ORIGINAL)[i].getIntensity();
-    }
-    Arrays.sort(dpLibrary);
-    double mostIntenseDB = dpLibrary[dpLibrary.length - 1];
+    double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+    double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
 
     // add all datapoints to a dataset that are not present in subsequent masslist
     for (int i = 0; i < tags.length; i++) {
