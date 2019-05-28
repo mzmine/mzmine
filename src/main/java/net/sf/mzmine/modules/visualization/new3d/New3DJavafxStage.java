@@ -70,7 +70,7 @@ public class New3DJavafxStage extends Stage{
         float factorX = size/rtResolution;
         float factorZ = size/mzResolution;
         
-        float maxIntensityValue = -Float.MAX_VALUE;
+        float maxIntensityValue = Float.NEGATIVE_INFINITY;
         for(int i=0;i<rtResolution;i++){
         	for(int j=0;j<mzResolution;j++) {
         		if(maxIntensityValue<intensityValues[i][j]) {
@@ -138,7 +138,8 @@ public class New3DJavafxStage extends Stage{
                 if(peakListIndices[x][y]==1) {
                 	 Color color = Color.BLUE;
                 	 pw.setColor(x, y, color);
-                }else {
+                }
+                else {
                 	Color color = Color.SILVER;
                 	pw.setColor(x,y,color);
                 }
