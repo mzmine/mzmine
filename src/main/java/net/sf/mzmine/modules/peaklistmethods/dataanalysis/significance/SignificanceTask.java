@@ -33,13 +33,11 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import org.apache.commons.math.MathException;
-import org.apache.commons.math.distribution.FDistribution;
-import org.apache.commons.math.distribution.FDistributionImpl;
-import smile.stat.hypothesis.TTest;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.commons.math3.distribution.FDistribution;
+import org.apache.commons.math3.exception.MathIllegalArgumentException;
 
 public class SignificanceTask extends AbstractTask {
 
@@ -207,7 +205,7 @@ public class SignificanceTask extends AbstractTask {
     long degreesOfFreedomOfTreatment = numGroups - 1;
     long degreesOfFreedomOfError = numIntensities - numGroups;
 
-    if (degreesOfFreedomOfTreatment == 0 || degreesOfFreedomOfError == 0) {
+    if (degreesOfFreedomOfTreatment <= 0 || degreesOfFreedomOfError <= 0) {
       return null;
     }
 
@@ -220,14 +218,14 @@ public class SignificanceTask extends AbstractTask {
 
     double anovaStatistics = meanSquareOfTreatment / meanSquareOfError;
 
-    FDistribution distribution = new FDistributionImpl(degreesOfFreedomOfTreatment,
-        degreesOfFreedomOfError);
-    Double pValue;
+    Double pValue = null;
     try {
+      FDistribution distribution = new FDistribution(
+          degreesOfFreedomOfTreatment, degreesOfFreedomOfError);
       pValue = 1.0 - distribution.cumulativeProbability(anovaStatistics);
-    } catch (MathException e) {
-      logger.warning("Error during F-distribution calculation: " + e.getMessage());
-      pValue = null;
+    }
+    catch (MathIllegalArgumentException ex) {
+      logger.warning("Error during F-distribution calculation: " + ex.getMessage());
     }
 
     return pValue;
