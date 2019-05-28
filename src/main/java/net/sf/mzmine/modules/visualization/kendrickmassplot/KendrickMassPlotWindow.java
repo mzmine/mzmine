@@ -251,7 +251,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     if (command.equals("CHANGE_CHARGE_UP_Y")) {
       yAxisCharge = yAxisCharge + 1;
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_CHARGE_DOWN_Y")) {
@@ -260,7 +260,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       } else
         yAxisCharge = 1;
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_DIVISOR_UP_Y")) {
@@ -272,7 +272,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         yAxisDivisor++;
       }
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_DIVISOR_DOWN_Y")) {
@@ -284,7 +284,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         yAxisDivisor = 1;
       }
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("TOGGLE_RKM_KMD_Y")) {
@@ -296,7 +296,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         useRKM_Y = true;
         plot.getRangeAxis().setLabel("RKM(" + customYAxisKMBase + ")");
       }
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     // x axis commands
@@ -317,7 +317,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     if (command.equals("CHANGE_CHARGE_UP_X")) {
       xAxisCharge = xAxisCharge + 1;
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_CHARGE_DOWN_X")) {
@@ -326,7 +326,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       } else
         xAxisCharge = 1;
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_DIVISOR_UP_X")) {
@@ -338,7 +338,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         xAxisDivisor++;
       }
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_DIVISOR_DOWN_X")) {
@@ -350,7 +350,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         xAxisDivisor = 1;
       }
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("TOGGLE_RKM_KMD_X")) {
@@ -362,7 +362,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         useRKM_X = true;
         plot.getDomainAxis().setLabel("RKM(" + customXAxisKMBase + ")");
       }
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     // z axis commands
@@ -385,7 +385,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     if (command.equals("CHANGE_CHARGE_UP_Z")) {
       zAxisCharge = zAxisCharge + 1;
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_CHARGE_DOWN_Z")) {
@@ -394,7 +394,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       } else
         zAxisCharge = 1;
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_DIVISOR_UP_Z")) {
@@ -407,7 +407,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         zAxisDivisor++;
       }
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_DIVISOR_DOWN_Z")) {
@@ -419,7 +419,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         zAxisDivisor = 1;
       }
       XYPlot plot = chart.getXYPlot();
-      chargeOrDivisorOrRKMKMDChanged(plot);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("TOGGLE_RKM_KMD_Z")) {
@@ -434,11 +434,14 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
           PaintScaleLegend legend = (PaintScaleLegend) chart.getSubtitle(1);
           legend.getAxis().setLabel("RKM(" + customZAxisKMBase + ")");
         }
-        chargeOrDivisorOrRKMKMDChanged(plot);
+        kendrickVariableChanged(plot);
       }
     }
   }
 
+  /*
+   * Method to shift a Kendrick mass plot up or down
+   */
   private void shiftChanged(XYPlot plot, double shiftValue, String command) {
     if (plot.getDataset() instanceof KendrickMassPlotXYDataset) {
       KendrickMassPlotXYDataset dataset = (KendrickMassPlotXYDataset) plot.getDataset();
@@ -494,7 +497,10 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     this.revalidate();
   }
 
-  private void chargeOrDivisorOrRKMKMDChanged(XYPlot plot) {
+  /*
+   * Method to calculate the data sets for a Kendrick mass plot
+   */
+  private void kendrickVariableChanged(XYPlot plot) {
 
     if (plot.getDataset() instanceof KendrickMassPlotXYDataset) {
       KendrickMassPlotXYDataset dataset = (KendrickMassPlotXYDataset) plot.getDataset();
@@ -692,7 +698,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
   }
 
   /*
-   * Method to calculate the Kendrick mass factor for a give sum formula
+   * Method to calculate the Kendrick mass factor for a given sum formula
    */
   private double getKendrickMassFactor(String formula, int divisor) {
     double exactMassFormula = FormulaUtils.calculateExactMass(formula);

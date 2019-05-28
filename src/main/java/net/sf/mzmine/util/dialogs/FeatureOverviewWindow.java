@@ -41,7 +41,7 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 
 /**
- * Window to show a summary of a feature list row
+ * Window to show an overview of a feature displayed in a plot
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
@@ -134,7 +134,7 @@ public class FeatureOverviewWindow extends JFrame {
   private JPanel addFeatureDataSummary(PeakListRow row) {
     JPanel featureDataSummary = new JPanel(new GridLayout(0, 1));
     featureDataSummary.setBackground(Color.WHITE);
-    featureDataSummary.add(new Label("Summary of feature: " + row.getID()));
+    featureDataSummary.add(new Label("Feature: " + row.getID()));
     if (row.getPreferredPeakIdentity() != null)
       featureDataSummary.add(new Label("Identity: " + row.getPreferredPeakIdentity().getName()));
     if (row.getComment() != null)
