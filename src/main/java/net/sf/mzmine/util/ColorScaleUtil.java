@@ -21,7 +21,7 @@ public class ColorScaleUtil {
     float[] maxHSB = Color.RGBtoHSB(max.getRed(), max.getGreen(), max.getBlue(), null);
 
     double diff = maxValue - minValue;
-    double p = (Math.min(value, minValue) - minValue) / diff;
+    double p = (Math.max(value, minValue) - minValue) / diff;
     if (p > 1)
       p = 1;
 

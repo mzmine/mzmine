@@ -53,6 +53,7 @@ import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
+import net.sf.mzmine.framework.ScrollablePanel;
 import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import net.sf.mzmine.util.ColorScaleUtil;
@@ -68,15 +69,16 @@ import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 public class SpectraIdentificationResultsWindow extends JFrame {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final long serialVersionUID = 1L;
+  public static final int META_WIDTH = 500;
+  public static final int ENTRY_HEIGHT = 500;
 
   // colors
   public static final double MIN_COS_COLOR_VALUE = 0.5;
   public static final double MAX_COS_COLOR_VALUE = 1.0;
-
   // min color is a darker red
-  public static final Color MIN_COS_COLOR = new Color(0x388E3C);
   // max color is a darker green
   public static final Color MAX_COS_COLOR = new Color(0x388E3C);
+  public static final Color MIN_COS_COLOR = new Color(0xE30B0B);
 
   private JPanel pnGrid;
   private Font titleFont = new Font("Dialog", Font.BOLD, 18);
@@ -134,24 +136,21 @@ public class SpectraIdentificationResultsWindow extends JFrame {
    * @return
    */
   private JPanel createPanel(SpectralDBPeakIdentity hit) {
-    JPanel panel = new JPanel(new GridBagLayout());
-    GridBagConstraints constraintsPanel = new GridBagConstraints();
+    JPanel panel = new JPanel(new BorderLayout());
 
     JPanel spectrumPanel = new JPanel(new BorderLayout());
-    spectrumPanel.setPreferredSize(new Dimension(800, 600));
 
     // set meta data from identity
     JPanel metaDataPanel = new JPanel(new GridBagLayout());
     GridBagConstraints constraintsMetaDataPanel = new GridBagConstraints();
 
-    metaDataPanel.setSize(new Dimension(500, 600));
     metaDataPanel.setBackground(Color.WHITE);
 
     // add title
     JPanel boxTitlePanel = new JPanel(new BorderLayout());
 
     double simScore = hit.getSimilarity().getScore();
-    Color gradientCol = ColorScaleUtil.getColor(MIN_COS_COLOR, MIN_COS_COLOR, MIN_COS_COLOR_VALUE,
+    Color gradientCol = ColorScaleUtil.getColor(MIN_COS_COLOR, MAX_COS_COLOR, MIN_COS_COLOR_VALUE,
         MAX_COS_COLOR_VALUE, simScore);
     boxTitlePanel.setBackground(gradientCol);
     Box boxTitle = Box.createHorizontalBox();
@@ -186,18 +185,12 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     boxTitlePanel.add(panelScore, BorderLayout.EAST);
     boxTitle.add(boxTitlePanel);
 
-    constraintsPanel.fill = GridBagConstraints.BOTH;
-    constraintsPanel.weightx = 10.0;
-    constraintsPanel.weighty = 1.0;
-    constraintsPanel.gridx = 0;
-    constraintsPanel.gridy = 0;
-    constraintsPanel.gridwidth = 2;
-    panel.add(boxTitle, constraintsPanel);
-
     // structure preview
     IAtomContainer molecule;
     JPanel preview2DPanel = new JPanel(new BorderLayout());
-    preview2DPanel.setPreferredSize(new Dimension(500, 150));
+    preview2DPanel.setPreferredSize(new Dimension(META_WIDTH, 150));
+    preview2DPanel.setMinimumSize(new Dimension(META_WIDTH, 150));
+    preview2DPanel.setMaximumSize(new Dimension(META_WIDTH, 150));
     JComponent newComponent = null;
 
     String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
@@ -223,7 +216,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
         newComponent = new MultiLineLabel(errorMessage);
       }
       preview2DPanel.add(newComponent, BorderLayout.CENTER);
-      preview2DPanel.validate();
+      preview2DPanel.revalidate();
 
       constraintsMetaDataPanel.anchor = GridBagConstraints.PAGE_START;
       constraintsMetaDataPanel.fill = GridBagConstraints.BOTH;
@@ -455,32 +448,40 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
     constraintsMetaDataPanel.gridx = 1;
     constraintsMetaDataPanel.gridy = 4;
+
     metaDataPanel.add(panelOther, constraintsMetaDataPanel);
+
 
     // get mirror spectra window
     MirrorScanWindow mirrorWindow = new MirrorScanWindow();
     mirrorWindow.setScans(hit);
 
+    // fixed width panel
+    ScrollablePanel pn = new ScrollablePanel(new BorderLayout());
+    pn.setScrollableWidth(ScrollablePanel.ScrollableSizeHint.FIT);
+    pn.setScrollableHeight(ScrollablePanel.ScrollableSizeHint.STRETCH);
+    pn.add(metaDataPanel);
+
+
     JScrollPane metaDataPanelScrollPane =
-        new JScrollPane(metaDataPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        new JScrollPane(pn, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    metaDataPanelScrollPane.setPreferredSize(new Dimension(500, 600));
 
     spectrumPanel.add(mirrorWindow.getMirrorSpecrumPlot());
 
-    constraintsPanel.weightx = 10;
-    constraintsPanel.weighty = 1.0;
-    constraintsPanel.gridx = 0;
-    constraintsPanel.gridy = 1;
-    // reset width
-    constraintsPanel.gridwidth = 1;
-    panel.add(spectrumPanel, constraintsPanel);
+    panel.setPreferredSize(new Dimension(0, ENTRY_HEIGHT));
+    boxTitle.setPreferredSize(new Dimension(META_WIDTH, 45));
+    metaDataPanelScrollPane.setPreferredSize(new Dimension(META_WIDTH + 20, ENTRY_HEIGHT));
 
-    constraintsPanel.weightx = 1;
-    constraintsPanel.gridx = 1;
-    constraintsPanel.gridy = 1;
-    panel.add(metaDataPanelScrollPane, constraintsPanel);
+    panel.add(boxTitle, BorderLayout.NORTH);
+    panel.add(spectrumPanel, BorderLayout.CENTER);
+    panel.add(metaDataPanelScrollPane, BorderLayout.EAST);
     panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+    metaDataPanelScrollPane.revalidate();
+    metaDataPanel.revalidate();
+    panel.revalidate();
+    panel.repaint();
     return panel;
   }
 
@@ -557,6 +558,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
       }
       // show
       scrollPane.setViewportView(pnGrid);
+      pnGrid.revalidate();
       scrollPane.revalidate();
       scrollPane.repaint();
       this.pnGrid = pnGrid;
