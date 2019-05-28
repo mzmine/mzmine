@@ -513,9 +513,14 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
           }
         } else {
           for (int i = 0; i < selectedRows.length; i++) {
-            xValues[i] = xAxisCharge * xAxisDivisor * selectedRows[i].getAverageMZ()
+            xValues[i] = (xAxisCharge
+                * (xAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customXAxisKMBase)))
+                * selectedRows[i].getAverageMZ())
                 / FormulaUtils.calculateExactMass(customXAxisKMBase)//
-                - Math.floor(xAxisCharge * xAxisDivisor * selectedRows[i].getAverageMZ()
+                - Math.floor((xAxisCharge
+                    * (xAxisDivisor
+                        - Math.round(FormulaUtils.calculateExactMass(customXAxisKMBase)))
+                    * selectedRows[i].getAverageMZ())
                     / FormulaUtils.calculateExactMass(customXAxisKMBase));
           }
         }
@@ -547,9 +552,12 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         }
       } else {
         for (int i = 0; i < selectedRows.length; i++) {
-          yValues[i] = (yAxisCharge * yAxisDivisor * selectedRows[i].getAverageMZ())
-              / FormulaUtils.calculateExactMass(customYAxisKMBase)
-              - Math.floor((yAxisCharge * yAxisDivisor * selectedRows[i].getAverageMZ())
+          yValues[i] = (yAxisCharge
+              * (yAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customYAxisKMBase)))
+              * selectedRows[i].getAverageMZ()) / FormulaUtils.calculateExactMass(customYAxisKMBase)//
+              - Math.floor((yAxisCharge
+                  * (yAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customYAxisKMBase)))
+                  * selectedRows[i].getAverageMZ())
                   / FormulaUtils.calculateExactMass(customYAxisKMBase));
         }
       }
@@ -574,9 +582,14 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
           }
         } else {
           for (int i = 0; i < selectedRows.length; i++) {
-            xValues[i] = xAxisCharge * xAxisDivisor * selectedRows[i].getAverageMZ()
+            xValues[i] = (xAxisCharge
+                * (xAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customXAxisKMBase)))
+                * selectedRows[i].getAverageMZ())
                 / FormulaUtils.calculateExactMass(customXAxisKMBase)//
-                - Math.floor(xAxisCharge * xAxisDivisor * selectedRows[i].getAverageMZ()
+                - Math.floor((xAxisCharge
+                    * (xAxisDivisor
+                        - Math.round(FormulaUtils.calculateExactMass(customXAxisKMBase)))
+                    * selectedRows[i].getAverageMZ())
                     / FormulaUtils.calculateExactMass(customXAxisKMBase));
           }
         }
@@ -608,9 +621,12 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         }
       } else {
         for (int i = 0; i < selectedRows.length; i++) {
-          yValues[i] = (yAxisCharge * yAxisDivisor * selectedRows[i].getAverageMZ())
-              / FormulaUtils.calculateExactMass(customYAxisKMBase)//
-              - Math.floor((yAxisCharge * yAxisDivisor * selectedRows[i].getAverageMZ())
+          yValues[i] = (yAxisCharge
+              * (yAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customYAxisKMBase)))
+              * selectedRows[i].getAverageMZ()) / FormulaUtils.calculateExactMass(customYAxisKMBase)//
+              - Math.floor((yAxisCharge
+                  * (yAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customYAxisKMBase)))
+                  * selectedRows[i].getAverageMZ())
                   / FormulaUtils.calculateExactMass(customYAxisKMBase));
         }
       }
@@ -628,10 +644,15 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
           }
         } else {
           for (int i = 0; i < selectedRows.length; i++) {
-            zValues[i] = zAxisCharge * zAxisDivisor * selectedRows[i].getAverageMZ()
-                / Math.round(FormulaUtils.calculateExactMass(customZAxisKMBase))//
-                - Math.floor(zAxisCharge * zAxisDivisor * selectedRows[i].getAverageMZ()
-                    / Math.round(FormulaUtils.calculateExactMass(customZAxisKMBase)));
+            zValues[i] = (zAxisCharge
+                * (zAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customZAxisKMBase)))
+                * selectedRows[i].getAverageMZ())
+                / FormulaUtils.calculateExactMass(customZAxisKMBase)//
+                - Math.floor((zAxisCharge
+                    * (zAxisDivisor
+                        - Math.round(FormulaUtils.calculateExactMass(customZAxisKMBase)))
+                    * selectedRows[i].getAverageMZ())
+                    / FormulaUtils.calculateExactMass(customZAxisKMBase));
           }
         }
       } else
