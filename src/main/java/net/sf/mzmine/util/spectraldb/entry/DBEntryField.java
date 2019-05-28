@@ -23,7 +23,7 @@ public enum DBEntryField {
   ENTRY_ID, NAME, SYNONYM, COMMENT, IONTYPE, RT(Double.class), MZ(Double.class), CHARGE(
       Integer.class), ION_MODE, COLLISION_ENERGY, FORMULA, MOLWEIGHT(Double.class), EXACT_MASS(
           Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
-              Integer.class), ACQUISITION, PRINZIPLE_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;
+              Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;
 
   private final Class clazz;
 
@@ -81,7 +81,7 @@ public enum DBEntryField {
         return "MZ";
       case NAME:
         return "COMPOUND_NAME";
-      case PRINZIPLE_INVESTIGATOR:
+      case PRINCIPAL_INVESTIGATOR:
         return "PI";
       case PUBMED:
         return "PUBMED";
@@ -167,7 +167,7 @@ public enum DBEntryField {
         return "PrecursorMZ";
       case NAME:
         return "Name";
-      case PRINZIPLE_INVESTIGATOR:
+      case PRINCIPAL_INVESTIGATOR:
         return "";
       case PUBMED:
         return "";
@@ -253,7 +253,7 @@ public enum DBEntryField {
         return "PEPMASS";
       case NAME:
         return "NAME";
-      case PRINZIPLE_INVESTIGATOR:
+      case PRINCIPAL_INVESTIGATOR:
         return "PI";
       case PUBMED:
         return "PUBMED";
@@ -340,7 +340,7 @@ public enum DBEntryField {
         return "";
       case NAME:
         return "##TITLE";
-      case PRINZIPLE_INVESTIGATOR:
+      case PRINCIPAL_INVESTIGATOR:
         return "";
       case PUBMED:
         return "";

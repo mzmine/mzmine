@@ -121,6 +121,10 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
             cancel();
           }
         }
+        // cancelled
+        if (isCanceled()) {
+          tasks.stream().forEach(AbstractTask::cancel);
+        }
       } else {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
@@ -133,7 +137,8 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
       setErrorMessage(e.toString());
     }
     logger.info("Added " + count + " spectral library matches");
-    resultWindow.setTitle("Matched " + count + " compunds for scan#" + currentScan.getScanNumber());
+    resultWindow
+        .setTitle("Matched " + count + " compounds for scan#" + currentScan.getScanNumber());
     resultWindow.revalidate();
     resultWindow.repaint();
     // Repaint the window
@@ -168,10 +173,8 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
     // return tasks
     try {
       // parse and create spectral matching tasks for batches of entries
-      if (parser.parse(this, dataBaseFile))
-        return tasks;
-      else
-        return new ArrayList<>();
+      parser.parse(this, dataBaseFile);
+      return tasks;
     } catch (UnsupportedFormatException | IOException e) {
       logger.log(Level.WARNING, "Library parsing error for file " + dataBaseFile.getAbsolutePath(),
           e);

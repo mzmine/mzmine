@@ -184,6 +184,8 @@ public class SpectraPlot extends EChartPanel {
 
       GUIUtils.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
           "EXPORT_SPECTRA");
+      GUIUtils.addMenuItem(popupMenu, "Create spectral library entry", masterPlot,
+          "CREATE_LIBRARY_ENTRY");
 
       popupMenu.addSeparator();
 
