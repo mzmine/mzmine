@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.Arrays;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -46,6 +47,8 @@ import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
  * @author Robin Schmid
  */
 public class MirrorScanWindow extends JFrame {
+
+  private Logger logger = Logger.getLogger(this.getClass().getName());
   // for SpectralDBIdentity
 
   public static final DataPointsTag[] tags =
@@ -117,6 +120,22 @@ public class MirrorScanWindow extends JFrame {
     Scan scan = db.getQueryScan();
     if (scan == null)
       return;
+
+    // get highest data intensity to calc relative intensity
+    double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+    double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
+        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
+
+    if (mostIntenseDB == 0d)
+      logger.warning(
+          "This data set has no original data points in the library spectrum (development error)");
+    if (mostIntenseQuery == 0d)
+      logger.warning(
+          "This data set has no original data points in the query spectrum (development error)");
+    if (mostIntenseDB == 0d || mostIntenseQuery == 0d)
+      return;
+
     // scan a
     double precursorMZA = scan.getPrecursorMZ();
     double rtA = scan.getRetentionTime();
@@ -148,12 +167,6 @@ public class MirrorScanWindow extends JFrame {
     axis.setLabel("m/z");
     XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
     XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
-
-    // get highest data intensity to calc relative intensity
-    double mostIntenseQuery = Arrays.stream(db.getQueryDataPoints(DataPointsTag.ORIGINAL))
-        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
-    double mostIntenseDB = Arrays.stream(db.getLibraryDataPoints(DataPointsTag.ORIGINAL))
-        .mapToDouble(DataPoint::getIntensity).max().orElse(0d);
 
     // add all datapoints to a dataset that are not present in subsequent masslist
     for (int i = 0; i < tags.length; i++) {
@@ -195,6 +208,10 @@ public class MirrorScanWindow extends JFrame {
     LegendTitle legend = new LegendTitle(() -> collection);
     legend.setPosition(RectangleEdge.BOTTOM);
     mirrorSpecrumPlot.getChart().addLegend(legend);
+
+    // set y axis title
+    queryPlot.getRangeAxis().setLabel("rel. intensity [%] (query)");
+    libraryPlot.getRangeAxis().setLabel("rel. intensity [%] (library)");
 
     contentPane.add(mirrorSpecrumPlot, BorderLayout.CENTER);
     contentPane.revalidate();

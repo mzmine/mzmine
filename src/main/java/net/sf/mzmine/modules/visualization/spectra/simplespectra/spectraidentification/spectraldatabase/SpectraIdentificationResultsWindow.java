@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -56,20 +55,29 @@ import org.openscience.cdk.smiles.SmilesParser;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
+import net.sf.mzmine.util.ColorScaleUtil;
 import net.sf.mzmine.util.components.MultiLineLabel;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
+/**
+ * Window to show all spectral database matches from selected scan or peaklist match
+ * 
+ * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
+ */
 public class SpectraIdentificationResultsWindow extends JFrame {
-  /**
-   * Window to show all spectral database matches from selected scan or peaklist match
-   * 
-   * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
-   */
-
-  private Logger logger = Logger.getLogger(this.getClass().getName());
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final long serialVersionUID = 1L;
+
+  // colors
+  public static final double MIN_COS_COLOR_VALUE = 0.5;
+  public static final double MAX_COS_COLOR_VALUE = 1.0;
+
+  // min color is a darker red
+  public static final Color MIN_COS_COLOR = new Color(0x388E3C);
+  // max color is a darker green
+  public static final Color MAX_COS_COLOR = new Color(0x388E3C);
+
   private JPanel pnGrid;
   private Font titleFont = new Font("Dialog", Font.BOLD, 18);
   private Font scoreFont = new Font("Dialog", Font.BOLD, 36);
@@ -142,22 +150,21 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     // add title
     JPanel boxTitlePanel = new JPanel(new BorderLayout());
 
-    Random r1 = new Random();
-    Color randomCol = Color.getHSBColor(r1.nextFloat(), 1.0f, 0.6f);
-    boxTitlePanel.setBackground(randomCol);
+    double simScore = hit.getSimilarity().getScore();
+    Color gradientCol = ColorScaleUtil.getColor(MIN_COS_COLOR, MIN_COS_COLOR, MIN_COS_COLOR_VALUE,
+        MAX_COS_COLOR_VALUE, simScore);
+    boxTitlePanel.setBackground(gradientCol);
     Box boxTitle = Box.createHorizontalBox();
     boxTitle.add(Box.createHorizontalGlue());
 
     JPanel panelTitle = new JPanel(new BorderLayout());
-    panelTitle.setBackground(randomCol);
+    panelTitle.setBackground(gradientCol);
     String name = hit.getEntry().getField(DBEntryField.NAME).orElse("N/A").toString();
     JLabel title = new JLabel(name);
     title.setFont(headerFont);
-    title.setBackground(randomCol);
+    title.setBackground(gradientCol);
     title.setForeground(Color.WHITE);
     panelTitle.add(title);
-
-    double simScore = hit.getSimilarity().getScore();
 
     // score result
     JPanel panelScore = new JPanel();
@@ -172,7 +179,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     score.setForeground(Color.WHITE);
     scoreLabel.setFont(titleFont);
     scoreLabel.setForeground(Color.WHITE);
-    panelScore.setBackground(randomCol);
+    panelScore.setBackground(gradientCol);
     panelScore.add(score);
     panelScore.add(scoreLabel);
     boxTitlePanel.add(panelTitle, BorderLayout.WEST);
