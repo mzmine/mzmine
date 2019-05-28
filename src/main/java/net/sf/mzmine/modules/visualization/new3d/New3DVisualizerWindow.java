@@ -71,7 +71,6 @@ public class New3DVisualizerWindow extends JFrame{
 
  // private final ThreeDDisplay display;
   private final ThreeDBottomPanel bottomPanel;
-  private JDialog propertiesDialog;
 
   // Axes bounds.
   private final Range<Double> rtRange;
@@ -106,12 +105,6 @@ public class New3DVisualizerWindow extends JFrame{
     dataFile = file;
     rtRange = rt;
     mzRange = mz;
-
-    // Create 3D display and configure its component.
-   // display = new ThreeDDisplay();
-   // final Component plot3D = display.getComponent();
-    //plot3D.setPreferredSize(PREFERRED_PLOT_SIZE);
-//    plot3D.addMouseWheelListener(this);
 
     // Create bottom panel.
     bottomPanel = new ThreeDBottomPanel(this, file);

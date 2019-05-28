@@ -1,4 +1,26 @@
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package net.sf.mzmine.modules.visualization.new3d;
+
+import java.util.logging.Logger;
+
+import com.sun.tools.sjavac.Log;
 
 import javafx.event.EventHandler;
 import javafx.scene.DepthTest;
@@ -6,8 +28,13 @@ import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.*;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
@@ -18,13 +45,15 @@ public class New3DJavafxStage extends Stage{
 	
 	final Group plot = new Group();
 	
+	private static final Logger LOG = Logger.getLogger(New3DJavafxStage.class.getName());
+	
 	private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
     
     private final Rotate rotateX = new Rotate(45, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(-45, Rotate.Y_AXIS);
     
-	public New3DJavafxStage(float[][] intensityValues,int rtResolution,int mzResolution){
+	public New3DJavafxStage(float[][] intensityValues,int rtResolution,int mzResolution,double maxBinnedIntensity){
         plot.getTransforms().addAll(rotateX, rotateY);
         int size =500;
         
@@ -32,12 +61,30 @@ public class New3DJavafxStage extends Stage{
         root.getChildren().add(plot);
         
         TriangleMesh mesh = new TriangleMesh();
-        float amplification = 100;
+        
+        //TreeSet setOfPeaks = new TreeSet();
+    
+        int[][] peakListIndices = new int[rtResolution][mzResolution];
+        
+        float amplification = 130;
         float factorX = size/rtResolution;
         float factorZ = size/mzResolution;
+        
+        float maxIntensityValue = -Float.MAX_VALUE;
+        for(int i=0;i<rtResolution;i++){
+        	for(int j=0;j<mzResolution;j++) {
+        		if(maxIntensityValue<intensityValues[i][j]) {
+        			maxIntensityValue = intensityValues[i][j];
+        		}
+        	}
+        }
+        
         for (int x = 0; x < rtResolution; x++) {
             for (int z = 0; z < mzResolution; z++) {
                 mesh.getPoints().addAll(x*factorX, -intensityValues[x][z]* amplification, z*factorZ);
+                if(intensityValues[x][z]>0.022*maxIntensityValue){
+                	peakListIndices[x][z]=1;
+                }
             }
         }
         
@@ -80,13 +127,34 @@ public class New3DJavafxStage extends Stage{
 
             }
         }
+        int width = rtLength;
+        int height = mzLength;
+        
+        WritableImage wr = new WritableImage(width, height);
+        PixelWriter pw = wr.getPixelWriter();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+
+                if(peakListIndices[x][y]==1) {
+                	 Color color = Color.BLUE;
+                	 pw.setColor(x, y, color);
+                }else {
+                	Color color = Color.SILVER;
+                	pw.setColor(x,y,color);
+                }
+            }
+        }
+        Image diffuseMap = wr;
+       
+        PhongMaterial material = new PhongMaterial();
+        material.setDiffuseMap(diffuseMap);
         
         int sizeX= rtLength;
         int sizeZ = mzLength;
         MeshView meshView = new MeshView(mesh);
         meshView.setTranslateX(-0.5 * sizeX);
         meshView.setTranslateZ(-0.5 * sizeZ);
-      //  meshView.setMaterial(material);
+        meshView.setMaterial(material);
         meshView.setCullFace(CullFace.NONE);
         meshView.setDrawMode(DrawMode.FILL);
         meshView.setDepthTest(DepthTest.ENABLE);
