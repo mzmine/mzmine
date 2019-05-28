@@ -20,8 +20,6 @@ package net.sf.mzmine.modules.visualization.new3d;
 
 import java.util.logging.Logger;
 
-import com.sun.tools.sjavac.Log;
-
 import javafx.event.EventHandler;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
@@ -39,6 +37,7 @@ import javafx.scene.shape.*;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 
 public class New3DJavafxStage extends Stage{
@@ -51,18 +50,20 @@ public class New3DJavafxStage extends Stage{
     private double mouseOldX, mouseOldY;
     
     private final Rotate rotateX = new Rotate(45, Rotate.X_AXIS);
-    private final Rotate rotateY = new Rotate(-45, Rotate.Y_AXIS);
+    private final Rotate rotateY = new Rotate(180, Rotate.Y_AXIS);
+    private final Translate translateX = new Translate();
+    private final Translate translateY = new Translate();
+    
     
 	public New3DJavafxStage(float[][] intensityValues,int rtResolution,int mzResolution,double maxBinnedIntensity){
         plot.getTransforms().addAll(rotateX, rotateY);
+        plot.getTransforms().addAll(translateX,translateY);
         int size =500;
         
         StackPane root = new StackPane();
         root.getChildren().add(plot);
         
         TriangleMesh mesh = new TriangleMesh();
-        
-        //TreeSet setOfPeaks = new TreeSet();
     
         int[][] peakListIndices = new int[rtResolution][mzResolution];
         
@@ -138,6 +139,11 @@ public class New3DJavafxStage extends Stage{
                 if(peakListIndices[x][y]==1) {
                 	 Color color = Color.BLUE;
                 	 pw.setColor(x, y, color);
+                	 if(x-1>0&&y-1>0) {
+                		 pw.setColor(x-1, y-1, color);
+                		 pw.setColor(x, y-1, color);
+                		 pw.setColor(x-1, y, color);
+                	 }
                 }
                 else {
                 	Color color = Color.SILVER;
@@ -166,24 +172,32 @@ public class New3DJavafxStage extends Stage{
         scene.setCamera(new PerspectiveCamera());
 
         scene.setOnMousePressed(me -> {
+        	
             mouseOldX = me.getSceneX();
             mouseOldY = me.getSceneY();
+            
+           
         });
         scene.setOnMouseDragged(me -> {
-            mousePosX = me.getSceneX();
-            mousePosY = me.getSceneY();
-            rotateX.setAngle(rotateX.getAngle() - (mousePosY - mouseOldY));
-            rotateY.setAngle(rotateY.getAngle() + (mousePosX - mouseOldX));
+    		mousePosX = me.getSceneX();
+	        mousePosY = me.getSceneY();
+        	if(me.isPrimaryButtonDown()) {
+		        rotateX.setAngle(rotateX.getAngle() + (mousePosY - mouseOldY));
+		        rotateY.setAngle(rotateY.getAngle() - (mousePosX - mouseOldX));     
+        	}
+            if(me.isSecondaryButtonDown()) {
+            	translateX.setX(translateX.getX() - (mousePosX - mouseOldX) );
+            	translateY.setY(translateY.getY() + (mousePosY - mouseOldY) );
+        	}
             mouseOldX = mousePosX;
-            mouseOldY = mousePosY;
-
+	        mouseOldY = mousePosY;
         });
         
         makeZoomable(root);
         this.setScene(scene);
         
 	}
-
+	
 	public void makeZoomable(StackPane control) {
 
         final double MAX_SCALE = 20.0;
