@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra.impl.cosine;
+package net.sf.mzmine.util.scans.similarity.impl.cosine;
 
 import java.text.DecimalFormat;
 import net.sf.mzmine.parameters.Parameter;
@@ -24,7 +24,7 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.util.maths.similarity.spectra.Weights;
+import net.sf.mzmine.util.scans.similarity.Weights;
 
 /**
  * 

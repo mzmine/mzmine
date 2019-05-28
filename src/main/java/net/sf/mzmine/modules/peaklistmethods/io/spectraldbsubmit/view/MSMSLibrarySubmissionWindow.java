@@ -31,9 +31,11 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -45,7 +47,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
+import javax.swing.JSplitPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
@@ -55,24 +58,32 @@ import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.GnpsValues.CompoundSource;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitIonParameters;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitTask;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibraryMetaDataParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitIonParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param.LibrarySubmitParameters;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboComponent;
 import net.sf.mzmine.parameters.parametertypes.DoubleComponent;
+import net.sf.mzmine.parameters.parametertypes.IntegerComponent;
+import net.sf.mzmine.parameters.parametertypes.MassListComponent;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameterComponent;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleComponent;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.DialogLoggerUtil;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.components.GridBagPanel;
+import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
 /**
@@ -85,7 +96,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
 
   private Logger log = Logger.getLogger(this.getClass().getName());
   protected Map<String, JComponent> parametersAndComponents;
-  protected LibrarySubmitParameters param = new LibrarySubmitParameters();
+  protected final LibrarySubmitParameters paramSubmit;
+  protected final LibraryMetaDataParameters paramMeta = new LibraryMetaDataParameters();
 
   // annotations for MSMS
   private List<AbstractMSMSIdentity> msmsAnnotations;
@@ -101,64 +113,29 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private JPanel pnCharts;
   private boolean showTitle = true;
   private boolean showLegend = false;
-  // only the last doamin axis
-  private boolean onlyShowOneAxis = true;
   // click marker in all of the group
   private boolean showCrosshair = true;
   private JPanel pnSideMenu;
 
-  private PeakListRow[] rows;
   private JPanel pnSettings;
-  private GridBagPanel pnMetaData;
   private JPanel pnButtons;
 
   private JLabel lblSettings;
-  private JLabel lblMetadata;
-  private JLabel lblNoise;
-  private JTextField txtNoiseLevel;
   private JScrollPane scrollCharts;
-  private JLabel lblMinSignals;
-  private JTextField txtMinSignals;
-  private JLabel lblSorting;
-  private JComboBox<ScanSortMode> comboSortMode;
   private final Color errorColor = Color.decode("#ff8080");
-  private JLabel lblMassList;
-  private JTextField txtMassListName;
   private ScanSelectPanel[] pnScanSelect;
-  private JLabel lblCompoundName;
-  private JLabel lblMoleculeMass;
-  private JLabel lblInstrument;
-  private JLabel lblIonSource;
-  private JLabel lblSmiles;
-  private JLabel lblInchi;
-  private JLabel lblInchiAux;
-  private JLabel lblIonMode;
-  private JLabel lblPub;
-  private JLabel lblCas;
-  private JLabel lblPi;
-  private JTextField txtPI;
-  private JTextField txtCompoundName;
-  private JTextField txtMoleculeMass;
-  private JTextField txtInstrument;
-  private JTextField txtIonSource;
-  private JTextField txtPubMed;
-  private JTextField txtSMILES;
-  private JTextField txtINCHI;
-  private JTextField txtINCHIAUX;
-  private JTextField txtCAS;
-  private JComboBox<String> comboPolarity;
-  private JLabel lblCompoundSource;
-  private JComboBox<CompoundSource> comboSource;
-  private JLabel lblDataCollector;
-  private JTextField txtDataCollector;
-  private JTextField txtFormula;
-  private JLabel lblFormula;
-  private JTextField txtPassword;
-  private JTextField txtUsername;
-  private JLabel lblUsername;
-  private JLabel lblPassword;
 
   private JScrollPane scrollMeta;
+  private GridBagPanel pnMetaData;
+  private GridBagPanel pnSubmitParam;
+  private String helpID;
+
+  //
+  private boolean isFragmentScan = false;
+  // data either rows or list of entries with 1 or multiple scans
+  private PeakListRow[] rows;
+  private List<Scan[]> scanList;
+  private ResultsTextPane txtResults;
 
   /**
    * Create the frame.
@@ -166,10 +143,29 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   public MSMSLibrarySubmissionWindow() {
     setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     setBounds(100, 100, 854, 619);
+
+    JPanel main = new JPanel(new BorderLayout());
+    JSplitPane split = new JSplitPane();
+    split.setOrientation(JSplitPane.VERTICAL_SPLIT);
+    main.add(split);
+    setContentPane(main);
+
     contentPane = new JPanel();
     contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
     contentPane.setLayout(new BorderLayout(0, 0));
-    setContentPane(contentPane);
+    split.setLeftComponent(contentPane);
+
+    txtResults = new ResultsTextPane();
+    txtResults.setEditable(false);
+    JScrollPane scrollResults = new JScrollPane(txtResults);
+    scrollResults.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+    split.setRightComponent(scrollResults);
+    split.setResizeWeight(0.92);
+
+
+    // load parameter
+    paramSubmit = (LibrarySubmitParameters) MZmineCore.getConfiguration()
+        .getModuleParameters(LibrarySubmitModule.class);
 
 
     pnSideMenu = new JPanel();
@@ -180,55 +176,20 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     pnSideMenu.add(pnSettings, BorderLayout.NORTH);
     pnSettings.setLayout(new MigLayout("", "[][grow]", "[][][][][]"));
 
-    lblSettings = new JLabel("Settings");
+    lblSettings = new JLabel("Masslist selection and preprocessing");
     lblSettings.setFont(new Font("Tahoma", Font.BOLD, 11));
     pnSettings.add(lblSettings, "cell 0 0");
-
-    lblMassList = new JLabel("masslist");
-    pnSettings.add(lblMassList, "cell 0 1,alignx trailing");
-
-    txtMassListName = new JTextField();
-    txtMassListName.setToolTipText("Masslist name or empty to use the first masslist");
-    txtMassListName.setColumns(10);
-    pnSettings.add(txtMassListName, "cell 1 1,growx");
-    txtMassListName.getDocument()
-        .addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
-
-    lblNoise = new JLabel("noise level");
-    pnSettings.add(lblNoise, "cell 0 2,alignx trailing");
-
-    txtNoiseLevel = new JTextField();
-    txtNoiseLevel.setToolTipText("Noise level to cut out noise/signals");
-    txtNoiseLevel.setText("0");
-    pnSettings.add(txtNoiseLevel, "cell 1 2,growx");
-    txtNoiseLevel.setColumns(10);
-    txtNoiseLevel.getDocument()
-        .addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
-
-    lblMinSignals = new JLabel("min signals");
-    pnSettings.add(lblMinSignals, "cell 0 3,alignx trailing");
-
-    txtMinSignals = new JTextField();
-    txtMinSignals.setToolTipText("Minimum signals to consider a scan");
-    txtMinSignals.setText("3");
-    txtMinSignals.setColumns(10);
-    pnSettings.add(txtMinSignals, "cell 1 3,growx");
-    txtMinSignals.getDocument()
-        .addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
-
-    lblSorting = new JLabel("sorting");
-    pnSettings.add(lblSorting, "cell 0 4,alignx trailing");
-
-    comboSortMode = new JComboBox<>(ScanSortMode.values());
-    comboSortMode
-        .setToolTipText("Set the scan sorting property for all selected feature list rows");
-    comboSortMode.setSelectedItem(ScanSortMode.MAX_TIC);
-    comboSortMode.addItemListener(il -> updateSortModeOnAllSelectors());
-    pnSettings.add(comboSortMode, "cell 1 4,growx");
 
     // buttons
     pnButtons = new JPanel();
     pnSideMenu.add(pnButtons, BorderLayout.SOUTH);
+
+
+    this.helpID = GUIUtils.generateHelpID(paramSubmit);
+    if (helpID != null) {
+      HelpButton btnHelp = new HelpButton(helpID);
+      pnButtons.add(btnHelp);
+    }
 
     JButton btnCheck = new JButton("Check");
     btnCheck.addActionListener(e -> {
@@ -241,7 +202,12 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     btnSubmit.addActionListener(e -> submitSpectra());
     pnButtons.add(btnSubmit);
 
+    parametersAndComponents = new Hashtable<String, JComponent>();
+    createSubmitParamPanel();
     createMetaDataPanel();
+
+    // add listener
+    addListener();
 
 
     scrollCharts = new JScrollPane();
@@ -254,8 +220,173 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     addMenu();
   }
 
+  private void addListener() {
+    // listen for changes in masslist selection and preprocessing
+    MassListComponent mc = getMassListComponent();
+    mc.addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
+    DoubleComponent nc = getNoiseLevelComponent();
+    nc.addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
+    IntegerComponent minc = getMinSignalComponent();
+    minc.addDocumentListener(new DelayedDocumentListener(e -> updateSettingsOnAllSelectors()));
+    ComboComponent<ScanSortMode> sortc = getComboSortMode();
+    sortc.addItemListener(e -> updateSortModeOnAllSelectors());
+
+    IntegerComponent mslevel = getMSLevelComponent();
+    mslevel.addDocumentListener(new DelayedDocumentListener(e -> {
+      updateParameterSetFromComponents();
+      Integer level = paramMeta.getParameter(LibraryMetaDataParameters.MS_LEVEL).getValue();
+      setFragmentScan(level != null && level > 1);
+    }));
+  }
+
+
+  /**
+   * Sort rows
+   * 
+   * @param rows
+   * @param raw
+   * @param sorting
+   * @param direction
+   */
+  public void setData(PeakListRow[] rows, SortingProperty sorting, SortingDirection direction,
+      boolean isFragmentScan) {
+    Arrays.sort(rows, new PeakListRowSorter(sorting, direction));
+    setData(rows, isFragmentScan);
+  }
+
+
+  /**
+   * Create charts and show
+   * 
+   * @param rows
+   * @param raw
+   */
+  public void setData(PeakListRow[] rows, boolean isFragmentScan) {
+    scanList = null;
+    this.rows = rows;
+    this.pnScanSelect = new ScanSelectPanel[rows.length];
+
+    setFragmentScan(isFragmentScan);
+    // set rt
+    double rt = Arrays.stream(rows).mapToDouble(PeakListRow::getAverageRT).average().orElse(-1);
+    setRetentionTimeToComponent(rt);
+    updateAllChartSelectors();
+  }
+
+  /**
+   * Set data as single scan
+   * 
+   * @param scan
+   */
+  public void setData(Scan scan) {
+    setData(new Scan[] {scan});
+  }
+
+  /**
+   * set data as set of scans of one entry
+   * 
+   * @param scans
+   */
+  public void setData(Scan[] scans) {
+    scanList = new ArrayList<>();
+    scanList.add(scans);
+    setData(scanList);
+  }
+
+  /**
+   * Set data as set of entries with 1 or multiple scans
+   * 
+   * @param scanList
+   */
+  public void setData(List<Scan[]> scanList) {
+    this.scanList = scanList;
+    rows = null;
+    this.pnScanSelect = new ScanSelectPanel[scanList.size()];
+
+    double rt = scanList.stream().flatMap(Arrays::stream).mapToDouble(Scan::getRetentionTime)
+        .average().orElse(0d);
+
+    // any scan matches MS level 1? --> set level to ms1
+    int minMSLevel =
+        scanList.stream().flatMap(Arrays::stream).mapToInt(Scan::getMSLevel).min().orElse(1);
+    getMSLevelComponent().setText(minMSLevel < 2 ? "1" : "" + minMSLevel);
+    setFragmentScan(minMSLevel > 1);
+
+    // set rt
+    setRetentionTimeToComponent(rt);
+    updateAllChartSelectors();
+  }
+
+
+  /**
+   * Set whether this is a fragment scan or MS1 and enables some user parameters (e.g., precursor
+   * mz, adduct, charge, GNPS submission)
+   * 
+   * @param isFragmentScan
+   */
+  public void setFragmentScan(boolean isFragmentScan) {
+    this.isFragmentScan = isFragmentScan;
+    streamSelection().forEach(pn -> pn.setFragmentScan(isFragmentScan));
+    // disable gnps
+    if (!isFragmentScan) {
+      paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).setValue(false);
+      getGnpsSubmitComponent().setSelected(false);;
+    }
+    getGnpsSubmitComponent().setEnabled(isFragmentScan);
+  }
+
+
+  private void createSubmitParamPanel() {
+    // Main panel which holds all the components in a grid
+    pnSubmitParam = new GridBagPanel();
+    pnSideMenu.add(pnSubmitParam, BorderLayout.NORTH);
+
+    int rowCounter = 0;
+    // Create labels and components for each parameter
+    for (Parameter p : paramSubmit.getParameters()) {
+      if (!(p instanceof UserParameter))
+        continue;
+      UserParameter up = (UserParameter) p;
+
+      JComponent comp = up.createEditingComponent();
+      comp.setToolTipText(up.getDescription());
+
+      // Set the initial value
+      Object value = up.getValue();
+      if (value != null)
+        up.setValueToComponent(comp, value);
+
+      // By calling this we make sure the components will never be resized
+      // smaller than their optimal size
+      comp.setMinimumSize(comp.getPreferredSize());
+
+      comp.setToolTipText(up.getDescription());
+
+
+      // add separator
+      if (p.getName().equals(LibrarySubmitParameters.LOCALFILE.getName())) {
+        pnSubmitParam.addSeparator(0, rowCounter, 2);
+        rowCounter++;
+      }
+
+      JLabel label = new JLabel(p.getName());
+      pnSubmitParam.add(label, 0, rowCounter);
+      label.setLabelFor(comp);
+
+      parametersAndComponents.put(p.getName(), comp);
+
+      JComboBox t = new JComboBox();
+      int comboh = t.getPreferredSize().height;
+      int comph = comp.getPreferredSize().height;
+
+
+      int verticalWeight = comph > 2 * comboh ? 1 : 0;
+      pnSubmitParam.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight, GridBagConstraints.VERTICAL);
+      rowCounter++;
+    }
+  }
+
   private void createMetaDataPanel() {
-    parametersAndComponents = new Hashtable<String, JComponent>();
     // Main panel which holds all the components in a grid
     pnMetaData = new GridBagPanel();
     scrollMeta = new JScrollPane(pnMetaData);
@@ -267,7 +398,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     int vertWeightSum = 0;
 
     // Create labels and components for each parameter
-    for (Parameter p : param.getParameters()) {
+    for (Parameter p : paramMeta.getParameters()) {
       if (!(p instanceof UserParameter))
         continue;
       UserParameter up = (UserParameter) p;
@@ -301,14 +432,20 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
       vertWeightSum += verticalWeight;
 
       pnMetaData.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight, GridBagConstraints.VERTICAL);
-
       rowCounter++;
     }
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   protected void updateParameterSetFromComponents() {
-    for (Parameter<?> p : param.getParameters()) {
+    for (Parameter<?> p : paramSubmit.getParameters()) {
+      if (!(p instanceof UserParameter))
+        continue;
+      UserParameter up = (UserParameter) p;
+      JComponent component = parametersAndComponents.get(p.getName());
+      up.setValueFromComponent(component);
+    }
+    for (Parameter<?> p : paramMeta.getParameters()) {
       if (!(p instanceof UserParameter))
         continue;
       UserParameter up = (UserParameter) p;
@@ -318,7 +455,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   }
 
   protected int getNumberOfParameters() {
-    return param.getParameters().length;
+    return paramSubmit.getParameters().length + paramMeta.getParameters().length;
   }
 
 
@@ -329,13 +466,23 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     // check
     ArrayList<String> messages = new ArrayList<>();
 
-    if (param.checkParameterValues(messages)) {
+    boolean checkIon =
+        streamSelection().filter(pn -> !pn.checkParameterValues(messages)).count() == 0;
+    boolean checkSubmit = paramSubmit.checkParameterValues(messages);
+    boolean checkMeta = paramMeta.checkParameterValues(messages);
+    if (checkMeta && checkSubmit && checkIon) {
       return true;
     } else {
       String message = messages.stream().collect(Collectors.joining("\n"));
       MZmineCore.getDesktop().displayMessage(this, message);
       return false;
     }
+  }
+
+  private Stream<ScanSelectPanel> streamSelection() {
+    if (pnScanSelect == null)
+      return Stream.empty();
+    return Arrays.stream(pnScanSelect).filter(Objects::nonNull);
   }
 
   private JComponent getComponentForParameter(UserParameter p) {
@@ -348,64 +495,104 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private void submitSpectra() {
     if (checkParameters()) {
       // check number of ions
-      int ions = Arrays.stream(pnScanSelect).mapToInt(pn -> pn.isValidAndSelected() ? 1 : 0).sum();
-      int adducts = Arrays.stream(pnScanSelect)
-          .mapToInt(pn -> pn.isValidAndSelected() && pn.hasAdduct() ? 1 : 0).sum();
-      // every valid selected ion needs an adduct
-      if (ions != adducts) {
-        MZmineCore.getDesktop().displayErrorMessage(this, "ERROR",
-            MessageFormat.format(
-                "Not all adducts are set: {0} ion spectra selected and only {1}  adducts set", ions,
-                adducts));
-        return;
+      int ions = countSelectedIons();
+      // for ms level >1 (fragmentation scan MS/MS)
+      int mslevel = paramMeta.getParameter(LibraryMetaDataParameters.MS_LEVEL).getValue();
+      if (mslevel == 1)
+        paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).setValue(false);
+      else {
+        int adducts = countSelectedAdducts();
+        // every valid selected ion needs an adduct for MS2
+        if (ions != adducts) {
+          MZmineCore.getDesktop().displayErrorMessage(this, "ERROR",
+              MessageFormat.format(
+                  "Not all adducts are set: {0} ion spectra selected and only {1}  adducts set",
+                  ions, adducts));
+          return;
+        }
+      }
+
+      //
+      if (ions == 0) {
+        log.info("No MS/MS spectrum selected or valid");
+        DialogLoggerUtil.showMessageDialogForTime(this, "Error",
+            "No MS/MS spectrum selected or valid", 1500);
       } else {
-        if (ions == 0) {
-          log.info("No MS/MS spectrum selected or valid");
-          DialogLoggerUtil.showMessageDialogForTime(this, "Error",
-              "No MS/MS spectrum selected or valid", 1500);
+        String message = ions + " MS/MS spectra were selected. Submit?";
+        if (mslevel > 1) {
+          message +=
+              " (" + streamSelection().filter(pn -> pn.isValidAndSelected() && pn.hasAdduct())
+                  .map(ScanSelectPanel::getAdduct).collect(Collectors.joining(", ")) + ")";
         } else {
+          message += " (MS1)";
+        }
+        // show accept dialog
+        if (DialogLoggerUtil.showDialogYesNo(this, "Submission?", message)) {
+          // create library / submit to GNPS
+          HashMap<LibrarySubmitIonParameters, DataPoint[]> map = new HashMap<>(ions);
+          for (ScanSelectPanel ion : pnScanSelect) {
+            if (ion.isValidAndSelected()) {
+              // create ion param
+              LibrarySubmitIonParameters ionParam =
+                  createIonParameters(paramSubmit, paramMeta, ion);
+              DataPoint[] dps = ion.getFilteredDataPoints();
 
-          String allAdducts =
-              Arrays.stream(pnScanSelect).filter(pn -> pn.isValidAndSelected() && pn.hasAdduct())
-                  .map(ScanSelectPanel::getAdduct).collect(Collectors.joining(", "));
-          // show accept dialog
-          if (DialogLoggerUtil.showDialogYesNo(this, "Submission?",
-              ions + " MS/MS spectra were selected. Submit? (" + allAdducts + ")")) {
-            // submit to GNPS
-            HashMap<LibrarySubmitIonParameters, DataPoint[]> map = new HashMap<>(ions);
-            for (ScanSelectPanel ion : pnScanSelect) {
-              if (ion.isValidAndSelected()) {
-                // create ion param
-                LibrarySubmitIonParameters ionParam = createIonParameters(param, ion);
-                DataPoint[] dps = ion.getFilteredDataPoints();
-
-                // submit and save locally
-                map.put(ionParam, dps);
-              }
+              // submit and save locally
+              map.put(ionParam, dps);
             }
-            // start task
-            log.info("Added task to export library entries: " + ions
-                + " MS/MS spectra were selected (" + allAdducts + ")");
-            LibrarySubmitTask task = new LibrarySubmitTask(map);
-            MZmineCore.getTaskController().addTask(task);
           }
+          // start task
+          log.info(
+              "Added task to export library entries: " + ions + " MS/MS spectra were selected");
+          LibrarySubmitTask task = new LibrarySubmitTask(this, map);
+          MZmineCore.getTaskController().addTask(task);
         }
       }
     }
   }
 
-  private LibrarySubmitIonParameters createIonParameters(LibrarySubmitParameters param,
-      ScanSelectPanel ion) {
+  public int countSelectedIons() {
+    return (int) streamSelection().filter(ScanSelectPanel::isValidAndSelected).count();
+  }
+
+  public int countSelectedAdducts() {
+    return (int) streamSelection().filter(pn -> pn.isValidAndSelected() && pn.hasAdduct()).count();
+  }
+
+  /**
+   * The full set of parameters for the submission/creation of one library entry
+   * 
+   * @param paramSubmit
+   * @param paramMeta
+   * @param ion
+   * @return
+   */
+  private LibrarySubmitIonParameters createIonParameters(LibrarySubmitParameters paramSubmit,
+      LibraryMetaDataParameters paramMeta, ScanSelectPanel ion) {
     LibrarySubmitIonParameters ionParam = new LibrarySubmitIonParameters();
-    ionParam.getParameter(LibrarySubmitIonParameters.META_PARAM).setValue(param);
-    ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT).setValue(ion.getAdduct());
-    ionParam.getParameter(LibrarySubmitIonParameters.CHARGE).setValue(ion.getPrecursorCharge());
-    ionParam.getParameter(LibrarySubmitIonParameters.MZ).setValue(ion.getPrecursorMZ());
+    ionParam.getParameter(LibrarySubmitIonParameters.META_PARAM).setValue(paramMeta);
+    ionParam.getParameter(LibrarySubmitIonParameters.SUBMIT_PARAM).setValue(paramSubmit);
+    if (isFragmentScan) {
+      String adduct = ion.getAdduct();
+      double precursorMZ = ion.getPrecursorMZ();
+      int charge = ion.getPrecursorCharge();
+      ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT)
+          .setValue(adduct == null || adduct.isEmpty() ? null : adduct);
+      ionParam.getParameter(LibrarySubmitIonParameters.CHARGE)
+          .setValue(charge == 0 ? null : charge);
+      ionParam.getParameter(LibrarySubmitIonParameters.MZ)
+          .setValue(precursorMZ == 0d ? null : precursorMZ);
+    } else {
+      // MS1
+      ionParam.getParameter(LibrarySubmitIonParameters.ADDUCT).setValue(null);
+      ionParam.getParameter(LibrarySubmitIonParameters.CHARGE).setValue(null);
+      ionParam.getParameter(LibrarySubmitIonParameters.MZ).setValue(null);
+    }
     return (LibrarySubmitIonParameters) ionParam.cloneParameterSet();
   }
 
   private void updateSortModeOnAllSelectors() {
-    ScanSortMode sort = (ScanSortMode) comboSortMode.getSelectedItem();
+    ScanSortMode sort = (ScanSortMode) getComboSortMode().getSelectedItem();
     if (pnScanSelect != null)
       for (ScanSelectPanel pn : pnScanSelect)
         pn.setSortMode(sort);
@@ -413,10 +600,10 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
 
   private void updateSettingsOnAllSelectors() {
     if (checkInput()) {
-      int minSignals = Integer.parseInt(txtMinSignals.getText());
-      double noiseLevel = Double.parseDouble(txtNoiseLevel.getText());
-      String massListName = txtMassListName.getText();
-      if (pnScanSelect != null)
+      Integer minSignals = paramSubmit.getParameter(LibrarySubmitParameters.minSignals).getValue();
+      Double noiseLevel = paramSubmit.getParameter(LibrarySubmitParameters.noiseLevel).getValue();
+      String massListName = paramSubmit.getParameter(LibrarySubmitParameters.massList).getValue();
+      if (pnScanSelect != null && minSignals != null && noiseLevel != null && massListName != null)
         for (ScanSelectPanel pn : pnScanSelect)
           pn.setFilter(massListName, noiseLevel, minSignals);
     }
@@ -426,7 +613,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     JMenuBar menu = new JMenuBar();
     JMenu settings = new JMenu("Settings");
     menu.add(settings);
-
     JFrame thisframe = this;
 
     // reset zoom
@@ -480,7 +666,6 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   }
 
   public void setOnlyShowOneAxis(boolean onlyShowOneAxis) {
-    this.onlyShowOneAxis = onlyShowOneAxis;
     int i = 0;
     forAllCharts(c -> {
       // show only the last domain axes
@@ -496,40 +681,12 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     menu.add(item);
   }
 
-  /**
-   * Sort rows
-   * 
-   * @param rows
-   * @param raw
-   * @param sorting
-   * @param direction
-   */
-  public void setData(PeakListRow[] rows, SortingProperty sorting, SortingDirection direction) {
-    Arrays.sort(rows, new PeakListRowSorter(sorting, direction));
-    setData(rows);
-  }
 
-  /**
-   * Create charts and show
-   * 
-   * @param rows
-   * @param raw
-   */
-  public void setData(PeakListRow[] rows) {
-    this.rows = rows;
-    this.pnScanSelect = new ScanSelectPanel[rows.length];
-
-    // set rt
-    double rt = Arrays.stream(rows).mapToDouble(PeakListRow::getAverageRT).average().orElse(-1);
-    setRetentionTimeToComponent(rt);
-
-    updateAllChartSelectors();
-  }
 
   private void setRetentionTimeToComponent(double rt) {
     OptionalParameterComponent<DoubleComponent> cb =
         (OptionalParameterComponent<DoubleComponent>) getComponentForParameter(
-            LibrarySubmitParameters.EXPORT_RT);
+            LibraryMetaDataParameters.EXPORT_RT);
     cb.getEmbeddedComponent().setText(MZmineCore.getConfiguration().getRTFormat().format(rt));
   }
 
@@ -543,24 +700,47 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     pnCharts.setLayout(layout);
 
     if (checkInput()) {
-      int minSignals = Integer.parseInt(txtMinSignals.getText());
-      double noiseLevel = Double.parseDouble(txtNoiseLevel.getText());
-      ScanSortMode sort = (ScanSortMode) comboSortMode.getSelectedItem();
-      String massListName = txtMassListName.getText();
-      // MS2 of all rows
-      for (int i = 0; i < rows.length; i++) {
-        PeakListRow row = rows[i];
-        ScanSelectPanel pn = new ScanSelectPanel(row, sort, noiseLevel, minSignals, massListName);
-        pnScanSelect[i] = pn;
-        pn.addChartChangedListener(chart -> regroupCharts());
-        pnCharts.add(pn);
+      Integer minSignals = paramSubmit.getParameter(LibrarySubmitParameters.minSignals).getValue();
+      Double noiseLevel = paramSubmit.getParameter(LibrarySubmitParameters.noiseLevel).getValue();
+      String massListName = paramSubmit.getParameter(LibrarySubmitParameters.massList).getValue();
+      if (minSignals != null && noiseLevel != null && massListName != null) {
+        ScanSortMode sort = (ScanSortMode) getComboSortMode().getSelectedItem();
 
-        // add to group
-        EChartPanel c = pn.getChart();
-        if (c != null) {
-          group.add(new ChartViewWrapper(c));
+        if (rows != null) {
+          // create MS2 of all rows
+          for (int i = 0; i < rows.length; i++) {
+            PeakListRow row = rows[i];
+            ScanSelectPanel pn =
+                new ScanSelectPanel(row, sort, noiseLevel, minSignals, massListName);
+            pnScanSelect[i] = pn;
+            pn.addChartChangedListener(chart -> regroupCharts());
+            pnCharts.add(pn);
+
+            // add to group
+            EChartPanel c = pn.getChart();
+            if (c != null) {
+              group.add(new ChartViewWrapper(c));
+            }
+          }
+        } else if (scanList != null) {
+          // all selectors of scanlist
+          for (int i = 0; i < scanList.size(); i++) {
+            Scan[] scansEntry = scanList.get(i);
+            ScanSelectPanel pn =
+                new ScanSelectPanel(scansEntry, sort, noiseLevel, minSignals, massListName);
+            pnScanSelect[i] = pn;
+            pn.addChartChangedListener(chart -> regroupCharts());
+            pnCharts.add(pn);
+
+            // add to group
+            EChartPanel c = pn.getChart();
+            if (c != null) {
+              group.add(new ChartViewWrapper(c));
+            }
+          }
         }
       }
+      streamSelection().forEach(pn -> pn.setFragmentScan(isFragmentScan));
     }
 
     pnCharts.revalidate();
@@ -579,22 +759,20 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   }
 
   private boolean checkInput() {
-    boolean result = true;
-    try {
-      Integer.parseInt(txtMinSignals.getText());
-      txtMinSignals.setBackground(Color.white);
-    } catch (Exception e) {
-      txtMinSignals.setBackground(errorColor);
-      result = false;
-    }
-    try {
-      Double.parseDouble(txtNoiseLevel.getText());
-      txtNoiseLevel.setBackground(Color.white);
-    } catch (Exception e) {
-      txtNoiseLevel.setBackground(errorColor);
-      result = false;
-    }
-    return result;
+    updateParameterSetFromComponents();
+    Integer minSignals = paramSubmit.getParameter(LibrarySubmitParameters.minSignals).getValue();
+    if (minSignals == null)
+      getMinSignalComponent().getTextField().setBackground(errorColor);
+    else
+      getMinSignalComponent().getTextField().setBackground(Color.white);
+
+    Double noiseLevel = paramSubmit.getParameter(LibrarySubmitParameters.noiseLevel).getValue();
+    if (noiseLevel == null)
+      getNoiseLevelComponent().getTextField().setBackground(errorColor);
+    else
+      getNoiseLevelComponent().getTextField().setBackground(Color.white);
+
+    return noiseLevel != null && minSignals != null;
   }
 
   // ANNOTATIONS
@@ -699,83 +877,33 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
       op.accept(group.getList().get(i).getChart());
   }
 
-  public JComboBox getComboSortMode() {
-    return comboSortMode;
+  private OptionalModuleComponent getGnpsSubmitComponent() {
+    return (OptionalModuleComponent) getComponentForParameter(LibrarySubmitParameters.SUBMIT_GNPS);
   }
 
-  public JTextField getTxtMinSignals() {
-    return txtMinSignals;
+
+  private IntegerComponent getMSLevelComponent() {
+    return (IntegerComponent) getComponentForParameter(LibraryMetaDataParameters.MS_LEVEL);
   }
 
-  public JTextField getTxtNoiseLevel() {
-    return txtNoiseLevel;
+  private IntegerComponent getMinSignalComponent() {
+    return (IntegerComponent) getComponentForParameter(LibrarySubmitParameters.minSignals);
   }
 
-  public JTextField getTextField() {
-    return txtMassListName;
+  private DoubleComponent getNoiseLevelComponent() {
+    return (DoubleComponent) getComponentForParameter(LibrarySubmitParameters.noiseLevel);
   }
 
-  public JTextField getTxtCAS() {
-    return txtCAS;
+  private MassListComponent getMassListComponent() {
+    return (MassListComponent) getComponentForParameter(LibrarySubmitParameters.massList);
   }
 
-  public JTextField getTxtINCHIAUX() {
-    return txtINCHIAUX;
+  private ComboComponent<ScanSortMode> getComboSortMode() {
+    return (ComboComponent<ScanSortMode>) getComponentForParameter(LibrarySubmitParameters.sorting);
   }
 
-  public JTextField getTxtINCHI() {
-    return txtINCHI;
-  }
 
-  public JTextField getTxtSMILES() {
-    return txtSMILES;
-  }
-
-  public JTextField getTxtPubMed() {
-    return txtPubMed;
-  }
-
-  public JComboBox getComboSource() {
-    return comboSource;
-  }
-
-  public JTextField getTxtIonSource() {
-    return txtIonSource;
-  }
-
-  public JTextField getTxtInstrument() {
-    return txtInstrument;
-  }
-
-  public JComboBox getComboPolarity() {
-    return comboPolarity;
-  }
-
-  public JTextField getTxtFormula() {
-    return txtFormula;
-  }
-
-  public JTextField getTxtMoleculeMass() {
-    return txtMoleculeMass;
-  }
-
-  public JTextField getTxtCompoundName() {
-    return txtCompoundName;
-  }
-
-  public JTextField getTxtDataCollector() {
-    return txtDataCollector;
-  }
-
-  public JTextField getTxtPI() {
-    return txtPI;
-  }
-
-  public JTextField getTxtUsername() {
-    return txtUsername;
-  }
-
-  public JTextField getTxtPassword() {
-    return txtPassword;
+  public ResultsTextPane getTxtResults() {
+    return txtResults;
   }
 }

@@ -16,10 +16,16 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra;
+package net.sf.mzmine.util.scans.similarity;
 
 import java.text.MessageFormat;
 
+/**
+ * Weights for intensity/mz weighting in similarity scoring
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
 public class Weights {
   /**
    * Uses only intensity

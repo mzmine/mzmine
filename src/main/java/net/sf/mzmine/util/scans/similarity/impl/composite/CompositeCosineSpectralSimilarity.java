@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra.impl.composite;
+package net.sf.mzmine.util.scans.similarity.impl.composite;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,14 +27,15 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.maths.similarity.Similarity;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
-import net.sf.mzmine.util.maths.similarity.spectra.Weights;
 import net.sf.mzmine.util.scans.ScanAlignment;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarity;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import net.sf.mzmine.util.scans.similarity.Weights;
 
 /**
  * Similar to NIST search algorithm for GC-MS data with lots of signals (more an identity check than
- * similarity)
+ * similarity).<br>
+ * Uses the relative intensity ratios of adjacent signals.
  * 
  * @author
  *
@@ -45,7 +46,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
    * Returns mass and intensity values detected in given scan
    */
   @Override
-  public SpectraSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
+  public SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
       DataPoint[] library, DataPoint[] query) {
     Weights weights =
         parameters.getParameter(CompositeCosineSpectralSimilarityParameters.weight).getValue();
@@ -53,7 +54,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
         parameters.getParameter(CompositeCosineSpectralSimilarityParameters.minCosine).getValue();
 
     // align
-    List<DataPoint[]> aligned = align(mzTol, library, query);
+    List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
     int queryN = query.length;
     int overlap = calcOverlap(aligned);
 
@@ -72,7 +73,7 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
 
 
       if (composite >= minCos)
-        return new SpectraSimilarity(composite, overlap);
+        return new SpectralSimilarity(getName(), composite, overlap, library, query, aligned);
       else
         return null;
     }

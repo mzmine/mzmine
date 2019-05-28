@@ -104,6 +104,10 @@ class LocalSpectralDBSearchTask extends AbstractTask {
             cancel();
           }
         }
+        // cancelled
+        if (isCanceled()) {
+          tasks.stream().forEach(AbstractTask::cancel);
+        }
       } else {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
@@ -150,10 +154,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     });
 
     // return tasks
-    if (parser.parse(this, dataBaseFile))
-      return tasks;
-    else
-      return new ArrayList<>();
+    parser.parse(this, dataBaseFile);
+    return tasks;
   }
 
 }

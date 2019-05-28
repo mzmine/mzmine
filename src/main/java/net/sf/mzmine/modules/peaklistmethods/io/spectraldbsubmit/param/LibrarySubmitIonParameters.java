@@ -28,7 +28,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit;
+package net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.param;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -45,7 +45,9 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 public class LibrarySubmitIonParameters extends SimpleParameterSet {
 
   public static final ParameterSetParameter META_PARAM =
-      new ParameterSetParameter("Metadata", "", new LibrarySubmitParameters());
+      new ParameterSetParameter("Metadata", "", new LibraryMetaDataParameters());
+  public static final ParameterSetParameter SUBMIT_PARAM =
+      new ParameterSetParameter("Submit", "", new LibrarySubmitParameters());
   // set later
   public static final StringParameter ADDUCT = new StringParameter("ADDUCT", "", "", false);
   public static final DoubleParameter MZ = new DoubleParameter("MZ", "");
@@ -55,6 +57,8 @@ public class LibrarySubmitIonParameters extends SimpleParameterSet {
     super(new Parameter[] {
         // meta data param
         META_PARAM,
+        // submit param
+        SUBMIT_PARAM,
         // Ion specific
         ADDUCT, MZ, CHARGE});
   }

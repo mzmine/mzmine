@@ -43,10 +43,10 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
 import net.sf.mzmine.util.scans.ScanAlignment;
 import net.sf.mzmine.util.scans.ScanUtils;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarity;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
@@ -95,6 +95,9 @@ public class SpectralMatchTask extends AbstractTask {
   private boolean removeIsotopes;
   private MassListDeisotoperParameters deisotopeParam;
 
+  // crop to overlapping range (+- mzTol)
+  private final boolean cropSpectraToOverlap;
+
   public SpectralMatchTask(ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
       SpectraPlot spectraPlot, Scan currentScan, SpectraIdentificationResultsWindow resultWindow) {
     this.startEntry = startEntry;
@@ -110,11 +113,10 @@ public class SpectralMatchTask extends AbstractTask {
         .getValue();
     mzToleranceSpectra = parameters
         .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
-    if (usePrecursorMZ)
-      mzTolerancePrecursor = parameters
-          .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerance).getValue();
-    else
-      mzTolerancePrecursor = null;
+    mzTolerancePrecursor = parameters
+        .getParameter(SpectraIdentificationSpectralDatabaseParameters.mzTolerancePrecursor)
+        .getValue();
+
     noiseLevel = parameters.getParameter(SpectraIdentificationSpectralDatabaseParameters.noiseLevel)
         .getValue();
 
@@ -131,6 +133,8 @@ public class SpectralMatchTask extends AbstractTask {
         parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping).getValue();
     deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
         .getEmbeddedParameters();
+    cropSpectraToOverlap =
+        parameters.getParameter(LocalSpectralDBSearchParameters.cropSpectraToOverlap).getValue();
   }
 
   /**
@@ -179,11 +183,17 @@ public class SpectralMatchTask extends AbstractTask {
       totalSteps = list.size();
       matches = new ArrayList<>();
       for (SpectralDBEntry ident : list) {
-        SpectraSimilarity sim = spectraDBMatch(spectraMassList, ident);
+        if (isCanceled()) {
+          logger.info("Added " + count + " spectral library matches (before being cancelled)");
+          repaintWindow();
+          return;
+        }
+
+        SpectralSimilarity sim = spectraDBMatch(spectraMassList, ident);
         if (sim != null) {
           count++;
-          // use SpectralDBPeakIdentity to store all resutls similar to peaklist method
-          matches.add(new SpectralDBPeakIdentity(ident, sim,
+          // use SpectralDBPeakIdentity to store all results similar to peaklist method
+          matches.add(new SpectralDBPeakIdentity(currentScan, massListName, ident, sim,
               SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
         }
         // next row
@@ -207,12 +217,16 @@ public class SpectralMatchTask extends AbstractTask {
     }
 
     // Repaint the window to reflect the change in the peak list
-    Desktop desktop = MZmineCore.getDesktop();
-    if (!(desktop instanceof HeadLessDesktop))
-      desktop.getMainWindow().repaint();
+    repaintWindow();
 
     list = null;
     setStatus(TaskStatus.FINISHED);
+  }
+
+  private void repaintWindow() {
+    Desktop desktop = MZmineCore.getDesktop();
+    if (!(desktop instanceof HeadLessDesktop))
+      desktop.getMainWindow().repaint();
   }
 
   /**
@@ -221,16 +235,22 @@ public class SpectralMatchTask extends AbstractTask {
    * @param ident
    * @return spectral similarity or null if no match
    */
-  private SpectraSimilarity spectraDBMatch(DataPoint[] spectraMassList, SpectralDBEntry ident) {
+  private SpectralSimilarity spectraDBMatch(DataPoint[] spectraMassList, SpectralDBEntry ident) {
     // do not check precursorMZ or precursorMZ within tolerances
     if (!usePrecursorMZ || (checkPrecursorMZ(precursorMZ, ident))) {
-      DataPoint[] dps = ident.getDataPoints();
+      DataPoint[] library = ident.getDataPoints();
       if (removeIsotopes)
-        dps = removeIsotopes(dps);
+        library = removeIsotopes(library);
+
+      DataPoint[] query = spectraMassList;
+      if (cropSpectraToOverlap) {
+        DataPoint[][] cropped = ScanAlignment.cropToOverlap(mzToleranceSpectra, library, query);
+        library = cropped[0];
+        query = cropped[1];
+      }
 
       // check spectra similarity
-      SpectraSimilarity sim = createSimilarity(dps, spectraMassList);
-      return sim;
+      return createSimilarity(library, query);
     }
     return null;
   }
@@ -253,7 +273,7 @@ public class SpectralMatchTask extends AbstractTask {
    * @param query
    * @return positive match with similarity or null if criteria was not met
    */
-  private SpectraSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
+  private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
     return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzToleranceSpectra,
         minMatch, library, query);
   }
@@ -309,7 +329,7 @@ public class SpectralMatchTask extends AbstractTask {
           shortName = compoundName.substring(start + 1, end);
 
         DataPointsDataSet detectedCompoundsDataset = new DataPointsDataSet(
-            shortName + " " + "Score: " + COS_FORM.format(match.getSimilarity().getCosine()),
+            shortName + " " + "Score: " + COS_FORM.format(match.getSimilarity().getScore()),
             dataset);
         spectraPlot.addDataSet(detectedCompoundsDataset,
             new Color((int) (Math.random() * 0x1000000)), true);
@@ -320,7 +340,7 @@ public class SpectralMatchTask extends AbstractTask {
         errorCounter++;
       }
     }
-    resultWindow.addMatches(currentScan, matches);
+    resultWindow.addMatches(matches);
     resultWindow.revalidate();
     resultWindow.repaint();
     setStatus(TaskStatus.FINISHED);

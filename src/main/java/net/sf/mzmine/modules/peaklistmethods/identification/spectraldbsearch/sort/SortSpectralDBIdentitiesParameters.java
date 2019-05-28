@@ -16,29 +16,29 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra.impl.composite;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort;
 
 import java.text.DecimalFormat;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.util.maths.similarity.spectra.Weights;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 /**
- * 
+ * Sort the results of spectral library search
  */
-public class CompositeCosineSpectralSimilarityParameters extends SimpleParameterSet {
+public class SortSpectralDBIdentitiesParameters extends SimpleParameterSet {
 
-  public static final ComboParameter<Weights> weight = new ComboParameter<>("Weights",
-      "Weights for m/z and intensity", Weights.VALUES, Weights.MASSBANK);
-  public static final DoubleParameter minCosine = new DoubleParameter("Minimum  cos similarity",
-      "Minimum cosine similarity. (All signals in the masslist against the spectral library entry. "
-          + "Considers only signals which were found in both the masslist and the library entry)",
-      new DecimalFormat("0.000"), 0.7);
+  public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public CompositeCosineSpectralSimilarityParameters() {
-    super(new Parameter[] {weight, minCosine});
+
+  public static final OptionalParameter<DoubleParameter> minScore =
+      new OptionalParameter<>(new DoubleParameter("Minimum similarity score",
+          "Minimum similarity score", new DecimalFormat("0.00##"), 0.75d));
+
+  public SortSpectralDBIdentitiesParameters() {
+    super(new Parameter[] {peakLists, minScore});
   }
 
 }
