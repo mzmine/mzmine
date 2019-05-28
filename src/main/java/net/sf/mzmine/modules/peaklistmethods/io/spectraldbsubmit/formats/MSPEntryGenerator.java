@@ -89,7 +89,7 @@ public class MSPEntryGenerator {
 
     String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
     if (adduct != null && !adduct.trim().isEmpty())
-      s.append(DBEntryField.IONTYPE.getNistMspID() + def
+      s.append(DBEntryField.ION_TYPE.getNistMspID() + def
           + param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue() + br);
 
     if (exportRT) {

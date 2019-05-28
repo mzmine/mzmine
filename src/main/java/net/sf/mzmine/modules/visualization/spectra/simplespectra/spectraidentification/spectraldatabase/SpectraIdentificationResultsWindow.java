@@ -20,12 +20,10 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentif
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,6 +57,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.M
 import net.sf.mzmine.util.ColorScaleUtil;
 import net.sf.mzmine.util.components.MultiLineLabel;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
+import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
@@ -141,8 +140,8 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     JPanel spectrumPanel = new JPanel(new BorderLayout());
 
     // set meta data from identity
-    JPanel metaDataPanel = new JPanel(new GridBagLayout());
-    GridBagConstraints constraintsMetaDataPanel = new GridBagConstraints();
+    JPanel metaDataPanel = new JPanel();
+    metaDataPanel.setLayout(new BoxLayout(metaDataPanel, BoxLayout.Y_AXIS));
 
     metaDataPanel.setBackground(Color.WHITE);
 
@@ -218,239 +217,36 @@ public class SpectraIdentificationResultsWindow extends JFrame {
       preview2DPanel.add(newComponent, BorderLayout.CENTER);
       preview2DPanel.revalidate();
 
-      constraintsMetaDataPanel.anchor = GridBagConstraints.PAGE_START;
-      constraintsMetaDataPanel.fill = GridBagConstraints.BOTH;
-      constraintsMetaDataPanel.weightx = 1;
-      constraintsMetaDataPanel.weighty = 1;
-      constraintsMetaDataPanel.gridx = 0;
-      constraintsMetaDataPanel.gridy = 0;
-      constraintsMetaDataPanel.gridwidth = 2;
-      metaDataPanel.add(preview2DPanel, constraintsMetaDataPanel);
+      metaDataPanel.add(preview2DPanel);
     }
 
     // information on compound
-    JPanel panelCompounds = new JPanel();
-    panelCompounds.setLayout(new BoxLayout(panelCompounds, BoxLayout.Y_AXIS));
-    panelCompounds.setBackground(Color.WHITE);
-    JLabel compoundInfo = new JLabel("Compound information");
-    compoundInfo.setToolTipText(
-        "This section shows all the compound information listed in the used database");
-    compoundInfo.setFont(headerFont);
-
-    constraintsMetaDataPanel.fill = GridBagConstraints.HORIZONTAL;
-    constraintsMetaDataPanel.anchor = GridBagConstraints.PAGE_START;
-    constraintsMetaDataPanel.insets = new Insets(5, 5, 5, 5);
-    // reset grid width
-    constraintsMetaDataPanel.gridwidth = 1;
-    constraintsMetaDataPanel.gridx = 0;
-    constraintsMetaDataPanel.gridy = 1;
-    metaDataPanel.add(compoundInfo, constraintsMetaDataPanel);
-
-    SpectralIdentificationSpectralDatabaseTextPane synonym =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Synonym: " + hit.getEntry().getField(DBEntryField.SYNONYM).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.SYNONYM).orElse("N/A") != "N/A")
-      panelCompounds.add(synonym);
-    SpectralIdentificationSpectralDatabaseTextPane formula =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Formula: " + hit.getEntry().getField(DBEntryField.FORMULA).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.FORMULA).orElse("N/A") != "N/A")
-      panelCompounds.add(formula);
-    SpectralIdentificationSpectralDatabaseTextPane molarWeight =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Molar Weight: " + hit.getEntry().getField(DBEntryField.MOLWEIGHT).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.MOLWEIGHT).orElse("N/A") != "N/A")
-      panelCompounds.add(molarWeight);
-    SpectralIdentificationSpectralDatabaseTextPane exactMass =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Exact mass: " + hit.getEntry().getField(DBEntryField.EXACT_MASS).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.EXACT_MASS).orElse("N/A") != "N/A")
-      panelCompounds.add(exactMass);
-    SpectralIdentificationSpectralDatabaseTextPane ionType =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Ion type: " + hit.getEntry().getField(DBEntryField.IONTYPE).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.IONTYPE).orElse("N/A") != "N/A")
-      panelCompounds.add(ionType);
-    SpectralIdentificationSpectralDatabaseTextPane rt =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Retention time: " + hit.getEntry().getField(DBEntryField.RT).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.RT).orElse("N/A") != "N/A")
-      panelCompounds.add(rt);
-    SpectralIdentificationSpectralDatabaseTextPane mz =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "m/z: " + hit.getEntry().getField(DBEntryField.MZ).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.MZ).orElse("N/A") != "N/A")
-      panelCompounds.add(mz);
-    SpectralIdentificationSpectralDatabaseTextPane charge =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Charge: " + hit.getEntry().getField(DBEntryField.CHARGE).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.CHARGE).orElse("N/A") != "N/A")
-      panelCompounds.add(charge);
-    SpectralIdentificationSpectralDatabaseTextPane ionMode =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Ion mode: " + hit.getEntry().getField(DBEntryField.ION_MODE).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.ION_MODE).orElse("N/A") != "N/A")
-      panelCompounds.add(ionMode);
-    SpectralIdentificationSpectralDatabaseTextPane inchi =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "INCHI: " + hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A") != "N/A")
-      panelCompounds.add(inchi);
-    SpectralIdentificationSpectralDatabaseTextPane inchiKey =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "INCHI Key: " + hit.getEntry().getField(DBEntryField.INCHIKEY).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A") != "N/A")
-      panelCompounds.add(inchiKey);
-    SpectralIdentificationSpectralDatabaseTextPane smiles =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "SMILES: " + hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.SMILES).orElse("N/A") != "N/A")
-      panelCompounds.add(smiles);
-    SpectralIdentificationSpectralDatabaseTextPane cas =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "CAS: " + hit.getEntry().getField(DBEntryField.CAS).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.CAS).orElse("N/A") != "N/A")
-      panelCompounds.add(cas);
-    SpectralIdentificationSpectralDatabaseTextPane numberPeaks =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Number of peaks: " + hit.getEntry().getField(DBEntryField.NUM_PEAKS).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.NUM_PEAKS).orElse("N/A") != "N/A")
-      panelCompounds.add(numberPeaks);
+    JPanel panelCompounds =
+        extractMetaData("Compound information", hit.getEntry(), DBEntryField.COMPOUND_FIELDS);
 
     // instrument info
-    JPanel panelInstrument = new JPanel();
-    panelInstrument.setLayout(new BoxLayout(panelInstrument, BoxLayout.PAGE_AXIS));
-    panelInstrument.setBackground(Color.WHITE);
-    JLabel instrumentInfo = new JLabel("Instrument information");
-    instrumentInfo.setFont(headerFont);
-    constraintsMetaDataPanel.gridx = 1;
-    constraintsMetaDataPanel.gridy = 1;
-    metaDataPanel.add(instrumentInfo, constraintsMetaDataPanel);
-    SpectralIdentificationSpectralDatabaseTextPane instrumentType =
-        new SpectralIdentificationSpectralDatabaseTextPane("Instrument type: "
-            + hit.getEntry().getField(DBEntryField.INSTRUMENT_TYPE).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.INSTRUMENT_TYPE).orElse("N/A") != "N/A")
-      panelInstrument.add(instrumentType);
-    SpectralIdentificationSpectralDatabaseTextPane instrument =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Instrument: " + hit.getEntry().getField(DBEntryField.INSTRUMENT).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.INSTRUMENT).orElse("N/A") != "N/A")
-      panelInstrument.add(instrument);
-    SpectralIdentificationSpectralDatabaseTextPane ionSource =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Ion source: " + hit.getEntry().getField(DBEntryField.ION_SOURCE).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.ION_SOURCE).orElse("N/A") != "N/A")
-      panelInstrument.add(ionSource);
-    SpectralIdentificationSpectralDatabaseTextPane resolution =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Resolution: " + hit.getEntry().getField(DBEntryField.RESOLUTION).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.RESOLUTION).orElse("N/A") != "N/A")
-      panelInstrument.add(resolution);
-    SpectralIdentificationSpectralDatabaseTextPane msLevel =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "MS level: " + hit.getEntry().getField(DBEntryField.MS_LEVEL).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.MS_LEVEL).orElse("N/A") != "N/A")
-      panelInstrument.add(msLevel);
-    SpectralIdentificationSpectralDatabaseTextPane collision =
-        new SpectralIdentificationSpectralDatabaseTextPane("Collision energy: "
-            + hit.getEntry().getField(DBEntryField.COLLISION_ENERGY).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.COLLISION_ENERGY).orElse("N/A") != "N/A")
-      panelInstrument.add(collision);
-    SpectralIdentificationSpectralDatabaseTextPane acquisition =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Acquisition: " + hit.getEntry().getField(DBEntryField.ACQUISITION).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.ACQUISITION).orElse("N/A") != "N/A")
-      panelInstrument.add(acquisition);
-    SpectralIdentificationSpectralDatabaseTextPane software =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Software: " + hit.getEntry().getField(DBEntryField.SOFTWARE).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.SOFTWARE).orElse("N/A") != "N/A")
-      panelInstrument.add(software);
+    JPanel panelInstrument =
+        extractMetaData("Instrument information", hit.getEntry(), DBEntryField.INSTRUMENT_FIELDS);
 
-    constraintsMetaDataPanel.weighty = 0.5;
-    constraintsMetaDataPanel.gridx = 0;
-    constraintsMetaDataPanel.gridy = 2;
-    metaDataPanel.add(panelCompounds, constraintsMetaDataPanel);
-
-    constraintsMetaDataPanel.gridx = 1;
-    constraintsMetaDataPanel.gridy = 2;
-    metaDataPanel.add(panelInstrument, constraintsMetaDataPanel);
+    JPanel g1 = new JPanel(new GridLayout(1, 2, 4, 0));
+    g1.setBackground(Color.WHITE);
+    g1.add(panelCompounds);
+    g1.add(panelInstrument);
+    metaDataPanel.add(g1);
 
     // database links
-    JPanel panelDB = new JPanel();
-    panelDB.setLayout(new BoxLayout(panelDB, BoxLayout.PAGE_AXIS));
-    panelDB.setBackground(Color.WHITE);
-    JLabel databaseLinks = new JLabel("Database links");
-    databaseLinks
-        .setToolTipText("This section shows links to other databases of the matched compound");
-    databaseLinks.setFont(headerFont);
-    constraintsMetaDataPanel.gridx = 0;
-    constraintsMetaDataPanel.gridy = 3;
-    metaDataPanel.add(databaseLinks, constraintsMetaDataPanel);
-
-    SpectralIdentificationSpectralDatabaseTextPane pubmed =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "PUBMED: " + hit.getEntry().getField(DBEntryField.PUBMED).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.PUBMED).orElse("N/A") != "N/A")
-      panelDB.add(pubmed);
-    SpectralIdentificationSpectralDatabaseTextPane pubchem =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "PUBCHEM: " + hit.getEntry().getField(DBEntryField.PUBCHEM).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.PUBCHEM).orElse("N/A") != "N/A")
-      panelDB.add(pubchem);
-    SpectralIdentificationSpectralDatabaseTextPane mona =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "MONA ID: " + hit.getEntry().getField(DBEntryField.MONA_ID).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.MONA_ID).orElse("N/A") != "N/A")
-      panelDB.add(mona);
-    SpectralIdentificationSpectralDatabaseTextPane spider =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Chemspider: " + hit.getEntry().getField(DBEntryField.CHEMSPIDER).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.CHEMSPIDER).orElse("N/A") != "N/A")
-      panelDB.add(spider);
+    JPanel panelDB =
+        extractMetaData("Database links", hit.getEntry(), DBEntryField.DATABASE_FIELDS);
 
     // // Other info
-    JPanel panelOther = new JPanel();
-    panelOther.setLayout(new BoxLayout(panelOther, BoxLayout.PAGE_AXIS));
-    panelOther.setBackground(Color.WHITE);
-    JLabel otherInfo = new JLabel("Other information");
-    otherInfo.setToolTipText("This section shows all other information of the matched compound");
-    otherInfo.setFont(headerFont);
-    constraintsMetaDataPanel.gridx = 1;
-    constraintsMetaDataPanel.gridy = 3;
-    metaDataPanel.add(otherInfo, constraintsMetaDataPanel);
-    SpectralIdentificationSpectralDatabaseTextPane investigator =
-        new SpectralIdentificationSpectralDatabaseTextPane("Principal investigator: "
-            + hit.getEntry().getField(DBEntryField.PRINCIPAL_INVESTIGATOR).orElse("N/A"));
-    investigator.setToolTipText("Principal investigator: "
-        + hit.getEntry().getField(DBEntryField.PRINCIPAL_INVESTIGATOR).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.PRINCIPAL_INVESTIGATOR).orElse("N/A") != "N/A")
-      panelOther.add(investigator);
-    SpectralIdentificationSpectralDatabaseTextPane collector =
-        new SpectralIdentificationSpectralDatabaseTextPane("Data collector: "
-            + hit.getEntry().getField(DBEntryField.DATA_COLLECTOR).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.DATA_COLLECTOR).orElse("N/A") != "N/A")
-      panelOther.add(collector);
-    SpectralIdentificationSpectralDatabaseTextPane entry =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "DB entry ID: " + hit.getEntry().getField(DBEntryField.ENTRY_ID).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.ENTRY_ID).orElse("N/A") != "N/A")
-      panelOther.add(entry);
-    SpectralIdentificationSpectralDatabaseTextPane comment =
-        new SpectralIdentificationSpectralDatabaseTextPane(
-            "Comment: " + hit.getEntry().getField(DBEntryField.COMMENT).orElse("N/A"));
-    if (hit.getEntry().getField(DBEntryField.COMMENT).orElse("N/A") != "N/A")
-      panelOther.add(comment);
+    JPanel panelOther =
+        extractMetaData("Other information", hit.getEntry(), DBEntryField.OTHER_FIELDS);
 
-    constraintsMetaDataPanel.gridx = 0;
-    constraintsMetaDataPanel.gridy = 4;
-    metaDataPanel.add(panelDB, constraintsMetaDataPanel);
-
-    constraintsMetaDataPanel.gridx = 1;
-    constraintsMetaDataPanel.gridy = 4;
-
-    metaDataPanel.add(panelOther, constraintsMetaDataPanel);
-
+    JPanel g2 = new JPanel(new GridLayout(1, 2, 4, 0));
+    g2.setBackground(Color.WHITE);
+    g2.add(panelDB);
+    g2.add(panelOther);
+    metaDataPanel.add(g2);
 
     // get mirror spectra window
     MirrorScanWindow mirrorWindow = new MirrorScanWindow();
@@ -469,9 +265,9 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
     spectrumPanel.add(mirrorWindow.getMirrorSpecrumPlot());
 
+    metaDataPanelScrollPane.setPreferredSize(new Dimension(META_WIDTH + 20, ENTRY_HEIGHT));
     panel.setPreferredSize(new Dimension(0, ENTRY_HEIGHT));
     boxTitle.setPreferredSize(new Dimension(META_WIDTH, 45));
-    metaDataPanelScrollPane.setPreferredSize(new Dimension(META_WIDTH + 20, ENTRY_HEIGHT));
 
     panel.add(boxTitle, BorderLayout.NORTH);
     panel.add(spectrumPanel, BorderLayout.CENTER);
@@ -479,10 +275,37 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     panel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
     metaDataPanelScrollPane.revalidate();
-    metaDataPanel.revalidate();
+    pn.revalidate();
     panel.revalidate();
     panel.repaint();
     return panel;
+  }
+
+  private JPanel extractMetaData(String title, SpectralDBEntry entry, DBEntryField[] other) {
+    JPanel panelOther = new JPanel();
+    panelOther.setLayout(new BoxLayout(panelOther, BoxLayout.Y_AXIS));
+    panelOther.setBackground(Color.WHITE);
+    panelOther.setAlignmentY(Component.TOP_ALIGNMENT);
+    panelOther.setAlignmentX(Component.TOP_ALIGNMENT);
+
+    for (DBEntryField db : other) {
+      Object o = entry.getField(db).orElse("N/A");
+      if (!o.equals("N/A")) {
+        SpectralIdentificationSpectralDatabaseTextPane pane =
+            new SpectralIdentificationSpectralDatabaseTextPane(db.toString() + ": " + o.toString());
+        panelOther.add(pane);
+      }
+    }
+
+    JLabel otherInfo = new JLabel(title);
+    otherInfo.setFont(headerFont);
+    JPanel pn = new JPanel(new BorderLayout());
+    pn.add(otherInfo, BorderLayout.NORTH);
+    pn.add(panelOther, BorderLayout.CENTER);
+    JPanel pn1 = new JPanel(new BorderLayout());
+    pn1.add(pn, BorderLayout.NORTH);
+    pn1.setBackground(Color.WHITE);
+    return pn1;
   }
 
   /**

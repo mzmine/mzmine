@@ -199,7 +199,7 @@ public class MonaJsonParser extends SpectralDBParser {
           if (value != null)
             value = value.toString();
           break;
-        case IONTYPE:
+        case ION_TYPE:
           value = readMetaData(main, "precursor type");
           break;
         case ION_MODE:
