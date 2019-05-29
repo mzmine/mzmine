@@ -354,9 +354,10 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     }
 
     // reversed sorting (highest cosine first
-    totalMatches.sort((SpectralDBPeakIdentity a, SpectralDBPeakIdentity b) -> Double
-        .compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
-
+    synchronized (totalMatches) {
+      totalMatches.sort((SpectralDBPeakIdentity a, SpectralDBPeakIdentity b) -> Double
+          .compare(b.getSimilarity().getScore(), a.getSimilarity().getScore()));
+    }
     // renew layout and show
     renewLayout();
   }
@@ -374,10 +375,12 @@ public class SpectraIdentificationResultsWindow extends JFrame {
       pnGrid.setBackground(Color.WHITE);
       pnGrid.setAutoscrolls(false);
       // add all panel in order
-      for (SpectralDBPeakIdentity match : totalMatches) {
-        JPanel pn = matchPanels.get(match);
-        if (pn != null)
-          pnGrid.add(pn);
+      synchronized (totalMatches) {
+        for (SpectralDBPeakIdentity match : totalMatches) {
+          JPanel pn = matchPanels.get(match);
+          if (pn != null)
+            pnGrid.add(pn);
+        }
       }
       // show
       scrollPane.setViewportView(pnGrid);
