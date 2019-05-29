@@ -75,7 +75,7 @@ public class GnpsJsonGenerator {
 
     String adduct = param.getParameter(LibrarySubmitIonParameters.ADDUCT).getValue();
     if (adduct != null && !adduct.trim().isEmpty())
-      json.add(DBEntryField.IONTYPE.getGnpsJsonID(), adduct);
+      json.add(DBEntryField.ION_TYPE.getGnpsJsonID(), adduct);
 
     if (exportRT) {
       Double rt =

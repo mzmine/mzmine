@@ -18,12 +18,26 @@
 
 package net.sf.mzmine.util.spectraldb.entry;
 
+import org.apache.commons.lang3.StringUtils;
+
 public enum DBEntryField {
 
-  ENTRY_ID, NAME, SYNONYM, COMMENT, IONTYPE, RT(Double.class), MZ(Double.class), CHARGE(
+  ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Double.class), MZ(Double.class), CHARGE(
       Integer.class), ION_MODE, COLLISION_ENERGY, FORMULA, MOLWEIGHT(Double.class), EXACT_MASS(
           Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
               Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;
+
+  // group of DBEntryFields logically
+  public static final DBEntryField[] OTHER_FIELDS =
+      new DBEntryField[] {PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, ENTRY_ID, COMMENT};
+  public static final DBEntryField[] DATABASE_FIELDS =
+      new DBEntryField[] {PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, CAS};
+  public static final DBEntryField[] COMPOUND_FIELDS =
+      new DBEntryField[] {NAME, SYNONYM, FORMULA, MOLWEIGHT, EXACT_MASS, ION_TYPE, MZ, CHARGE, RT,
+          ION_MODE, INCHI, INCHIKEY, SMILES, NUM_PEAKS};
+  public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[] {INSTRUMENT_TYPE,
+      INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, ACQUISITION, SOFTWARE};
+
 
   private final Class clazz;
 
@@ -37,6 +51,30 @@ public enum DBEntryField {
 
   public Class getObjectClass() {
     return clazz;
+  }
+
+  @Override
+  public String toString() {
+    switch (this) {
+      case RT:
+      case SMILES:
+      case CAS:
+        return super.toString().replace('_', ' ');
+      case ENTRY_ID:
+        return "Entry ID";
+      case INCHI:
+        return "InChI";
+      case INCHIKEY:
+        return "InChI key";
+      case MOLWEIGHT:
+        return "Mol. weight";
+      case MONA_ID:
+        return "MoNA ID";
+      case MZ:
+        return "Precursor m/z";
+      default:
+        return StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
+    }
   }
 
   /**
@@ -71,7 +109,7 @@ public enum DBEntryField {
         return "INSTRUMENT_NAME";
       case INSTRUMENT_TYPE:
         return "INSTRUMENT";
-      case IONTYPE:
+      case ION_TYPE:
         return "ADDUCT";
       case ION_MODE:
         return "IONMODE";
@@ -157,7 +195,7 @@ public enum DBEntryField {
         return "Instrument";
       case INSTRUMENT_TYPE:
         return "Instrument_type";
-      case IONTYPE:
+      case ION_TYPE:
         return "Precursor_type";
       case ION_MODE:
         return "Ion_mode"; // P / N
@@ -243,7 +281,7 @@ public enum DBEntryField {
         return "SOURCE_INSTRUMENT";
       case INSTRUMENT_TYPE:
         return "Instrument_type";
-      case IONTYPE:
+      case ION_TYPE:
         return "Precursor_type";
       case ION_MODE:
         return "IONMODE"; // Positive Negative
@@ -330,7 +368,7 @@ public enum DBEntryField {
         return "";
       case INSTRUMENT_TYPE:
         return "";
-      case IONTYPE:
+      case ION_TYPE:
         return "";
       case ION_MODE:
         return "";
@@ -398,4 +436,5 @@ public enum DBEntryField {
       return Integer.parseInt(content);
     return content;
   }
+
 }
