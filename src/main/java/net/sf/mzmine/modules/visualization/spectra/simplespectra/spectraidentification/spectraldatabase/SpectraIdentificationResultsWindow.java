@@ -51,6 +51,7 @@ import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
+import net.sf.mzmine.framework.CustomTextPane;
 import net.sf.mzmine.framework.ScrollablePanel;
 import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
@@ -153,13 +154,15 @@ public class SpectraIdentificationResultsWindow extends JFrame {
         MAX_COS_COLOR_VALUE, simScore);
     boxTitlePanel.setBackground(gradientCol);
     Box boxTitle = Box.createHorizontalBox();
-    boxTitle.add(Box.createHorizontalGlue());
+    // boxTitle.add(Box.createHorizontalGlue());
 
-    JPanel panelTitle = new JPanel(new BorderLayout());
+    JPanel panelTitle = new JPanel(new GridLayout(1, 1));
     panelTitle.setBackground(gradientCol);
     String name = hit.getEntry().getField(DBEntryField.NAME).orElse("N/A").toString();
-    JLabel title = new JLabel(name);
+    CustomTextPane title = new CustomTextPane(true);
+    title.setEditable(false);
     title.setFont(headerFont);
+    title.setText(name);
     title.setBackground(gradientCol);
     title.setForeground(Color.WHITE);
     panelTitle.add(title);
@@ -180,8 +183,8 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     panelScore.setBackground(gradientCol);
     panelScore.add(score);
     panelScore.add(scoreLabel);
-    boxTitlePanel.add(panelTitle, BorderLayout.WEST);
     boxTitlePanel.add(panelScore, BorderLayout.EAST);
+    boxTitlePanel.add(panelTitle, BorderLayout.WEST);
     boxTitle.add(boxTitlePanel);
 
     // structure preview
@@ -261,7 +264,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
     JScrollPane metaDataPanelScrollPane =
         new JScrollPane(pn, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
     spectrumPanel.add(mirrorWindow.getMirrorSpecrumPlot());
 
@@ -291,9 +294,9 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     for (DBEntryField db : other) {
       Object o = entry.getField(db).orElse("N/A");
       if (!o.equals("N/A")) {
-        SpectralIdentificationSpectralDatabaseTextPane pane =
-            new SpectralIdentificationSpectralDatabaseTextPane(db.toString() + ": " + o.toString());
-        panelOther.add(pane);
+        CustomTextPane textPane = new CustomTextPane(true);
+        textPane.setText(db.toString() + ": " + o.toString());
+        panelOther.add(textPane);
       }
     }
 
