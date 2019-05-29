@@ -45,6 +45,7 @@ import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 public class SpectralMatchPanel extends JPanel {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+  public static final Font FONT = new Font("Verdana", Font.PLAIN, 24);
 
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   private static final long serialVersionUID = 1L;
@@ -145,7 +146,7 @@ public class SpectralMatchPanel extends JPanel {
     // try to draw the component
     if (molecule != null) {
       try {
-        newComponent = new Structure2DComponent(molecule);
+        newComponent = new Structure2DComponent(molecule, FONT);
       } catch (Exception e) {
         String errorMessage = "Could not load 2D structure\n" + "Exception: ";
         logger.log(Level.WARNING, errorMessage, e);
