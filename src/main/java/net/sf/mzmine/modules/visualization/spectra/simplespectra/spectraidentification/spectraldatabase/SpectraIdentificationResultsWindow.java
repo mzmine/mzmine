@@ -83,7 +83,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   private JPanel pnGrid;
   private Font titleFont = new Font("Dialog", Font.BOLD, 18);
-  private Font scoreFont = new Font("Dialog", Font.BOLD, 36);
+  private Font scoreFont = new Font("Dialog", Font.BOLD, 30);
   private Font headerFont = new Font("Dialog", Font.BOLD, 16);
   private static final DecimalFormat COS_FORM = new DecimalFormat("0.000");
   private JScrollPane scrollPane;
@@ -148,7 +148,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     metaDataPanel.setBackground(Color.WHITE);
 
     // add title
-    MigLayout l = new MigLayout("aligny center, wrap", "[grow][]", "[grow]");
+    MigLayout l = new MigLayout("aligny center, wrap, insets 0 10 0 30", "[grow][]", "[grow]");
     JPanel boxTitlePanel = new JPanel();
     boxTitlePanel.setLayout(l);
 
@@ -182,7 +182,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     panelScore.setBackground(gradientCol);
     panelScore.add(score);
     boxTitlePanel.add(panelScore, "cell 1 0");
-    boxTitlePanel.add(panelTitle, "cell 0 0, grow");
+    boxTitlePanel.add(panelTitle, "cell 0 0, growx, center");
     boxTitle.add(boxTitlePanel);
 
     // structure preview
@@ -268,7 +268,6 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
     metaDataPanelScrollPane.setPreferredSize(new Dimension(META_WIDTH + 20, ENTRY_HEIGHT));
     panel.setPreferredSize(new Dimension(0, ENTRY_HEIGHT));
-    boxTitle.setPreferredSize(new Dimension(META_WIDTH, 45));
 
     panel.add(boxTitle, BorderLayout.NORTH);
     panel.add(spectrumPanel, BorderLayout.CENTER);
@@ -301,6 +300,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     JLabel otherInfo = new JLabel(title);
     otherInfo.setFont(headerFont);
     JPanel pn = new JPanel(new BorderLayout());
+    pn.setBackground(Color.WHITE);
     pn.add(otherInfo, BorderLayout.NORTH);
     pn.add(panelOther, BorderLayout.CENTER);
     JPanel pn1 = new JPanel(new BorderLayout());
@@ -385,6 +385,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
       }
       // show
       scrollPane.setViewportView(pnGrid);
+      scrollPane.getVerticalScrollBar().setUnitIncrement(75);
       pnGrid.revalidate();
       scrollPane.revalidate();
       scrollPane.repaint();
