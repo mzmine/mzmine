@@ -50,6 +50,7 @@ import org.openscience.cdk.inchi.InChIGeneratorFactory;
 import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
+import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.framework.CustomTextPane;
 import net.sf.mzmine.framework.ScrollablePanel;
@@ -147,7 +148,10 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     metaDataPanel.setBackground(Color.WHITE);
 
     // add title
-    JPanel boxTitlePanel = new JPanel(new BorderLayout());
+    MigLayout l = new MigLayout("aligny center, wrap", "[grow][]", "[grow]");
+    JPanel boxTitlePanel = new JPanel();
+    boxTitlePanel.setLayout(l);
+
 
     double simScore = hit.getSimilarity().getScore();
     Color gradientCol = ColorScaleUtil.getColor(MIN_COS_COLOR, MAX_COS_COLOR, MIN_COS_COLOR_VALUE,
@@ -173,18 +177,12 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     JLabel score = new JLabel(COS_FORM.format(simScore));
     score.setToolTipText("Cosine similarity of raw data scan (top, blue) and database scan: "
         + COS_FORM.format(simScore));
-    JLabel scoreLabel = new JLabel("Cosine similarity");
-    scoreLabel.setToolTipText("Cosine similarity of raw data scan (top, blue) and database scan: "
-        + COS_FORM.format(simScore));
     score.setFont(scoreFont);
     score.setForeground(Color.WHITE);
-    scoreLabel.setFont(titleFont);
-    scoreLabel.setForeground(Color.WHITE);
     panelScore.setBackground(gradientCol);
     panelScore.add(score);
-    panelScore.add(scoreLabel);
-    boxTitlePanel.add(panelScore, BorderLayout.EAST);
-    boxTitlePanel.add(panelTitle, BorderLayout.WEST);
+    boxTitlePanel.add(panelScore, "cell 1 0");
+    boxTitlePanel.add(panelTitle, "cell 0 0, grow");
     boxTitle.add(boxTitlePanel);
 
     // structure preview
