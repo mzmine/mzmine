@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,6 +25,7 @@ import org.jfree.chart.util.PublicCloneable;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * Tooltip generator for Kendrick mass plots
@@ -34,8 +35,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator, PublicCloneable {
 
   private String xAxisLabel, yAxisLabel, zAxisLabel;
-  private NumberFormat numberFormatX = new DecimalFormat("####0.0000");
-  private NumberFormat numberFormatY = new DecimalFormat("0.000");
+  private NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
   private PeakListRow rows[];
   private String featureIdentity;
 
@@ -54,14 +54,13 @@ public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator, Pu
     if (rows[item].getPreferredPeakIdentity() != null) {
       featureIdentity = rows[item].getPreferredPeakIdentity().getName();
       return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
-          + numberFormatX.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
-          + numberFormatY.format(dataset.getYValue(series, item)) + " " + zAxisLabel + ": "
-          + numberFormatY.format(dataset.getZValue(series, item)));
+          + numberFormat.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
+          + numberFormat.format(dataset.getYValue(series, item)) + " " + zAxisLabel + ": "
+          + numberFormat.format(dataset.getZValue(series, item)));
     } else {
-      return String
-          .valueOf(xAxisLabel + ": " + numberFormatX.format(dataset.getXValue(series, item)) + " "
-              + yAxisLabel + ": " + numberFormatY.format(dataset.getYValue(series, item)) + " "
-              + zAxisLabel + ": " + numberFormatY.format(dataset.getZValue(series, item)));
+      return String.valueOf(xAxisLabel + ": " + numberFormat.format(dataset.getXValue(series, item))
+          + " " + yAxisLabel + ": " + numberFormat.format(dataset.getYValue(series, item)) + " "
+          + zAxisLabel + ": " + numberFormat.format(dataset.getZValue(series, item)));
     }
   }
 
@@ -70,12 +69,11 @@ public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator, Pu
     if (rows[item].getPreferredPeakIdentity() != null) {
       featureIdentity = rows[item].getPreferredPeakIdentity().getName();
       return String.valueOf(featureIdentity + "\n" + xAxisLabel + ": "
-          + numberFormatX.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
-          + numberFormatY.format(dataset.getYValue(series, item)));
+          + numberFormat.format(dataset.getXValue(series, item)) + " " + yAxisLabel + ": "
+          + numberFormat.format(dataset.getYValue(series, item)));
     } else {
-      return String
-          .valueOf(xAxisLabel + ": " + numberFormatX.format(dataset.getXValue(series, item)) + " "
-              + yAxisLabel + ": " + numberFormatY.format(dataset.getYValue(series, item)));
+      return String.valueOf(xAxisLabel + ": " + numberFormat.format(dataset.getXValue(series, item))
+          + " " + yAxisLabel + ": " + numberFormat.format(dataset.getYValue(series, item)));
     }
   }
 
