@@ -6,21 +6,23 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 import net.sf.mzmine.parameters.UserParameter;
 
-public class ProcessingParameter implements UserParameter <DataPointProcessingQueue, ProcessingComponent> {
+public class ProcessingParameter
+    implements UserParameter<DataPointProcessingQueue, ProcessingComponent> {
 
   private String name;
   private String description;
   private DataPointProcessingQueue value;
-  
+
   public ProcessingParameter(String name, String description) {
     this.name = name;
     this.description = description;
-//    if(queue == null)
-//      this.value = DataPointProcessingManager.getInst().getProcessingQueue();
-//    else
-//      this.value = queue;
+    this.value = new DataPointProcessingQueue();
+    // if(queue == null)
+    // this.value = DataPointProcessingManager.getInst().getProcessingQueue();
+    // else
+    // this.value = queue;
   }
-  
+
   @Override
   public String getName() {
     return name;
@@ -38,7 +40,7 @@ public class ProcessingParameter implements UserParameter <DataPointProcessingQu
 
   @Override
   public boolean checkValue(Collection<String> errorMessages) {
-    if(value == null) {
+    if (value == null) {
       errorMessages.add("Queue has not been set up. (null)");
       return false;
     }
@@ -52,7 +54,9 @@ public class ProcessingParameter implements UserParameter <DataPointProcessingQu
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    value.saveToXML(xmlElement);
+    if (value != null) // TODO: set value in contstructor, check if loading still works properly
+                       // then
+      value.saveToXML(xmlElement);
   }
 
   @Override
@@ -63,8 +67,8 @@ public class ProcessingParameter implements UserParameter <DataPointProcessingQu
   @Override
   public ProcessingComponent createEditingComponent() {
     ProcessingComponent comp = new ProcessingComponent();
-//    if(value != null)
-//      comp.setTreeViewProcessingItemsFromQueue(value);
+    // if(value != null)
+    // comp.setTreeViewProcessingItemsFromQueue(value);
     return comp;
   }
 

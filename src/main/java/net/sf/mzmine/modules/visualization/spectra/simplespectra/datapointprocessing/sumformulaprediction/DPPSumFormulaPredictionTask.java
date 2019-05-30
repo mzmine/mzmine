@@ -136,6 +136,13 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public void run() {
+    List<String> error = new ArrayList<String>();
+    if(!parameterSet.checkParameterValues(error)) {
+      setErrorMessage("Parameter check failed. Please check the parameters.");
+      setStatus(TaskStatus.ERROR);
+      return;
+    }
+    
 
     if (getDataPoints() == null || getDataPoints().length == 0) {
       logger.info("No data points were passed to " + this.getClass().getName() + " Please check the parameters." );
