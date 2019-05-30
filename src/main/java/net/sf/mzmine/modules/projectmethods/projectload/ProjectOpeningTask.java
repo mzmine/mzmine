@@ -31,10 +31,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
-
+import org.xml.sax.SAXException;
+import com.google.common.io.CountingInputStream;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -57,10 +57,6 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.StreamCopy;
-
-import org.xml.sax.SAXException;
-
-import com.google.common.io.CountingInputStream;
 
 public class ProjectOpeningTask extends AbstractTask {
 
@@ -86,9 +82,14 @@ public class ProjectOpeningTask extends AbstractTask {
     this.openFile = parameters.getParameter(ProjectLoaderParameters.projectFile).getValue();
   }
 
+  public ProjectOpeningTask(File openFile) {
+    this.openFile = openFile;
+  }
+
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     if (currentLoadedObjectName == null)
       return "Opening project " + openFile;
@@ -98,6 +99,7 @@ public class ProjectOpeningTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
 
     if (totalBytes == 0)
@@ -117,6 +119,7 @@ public class ProjectOpeningTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     try {
@@ -237,8 +240,10 @@ public class ProjectOpeningTask extends AbstractTask {
         return;
 
       logger.info("Finished opening project " + openFile);
-
       setStatus(TaskStatus.FINISHED);
+
+      // add to last loaded projects
+      MZmineCore.getConfiguration().getLastProjectsParameter().addFile(openFile);
 
     } catch (Throwable e) {
 
@@ -257,6 +262,7 @@ public class ProjectOpeningTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#cancel()
    */
+  @Override
   public void cancel() {
 
     logger.info("Canceling opening of project " + openFile);

@@ -19,7 +19,9 @@
 package net.sf.mzmine.modules.peaklistmethods.filtering.neutralloss;
 
 import java.text.NumberFormat;
+import java.util.Collection;
 import java.util.Locale;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
@@ -28,6 +30,7 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import net.sf.mzmine.util.FormulaUtils;
 
 public class NeutralLossFilterParameters extends SimpleParameterSet {
 
@@ -58,5 +61,24 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
   public NeutralLossFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, mzTolerance, checkRT, rtTolerance, minHeight, neutralLoss,
         molecule, suffix});
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    if (super.checkParameterValues(errorMessages) == false)
+      return false;
+
+    String molecule = this.getParameter(NeutralLossFilterParameters.molecule).getValue();
+
+    // no formula -> use deltaMass
+    if (molecule.isEmpty())
+      return true;
+    // formula can be parsed
+    IMolecularFormula formula = FormulaUtils.createMajorIsotopeMolFormula(molecule);
+    if (formula != null) {
+      return true;
+    }
+    errorMessages.add("Formula cannot be parsed. Enter valid formula.");
+    return false;
   }
 }

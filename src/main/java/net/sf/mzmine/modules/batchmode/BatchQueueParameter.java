@@ -19,9 +19,7 @@
 package net.sf.mzmine.modules.batchmode;
 
 import java.util.Collection;
-
 import org.w3c.dom.Element;
-
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;

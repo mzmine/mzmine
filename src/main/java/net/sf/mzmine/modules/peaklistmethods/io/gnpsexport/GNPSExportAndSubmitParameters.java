@@ -29,8 +29,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
 
-import java.awt.Window;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -41,6 +41,8 @@ import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.util.ExitCode;
+
+import java.awt.*;
 
 
 public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
@@ -95,6 +97,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
       "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
       RowFilter.values(), RowFilter.ONLY_WITH_MS2);
 
+
   // public static final BooleanParameter OPEN_GNPS = new BooleanParameter("Open GNPS website",
   // "Opens the super quick start of GNPS feature based networking in the standard browser.",
   // false);
@@ -102,17 +105,26 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
   public static final BooleanParameter OPEN_FOLDER =
       new BooleanParameter("Open folder", "Opens the export folder", false);
 
+
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
+      new OptionalModuleParameter<>("Merge MS/MS (experimental)",
+          "Merge high-quality MS/MS instead of exporting just the most intense one.",
+          new MsMsSpectraMergeParameters(), true);
+
+
   public GNPSExportAndSubmitParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, MASS_LIST, FILTER, SUBMIT, OPEN_FOLDER});
+    super(new Parameter[] {PEAK_LISTS, FILENAME, MASS_LIST, MERGE_PARAMETER, FILTER, SUBMIT,
+        OPEN_FOLDER});
   }
 
   @Override
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    String message = "<html>GNPS Module Disclaimer:"
-        + "<br>    - If you use the GNPS export module for <a href=\"http://gnps.ucsd.edu/\">GNPS web-platform</a>, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
-        + "<br>     <a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Wang et al., Nature Biotechnology 34.8 (2016): 828-837</a>."
-        + "<br>    - <a href=\"https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0\">See the documentation</a> about MZmine2 data pre-processing for <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular "
-        + "<br>     networking and MS/MS spectral library search.";
+    String message = "<html>GNPS Module Disclaimer:<br>"
+        + "<ul><li>If you use the GNPS export module for <a href=\"http://gnps.ucsd.edu/\">GNPS web-platform</a>, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
+        + "<br><a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Wang et al., Nature Biotechnology 34.8 (2016): 828-837</a>."
+        + "<li><a href=\"https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0\">See the documentation</a> about MZmine 2 data pre-processing for <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular "
+        + "networking and MS/MS spectral library search." + "</ul>";
+
     ParameterSetupDialog dialog =
         new ParameterSetupDialog(parent, valueCheckRequired, this, message);
     dialog.setVisible(true);

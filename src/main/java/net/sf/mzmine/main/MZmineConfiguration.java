@@ -21,10 +21,12 @@ package net.sf.mzmine.main;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
-
+import java.util.List;
+import javax.annotation.Nonnull;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 
 /**
  * MZmine configuration interface
@@ -38,6 +40,22 @@ public interface MZmineConfiguration {
   public void setModuleParameters(Class<? extends MZmineModule> module, ParameterSet parameters);
 
   public MZminePreferences getPreferences();
+
+  /**
+   * List of last loaded projects
+   * 
+   * @return
+   */
+  @Nonnull
+  public List<File> getLastProjects();
+
+  /**
+   * List of last loaded projects
+   * 
+   * @return
+   */
+  @Nonnull
+  public FileNameListSilentParameter getLastProjectsParameter();
 
   public NumberFormat getMZFormat();
 

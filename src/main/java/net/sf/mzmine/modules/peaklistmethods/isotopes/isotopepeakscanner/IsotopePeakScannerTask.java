@@ -22,7 +22,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.openscience.cdk.interfaces.IIsotope;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
@@ -220,7 +223,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   @Override
   public void run() {
 
-    if(!checkParameters())
+    if (!checkParameters())
       return;
 
     setStatus(TaskStatus.PROCESSING);
@@ -250,7 +253,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
     for (int i = 0; i < totalRows; i++) {
       // i will represent the index of the row in peakList
-      if (peakList.getRow(i).getPeakIdentities().length > 0) {
+      if (rows[i].getPeakIdentities().length > 0) {
         finishedRows++;
         continue;
       }
@@ -404,8 +407,17 @@ public class IsotopePeakScannerTask extends AbstractTask {
         // The results you miss by skipping here would have not been valid results anyway, so this
         // is not urgent. Will be nicer though, because of cleaner code.
 
-      PeakListRow parent = copyPeakRow(peakList.getRow(i));
-
+//      PeakListRow parent = copyPeakRow(peakList.getRow(i));
+      
+      boolean allPeaksAddable = true;
+      List<PeakListRow> rowBuffer = new ArrayList<PeakListRow>();
+      
+      PeakListRow original = getRowFromCandidate(candidates, bestPatternIndex, 0, plh);
+      if(original == null)
+        continue;
+      
+      PeakListRow parent = copyPeakRow(original);
+      
       if (resultMap.containsID(parent.getID())) // if we can assign this row multiple times we
                                                 // have to copy the comment, because adding it to
                                                 // the map twice will overwrite the results
@@ -417,7 +429,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
       if (carbonRange != 1)
         addComment(parent, "BestPattern: " + pattern[bestPatternIndex].getDescription());
 
-      resultMap.addRow(parent); // add results to resultPeakList
+      rowBuffer.add(parent);
 
       DataPoint[] dp = new DataPoint[pattern[bestPatternIndex].getNumberOfDataPoints()];
       // we need this to add the IsotopePattern later on
@@ -433,8 +445,15 @@ public class IsotopePeakScannerTask extends AbstractTask {
                                                                     // groupedPeaks[0]/
       // ==candidates.get(0) which we added before
       {
+        PeakListRow originalChild = getRowFromCandidate(candidates, bestPatternIndex, k, plh);
+       
+        if(originalChild == null) {
+          allPeaksAddable = false;
+          continue;
+        }
         PeakListRow child =
-            copyPeakRow(plh.getRowByID(candidates[bestPatternIndex].get(k).getCandID()));
+            copyPeakRow(originalChild);
+        
         if (accurateAvgIntensity) {
           dp[k] = new SimpleDataPoint(child.getAverageMZ(),
               candidates[bestPatternIndex].getAvgHeight(k));
@@ -457,7 +476,6 @@ public class IsotopePeakScannerTask extends AbstractTask {
           addComment(parent,
               " pattern rating: " + round(candidates[bestPatternIndex].getSimpleAvgRating(), 3));
 
-        ;
         addComment(child,
             (parent.getID() + "-Parent ID" + " m/z-shift(ppm): "
                 + round(((child.getAverageMZ() - parent.getAverageMZ()) - diff[bestPatternIndex][k])
@@ -470,16 +488,20 @@ public class IsotopePeakScannerTask extends AbstractTask {
                 + " Identity: " + pattern[bestPatternIndex].getIsotopeComposition(k) + " Rating: "
                 + round(candidates[bestPatternIndex].get(k).getRating(), 3) + average));
 
-        resultMap.addRow(child);
+        rowBuffer.add(child);
       }
-
+      
+      if(!allPeaksAddable)
+        continue;
+      
       IsotopePattern resultPattern = new SimpleIsotopePattern(dp, IsotopePatternStatus.DETECTED,
           element + " monoisotopic mass: " + parent.getAverageMZ());
       parent.getBestPeak().setIsotopePattern(resultPattern);
 
-      for (int j = 1; j < diff[bestPatternIndex].length; j++)
-        resultMap.getRowByID(candidates[bestPatternIndex].get(j).getCandID()).getBestPeak()
-            .setIsotopePattern(resultPattern);
+      for(PeakListRow row : rowBuffer) {
+        row.getBestPeak().setIsotopePattern(resultPattern);
+        resultMap.addRow(row);
+      }
 
       if (isCanceled())
         return;
@@ -516,6 +538,32 @@ public class IsotopePeakScannerTask extends AbstractTask {
       if (c.getRating() == 0)
         return false;
     return true;
+  }
+  
+  /**
+   * Extracts a peak list row from a Candidates array.
+   * @param candidates
+   * @param bestPatternIndex The index of the isotope pattern that was found to be the best fit for the detected pattern
+   * @param peakIndex the index of the candidate peak, the peak list row should be extracted for.
+   * @param plh
+   * @return null if no peak with the given parameters exists, the specified peak list row otherwise.
+   */
+  private @Nullable PeakListRow getRowFromCandidate(@Nonnull Candidates[] candidates, int bestPatternIndex, int peakIndex, @Nonnull PeakListHandler plh) {
+    
+    if(bestPatternIndex >= candidates.length)
+      return null;
+    
+    if(peakIndex >= candidates[bestPatternIndex].size())
+      return null;
+    
+    Candidate cand = candidates[bestPatternIndex].get(peakIndex);
+    
+    if(cand != null) {
+      int id = cand.getCandID();
+      PeakListRow original = plh.getRowByID(id);
+      return original;
+    }
+    return null;
   }
 
   /**
@@ -626,6 +674,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
    *         -> pL[parentIndex].mz+maxMass
    */
   private ArrayList<PeakListRow> groupPeaks(PeakListRow[] pL, int parentIndex, double maxDiff) {
+
     ArrayList<PeakListRow> buf = new ArrayList<PeakListRow>();
 
     buf.add(pL[parentIndex]); // this means the result will contain row(parentIndex) itself
@@ -641,17 +690,19 @@ public class IsotopePeakScannerTask extends AbstractTask {
       if (r.getAverageHeight() < minHeight)
         continue;
 
-      if (!rtTolerance.checkWithinTolerance(rt, r.getAverageRT()) && checkRT)
+      if (!(pL[i].getAverageMZ() > mz
+          && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance()))) {
+       
+        if (pL[i].getAverageMZ() > (mz + maxDiff)) // since pL is sorted by ascending mass, we can
+          // stop now
+          return buf;
         continue;
-
-      if (pL[i].getAverageMZ() > mz
-          && pL[i].getAverageMZ() <= (mz + maxDiff + mzTolerance.getMzTolerance())) {
-        buf.add(pL[i]);
       }
 
-      if (pL[i].getAverageMZ() > (mz + maxDiff)) // since pL is sorted by ascending mass, we can
-                                                 // stop now
-        return buf;
+      if (checkRT && !rtTolerance.checkWithinTolerance(rt, r.getAverageRT()))
+        continue;
+
+      buf.add(pL[i]);
     }
     return buf;
   }
@@ -744,49 +795,48 @@ public class IsotopePeakScannerTask extends AbstractTask {
 
   private boolean checkParameters() {
     if (charge == 0) {
-      setStatus(TaskStatus.CANCELED);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Error: charge may not be 0!");
+      setErrorMessage("Error: charge may not be 0!");
+      setStatus(TaskStatus.ERROR);
       return false;
     }
     if (!FormulaUtils.checkMolecularFormula(element)) {
-      setStatus(TaskStatus.CANCELED);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Error: Invalid formula!");
-      return false;
-    }
-    if (massListName.equals("") && ratingType == RatingType.TEMPAVG) {
-      setStatus(TaskStatus.CANCELED);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Error: Rating Type = temporary average but no masslist was selected.\nYou can"
-          + " select a mass list without checking accurate average.");
-      return false;
-    }
-    if (peakList.getNumberOfRawDataFiles() > 1) {
-      setStatus(TaskStatus.CANCELED);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(),
-          "The number of raw data files of peak list \"" + peakList.getName()
-              + "\" is greater than 1. This is not supported by this module.");
+      setErrorMessage("Error: Invalid formula!");
+      setStatus(TaskStatus.ERROR);
       return false;
     }
 
-    RawDataFile[] raws = peakList.getRawDataFiles();
-    boolean foundMassList = false;
-    for (RawDataFile raw : raws) {
-      int scanNumbers[] = raw.getScanNumbers();
-      for(int scan : scanNumbers) {
-        MassList[] massLists = raw.getScan(scan).getMassLists();
-        for (MassList list : massLists) {
-          if (list.getName().equals(massListName))
-            foundMassList = true;
-        } 
+    if (accurateAvgIntensity || ratingType == RatingType.TEMPAVG) {
+      if (massListName.equals("") && ratingType == RatingType.TEMPAVG) {
+        setErrorMessage("Error: Rating Type = temporary average but no masslist was selected.\nYou can"
+            + " select a mass list without checking accurate average.");
+        setStatus(TaskStatus.ERROR);
+        return false;
       }
-    }
-    if (foundMassList == false) {
-      setStatus(TaskStatus.CANCELED);
-      MZmineCore.getDesktop().displayMessage(MZmineCore.getDesktop().getMainWindow(), "Peak list \""
-          + peakList.getName() + "\" does not contain a mass list by the name of " + massListName + ".");
-      return false;
+      if (peakList.getNumberOfRawDataFiles() > 1) {
+        setErrorMessage("The number of raw data files of peak list \"" + peakList.getName()
+        + "\" is greater than 1. This is not supported by this module.");
+        setStatus(TaskStatus.ERROR);
+        return false;
+      }
+
+      RawDataFile[] raws = peakList.getRawDataFiles();
+      boolean foundMassList = false;
+      for (RawDataFile raw : raws) {
+        int scanNumbers[] = raw.getScanNumbers();
+        for (int scan : scanNumbers) {
+          MassList[] massLists = raw.getScan(scan).getMassLists();
+          for (MassList list : massLists) {
+            if (list.getName().equals(massListName))
+              foundMassList = true;
+          }
+        }
+      }
+      if (foundMassList == false) {
+        setErrorMessage("Peak list \"" + peakList.getName() + "\" does not contain a mass list by the name of "
+                + massListName + ".");
+        setStatus(TaskStatus.ERROR);
+        return false;
+      }
     }
     return true;
   }

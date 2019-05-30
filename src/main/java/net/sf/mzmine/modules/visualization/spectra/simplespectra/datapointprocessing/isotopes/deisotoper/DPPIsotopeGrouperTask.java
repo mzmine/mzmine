@@ -32,6 +32,7 @@ import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
+import org.postgresql.translation.messages_bg;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -49,6 +50,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -103,6 +105,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
           "The data points passed to Isotope Grouper were not an instance of processed data points."
+              + " Make sure to run mass detection first.");
+      setErrorMessage( "The data points passed to Isotope Grouper were not an instance of processed data points."
               + " Make sure to run mass detection first.");
       setStatus(TaskStatus.ERROR);
       return;
@@ -280,11 +284,15 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     return str;
   }
 
-  @Override
+  /*@Override
   public String getTaskDescription() {
+<<<<<<< HEAD
     return "Isotope grouping for Scan #"
         + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
   }
+=======
+    return "Deisotoping of Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
+  }*/
 
   @Override
   public double getFinishedPercentage() {
@@ -312,6 +320,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
               clr.get(j), false);
           j++;
         }
+//      getTargetPlot().addDataSet(new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), color, false);
     }
   }
 

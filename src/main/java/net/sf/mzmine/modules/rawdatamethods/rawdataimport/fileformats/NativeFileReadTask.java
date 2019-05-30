@@ -43,8 +43,8 @@ import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataFileType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
-import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.TextUtils;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * This module binds spawns a separate process that dumps the native format's data in a text+binary

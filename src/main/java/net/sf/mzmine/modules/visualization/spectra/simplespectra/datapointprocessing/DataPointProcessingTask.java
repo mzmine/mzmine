@@ -27,6 +27,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * 
@@ -47,6 +48,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   protected DataPoint[] dataPoints;
   protected ParameterSet parameterSet;
   private DataPointProcessingController controller;
+  protected String taskDescription;
 
   // move the results into this array by setReults to be collected by the controller and passed on
   // to the next DPPTask by it
@@ -69,6 +71,9 @@ public abstract class DataPointProcessingTask extends AbstractTask {
     setTargetPlot(plot);
     setParameterSet(parameterSet);
     setController(controller);
+    String name = this.getClass().getName();
+    name = name.substring(name.lastIndexOf(".") + 1);
+    setTaskDescription(name + " of scan #" + plot.getMainScanDataSet().getScan().getScanNumber());
     addTaskStatusListener(listener);
     setStatus(TaskStatus.WAITING);
   }
@@ -131,4 +136,12 @@ public abstract class DataPointProcessingTask extends AbstractTask {
     this.controller = controller;
   }
 
+  @Override
+  public String getTaskDescription() {
+    return taskDescription;
+  }
+
+  private void setTaskDescription(String taskDescription) {
+    this.taskDescription = taskDescription;
+  }
 }

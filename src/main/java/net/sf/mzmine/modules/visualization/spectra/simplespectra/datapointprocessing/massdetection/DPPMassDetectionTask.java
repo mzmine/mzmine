@@ -54,11 +54,6 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
     color = parameterSet.getParameter(DPPMassDetectionParameters.datasetColor).getValue();
   }
 
-  @Override
-  public String getTaskDescription() {
-    return "Mass detection for Scan #"
-        + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
-  }
 
   @Override
   public double getFinishedPercentage() {
@@ -85,6 +80,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
     DataPoint[] masses = detector.getMassValues(getDataPoints(), massDetector.getParameterSet());
     
     if(masses == null || masses.length <= 0) {
+      setErrorMessage("No masses were detected with the given parameters.");
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -101,7 +97,7 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   public void displayResults() {
     // if this is the last task, display even if not checked.
     if (getController().isLastTaskRunning() || displayResults) {
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results", getResults()),
+      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results (" + getResults().length + ")", getResults()),
           color, false);
     }
   }

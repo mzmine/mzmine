@@ -47,7 +47,7 @@ public class BaselinePeakDetector implements PeakResolver {
   }
 
   @Override
-  public Feature[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
+  public ResolvedPeak[] resolvePeaks(final Feature chromatogram, ParameterSet parameters,
       RSessionWrapper rSession, CenterFunction mzCenterFunction, double msmsRange,
       double rTRangeMSMS) {
 

@@ -39,10 +39,9 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakSorter;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
-
+import net.sf.mzmine.util.scans.ScanUtils;
 import com.google.common.collect.Range;
 
 public class PeakExtenderTask extends AbstractTask {

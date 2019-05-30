@@ -216,4 +216,12 @@ public interface PeakList {
    */
   public Range<Double> getRowsRTRange();
 
+  /**
+   * Find row by ID
+   * 
+   * @param id
+   * @return the peaklist row or null
+   */
+  public PeakListRow findRowByID(int id);
+
 }

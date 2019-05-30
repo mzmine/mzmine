@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Vector;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -53,7 +55,7 @@ public class DataPointProcessingQueue extends Vector<MZmineProcessingStep<DataPo
   private static final String DATA_POINT_PROCESSING_STEP_ELEMENT = "processingstep";
   private static final String METHOD_ELEMENT = "method";
 
-  public static DataPointProcessingQueue loadfromXML(final Element xmlElement) {
+  public static @Nonnull DataPointProcessingQueue loadfromXML(final @Nonnull Element xmlElement) {
     DataPointProcessingQueue queue = new DataPointProcessingQueue();
 
     // Get the loaded modules.
@@ -89,7 +91,7 @@ public class DataPointProcessingQueue extends Vector<MZmineProcessingStep<DataPo
     return queue;
   }
   
-  public static DataPointProcessingQueue loadFromFile(File file) {
+  public static @Nonnull DataPointProcessingQueue loadFromFile(@Nonnull File file) {
     try {
       Element element = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file).getDocumentElement();
       return loadfromXML(element);
@@ -99,7 +101,7 @@ public class DataPointProcessingQueue extends Vector<MZmineProcessingStep<DataPo
     }
   }
 
-  public void saveToXML(final Element xmlElement) {
+  public void saveToXML(final @Nonnull Element xmlElement) {
     
     final Document document = xmlElement.getOwnerDocument();
 
@@ -120,7 +122,7 @@ public class DataPointProcessingQueue extends Vector<MZmineProcessingStep<DataPo
     }
   }
   
-  public void saveToFile(final File file) {
+  public void saveToFile(final @Nonnull File file) {
     try {
       Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
       final Element element = document.createElement("DataPointProcessing");
@@ -180,7 +182,7 @@ public class DataPointProcessingQueue extends Vector<MZmineProcessingStep<DataPo
    * @return Returns the next module in this PlotModuleCombo. If this pmc has no next module the
    *         return is null. Use hasNextModule to check beforehand.
    */
-  public MZmineProcessingStep<DataPointProcessingModule> getNextStep(MZmineProcessingStep<DataPointProcessingModule> current) {
+  public @Nullable MZmineProcessingStep<DataPointProcessingModule> getNextStep(@Nonnull MZmineProcessingStep<DataPointProcessingModule> current) {
     if (hasNextStep(current))
       return this.get(this.indexOf(current) + 1);
     return null;
@@ -191,7 +193,7 @@ public class DataPointProcessingQueue extends Vector<MZmineProcessingStep<DataPo
    * @return Returns the first module in this PlotModuleCombo. If the list of steps is not
    *         initialised, the return is null.
    */
-  public MZmineProcessingStep<DataPointProcessingModule> getFirstStep() {
+  public @Nullable MZmineProcessingStep<DataPointProcessingModule> getFirstStep() {
     if (this.size() > 0) {
       return this.get(0);
     }

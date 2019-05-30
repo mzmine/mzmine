@@ -27,6 +27,8 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.MassSpectrumType;
@@ -35,9 +37,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.ScanUtils;
-
-import com.google.common.collect.Range;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * Implementation of the Scan interface which stores raw data points in a temporary file, accessed
@@ -303,7 +303,7 @@ public class StorableScan implements Scan {
 
   @Override
   public String toString() {
-    return ScanUtils.scanToString(this);
+    return ScanUtils.scanToString(this, false);
   }
 
   @Override
@@ -340,23 +340,7 @@ public class StorableScan implements Scan {
     // Check if we are adding to the current project
     if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
       final RawDataTreeModel treeModel = project.getRawDataTreeModel();
-      final MassList newMassList = storedMassList;
-      Runnable swingCode = new Runnable() {
-        @Override
-        public void run() {
-          treeModel.addObject(newMassList);
-        }
-      };
-
-      try {
-        if (SwingUtilities.isEventDispatchThread())
-          swingCode.run();
-        else
-          SwingUtilities.invokeAndWait(swingCode);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
+      treeModel.addObjectWithoutGUIUpdate(storedMassList);
     }
 
   }
@@ -390,6 +374,7 @@ public class StorableScan implements Scan {
     }
 
   }
+
 
   @Override
   public @Nonnull MassList[] getMassLists() {

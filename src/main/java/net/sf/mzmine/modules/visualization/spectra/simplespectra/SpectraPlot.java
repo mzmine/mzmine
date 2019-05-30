@@ -191,6 +191,8 @@ public class SpectraPlot extends EChartPanel {
 
       GUIUtils.addMenuItem(popupMenu, "Export spectra to spectra file", masterPlot,
           "EXPORT_SPECTRA");
+      GUIUtils.addMenuItem(popupMenu, "Create spectral library entry", masterPlot,
+          "CREATE_LIBRARY_ENTRY");
 
       popupMenu.addSeparator();
 
@@ -377,6 +379,7 @@ public class SpectraPlot extends EChartPanel {
   /**
    * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
    */
+  @Override
   public void mouseClicked(MouseEvent event) {
 
     // let the parent handle the event (selection etc.)
@@ -427,7 +430,8 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
-    checkAndRunController();
+    if (dataSet instanceof ScanDataSet)
+      checkAndRunController();
   }
 
   // add Dataset with label generator
@@ -463,7 +467,8 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
-    checkAndRunController();
+    if (dataSet instanceof ScanDataSet)
+      checkAndRunController();
   }
 
 
@@ -494,20 +499,25 @@ public class SpectraPlot extends EChartPanel {
 
     // if controller != null, processing on the current spectra has already been executed. When
     // loading a new spectrum, the controller is set to null in removeAllDataSets()
-    if (controller != null || !isProcessingAllowed())
+    DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+    
+    if (!isProcessingAllowed() || !inst.isEnabled())
       return;
+    
+    if(controller != null)
+      controller = null;
 
+    // if a controller is re-run then delete previous results
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof DPPResultsDataSet) {
-        // if the processing was executed already, back out
-        return;
+         plot.setDataset(i, null);
       }
     }
+    
     // if enabled, do the data point processing as set up by the user
     XYDataset dataSet = getMainScanDataSet();
-    if (dataSet instanceof ScanDataSet && DataPointProcessingManager.getInst().isEnabled()) {
-      DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+    if (dataSet instanceof ScanDataSet) {
 
       controller = new DataPointProcessingController(inst.getProcessingQueue(), this,
           getMainScanDataSet().getDataPoints());
