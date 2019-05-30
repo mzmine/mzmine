@@ -45,18 +45,17 @@ public class JLastFilesButton extends JButton implements LastFilesComponent {
 
 
   public JLastFilesButton(Consumer<File> changeListener) {
-    super("Last");
-    this.changeListener = changeListener;
+    this("Last", changeListener);
   }
 
   public JLastFilesButton(Icon icon, Consumer<File> changeListener) {
-    super(icon);
-    this.changeListener = changeListener;
+    this("", icon, changeListener);
   }
 
   public JLastFilesButton(String text, Icon icon, Consumer<File> changeListener) {
     super(text, icon);
     this.changeListener = changeListener;
+    init();
   }
 
   public JLastFilesButton(String text, Consumer<File> changeListener) {
@@ -79,8 +78,11 @@ public class JLastFilesButton extends JButton implements LastFilesComponent {
     this.lastFiles = lastFiles;
 
     menu.removeAll();
-    if (lastFiles == null)
+    if (lastFiles == null || lastFiles.isEmpty()) {
+      setEnabled(false);
       return;
+    }
+    setEnabled(true);
 
     lastFiles.stream().map(this::fileToString).forEach(name -> {
       JMenuItem item = new JMenuItem(name);

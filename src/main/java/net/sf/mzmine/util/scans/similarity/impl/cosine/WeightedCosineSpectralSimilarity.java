@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra.impl.cosine;
+package net.sf.mzmine.util.scans.similarity.impl.cosine;
 
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -25,19 +25,25 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.util.maths.similarity.Similarity;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectraSimilarity;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
-import net.sf.mzmine.util.maths.similarity.spectra.Weights;
 import net.sf.mzmine.util.scans.ScanAlignment;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarity;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
+import net.sf.mzmine.util.scans.similarity.Weights;
 
+/**
+ * Weighted (mz and intensity) cosine similarity. Similar to the NIST search / MassBank search
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
 public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction {
 
   /**
    * Returns mass and intensity values detected in given scan
    */
   @Override
-  public SpectraSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
-      DataPoint[] a, DataPoint[] b) {
+  public SpectralSimilarity getSimilarity(ParameterSet parameters, MZTolerance mzTol, int minMatch,
+      DataPoint[] library, DataPoint[] query) {
     Weights weights =
         parameters.getParameter(WeightedCosineSpectralSimilarityParameters.weight).getValue();
     double minCos =
@@ -46,7 +52,7 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
         .getParameter(WeightedCosineSpectralSimilarityParameters.removeUnmatched).getValue();
 
     // align
-    List<DataPoint[]> aligned = align(mzTol, a, b);
+    List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
     // removes all signals which were not found in both masslists
     if (removeUnmatched)
       aligned = removeUnaligned(aligned);
@@ -59,13 +65,12 @@ public class WeightedCosineSpectralSimilarity extends SpectralSimilarityFunction
           ScanAlignment.toIntensityMatrixWeighted(aligned, weights.getIntensity(), weights.getMz());
       double diffCosine = Similarity.COSINE.calc(diffArray);
       if (diffCosine >= minCos)
-        return new SpectraSimilarity(diffCosine, overlap);
+        return new SpectralSimilarity(getName(), diffCosine, overlap, library, query, aligned);
       else
         return null;
     }
     return null;
   }
-
 
   @Override
   @Nonnull

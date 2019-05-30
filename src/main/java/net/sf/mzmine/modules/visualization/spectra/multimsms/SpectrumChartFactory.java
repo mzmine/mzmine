@@ -19,6 +19,7 @@ package net.sf.mzmine.modules.visualization.spectra.multimsms;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import org.jfree.chart.ChartFactory;
@@ -140,11 +141,13 @@ public class SpectrumChartFactory {
   public static EChartPanel createMirrorChartPanel(String labelA, double precursorMZA, double rtA,
       DataPoint[] dpsA, String labelB, double precursorMZB, double rtB, DataPoint[] dpsB,
       boolean showTitle, boolean showLegend) {
-    PseudoSpectrumDataSet data = createMSMSDataSet(precursorMZA, rtA, dpsA, labelA);
-    PseudoSpectrumDataSet dataMirror = createMSMSDataSet(precursorMZB, rtB, dpsB, labelB);
+    PseudoSpectrumDataSet data =
+        dpsA == null ? null : createMSMSDataSet(precursorMZA, rtA, dpsA, labelA);
+    PseudoSpectrumDataSet dataMirror =
+        dpsB == null ? null : createMSMSDataSet(precursorMZB, rtB, dpsB, labelB);
 
     NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
-    NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+    NumberFormat intensityFormat = new DecimalFormat("0.#");
 
     // set the X axis (retention time) properties
     NumberAxis xAxis = new NumberAxis("m/z");
@@ -159,18 +162,16 @@ public class SpectrumChartFactory {
     PseudoSpectraRenderer renderer2 = new PseudoSpectraRenderer(Color.BLACK, false);
 
     // create subplot 1...
-    final NumberAxis rangeAxis1 = new NumberAxis("Intensity");
+    final NumberAxis rangeAxis1 = new NumberAxis("rel. intensity [%]");
     final XYPlot subplot1 = new XYPlot(data, null, rangeAxis1, renderer1);
     subplot1.setRangeAxisLocation(AxisLocation.BOTTOM_OR_LEFT);
     rangeAxis1.setNumberFormatOverride(intensityFormat);
-    rangeAxis1.setUpperMargin(0.20);
     rangeAxis1.setAutoRangeIncludesZero(true);
     rangeAxis1.setAutoRangeStickyZero(true);
 
     // create subplot 2...
-    final NumberAxis rangeAxis2 = new NumberAxis("Intensity");
+    final NumberAxis rangeAxis2 = new NumberAxis("rel. intensity [%]");
     rangeAxis2.setNumberFormatOverride(intensityFormat);
-    rangeAxis2.setUpperMargin(0.20);
     rangeAxis2.setAutoRangeIncludesZero(true);
     rangeAxis2.setAutoRangeStickyZero(true);
     rangeAxis2.setInverted(true);

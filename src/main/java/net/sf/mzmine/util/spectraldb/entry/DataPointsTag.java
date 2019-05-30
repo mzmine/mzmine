@@ -16,34 +16,25 @@
  * USA
  */
 
-package net.sf.mzmine.util.maths.similarity.spectra;
+package net.sf.mzmine.util.spectraldb.entry;
 
-public class SpectraSimilarity {
-  private double cosine;
-  private int overlap;
-
-  public SpectraSimilarity(double cosine, int overlap) {
-    super();
-    this.cosine = cosine;
-    this.overlap = overlap;
-  }
+public enum DataPointsTag {
+  ORIGINAL, FILTERED, ALIGNED, MERGED;
 
   /**
-   * Number of overlapping signals
+   * Original(-filtered-aligned) is filtered; Filtered(-aligned) is unaligned; ALIGNED is aligned
    * 
    * @return
    */
-  public int getOverlap() {
-    return overlap;
+  public String toRemainderString() {
+    switch (this) {
+      case ORIGINAL:
+        return "filtered";
+      case FILTERED:
+        return "unaligned";
+      case ALIGNED:
+        return "aligned";
+    }
+    return "";
   }
-
-  /**
-   * Cosine similarity
-   * 
-   * @return
-   */
-  public double getCosine() {
-    return cosine;
-  }
-
 }

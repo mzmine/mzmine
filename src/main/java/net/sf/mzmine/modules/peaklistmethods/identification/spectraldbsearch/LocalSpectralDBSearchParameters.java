@@ -39,7 +39,7 @@ import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParamete
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.maths.similarity.spectra.SpectralSimilarityFunction;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 
 /**
  * 

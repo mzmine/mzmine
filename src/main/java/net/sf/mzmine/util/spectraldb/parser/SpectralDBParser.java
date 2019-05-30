@@ -21,8 +21,10 @@ package net.sf.mzmine.util.spectraldb.parser;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 
@@ -54,11 +56,15 @@ public abstract class SpectralDBParser {
       throws UnsupportedFormatException, IOException;
 
   /**
-   * Add DB entry and push every 1000 entries
+   * Add DB entry and push every 1000 entries. Does not allow 0 intensity values.
    * 
    * @param entry
    */
-  protected void addLibraryEntry(SpectralDBEntry entry) {
+  protected synchronized boolean addLibraryEntry(SpectralDBEntry entry) {
+    // no 0 values allowed in entry
+    if (Arrays.stream(entry.getDataPoints()).mapToDouble(DataPoint::getIntensity)
+        .anyMatch(v -> Double.compare(v, 0) == 0))
+      return false;
     list.add(entry);
     if (list.size() % bufferEntries == 0) {
       // start new task for every 1000 entries
@@ -69,12 +75,13 @@ public abstract class SpectralDBParser {
       // new list
       list = new ArrayList<>();
     }
+    return true;
   }
 
   /**
    * Finish and push last entries
    */
-  protected void finish() {
+  protected synchronized void finish() {
     // push entries
     if (!list.isEmpty()) {
       logger.info("Imported last " + list.size() + " library entries");

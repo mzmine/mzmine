@@ -568,18 +568,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     }
     // show spectral db matches
     if (showSpectralDBResults.equals(src)) {
-      // TODO use the scan that was matched against the library
-      Scan scan = clickedPeakListRow.getBestFragmentation();
-      if (scan != null) {
-        List<SpectralDBPeakIdentity> spectralID =
-            Arrays.stream(clickedPeakListRow.getPeakIdentities())
-                .filter(pi -> pi instanceof SpectralDBPeakIdentity)
-                .map(pi -> ((SpectralDBPeakIdentity) pi)).collect(Collectors.toList());
-        if (!spectralID.isEmpty()) {
-          SpectraIdentificationResultsWindow window = new SpectraIdentificationResultsWindow();
-          window.addMatches(scan, spectralID);
-          window.setVisible(true);
-        }
+      List<SpectralDBPeakIdentity> spectralID =
+          Arrays.stream(clickedPeakListRow.getPeakIdentities())
+              .filter(pi -> pi instanceof SpectralDBPeakIdentity)
+              .map(pi -> ((SpectralDBPeakIdentity) pi)).collect(Collectors.toList());
+      if (!spectralID.isEmpty()) {
+        SpectraIdentificationResultsWindow window = new SpectraIdentificationResultsWindow();
+        window.addMatches(spectralID);
+        window.setTitle("Matched " + spectralID.size() + " compounds for feature list row"
+            + clickedPeakListRow.getID());
+        window.setVisible(true);
       }
     }
 

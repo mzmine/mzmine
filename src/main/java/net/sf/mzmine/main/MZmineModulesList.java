@@ -58,6 +58,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchMod
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitModule;
@@ -195,11 +196,12 @@ public class MZmineModulesList {
       SignificanceModule.class,
 
       // Identification
-      LocalSpectralDBSearchModule.class, CustomDBSearchModule.class, FormulaPredictionModule.class,
-      FragmentSearchModule.class, AdductSearchModule.class, ComplexSearchModule.class,
-      OnlineDBSearchModule.class, LipidSearchModule.class, CameraSearchModule.class,
-      NistMsSearchModule.class, FormulaPredictionPeakListModule.class, Ms2SearchModule.class,
-      SiriusProcessingModule.class, GNPSResultsImportModule.class,
+      LocalSpectralDBSearchModule.class, SortSpectralDBIdentitiesModule.class,
+      CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
+      AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
+      LipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
+      FormulaPredictionPeakListModule.class, Ms2SearchModule.class, SiriusProcessingModule.class,
+      GNPSResultsImportModule.class,
 
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
@@ -214,9 +216,9 @@ public class MZmineModulesList {
       IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class,
 
       // all other regular MZmineRunnableModule (not MZmineProcessingModule) NOT LISTED IN MENU
-      SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class, CustomDBSpectraSearchModule.class,
-      LipidSpectraSearchModule.class, OnlineDBSpectraSearchModule.class,
-      SumFormulaSpectraSearchModule.class,
+      SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class,
+      CustomDBSpectraSearchModule.class, LipidSpectraSearchModule.class,
+      OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
 
       // Data point processing
       DataPointProcessingManager.class, DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class

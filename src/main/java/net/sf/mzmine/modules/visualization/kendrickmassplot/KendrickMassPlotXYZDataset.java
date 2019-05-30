@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -42,11 +42,14 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
   private double[] xValues;
   private double[] yValues;
   private double[] zValues;
+  private ParameterSet parameters;
 
   public KendrickMassPlotXYZDataset(ParameterSet parameters) {
 
     PeakList peakList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
         .getMatchingPeakLists()[0];
+
+    this.parameters = parameters;
 
     this.selectedRows =
         parameters.getParameter(KendrickMassPlotParameters.selectedRows).getMatchingRows(peakList);
@@ -78,15 +81,17 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
         .getValue() == true) {
       for (int i = 0; i < selectedRows.length; i++) {
         xValues[i] =
-            ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase)) + 1)
+            Math.ceil(selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase))
                 - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customXAxisKMBase);
       }
     } else {
       for (int i = 0; i < selectedRows.length; i++) {
+
         // simply plot m/z values as x axis
         if (xAxisKMBase.equals("m/z")) {
           xValues[i] = selectedRows[i].getAverageMZ();
         }
+
         // plot Kendrick masses as x axis
         else if (xAxisKMBase.equals("KM")) {
           xValues[i] = selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase);
@@ -98,8 +103,8 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     yValues = new double[selectedRows.length];
     for (int i = 0; i < selectedRows.length; i++) {
       yValues[i] =
-          ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase)) + 1)
-              - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customYAxisKMBase);
+          Math.ceil((selectedRows[i].getAverageMZ()) * getKendrickMassFactor(customYAxisKMBase))
+              - (selectedRows[i].getAverageMZ()) * getKendrickMassFactor(customYAxisKMBase);
     }
 
     // Calc zValues
@@ -108,8 +113,8 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
         .getValue() == true) {
       for (int i = 0; i < selectedRows.length; i++) {
         zValues[i] =
-            ((int) (selectedRows[i].getAverageMZ() * getKendrickMassFactor(customZAxisKMBase)) + 1)
-                - selectedRows[i].getAverageMZ() * getKendrickMassFactor(customZAxisKMBase);
+            Math.ceil((selectedRows[i].getAverageMZ()) * getKendrickMassFactor(customZAxisKMBase))
+                - (selectedRows[i].getAverageMZ()) * getKendrickMassFactor(customZAxisKMBase);
       }
     } else
       for (int i = 0; i < selectedRows.length; i++) {
@@ -132,6 +137,13 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
       }
   }
 
+  public ParameterSet getParameters() {
+    return parameters;
+  }
+
+  public void setParameters(ParameterSet parameters) {
+    this.parameters = parameters;
+  }
 
   @Override
   public int getItemCount(int series) {
@@ -153,6 +165,20 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
     return zValues[item];
   }
 
+
+  public void setxValues(double[] values) {
+    xValues = values;
+  }
+
+  public void setyValues(double[] values) {
+    yValues = values;
+  }
+
+  public void setzValues(double[] values) {
+    zValues = values;
+  }
+
+
   @Override
   public int getSeriesCount() {
     return 1;
@@ -163,13 +189,13 @@ class KendrickMassPlotXYZDataset extends AbstractXYZDataset {
   }
 
   @Override
-  public Comparable getSeriesKey(int series) {
+  public Comparable<?> getSeriesKey(int series) {
     return getRowKey(series);
   }
 
   private double getKendrickMassFactor(String formula) {
     double exactMassFormula = FormulaUtils.calculateExactMass(formula);
-    return ((int) (exactMassFormula + 0.5d)) / exactMassFormula;
+    return ((int) ((exactMassFormula) + 0.5d)) / (exactMassFormula);
   }
 
 }
