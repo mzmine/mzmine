@@ -130,7 +130,7 @@ public class GnpsMgfParser extends SpectralDBParser {
                                 // use as adduct
                                 String adduct = AdductParser.parse(adductCandidate);
                                 if (adduct != null && !adduct.isEmpty())
-                                  fields.put(DBEntryField.IONTYPE, adduct);
+                                  fields.put(DBEntryField.ION_TYPE, adduct);
                               }
                             }
 

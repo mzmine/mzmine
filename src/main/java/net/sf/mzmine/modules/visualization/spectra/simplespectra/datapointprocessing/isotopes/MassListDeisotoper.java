@@ -158,7 +158,7 @@ public class MassListDeisotoper {
 
         DataPoint candidatePeak = sortedPeaks[ind];
 
-        if (candidatePeak == null)
+        if (candidatePeak == null || Double.compare(candidatePeak.getIntensity(), 0) == 0)
           continue;
 
         // Get properties of the candidate peak
