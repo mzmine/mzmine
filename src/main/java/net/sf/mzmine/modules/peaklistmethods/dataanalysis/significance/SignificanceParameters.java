@@ -19,16 +19,13 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.significance;
 
 import java.awt.Window;
-import java.util.ArrayList;
 import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
 
@@ -40,12 +37,6 @@ public class SignificanceParameters extends SimpleParameterSet {
         new ComboParameter<UserParameter<?, ?>>("Sample parameter",
             "One sample parameter has to be selected to be used in the test calculation. They can be defined in \"Project -> Set sample parameters\"",
             new UserParameter[0]);
-
-//    public static final StringParameter controlGroupName = new StringParameter("Control Group ID",
-//            "All features from the raw files containing this ID will be assigned to the control group");
-//
-//    public static final StringParameter experimentalGroupName = new StringParameter("Experimental Group ID",
-//            "All features from the raw files containing this ID will be assigned to the experimental group");
 
     public SignificanceParameters() {
         super(new Parameter[] {peakLists, selectionData});
