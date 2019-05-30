@@ -265,10 +265,10 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     if (((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).getChildCount() < 1)
       return list;
 
-    Enumeration<DefaultMutableTreeNode> nodes =
+    Enumeration<?> nodes =
         ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).children();
     do {
-      DefaultMutableTreeNode item = nodes.nextElement();
+      DefaultMutableTreeNode item = (DefaultMutableTreeNode) nodes.nextElement();
       if (!(item instanceof DPPModuleTreeNode))
         continue;
       DPPModuleTreeNode moduleitem = (DPPModuleTreeNode) item;
@@ -345,9 +345,9 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
   private boolean treeContains(@Nonnull JTree tree, @Nonnull DefaultMutableTreeNode comp) {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel().getRoot();
-    Enumeration<DefaultMutableTreeNode> e = root.depthFirstEnumeration();
+    Enumeration<?> e = root.depthFirstEnumeration();
     while (e.hasMoreElements()) {
-      DefaultMutableTreeNode node = e.nextElement();
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.nextElement();
       if (node.toString().equalsIgnoreCase(comp.toString())) {
         return true;
       }
