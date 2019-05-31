@@ -108,7 +108,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     updateProcessingCheckbox();
 
     processingParametersBtn = GUIUtils.addButton(topPanel, "Spectra processing", null,
-        masterFrame, "SET_PROCESSING_PARAMETERS");
+        masterFrame, "SET_PROCESSING_PARAMETERS", "Set the parameters for quick spectra processing.");
     processingParametersBtn.setBackground(Color.white);
     processingParametersBtn.setFont(smallFont);
     updateProcessingButton();

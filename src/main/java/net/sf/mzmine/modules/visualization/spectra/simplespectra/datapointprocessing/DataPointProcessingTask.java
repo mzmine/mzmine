@@ -159,7 +159,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
     List<String> error = new ArrayList<String>();
     if (!parameterSet.checkParameterValues(error)) {
       setErrorMessage(
-          "Data point/Spectra processing: Parameter check failed during " + getTaskDescription());
+          "Data point/Spectra processing: Parameter check failed. \n" + error.toString());
       return false;
     }
     return true;
