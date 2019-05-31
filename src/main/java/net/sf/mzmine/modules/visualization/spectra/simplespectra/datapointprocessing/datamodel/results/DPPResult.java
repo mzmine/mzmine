@@ -39,9 +39,7 @@ public abstract class DPPResult<T> {
     return value;
   }
 
-//  public String toString();
+  public abstract String toString();
   
-  public abstract String generateLabel();
-
   public abstract ResultType getResultType();
 }

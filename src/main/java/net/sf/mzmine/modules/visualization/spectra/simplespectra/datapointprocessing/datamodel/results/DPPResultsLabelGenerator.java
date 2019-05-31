@@ -107,7 +107,7 @@ public class DPPResultsLabelGenerator extends SpectraItemLabelGenerator {
     if (dp.resultTypeExists(ResultType.SUMFORMULA)) {
       for (DPPResult<?> r : dp.getAllResultsByType(ResultType.SUMFORMULA)) {
         if (r instanceof DPPSumFormulaResult) {
-          formulas += r.generateLabel() + " ";
+          formulas += r.toString() + " ";
         }
       }
     }

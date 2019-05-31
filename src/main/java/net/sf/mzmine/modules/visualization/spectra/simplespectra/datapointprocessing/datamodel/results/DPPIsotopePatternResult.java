@@ -32,8 +32,8 @@ public class DPPIsotopePatternResult extends DPPResult<IsotopePattern>{
   }
 
   @Override
-  public String generateLabel() {
-    return "Isotope pattern detected";
+  public String toString() {
+    return "Isotope pattern (" + getValue().getNumberOfDataPoints() + ")";
   }
 
   @Override
