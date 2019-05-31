@@ -85,33 +85,34 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   }
 
 
-
   @Override
   public void run() {
-
-    if (getDataPoints() == null || getDataPoints().length == 0) {
-      logger.info("No data points were passed to " + this.getClass().getName()
-          + " Please check the parameters.");
-      setStatus(TaskStatus.CANCELED);
-      return;
-    }
-
-    setStatus(TaskStatus.PROCESSING);
-
-    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
-      logger.warning(
-          "The data points passed to Isotope Grouper were not an instance of processed data points."
-              + " Make sure to run mass detection first.");
-      setErrorMessage( "The data points passed to Isotope Grouper were not an instance of processed data points."
-              + " Make sure to run mass detection first.");
+    if(!checkParameterSet() || !checkValues()) {
       setStatus(TaskStatus.ERROR);
       return;
     }
 
     if (!FormulaUtils.checkMolecularFormula(element)) {
       setStatus(TaskStatus.ERROR);
-      logger.warning("Invalid element parameter in " + this.getClass().getName());
+      logger.warning("Data point/Spectra processing: Invalid element parameter in " + getTaskDescription());
     }
+
+    if (getDataPoints().length == 0) {
+      logger.info("Data point/Spectra processing: 0 data points were passed to " + getTaskDescription()
+          + " Please check the parameters.");
+      setStatus(TaskStatus.CANCELED);
+      return;
+    }
+
+    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
+      logger.warning(
+          "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
+              + " Make sure to run mass detection first.");
+      setStatus(TaskStatus.CANCELED);
+      return;
+    }
+    
+    setStatus(TaskStatus.PROCESSING);
 
     ProcessedDataPoint[] dataPoints = (ProcessedDataPoint[]) getDataPoints();
 
@@ -292,10 +293,10 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   }
 
 
-  /*@Override
-  public String getTaskDescription() {
-    return "Deisotoping of Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
-  }*/
+  /*
+   * @Override public String getTaskDescription() { return "Deisotoping of Scan #" +
+   * getTargetPlot().getMainScanDataSet().getScan().getScanNumber(); }
+   */
 
   @Override
   public double getFinishedPercentage() {
@@ -307,7 +308,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   @Override
   public void displayResults() {
     if (displayResults || getController().isLastTaskRunning()) {
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), color, false);
+      getTargetPlot().addDataSet(
+          new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), color,
+          false);
     }
   }
 

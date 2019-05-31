@@ -19,6 +19,9 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
+import org.jmol.util.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
@@ -64,24 +67,25 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
 
   @Override
   public void run() {
-    setStatus(TaskStatus.PROCESSING);
-
-    if (getDataPoints() == null || massDetector == null || massDetector.getModule() == null
-        || massDetector.getParameterSet() == null) {
+    
+    if(!checkParameterSet() || !checkValues()) {
       setStatus(TaskStatus.ERROR);
       return;
     }
+
 
     if(getStatus() == TaskStatus.CANCELED) {
       return;
     }
     
+    setStatus(TaskStatus.PROCESSING);
+    
     MassDetector detector = massDetector.getModule();
     DataPoint[] masses = detector.getMassValues(getDataPoints(), massDetector.getParameterSet());
     
     if(masses == null || masses.length <= 0) {
-      setErrorMessage("No masses were detected with the given parameters.");
-      setStatus(TaskStatus.ERROR);
+      Logger.info("Data point/Spectra processing: No masses were detected with the given parameters.");
+      setStatus(TaskStatus.CANCELED);
       return;
     }
     

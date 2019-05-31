@@ -116,11 +116,13 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
     mzTolerance =
         parameterSet.getParameter(DPPSumFormulaPredictionParameters.mzTolerance).getValue();
-    
-    displayResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue();
-    
-    numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getEmbeddedParameter().getValue();
-    
+
+    displayResults =
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue();
+
+    numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults)
+        .getEmbeddedParameter().getValue();
+
     color = parameterSet.getParameter(DPPSumFormulaPredictionParameters.datasetColor).getValue();
 
     currentIndex = 0;
@@ -129,36 +131,35 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public double getFinishedPercentage() {
-    if(getDataPoints().length == 0)
+    if (getDataPoints().length == 0)
       return 0;
     return ((double) currentIndex / getDataPoints().length);
   }
 
   @Override
   public void run() {
-    List<String> error = new ArrayList<String>();
-    if(!parameterSet.checkParameterValues(error)) {
-      setErrorMessage("Parameter check failed. Please check the parameters.");
+    if(!checkParameterSet() || !checkValues()) {
       setStatus(TaskStatus.ERROR);
       return;
     }
-    
 
-    if (getDataPoints() == null || getDataPoints().length == 0) {
-      logger.info("No data points were passed to " + this.getClass().getName() + " Please check the parameters." );
+    if (getDataPoints().length == 0) {
+      logger.info("Data point/Spectra processing: 0 data points were passed to "
+          + getTaskDescription() + " Please check the parameters.");
+      setStatus(TaskStatus.CANCELED);
+      return;
+    }
+
+    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
+      
+      logger.info("Data point/Spectra processing: The array of data points passed to "
+          + getTaskDescription()
+          + " is not an instance of ProcessedDataPoint. Make sure to run mass detection first.");
       setStatus(TaskStatus.CANCELED);
       return;
     }
 
     setStatus(TaskStatus.PROCESSING);
-
-    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
-      setStatus(TaskStatus.ERROR);
-      logger.warning("The array of data points passed to " + this.getClass().getName()
-          + " is not an instance of ProcessedDataPoint. Make sure to run mass detection first.");
-      return;
-    }
-
 
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
@@ -337,10 +338,13 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
   @Override
   public void displayResults() {
-    if(displayResults || getController().isLastTaskRunning()) {
+    if (displayResults || getController().isLastTaskRunning()) {
       SpectraPlotUtils.clearDatasetLabelGenerators(getTargetPlot(), DPPResultsDataSet.class);
       DPPResultsLabelGenerator labelGen = new DPPResultsLabelGenerator(getTargetPlot());
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Sum formula prediction results (" + getResults().length + ")", getResults()), color, false, labelGen);
+      getTargetPlot().addDataSet(
+          new DPPResultsDataSet("Sum formula prediction results (" + getResults().length + ")",
+              getResults()),
+          color, false, labelGen);
     }
   }
 }
