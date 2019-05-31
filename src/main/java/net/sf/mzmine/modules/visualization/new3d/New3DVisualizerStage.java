@@ -57,7 +57,7 @@ public class New3DVisualizerStage extends Stage{
     private static final double MOUSE_SPEED = 0.1;
     private static final double ROTATION_SPEED = 1.0;
     private static final double TRACK_SPEED = 0.3;
-    private static final Logger LOG = Logger.getLogger(MoleculeStage.class.getName());
+    private static final Logger LOG = Logger.getLogger(New3DVisualizerStage.class.getName());
     
     double mousePosX;
     double mousePosY;

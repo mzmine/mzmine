@@ -20,6 +20,8 @@ package net.sf.mzmine.modules.visualization.new3d;
 
 import java.util.logging.Logger;
 
+import com.google.common.collect.Range;
+
 import javafx.event.EventHandler;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
@@ -36,6 +38,7 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.*;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
@@ -45,20 +48,21 @@ public class New3DJavafxStage extends Stage{
 	final Group plot = new Group();
 	
 	private static final Logger LOG = Logger.getLogger(New3DJavafxStage.class.getName());
-	
+	private static final int SIZE = 500;
+	private static float AMPLIFI = 130;
 	private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
     
     private final Rotate rotateX = new Rotate(45, Rotate.X_AXIS);
-    private final Rotate rotateY = new Rotate(180, Rotate.Y_AXIS);
+    private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private final Translate translateX = new Translate();
     private final Translate translateY = new Translate();
     
     
-	public New3DJavafxStage(float[][] intensityValues,int rtResolution,int mzResolution,double maxBinnedIntensity){
+	public New3DJavafxStage(float[][] intensityValues,int rtResolution,int mzResolution,double maxBinnedIntensity,Range<Double> rtRange,Range<Double> mzRange){
         plot.getTransforms().addAll(rotateX, rotateY);
         plot.getTransforms().addAll(translateX,translateY);
-        int size =500;
+        int SIZE =500;
         
         StackPane root = new StackPane();
         root.getChildren().add(plot);
@@ -67,9 +71,9 @@ public class New3DJavafxStage extends Stage{
     
         int[][] peakListIndices = new int[rtResolution][mzResolution];
         
-        float amplification = 130;
-        float factorX = size/rtResolution;
-        float factorZ = size/mzResolution;
+        
+        float factorX = SIZE/rtResolution;
+        float factorZ = SIZE/mzResolution;
         
         float maxIntensityValue = Float.NEGATIVE_INFINITY;
         for(int i=0;i<rtResolution;i++){
@@ -82,7 +86,7 @@ public class New3DJavafxStage extends Stage{
         
         for (int x = 0; x < rtResolution; x++) {
             for (int z = 0; z < mzResolution; z++) {
-                mesh.getPoints().addAll(x*factorX, -intensityValues[x][z]* amplification, z*factorZ);
+                mesh.getPoints().addAll(x*factorX, -intensityValues[x][z]* AMPLIFI, z*factorZ);
                 if(intensityValues[x][z]>0.022*maxIntensityValue){
                 	peakListIndices[x][z]=1;
                 }
@@ -139,7 +143,7 @@ public class New3DJavafxStage extends Stage{
                 if(peakListIndices[x][y]==1) {
                 	 Color color = Color.BLUE;
                 	 pw.setColor(x, y, color);
-                	 if(x-1>0&&y-1>0) {
+                	 if(x-1>=0&&y-1>=0) {
                 		 pw.setColor(x-1, y-1, color);
                 		 pw.setColor(x, y-1, color);
                 		 pw.setColor(x-1, y, color);
@@ -155,12 +159,10 @@ public class New3DJavafxStage extends Stage{
        
         PhongMaterial material = new PhongMaterial();
         material.setDiffuseMap(diffuseMap);
-        
-        int sizeX= rtLength;
-        int sizeZ = mzLength;
+       
         MeshView meshView = new MeshView(mesh);
-        meshView.setTranslateX(-0.5 * sizeX);
-        meshView.setTranslateZ(-0.5 * sizeZ);
+        //meshView.setTranslateY(SIZE);
+        //meshView.setTranslateZ(-0.5 * SIZEZ);
         meshView.setMaterial(material);
         meshView.setCullFace(CullFace.NONE);
         meshView.setDrawMode(DrawMode.FILL);
@@ -168,8 +170,12 @@ public class New3DJavafxStage extends Stage{
 
         plot.getChildren().addAll(meshView);
         
+        buildAxes(rtRange,mzRange);
+        
+        
         Scene scene = new Scene(root, 800, 600, true, SceneAntialiasing.BALANCED);
-        scene.setCamera(new PerspectiveCamera());
+        PerspectiveCamera camera = new PerspectiveCamera();
+        scene.setCamera(camera);
 
         scene.setOnMousePressed(me -> {
         	
@@ -178,15 +184,16 @@ public class New3DJavafxStage extends Stage{
             
            
         });
+        double rotateFactor = 0.05;
         scene.setOnMouseDragged(me -> {
     		mousePosX = me.getSceneX();
 	        mousePosY = me.getSceneY();
         	if(me.isPrimaryButtonDown()) {
-		        rotateX.setAngle(rotateX.getAngle() + (mousePosY - mouseOldY));
-		        rotateY.setAngle(rotateY.getAngle() - (mousePosX - mouseOldX));     
+		        rotateX.setAngle(rotateX.getAngle() - rotateFactor*(mousePosY - mouseOldY));
+		        rotateY.setAngle(rotateY.getAngle() - rotateFactor*(mousePosX - mouseOldX));     
         	}
             if(me.isSecondaryButtonDown()) {
-            	translateX.setX(translateX.getX() - (mousePosX - mouseOldX) );
+            	translateX.setX(translateX.getX() + (mousePosX - mouseOldX) );
             	translateY.setY(translateY.getY() + (mousePosY - mouseOldY) );
         	}
             mouseOldX = mousePosX;
@@ -197,6 +204,60 @@ public class New3DJavafxStage extends Stage{
         this.setScene(scene);
         
 	}
+	
+	public void buildAxes(Range<Double> rtRange,Range<Double> mzRange) {
+		double rtDelta = (rtRange.upperEndpoint() - rtRange.lowerEndpoint())/7;
+        double rtscaleValue = rtRange.lowerEndpoint() + rtDelta;
+        for( int y=SIZE/7; y <= SIZE; y+=SIZE/7) {
+            Line tickLineX = new Line(0,0,0,5);
+            tickLineX.setRotationAxis(Rotate.X_AXIS);
+            tickLineX.setRotate(-90);
+            tickLineX.setTranslateY(-2);
+            tickLineX.setTranslateX(y);
+            Text text = new Text( ""+(int)rtscaleValue);
+            text.setRotationAxis(Rotate.X_AXIS);
+            text.setRotate(-45);
+            text.setTranslateY(8);
+            text.setTranslateX(y-5);
+            text.setTranslateZ(-7);
+            rtscaleValue += rtDelta; 
+            plot.getChildren().addAll(text,tickLineX);
+        }
+        
+        double mzDelta = (mzRange.upperEndpoint() - mzRange.lowerEndpoint())/10;
+        double mzscaleValue = mzRange.upperEndpoint();
+        Group mzAxis = new Group();
+        for( int y=0; y <= SIZE-SIZE/7; y+=SIZE/7) {
+        	Line tickLineX = new Line(0,0,0,7);
+            tickLineX.setRotationAxis(Rotate.X_AXIS);
+            tickLineX.setRotate(-90);
+            tickLineX.setTranslateY(-2);
+            tickLineX.setTranslateX(y);
+            Text text = new Text( ""+(float)mzscaleValue);
+            text.setRotationAxis(Rotate.X_AXIS);
+            text.setRotate(-45);
+            text.setTranslateY(8);
+            text.setTranslateX(y-5);
+            text.setTranslateZ(-5);
+            mzscaleValue -= mzDelta; 
+            mzAxis.getChildren().addAll(text,tickLineX);
+        }
+        mzAxis.setRotationAxis(Rotate.Y_AXIS);
+        mzAxis.setRotate(90);
+        mzAxis.setTranslateX(-SIZE/2+8);
+        mzAxis.setTranslateZ(SIZE/2+12);
+        plot.getChildren().add(mzAxis);
+        Line lineX = new Line(0,0,500,0);
+        plot.getChildren().add(lineX);
+        Line lineZ = new Line(0,0,500,0);
+        lineZ.setRotationAxis(Rotate.Y_AXIS);
+        lineZ.setRotate(90);
+        lineZ.setTranslateX(-SIZE/2);
+        lineZ.setTranslateZ(SIZE/2);
+        plot.getChildren().add(lineZ);
+       
+	}
+	
 	
 	public void makeZoomable(StackPane control) {
 
@@ -209,7 +270,6 @@ public class New3DJavafxStage extends Stage{
             public void handle(ScrollEvent event) {
 
                 double delta = 1.2;
-
                 double scale = control.getScaleX();
 
                 if (event.getDeltaY() < 0) {

@@ -212,13 +212,10 @@ class ThreeDSamplingTask extends AbstractTask {
       Platform.setImplicitExit(false);
       Platform.runLater(new Runnable() { 
     	  public void run() {
-		      New3DJavafxStage newStage = new New3DJavafxStage(finalIntensityValues,rtResolution,mzResolution,maxBinnedIntensity); 
+		      New3DJavafxStage newStage = new New3DJavafxStage(finalIntensityValues,rtResolution,mzResolution,maxBinnedIntensity,rtRange,mzRange); 
 		      newStage.show();
 	      }
       });
-//      display.setData(intensityValues, domainSet, rtRange.lowerEndpoint(), rtRange.upperEndpoint(),
-//    		  mzRange.lowerEndpoint(), mzRange.upperEndpoint(), maxBinnedIntensity);
-
       // After we have constructed everything, load the peak lists into
       // the bottom panel
       bottomPanel.rebuildPeakListSelector();
