@@ -18,22 +18,45 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.significance;
 
+import java.awt.Window;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.util.ExitCode;
 
 public class SignificanceParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
 
-    public static final StringParameter controlGroupName = new StringParameter("Control Group ID",
-            "All features from the raw files containing this ID will be assigned to the control group");
-
-    public static final StringParameter experimentalGroupName = new StringParameter("Experimental Group ID",
-            "All features from the raw files containing this ID will be assigned to the experimental group");
+    public static final ComboParameter<UserParameter<?, ?>> selectionData =
+        new ComboParameter<UserParameter<?, ?>>("Sample parameter",
+            "One sample parameter has to be selected to be used in the test calculation. They can be defined in \"Project -> Set sample parameters\"",
+            new UserParameter[0]);
 
     public SignificanceParameters() {
-        super(new Parameter[] {peakLists, experimentalGroupName, controlGroupName});
+        super(new Parameter[] {peakLists, selectionData});
+    }
+
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+
+        // Update the parameter choices
+        MZmineProject project = MZmineCore.getProjectManager().getCurrentProject();
+        UserParameter[] newChoices = project.getParameters();
+        getParameter(SignificanceParameters.selectionData).setChoices(newChoices);
+
+        // Add a message
+        String message = "<html>To view the results of ANOVA test, export the peak list to CSV file "
+            + "and look for column ANOVA_P_VALUE. Click Help for details.</html>";
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+            parent, valueCheckRequired, this, message);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
     }
 }

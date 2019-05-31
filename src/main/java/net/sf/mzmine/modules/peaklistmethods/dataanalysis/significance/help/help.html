@@ -7,83 +7,64 @@
 
 <body>
 
-<h1>Student's t-test and Fold Change</h1>
+<h1>One-way ANOVA test</h1>
 
 <h2>Description</h2>
 <p>
-    This module calculates significance values of aligned features. Two significance tests are used:
+    This module performs One-way analysis of variance (abbreviated ANOVA) test on the intensities
+    of aligned features and calculates the corresponding p-values.
 </p>
-<ul>
-    <li>
-        <b>Independent two-group t-test for groups with unequal variances (Welch's t-test).</b> The t-statistic to test
-        whether the population means are different is calculated as:
-        <div align="center">
-            <p>
-                <img src="t_test.png" alt="t-test"/>
-            </p>
-        </div>
-        where
-        <div align="center">
-            <p>
-                <img src="variance.png" alt="variance"/>
-            </p>
-        </div>
-        Here, <img src="xi.png" alt="X<sub>i</sub>"/> is the average intensity of group <i>i</i> (1 or 2), and
-        s<sub>i</sub><sup>2</sup> is the unbiased estimator of the variance of each of the two groups with
-        n<sub>i</sub> number of samples in group <i>i</i> (1 or 2). After the t-statistics is estimated, the
-        corresponding
-        p-value is calculated. Usually, 0.05 < p < 1 means that there is no statistical difference between the two
-        group averages, and 0 < p < 0.05 means the feature is statistically significant.
-        <div align="center">
-            <p>
-                <img src="p_value.gif" alt="variance"/>
-            </p>
-        </div>
-    </li>
-
-    <li>
-        <b>Logarithmic Fold Change.</b> Fold change is a measure describing how much a quantity changes between two
-        groups. The logarithmic fold change is calculates as:
-        <div align="center">
-            <p>
-                <img src="fold_change.png" alt="foldchange"/>
-            </p>
-        </div>
-        where <img src="xi.png" alt="X<sub>i</sub>"/> is the average intensity of group <i>i</i> (1 or 2).
-    </li>
-</ul>
-
-<h2>Parameters</h2>
-
-<div align="center">
-    <p>
-        <img src="significance_parameters.png" alt="Parameters Window"/>
-    </p>
-</div>
-
-<ul>
-    <li><b>Experimental group ID</b> is used to specify samples in the first group. All raw data files with names
-        containing this ID will be assigned to the first group.
-    </li>
-
-    <li><b>Control group ID</b> is used to specify samples in the second group. All raw data files with names
-        containing this ID will be assigned to the second group.
-    </li>
-</ul>
-
-<h2>Output</h2>
-
-<div align="center">
-    <p>
-        <img src="export.png" alt="Export" />
-    </p>
-</div>
-
 <p>
-    Calculated values will be added to CSV-file when a peaklist is exported into CSV with option "Export quantitation
-    results and other information" (see the figure above). Columns STUDENT_P_VALUE, STUDENT_T_VALUE, LOG2_FOLD_CHANGE
-    contain the p-value, t-test, and the logarithmic fold change respectively.
+    The ANOVA technique is used to compare mean intensities of two or more groups of raw data files.
+    The groups of raw data files are specified by a user. Then ANOVA tests the null hypothesis that
+    the intensities of aligned features have the same mean values in all groups. The ANOVA produces
+    an F-statistic and the corresponding p-value. If p-value is close to zero (typically less than
+    0.05), then the intensities of aligned features are significantly different in two or more
+    groups.
 </p>
+
+<h2>Example</h2>
+<ol>
+    <li>
+        <b>Set a group parameter for each raw data file.</b> Choose menu "Project -> Set sample
+        parameters". In the window <em>Setup project parameters and values</em>, click button
+        "Add new parameter". In the window <em>Define new project parameter</em>, give a name to
+        the parameter and add its values. Finally, in the window <em>Setup project parameters
+        and values</em>, assign a value to each raw data file.
+
+        <div align="center">
+            <p>
+                <img src="user_parameter.png" alt="User parameters"/>
+            </p>
+        </div>
+    </li>
+    <li>
+        <b>Perform One-way ANOVA test.</b> In the right pane of the main window, select an aligned
+        peak list and choose menu "Peak list methods -> Data analysis -> One-way ANOVA test."
+        In the field <em>Sample parameter</em>, select the name of the parameter that you specified
+        in the previous step, and click button OK.
+
+        <div align="center">
+            <p>
+              <img src="anova_test.png" alt="ANOVA test"/>
+            </p>
+        </div>
+    </li>
+    <li>
+        <b>Export results.</b> In the right pane of the main window, select an aligned peak list
+        and choose menu "Peak list methods -> Export/Import -> Export to CSV file." In the
+        parameters window, check the option "Export quantitation results and other information."
+        The exported CSV file will contain column <em>ANOVA_P_VALUE</em> with the p-values
+        produced by the one-way ANOVA test.
+
+        <div align="center">
+            <p>
+                <img src="export.png" alt="CSV Export"/><br/>
+                <img src="csv_file.png" alt="CSV Export"/>
+            </p>
+        </div>
+    </li>
+</ol>
 
 </body>
 </html>
