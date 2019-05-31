@@ -18,8 +18,11 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
+import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.jfree.data.xy.XYDataset;
+import com.jogamp.newt.event.GestureHandler.GestureListener;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
@@ -56,7 +59,8 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   /**
    * Stores the dataPoints, plot, parameters, controller, and TaskStatusListener passed to this task
-   * and sets the task status to WAITING. Make sure to call this super constructor in your extending class.
+   * and sets the task status to WAITING. Make sure to call this super constructor in your extending
+   * class.
    * 
    * @param dataPoints
    * @param plot
@@ -64,9 +68,9 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    * @param controller
    * @param listener
    */
-  public DataPointProcessingTask(DataPoint[] dataPoints, SpectraPlot plot,
-      ParameterSet parameterSet, DataPointProcessingController controller,
-      TaskStatusListener listener) {
+  public DataPointProcessingTask(@Nonnull DataPoint[] dataPoints, @Nonnull SpectraPlot plot,
+      @Nonnull ParameterSet parameterSet, @Nonnull DataPointProcessingController controller,
+      @Nonnull TaskStatusListener listener) {
     setDataPoints(dataPoints);
     setTargetPlot(plot);
     setParameterSet(parameterSet);
@@ -77,22 +81,22 @@ public abstract class DataPointProcessingTask extends AbstractTask {
     addTaskStatusListener(listener);
     setStatus(TaskStatus.WAITING);
   }
-  
+
   public abstract void displayResults();
 
-  public DataPoint[] getDataPoints() {
+  public @Nonnull DataPoint[] getDataPoints() {
     return dataPoints;
   }
 
-  private void setDataPoints(DataPoint[] dataPoints) {
+  private void setDataPoints(@Nonnull DataPoint[] dataPoints) {
     this.dataPoints = dataPoints;
   }
 
-  public SpectraPlot getTargetPlot() {
+  public @Nonnull SpectraPlot getTargetPlot() {
     return targetPlot;
   }
 
-  private void setTargetPlot(SpectraPlot targetPlot) {
+  private void setTargetPlot(@Nonnull SpectraPlot targetPlot) {
     this.targetPlot = targetPlot;
   }
 
@@ -101,7 +105,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    * @return Array of ProcessedDataPoints. Make sure the task has finished. If results are not set a
    *         new ProcessedDataPoint[0] will be returned.
    */
-  public ProcessedDataPoint[] getResults() {
+  public @Nonnull ProcessedDataPoint[] getResults() {
     if (results != null)
       return results;
     return new ProcessedDataPoint[0];
@@ -112,7 +116,7 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    * 
    * @param dp Array the results shall be set to.
    */
-  public void setResults(ProcessedDataPoint[] dp) {
+  public void setResults(@Nonnull ProcessedDataPoint[] dp) {
     this.results = dp;
   }
 
@@ -120,19 +124,19 @@ public abstract class DataPointProcessingTask extends AbstractTask {
    * 
    * @return The parameter set passed to this task.
    */
-  public ParameterSet getParameterSet() {
+  public @Nonnull ParameterSet getParameterSet() {
     return parameterSet;
   }
 
-  private void setParameterSet(ParameterSet parameterSet) {
+  private void setParameterSet(@Nonnull ParameterSet parameterSet) {
     this.parameterSet = parameterSet;
   }
 
-  public DataPointProcessingController getController() {
+  public @Nonnull DataPointProcessingController getController() {
     return controller;
   }
 
-  private void setController(DataPointProcessingController controller) {
+  private void setController(@Nonnull DataPointProcessingController controller) {
     this.controller = controller;
   }
 
@@ -143,5 +147,38 @@ public abstract class DataPointProcessingTask extends AbstractTask {
 
   private void setTaskDescription(String taskDescription) {
     this.taskDescription = taskDescription;
+  }
+
+  /**
+   * Convenience method to execute the {@link ParameterSet#checkParameterValues} method and set
+   * an error message using setErrorMessage method.
+   * 
+   * @return true if all values are valid, false otherwise.
+   */
+  protected boolean checkParameterSet() {
+    List<String> error = new ArrayList<String>();
+    if (!parameterSet.checkParameterValues(error)) {
+      setErrorMessage(
+          "Data point/Spectra processing: Parameter check failed during " + getTaskDescription());
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Checks if any invalid arguments were passed through the constructor of this class and sets an
+   * error message using setErrorMessage. Only checks for errors that would cause a
+   * NullPointerException, the length of the passed DataPoint array is not checked.
+   * 
+   * @return true if all arguments are valid, false otherwise.
+   */
+  protected boolean checkValues() {
+    if (getDataPoints() == null || getTargetPlot() == null || getParameterSet() == null
+        || getController() == null) {
+      setErrorMessage("Data point/Spectra processing: Invalid constructor arguments passed to "
+          + getTaskDescription());
+      return false;
+    }
+    return true;
   }
 }
