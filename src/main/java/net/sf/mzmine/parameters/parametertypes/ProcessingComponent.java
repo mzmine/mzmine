@@ -186,19 +186,15 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     ParameterSet stepParameters =
         MZmineCore.getConfiguration().getModuleParameters(module.getClass());
 
-    // do i even have to clone here? since, unlike batch mode, this is the only place we use this
-    // parameter set.
-    // ParameterSet stepParameters = methodParameters.cloneParameterSet();
-
     if (stepParameters.getParameters().length > 0) {
-      ExitCode exitCode = stepParameters.showSetupDialog(null, false);
-      if (exitCode != ExitCode.OK)
-        return;
+      ExitCode exitCode = stepParameters.showSetupDialog(null, true);
+      if (exitCode == ExitCode.OK) {
+        // store the parameters in the tree item
+        selected.setParameters(stepParameters);
+        sendQueue(); // update the list
+      }
     }
 
-    // store the parameters in the tree item
-    selected.setParameters(stepParameters);
-    sendQueue(); // update the list
   }
 
   /**
@@ -265,8 +261,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     if (((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).getChildCount() < 1)
       return list;
 
-    Enumeration<?> nodes =
-        ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).children();
+    Enumeration<?> nodes = ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).children();
     do {
       DefaultMutableTreeNode item = (DefaultMutableTreeNode) nodes.nextElement();
       if (!(item instanceof DPPModuleTreeNode))
