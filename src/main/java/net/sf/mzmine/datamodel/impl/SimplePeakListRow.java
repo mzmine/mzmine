@@ -282,7 +282,7 @@ public class SimplePeakListRow implements PeakListRow {
    * @see net.sf.mzmine.datamodel.PeakListRow#setPreferredPeakIdentity(net.sf.mzmine.datamodel.PeakIdentity)
    */
   @Override
-  public void setPreferredPeakIdentity(PeakIdentity identity) {
+  public synchronized void setPreferredPeakIdentity(PeakIdentity identity) {
 
     if (identity == null)
       return;
