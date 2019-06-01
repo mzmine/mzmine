@@ -120,7 +120,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   }
 
   private void setupTreeViews() {
-    DefaultMutableTreeNode tiProcessingRoot = new DefaultMutableTreeNode("Processing steps");
+    DefaultMutableTreeNode tiProcessingRoot = new DefaultMutableTreeNode("Processing queue");
     DefaultMutableTreeNode tiAllModulesRoot = new DefaultMutableTreeNode("Modules");
 
     // create category items dynamically, if a new category is added later on.

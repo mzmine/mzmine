@@ -54,8 +54,7 @@ public class ProcessingParameter
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value != null) // TODO: set value in contstructor, check if loading still works properly
-                       // then
+    if (value != null) 
       value.saveToXML(xmlElement);
   }
 
