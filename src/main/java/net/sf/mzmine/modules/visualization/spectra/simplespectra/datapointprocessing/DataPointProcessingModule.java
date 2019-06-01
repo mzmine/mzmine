@@ -33,6 +33,9 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
  */
 public interface DataPointProcessingModule extends MZmineModule {
 
+  /**
+   * @return The module sub category of this module.
+   */
   @Nonnull
   public ModuleSubCategory getModuleSubCategory();
 

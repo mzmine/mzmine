@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -52,6 +53,9 @@ public abstract class DataPointProcessingTask extends AbstractTask {
   protected ParameterSet parameterSet;
   private DataPointProcessingController controller;
   protected String taskDescription;
+  protected Color color;
+  protected boolean displayResults;
+  
 
   // move the results into this array by setReults to be collected by the controller and passed on
   // to the next DPPTask by it
@@ -180,5 +184,37 @@ public abstract class DataPointProcessingTask extends AbstractTask {
       return false;
     }
     return true;
+  }
+
+  /**
+   * 
+   * @return Returns the color the results of this task should be displayed with.
+   */
+  public Color getColor() {
+    return color;
+  }
+
+  /**
+   * 
+   * @return true if the results should be displayed, false otherwise.
+   */
+  public boolean isDisplayResults() {
+    return displayResults;
+  }
+
+  /**
+   * Sets the color of the results of this task.
+   * @param color
+   */
+  protected void setColor(Color color) {
+    this.color = color;
+  }
+
+  /**
+   * Sets if the results of this task should be displayed.
+   * @param displayResults
+   */
+  protected void setDisplayResults(boolean displayResults) {
+    this.displayResults = displayResults;
   }
 }

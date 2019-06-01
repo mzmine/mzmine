@@ -16,12 +16,9 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule;
 
-import org.jmol.util.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
@@ -31,21 +28,28 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
-public class DPPMassDetectionTask extends DataPointProcessingTask {
+/**
+ * This is the heart of every DataPointProcessingModule, the actual task being executed. Every new
+ * implementation of DataPointProcessingTask should use this basic structure to function
+ * accordingly.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
+public class DPPLearnerModuleTask extends DataPointProcessingTask {
 
   int currentIndex;
-  // private MZmineProcessingStep<MassDetector> pMassDetector;
-  private MZmineProcessingStep<MassDetector> massDetector;
 
-  DPPMassDetectionTask(DataPoint[] dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet,
+  DPPLearnerModuleTask(DataPoint[] dataPoints, SpectraPlot targetPlot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
+    // call the super constructor, this is important to set up the class-wide variables.
     super(dataPoints, targetPlot, parameterSet, controller, listener);
     currentIndex = 0;
-    massDetector = parameterSet.getParameter(DPPMassDetectionParameters.massDetector).getValue();
-    // massDetector = step.getModule();
+
+    // since these parameters are acquired by the parameter set, they have to be set here manually.
     setDisplayResults(
-        parameterSet.getParameter(DPPMassDetectionParameters.displayResults).getValue());
-    setColor(parameterSet.getParameter(DPPMassDetectionParameters.datasetColor).getValue());
+        parameterSet.getParameter(DPPLearnerModuleParameters.displayResults).getValue());
+    setColor(parameterSet.getParameter(DPPLearnerModuleParameters.datasetColor).getValue());
   }
 
 
@@ -58,32 +62,28 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
 
   @Override
   public void run() {
-    
-    if(!checkParameterSet() || !checkValues()) {
+
+    // check the parameter set and constructor values first, and back out, if they are invalid.
+    // error messages are set within these convenience methods.
+    if (!checkParameterSet() || !checkValues()) {
       setStatus(TaskStatus.ERROR);
       return;
     }
 
-
-    if(getStatus() == TaskStatus.CANCELED) {
+    // check if this task has been cancelled by now
+    if (getStatus() == TaskStatus.CANCELED) {
       return;
     }
-    
+
+    // set status to processing and start
     setStatus(TaskStatus.PROCESSING);
-    
-    MassDetector detector = massDetector.getModule();
-    DataPoint[] masses = detector.getMassValues(getDataPoints(), massDetector.getParameterSet());
-    
-    if(masses == null || masses.length <= 0) {
-      Logger.info("Data point/Spectra processing: No masses were detected with the given parameters.");
-      setStatus(TaskStatus.CANCELED);
-      return;
-    }
-    
-    ProcessedDataPoint[] dp = ProcessedDataPoint.convert(masses);
 
-    currentIndex = dataPoints.length;
+    // do your processing now
 
+    ProcessedDataPoint[] dp = new ProcessedDataPoint[0];
+
+    // it is CRUCIAL the results are being set in general, and it is crucial they are set BEFORE the
+    // status of this task is set to FINISHED, because the status listener will start the next task.
     setResults(dp);
     setStatus(TaskStatus.FINISHED);
   }
@@ -92,8 +92,8 @@ public class DPPMassDetectionTask extends DataPointProcessingTask {
   public void displayResults() {
     // if this is the last task, display even if not checked.
     if (getController().isLastTaskRunning() || isDisplayResults()) {
-      getTargetPlot().addDataSet(new DPPResultsDataSet("Mass detection results (" + getResults().length + ")", getResults()),
-          getColor(), false);
+      getTargetPlot().addDataSet(new DPPResultsDataSet(
+          "Mass detection results (" + getResults().length + ")", getResults()), getColor(), false);
     }
   }
 

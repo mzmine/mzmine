@@ -18,13 +18,11 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
-import org.postgresql.translation.messages_bg;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -64,8 +62,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private int maximumCharge;
   private String element = "C";
   private boolean autoRemove;
-  private boolean displayResults;
-  private Color color;
 
   public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
@@ -78,10 +74,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     maximumCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
     // element = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
     autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
-    displayResults =
-        parameterSet.getParameter(DPPIsotopeGrouperParameters.displayResults).getValue();
-
-    color = parameterSet.getParameter(DPPIsotopeGrouperParameters.datasetColor).getValue();
+    setDisplayResults(
+        parameterSet.getParameter(DPPIsotopeGrouperParameters.displayResults).getValue());
+    setColor(parameterSet.getParameter(DPPIsotopeGrouperParameters.datasetColor).getValue());
   }
 
 
@@ -307,9 +302,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public void displayResults() {
-    if (displayResults || getController().isLastTaskRunning()) {
+    if (isDisplayResults() || getController().isLastTaskRunning()) {
       getTargetPlot().addDataSet(
-          new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), color,
+          new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), getColor(),
           false);
     }
   }

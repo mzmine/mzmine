@@ -46,6 +46,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperParameters;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule.DPPLearnerModuleParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPSumFormulaResult;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -78,9 +79,7 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
   private ParameterSet rdbeParameters;
   private ParameterSet isotopeParameters;
   private boolean checkIsotopes;
-  private boolean displayResults;
   private int numResults;
-  private Color color;
 
   private MolecularFormulaRange elementCounts;
   private MolecularFormulaGenerator generator;
@@ -117,13 +116,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     mzTolerance =
         parameterSet.getParameter(DPPSumFormulaPredictionParameters.mzTolerance).getValue();
 
-    displayResults =
-        parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue();
+    setDisplayResults(
+        parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults).getValue());
+    setColor(parameterSet.getParameter(DPPSumFormulaPredictionParameters.datasetColor).getValue());
 
     numResults = parameterSet.getParameter(DPPSumFormulaPredictionParameters.displayResults)
         .getEmbeddedParameter().getValue();
-
-    color = parameterSet.getParameter(DPPSumFormulaPredictionParameters.datasetColor).getValue();
 
     currentIndex = 0;
   }
