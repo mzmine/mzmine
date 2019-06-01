@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.sumformulaprediction;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.identification.sumformulaprediction;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
