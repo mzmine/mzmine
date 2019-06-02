@@ -263,12 +263,12 @@ public class LibrarySubmitTask extends AbstractTask {
         // ######################################################
         // NEEDED
         // user pass and json entry
-        // job description is not entry description
-        entity.addPart("description", new StringBody(SOURCE_DESCRIPTION));
         //
         entity.addPart("username", new StringBody(USER));
         entity.addPart("password", new StringBody(PASS));
         entity.addPart("spectrum", new StringBody(json));
+        // job description is not entry description
+        entity.addPart("description", new StringBody(SOURCE_DESCRIPTION));
 
         HttpPost httppost = new HttpPost(GNPS_LIBRARY_SUBMIT_URL);
         httppost.setEntity(entity);
