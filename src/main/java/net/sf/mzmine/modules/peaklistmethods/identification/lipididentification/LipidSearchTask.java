@@ -251,12 +251,12 @@ public class LipidSearchTask extends AbstractTask {
             massDetector = new CentroidMassDetector();
             CentroidMassDetectorParameters parametersMSMS = new CentroidMassDetectorParameters();
             CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
-            massList = massDetector.getMassValues(msmsScan, parametersMSMS);
+            massList = massDetector.getMassValues(msmsScan.getDataPoints(), parametersMSMS);
           } else {
             massDetector = new ExactMassDetector();
             ExactMassDetectorParameters parametersMSMS = new ExactMassDetectorParameters();
             ExactMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
-            massList = massDetector.getMassValues(msmsScan, parametersMSMS);
+            massList = massDetector.getMassValues(msmsScan.getDataPoints(), parametersMSMS);
           }
         }
         MSMSLipidTools msmsLipidTools = new MSMSLipidTools();

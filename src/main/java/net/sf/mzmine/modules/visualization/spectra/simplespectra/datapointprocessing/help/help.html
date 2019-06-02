@@ -1,0 +1,45 @@
+<html>
+	<head>
+		<title>SP - Spectra Processing</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+	<body>
+	
+		<h1>Spectra Processing</h1>
+        <h2>General information</h2>
+        
+        <p>The purpose of this module is quick automated spectra 
+        processing with a defined set of modules and parameters. 
+        This is similar to the batch mode for peak lists. The modules and their parameters can be 
+        configured by opening a scan and pressing the "Spectra processing" button.
+        Please note, that the aim of this functions is not to identify compounds by looking at a single 
+        spectra. The target is to give the user a quick overview over a specific scan.
+        </p>
+        
+        <h3>Processing queue</h3>
+        <p>The processing queue is, if enabled, automatically executed sequentially from top to bottom. 
+        Most modules require a mass detection to be run first.</p>
+        
+        <h4>Adding modules & Setting parameters</h4>
+        <p>Modules can be added to the processing queue by double-clicking or pressing the "Add" button.
+        Modules can be removed from the processing queue by pressing the "Remove" button.
+        The parameters can be set using the "Set parameters" button or by double-clicking on a module in 
+        the processing queue.</p>
+        
+        <h5>Displaying results</h5>
+        <p>Every module has the parameters "Display results" and "Dataset color". "Display results" specifies
+        if the results of a module should be displayed in the plot or just be passed to the next module.
+        The results of the last module in the processing queue will be displayed regardless.
+        "Dataset color" specifies a color, the results should be displayed with in the spectra plot.</p>
+        
+        <h6>Troubleshooting</h6>
+        <dd>Nothing is happening, even though the processing is enabled.</dd>
+        <dt>Check the parameters or the modules. For example, if the mass detection is set to a specific 
+        noise level for one MS1 scan and the intensities vary between scans, the noise level might be too high.
+        If switching between MS1 and MS2 scans, this is especially relevant.
+        </dt>
+        
+	</body>
+</html>

@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -53,6 +54,8 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
@@ -64,6 +67,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentifi
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.scans.ScanUtils;
 
@@ -96,9 +100,11 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
   // Current scan data set
   private ScanDataSet spectrumDataSet;
 
+  private ParameterSet paramSet;
+
   private static final double zoomCoefficient = 1.2f;
 
-  public SpectraVisualizerWindow(RawDataFile dataFile) {
+  public SpectraVisualizerWindow(RawDataFile dataFile, boolean enableProcessing) {
 
     super("Spectrum loading...");
     this.dataFile = dataFile;
@@ -106,7 +112,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     setBackground(Color.white);
 
-    spectrumPlot = new SpectraPlot(this);
+    spectrumPlot = new SpectraPlot(this, enableProcessing);
     add(spectrumPlot, BorderLayout.CENTER);
 
     toolBar = new SpectraToolBar(this);
@@ -128,8 +134,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     pack();
 
     // get the window settings parameter
-    ParameterSet paramSet =
-        MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
+    paramSet = MZmineCore.getConfiguration().getModuleParameters(SpectraVisualizerModule.class);
     WindowSettingsParameter settings =
         paramSet.getParameter(SpectraVisualizerParameters.windowSettings);
 
@@ -138,6 +143,12 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     this.addComponentListener(settings);
 
   }
+  
+  public SpectraVisualizerWindow(RawDataFile dataFile) {
+    this(dataFile, false);
+  }
+
+  
 
   @Override
   public void dispose() {
@@ -597,6 +608,37 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
       });
     }
 
+    if (command.equals("SET_PROCESSING_PARAMETERS")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          // DPPSetupWindow.getInstance().show();
+          if (DataPointProcessingManager.getInst().getParameters()
+              .showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK
+              && DataPointProcessingManager.getInst().isEnabled()) {
+            getSpectrumPlot().checkAndRunController();
+          }
+        }
+      });
+    }
+
+    if (command.equals("ENABLE_PROCESSING")) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+          inst.setEnabled(!inst.isEnabled());
+          bottomPanel.updateProcessingButton();
+          getSpectrumPlot().checkAndRunController();
+          
+          // if the tick is removed, set the data back to default
+          if(!inst.isEnabled()) {
+//            getSpectrumPlot().removeDataPointProcessingResultDataSets();
+            loadRawData(currentScan);
+          }
+        }
+      });
+    }
   }
 
   public void addAnnotation(Map<DataPoint, String> annotation) {

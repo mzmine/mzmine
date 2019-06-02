@@ -36,9 +36,9 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
    */
   public static final int POINTS_RESERVE_X = 100;
 
-  private SpectraPlot plot;
+  protected SpectraPlot plot;
 
-  private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+  protected NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
   public SpectraItemLabelGenerator(SpectraPlot plot) {
     this.plot = plot;

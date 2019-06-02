@@ -34,13 +34,15 @@ import java.util.ArrayList;
 public class CentroidMassDetector implements MassDetector {
 
   public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+    return getMassValues(scan.getDataPoints(), parameters);
+  }
+  
+  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 
     double noiseLevel =
         parameters.getParameter(CentroidMassDetectorParameters.noiseLevel).getValue();
 
     ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
-
-    DataPoint dataPoints[] = scan.getDataPoints();
 
     // Find possible mzPeaks
     for (int j = 0; j < dataPoints.length; j++) {
