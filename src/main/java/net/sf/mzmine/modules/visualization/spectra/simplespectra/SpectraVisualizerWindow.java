@@ -630,6 +630,12 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
           inst.setEnabled(!inst.isEnabled());
           bottomPanel.updateProcessingButton();
           getSpectrumPlot().checkAndRunController();
+          
+          // if the tick is removed, set the data back to default
+          if(!inst.isEnabled()) {
+//            getSpectrumPlot().removeDataPointProcessingResultDataSets();
+            loadRawData(currentScan);
+          }
         }
       });
     }

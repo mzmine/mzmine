@@ -508,12 +508,7 @@ public class SpectraPlot extends EChartPanel {
       controller = null;
 
     // if a controller is re-run then delete previous results
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      XYDataset dataSet = plot.getDataset(i);
-      if (dataSet instanceof DPPResultsDataSet) {
-         plot.setDataset(i, null);
-      }
-    }
+    removeDataPointProcessingResultDataSets();
     
     // if enabled, do the data point processing as set up by the user
     XYDataset dataSet = getMainScanDataSet();
@@ -532,4 +527,14 @@ public class SpectraPlot extends EChartPanel {
   public void setProcessingAllowed(boolean processingAllowed) {
     this.processingAllowed = processingAllowed;
   }
+  
+  public void removeDataPointProcessingResultDataSets() {
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      XYDataset dataSet = plot.getDataset(i);
+      if (dataSet instanceof DPPResultsDataSet) {
+         plot.setDataset(i, null);
+      }
+    }
+  }
+  
 }
