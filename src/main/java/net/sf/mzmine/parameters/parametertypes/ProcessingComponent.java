@@ -331,6 +331,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     logger.info("Loading queue into tvProcessing...");
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
     root.removeAllChildren();
+    ((DefaultTreeModel) tvProcessing.getModel()).reload();
     Collection<DPPModuleTreeNode> moduleNodes = createTreeItemsFromQueue(queue);
     for (DPPModuleTreeNode node : moduleNodes) {
       addModule(node);
