@@ -104,7 +104,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
   private static final double zoomCoefficient = 1.2f;
 
-  public SpectraVisualizerWindow(RawDataFile dataFile) {
+  public SpectraVisualizerWindow(RawDataFile dataFile, boolean enableProcessing) {
 
     super("Spectrum loading...");
     this.dataFile = dataFile;
@@ -112,7 +112,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     setBackground(Color.white);
 
-    spectrumPlot = new SpectraPlot(this, true);
+    spectrumPlot = new SpectraPlot(this, enableProcessing);
     add(spectrumPlot, BorderLayout.CENTER);
 
     toolBar = new SpectraToolBar(this);
@@ -143,6 +143,12 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     this.addComponentListener(settings);
 
   }
+  
+  public SpectraVisualizerWindow(RawDataFile dataFile) {
+    this(dataFile, false);
+  }
+
+  
 
   @Override
   public void dispose() {
