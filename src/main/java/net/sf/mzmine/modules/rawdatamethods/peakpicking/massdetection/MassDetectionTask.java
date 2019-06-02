@@ -19,42 +19,34 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import java.io.File;
-import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleMassList;
+import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
-import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
-import net.sf.mzmine.main.MZmineCore;
-import ucar.nc2.NetcdfFileWriter;
-import ucar.nc2.Dimension;
-import ucar.nc2.Variable;
 import ucar.ma2.ArrayDouble;
-import ucar.ma2.InvalidRangeException;
-// import ucar.ma2.*;
-import ucar.ma2.DataType;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import ucar.ma2.DataType;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 
-import ucar.nc2.Attribute;
+// import ucar.ma2.*;
 
 public class MassDetectionTask extends AbstractTask {
 
-  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private final RawDataFile dataFile;
 
   // scan counter
@@ -116,25 +108,18 @@ public class MassDetectionTask extends AbstractTask {
    * @see Runnable#run()
    */
   public void run() {
-    int indexOfPeriod = dataFile.getName().indexOf(".");
 
-    // String massOutLocation =
-    // outFilename.getPath()+dataFile.getName().substring(0,indexOfPeriod)+".CDF";
-    String massOutLocation = outFilename != null ? outFilename.getPath() : "";
 
-    boolean writeMasses = true;
     // make arrays to contain everything you need
-    ArrayList<Integer> pointsInScans = new ArrayList<Integer>();
-    ArrayList<Double> allMZ = new ArrayList<Double>();
-    ArrayList<Double> allIntensities = new ArrayList<Double>();
+    ArrayList<Integer> pointsInScans = new ArrayList<>();
+    ArrayList<Double> allMZ = new ArrayList<>();
+    ArrayList<Double> allIntensities = new ArrayList<>();
     // idecies of full mass list where scan starts?
-    ArrayList<Integer> startIndex = new ArrayList<Integer>();
-    ArrayList<Double> scanAcquisitionTime = new ArrayList<Double>();
+    ArrayList<Integer> startIndex = new ArrayList<>();
+    ArrayList<Double> scanAcquisitionTime = new ArrayList<>();
     // XCMS needs this one
-    ArrayList<Double> totalIntensity = new ArrayList<Double>();
+    ArrayList<Double> totalIntensity = new ArrayList<>();
 
-
-    NetcdfFileWriter writer = null;
 
     double curTotalIntensity;
     int lastPointCount = 0;
@@ -150,7 +135,6 @@ public class MassDetectionTask extends AbstractTask {
 
       final Scan scans[] = scanSelection.getMatchingScans(dataFile);
       totalScans = scans.length;
-
       // Process scans one by one
       for (Scan scan : scans) {
 
@@ -158,41 +142,46 @@ public class MassDetectionTask extends AbstractTask {
           return;
 
         MassDetector detector = massDetector.getModule();
-        DataPoint mzPeaks[] = detector.getMassValues(scan.getDataPoints(), massDetector.getParameterSet());
+        DataPoint mzPeaks[] = detector.getMassValues(scan, massDetector.getParameterSet());
 
         SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
 
         // Add new mass list to the scan
         scan.addMassList(newMassList);
 
-        curTotalIntensity = 0;
-        for (int a = 0; a < mzPeaks.length; a++) {
-          DataPoint curMzPeak = mzPeaks[a];
-          allMZ.add(curMzPeak.getMZ());
-          allIntensities.add(curMzPeak.getIntensity());
+        if (this.saveToCDF) {
 
-          curTotalIntensity += curMzPeak.getIntensity();
+          curTotalIntensity = 0;
+          for (int a = 0; a < mzPeaks.length; a++) {
+            DataPoint curMzPeak = mzPeaks[a];
+            allMZ.add(curMzPeak.getMZ());
+            allIntensities.add(curMzPeak.getIntensity());
+            curTotalIntensity += curMzPeak.getIntensity();
+          }
+
+          scanAcquisitionTime.add(scan.getRetentionTime());
+          pointsInScans.add(0);
+          startIndex.add(mzPeaks.length + lastPointCount);
+          totalIntensity.add(curTotalIntensity);
+
+          lastPointCount = mzPeaks.length + lastPointCount;
         }
-
-        scanAcquisitionTime.add(scan.getRetentionTime());
-        pointsInScans.add(0);
-        startIndex.add(mzPeaks.length + lastPointCount);
-        totalIntensity.add(curTotalIntensity);
-
-
-        lastPointCount = mzPeaks.length + lastPointCount;
 
         processedScans++;
       }
 
-      setStatus(TaskStatus.FINISHED);
-
-      logger.info("Finished mass detector on " + dataFile);
+      // Update the GUI with all new mass lists
+      MZmineProjectImpl project =
+          (MZmineProjectImpl) MZmineCore.getProjectManager().getCurrentProject();
+      final RawDataTreeModel treeModel = project.getRawDataTreeModel();
+      treeModel.updateGUIWithNewObjects();;
 
       if (this.saveToCDF) {
         // ************** write mass list *******************************
-        writer =
-            NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, massOutLocation, null);
+        final String outFileNamePath = outFilename.getPath();
+        logger.info("Saving mass detector results to netCDF file " + outFileNamePath);
+        NetcdfFileWriter writer =
+            NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, outFileNamePath, null);
 
         Dimension dim_massValues = writer.addDimension(null, "mass_values", allMZ.size());
         Dimension dim_intensityValues =
@@ -286,22 +275,19 @@ public class MassDetectionTask extends AbstractTask {
         writer.write(var_scanAcquisitionTime, arr_scanAcquisitionTime);
         writer.write(var_totalIntensity, arr_totalIntensity);
         writer.write(var_pointsInScans, arr_pointsInScans);
+        writer.close();
       }
-    } catch (IOException e) {
+
+    } catch (Exception e) {
       e.printStackTrace();
-    } catch (InvalidRangeException e) {
-      e.printStackTrace();
+      setErrorMessage(e.getMessage());
+      setStatus(TaskStatus.ERROR);
     }
 
-    finally {
-      if (null != writer) {
-        try {
-          writer.close();
-        } catch (IOException ioe) {
-          ioe.printStackTrace();
-        }
-      }
-    }
+    setStatus(TaskStatus.FINISHED);
+
+    logger.info("Finished mass detector on " + dataFile);
+
 
   }
 }

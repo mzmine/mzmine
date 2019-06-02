@@ -31,6 +31,10 @@ import net.sf.mzmine.parameters.ParameterSet;
  * This class detects all local maxima in a given scan.
  */
 public class LocalMaxMassDetector implements MassDetector {
+  
+  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+    return getMassValues(scan.getDataPoints(), parameters);
+  }
 
   public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 
