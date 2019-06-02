@@ -466,8 +466,8 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     // check
     ArrayList<String> messages = new ArrayList<>();
 
-    boolean checkIon =
-        streamSelection().filter(pn -> !pn.checkParameterValues(messages)).count() == 0;
+    boolean checkIon = streamSelection().filter(ScanSelectPanel::isValidAndSelected)
+        .filter(pn -> !pn.checkParameterValues(messages)).count() == 0;
     boolean checkSubmit = paramSubmit.checkParameterValues(messages);
     boolean checkMeta = paramMeta.checkParameterValues(messages);
     if (checkMeta && checkSubmit && checkIon) {
