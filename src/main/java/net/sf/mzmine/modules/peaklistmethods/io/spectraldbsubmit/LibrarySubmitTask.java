@@ -78,6 +78,8 @@ public class LibrarySubmitTask extends AbstractTask {
   public static final String GNPS_LIBRARY_SUBMIT_URL =
       "http://dorresteinappshub.ucsd.edu:5050/depostsinglespectrum";
 
+  public static final String SOURCE_DESCRIPTION = "mzmine2 library entry submission";
+
   private Logger log = Logger.getLogger(this.getClass().getName());
   private Map<LibrarySubmitIonParameters, DataPoint[]> map;
   private int done = 0;
@@ -261,6 +263,9 @@ public class LibrarySubmitTask extends AbstractTask {
         // ######################################################
         // NEEDED
         // user pass and json entry
+        // job description is not entry description
+        entity.addPart("description", new StringBody(SOURCE_DESCRIPTION));
+        //
         entity.addPart("username", new StringBody(USER));
         entity.addPart("password", new StringBody(PASS));
         entity.addPart("spectrum", new StringBody(json));
