@@ -102,26 +102,30 @@ public class GnpsJsonParser extends SpectralDBParser {
       String id = f.getGnpsJsonID();
       if (id != null && !id.isEmpty()) {
 
-        Object o = null;
-        if (f.getObjectClass() == Double.class || f.getObjectClass() == Integer.class
-            || f.getObjectClass() == Float.class) {
-          o = main.getJsonNumber(id);
-        } else {
-          o = main.getString(id, null);
-          if (o != null && o.equals("N/A"))
-            o = null;
-        }
-        // add value
-        if (o != null) {
-          if (o instanceof JsonNumber) {
-            if (f.getObjectClass().equals(Integer.class)) {
-              o = ((JsonNumber) o).intValue();
-            } else {
-              o = ((JsonNumber) o).doubleValue();
-            }
+        try {
+          Object o = null;
+          if (f.getObjectClass() == Double.class || f.getObjectClass() == Integer.class
+              || f.getObjectClass() == Float.class) {
+            o = main.getJsonNumber(id);
+          } else {
+            o = main.getString(id, null);
+            if (o != null && o.equals("N/A"))
+              o = null;
           }
-          // add
-          map.put(f, o);
+          // add value
+          if (o != null) {
+            if (o instanceof JsonNumber) {
+              if (f.getObjectClass().equals(Integer.class)) {
+                o = ((JsonNumber) o).intValue();
+              } else {
+                o = ((JsonNumber) o).doubleValue();
+              }
+            }
+            // add
+            map.put(f, o);
+          }
+        } catch (Exception e) {
+          logger.log(Level.WARNING, "Cannot convert value to its type", e);
         }
       }
     }
@@ -142,11 +146,16 @@ public class GnpsJsonParser extends SpectralDBParser {
       return null;
 
     DataPoint[] dps = new DataPoint[data.size()];
-    for (int i = 0; i < data.size(); i++) {
-      double mz = data.getJsonArray(i).getJsonNumber(0).doubleValue();
-      double intensity = data.getJsonArray(i).getJsonNumber(1).doubleValue();
-      dps[i] = new SimpleDataPoint(mz, intensity);
+    try {
+      for (int i = 0; i < data.size(); i++) {
+        double mz = data.getJsonArray(i).getJsonNumber(0).doubleValue();
+        double intensity = data.getJsonArray(i).getJsonNumber(1).doubleValue();
+        dps[i] = new SimpleDataPoint(mz, intensity);
+      }
+      return dps;
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, "Cannot convert DP values to doubles", e);
+      return null;
     }
-    return dps;
   }
 }
