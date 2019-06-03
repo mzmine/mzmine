@@ -106,17 +106,20 @@ public class MonaJsonParser extends SpectralDBParser {
     int i = 0;
     // create db
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
-      for (String l; (l = br.readLine()) != null;) {
+      while (true) {
         // main task was canceled?
         if (mainTask != null && mainTask.isCanceled()) {
+          parser.stream().forEach(InnerParser::stop);
           return false;
         }
+        String l = br.readLine();;
 
         buffer[i] = l;
         i++;
-        if (i == buffer.length) {
+        if (i == buffer.length || l == null) {
           // start new inner parser thread
           InnerParser p = new InnerParser(buffer, mainTask);
+          parser.add(p);
           Thread t = new Thread(p);
           t.setDaemon(true);
           t.setName("Inner parser of MonaJsonParser");
@@ -132,13 +135,20 @@ public class MonaJsonParser extends SpectralDBParser {
           parser.stream().forEach(InnerParser::stop);
           return false;
         }
+        // end of file
+        if (l == null)
+          break;
       }
     }
     // wait for all to finish
-    while (parser.stream().anyMatch(ip -> !ip.isDone))
+    while (parser.stream().anyMatch(ip -> !ip.isDone)) {
+    }
 
-      //
-      finish();
+
+    if (parser.size() == 1 || parser.get(0).getError() > parser.get(0).getCorrect())
+      return false;
+    //
+    finish();
     return true;
   }
 
