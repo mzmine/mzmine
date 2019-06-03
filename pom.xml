@@ -41,8 +41,11 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
-					<source>8</source>
-					<target>8</target>
+					<!-- 
+					     We use release 8 here to avoid incompatibility when compoiled on Java 9+ 
+					     http://openjdk.java.net/jeps/247
+					-->
+					<release>8</release>
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
