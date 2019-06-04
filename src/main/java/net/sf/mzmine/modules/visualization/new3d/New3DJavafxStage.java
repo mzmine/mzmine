@@ -212,21 +212,22 @@ public class New3DJavafxStage extends Stage{
         rtLabel.setRotationAxis(Rotate.X_AXIS);
         rtLabel.setRotate(-45);
         rtLabel.setTranslateX(SIZE*3/8);
-        rtLabel.setTranslateZ(-22);
-        rtLabel.setTranslateY(8);
+        rtLabel.setTranslateZ(-25);
+        rtLabel.setTranslateY(13);
         plot.getChildren().add(rtLabel);
         for( int y=SIZE/7; y <= SIZE; y+=SIZE/7) {
-            Line tickLineX = new Line(0,0,0,5);
+            Line tickLineX = new Line(0,0,0,7);
             tickLineX.setRotationAxis(Rotate.X_AXIS);
             tickLineX.setRotate(-90);
             tickLineX.setTranslateY(-2);
             tickLineX.setTranslateX(y);
+            tickLineX.setTranslateZ(-3.5);
             Text text = new Text( ""+(int)rtscaleValue);
             text.setRotationAxis(Rotate.X_AXIS);
             text.setRotate(-45);
             text.setTranslateY(8);
             text.setTranslateX(y-5);
-            text.setTranslateZ(-7);
+            text.setTranslateZ(-11);
             rtscaleValue += rtDelta; 
             plot.getChildren().addAll(text,tickLineX);
         }
