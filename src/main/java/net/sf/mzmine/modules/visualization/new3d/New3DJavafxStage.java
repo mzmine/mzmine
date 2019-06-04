@@ -62,7 +62,6 @@ public class New3DJavafxStage extends Stage{
 	public New3DJavafxStage(float[][] intensityValues,int rtResolution,int mzResolution,double maxBinnedIntensity,Range<Double> rtRange,Range<Double> mzRange){
         plot.getTransforms().addAll(rotateX, rotateY);
         plot.getTransforms().addAll(translateX,translateY);
-        int SIZE =500;
         
         StackPane root = new StackPane();
         root.getChildren().add(plot);
@@ -168,7 +167,7 @@ public class New3DJavafxStage extends Stage{
 
         plot.getChildren().addAll(meshView);
         
-        buildAxes(rtRange,mzRange);
+        buildAxes(rtRange,mzRange,maxBinnedIntensity);
         
         
         Scene scene = new Scene(root, 800, 600, true, SceneAntialiasing.BALANCED);
@@ -203,11 +202,18 @@ public class New3DJavafxStage extends Stage{
         
 	}
 	
-	public void buildAxes(Range<Double> rtRange,Range<Double> mzRange) {
+	public void buildAxes(Range<Double> rtRange,Range<Double> mzRange,double maxBinnedIntensity) {
 		
 		//rtAxis
 		double rtDelta = (rtRange.upperEndpoint() - rtRange.lowerEndpoint())/7;
         double rtscaleValue = rtRange.lowerEndpoint() + rtDelta;
+        Text rtLabel = new Text( "Retention Time");
+        rtLabel.setRotationAxis(Rotate.X_AXIS);
+        rtLabel.setRotate(-45);
+        rtLabel.setTranslateX(SIZE*3/8);
+        rtLabel.setTranslateZ(-22);
+        rtLabel.setTranslateY(8);
+        plot.getChildren().add(rtLabel);
         for( int y=SIZE/7; y <= SIZE; y+=SIZE/7) {
             Line tickLineX = new Line(0,0,0,5);
             tickLineX.setRotationAxis(Rotate.X_AXIS);
@@ -225,16 +231,23 @@ public class New3DJavafxStage extends Stage{
         }
         
         //mzAxis
-        double mzDelta = (mzRange.upperEndpoint() - mzRange.lowerEndpoint())/10;
+        double mzDelta = (mzRange.upperEndpoint() - mzRange.lowerEndpoint())/7;
         double mzScaleValue = mzRange.upperEndpoint();
         Group mzAxisTicks = new Group();
         Group mzAxisLabels = new Group();
+        Text mzLabel = new Text( "m/z");
+        mzLabel.setRotationAxis(Rotate.X_AXIS);
+        mzLabel.setRotate(-45);
+        mzLabel.setTranslateX(SIZE/2);
+        mzLabel.setTranslateZ(-22);
+        mzLabel.setTranslateY(8);
+        mzAxisLabels.getChildren().add(mzLabel);
         for( int y=0; y <= SIZE-SIZE/7; y+=SIZE/7) {
-        	Line tickLineX = new Line(0,0,0,7);
-            tickLineX.setRotationAxis(Rotate.X_AXIS);
-            tickLineX.setRotate(-90);
-            tickLineX.setTranslateY(-2);
-            tickLineX.setTranslateX(y);
+        	Line tickLineZ = new Line(0,0,0,7);
+            tickLineZ.setRotationAxis(Rotate.X_AXIS);
+            tickLineZ.setRotate(-90);
+            tickLineZ.setTranslateY(-2);
+            tickLineZ.setTranslateX(y);
             float roundOff = (float) (Math.round(mzScaleValue * 100.0) / 100.0);
             Text text = new Text( ""+(float)roundOff);
             text.setRotationAxis(Rotate.X_AXIS);
@@ -243,7 +256,7 @@ public class New3DJavafxStage extends Stage{
             text.setTranslateX(y-5);
             text.setTranslateZ(-7);
             mzScaleValue -= mzDelta; 
-            mzAxisTicks.getChildren().add(tickLineX);
+            mzAxisTicks.getChildren().add(tickLineZ);
             mzAxisLabels.getChildren().add(text);
         }
         mzAxisTicks.setRotationAxis(Rotate.Y_AXIS);
@@ -252,20 +265,92 @@ public class New3DJavafxStage extends Stage{
         mzAxisTicks.setTranslateZ(SIZE/2+SIZE/14);
         mzAxisLabels.setRotationAxis(Rotate.Y_AXIS);
         mzAxisLabels.setRotate(90);
-        mzAxisLabels.setTranslateX(-SIZE/2+SIZE/60);
+        mzAxisLabels.setTranslateX(-SIZE/2);
         mzAxisLabels.setTranslateZ(SIZE/2+SIZE/14);
         plot.getChildren().addAll(mzAxisTicks,mzAxisLabels);
-        Line lineX = new Line(0,0,500,0);
+        
+        //intensityAxis
+		/*
+		 * double num = maxBinnedIntensity; int numOfZeros=0; int numScale;
+		 * while(num>10) { num = num/10; numOfZeros++; } if(num/5>1) {
+		 * numScale=(int)num; LOG.info("ADebugTag" + "Value: " +
+		 * Integer.toString(numScale)); numOfZeros--; } else{ numScale=5; numOfZeros--;
+		 * } double len =
+		 * (AMPLIFI/maxBinnedIntensity)*((int)(num*10/numScale))*Math.pow(10,numOfZeros)
+		 * ; double transLen =len; float intensityScale = 0.0f; int deltaIntensity =
+		 * (int)((int)maxBinnedIntensity/(numScale*Math.pow(10,numOfZeros)));
+		 * intensityScale += deltaIntensity; for(int y=0;y<numScale;y++){ Line tickLineY
+		 * = new Line(0,0,7,0); tickLineY.setRotationAxis(Rotate.Y_AXIS);
+		 * tickLineY.setRotate(135); tickLineY.setTranslateX(-7);
+		 * tickLineY.setTranslateZ(-7); tickLineY.setTranslateY(-transLen);
+		 * LOG.info("ADebugTag" + "Value: " + Double.toString(transLen));
+		 * plot.getChildren().add(tickLineY);
+		 * 
+		 * Text text = new Text( ""+(float)intensityScale+"E"+(numOfZeros));
+		 * intensityScale += deltaIntensity; if(intensityScale>=10){ intensityScale /=
+		 * 10; numOfZeros+=1; } text.setRotationAxis(Rotate.Y_AXIS);
+		 * text.setRotate(-45); text.setTranslateY(-transLen);
+		 * plot.getChildren().add(text); transLen += len; }
+		 */
+        
+        int numScale =5;
+        double gapLen = (AMPLIFI/numScale);
+        double transLen = gapLen;
+        double intensityDelta = maxBinnedIntensity/numScale;
+        int numOfZeros=0;
+        while(intensityDelta>10) {
+        	intensityDelta /= 10;
+        	numOfZeros++;
+        }
+        double intensityValue = intensityDelta;
+        
+        Text intensityLabel = new Text( "Intensity(x"+(int)Math.pow(10,numOfZeros)+")");
+        intensityLabel.setTranslateX(-90);
+        intensityLabel.setRotationAxis(Rotate.Y_AXIS);
+        intensityLabel.setRotate(-45);
+        intensityLabel.setRotationAxis(Rotate.Z_AXIS);
+        intensityLabel.setRotate(90);
+        intensityLabel.setTranslateZ(-40);
+        intensityLabel.setTranslateY(-70);
+        plot.getChildren().add(intensityLabel);
+        for(int y=0;y<numScale;y++){ 
+        	Line tickLineY = new Line(0,0,7,0);
+        	tickLineY.setRotationAxis(Rotate.Y_AXIS);
+        	tickLineY.setRotate(135);
+        	tickLineY.setTranslateX(-7);
+        	tickLineY.setTranslateZ(-7);
+        	tickLineY.setTranslateY(-transLen);
+        	LOG.info("ADebugTag" + "Value: " + Double.toString(transLen));
+        	plot.getChildren().add(tickLineY);
+        	
+        	Text text = new Text( ""+(float)(Math.round(intensityValue * 100.0) / 100.0));
+   		  	intensityValue += intensityDelta;
+   		   	text.setRotationAxis(Rotate.Y_AXIS);
+   		   	text.setRotate(-45); 
+   		   	text.setTranslateY(-transLen+5);
+   		   	text.setTranslateX(-40);
+   		   	text.setTranslateZ(-30);
+   		   	plot.getChildren().add(text);
+   		   	transLen += gapLen;
+        }
+        
+        
+        Line lineX = new Line(0,0,SIZE,0);
         plot.getChildren().add(lineX);
-        Line lineZ = new Line(0,0,500,0);
+        Line lineZ = new Line(0,0,SIZE,0);
         lineZ.setRotationAxis(Rotate.Y_AXIS);
         lineZ.setRotate(90);
         lineZ.setTranslateX(-SIZE/2);
         lineZ.setTranslateZ(SIZE/2);
         plot.getChildren().add(lineZ);
-       
-        //intensityAxis
+        Line lineY = new Line(0,0,AMPLIFI,0);
+        lineY.setRotate(90);
+        lineY.setTranslateX(-AMPLIFI/2);
+        lineY.setTranslateY(-AMPLIFI/2);
+        plot.getChildren().add(lineY);
         
+
+        LOG.info("maxbinnedintensity" + "Value: " + Double.toString(maxBinnedIntensity));
         
 	}
 	
