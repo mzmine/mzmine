@@ -42,6 +42,7 @@ import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
+import net.sf.mzmine.main.MZmineCore;
 
 public class New3DJavafxStage extends Stage{
 	
@@ -270,42 +271,15 @@ public class New3DJavafxStage extends Stage{
         plot.getChildren().addAll(mzAxisTicks,mzAxisLabels);
         
         //intensityAxis
-		/*
-		 * double num = maxBinnedIntensity; int numOfZeros=0; int numScale;
-		 * while(num>10) { num = num/10; numOfZeros++; } if(num/5>1) {
-		 * numScale=(int)num; LOG.info("ADebugTag" + "Value: " +
-		 * Integer.toString(numScale)); numOfZeros--; } else{ numScale=5; numOfZeros--;
-		 * } double len =
-		 * (AMPLIFI/maxBinnedIntensity)*((int)(num*10/numScale))*Math.pow(10,numOfZeros)
-		 * ; double transLen =len; float intensityScale = 0.0f; int deltaIntensity =
-		 * (int)((int)maxBinnedIntensity/(numScale*Math.pow(10,numOfZeros)));
-		 * intensityScale += deltaIntensity; for(int y=0;y<numScale;y++){ Line tickLineY
-		 * = new Line(0,0,7,0); tickLineY.setRotationAxis(Rotate.Y_AXIS);
-		 * tickLineY.setRotate(135); tickLineY.setTranslateX(-7);
-		 * tickLineY.setTranslateZ(-7); tickLineY.setTranslateY(-transLen);
-		 * LOG.info("ADebugTag" + "Value: " + Double.toString(transLen));
-		 * plot.getChildren().add(tickLineY);
-		 * 
-		 * Text text = new Text( ""+(float)intensityScale+"E"+(numOfZeros));
-		 * intensityScale += deltaIntensity; if(intensityScale>=10){ intensityScale /=
-		 * 10; numOfZeros+=1; } text.setRotationAxis(Rotate.Y_AXIS);
-		 * text.setRotate(-45); text.setTranslateY(-transLen);
-		 * plot.getChildren().add(text); transLen += len; }
-		 */
         
         int numScale =5;
         double gapLen = (AMPLIFI/numScale);
         double transLen = gapLen;
         double intensityDelta = maxBinnedIntensity/numScale;
-        int numOfZeros=0;
-        while(intensityDelta>10) {
-        	intensityDelta /= 10;
-        	numOfZeros++;
-        }
         double intensityValue = intensityDelta;
         
-        Text intensityLabel = new Text( "Intensity(x"+(int)Math.pow(10,numOfZeros)+")");
-        intensityLabel.setTranslateX(-90);
+        Text intensityLabel = new Text( "Intensity");
+        intensityLabel.setTranslateX(-75);
         intensityLabel.setRotationAxis(Rotate.Y_AXIS);
         intensityLabel.setRotate(-45);
         intensityLabel.setRotationAxis(Rotate.Z_AXIS);
@@ -323,7 +297,7 @@ public class New3DJavafxStage extends Stage{
         	LOG.info("ADebugTag" + "Value: " + Double.toString(transLen));
         	plot.getChildren().add(tickLineY);
         	
-        	Text text = new Text( ""+(float)(Math.round(intensityValue * 100.0) / 100.0));
+        	Text text = new Text( ""+MZmineCore.getConfiguration().getIntensityFormat().format(intensityValue));
    		  	intensityValue += intensityDelta;
    		   	text.setRotationAxis(Rotate.Y_AXIS);
    		   	text.setRotate(-45); 
