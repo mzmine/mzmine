@@ -27,10 +27,30 @@ import java.awt.Color;
  *
  */
 public class ColorPalettes {
+  /**
+   * Color blindness or normal vision
+   * 
+   */
+  public enum Vision {
+    NORMAL_VISION, //
+    DEUTERANOPIA, // green blindness, 6% male population
+    PROTANOPIA, // red blindness, 1% male population
+    TRITANOPIA; // blue blindness, very rare
+
+    @Override
+    public String toString() {
+      return super.toString().replaceAll("_", " ");
+    }
+  }
+
+
 
   // colors to mark positive or negative results (color blindness aware)
-  public static final Color POSITIVE_MARKER = new Color(0.f, 0.447f, 0.698f, 1f); // blue
-  public static final Color NEGATIVE_MARKER = new Color(0.835f, 0.369f, 0.f, 1f); // darker orange
+  private static final Color POSITIVE_MARKER_COLORBLIND = new Color(0.f, 0.447f, 0.698f, 1f); // blue
+  private static final Color NEGATIVE_MARKER_COLORBLIND = new Color(0.835f, 0.369f, 0.f, 1f); // orange
+
+  private static final Color POSITIVE_MARKER = new Color(0.220f, 0.557f, 0.235f, 1f); // green
+  private static final Color NEGATIVE_MARKER = new Color(0.808f, 0.090f, 0.161f, 1f); // red
 
 
   /**
@@ -39,7 +59,7 @@ public class ColorPalettes {
    * <br>
    * http://mkweb.bcgsc.ca/colorblind/img/colorblindness.palettes.trivial.png
    */
-  public Color[] COLORS_7_AND_BLACK = new Color[] { //
+  private static Color[] COLORS_7_AND_BLACK = new Color[] { //
       Color.BLACK, // black
       new Color(0.902f, 0.624f, 0f, 1f), // orange
       new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
@@ -54,7 +74,7 @@ public class ColorPalettes {
    * Orange, sky blue, bluish green, yellow, blue, vermillion (darker orange), reddish purple <br>
    * http://mkweb.bcgsc.ca/colorblind/img/colorblindness.palettes.trivial.png
    */
-  public Color[] COLORS_7 = new Color[] { //
+  private static Color[] COLORS_7 = new Color[] { //
       new Color(0.902f, 0.624f, 0f, 1f), // orange
       new Color(0.337f, 0.706f, 0.914f, 1f), // sky blue
       new Color(0.f, 0.620f, 0.451f, 1f), // bluish green
@@ -63,4 +83,56 @@ public class ColorPalettes {
       new Color(0.835f, 0.369f, 0.f, 1f), // vermillion (darker orange)
       new Color(0.800f, 0.475f, 0.655f, 1f)}; // reddish purple
 
+
+  /**
+   * Seven colors (+black)
+   * 
+   * @param mode color blindness?
+   * @param includeBlack include black as the first color
+   * @return
+   */
+  public static Color[] getSevenColorPalette(Vision vision, boolean includeBlack) {
+    // so far always the same color palette
+    return includeBlack ? COLORS_7_AND_BLACK : COLORS_7;
+  }
+
+  /**
+   * Return positive feedback color
+   * 
+   * @param mode
+   * @return
+   */
+  public static Color getPositiveColor(Vision vision) {
+    switch (vision) {
+      // color blind
+      case DEUTERANOPIA:
+      case PROTANOPIA:
+      case TRITANOPIA:
+        return POSITIVE_MARKER_COLORBLIND;
+      // normal vision
+      case NORMAL_VISION:
+      default:
+        return POSITIVE_MARKER;
+    }
+  }
+
+  /**
+   * Return positive feedback color
+   * 
+   * @param mode
+   * @return
+   */
+  public static Color getNegativeColor(Vision vision) {
+    switch (vision) {
+      // color blind
+      case DEUTERANOPIA:
+      case PROTANOPIA:
+      case TRITANOPIA:
+        return NEGATIVE_MARKER_COLORBLIND;
+      // normal vision
+      case NORMAL_VISION:
+      default:
+        return NEGATIVE_MARKER;
+    }
+  }
 }

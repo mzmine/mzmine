@@ -58,6 +58,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.AdductParser;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import net.sf.mzmine.util.ColorPalettes;
+import net.sf.mzmine.util.ColorPalettes.Vision;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
@@ -65,8 +67,9 @@ import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 public class ScanSelectPanel extends JPanel implements ActionListener {
 
 
-  public static final Color colorRemovedData = new Color(0xF57C00); // orange
-  public static final Color colorUsedData = new Color(0x388E3C); // green
+  public final Color colorRemovedData;
+  public final Color colorUsedData;
+
   private static final int SIZE = 40;
   // icons
   static final Icon iconTIC = createIcon("icons/btnTIC.png");
@@ -150,6 +153,11 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
   public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals,
       String massListName) {
+    // get colors for vision
+    Vision vision = MZmineCore.getConfiguration().getColorVision();
+    colorUsedData = ColorPalettes.getPositiveColor(vision);
+    colorRemovedData = ColorPalettes.getNegativeColor(vision);
+
     setBorder(new LineBorder(UIManager.getColor("textHighlight")));
     this.massListName = massListName;
     this.sort = sort;
