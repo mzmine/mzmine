@@ -47,7 +47,7 @@ import net.sf.mzmine.main.MZmineCore;
 public class New3DJavafxStage extends Stage{
 	
 	final Group plot = new Group();
-	
+	final Group finalNode = new Group();
 	private static final Logger LOG = Logger.getLogger(New3DJavafxStage.class.getName());
 	private static final int SIZE = 500;
 	private static float AMPLIFI = 130;
@@ -62,18 +62,20 @@ public class New3DJavafxStage extends Stage{
     
 	public New3DJavafxStage(float[][] intensityValues,int rtResolution,int mzResolution,double maxBinnedIntensity,Range<Double> rtRange,Range<Double> mzRange){
         plot.getTransforms().addAll(rotateX, rotateY);
-        plot.getTransforms().addAll(translateX,translateY);
-        
+        finalNode.getTransforms().addAll(translateX,translateY);
+        finalNode.getChildren().add(plot);
         StackPane root = new StackPane();
-        root.getChildren().add(plot);
+        root.getChildren().add(finalNode);
+        
+        
         
         TriangleMesh mesh = new TriangleMesh();
     
         int[][] peakListIndices = new int[rtResolution][mzResolution];
         
         
-        float factorX = SIZE/rtResolution;
-        float factorZ = SIZE/mzResolution;
+        float factorX = (float)SIZE/rtResolution;
+        float factorZ = (float)SIZE/mzResolution;
         
         float maxIntensityValue = Float.NEGATIVE_INFINITY;
         for(int i=0;i<rtResolution;i++){
@@ -86,7 +88,7 @@ public class New3DJavafxStage extends Stage{
         
         for (int x = 0; x < rtResolution; x++) {
             for (int z = 0; z < mzResolution; z++) {
-                mesh.getPoints().addAll(x*factorX, -intensityValues[x][z]* AMPLIFI, z*factorZ);
+                mesh.getPoints().addAll((float)x*factorX, -intensityValues[x][z]* AMPLIFI,(float)z*factorZ);
                 if(intensityValues[x][z]>0.022*maxIntensityValue){
                 	peakListIndices[x][z]=1;
                 }
@@ -182,12 +184,12 @@ public class New3DJavafxStage extends Stage{
             
            
         });
-        double rotateFactor = 0.05;
+        double rotateFactor = 0.08;
         scene.setOnMouseDragged(me -> {
     		mousePosX = me.getSceneX();
 	        mousePosY = me.getSceneY();
         	if(me.isPrimaryButtonDown()) {
-		        rotateX.setAngle(rotateX.getAngle() - rotateFactor*(mousePosY - mouseOldY));
+		        rotateX.setAngle(rotateX.getAngle() + rotateFactor*(mousePosY - mouseOldY));
 		        rotateY.setAngle(rotateY.getAngle() - rotateFactor*(mousePosX - mouseOldX));     
         	}
             if(me.isSecondaryButtonDown()) {
@@ -207,7 +209,7 @@ public class New3DJavafxStage extends Stage{
 		
 		//rtAxis
 		double rtDelta = (rtRange.upperEndpoint() - rtRange.lowerEndpoint())/7;
-        double rtscaleValue = rtRange.lowerEndpoint() + rtDelta;
+        double rtscaleValue = rtRange.lowerEndpoint();
         Text rtLabel = new Text( "Retention Time");
         rtLabel.setRotationAxis(Rotate.X_AXIS);
         rtLabel.setRotate(-45);
@@ -215,8 +217,8 @@ public class New3DJavafxStage extends Stage{
         rtLabel.setTranslateZ(-25);
         rtLabel.setTranslateY(13);
         plot.getChildren().add(rtLabel);
-        for( int y=SIZE/7; y <= SIZE; y+=SIZE/7) {
-            Line tickLineX = new Line(0,0,0,7);
+        for( int y=0; y <= SIZE; y+=SIZE/7) {
+            Line tickLineX = new Line(0,0,0,9);
             tickLineX.setRotationAxis(Rotate.X_AXIS);
             tickLineX.setRotate(-90);
             tickLineX.setTranslateY(-2);
@@ -227,7 +229,7 @@ public class New3DJavafxStage extends Stage{
             text.setRotate(-45);
             text.setTranslateY(8);
             text.setTranslateX(y-5);
-            text.setTranslateZ(-11);
+            text.setTranslateZ(-13);
             rtscaleValue += rtDelta; 
             plot.getChildren().addAll(text,tickLineX);
         }
@@ -244,8 +246,8 @@ public class New3DJavafxStage extends Stage{
         mzLabel.setTranslateZ(-22);
         mzLabel.setTranslateY(8);
         mzAxisLabels.getChildren().add(mzLabel);
-        for( int y=0; y <= SIZE-SIZE/7; y+=SIZE/7) {
-        	Line tickLineZ = new Line(0,0,0,7);
+        for( int y=0; y <= SIZE; y+=SIZE/7) {
+        	Line tickLineZ = new Line(0,0,0,9);
             tickLineZ.setRotationAxis(Rotate.X_AXIS);
             tickLineZ.setRotate(-90);
             tickLineZ.setTranslateY(-2);
@@ -263,21 +265,21 @@ public class New3DJavafxStage extends Stage{
         }
         mzAxisTicks.setRotationAxis(Rotate.Y_AXIS);
         mzAxisTicks.setRotate(90);
-        mzAxisTicks.setTranslateX(-SIZE/2+SIZE/14);
-        mzAxisTicks.setTranslateZ(SIZE/2+SIZE/14);
+        mzAxisTicks.setTranslateX(-SIZE/2);
+        mzAxisTicks.setTranslateZ(SIZE/2);
         mzAxisLabels.setRotationAxis(Rotate.Y_AXIS);
         mzAxisLabels.setRotate(90);
-        mzAxisLabels.setTranslateX(-SIZE/2);
-        mzAxisLabels.setTranslateZ(SIZE/2+SIZE/14);
+        mzAxisLabels.setTranslateX(-SIZE/2-SIZE/14);
+        mzAxisLabels.setTranslateZ(SIZE/2);
         plot.getChildren().addAll(mzAxisTicks,mzAxisLabels);
         
         //intensityAxis
         
         int numScale =5;
         double gapLen = (AMPLIFI/numScale);
-        double transLen = gapLen;
+        double transLen = 0;
         double intensityDelta = maxBinnedIntensity/numScale;
-        double intensityValue = intensityDelta;
+        double intensityValue = 0;
         
         Text intensityLabel = new Text( "Intensity");
         intensityLabel.setTranslateX(-75);
@@ -288,7 +290,7 @@ public class New3DJavafxStage extends Stage{
         intensityLabel.setTranslateZ(-40);
         intensityLabel.setTranslateY(-70);
         plot.getChildren().add(intensityLabel);
-        for(int y=0;y<numScale;y++){ 
+        for(int y=0;y<=numScale;y++){ 
         	Line tickLineY = new Line(0,0,7,0);
         	tickLineY.setRotationAxis(Rotate.Y_AXIS);
         	tickLineY.setRotate(135);

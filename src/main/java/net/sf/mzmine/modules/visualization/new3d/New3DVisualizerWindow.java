@@ -134,10 +134,10 @@ public class New3DVisualizerWindow extends JFrame{
     this.addComponentListener(settings);
 
     // Add sampling task.
-    MZmineCore.getTaskController().addTask(
-        new ThreeDSamplingTask(file, scans, rtRange, mzRange, rtRes, mzRes, bottomPanel),
-        TaskPriority.HIGH);
-
+		/*
+		 * MZmineCore.getTaskController().addTask( new ThreeDSamplingTask(file, scans,
+		 * rtRange, mzRange, rtRes, mzRes, bottomPanel), TaskPriority.HIGH);
+		 */
     MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
   }
 

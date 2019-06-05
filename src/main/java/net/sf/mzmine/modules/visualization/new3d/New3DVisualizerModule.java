@@ -44,6 +44,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.scans.ScanUtils;
 
@@ -85,18 +86,22 @@ public class New3DVisualizerModule implements MZmineRunnableModule {
 		}
 
 		ParameterSet myParameters = MZmineCore.getConfiguration().getModuleParameters(New3DVisualizerModule.class);
+		Range<Double> mzRange = myParameters.getParameter(ThreeDVisualizerParameters.mzRange).getValue();
+		int rtRes = myParameters.getParameter(ThreeDVisualizerParameters.rtResolution).getValue();
+		int mzRes = myParameters.getParameter(ThreeDVisualizerParameters.mzResolution).getValue();
 		try {
-			
-			  New3DVisualizerWindow window = new New3DVisualizerWindow(dataFiles[0],
-			  scans, rtRange,
-			  myParameters.getParameter(ThreeDVisualizerParameters.rtResolution).getValue()
-			  , myParameters.getParameter(ThreeDVisualizerParameters.mzRange).getValue(),
-			  myParameters.getParameter(ThreeDVisualizerParameters.mzResolution).getValue()
-			  )
-			 ; window.setVisible(true);
-			 
+			/*
+			 * New3DVisualizerWindow window = new New3DVisualizerWindow(dataFiles[0], scans,
+			 * rtRange,
+			 * myParameters.getParameter(ThreeDVisualizerParameters.rtResolution).getValue()
+			 * , myParameters.getParameter(ThreeDVisualizerParameters.mzRange).getValue(),
+			 * myParameters.getParameter(ThreeDVisualizerParameters.mzResolution).getValue()
+			 * ) ; window.setVisible(true);
+			 */
 
-			
+			MZmineCore.getTaskController().addTask(
+				        new ThreeDSamplingTask(dataFiles[0], scans, rtRange, mzRange, rtRes, mzRes),
+				        TaskPriority.HIGH);
 			
 			/*
 			 * Platform.runLater(new Runnable() { public void run() { New3DVisualizerStage

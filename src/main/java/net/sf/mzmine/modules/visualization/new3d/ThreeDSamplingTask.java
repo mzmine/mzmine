@@ -58,7 +58,7 @@ class ThreeDSamplingTask extends AbstractTask {
 
   // The 3D display
   //private ThreeDDisplay display;
-  private ThreeDBottomPanel bottomPanel;
+  //private ThreeDBottomPanel bottomPanel;
 
   // maximum value on Z axis
   private double maxBinnedIntensity;
@@ -71,8 +71,7 @@ class ThreeDSamplingTask extends AbstractTask {
    * @param visualizer
    */
   ThreeDSamplingTask(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
-      Range<Double> mzRange, int rtResolution, int mzResolution,
-      ThreeDBottomPanel bottomPanel) {
+      Range<Double> mzRange, int rtResolution, int mzResolution) {
 
     this.dataFile = dataFile;
     this.scans = scans;
@@ -81,8 +80,7 @@ class ThreeDSamplingTask extends AbstractTask {
     this.rtResolution = rtResolution;
     this.mzResolution = mzResolution;
 
-    this.bottomPanel = bottomPanel;
-
+    //this.bottomPanel = bottomPanel;
   }
 
   /**
@@ -218,7 +216,7 @@ class ThreeDSamplingTask extends AbstractTask {
       });
       // After we have constructed everything, load the peak lists into
       // the bottom panel
-      bottomPanel.rebuildPeakListSelector();
+      //bottomPanel.rebuildPeakListSelector();
 
     } catch (Throwable e) {
       setStatus(TaskStatus.ERROR);
