@@ -47,6 +47,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
+import net.sf.mzmine.util.ColorPalettes;
 
 /**
  * MZmine configuration class
@@ -91,6 +92,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     }
     moduleParameters.put(moduleClass, parameters);
 
+  }
+
+  // color palettes
+  @Override
+  public ColorPalettes.Vision getColorVision() {
+    return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
   }
 
   // Number formatting functions

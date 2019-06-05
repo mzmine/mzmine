@@ -18,10 +18,9 @@
 
 package net.sf.mzmine.datamodel;
 
-import com.google.common.collect.Range;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.google.common.collect.Range;
 
 /**
  * This class represent one mass spectrum.
@@ -52,8 +51,9 @@ public interface MassSpectrum {
   public double getTIC();
 
   /**
-   *
-   * @return True if the scan data is centroided
+   * Centroid / profile / thresholded
+   * 
+   * @return
    */
   public MassSpectrumType getSpectrumType();
 

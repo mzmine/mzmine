@@ -34,9 +34,12 @@ import org.jfree.chart.ui.RectangleEdge;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.SpectrumChartFactory;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectraRenderer;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
+import net.sf.mzmine.util.ColorPalettes;
+import net.sf.mzmine.util.ColorPalettes.Vision;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.DataPointsTag;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
@@ -53,12 +56,6 @@ public class MirrorScanWindow extends JFrame {
 
   public static final DataPointsTag[] tags =
       new DataPointsTag[] {DataPointsTag.ORIGINAL, DataPointsTag.FILTERED, DataPointsTag.ALIGNED};
-  // colors for the different DataPointsTags:
-  public static final Color[] colors = new Color[] {Color.black, // black = filtered
-      new Color(0xF57C00), // orange = unaligned
-      new Color(0x388E3C) // green = aligned
-  };
-
 
   private JPanel contentPane;
   private EChartPanel mirrorSpecrumPlot;
@@ -135,6 +132,14 @@ public class MirrorScanWindow extends JFrame {
           "This data set has no original data points in the query spectrum (development error)");
     if (mostIntenseDB == 0d || mostIntenseQuery == 0d)
       return;
+
+    // get colors for vision
+    Vision vision = MZmineCore.getConfiguration().getColorVision();
+    // colors for the different DataPointsTags:
+    final Color[] colors = new Color[] {Color.black, // black = filtered
+        ColorPalettes.getNegativeColor(vision), // unaligned
+        ColorPalettes.getPositiveColor(vision) // aligned
+    };
 
     // scan a
     double precursorMZA = scan.getPrecursorMZ();

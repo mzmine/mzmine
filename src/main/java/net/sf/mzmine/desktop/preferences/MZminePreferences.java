@@ -26,12 +26,19 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
+import net.sf.mzmine.util.ColorPalettes;
 import net.sf.mzmine.util.ExitCode;
 
 public class MZminePreferences extends SimpleParameterSet {
+
+  public static final ComboParameter<ColorPalettes.Vision> colorPalettes = new ComboParameter<>(
+      "Color palettes (color blindness mode)",
+      "Some modules use the color blindness aware palettes for a higher contrast. Think about using this mode even with \"normal vision\" to reach everyone.",
+      ColorPalettes.Vision.values(), ColorPalettes.Vision.DEUTERANOPIA);
 
   public static final NumberFormatParameter mzFormat = new NumberFormatParameter("m/z value format",
       "Format of m/z values", false, new DecimalFormat("0.0000"));
@@ -62,8 +69,8 @@ public class MZminePreferences extends SimpleParameterSet {
   public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
   public MZminePreferences() {
-    super(new Parameter[] {mzFormat, rtFormat, intensityFormat, numOfThreads, proxySettings,
-        rExecPath, sendStatistics, windowSetttings, sendErrorEMail});
+    super(new Parameter[] {colorPalettes, mzFormat, rtFormat, intensityFormat, numOfThreads,
+        proxySettings, rExecPath, sendStatistics, windowSetttings, sendErrorEMail});
   }
 
   @Override
