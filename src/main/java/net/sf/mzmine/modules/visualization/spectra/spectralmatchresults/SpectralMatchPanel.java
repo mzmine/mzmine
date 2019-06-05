@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
+package net.sf.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
