@@ -100,7 +100,9 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       removeModule();
       sendQueue();
     } else if (e.getActionCommand().equals("BTN_SET_PARAMETERS")) {
-      setParameters(getSelectedItem(tvProcessing));
+      DefaultMutableTreeNode item = getSelectedItem(tvProcessing); 
+      if(item != null)
+        setParameters(item);
     } else if (e.getActionCommand().equals("BTN_LOAD")) {
       final File file = chooser.getLoadFile(this);
       if (file != null) {
@@ -187,13 +189,14 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
     DPPModuleTreeNode selected = (DPPModuleTreeNode) _selected;
 
-    MZmineModule module = selected.getModule();
     ParameterSet stepParameters = selected.getParameters();
     
-    if (stepParameters.getParameters().length > 0) {
+    if (stepParameters.getParameters().length > 0 && !selected.isDialogShowing()) {
+      selected.setDialogShowing(true);
       ExitCode exitCode = stepParameters.showSetupDialog(null, true);
       if (exitCode == ExitCode.OK) {
         // store the parameters in the tree item
+        selected.setDialogShowing(false);
         selected.setParameters(stepParameters);
         sendQueue(); // update the list
       }

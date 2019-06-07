@@ -17,6 +17,7 @@ public class DPPModuleTreeNode extends DefaultMutableTreeNode {
   private DataPointProcessingModule module;
   private ModuleSubCategory subCat;
   private ParameterSet parameters;
+  private boolean dialogShowing;
 
   /**
    * avoid usage of this constructor, this is only used to set up the all modules tree view.
@@ -33,6 +34,7 @@ public class DPPModuleTreeNode extends DefaultMutableTreeNode {
     setModule(module);
     setSubCat(module.getModuleSubCategory());
     setParameters(parameters);
+    setDialogShowing(false);
   }
 
   public DataPointProcessingModule getModule() {
@@ -57,6 +59,14 @@ public class DPPModuleTreeNode extends DefaultMutableTreeNode {
 
   public void setParameters(ParameterSet parameters) {
     this.parameters = parameters;
+  }
+
+  public boolean isDialogShowing() {
+    return dialogShowing;
+  }
+
+  public void setDialogShowing(boolean dialogShowing) {
+    this.dialogShowing = dialogShowing;
   }
 
   @Override
