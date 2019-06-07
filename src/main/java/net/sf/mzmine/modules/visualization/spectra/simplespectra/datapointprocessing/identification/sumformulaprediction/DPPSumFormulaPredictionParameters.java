@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.sumformulaprediction;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.identification.sumformulaprediction;
 
 import java.awt.Color;
 import net.sf.mzmine.datamodel.IonizationType;

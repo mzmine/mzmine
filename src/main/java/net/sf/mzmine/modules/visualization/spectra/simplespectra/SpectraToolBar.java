@@ -26,7 +26,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 import net.sf.mzmine.datamodel.MassSpectrumType;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -48,7 +47,6 @@ public class SpectraToolBar extends JToolBar {
   static final Icon dbLipidsIcon = new ImageIcon("icons/DBLipidsIcon.png");
   static final Icon dbSpectraIcon = new ImageIcon("icons/DBSpectraIcon.png");
   static final Icon sumFormulaIcon = new ImageIcon("icons/search.png");
-  static final Icon processingIcon = new ImageIcon("icons/btnspectraprocessing.png");
 
   private JButton centroidContinuousButton, dataPointsButton;
 

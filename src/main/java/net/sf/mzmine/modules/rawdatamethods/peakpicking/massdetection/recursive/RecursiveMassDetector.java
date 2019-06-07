@@ -33,6 +33,10 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class RecursiveMassDetector implements MassDetector {
 
+  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+    return getMassValues(scan.getDataPoints(), parameters);
+  }
+  
   public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 
     double noiseLevel =

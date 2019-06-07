@@ -33,6 +33,10 @@ import java.util.ArrayList;
  */
 public class CentroidMassDetector implements MassDetector {
 
+  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+    return getMassValues(scan.getDataPoints(), parameters);
+  }
+  
   public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 
     double noiseLevel =

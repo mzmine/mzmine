@@ -27,6 +27,7 @@ import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleCategoryTreeNode;
@@ -55,9 +56,13 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   private final LoadSaveFileChooser chooser;
   private static final String XML_EXTENSION = "xml";
 
-  public ProcessingComponent() {
+  private MSLevel mslevel;
+
+  public ProcessingComponent(MSLevel mslevel) {
     super(new BorderLayout());
     setPreferredSize(new Dimension(600, 400));
+
+    this.mslevel = mslevel;
 
 
     setupTreeViews();
@@ -81,21 +86,23 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     super.repaint();
   }
 
-  public ProcessingComponent(@Nullable DataPointProcessingQueue queue) {
-    this();
+  public ProcessingComponent(MSLevel mslevel, @Nullable DataPointProcessingQueue queue) {
+    this(mslevel);
     setTreeViewProcessingItemsFromQueue(queue);
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
     if (e.getActionCommand().equals("BTN_ADD")) {
-      addModule();
+      addSelectedModule();
       sendQueue();
     } else if (e.getActionCommand().equals("BTN_REMOVE")) {
       removeModule();
       sendQueue();
     } else if (e.getActionCommand().equals("BTN_SET_PARAMETERS")) {
-      setParameters(getSelectedItem(tvProcessing));
+      DefaultMutableTreeNode item = getSelectedItem(tvProcessing);
+      if (item != null)
+        setParameters(item);
     } else if (e.getActionCommand().equals("BTN_LOAD")) {
       final File file = chooser.getLoadFile(this);
       if (file != null) {
@@ -120,7 +127,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   }
 
   private void setupTreeViews() {
-    DefaultMutableTreeNode tiProcessingRoot = new DefaultMutableTreeNode("Processing steps");
+    DefaultMutableTreeNode tiProcessingRoot = new DefaultMutableTreeNode("Processing queue");
     DefaultMutableTreeNode tiAllModulesRoot = new DefaultMutableTreeNode("Modules");
 
     // create category items dynamically, if a new category is added later on.
@@ -136,7 +143,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     for (MZmineModule module : moduleList) {
       if (module instanceof DataPointProcessingModule) {
         DataPointProcessingModule dppm = (DataPointProcessingModule) module;
-
+        // only add modules that have applicable ms levels
         // add each module as a child of the module category items
         for (DPPModuleCategoryTreeNode catItem : moduleCategories) {
           if (dppm.getModuleSubCategory().equals(catItem.getCategory())) {
@@ -167,7 +174,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     tvAllModules.addMouseListener(new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
         if (e.getClickCount() == 2) {
-          addModule();
+          addSelectedModule();
         }
       }
     });
@@ -182,37 +189,41 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
     DPPModuleTreeNode selected = (DPPModuleTreeNode) _selected;
 
-    MZmineModule module = selected.getModule();
-    ParameterSet stepParameters =
-        MZmineCore.getConfiguration().getModuleParameters(module.getClass());
+    ParameterSet stepParameters = selected.getParameters();
 
-    // do i even have to clone here? since, unlike batch mode, this is the only place we use this
-    // parameter set.
-    // ParameterSet stepParameters = methodParameters.cloneParameterSet();
-
-    if (stepParameters.getParameters().length > 0) {
-      ExitCode exitCode = stepParameters.showSetupDialog(null, false);
-      if (exitCode != ExitCode.OK)
-        return;
+    if (stepParameters.getParameters().length > 0 && !selected.isDialogShowing()) {
+      selected.setDialogShowing(true);
+      ExitCode exitCode = stepParameters.showSetupDialog(null, true);
+      if (exitCode == ExitCode.OK) {
+        // store the parameters in the tree item
+        selected.setDialogShowing(false);
+        selected.setParameters(stepParameters);
+        sendQueue(); // update the list
+      }
     }
 
-    // store the parameters in the tree item
-    selected.setParameters(stepParameters);
-    sendQueue(); // update the list
   }
 
   /**
    * Adds the selected module in the tvAllModules to the processing list
    */
-  private void addModule() {
+  private void addSelectedModule() {
     DefaultMutableTreeNode selected = getSelectedItem(tvAllModules);
     if (selected == null)
       return;
 
     if (selected instanceof DPPModuleTreeNode) {
-      addModule((DPPModuleTreeNode) selected.clone());
+      DPPModuleTreeNode node = (DPPModuleTreeNode) selected.clone();
+      addModule(node);
+
+      if (!moduleFitsMSLevel(node.getModule()))
+        MZmineCore.getDesktop().displayMessage(null,
+            "The use of module \"" + node.getModule().getName() + "\" ("
+                + node.getModule().getApplicableMSLevel()
+                + ") is not recommended for processing scans of MS-level \"" + mslevel.toString()
+                + "\". This might lead to unexpected results.");
     } else {
-      logger.finest("Cannot add item " + selected.toString() + " to processing list.");
+      logger.finest("Cannot add item " + selected.toString() + " to " + this.getName() + ".");
     }
   }
 
@@ -226,12 +237,18 @@ public class ProcessingComponent extends JPanel implements ActionListener {
           + " to processing list twice.");
       return;
     }
+    if (!moduleFitsMSLevel(node.getModule())) {
+      logger.warning("The use of module \"" + node.getModule().getName() + "\" ("
+          + node.getModule().getApplicableMSLevel()
+          + ") is not recommended for processing scans of MS-level \"" + mslevel.toString()
+          + "\". This might lead to unexpected results.");
+    }
 
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
     ((DefaultTreeModel) tvProcessing.getModel()).insertNodeInto(node, root, root.getChildCount());
 
-    logger.finest("Added module " + ((DPPModuleTreeNode) node).getModule().getName()
-        + " to processing list.");
+    logger.finest("Added module " + node.getModule().getName()
+        + " to " + mslevel.toString() + " processing list.");
     expandAllNodes(tvProcessing);
   }
 
@@ -265,8 +282,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     if (((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).getChildCount() < 1)
       return list;
 
-    Enumeration<?> nodes =
-        ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).children();
+    Enumeration<?> nodes = ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).children();
     do {
       DefaultMutableTreeNode item = (DefaultMutableTreeNode) nodes.nextElement();
       if (!(item instanceof DPPModuleTreeNode))
@@ -301,8 +317,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       logger.info("Processing queue is empty. Sending empty list.");
 
     DataPointProcessingManager manager = DataPointProcessingManager.getInst();
-    manager.clearProcessingSteps();
-    manager.setProcessingQueue(queue);
+    manager.clearProcessingSteps(mslevel);
+    manager.setProcessingQueue(mslevel, queue);
   }
 
   /**
@@ -320,7 +336,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       return items;
 
     for (MZmineProcessingStep<DataPointProcessingModule> step : queue) {
-      items.add(new DPPModuleTreeNode(step.getModule()));
+      items.add(new DPPModuleTreeNode(step.getModule(), step.getParameterSet()));
     }
 
     return items;
@@ -336,11 +352,26 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     logger.info("Loading queue into tvProcessing...");
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
     root.removeAllChildren();
+    ((DefaultTreeModel) tvProcessing.getModel()).reload();
     Collection<DPPModuleTreeNode> moduleNodes = createTreeItemsFromQueue(queue);
     for (DPPModuleTreeNode node : moduleNodes) {
       addModule(node);
     }
     expandAllNodes(tvProcessing);
+  }
+
+  /**
+   * Convenience method to check if the module's ms level is applicable for this component.
+   * 
+   * @param module
+   * @return
+   */
+  private boolean moduleFitsMSLevel(DataPointProcessingModule module) {
+    if (module.getApplicableMSLevel() == MSLevel.MSANY)
+      return true;
+    if (module.getApplicableMSLevel() == this.mslevel)
+      return true;
+    return false;
   }
 
   private boolean treeContains(@Nonnull JTree tree, @Nonnull DefaultMutableTreeNode comp) {

@@ -38,6 +38,10 @@ import net.sf.mzmine.util.SortingProperty;
  * to detect possible peaks in the original raw datapoints.
  */
 public class WaveletMassDetector implements MassDetector {
+  
+  public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+    return getMassValues(scan.getDataPoints(), parameters);
+  }
 
   /**
    * Parameters of the wavelet, NPOINTS is the number of wavelet values to use The WAVELET_ESL &

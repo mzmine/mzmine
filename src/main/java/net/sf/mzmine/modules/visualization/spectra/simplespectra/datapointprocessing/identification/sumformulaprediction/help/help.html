@@ -1,0 +1,61 @@
+<html>
+        <head>
+                <title>SP - Identification - Formula prediction</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Formula prediction</h1>
+
+                <h2>Description</h2>
+
+                <p>
+                        This module attempts to calculate all possible molecular formulas for a data point, 
+                        using given elemental and heuristic constraints.  For a detailed description of the 
+                        functionality and the embedded algorithms, please see the following publication: <br>
+                        Pluskal T. et al, Highly Accurate Chemical Formula Prediction Tool Utilizing High-Resolution Mass
+                        Spectra, MS/MS Fragmentation, Heuristic Rules, and Isotope Pattern Matching. 
+                        <i>Anal Chem</i> (2012), 84(10):4396-403.
+                </p>
+                
+                <h4>Method parameters</h4>
+                <dl>
+                		<dt>Charge</dt>
+                		<dd>The predicted charge of peaks to calculate the neutral mass.</dd>
+                		
+                		<dt>Noise level</dt>
+                		<dd>The minimum intensity of peaks to calculate a sum formula of.</dd>
+                		
+                		<dt>Ionisation</dt>
+                		<dd>The predicted ionisation of peaks. E.g. [M+] or [M+NH4]+</dd>
+                		
+                        <dt>Neutral mass</dt>
+                        <dd>The neutral mass is calculated from the peak m/z value, its charge and type of ionization adduct.</dd>
+
+                        <dt>m/z tolerance</dt>
+                        <dd>Tolerance of the neutral mass for searching the formula.</dd>
+
+                        <dt>Elements</dt>
+                        <dd>Elements allowed in the formula and their minimum and maximum counts.</dd>
+
+                        <dt>Element count heuristics</dt>
+                        <dd>Selection of heuristic restrictions on element counts.</dd>
+
+                        <dt>RDBE restrictions</dt>
+                        <dd>Selection of restrictions on RDBE (rings double bonds) values. .</dd>
+
+                        <dt>Isotope pattern filter</dt>
+                        <dd>If selected, only results which fit the required isotope pattern similarity score will be returned. Furthermore, the results will be ranked by descending isotope pattern score.</dd>
+                        
+						<dt>Display results</dt>
+						<dd>If enabled, the result will be displayed in the spectrum plot. If this is the last module in the processing list, the results will be displayed in any way.</dd>
+						
+						<dt>Dataset color</dt>
+						<dd>Select the color, the results of this module shall be displayed in.</dd>
+                        
+                </dl>
+
+        </body>
+</html>

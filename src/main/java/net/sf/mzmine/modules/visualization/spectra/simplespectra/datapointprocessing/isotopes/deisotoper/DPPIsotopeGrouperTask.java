@@ -77,7 +77,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private double mergeWidth;
   private final double minAbundance = 0.01;
   private Range<Double> mzrange;
-  private boolean displayResults;
   private int maxCharge;
 
   public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
@@ -93,8 +92,9 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
     autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
     mzrange = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzRange).getValue();
     maxCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
-    displayResults =
-        parameterSet.getParameter(DPPIsotopeGrouperParameters.displayResults).getValue();
+    setDisplayResults(
+        parameterSet.getParameter(DPPIsotopeGrouperParameters.displayResults).getValue());
+    setColor(parameterSet.getParameter(DPPIsotopeGrouperParameters.datasetColor).getValue());
 
     format = MZmineCore.getConfiguration().getMZFormat();
   }
@@ -102,21 +102,24 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public void run() {
-    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
-      logger.warning(
-          "The data points passed to Isotope Grouper were not an instance of processed data points."
-              + " Make sure to run mass detection first.");
-      setErrorMessage( "The data points passed to Isotope Grouper were not an instance of processed data points."
-              + " Make sure to run mass detection first.");
+    if(!checkParameterSet() || !checkValues()) {
       setStatus(TaskStatus.ERROR);
       return;
     }
 
     // check formula
     if (elements == null || elements.equals("") || !FormulaUtils.checkMolecularFormula(elements)) {
-      setErrorMessage("Invalid element parameter in " + this.getClass().getName());
+      setErrorMessage("Invalid element parameter in " + getTaskDescription());
       setStatus(TaskStatus.ERROR);
-      logger.warning("Invalid element parameter in " + this.getClass().getName());
+      logger.warning("Invalid element parameter in " + getTaskDescription());
+      return;
+    }
+    
+    if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
+      logger.warning(
+          "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
+              + " Make sure to run mass detection first.");
+      setStatus(TaskStatus.CANCELED);
       return;
     }
 
@@ -283,16 +286,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       str += "(m/z = " + format.format(p.getMZ()) + "), ";
     return str;
   }
-
-  /*@Override
-  public String getTaskDescription() {
-<<<<<<< HEAD
-    return "Isotope grouping for Scan #"
-        + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
-  }
-=======
-    return "Deisotoping of Scan #" + getTargetPlot().getMainScanDataSet().getScan().getScanNumber();
-  }*/
 
   @Override
   public double getFinishedPercentage() {

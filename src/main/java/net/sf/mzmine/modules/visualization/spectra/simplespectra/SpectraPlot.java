@@ -224,11 +224,11 @@ public class SpectraPlot extends EChartPanel {
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
-    
+
     // set processingAllowed
     setProcessingAllowed(processingAllowed);
   }
-  
+
   public SpectraPlot(ActionListener masterPlot) {
     this(masterPlot, false);
   }
@@ -500,27 +500,23 @@ public class SpectraPlot extends EChartPanel {
     // if controller != null, processing on the current spectra has already been executed. When
     // loading a new spectrum, the controller is set to null in removeAllDataSets()
     DataPointProcessingManager inst = DataPointProcessingManager.getInst();
-    
+
     if (!isProcessingAllowed() || !inst.isEnabled())
       return;
-    
-    if(controller != null)
+
+    if (controller != null)
       controller = null;
 
     // if a controller is re-run then delete previous results
-    for (int i = 0; i < plot.getDatasetCount(); i++) {
-      XYDataset dataSet = plot.getDataset(i);
-      if (dataSet instanceof DPPResultsDataSet) {
-         plot.setDataset(i, null);
-      }
-    }
-    
+    removeDataPointProcessingResultDataSets();
+
     // if enabled, do the data point processing as set up by the user
     XYDataset dataSet = getMainScanDataSet();
     if (dataSet instanceof ScanDataSet) {
 
-      controller = new DataPointProcessingController(inst.getProcessingQueue(), this,
-          getMainScanDataSet().getDataPoints());
+      controller = new DataPointProcessingController(
+          inst.getProcessingQueue(inst.decideMSLevel(((ScanDataSet) dataSet).getScan())),
+          this, getMainScanDataSet().getDataPoints());
       inst.addController(controller);
     }
   }
@@ -532,4 +528,14 @@ public class SpectraPlot extends EChartPanel {
   public void setProcessingAllowed(boolean processingAllowed) {
     this.processingAllowed = processingAllowed;
   }
+
+  public void removeDataPointProcessingResultDataSets() {
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      XYDataset dataSet = plot.getDataset(i);
+      if (dataSet instanceof DPPResultsDataSet) {
+        plot.setDataset(i, null);
+      }
+    }
+  }
+
 }

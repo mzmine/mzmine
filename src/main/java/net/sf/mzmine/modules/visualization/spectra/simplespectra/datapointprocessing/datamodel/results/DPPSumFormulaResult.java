@@ -42,7 +42,7 @@ public class DPPSumFormulaResult extends DPPResult<String> {
   }
 
   @Override
-  public String generateLabel() {
+  public String toString() {
     String strScore = ", -";
     if(score != 0.0d)
       strScore = ", " + format.format(score * 100.0) + " %";

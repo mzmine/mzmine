@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
@@ -33,11 +34,17 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
  */
 public interface DataPointProcessingModule extends MZmineModule {
 
+  /**
+   * @return The module sub category of this module.
+   */
   @Nonnull
   public ModuleSubCategory getModuleSubCategory();
 
   @Nonnull
   public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
       SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener);
+  
+  @Nonnull
+  public MSLevel getApplicableMSLevel();
 
 }
