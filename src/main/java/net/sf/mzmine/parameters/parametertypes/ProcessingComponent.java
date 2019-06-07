@@ -94,7 +94,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   @Override
   public void actionPerformed(ActionEvent e) {
     if (e.getActionCommand().equals("BTN_ADD")) {
-      addModule();
+      addSelectedModule();
       sendQueue();
     } else if (e.getActionCommand().equals("BTN_REMOVE")) {
       removeModule();
@@ -172,7 +172,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     tvAllModules.addMouseListener(new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
         if (e.getClickCount() == 2) {
-          addModule();
+          addSelectedModule();
         }
       }
     });
@@ -188,9 +188,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     DPPModuleTreeNode selected = (DPPModuleTreeNode) _selected;
 
     MZmineModule module = selected.getModule();
-    ParameterSet stepParameters =
-        MZmineCore.getConfiguration().getModuleParameters(module.getClass());
-
+    ParameterSet stepParameters = selected.getParameters();
+    
     if (stepParameters.getParameters().length > 0) {
       ExitCode exitCode = stepParameters.showSetupDialog(null, true);
       if (exitCode == ExitCode.OK) {
@@ -205,7 +204,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   /**
    * Adds the selected module in the tvAllModules to the processing list
    */
-  private void addModule() {
+  private void addSelectedModule() {
     DefaultMutableTreeNode selected = getSelectedItem(tvAllModules);
     if (selected == null)
       return;
@@ -321,7 +320,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       return items;
 
     for (MZmineProcessingStep<DataPointProcessingModule> step : queue) {
-      items.add(new DPPModuleTreeNode(step.getModule()));
+      items.add(new DPPModuleTreeNode(step.getModule(), step.getParameterSet()));
     }
 
     return items;
