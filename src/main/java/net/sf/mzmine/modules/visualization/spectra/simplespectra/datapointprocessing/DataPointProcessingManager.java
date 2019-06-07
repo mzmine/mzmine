@@ -54,7 +54,7 @@ public class DataPointProcessingManager implements MZmineModule {
   private DataPointProcessingQueue[] processingList;
 
   public enum MSLevel {
-    MSx, MS1, MSn
+    MSANY, MSONE, MSMS
   };
 
   public DataPointProcessingManager() {
@@ -64,6 +64,10 @@ public class DataPointProcessingManager implements MZmineModule {
     // parameters =
     // MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
 
+    
+    // [0] if no differentiation between ms levels
+    // [1] for ms1 if differentiation is enabled
+    // [2] for ms^n if differentiation is enabled
     processingList = new DataPointProcessingQueue[3];
   }
 
@@ -91,11 +95,11 @@ public class DataPointProcessingManager implements MZmineModule {
 
     if (parameters.getParameter(DataPointProcessingParameters.differentiateMSn).getValue()) {
       if (l > 1)
-        return MSLevel.MSn;
+        return MSLevel.MSMS;
       else
-        return MSLevel.MS1;
+        return MSLevel.MSONE;
     }
-    return MSLevel.MSx;
+    return MSLevel.MSANY;
   }
 
   /**

@@ -53,6 +53,6 @@ public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
   
   @Override
   public MSLevel getApplicableMSLevel() {
-    return MSLevel.MSx;
+    return MSLevel.MSANY;
   }
 }

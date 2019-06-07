@@ -16,7 +16,7 @@ public class ProcessingParameter
   private MSLevel mslevel;
 
   public ProcessingParameter(String name, String description) {
-    this(name, description, MSLevel.MSx);
+    this(name, description, MSLevel.MSANY);
   }
   
   public ProcessingParameter(String name, String description, MSLevel mslevel) {

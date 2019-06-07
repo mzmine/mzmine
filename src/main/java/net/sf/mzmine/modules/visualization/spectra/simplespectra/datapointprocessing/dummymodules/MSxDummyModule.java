@@ -14,7 +14,7 @@ public class MSxDummyModule implements DataPointProcessingModule {
 
   @Override
   public String getName() {
-    return "MSx dummy";
+    return "MSANY dummy";
   }
 
   @Override
@@ -35,7 +35,7 @@ public class MSxDummyModule implements DataPointProcessingModule {
 
   @Override
   public MSLevel getApplicableMSLevel() {
-    return MSLevel.MSx;
+    return MSLevel.MSANY;
   }
   
 }

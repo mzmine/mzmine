@@ -348,7 +348,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   }
   
   private boolean moduleFitsMSLevel(DataPointProcessingModule module) {
-    if(module.getApplicableMSLevel() == MSLevel.MSx)
+    if(module.getApplicableMSLevel() == MSLevel.MSANY)
       return true;
     logger.info("module: " + module.getApplicableMSLevel().ordinal() + " comp: " + this.mslevel.ordinal());
     if(module.getApplicableMSLevel() == this.mslevel)
