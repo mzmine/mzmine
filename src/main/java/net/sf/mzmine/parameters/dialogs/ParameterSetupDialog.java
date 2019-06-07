@@ -30,7 +30,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
-
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -46,7 +45,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
-
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -90,9 +88,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
 
   protected JButton btnHelp;
 
-  //Button panel - added here so it is possible to move buttons as a whole, if needed.
+  // Button panel - added here so it is possible to move buttons as a whole, if needed.
   protected JPanel pnlButtons;
-  
+
   // Footer message
   protected String footerMessage;
 
@@ -307,14 +305,15 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
       if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter))
         continue;
       UserParameter up;
-      if(p instanceof UserParameter)
+      if (p instanceof UserParameter)
         up = (UserParameter) p;
       else
-        up = (UserParameter) ((HiddenParameter)p).getEmbeddedParameter();
-      
+        up = (UserParameter) ((HiddenParameter) p).getEmbeddedParameter();
+
       JComponent component = parametersAndComponents.get(p.getName());
-      
-      if(component != null)
+
+      // if a parameter is a HiddenParameter it does not necessarily have component
+      if (component != null)
         up.setValueFromComponent(component);
     }
   }
