@@ -20,13 +20,13 @@ public class DataPointProcessingParameters extends SimpleParameterSet {
   public static final HiddenParameter<ProcessingParameter, DataPointProcessingQueue> processingMSx = new HiddenParameter<>(new ProcessingParameter("Processing queue",
       "Set the modules to be executed in the processing queue.", MSLevel.MSANY));
   
-  public static final HiddenParameter<ProcessingParameter, DataPointProcessingQueue> processingMS1 = new HiddenParameter<>(new ProcessingParameter("MS1 processing queue",
+  public static final HiddenParameter<ProcessingParameter, DataPointProcessingQueue> processingMS1 = new HiddenParameter<>(new ProcessingParameter("MS^1 processing queue",
       "Set the modules to be executed in the processing queue.", MSLevel.MSONE));
   
   public static final HiddenParameter<ProcessingParameter, DataPointProcessingQueue> processingMSn = new HiddenParameter<>(new ProcessingParameter("MS^n processing queue",
       "Set the modules to be executed in the processing queue.", MSLevel.MSMS));
   
-  public static final BooleanParameter differentiateMSn = new BooleanParameter("Different settings for MS^n", "If ticked, different processing queues will be used for MS1 and MSn scans.", false);
+  public static final BooleanParameter differentiateMSn = new BooleanParameter("Split MS^1 and MS^n queue", "If ticked, different processing queues will be used for MS^1 and MS^n scans.", false);
   
   @Override
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
