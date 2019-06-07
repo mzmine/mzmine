@@ -54,7 +54,18 @@ public class DataPointProcessingManager implements MZmineModule {
   private DataPointProcessingQueue[] processingList;
 
   public enum MSLevel {
-    MSANY, MSONE, MSMS
+    MSANY("any"), MSONE("MS-one"), MSMS("MS^n");
+    
+    final String name;
+    
+    MSLevel(String name){
+      this.name = name;
+    }
+    
+    @Override
+    public String toString() {
+      return name;
+    }
   };
 
   public DataPointProcessingManager() {

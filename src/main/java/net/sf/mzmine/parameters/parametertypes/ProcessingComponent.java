@@ -55,13 +55,13 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   // File chooser
   private final LoadSaveFileChooser chooser;
   private static final String XML_EXTENSION = "xml";
-  
+
   private MSLevel mslevel;
 
   public ProcessingComponent(MSLevel mslevel) {
     super(new BorderLayout());
     setPreferredSize(new Dimension(600, 400));
-    
+
     this.mslevel = mslevel;
 
 
@@ -100,8 +100,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       removeModule();
       sendQueue();
     } else if (e.getActionCommand().equals("BTN_SET_PARAMETERS")) {
-      DefaultMutableTreeNode item = getSelectedItem(tvProcessing); 
-      if(item != null)
+      DefaultMutableTreeNode item = getSelectedItem(tvProcessing);
+      if (item != null)
         setParameters(item);
     } else if (e.getActionCommand().equals("BTN_LOAD")) {
       final File file = chooser.getLoadFile(this);
@@ -190,7 +190,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     DPPModuleTreeNode selected = (DPPModuleTreeNode) _selected;
 
     ParameterSet stepParameters = selected.getParameters();
-    
+
     if (stepParameters.getParameters().length > 0 && !selected.isDialogShowing()) {
       selected.setDialogShowing(true);
       ExitCode exitCode = stepParameters.showSetupDialog(null, true);
@@ -213,8 +213,11 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       return;
 
     if (selected instanceof DPPModuleTreeNode) {
-      if(moduleFitsMSLevel(((DPPModuleTreeNode)selected).getModule()))
+      if (moduleFitsMSLevel(((DPPModuleTreeNode) selected).getModule()))
         addModule((DPPModuleTreeNode) selected.clone());
+      else
+        logger.info("Module \"" + ((DPPModuleTreeNode) selected).getModule().getName()
+            + "\" cannot be used for " + mslevel.toString());
     } else {
       logger.finest("Cannot add item " + selected.toString() + " to processing list.");
     }
@@ -228,6 +231,11 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     if (treeContains(tvProcessing, node)) {
       logger.finest("Cannot add module " + ((DPPModuleTreeNode) node).getModule().getName()
           + " to processing list twice.");
+      return;
+    }
+    if(!moduleFitsMSLevel(node.getModule())) {
+      logger.info("Module \"" + node.getModule().getName()
+          + "\" cannot be used for " + mslevel.toString());
       return;
     }
 
@@ -346,12 +354,11 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     }
     expandAllNodes(tvProcessing);
   }
-  
+
   private boolean moduleFitsMSLevel(DataPointProcessingModule module) {
-    if(module.getApplicableMSLevel() == MSLevel.MSANY)
+    if (module.getApplicableMSLevel() == MSLevel.MSANY)
       return true;
-    logger.info("module: " + module.getApplicableMSLevel().ordinal() + " comp: " + this.mslevel.ordinal());
-    if(module.getApplicableMSLevel() == this.mslevel)
+    if (module.getApplicableMSLevel() == this.mslevel)
       return true;
     return false;
   }

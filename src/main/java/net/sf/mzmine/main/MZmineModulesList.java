@@ -225,6 +225,6 @@ public class MZmineModulesList {
 
       // Data point processing
       DataPointProcessingManager.class, DPPMassDetectionModule.class,
-      DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class, MS1DummyModule.class,
-      MSnDummyModule.class, MSxDummyModule.class};
+      DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
+      /*, MS1DummyModule.class, MSnDummyModule.class, MSxDummyModule.class*/};
 }
