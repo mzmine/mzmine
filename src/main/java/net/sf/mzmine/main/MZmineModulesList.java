@@ -122,6 +122,9 @@ import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModu
 import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.dummymodules.MS1DummyModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.dummymodules.MSnDummyModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.dummymodules.MSxDummyModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.identification.sumformulaprediction.DPPSumFormulaPredictionModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection.DPPMassDetectionModule;
@@ -221,6 +224,7 @@ public class MZmineModulesList {
       OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
 
       // Data point processing
-      DataPointProcessingManager.class, DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
-  };
+      DataPointProcessingManager.class, DPPMassDetectionModule.class,
+      DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class, MS1DummyModule.class,
+      MSnDummyModule.class, MSxDummyModule.class};
 }
