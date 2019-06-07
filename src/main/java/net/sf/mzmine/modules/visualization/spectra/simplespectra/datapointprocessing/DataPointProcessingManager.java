@@ -54,7 +54,7 @@ public class DataPointProcessingManager implements MZmineModule {
   private DataPointProcessingQueue[] processingList;
 
   public enum MSLevel {
-    MSANY("any"), MSONE("MS-one"), MSMS("MS^n");
+    MSANY("MS-any"), MSONE("MS^1"), MSMS("MS^n");
     
     final String name;
     

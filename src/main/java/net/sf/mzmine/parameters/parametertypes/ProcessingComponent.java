@@ -143,7 +143,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     for (MZmineModule module : moduleList) {
       if (module instanceof DataPointProcessingModule) {
         DataPointProcessingModule dppm = (DataPointProcessingModule) module;
-
+        // only add modules that have applicable ms levels
         // add each module as a child of the module category items
         for (DPPModuleCategoryTreeNode catItem : moduleCategories) {
           if (dppm.getModuleSubCategory().equals(catItem.getCategory())) {
@@ -213,11 +213,15 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       return;
 
     if (selected instanceof DPPModuleTreeNode) {
-      if (moduleFitsMSLevel(((DPPModuleTreeNode) selected).getModule()))
-        addModule((DPPModuleTreeNode) selected.clone());
-      else
-        logger.info("Module \"" + ((DPPModuleTreeNode) selected).getModule().getName()
-            + "\" cannot be used for " + mslevel.toString());
+      DPPModuleTreeNode node = (DPPModuleTreeNode) selected.clone();
+      addModule(node);
+
+      if (!moduleFitsMSLevel(node.getModule()))
+        MZmineCore.getDesktop().displayMessage(null,
+            "The use of module \"" + node.getModule().getName() + "\" ("
+                + node.getModule().getApplicableMSLevel()
+                + ") is not recommended for processing scans of MS-level \"" + mslevel.toString()
+                + "\". This might lead to unexpected results.");
     } else {
       logger.finest("Cannot add item " + selected.toString() + " to processing list.");
     }
@@ -233,10 +237,11 @@ public class ProcessingComponent extends JPanel implements ActionListener {
           + " to processing list twice.");
       return;
     }
-    if(!moduleFitsMSLevel(node.getModule())) {
-      logger.info("Module \"" + node.getModule().getName()
-          + "\" cannot be used for " + mslevel.toString());
-      return;
+    if (!moduleFitsMSLevel(node.getModule())) {
+      logger.warning("The use of module \"" + node.getModule().getName() + "\" ("
+          + node.getModule().getApplicableMSLevel()
+          + ") is not recommended for processing scans of MS-level \"" + mslevel.toString()
+          + "\". This might lead to unexpected results.");
     }
 
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
@@ -355,6 +360,12 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     expandAllNodes(tvProcessing);
   }
 
+  /**
+   * Convenience method to check if the module's ms level is applicable for this component.
+   * 
+   * @param module
+   * @return
+   */
   private boolean moduleFitsMSLevel(DataPointProcessingModule module) {
     if (module.getApplicableMSLevel() == MSLevel.MSANY)
       return true;
