@@ -51,6 +51,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.HiddenParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.GridBagPanel;
@@ -303,11 +304,18 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
   @SuppressWarnings({"unchecked", "rawtypes"})
   protected void updateParameterSetFromComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
-      if (!(p instanceof UserParameter))
+      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter))
         continue;
-      UserParameter up = (UserParameter) p;
+      UserParameter up;
+      if(p instanceof UserParameter)
+        up = (UserParameter) p;
+      else
+        up = (UserParameter) ((HiddenParameter)p).getEmbeddedParameter();
+      
       JComponent component = parametersAndComponents.get(p.getName());
-      up.setValueFromComponent(component);
+      
+      if(component != null)
+        up.setValueFromComponent(component);
     }
   }
 

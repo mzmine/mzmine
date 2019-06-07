@@ -23,11 +23,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController.ControllerStatus;
-import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
@@ -51,7 +51,11 @@ public class DataPointProcessingManager implements MZmineModule {
   private List<DataPointProcessingController> waiting;
   private List<DataPointProcessingController> running;
 
-  private DataPointProcessingQueue processingList;
+  private DataPointProcessingQueue[] processingList;
+
+  public enum MSLevel {
+    MSx, MS1, MSn
+  };
 
   public DataPointProcessingManager() {
     waiting = new ArrayList<>();
@@ -60,7 +64,7 @@ public class DataPointProcessingManager implements MZmineModule {
     // parameters =
     // MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
 
-    processingList = new DataPointProcessingQueue();
+    processingList = new DataPointProcessingQueue[3];
   }
 
   public static DataPointProcessingManager getInst() {
@@ -71,9 +75,27 @@ public class DataPointProcessingManager implements MZmineModule {
     if (parameters == null) {
       parameters =
           MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
-      processingList = parameters.getParameter(DataPointProcessingParameters.processing).getValue();
+      processingList[0] =
+          parameters.getParameter(DataPointProcessingParameters.processingMSx).getValue();
+      processingList[1] =
+          parameters.getParameter(DataPointProcessingParameters.processingMS1).getValue();
+      processingList[2] =
+          parameters.getParameter(DataPointProcessingParameters.processingMSn).getValue();
     }
     return parameters;
+  }
+
+  public MSLevel decideMSLevel(Scan scan) {
+    int l = scan.getMSLevel();
+    logger.info("MSLevel: " + scan.getMSLevel());
+
+    if (parameters.getParameter(DataPointProcessingParameters.differentiateMSn).getValue()) {
+      if (l > 1)
+        return MSLevel.MSn;
+      else
+        return MSLevel.MS1;
+    }
+    return MSLevel.MSx;
   }
 
   /**
@@ -101,8 +123,8 @@ public class DataPointProcessingManager implements MZmineModule {
    * @param controller
    */
   public boolean removeWaitingController(DataPointProcessingController controller) {
-//    if (!waiting.contains(controller))
-//      return false;
+    // if (!waiting.contains(controller))
+    // return false;
 
     synchronized (waiting) {
       return waiting.remove(controller);
@@ -136,8 +158,8 @@ public class DataPointProcessingManager implements MZmineModule {
    * @param controller
    */
   private boolean removeRunningController(DataPointProcessingController controller) {
-//    if (!running.contains(controller))
-//      return;
+    // if (!running.contains(controller))
+    // return;
 
     synchronized (running) {
       return running.remove(controller);
@@ -153,16 +175,18 @@ public class DataPointProcessingManager implements MZmineModule {
       waiting.clear();
     }
   }
-  
+
   /**
    * Tries to remove the controller from waiting OR running list.
+   * 
    * @param controller
    * @return
    */
   public boolean removeController(DataPointProcessingController controller) {
-    if(removeRunningController(controller))
+    if (removeRunningController(controller))
       return true;
-    else return removeWaitingController(controller);
+    else
+      return removeWaitingController(controller);
   }
 
   /**
@@ -283,58 +307,6 @@ public class DataPointProcessingManager implements MZmineModule {
     return running.contains(controller);
   }
 
-  /**
-   * Adds a processing step to the list.
-   * 
-   * @param step Processing step to add.
-   * @return {@link Collection#add}
-   */
-  public boolean addProcessingStep(MZmineProcessingStep<DataPointProcessingModule> step) {
-    if (processingList == null)
-      processingList = new DataPointProcessingQueue();
-    return processingList.add(step);
-  }
-
-  /**
-   * Removes a processing step from the list.
-   * 
-   * @param step Processing step to remove.
-   * @return {@link Collection#remove}
-   */
-  public boolean removeProcessingStep(MZmineProcessingStep<DataPointProcessingModule> step) {
-    if (processingList == null)
-      processingList = new DataPointProcessingQueue();
-    return processingList.remove(step);
-  }
-
-  /**
-   * Clears the list of processing steps
-   */
-  public void clearProcessingSteps() {
-    if (processingList == null) {
-      logger.warning("The processing queue is null and clearProcessingSteps was called.");
-      processingList = new DataPointProcessingQueue();
-    }
-    processingList.clear();
-  }
-
-  public @Nonnull DataPointProcessingQueue getProcessingQueue() {
-    getParameters();
-    return processingList;
-  }
-
-  /**
-   * Sets the processing list.
-   * 
-   * @param list New processing list.
-   */
-  public void setProcessingQueue(@Nonnull DataPointProcessingQueue list) {
-    if(list != null)
-      processingList = list;
-    else
-      logger.warning("The processing list was about to be set to null.");
-  }
-
   public boolean isEnabled() {
     getParameters();
     return getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
@@ -355,4 +327,69 @@ public class DataPointProcessingManager implements MZmineModule {
     return DataPointProcessingParameters.class;
   }
 
+
+  /**
+   * Adds a processing step to the list.
+   * 
+   * @param step Processing step to add.
+   * @return {@link Collection#add}
+   */
+  public boolean addProcessingStep(MSLevel mslevel,
+      MZmineProcessingStep<DataPointProcessingModule> step) {
+    int o = mslevel.ordinal();
+    if (processingList[o] == null)
+      processingList[o] = new DataPointProcessingQueue();
+    return processingList[o].add(step);
+  }
+
+  /**
+   * Removes a processing step from the list.
+   * 
+   * @param mslevel the ms level of the queue
+   * @param step Processing step to remove.
+   * @return {@link Collection#remove}
+   */
+  public boolean removeProcessingStep(MSLevel mslevel,
+      MZmineProcessingStep<DataPointProcessingModule> step) {
+    int o = mslevel.ordinal();
+    if (processingList[o] == null)
+      processingList[o] = new DataPointProcessingQueue();
+    return processingList[o].remove(step);
+  }
+
+  /**
+   * @param mslevel the ms level of the queue Clears the list of processing steps
+   */
+  public void clearProcessingSteps(MSLevel mslevel) {
+    int o = mslevel.ordinal();
+    if (processingList[o] == null) {
+      logger.warning("The processing queue is null and clearProcessingSteps was called.");
+      processingList[o] = new DataPointProcessingQueue();
+    }
+    processingList[o].clear();
+  }
+
+  /**
+   * @param mslevel the ms level of the queue
+   * @return
+   */
+  public @Nonnull DataPointProcessingQueue getProcessingQueue(MSLevel mslevel) {
+    int o = mslevel.ordinal();
+    getParameters();
+    return processingList[o];
+  }
+
+  /**
+   * Sets the processing list.
+   * 
+   * @param mslevel the ms level of the queue
+   * @param list New processing list.
+   */
+  public void setProcessingQueue(MSLevel mslevel, @Nonnull DataPointProcessingQueue list) {
+    int o = mslevel.ordinal();
+    if (list != null)
+      processingList[o] = list;
+    else
+      logger.warning("The processing list was about to be set to null.");
+  }
 }

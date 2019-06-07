@@ -27,6 +27,7 @@ import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleCategoryTreeNode;
@@ -54,10 +55,14 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   // File chooser
   private final LoadSaveFileChooser chooser;
   private static final String XML_EXTENSION = "xml";
+  
+  private MSLevel mslevel;
 
-  public ProcessingComponent() {
+  public ProcessingComponent(MSLevel mslevel) {
     super(new BorderLayout());
     setPreferredSize(new Dimension(600, 400));
+    
+    this.mslevel = mslevel;
 
 
     setupTreeViews();
@@ -81,8 +86,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     super.repaint();
   }
 
-  public ProcessingComponent(@Nullable DataPointProcessingQueue queue) {
-    this();
+  public ProcessingComponent(MSLevel mslevel, @Nullable DataPointProcessingQueue queue) {
+    this(mslevel);
     setTreeViewProcessingItemsFromQueue(queue);
   }
 
@@ -206,7 +211,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       return;
 
     if (selected instanceof DPPModuleTreeNode) {
-      addModule((DPPModuleTreeNode) selected.clone());
+      if(moduleFitsMSLevel(((DPPModuleTreeNode)selected).getModule()))
+        addModule((DPPModuleTreeNode) selected.clone());
     } else {
       logger.finest("Cannot add item " + selected.toString() + " to processing list.");
     }
@@ -296,8 +302,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       logger.info("Processing queue is empty. Sending empty list.");
 
     DataPointProcessingManager manager = DataPointProcessingManager.getInst();
-    manager.clearProcessingSteps();
-    manager.setProcessingQueue(queue);
+    manager.clearProcessingSteps(mslevel);
+    manager.setProcessingQueue(mslevel, queue);
   }
 
   /**
@@ -337,6 +343,15 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       addModule(node);
     }
     expandAllNodes(tvProcessing);
+  }
+  
+  private boolean moduleFitsMSLevel(DataPointProcessingModule module) {
+    if(module.getApplicableMSLevel() == MSLevel.MSx)
+      return true;
+    logger.info("module: " + module.getApplicableMSLevel().ordinal() + " comp: " + this.mslevel.ordinal());
+    if(module.getApplicableMSLevel() == this.mslevel)
+      return true;
+    return false;
   }
 
   private boolean treeContains(@Nonnull JTree tree, @Nonnull DefaultMutableTreeNode comp) {

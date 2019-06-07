@@ -3,6 +3,7 @@ package net.sf.mzmine.parameters.parametertypes;
 import java.util.Collection;
 import org.w3c.dom.Element;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
 import net.sf.mzmine.parameters.UserParameter;
 
@@ -12,11 +13,17 @@ public class ProcessingParameter
   private String name;
   private String description;
   private DataPointProcessingQueue value;
+  private MSLevel mslevel;
 
   public ProcessingParameter(String name, String description) {
+    this(name, description, MSLevel.MSx);
+  }
+  
+  public ProcessingParameter(String name, String description, MSLevel mslevel) {
     this.name = name;
     this.description = description;
     this.value = new DataPointProcessingQueue();
+    this.mslevel = mslevel;
     // if(queue == null)
     // this.value = DataPointProcessingManager.getInst().getProcessingQueue();
     // else
@@ -65,7 +72,7 @@ public class ProcessingParameter
 
   @Override
   public ProcessingComponent createEditingComponent() {
-    ProcessingComponent comp = new ProcessingComponent();
+    ProcessingComponent comp = new ProcessingComponent(mslevel);
     // if(value != null)
     // comp.setTreeViewProcessingItemsFromQueue(value);
     return comp;
@@ -84,7 +91,7 @@ public class ProcessingParameter
 
   @Override
   public UserParameter<DataPointProcessingQueue, ProcessingComponent> cloneParameter() {
-    ProcessingParameter copy = new ProcessingParameter(name, description);
+    ProcessingParameter copy = new ProcessingParameter(name, description, mslevel);
     copy.setValue(this.value);
     return copy;
   }
