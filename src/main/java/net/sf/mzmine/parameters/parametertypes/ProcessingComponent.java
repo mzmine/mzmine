@@ -223,7 +223,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
                 + ") is not recommended for processing scans of MS-level \"" + mslevel.toString()
                 + "\". This might lead to unexpected results.");
     } else {
-      logger.finest("Cannot add item " + selected.toString() + " to processing list.");
+      logger.finest("Cannot add item " + selected.toString() + " to " + this.getName() + ".");
     }
   }
 
@@ -247,8 +247,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
     ((DefaultTreeModel) tvProcessing.getModel()).insertNodeInto(node, root, root.getChildCount());
 
-    logger.finest("Added module " + ((DPPModuleTreeNode) node).getModule().getName()
-        + " to processing list.");
+    logger.finest("Added module " + node.getModule().getName()
+        + " to " + mslevel.toString() + " processing list.");
     expandAllNodes(tvProcessing);
   }
 

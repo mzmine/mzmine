@@ -33,13 +33,7 @@ public class DataPointProcessingSetupDialog extends ParameterSetupDialog {
       if (!(p instanceof HiddenParameter))
         continue;
 
-      System.out.println("is hidden parameter");
-
       UserParameter up = (UserParameter) (((HiddenParameter) p).getEmbeddedParameter());
-
-      System.out.println("diffmsn: "
-          + parameterSet.getParameter(DataPointProcessingParameters.differentiateMSn).getValue()
-          + " param: " + up.getName());
 
       if ((!parameterSet.getParameter(DataPointProcessingParameters.differentiateMSn).getValue()
           && up == parameterSet.getParameter(DataPointProcessingParameters.processingMSx)
@@ -50,7 +44,6 @@ public class DataPointProcessingSetupDialog extends ParameterSetupDialog {
           || (parameterSet.getParameter(DataPointProcessingParameters.differentiateMSn).getValue()
               && up == parameterSet.getParameter(DataPointProcessingParameters.processingMS1)
                   .getEmbeddedParameter())) {
-        System.out.println("got there");
 
         JComponent comp = up.createEditingComponent();
         comp.setToolTipText(up.getDescription());
@@ -100,8 +93,8 @@ public class DataPointProcessingSetupDialog extends ParameterSetupDialog {
       // since we want to redraw in the update routine, we need to change the value manually here,
       // else it wont be updated
       up.setValue(!(Boolean)up.getValue());
-      System.out.println("source = diffmsn");
-
+      
+      this.updateParameterSetFromComponents();
       this.remove(mainPanel);
       this.addDialogComponents();
       this.updateMinimumSize();
