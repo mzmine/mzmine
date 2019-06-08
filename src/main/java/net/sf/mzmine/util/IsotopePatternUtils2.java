@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -22,7 +23,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 
-public class IsotopePatternUtils {
+public class IsotopePatternUtils2 {
 
   private static final Logger logger = Logger.getLogger(IsotopePatternUtils.class.getName());
   private static final NumberFormat format = MZmineCore.getConfiguration().getMZFormat();;
@@ -255,6 +256,53 @@ public class IsotopePatternUtils {
    * (o1, o2) -> { return Double.compare(o1.getMZ(), o2.getMZ()); }); return results; }
    */
 
+  public static void mergeIsotopePatternResults(ProcessedDataPoint dp) {
+    if(!dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+      return;
+    
+    List<DPPIsotopePatternResult> patternResults = getIsotopePatternResuls(dp);
+    List<DPPResult<?>> newResults = new ArrayList<>();
+    
+    for(DPPIsotopePatternResult dpPatternResult : patternResults) {
+      ProcessedDataPoint[] dpPattern = dpPatternResult.getLinkedDataPoints();
+      
+      int patternCharge = dpPatternResult.getCharge();
+      
+      for(ProcessedDataPoint p : dpPattern) {
+        List<DPPIsotopePatternResult> pPatternResults = getIsotopePatternResuls(p);
+        
+        for(DPPIsotopePatternResult pPatternResult : pPatternResults) {
+          if(pPatternResult.getCharge() != patternCharge)
+            continue;
+          
+          ProcessedDataPoint[] dataPoints = pPatternResult.getLinkedDataPoints();
+          p.removeResult(pPatternResult);
+          
+          newResults.add(new DPPIsotopePatternResult(new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.DETECTED, ""), dataPoints, patternCharge));
+        }
+      }
+    }
+    
+    dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
+    dp.addAllResults(newResults);
+    
+    // TODO: test
+  }
+
+  public static @Nonnull List<DPPIsotopePatternResult> getIsotopePatternResuls(@Nonnull ProcessedDataPoint dp) {
+    List<DPPIsotopePatternResult> results = new ArrayList<>();
+
+    if (!dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+      return results;
+
+    List<DPPResult<?>> patternResults = dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
+    
+    for(int i = 0; i < patternResults.size(); i++) 
+      results.add((DPPIsotopePatternResult) patternResults.get(i));
+    
+    return results;
+  }
+
   /**
    * Checks if a data point has isotope pattern results. In case that a peak of that isotope pattern
    * contains an isotope pattern itself, they will be merged together and added to the isotope
@@ -455,7 +503,7 @@ public class IsotopePatternUtils {
           (DPPIsotopeCompositionResult) dp.getFirstResultByType(ResultType.ISOTOPECOMPOSITION);
       for (String comp : comps.getValue())
         c += comp + ", ";
-      if(c.length() > 2)
+      if (c.length() > 2)
         c = c.substring(0, c.length() - 2);
       str += format.format(dp.getMZ()) + " (" + c + "), ";
     }
