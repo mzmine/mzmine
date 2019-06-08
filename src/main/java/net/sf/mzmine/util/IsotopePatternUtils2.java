@@ -286,6 +286,11 @@ public class IsotopePatternUtils2 {
     dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
     dp.addAllResults(newResults);
     
+    logger.finest("-------------------------");
+    for(DPPResult<?> result : newResults)
+    logger.finest("FINAL: " + format.format(dp.getMZ()) + " pattern: " + getResultIsoComp(
+        (DPPIsotopePatternResult) result));
+    
     // TODO: test
   }
 

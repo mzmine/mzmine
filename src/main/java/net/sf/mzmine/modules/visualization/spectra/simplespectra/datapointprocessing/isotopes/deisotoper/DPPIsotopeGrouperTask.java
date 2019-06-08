@@ -58,6 +58,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.IsotopePatternUtils;
+import net.sf.mzmine.util.IsotopePatternUtils2;
 
 public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
@@ -155,7 +156,11 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
 
     // List<ProcessedDataPoint> results =
-    IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
+//    IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
+    for(int x = originalDataPoints.length-1; x>=0; x --) {
+      ProcessedDataPoint dp = originalDataPoints[x];
+      IsotopePatternUtils2.mergeIsotopePatternResults(dp);
+    }
     List<ProcessedDataPoint> results = new ArrayList<>();
     
     for(ProcessedDataPoint dp : originalDataPoints) {

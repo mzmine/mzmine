@@ -70,7 +70,7 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
 
   public DPPIsotopeGrouperParameters() {
     super(new Parameter[] {element, mzTolerance, mzRange, monotonicShape, maximumCharge,
-        representativeIsotope, autoRemove, displayResults});
+        representativeIsotope, autoRemove, displayResults, datasetColor});
    }
 
 }
