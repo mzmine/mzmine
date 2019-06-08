@@ -23,11 +23,16 @@ import java.util.logging.Logger;
 import com.google.common.collect.Range;
 
 import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.scene.AmbientLight;
 import javafx.scene.DepthTest;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
+import javafx.scene.PointLight;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
+import javafx.scene.effect.Light;
+import javafx.scene.effect.Lighting;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
@@ -46,8 +51,12 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class New3DJavafxStage extends Stage{
 	
-	final Group plot = new Group();
-	final Group finalNode = new Group();
+	@FXML
+	private StackPane root;
+	
+	private Group plot = new Group();	
+	private Group finalNode = new Group();
+	
 	private static final Logger LOG = Logger.getLogger(New3DJavafxStage.class.getName());
 	private static final int SIZE = 500;
 	private static float AMPLIFI = 130;
@@ -61,13 +70,12 @@ public class New3DJavafxStage extends Stage{
     
     
 	public New3DJavafxStage(float[][] intensityValues,int rtResolution,int mzResolution,double maxBinnedIntensity,Range<Double> rtRange,Range<Double> mzRange){
-        plot.getTransforms().addAll(rotateX, rotateY);
+		
+		root = new StackPane();
+		plot.getTransforms().addAll(rotateX, rotateY);
         finalNode.getTransforms().addAll(translateX,translateY);
         finalNode.getChildren().add(plot);
-        StackPane root = new StackPane();
         root.getChildren().add(finalNode);
-        
-        
         
         TriangleMesh mesh = new TriangleMesh();
     
@@ -167,8 +175,16 @@ public class New3DJavafxStage extends Stage{
         meshView.setCullFace(CullFace.NONE);
         meshView.setDrawMode(DrawMode.FILL);
         meshView.setDepthTest(DepthTest.ENABLE);
+        AmbientLight ambient = new AmbientLight();
+        ambient.setColor(Color.WHITE);
+        PointLight light = new PointLight();
+        light.setColor(Color.WHITE);
+        light.setLayoutX(250-light.getLayoutBounds().getMinX());
+        light.setLayoutY(250-light.getLayoutBounds().getMinY());
+        light.getScope().add(meshView);
 
-        plot.getChildren().addAll(meshView);
+        
+        plot.getChildren().addAll(meshView,light,ambient);
         
         buildAxes(rtRange,mzRange,maxBinnedIntensity);
         
@@ -178,11 +194,8 @@ public class New3DJavafxStage extends Stage{
         scene.setCamera(camera);
 
         scene.setOnMousePressed(me -> {
-        	
             mouseOldX = me.getSceneX();
-            mouseOldY = me.getSceneY();
-            
-           
+            mouseOldY = me.getSceneY(); 
         });
         double rotateFactor = 0.08;
         scene.setOnMouseDragged(me -> {
@@ -221,15 +234,15 @@ public class New3DJavafxStage extends Stage{
             Line tickLineX = new Line(0,0,0,9);
             tickLineX.setRotationAxis(Rotate.X_AXIS);
             tickLineX.setRotate(-90);
-            tickLineX.setTranslateY(-2);
+            tickLineX.setTranslateY(-4);
             tickLineX.setTranslateX(y);
             tickLineX.setTranslateZ(-3.5);
             Text text = new Text( ""+(int)rtscaleValue);
             text.setRotationAxis(Rotate.X_AXIS);
             text.setRotate(-45);
-            text.setTranslateY(8);
+            text.setTranslateY(9);
             text.setTranslateX(y-5);
-            text.setTranslateZ(-13);
+            text.setTranslateZ(-15);
             rtscaleValue += rtDelta; 
             plot.getChildren().addAll(text,tickLineX);
         }
@@ -243,22 +256,22 @@ public class New3DJavafxStage extends Stage{
         mzLabel.setRotationAxis(Rotate.X_AXIS);
         mzLabel.setRotate(-45);
         mzLabel.setTranslateX(SIZE/2);
-        mzLabel.setTranslateZ(-22);
+        mzLabel.setTranslateZ(-5);
         mzLabel.setTranslateY(8);
         mzAxisLabels.getChildren().add(mzLabel);
         for( int y=0; y <= SIZE; y+=SIZE/7) {
         	Line tickLineZ = new Line(0,0,0,9);
             tickLineZ.setRotationAxis(Rotate.X_AXIS);
             tickLineZ.setRotate(-90);
-            tickLineZ.setTranslateY(-2);
-            tickLineZ.setTranslateX(y);
+            tickLineZ.setTranslateY(-4);
+            tickLineZ.setTranslateX(y-2);
             float roundOff = (float) (Math.round(mzScaleValue * 100.0) / 100.0);
             Text text = new Text( ""+(float)roundOff);
             text.setRotationAxis(Rotate.X_AXIS);
             text.setRotate(-45);
             text.setTranslateY(8);
-            text.setTranslateX(y-5);
-            text.setTranslateZ(-7);
+            text.setTranslateX(y-10);
+            text.setTranslateZ(20);
             mzScaleValue -= mzDelta; 
             mzAxisTicks.getChildren().add(tickLineZ);
             mzAxisLabels.getChildren().add(text);
@@ -294,8 +307,8 @@ public class New3DJavafxStage extends Stage{
         	Line tickLineY = new Line(0,0,7,0);
         	tickLineY.setRotationAxis(Rotate.Y_AXIS);
         	tickLineY.setRotate(135);
-        	tickLineY.setTranslateX(-7);
-        	tickLineY.setTranslateZ(-7);
+        	tickLineY.setTranslateX(-6);
+        	tickLineY.setTranslateZ(-3);
         	tickLineY.setTranslateY(-transLen);
         	LOG.info("ADebugTag" + "Value: " + Double.toString(transLen));
         	plot.getChildren().add(tickLineY);
@@ -306,7 +319,7 @@ public class New3DJavafxStage extends Stage{
    		   	text.setRotate(-45); 
    		   	text.setTranslateY(-transLen+5);
    		   	text.setTranslateX(-40);
-   		   	text.setTranslateZ(-30);
+   		   	text.setTranslateZ(-26);
    		   	plot.getChildren().add(text);
    		   	transLen += gapLen;
         }

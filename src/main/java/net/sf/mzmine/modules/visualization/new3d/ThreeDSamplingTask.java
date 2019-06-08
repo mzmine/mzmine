@@ -56,10 +56,6 @@ class ThreeDSamplingTask extends AbstractTask {
 
   private int retrievedScans = 0;
 
-  // The 3D display
-  //private ThreeDDisplay display;
-  //private ThreeDBottomPanel bottomPanel;
-
   // maximum value on Z axis
   private double maxBinnedIntensity;
 
@@ -79,8 +75,6 @@ class ThreeDSamplingTask extends AbstractTask {
     this.mzRange = mzRange;
     this.rtResolution = rtResolution;
     this.mzResolution = mzResolution;
-
-    //this.bottomPanel = bottomPanel;
   }
 
   /**
