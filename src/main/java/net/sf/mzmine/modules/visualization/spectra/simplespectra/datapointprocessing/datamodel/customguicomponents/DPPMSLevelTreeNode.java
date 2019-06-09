@@ -19,7 +19,8 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
+import net.sf.mzmine.parameters.parametertypes.ProcessingComponent;
 
 /**
  * Stores MSLevel in a tree item. Used to organize the tree view automatically. Every
