@@ -379,11 +379,7 @@ public class DataPointProcessingManager implements MZmineModule {
   }
   
   public void setProcessingParameters(@Nonnull DPPParameterValueWrapper value) {
-    System.out.println("dppm old: " + processingParameters.isDifferentiateMSn());
-    System.out.println("value: " + value.isDifferentiateMSn());
     this.processingParameters = value;
-    System.out.println("dppm new: " + processingParameters.isDifferentiateMSn());
-    
   }
   
   public DPPParameterValueWrapper getProcessingParameters() {
