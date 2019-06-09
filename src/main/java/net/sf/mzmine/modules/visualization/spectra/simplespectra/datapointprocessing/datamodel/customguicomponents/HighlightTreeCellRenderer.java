@@ -3,6 +3,7 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproce
 import java.awt.Color;
 import java.awt.Component;
 import java.util.logging.Logger;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -18,11 +19,10 @@ public class HighlightTreeCellRenderer extends DefaultTreeCellRenderer {
    * 
    */
   private static final long serialVersionUID = 1L;
-  
-  private final DPPMSLevelTreeNode[] msLevelNodes;
-
-  public HighlightTreeCellRenderer(DPPMSLevelTreeNode[] msLevelNodes) {
-    this.msLevelNodes = msLevelNodes;
+  private JCheckBox cb;
+  public HighlightTreeCellRenderer(JCheckBox cb) {
+    super();
+    this.cb = cb;
   }
 
   @Override
@@ -33,46 +33,27 @@ public class HighlightTreeCellRenderer extends DefaultTreeCellRenderer {
         expanded, leaf, row, hasFocus);
 
     if(!(value instanceof DPPMSLevelTreeNode)) {
-      logger.finest("rendering value: " + value.toString() + "not important.");
+//      logger.finest("rendering value: " + value.toString() + "not important.");
       setOpaque(false);
       c.setBackground(getBackgroundNonSelectionColor());
       return c;
     }
-    logger.finest("renderign value: " + value.toString() + " is mslevel node");
+//    logger.finest("renderign value: " + value.toString() + " is mslevel node");
     
-    boolean diffMSn =
-        DataPointProcessingManager.getInst().getProcessingParameters().isDifferentiateMSn();
+    boolean diffMSn = cb.isSelected();
     
     c.setOpaque(true);
     c.setBackground(getNodeColor((DPPMSLevelTreeNode)value, diffMSn));
     
-    /*if (isSelected) {
-      c.setForeground(getTextSelectionColor());
-      if (leaf && value.toString().equalsIgnoreCase("red")) {
-        // <strong>
-        c.setOpaque(true);
-        // </strong>
-        c.setBackground(Color.RED);
-      } else {
-        c.setOpaque(false);
-        c.setBackground(getBackgroundSelectionColor());
-      }
-    } else {
-      c.setOpaque(false);
-      c.setForeground(getTextNonSelectionColor());
-      c.setBackground(getBackgroundNonSelectionColor());
-    }*/
     return c;
   }
   
   private Color getNodeColor(DPPMSLevelTreeNode node, boolean diffMSn) {
-    if(!diffMSn && node.getMSLevel() == MSLevel.MSANY)
+    if(!diffMSn && node.getMSLevel() == MSLevel.MSONE)
       return Color.GREEN;
-    if(!diffMSn)
+    if(!diffMSn && node.getMSLevel() == MSLevel.MSMS)
       return Color.RED;
     
-    if(diffMSn && node.getMSLevel() == MSLevel.MSANY)
-      return Color.RED;
     return Color.GREEN;
   }
 }

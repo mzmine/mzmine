@@ -14,17 +14,11 @@ public class ProcessingParameter
   private String name;
   private String description;
   private DPPParameterValueWrapper value;
-  private MSLevel mslevel;
 
   public ProcessingParameter(String name, String description) {
-    this(name, description, MSLevel.MSANY);
-  }
-  
-  public ProcessingParameter(String name, String description, MSLevel mslevel) {
     this.name = name;
     this.description = description;
     this.value = new DPPParameterValueWrapper();
-    this.mslevel = mslevel;
     // if(queue == null)
     // this.value = DataPointProcessingManager.getInst().getProcessingQueue();
     // else
@@ -92,7 +86,7 @@ public class ProcessingParameter
 
   @Override
   public UserParameter<DPPParameterValueWrapper, ProcessingComponent> cloneParameter() {
-    ProcessingParameter copy = new ProcessingParameter(name, description, mslevel);
+    ProcessingParameter copy = new ProcessingParameter(name, description);
     copy.setValue(this.value.clone());
     return copy;
   }

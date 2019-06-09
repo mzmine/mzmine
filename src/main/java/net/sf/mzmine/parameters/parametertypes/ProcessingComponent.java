@@ -73,8 +73,10 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     
     setPreferredSize(new Dimension(600, 400));
 
-    cbDiffMSn = GUIUtils.addCheckbox(this, "Use different settings for MS^1 and MS^n", this, "CBX_DIFFMSN",
+    cbDiffMSn = GUIUtils.addCheckbox(this, "Use different settings for " + MSLevel.MSONE.toString() + " and " + MSLevel.MSMS.toString(), this, "CBX_DIFFMSN",
         "If enabled, MS^1 and MS^n processing will use different parameters. The currently used settings are highlighted in green.");
+    cbDiffMSn.setSelected(DataPointProcessingManager.getInst().getProcessingParameters().isDifferentiateMSn());
+    
     add(cbDiffMSn, BorderLayout.NORTH);
 
     setupTreeViews();
@@ -102,10 +104,10 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     if (e.getActionCommand().equals("BTN_ADD")) {
       addSelectedModule();
-      sendValueWrapper();
+//      sendValueWrapper();
     } else if (e.getActionCommand().equals("BTN_REMOVE")) {
       removeModule();
-      sendValueWrapper();
+//      sendValueWrapper();
     } else if (e.getActionCommand().equals("BTN_SET_PARAMETERS")) {
       DefaultMutableTreeNode item = getSelectedItem(tvProcessing);
       if (item != null)
@@ -116,7 +118,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
         DPPParameterValueWrapper value = new DPPParameterValueWrapper();
         value.loadFromFile(file);
         setValueFromValueWrapper(value);
-        sendValueWrapper();
+//        sendValueWrapper();
       }
     } else if (e.getActionCommand().equals("BTN_SAVE")) {
       final File file = chooser.getSaveFile(this, XML_EXTENSION);
@@ -125,9 +127,9 @@ public class ProcessingComponent extends JPanel implements ActionListener {
         value.saveToFile(file);
       }
     } else if(e.getActionCommand().equals("CBX_DIFFMSN")) {
+//      sendValueWrapper();
       ((DefaultTreeModel)tvProcessing.getModel()).reload();
       expandAllNodes(tvProcessing);
-      sendValueWrapper();
     }
     // else if(e.getActionCommand().equals("BTN_SET_DEFAULT")) {
     // final File file = chooser.getLoadFile(DPPSetupWindow.getInstance().getFrame());
@@ -140,8 +142,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
   private void setupTreeViews() {
     tiProcessingRoot = new DefaultMutableTreeNode("Processing queues");
-    msLevelNodes = new DPPMSLevelTreeNode[MSLevel.values().length];
-    for(MSLevel mslevel : MSLevel.values()) {
+    msLevelNodes = new DPPMSLevelTreeNode[MSLevel.cropValues().length];
+    for(MSLevel mslevel : MSLevel.cropValues()) {
       msLevelNodes[mslevel.ordinal()] = new DPPMSLevelTreeNode(mslevel);
       tiProcessingRoot.add(msLevelNodes[mslevel.ordinal()]);
     }
@@ -175,7 +177,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     tvProcessing = new JTree(tiProcessingRoot);
     tvAllModules = new JTree(tiAllModulesRoot);
 
-    tvProcessing.setCellRenderer(new HighlightTreeCellRenderer(msLevelNodes));
+    tvProcessing.setCellRenderer(new HighlightTreeCellRenderer(cbDiffMSn));
     
     tvAllModules.setRootVisible(true);
     tvProcessing.setRootVisible(true);
@@ -218,7 +220,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
         // store the parameters in the tree item
         selected.setDialogShowing(false);
         selected.setParameters(stepParameters);
-        sendValueWrapper(); // update the list
+//        sendValueWrapper(); // update the list
       }
     }
 
@@ -305,7 +307,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     Boolean val = Boolean.valueOf(cbDiffMSn.isSelected());
     value.setDifferentiateMSn(val);
     
-    for(MSLevel mslevel : MSLevel.values())
+    for(MSLevel mslevel : MSLevel.cropValues())
       value.setQueue(mslevel, getProcessingQueueFromNode(getNodeByMSLevel(mslevel)));
 
     return value;
@@ -360,7 +362,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
 
     DataPointProcessingManager manager = DataPointProcessingManager.getInst();
 //    manager.clearProcessingSteps();
-    manager.setProcessingParameters(value);
+//    manager.setProcessingParameters(value);
   }
 
   /**
@@ -408,7 +410,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * @param valueWrapper
    */
   public void setValueFromValueWrapper(DPPParameterValueWrapper valueWrapper) {
-    for(MSLevel mslevel : MSLevel.values())
+    for(MSLevel mslevel : MSLevel.cropValues())
       setTreeViewProcessingItemsFromQueue(valueWrapper.getQueue(mslevel), mslevel);
     
     cbDiffMSn.setSelected(valueWrapper.isDifferentiateMSn());

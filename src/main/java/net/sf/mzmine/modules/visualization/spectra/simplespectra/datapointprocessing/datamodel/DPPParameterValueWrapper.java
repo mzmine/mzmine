@@ -44,17 +44,21 @@ public class DPPParameterValueWrapper {
   DataPointProcessingQueue[] queues;
   Boolean differentiateMSn;
 
-  private static final String MSANY_QUEUE_ELEMENT = "ms-any";
-  private static final String MSONE_QUEUE_ELEMENT = "ms-one";
-  private static final String MSMS_QUEUE_ELEMENT = "ms-ms";
+//  private static final String MSANY_QUEUE_ELEMENT = "ms-any";
+//  private static final String MSONE_QUEUE_ELEMENT = "ms-one";
+//  private static final String MSMS_QUEUE_ELEMENT = "ms-ms";
+  private final String[] MSLEVEL_VALUE_ELEMENT = new String[MSLevel.cropValues().length];
   private static final String WRAPPER_ELEMENT = "queuewrapper";
   private static final String MSLEVEL_ELEMENT = "mslevel";
   private static final String DIFFMSN_ELEMENT = "differentiatemsn";
   private static final String MAINFILE_ELEMENT = "DPPParameters";
 
   public DPPParameterValueWrapper() {
+    for(MSLevel mslevel : MSLevel.cropValues())
+      MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()] = mslevel.toString();
+    
     differentiateMSn = false;
-    queues = new DataPointProcessingQueue[MSLevel.values().length];
+    queues = new DataPointProcessingQueue[MSLevel.cropValues().length];
     for (int i = 0; i < queues.length; i++) {
       queues[i] = new DataPointProcessingQueue();
     }
@@ -87,7 +91,7 @@ public class DPPParameterValueWrapper {
       errorMessage.add("Value of queues array == null.");
       return false;
     }
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < queues.length; i++) {
       if (queues[i] == null) {
         errorMessage.add("Value of queues[" + i + "] == null.");
         val = false;
@@ -99,25 +103,16 @@ public class DPPParameterValueWrapper {
   public void saveValueToXML(@Nonnull Element xmlElement) {
     final Document document = xmlElement.getOwnerDocument();
 
-    final Element msanyElement = document.createElement(WRAPPER_ELEMENT);
-    msanyElement.setAttribute(MSLEVEL_ELEMENT, MSANY_QUEUE_ELEMENT);
-    final Element msoneElement = document.createElement(WRAPPER_ELEMENT);
-    msoneElement.setAttribute(MSLEVEL_ELEMENT, MSONE_QUEUE_ELEMENT);
-    final Element msmsElement = document.createElement(WRAPPER_ELEMENT);
-    msmsElement.setAttribute(MSLEVEL_ELEMENT, MSMS_QUEUE_ELEMENT);
+    final Element[] msLevelElements = new Element[MSLevel.cropValues().length];
+    
     xmlElement.setAttribute(DIFFMSN_ELEMENT, differentiateMSn.toString());
-
-    xmlElement.appendChild(msanyElement);
-    xmlElement.appendChild(msoneElement);
-    xmlElement.appendChild(msmsElement);
-
-
-    if (queues[0] != null)
-      queues[0].saveToXML(msanyElement);
-    if (queues[1] != null)
-      queues[1].saveToXML(msoneElement);
-    if (queues[2] != null)
-      queues[2].saveToXML(msmsElement);
+    
+    for(MSLevel mslevel : MSLevel.cropValues()) {
+      msLevelElements[mslevel.ordinal()] = document.createElement(WRAPPER_ELEMENT);
+      msLevelElements[mslevel.ordinal()].setAttribute(MSLEVEL_ELEMENT, MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()]);
+      xmlElement.appendChild(msLevelElements[mslevel.ordinal()]);
+      queues[mslevel.ordinal()].saveToXML(msLevelElements[mslevel.ordinal()]);
+    }
   }
 
   public void loadfromXML(final @Nonnull Element xmlElement) {
@@ -131,12 +126,11 @@ public class DPPParameterValueWrapper {
       final Element queueElement = (Element) nodes.item(i);
       final String levelName = queueElement.getAttribute(MSLEVEL_ELEMENT);
 
-      if (levelName.equals(MSANY_QUEUE_ELEMENT))
-        queues[0] = DataPointProcessingQueue.loadfromXML(queueElement);
-      if (levelName.equals(MSONE_QUEUE_ELEMENT))
-        queues[1] = DataPointProcessingQueue.loadfromXML(queueElement);
-      if (levelName.equals(MSMS_QUEUE_ELEMENT))
-        queues[2] = DataPointProcessingQueue.loadfromXML(queueElement);
+      for(MSLevel mslevel : MSLevel.cropValues()) {
+        if(levelName.equals(MSLEVEL_VALUE_ELEMENT[mslevel.ordinal()])) {
+          queues[mslevel.ordinal()] = DataPointProcessingQueue.loadfromXML(queueElement);
+        }
+      }
     }
   }
 
@@ -197,7 +191,7 @@ public class DPPParameterValueWrapper {
   public DPPParameterValueWrapper clone() {
     DPPParameterValueWrapper clone = new DPPParameterValueWrapper();
     clone.setDifferentiateMSn(this.isDifferentiateMSn());
-    for (MSLevel mslevel : MSLevel.values())
+    for (MSLevel mslevel : MSLevel.cropValues())
       clone.setQueue(mslevel, getQueue(mslevel).clone());
     return clone;
   }
@@ -206,7 +200,7 @@ public class DPPParameterValueWrapper {
     if (differentiateMSn == null)
       differentiateMSn = false;
     if (queues == null)
-      queues = new DataPointProcessingQueue[MSLevel.values().length];
+      queues = new DataPointProcessingQueue[MSLevel.cropValues().length];
     for (int i = 0; i < queues.length; i++) {
       if (queues[i] == null)
         queues[i] = new DataPointProcessingQueue();

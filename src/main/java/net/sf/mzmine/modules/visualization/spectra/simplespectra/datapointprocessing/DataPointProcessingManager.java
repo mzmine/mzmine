@@ -81,7 +81,7 @@ public class DataPointProcessingManager implements MZmineModule {
       return name;
     }
 
-    public static MSLevel[] croppedValues() {
+    public static MSLevel[] cropValues() {
       MSLevel[] values = MSLevel.values();
       MSLevel[] array = new MSLevel[values.length - 1];
       for (int i = 0; i < array.length; i++)
@@ -117,6 +117,10 @@ public class DataPointProcessingManager implements MZmineModule {
     }
     return parameters;
   }
+  
+  public void updateParameters() {
+    processingParameters = parameters.getParameter(DataPointProcessingParameters.processing).getValue();
+  }
 
   public MSLevel decideMSLevel(Scan scan) {
     int l = scan.getMSLevel();
@@ -128,7 +132,7 @@ public class DataPointProcessingManager implements MZmineModule {
       else
         return MSLevel.MSONE;
     }
-    return MSLevel.MSANY;
+    return MSLevel.MSONE;
   }
 
   /**
@@ -398,9 +402,9 @@ public class DataPointProcessingManager implements MZmineModule {
           "The processing list for " + mslevel.toString() + " was about to be set to null.");
   }
 
-  public void setProcessingParameters(@Nonnull DPPParameterValueWrapper value) {
-    this.processingParameters = value;
-  }
+//  public void setProcessingParameters(@Nonnull DPPParameterValueWrapper value) {
+//    this.processingParameters = value;
+//  }
 
   public DPPParameterValueWrapper getProcessingParameters() {
     return processingParameters;
