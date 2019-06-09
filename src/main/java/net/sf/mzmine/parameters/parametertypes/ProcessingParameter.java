@@ -5,14 +5,15 @@ import org.w3c.dom.Element;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPParameterValueWrapper;
 import net.sf.mzmine.parameters.UserParameter;
 
 public class ProcessingParameter
-    implements UserParameter<DataPointProcessingQueue, ProcessingComponent> {
+    implements UserParameter<DPPParameterValueWrapper, ProcessingComponent> {
 
   private String name;
   private String description;
-  private DataPointProcessingQueue value;
+  private DPPParameterValueWrapper value;
   private MSLevel mslevel;
 
   public ProcessingParameter(String name, String description) {
@@ -22,7 +23,7 @@ public class ProcessingParameter
   public ProcessingParameter(String name, String description, MSLevel mslevel) {
     this.name = name;
     this.description = description;
-    this.value = new DataPointProcessingQueue();
+    this.value = new DPPParameterValueWrapper();
     this.mslevel = mslevel;
     // if(queue == null)
     // this.value = DataPointProcessingManager.getInst().getProcessingQueue();
@@ -36,12 +37,12 @@ public class ProcessingParameter
   }
 
   @Override
-  public DataPointProcessingQueue getValue() {
+  public DPPParameterValueWrapper getValue() {
     return value;
   }
 
   @Override
-  public void setValue(DataPointProcessingQueue newValue) {
+  public void setValue(DPPParameterValueWrapper newValue) {
     this.value = newValue;
   }
 
@@ -56,13 +57,13 @@ public class ProcessingParameter
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    this.value = DataPointProcessingQueue.loadfromXML(xmlElement);
+    this.value.loadfromXML(xmlElement);
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
     if (value != null) 
-      value.saveToXML(xmlElement);
+      value.saveValueToXML(xmlElement);
   }
 
   @Override
@@ -72,7 +73,7 @@ public class ProcessingParameter
 
   @Override
   public ProcessingComponent createEditingComponent() {
-    ProcessingComponent comp = new ProcessingComponent(mslevel);
+    ProcessingComponent comp = new ProcessingComponent();
     // if(value != null)
     // comp.setTreeViewProcessingItemsFromQueue(value);
     return comp;
@@ -80,19 +81,19 @@ public class ProcessingParameter
 
   @Override
   public void setValueFromComponent(ProcessingComponent component) {
-    this.value = component.getProcessingQueueFromTreeView();
+    this.value = component.getValueFromComponent();
   }
 
   @Override
   public void setValueToComponent(ProcessingComponent component,
-      DataPointProcessingQueue newValue) {
-    component.setTreeViewProcessingItemsFromQueue(newValue);
+      DPPParameterValueWrapper newValue) {
+    component.setValueFromValueWrapper(newValue);
   }
 
   @Override
-  public UserParameter<DataPointProcessingQueue, ProcessingComponent> cloneParameter() {
+  public UserParameter<DPPParameterValueWrapper, ProcessingComponent> cloneParameter() {
     ProcessingParameter copy = new ProcessingParameter(name, description, mslevel);
-    copy.setValue(this.value);
+    copy.setValue(this.value.clone());
     return copy;
   }
 

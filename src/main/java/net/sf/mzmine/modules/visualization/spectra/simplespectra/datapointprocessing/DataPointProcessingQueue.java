@@ -70,7 +70,7 @@ public class DataPointProcessingQueue
 
       final Element stepElement = (Element) nodes.item(i);
       final String methodName = stepElement.getAttribute(METHOD_ELEMENT);
-      logger.info("loading method " + methodName);
+      logger.finest("loading method " + methodName);
 
       for (MZmineModule module : allModules) {
         if (module instanceof DataPointProcessingModule
@@ -145,7 +145,7 @@ public class DataPointProcessingQueue
       // Write to file and transform.
       transformer.transform(new DOMSource(document), new StreamResult(new FileOutputStream(file)));
 
-      logger.info("Saved " + this.size() + " processing step(s) to " + file.getName());
+      logger.finest("Saved " + this.size() + " processing step(s) to " + file.getName());
 
     } catch (ParserConfigurationException | TransformerFactoryConfigurationError
         | FileNotFoundException | TransformerException e) {
@@ -204,5 +204,16 @@ public class DataPointProcessingQueue
       return this.get(0);
     }
     return null;
+  }
+
+  public DataPointProcessingQueue clone() {
+    DataPointProcessingQueue clone = new DataPointProcessingQueue();
+
+    for (int i = 0; i < this.size(); i++) {
+      clone.add(new MZmineProcessingStepImpl<DataPointProcessingModule>(this.get(i).getModule(),
+          this.get(i).getParameterSet().cloneParameterSet()));
+    }
+
+    return clone;
   }
 }

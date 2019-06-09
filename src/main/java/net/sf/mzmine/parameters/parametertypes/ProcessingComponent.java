@@ -11,9 +11,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
@@ -30,8 +32,10 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPMSLevelTreeNode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleCategoryTreeNode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleTreeNode;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPParameterValueWrapper;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
@@ -51,19 +55,26 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   private JTree tvAllModules;
   private final JSplitPane split;
   private final JPanel buttonPanel;
+  private final JCheckBox cbDiffMSn;
 
   // File chooser
   private final LoadSaveFileChooser chooser;
   private static final String XML_EXTENSION = "xml";
-
-  private MSLevel mslevel;
-
-  public ProcessingComponent(MSLevel mslevel) {
+  
+  DefaultMutableTreeNode tiProcessingRoot;
+  DefaultMutableTreeNode tiAllModulesRoot;
+  
+  DPPMSLevelTreeNode[] msLevelNodes;
+  DPPMSLevelTreeNode tiLastTarget;
+  
+  public ProcessingComponent() {
     super(new BorderLayout());
+    
     setPreferredSize(new Dimension(600, 400));
 
-    this.mslevel = mslevel;
-
+    cbDiffMSn = GUIUtils.addCheckbox(this, "Split MS^1 and MS^n processing", this, "CBX_DIFFMSN",
+        "If enabled, MS^1 and MS^n processing will use different parameters.");
+    add(cbDiffMSn, BorderLayout.NORTH);
 
     setupTreeViews();
     split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tvProcessing, tvAllModules);
@@ -86,19 +97,14 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     super.repaint();
   }
 
-  public ProcessingComponent(MSLevel mslevel, @Nullable DataPointProcessingQueue queue) {
-    this(mslevel);
-    setTreeViewProcessingItemsFromQueue(queue);
-  }
-
   @Override
   public void actionPerformed(ActionEvent e) {
     if (e.getActionCommand().equals("BTN_ADD")) {
       addSelectedModule();
-      sendQueue();
+      sendValueWrapper();
     } else if (e.getActionCommand().equals("BTN_REMOVE")) {
       removeModule();
-      sendQueue();
+      sendValueWrapper();
     } else if (e.getActionCommand().equals("BTN_SET_PARAMETERS")) {
       DefaultMutableTreeNode item = getSelectedItem(tvProcessing);
       if (item != null)
@@ -106,16 +112,19 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     } else if (e.getActionCommand().equals("BTN_LOAD")) {
       final File file = chooser.getLoadFile(this);
       if (file != null) {
-        DataPointProcessingQueue queue = DataPointProcessingQueue.loadFromFile(file);
-        setTreeViewProcessingItemsFromQueue(queue);
-        sendQueue();
+        DPPParameterValueWrapper value = new DPPParameterValueWrapper();
+        value.loadFromFile(file);
+        setValueFromValueWrapper(value);
+        sendValueWrapper();
       }
     } else if (e.getActionCommand().equals("BTN_SAVE")) {
       final File file = chooser.getSaveFile(this, XML_EXTENSION);
       if (file != null) {
-        DataPointProcessingQueue queue = getProcessingQueueFromTreeView();
-        queue.saveToFile(file);
+        DPPParameterValueWrapper value = getValueFromComponent();
+        value.saveToFile(file);
       }
+    } else if(e.getActionCommand().equals("CBX_DIFFMSN")) {
+      sendValueWrapper();
     }
     // else if(e.getActionCommand().equals("BTN_SET_DEFAULT")) {
     // final File file = chooser.getLoadFile(DPPSetupWindow.getInstance().getFrame());
@@ -127,8 +136,14 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   }
 
   private void setupTreeViews() {
-    DefaultMutableTreeNode tiProcessingRoot = new DefaultMutableTreeNode("Processing queue");
-    DefaultMutableTreeNode tiAllModulesRoot = new DefaultMutableTreeNode("Modules");
+    tiProcessingRoot = new DefaultMutableTreeNode("Processing queues");
+    msLevelNodes = new DPPMSLevelTreeNode[MSLevel.values().length];
+    for(MSLevel mslevel : MSLevel.values()) {
+      msLevelNodes[mslevel.ordinal()] = new DPPMSLevelTreeNode(mslevel);
+      tiProcessingRoot.add(msLevelNodes[mslevel.ordinal()]);
+    }
+    
+    tiAllModulesRoot = new DefaultMutableTreeNode("Modules");
 
     // create category items dynamically, if a new category is added later on.
     DPPModuleCategoryTreeNode[] moduleCategories =
@@ -198,7 +213,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
         // store the parameters in the tree item
         selected.setDialogShowing(false);
         selected.setParameters(stepParameters);
-        sendQueue(); // update the list
+        sendValueWrapper(); // update the list
       }
     }
 
@@ -215,13 +230,6 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     if (selected instanceof DPPModuleTreeNode) {
       DPPModuleTreeNode node = (DPPModuleTreeNode) selected.clone();
       addModule(node);
-
-      if (!moduleFitsMSLevel(node.getModule()))
-        MZmineCore.getDesktop().displayMessage(null,
-            "The use of module \"" + node.getModule().getName() + "\" ("
-                + node.getModule().getApplicableMSLevel()
-                + ") is not recommended for processing scans of MS-level \"" + mslevel.toString()
-                + "\". This might lead to unexpected results.");
     } else {
       logger.finest("Cannot add item " + selected.toString() + " to " + this.getName() + ".");
     }
@@ -232,23 +240,37 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    */
   private void addModule(@Nonnull DPPModuleTreeNode node) {
     // a module cannot be added twice
-    if (treeContains(tvProcessing, node)) {
+    DPPMSLevelTreeNode target = getTargetNode();
+    if(target == null)
+      return;
+    addModule(node, target);
+  }
+  
+  /**
+   * Adds a module in the tvAllModules to the processing list
+   */
+  private void addModule(@Nonnull DPPModuleTreeNode node, @Nonnull DPPMSLevelTreeNode target) {
+    
+    if(target == null)
+      return;
+    
+    if (nodeContains(target, node)) {
       logger.finest("Cannot add module " + ((DPPModuleTreeNode) node).getModule().getName()
           + " to processing list twice.");
       return;
     }
-    if (!moduleFitsMSLevel(node.getModule())) {
+    if (!moduleFitsMSLevel(node.getModule(), target)) {
       logger.warning("The use of module \"" + node.getModule().getName() + "\" ("
           + node.getModule().getApplicableMSLevel()
-          + ") is not recommended for processing scans of MS-level \"" + mslevel.toString()
+          + ") is not recommended for processing scans of MS-level \"" + target.getMSLevel().toString()
           + "\". This might lead to unexpected results.");
     }
 
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
-    ((DefaultTreeModel) tvProcessing.getModel()).insertNodeInto(node, root, root.getChildCount());
+    ((DefaultTreeModel) tvProcessing.getModel()).insertNodeInto(node, target, target.getChildCount());
 
     logger.finest("Added module " + node.getModule().getName()
-        + " to " + mslevel.toString() + " processing list.");
+        + " to " + target.getMSLevel().toString() + " processing list.");
     expandAllNodes(tvProcessing);
   }
 
@@ -261,7 +283,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       return;
 
     if (selected instanceof DPPModuleTreeNode) {
-      ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).remove(selected);
+      DefaultMutableTreeNode parent = (DefaultMutableTreeNode) selected.getParent();
+      parent.remove(selected);
       // selected.removeFromParent();
       logger.finest("Removed module " + ((DPPModuleTreeNode) selected).getModule().getName()
           + " from processing list.");
@@ -269,20 +292,33 @@ public class ProcessingComponent extends JPanel implements ActionListener {
       logger.finest("Cannot remove item " + selected.toString() + " from processing list.");
     }
     ((DefaultTreeModel) tvProcessing.getModel()).reload();
+    expandAllNodes(tvProcessing);
   }
 
+  public @Nonnull DPPParameterValueWrapper getValueFromComponent() {
+    DPPParameterValueWrapper value = new DPPParameterValueWrapper();
+    Boolean val = Boolean.valueOf(cbDiffMSn.isSelected());
+    value.setDifferentiateMSn(val);
+    
+    for(MSLevel mslevel : MSLevel.values())
+      value.setQueue(mslevel, getProcessingQueueFromNode(getNodeByMSLevel(mslevel)));
+
+    return value;
+  }
+  
   /**
-   * Creates a DataPointProcessingQueue from the items currently in the tree view.
+   * Creates DataPointProcessingQueues from the items currently in the tree view.
    * 
    * @return Instance of DataPointProcessingQueue.
    */
-  public @Nonnull DataPointProcessingQueue getProcessingQueueFromTreeView() {
+  public @Nonnull DataPointProcessingQueue getProcessingQueueFromNode(DPPMSLevelTreeNode parentNode) {
     DataPointProcessingQueue list = new DataPointProcessingQueue();
 
-    if (((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).getChildCount() < 1)
+    if (parentNode.getChildCount() < 1)
       return list;
 
-    Enumeration<?> nodes = ((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).children();
+    Enumeration<?> nodes = parentNode.children();
+    
     do {
       DefaultMutableTreeNode item = (DefaultMutableTreeNode) nodes.nextElement();
       if (!(item instanceof DPPModuleTreeNode))
@@ -306,19 +342,20 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   }
 
   /**
-   * Sends the queue to the DataPointProcessingManager.
+   * Sends the queues to the DataPointProcessingManager.
    */
-  private void sendQueue() {
+  private void sendValueWrapper() {
     // if (((DefaultMutableTreeNode) tvProcessing.getModel().getRoot()).getChildCount() < 1)
     // return;
 
-    DataPointProcessingQueue queue = getProcessingQueueFromTreeView();
-    if (queue.isEmpty())
-      logger.info("Processing queue is empty. Sending empty list.");
+    List<String> errorMessage = new ArrayList<String>();
+    DPPParameterValueWrapper value = getValueFromComponent();
+    if (!value.checkValue(errorMessage))
+      logger.info(errorMessage.toString());
 
     DataPointProcessingManager manager = DataPointProcessingManager.getInst();
-    manager.clearProcessingSteps(mslevel);
-    manager.setProcessingQueue(mslevel, queue);
+//    manager.clearProcessingSteps();
+    manager.setProcessingParameters(value);
   }
 
   /**
@@ -348,16 +385,28 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * 
    * @param queue
    */
-  public void setTreeViewProcessingItemsFromQueue(@Nullable DataPointProcessingQueue queue) {
+  public void setTreeViewProcessingItemsFromQueue(@Nullable DataPointProcessingQueue queue, MSLevel level) {
     logger.info("Loading queue into tvProcessing...");
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode) tvProcessing.getModel().getRoot();
-    root.removeAllChildren();
-    ((DefaultTreeModel) tvProcessing.getModel()).reload();
+    DPPMSLevelTreeNode targetNode = getNodeByMSLevel(level);
+    
+    targetNode.removeAllChildren();
     Collection<DPPModuleTreeNode> moduleNodes = createTreeItemsFromQueue(queue);
     for (DPPModuleTreeNode node : moduleNodes) {
-      addModule(node);
+      addModule(node, targetNode);
     }
+    ((DefaultTreeModel) tvProcessing.getModel()).reload();
     expandAllNodes(tvProcessing);
+  }
+  
+  /**
+   * Sets the values of the component.
+   * @param valueWrapper
+   */
+  public void setValueFromValueWrapper(DPPParameterValueWrapper valueWrapper) {
+    for(MSLevel mslevel : MSLevel.values())
+      setTreeViewProcessingItemsFromQueue(valueWrapper.getQueue(mslevel), mslevel);
+    
+    cbDiffMSn.setSelected(valueWrapper.isDifferentiateMSn());
   }
 
   /**
@@ -366,20 +415,19 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * @param module
    * @return
    */
-  private boolean moduleFitsMSLevel(DataPointProcessingModule module) {
+  private boolean moduleFitsMSLevel(DataPointProcessingModule module, DPPMSLevelTreeNode target) {
     if (module.getApplicableMSLevel() == MSLevel.MSANY)
       return true;
-    if (module.getApplicableMSLevel() == this.mslevel)
+    if (module.getApplicableMSLevel() == target.getMSLevel())
       return true;
     return false;
   }
 
-  private boolean treeContains(@Nonnull JTree tree, @Nonnull DefaultMutableTreeNode comp) {
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode) tree.getModel().getRoot();
-    Enumeration<?> e = root.depthFirstEnumeration();
+  private boolean nodeContains(@Nonnull DefaultMutableTreeNode node, @Nonnull DefaultMutableTreeNode comp) {
+    Enumeration<?> e = node.depthFirstEnumeration();
     while (e.hasMoreElements()) {
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.nextElement();
-      if (node.toString().equalsIgnoreCase(comp.toString())) {
+      DefaultMutableTreeNode n = (DefaultMutableTreeNode) e.nextElement();
+      if (n.toString().equalsIgnoreCase(comp.toString())) {
         return true;
       }
     }
@@ -400,5 +448,23 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     for (int i = 0; i < tree.getRowCount(); i++) {
       tree.expandRow(i);
     }
+  }
+  
+  private @Nonnull DPPMSLevelTreeNode getTargetNode() {
+    DefaultMutableTreeNode n = getSelectedItem(tvProcessing);
+    
+    if(n instanceof DPPModuleTreeNode || n == tiProcessingRoot)
+      return tiLastTarget;
+    
+    if(n instanceof DPPMSLevelTreeNode)
+      tiLastTarget = (DPPMSLevelTreeNode) n;
+    if(tiLastTarget == null)
+      tiLastTarget = msLevelNodes[0];
+    
+    return tiLastTarget;
+  }
+  
+  private @Nonnull DPPMSLevelTreeNode getNodeByMSLevel(MSLevel mslevel){
+    return msLevelNodes[mslevel.ordinal()];
   }
 }

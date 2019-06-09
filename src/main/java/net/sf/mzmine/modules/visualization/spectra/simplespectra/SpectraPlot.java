@@ -50,6 +50,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
@@ -513,10 +514,11 @@ public class SpectraPlot extends EChartPanel {
     // if enabled, do the data point processing as set up by the user
     XYDataset dataSet = getMainScanDataSet();
     if (dataSet instanceof ScanDataSet) {
-
-      controller = new DataPointProcessingController(
-          inst.getProcessingQueue(inst.decideMSLevel(((ScanDataSet) dataSet).getScan())),
-          this, getMainScanDataSet().getDataPoints());
+      Scan scan = ((ScanDataSet) dataSet).getScan();
+      MSLevel mslevel = inst.decideMSLevel(scan);
+      controller =
+          new DataPointProcessingController(inst.getProcessingQueue(mslevel), this,
+              getMainScanDataSet().getDataPoints());
       inst.addController(controller);
     }
   }
