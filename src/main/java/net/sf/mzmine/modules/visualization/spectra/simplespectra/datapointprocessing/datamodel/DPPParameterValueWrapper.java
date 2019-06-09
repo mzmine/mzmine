@@ -203,10 +203,8 @@ public class DPPParameterValueWrapper {
   }
 
   private void checkValues() {
-    if (differentiateMSn == null) {
-      System.out.println("diffmsn == false");
+    if (differentiateMSn == null)
       differentiateMSn = false;
-    }
     if (queues == null)
       queues = new DataPointProcessingQueue[MSLevel.values().length];
     for (int i = 0; i < queues.length; i++) {
