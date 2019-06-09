@@ -16,11 +16,12 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**

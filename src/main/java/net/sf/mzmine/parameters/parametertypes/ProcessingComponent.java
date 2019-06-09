@@ -32,11 +32,12 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingQueue;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPMSLevelTreeNode;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleCategoryTreeNode;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPModuleTreeNode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.DPPParameterValueWrapper;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.DPPMSLevelTreeNode;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.DPPModuleCategoryTreeNode;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.DPPModuleTreeNode;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.HighlightTreeCellRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
@@ -72,8 +73,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     
     setPreferredSize(new Dimension(600, 400));
 
-    cbDiffMSn = GUIUtils.addCheckbox(this, "Split MS^1 and MS^n processing", this, "CBX_DIFFMSN",
-        "If enabled, MS^1 and MS^n processing will use different parameters.");
+    cbDiffMSn = GUIUtils.addCheckbox(this, "Use different settings for MS^1 and MS^n", this, "CBX_DIFFMSN",
+        "If enabled, MS^1 and MS^n processing will use different parameters. The currently used settings are highlighted in green.");
     add(cbDiffMSn, BorderLayout.NORTH);
 
     setupTreeViews();
@@ -124,6 +125,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
         value.saveToFile(file);
       }
     } else if(e.getActionCommand().equals("CBX_DIFFMSN")) {
+      ((DefaultTreeModel)tvProcessing.getModel()).reload();
+      expandAllNodes(tvProcessing);
       sendValueWrapper();
     }
     // else if(e.getActionCommand().equals("BTN_SET_DEFAULT")) {
@@ -172,6 +175,8 @@ public class ProcessingComponent extends JPanel implements ActionListener {
     tvProcessing = new JTree(tiProcessingRoot);
     tvAllModules = new JTree(tiAllModulesRoot);
 
+    tvProcessing.setCellRenderer(new HighlightTreeCellRenderer(msLevelNodes));
+    
     tvAllModules.setRootVisible(true);
     tvProcessing.setRootVisible(true);
     expandAllNodes(tvAllModules);
@@ -415,7 +420,7 @@ public class ProcessingComponent extends JPanel implements ActionListener {
    * @param module
    * @return
    */
-  private boolean moduleFitsMSLevel(DataPointProcessingModule module, DPPMSLevelTreeNode target) {
+  public static boolean moduleFitsMSLevel(DataPointProcessingModule module, DPPMSLevelTreeNode target) {
     if (module.getApplicableMSLevel() == MSLevel.MSANY)
       return true;
     if (module.getApplicableMSLevel() == target.getMSLevel())

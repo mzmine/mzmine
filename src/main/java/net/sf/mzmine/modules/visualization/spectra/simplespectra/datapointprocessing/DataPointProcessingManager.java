@@ -54,8 +54,21 @@ public class DataPointProcessingManager implements MZmineModule {
 
   private DPPParameterValueWrapper processingParameters;
 
+  /**
+   * Used by datapointprocessing methods to differentiate between MS^1 and MS/MS. Also used to
+   * dynamically load processing queues and create elements on the interface.
+   * 
+   * CAUTION: The method croppedValues() is used to dynamically create and load different processing
+   * queues and everything regarding them on the interface. When adding new Types to this enum, make
+   * sure MSANY stays the last one. MSANY is used by methods, that are applicable on any MS-level,
+   * but it does not get it's own processing queue. This is why croppedValues() exists and cuts off
+   * the last value of the values() method.
+   * 
+   * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+   *
+   */
   public enum MSLevel {
-    MSANY("MS-any"), MSONE("MS^1"), MSMS("MS^n");
+    MSONE("MS"), MSMS("MS/MS"), MSANY("MS-any");
 
     final String name;
 
@@ -66,6 +79,14 @@ public class DataPointProcessingManager implements MZmineModule {
     @Override
     public String toString() {
       return name;
+    }
+
+    public static MSLevel[] croppedValues() {
+      MSLevel[] values = MSLevel.values();
+      MSLevel[] array = new MSLevel[values.length - 1];
+      for (int i = 0; i < array.length; i++)
+        array[i] = values[i];
+      return array;
     }
   };
 
@@ -342,16 +363,15 @@ public class DataPointProcessingManager implements MZmineModule {
   /**
    * @param mslevel the ms level of the queue Clears the list of processing steps
    */
-  public void
-  clearProcessingSteps(MSLevel mslevel) {
+  public void clearProcessingSteps(MSLevel mslevel) {
     processingParameters.getQueue(mslevel).clear();
   }
-  
+
   /**
    * Clears all processings queues.
    */
   public void clearProcessingSteps() {
-    for(MSLevel mslevel : MSLevel.values())
+    for (MSLevel mslevel : MSLevel.values())
       processingParameters.getQueue(mslevel).clear();
   }
 
@@ -377,11 +397,11 @@ public class DataPointProcessingManager implements MZmineModule {
       logger.warning(
           "The processing list for " + mslevel.toString() + " was about to be set to null.");
   }
-  
+
   public void setProcessingParameters(@Nonnull DPPParameterValueWrapper value) {
     this.processingParameters = value;
   }
-  
+
   public DPPParameterValueWrapper getProcessingParameters() {
     return processingParameters;
   }

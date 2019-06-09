@@ -16,35 +16,35 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
 
 /**
- * Stores MSLevel in a tree item. Used to organize the tree view automatically. Every
- * {@link MSLevel} is automatically added in {@link ProcessingComponent}.
+ * Stores module categories in a tree item. Used to organize the tree view automatically. Every
+ * {@link ModuleSubCategory} is automatically added in {@link DPPSetupWindowController}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class DPPMSLevelTreeNode extends DefaultMutableTreeNode {
+public class DPPModuleCategoryTreeNode extends DefaultMutableTreeNode {
   /**
    * 
    */
   private static final long serialVersionUID = 1L;
-  private MSLevel mslevel;
+  private ModuleSubCategory category;
 
-  public DPPMSLevelTreeNode(MSLevel mslevel) {
-    super(mslevel.toString());
-    setMSLevel(mslevel);
+  public DPPModuleCategoryTreeNode(ModuleSubCategory category) {
+    super(category.getName());
+    setCategory(category);
   }
 
-  public MSLevel getMSLevel() {
-    return mslevel;
+  public ModuleSubCategory getCategory() {
+    return category;
   }
 
-  private void setMSLevel(MSLevel mslevel) {
-    this.mslevel = mslevel;
+  private void setCategory(ModuleSubCategory category) {
+    this.category = category;
   }
 }
