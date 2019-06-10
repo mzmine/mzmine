@@ -16,45 +16,47 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents;
 
-import javafx.scene.control.TreeItem;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
- * Stores {@link DataPointProcessingModule}s and their parameters in a tree item. All MZmineModules implementing
- * DataPointProcessingModule are automatically added in {@link DPPSetupWindowController}.
+ * Stores {@link DataPointProcessingModule}s and their parameters in a tree item. All MZmineModules
+ * implementing DataPointProcessingModule are automatically added in
+ * {@link DPPSetupWindowController}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class DPPModuleTreeItem extends TreeItem<String> {
-
-  private String name;
+public class DPPModuleTreeNode extends DisableableTreeNode {
   private DataPointProcessingModule module;
   private ModuleSubCategory subCat;
   private ParameterSet parameters;
+  private boolean dialogShowing;
 
-  public DPPModuleTreeItem(DataPointProcessingModule module) {
-    super(module.getName());
-    setName(module.getName());
-    setModule(module);
-    setSubCat(module.getModuleSubCategory());
-    setParameters(MZmineCore.getConfiguration().getModuleParameters(module.getClass()));
+  /**
+   * avoid usage of this constructor, this is only used to set up the all modules tree view.
+   * usually it is beneficial to set the parameters at creation.
+   * 
+   * @param module
+   */
+  public DPPModuleTreeNode(DataPointProcessingModule module) {
+    this(module, MZmineCore.getConfiguration().getModuleParameters(module.getClass()));
   }
 
-  public String getName() {
-    return name;
+  public DPPModuleTreeNode(DataPointProcessingModule module, ParameterSet parameters) {
+    super(module.getName());
+    setModule(module);
+    setSubCat(module.getModuleSubCategory());
+    setParameters(parameters);
+    setDialogShowing(false);
   }
 
   public DataPointProcessingModule getModule() {
     return module;
-  }
-
-  private void setName(String name) {
-    this.name = name;
   }
 
   private void setModule(DataPointProcessingModule module) {
@@ -75,5 +77,18 @@ public class DPPModuleTreeItem extends TreeItem<String> {
 
   public void setParameters(ParameterSet parameters) {
     this.parameters = parameters;
+  }
+
+  public boolean isDialogShowing() {
+    return dialogShowing;
+  }
+
+  public void setDialogShowing(boolean dialogShowing) {
+    this.dialogShowing = dialogShowing;
+  }
+
+  @Override
+  public DPPModuleTreeNode clone() {
+    return new DPPModuleTreeNode(module, getParameters().cloneParameterSet());
   }
 }

@@ -26,7 +26,7 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproce
  *
  */
 public enum ModuleSubCategory {
-  MASSDETECTION("Mass detection"), ISOTOPES("Isotopes"), IDENTIFICATION("Identification");
+  MASSDETECTION("Mass detection"), ISOTOPES("Isotopes"), IDENTIFICATION("Identification")/*, DUMMY("Dummy")*/;
 
   private final String name;
 

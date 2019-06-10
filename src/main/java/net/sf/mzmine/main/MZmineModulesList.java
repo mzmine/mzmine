@@ -221,6 +221,6 @@ public class MZmineModulesList {
       OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
 
       // Data point processing
-      DataPointProcessingManager.class, DPPMassDetectionModule.class, DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
-  };
+      DataPointProcessingManager.class, DPPMassDetectionModule.class,
+      DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class};
 }

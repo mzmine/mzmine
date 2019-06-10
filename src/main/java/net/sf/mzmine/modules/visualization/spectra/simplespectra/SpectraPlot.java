@@ -50,6 +50,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
@@ -224,11 +225,11 @@ public class SpectraPlot extends EChartPanel {
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
-    
+
     // set processingAllowed
     setProcessingAllowed(processingAllowed);
   }
-  
+
   public SpectraPlot(ActionListener masterPlot) {
     this(masterPlot, false);
   }
@@ -500,22 +501,24 @@ public class SpectraPlot extends EChartPanel {
     // if controller != null, processing on the current spectra has already been executed. When
     // loading a new spectrum, the controller is set to null in removeAllDataSets()
     DataPointProcessingManager inst = DataPointProcessingManager.getInst();
-    
+
     if (!isProcessingAllowed() || !inst.isEnabled())
       return;
-    
-    if(controller != null)
+
+    if (controller != null)
       controller = null;
 
     // if a controller is re-run then delete previous results
     removeDataPointProcessingResultDataSets();
-    
+
     // if enabled, do the data point processing as set up by the user
     XYDataset dataSet = getMainScanDataSet();
     if (dataSet instanceof ScanDataSet) {
-
-      controller = new DataPointProcessingController(inst.getProcessingQueue(), this,
-          getMainScanDataSet().getDataPoints());
+      Scan scan = ((ScanDataSet) dataSet).getScan();
+      MSLevel mslevel = inst.decideMSLevel(scan);
+      controller =
+          new DataPointProcessingController(inst.getProcessingQueue(mslevel), this,
+              getMainScanDataSet().getDataPoints());
       inst.addController(controller);
     }
   }
@@ -527,14 +530,14 @@ public class SpectraPlot extends EChartPanel {
   public void setProcessingAllowed(boolean processingAllowed) {
     this.processingAllowed = processingAllowed;
   }
-  
+
   public void removeDataPointProcessingResultDataSets() {
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof DPPResultsDataSet) {
-         plot.setDataset(i, null);
+        plot.setDataset(i, null);
       }
     }
   }
-  
+
 }
