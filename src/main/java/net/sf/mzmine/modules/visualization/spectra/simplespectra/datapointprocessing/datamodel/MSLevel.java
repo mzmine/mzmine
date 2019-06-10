@@ -1,5 +1,7 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel;
 
+import java.util.Arrays;
+
 /**
  * Used by datapointprocessing methods to differentiate between MS^1 and MS/MS. Also used to
  * dynamically load processing queues and create elements on the interface.
@@ -29,9 +31,6 @@ public enum MSLevel {
 
   public static MSLevel[] cropValues() {
     MSLevel[] values = MSLevel.values();
-    MSLevel[] array = new MSLevel[values.length - 1];
-    for (int i = 0; i < array.length; i++)
-      array[i] = values[i];
-    return array;
+    return Arrays.copyOf(values, values.length-1);
   }
 };

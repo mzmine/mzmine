@@ -18,32 +18,39 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents;
 
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
+import java.util.Enumeration;
+import javax.swing.tree.DefaultMutableTreeNode;
 
-/**
- * Stores MSLevel in a tree item. Used to organize the tree view automatically. Every
- * {@link MSLevel} is automatically added in {@link ProcessingComponent}.
- * 
- * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
- *
- */
-public class DPPMSLevelTreeNode extends DisableableTreeNode {
+public class DisableableTreeNode extends DefaultMutableTreeNode {
+
   /**
    * 
    */
   private static final long serialVersionUID = 1L;
-  private MSLevel mslevel;
 
-  public DPPMSLevelTreeNode(MSLevel mslevel) {
-    super(mslevel.toString());
-    setMSLevel(mslevel);
+  private boolean enabled;
+
+  public DisableableTreeNode(String string) {
+    super(string);
+    enabled = true;
   }
 
-  public MSLevel getMSLevel() {
-    return mslevel;
+  public boolean isEnabled() {
+    return enabled;
   }
 
-  private void setMSLevel(MSLevel mslevel) {
-    this.mslevel = mslevel;
+  /**
+   * Enables/Disables this node and all children nodes
+   */
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+
+    Enumeration<?> e = this.children();
+    while (e.hasMoreElements()) {
+      DefaultMutableTreeNode n = (DefaultMutableTreeNode) e.nextElement();
+      if (n instanceof DisableableTreeNode) {
+        ((DisableableTreeNode) n).setEnabled(isEnabled());
+      }
+    }
   }
 }

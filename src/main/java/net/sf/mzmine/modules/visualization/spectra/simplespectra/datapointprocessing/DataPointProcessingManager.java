@@ -78,13 +78,13 @@ public class DataPointProcessingManager implements MZmineModule {
       parameters =
           MZmineCore.getConfiguration().getModuleParameters(DataPointProcessingManager.class);
       processingParameters =
-          parameters.getParameter(DataPointProcessingParameters.processing).getValue();
+          parameters.getParameter(DataPointProcessingParameters.processingParameters).getValue();
     }
     return parameters;
   }
   
   public void updateParameters() {
-    processingParameters = parameters.getParameter(DataPointProcessingParameters.processing).getValue();
+    processingParameters = parameters.getParameter(DataPointProcessingParameters.processingParameters).getValue();
   }
 
   public MSLevel decideMSLevel(Scan scan) {
@@ -311,11 +311,11 @@ public class DataPointProcessingManager implements MZmineModule {
 
   public boolean isEnabled() {
     getParameters();
-    return getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).getValue();
+    return getParameters().getParameter(DataPointProcessingParameters.enableProcessing).getValue();
   }
 
   public void setEnabled(boolean enabled) {
-    getParameters().getParameter(DataPointProcessingParameters.spectraProcessing).setValue(enabled);
+    getParameters().getParameter(DataPointProcessingParameters.enableProcessing).setValue(enabled);
     logger.finest("Enabled changed to " + enabled);
   }
 
