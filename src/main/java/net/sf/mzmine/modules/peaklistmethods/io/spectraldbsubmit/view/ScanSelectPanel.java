@@ -23,6 +23,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.text.MessageFormat;
 import java.util.List;
@@ -50,18 +52,23 @@ import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.framework.documentfilter.DocumentSizeFilter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.AdductParser;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import net.sf.mzmine.util.ColorPalettes;
+import net.sf.mzmine.util.ColorPalettes.Vision;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
-public class ScanSelectPanel extends JPanel {
+public class ScanSelectPanel extends JPanel implements ActionListener {
+
+
+  public final Color colorRemovedData;
+  public final Color colorUsedData;
 
   private static final int SIZE = 40;
   // icons
@@ -94,12 +101,8 @@ public class ScanSelectPanel extends JPanel {
 
   private JPanel pnChart;
 
-  private boolean showLegend = true;
-
   private JToggleButton btnSignals;
-
   private JToggleButton btnMaxTic;
-
   private SpectraPlot spectrumPlot;
 
   private Consumer<EChartPanel> listener;
@@ -114,6 +117,8 @@ public class ScanSelectPanel extends JPanel {
   private JLabel lblChargeMz;
   private JButton btnFromScan;
 
+  private boolean showRemovedData = true;
+  private boolean showLegend = true;
   // MS1 or MS2
   private boolean isFragmentScan = true;
 
@@ -148,6 +153,11 @@ public class ScanSelectPanel extends JPanel {
 
   public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals,
       String massListName) {
+    // get colors for vision
+    Vision vision = MZmineCore.getConfiguration().getColorVision();
+    colorUsedData = ColorPalettes.getPositiveColor(vision);
+    colorRemovedData = ColorPalettes.getNegativeColor(vision);
+
     setBorder(new LineBorder(UIManager.getColor("textHighlight")));
     this.massListName = massListName;
     this.sort = sort;
@@ -473,24 +483,35 @@ public class ScanSelectPanel extends JPanel {
    */
   public void createChart() {
     setValidSelection(false);
-    EChartPanel oldChart = spectrumPlot;
-    // empty
     pnChart.removeAll();
-    spectrumPlot = null;
 
     if (scans != null && !scans.isEmpty()) {
-      Scan scan = scans.get(selectedScanI);
-      RawDataFile raw = scan.getDataFile();
       // get MS/MS spectra window only for the spectra chart
-      SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(raw);
-      spectraWindow.loadRawData(scan);
+      // create dataset
 
-      spectrumPlot = spectraWindow.getSpectrumPlot();
+      if (spectrumPlot == null) {
+        spectrumPlot = new SpectraPlot(this, false);
+        if (listener != null)
+          // chart has changed
+          listener.accept(spectrumPlot);
+      }
+      spectrumPlot.removeAllDataSets();
+
+      DataPointsDataSet data = new DataPointsDataSet("Data", getFilteredDataPoints());
+      // green
+      spectrumPlot.addDataSet(data, colorUsedData, false);
+      if (showRemovedData) {
+        // orange
+        DataPointsDataSet dataRemoved =
+            new DataPointsDataSet("Removed", getFilteredDataPointsRemoved());
+        spectrumPlot.addDataSet(dataRemoved, colorRemovedData, false);
+      }
       spectrumPlot.getChart().getLegend().setVisible(showLegend);
       spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
       spectrumPlot.setPreferredSize(chartSize);
       pnChart.add(spectrumPlot, BorderLayout.CENTER);
 
+      Scan scan = scans.get(selectedScanI);
       analyzeScan(scan);
       applySelectionState();
       setValidSelection(true);
@@ -503,12 +524,6 @@ public class ScanSelectPanel extends JPanel {
       error.setForeground(new Color(220, 20, 60));
       pnChart.add(error, BorderLayout.CENTER);
       //
-    }
-
-    // listener on change
-    if (listener != null && oldChart != spectrumPlot
-        && (oldChart != null && !oldChart.equals(spectrumPlot))) {
-      listener.accept(spectrumPlot);
     }
 
     revalidate();
@@ -540,6 +555,11 @@ public class ScanSelectPanel extends JPanel {
     }
   }
 
+  /**
+   * Remaining data points after filtering
+   * 
+   * @return
+   */
   @Nullable
   public DataPoint[] getFilteredDataPoints() {
     if (scans != null && !scans.isEmpty()) {
@@ -547,6 +567,22 @@ public class ScanSelectPanel extends JPanel {
       MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
       if (massList != null)
         return ScanUtils.getFiltered(massList.getDataPoints(), noiseLevel);
+    }
+    return null;
+  }
+
+  /**
+   * Removed data points
+   * 
+   * @return
+   */
+  @Nullable
+  public DataPoint[] getFilteredDataPointsRemoved() {
+    if (scans != null && !scans.isEmpty()) {
+      Scan scan = scans.get(selectedScanI);
+      MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+      if (massList != null)
+        return ScanUtils.getBelowThreshold(massList.getDataPoints(), noiseLevel);
     }
     return null;
   }
@@ -604,6 +640,10 @@ public class ScanSelectPanel extends JPanel {
     chartSize = dim;
   }
 
+  public void setShowRemovedData(boolean showRemovedData) {
+    this.showRemovedData = showRemovedData;
+  }
+
   /**
    * Valid spectrum and is selected? Still check for correct adduct
    * 
@@ -623,6 +663,12 @@ public class ScanSelectPanel extends JPanel {
 
   public boolean hasAdduct() {
     return !getAdduct().isEmpty();
+  }
+
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    // TODO Auto-generated method stub
+
   }
 
 }

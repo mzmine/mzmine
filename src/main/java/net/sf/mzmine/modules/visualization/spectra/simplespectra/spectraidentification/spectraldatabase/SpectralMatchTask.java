@@ -38,6 +38,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;

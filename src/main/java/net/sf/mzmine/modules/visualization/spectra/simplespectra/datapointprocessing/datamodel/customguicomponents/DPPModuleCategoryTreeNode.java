@@ -16,35 +16,35 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents;
 
-import javax.annotation.Nonnull;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
+import javax.swing.tree.DefaultMutableTreeNode;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ModuleSubCategory;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
 /**
+ * Stores module categories in a tree item. Used to organize the tree view automatically. Every
+ * {@link ModuleSubCategory} is automatically added in {@link DPPSetupWindowController}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public interface DataPointProcessingModule extends MZmineModule {
-
+public class DPPModuleCategoryTreeNode extends DefaultMutableTreeNode {
   /**
-   * @return The module sub category of this module.
+   * 
    */
-  @Nonnull
-  public ModuleSubCategory getModuleSubCategory();
+  private static final long serialVersionUID = 1L;
+  private ModuleSubCategory category;
 
-  @Nonnull
-  public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
-      SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener);
-  
-  @Nonnull
-  public MSLevel getApplicableMSLevel();
+  public DPPModuleCategoryTreeNode(ModuleSubCategory category) {
+    super(category.getName());
+    setCategory(category);
+  }
 
+  public ModuleSubCategory getCategory() {
+    return category;
+  }
+
+  private void setCategory(ModuleSubCategory category) {
+    this.category = category;
+  }
 }

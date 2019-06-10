@@ -27,6 +27,7 @@ import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
+import net.sf.mzmine.util.ColorPalettes.Vision;
 
 /**
  * MZmine configuration interface
@@ -70,5 +71,12 @@ public interface MZmineConfiguration {
   public String getRexecPath();
 
   public Boolean getSendStatistics();
+
+  /**
+   * For color blindness or "normal vision"
+   * 
+   * @return
+   */
+  public Vision getColorVision();
 
 }

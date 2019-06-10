@@ -1,45 +1,40 @@
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
-import java.awt.Window;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager.MSLevel;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.customguicomponents.ProcessingParameter;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.HiddenParameter;
-import net.sf.mzmine.parameters.parametertypes.ProcessingParameter;
-import net.sf.mzmine.util.ExitCode;
 
 public class DataPointProcessingParameters extends SimpleParameterSet {
   /**
    * Processing
    */
-  public static final HiddenParameter<BooleanParameter, Boolean> spectraProcessing =
+  public static final HiddenParameter<BooleanParameter, Boolean> enableProcessing =
       new HiddenParameter<>(new BooleanParameter("Enable Processing", "", false));
   
-  public static final HiddenParameter<ProcessingParameter, DataPointProcessingQueue> processingMSx = new HiddenParameter<>(new ProcessingParameter("Processing queue",
-      "Set the modules to be executed in the processing queue.", MSLevel.MSANY));
-  
-  public static final HiddenParameter<ProcessingParameter, DataPointProcessingQueue> processingMS1 = new HiddenParameter<>(new ProcessingParameter("MS^1 processing queue",
-      "Set the modules to be executed in the processing queue.", MSLevel.MSONE));
-  
-  public static final HiddenParameter<ProcessingParameter, DataPointProcessingQueue> processingMSn = new HiddenParameter<>(new ProcessingParameter("MS^n processing queue",
-      "Set the modules to be executed in the processing queue.", MSLevel.MSMS));
-  
-  public static final BooleanParameter differentiateMSn = new BooleanParameter("Split MS^1 and MS^n queue", "If ticked, different processing queues will be used for MS^1 and MS^n scans.", false);
-  
-  @Override
-  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    if ((getParameters() == null) || (getParameters().length == 0))
-      return ExitCode.OK;
-
-    ParameterSetupDialog dialog =
-        new DataPointProcessingSetupDialog(parent, valueCheckRequired, this);
-    dialog.setVisible(true);
-    return dialog.getExitCode();
-  }
+  public static final ProcessingParameter processingParameters = new ProcessingParameter("Processing queues",
+      "Set the modules to be executed in the processing queue.");
 
   public DataPointProcessingParameters() {
-    super(new Parameter[] {differentiateMSn, spectraProcessing, processingMSx, processingMS1, processingMSn});
+    super(new Parameter[] {processingParameters, enableProcessing});
   }
 }
