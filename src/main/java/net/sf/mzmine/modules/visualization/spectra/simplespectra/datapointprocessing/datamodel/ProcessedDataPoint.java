@@ -46,26 +46,23 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * @param dp DataPoints to convert.
    * @return Array of ProcessedDataPoints from DataPoints.
    */
-  public static ProcessedDataPoint[] convert(DataPoint[] dp) {
-    if (dp == null)
-      return new ProcessedDataPoint[0];
-
+  public static ProcessedDataPoint[] convert(@Nonnull DataPoint[] dp) {
     ProcessedDataPoint[] pdp = new ProcessedDataPoint[dp.length];
     for (int i = 0; i < pdp.length; i++)
       pdp[i] = new ProcessedDataPoint(dp[i]);
     return pdp;
   }
 
-  public ProcessedDataPoint(DataPoint dp) {
+  public ProcessedDataPoint(@Nonnull DataPoint dp) {
     super(dp);
   }
 
-  public ProcessedDataPoint(DataPoint dp, DPPResult<?> result) {
+  public ProcessedDataPoint(@Nonnull DataPoint dp, @Nonnull DPPResult<?> result) {
     this(dp);
     addResult(result);
   }
 
-  public ProcessedDataPoint(DataPoint dp, Collection<DPPResult<?>> results) {
+  public ProcessedDataPoint(@Nonnull DataPoint dp, @Nonnull Collection<DPPResult<?>> results) {
     this(dp);
     addAllResults(results);
   }
