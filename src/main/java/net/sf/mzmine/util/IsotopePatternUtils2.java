@@ -264,6 +264,7 @@ public class IsotopePatternUtils2 {
     Collections.sort(results, (o1, o2) -> {
       return Double.compare(o1.getPeak().getMZ(), o2.getPeak().getMZ());      
     });
+    dp.removeAllResultsByType(ResultType.ISOTOPICPEAK);
     for(DPPIsotopicPeakResult r : results)
       dp.addResult(r);
   }
