@@ -2,23 +2,22 @@ package net.sf.mzmine.util;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import org.openscience.cdk.interfaces.IIsotope;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopeCompositionResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopicPeakResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -75,17 +74,17 @@ public class IsotopePatternUtils2 {
   }
 
   /**
-   * Searches for an isotope pattern (pattern) of the data point dp within an array of data points
-   * by the patterns m/z differences.
+   * Searches for an isotopic peaks (pattern) of the data point dp within an array of data points
+   * by the elements m/z differences.
    * 
    * @param dp the base peak with lowest m/z.
    * @param originalDataPoints All the data points in consideration for isotope peaks.
    * @param mzTolerance the m/z tolerance.
-   * @param pattern The isotope pattern to search for.
+   * @param pattern The isotope pattern of an element to search for.
    * @param mzrange the range of m/z to search for isotope peaks.
    * @return dp will be modified and given an DPPIsotopePatternResult.
    */
-  public static ProcessedDataPoint findIsotopePatterns(ProcessedDataPoint dp,
+  public static ProcessedDataPoint findIsotopicPeaks(ProcessedDataPoint dp,
       ProcessedDataPoint[] originalDataPoints, MZTolerance mzTolerance,
       ExtendedIsotopePattern pattern, Range<Double> mzrange, int maxCharge) {
     // dp is the peak we are currently searching an isotope pattern for
@@ -127,346 +126,178 @@ public class IsotopePatternUtils2 {
       // ok every peak has been found, now assign the pattern and link the data points
       // this adds the isotope to the assigned peak, so we can keep track of the elemental
       // composition later on
-      for (int isotopeIndex = 0; isotopeIndex < numIsotopes; isotopeIndex++) {
+      for (int isotopeIndex = 1; isotopeIndex < numIsotopes; isotopeIndex++) { // TODO; changed to 1
+                                                                               // here
         ProcessedDataPoint p = bestdp[isotopeIndex];
-        if (p.resultTypeExists(ResultType.ISOTOPECOMPOSITION))
-          ((DPPIsotopeCompositionResult) p.getFirstResultByType(ResultType.ISOTOPECOMPOSITION))
-              .add(pattern.getIsotopeComposition(isotopeIndex));
-        else
-          p.addResult(new DPPIsotopeCompositionResult(pattern.getIsotopeComposition(isotopeIndex)));
+        dp.addResult(
+            new DPPIsotopicPeakResult(p, pattern.getIsotopeComposition(isotopeIndex), i_charge));
       }
 
-      IsotopePattern patternx =
-          new SimpleIsotopePattern(bestdp, IsotopePatternStatus.DETECTED, pattern.getDescription()); // pattern.getDescription()
-                                                                                                     // is
-      dp.addResult(new DPPIsotopePatternResult(patternx, bestdp, i_charge));
+      // IsotopePattern patternx =
+      // new SimpleIsotopePattern(bestdp, IsotopePatternStatus.DETECTED, pattern.getDescription());
+      // // pattern.getDescription()
+      // is
+      // dp.addResult(new DPPIsotopePatternResult(patternx, bestdp, i_charge));
     }
 
     return dp;
   }
 
-  /**
-   * Loops through an array of data points and merges isotope patterns together from high m/z to low
-   * m/z.
-   * 
-   * @param originalDataPoints
-   * @return
-   */
-  public static List<ProcessedDataPoint> mergeDetectedPatterns(
-      ProcessedDataPoint[] originalDataPoints, int maxCharge) {
+  // new-new
+  public static void mergeIsotopicPeakResults(ProcessedDataPoint parent) {
 
-    // now we looped through all dataPoints and link the found isotope patterns together
-    // we start from the back so we can just accumulate them by merging the linked the
-    // peaks/patterns
-    List<ProcessedDataPoint> results = new ArrayList<ProcessedDataPoint>();
+    List<DPPIsotopicPeakResult> iprs = getIsotopicPeakResults(parent);
 
-    for (int i_dp = originalDataPoints.length - 1; i_dp >= 0; i_dp--) {
-      ProcessedDataPoint dp = originalDataPoints[i_dp];
+    if (iprs.isEmpty())
+      return;
 
-      mergeIsotopePatternResults(dp, results, maxCharge);
-      // mergeIsotopePatternResults(dp);
+    List<Integer> charges = getChargeStates(iprs);
 
+    for (DPPIsotopicPeakResult ipr : iprs) {
+      ProcessedDataPoint child = ipr.getPeak();
+      if (child == parent)
+        continue;
+
+      mergeIsotopicPeakResults(child);
+
+      List<DPPIsotopicPeakResult> childIPRS = getIsotopicPeakResults(child);
+      for (DPPIsotopicPeakResult childIPR : childIPRS) {
+        if (charges.contains(childIPR.getCharge())) {
+          // make new result, combine isotopes
+          DPPIsotopicPeakResult newResult = new DPPIsotopicPeakResult(childIPR.getPeak(),
+              ipr.getIsotope() + " " + childIPR.getIsotope(), childIPR.getCharge());
+          
+          parent.addResult(newResult);
+          child.removeResult(childIPR);
+//          childIPRS.remove(childIPR);
+        }
+      }
+//      child.removeAllResultsByType(ResultType.ISOTOPICPEAK);
+//      iprs.remove(ipr);
     }
+  }
 
-    results.sort((o1, o2) -> {
-      return Double.compare(o1.getMZ(), o2.getMZ());
-    });
+  /**
+   * Returns a list of all DPPIsotopicPeakResults
+   * 
+   * @param dp the ProcessedDataPoint to gather the list from.
+   * @return List of all results, empty if no such results exists.
+   */
+  public static @Nonnull List<DPPIsotopicPeakResult> getIsotopicPeakResults(
+      @Nonnull ProcessedDataPoint dp) {
+    List<DPPIsotopicPeakResult> results = new ArrayList<>();
+
+    if (!dp.resultTypeExists(ResultType.ISOTOPICPEAK))
+      return results;
+
+    List<DPPResult<?>> patternResults = dp.getAllResultsByType(ResultType.ISOTOPICPEAK);
+
+    for (int i = 0; i < patternResults.size(); i++)
+      results.add((DPPIsotopicPeakResult) patternResults.get(i));
 
     return results;
   }
 
-  /*
-   * public static ProcessedDataPoint mergeIsotopePatternResults(ProcessedDataPoint dp) {
+  /**
+   * Takes all DPPIsotopicPeakResults of one charge and puts them into one isotope pattern (per
+   * charge).
    * 
-   * if (dp == null) return dp;
-   * 
-   * if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) { // ok, the data point does have an
-   * isotope pattern assigned to it List<DPPResult<?>> patternResults =
-   * dp.getAllResultsByType(ResultType.ISOTOPEPATTERN); List<Integer> charges = getChargeStates(dp);
-   * logger.info(format.format(dp.getMZ()) + " has the charge states: " + charges.toString());
-   * 
-   * // logger.info("m/z " + dp.getMZ() + " has " + patternResults.size() + " pattern results.");
-   * 
-   * List<ProcessedDataPoint> patterndp = new ArrayList<>();
-   * 
-   * Collection<DPPResult<?>> newResults = new ArrayList<>(); // let's check if the peaks in the
-   * isotope pattern have isotope patterns assigned to them
-   * 
-   * DPPIsotopeCompositionResult baseComposition = (DPPIsotopeCompositionResult)
-   * dp.getFirstResultByType(ResultType.ISOTOPECOMPOSITION);
-   * 
-   * for (Integer charge : charges) {
-   * 
-   * patterndp.add(dp);
-   * 
-   * for (int k_pr = 0; k_pr < patternResults.size(); k_pr++) { // we get every isotope pattern,
-   * that has been assigned to dp DPPIsotopePatternResult patternResult = (DPPIsotopePatternResult)
-   * patternResults.get(k_pr);
-   * 
-   * if (patternResult.getCharge() != charge) continue;
-   * 
-   * ProcessedDataPoint[] linkedDataPoints = patternResult.getLinkedDataPoints();
-   * dp.removeResult(patternResult);
-   * 
-   * for (ProcessedDataPoint p : linkedDataPoints) {
-   * 
-   * if(dp == p) continue;
-   * 
-   * if(p.resultTypeExists(ResultType.ISOTOPEPATTERN)) mergeIsotopePatternResults(p);
-   * 
-   * if (!patterndp.contains(p)) { patterndp.add(p);
-   * 
-   * if (baseComposition != null) ((DPPIsotopeCompositionResult) p
-   * .getFirstResultByType(ResultType.ISOTOPECOMPOSITION)) .addAll(baseComposition.getValue()); } }
-   * 
-   * }
-   * 
-   * // remove duplicates by adding to a hash set Set<ProcessedDataPoint> set = new
-   * LinkedHashSet<>(); set.addAll(patterndp); patterndp.clear(); patterndp.addAll(set);
-   * 
-   * patterndp.sort((o1, o2) -> { return Double.compare(o1.getMZ(), o2.getMZ()); });
-   * ProcessedDataPoint[] array = patterndp.toArray(new ProcessedDataPoint[0]); patterndp.clear();
-   * 
-   * newResults.add(new DPPIsotopePatternResult(new SimpleIsotopePattern(array,
-   * IsotopePatternStatus.DETECTED, format.format(dp.getMZ())), array, charge.intValue())); }
-   * 
-   * dp.removeResults(patternResults); dp.addAllResults(newResults); logger.finest("FINAL: " +
-   * format.format(dp.getMZ()) + " pattern: " + getResultIsoComp( (DPPIsotopePatternResult)
-   * dp.getFirstResultByType(ResultType.ISOTOPEPATTERN))); }
-   * 
-   * 
-   * return dp; }
-   * 
-   * public static List<ProcessedDataPoint> getAllPatternResultDatapoints(ProcessedDataPoint dp, int
-   * charge) {
-   * 
-   * Set<ProcessedDataPoint> dataPoints = new LinkedHashSet<>();
-   * 
-   * if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) { List<DPPResult<?>> patternResults =
-   * dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-   * 
-   * for (int k_pr = 0; k_pr < patternResults.size(); k_pr++) { // we get every isotope pattern,
-   * that has been assigned to dp DPPIsotopePatternResult patternResult = (DPPIsotopePatternResult)
-   * patternResults.get(k_pr);
-   * 
-   * if(patternResult.getCharge() == charge) { for(ProcessedDataPoint p :
-   * patternResult.getLinkedDataPoints()) dataPoints.add(p); } } }
-   * 
-   * List<ProcessedDataPoint> results = new ArrayList<>(); results.addAll(dataPoints); results.sort(
-   * (o1, o2) -> { return Double.compare(o1.getMZ(), o2.getMZ()); }); return results; }
+   * @param dp A ProcessedDataPoint
+   * @param keepResults if false, all DPPIsotopicPeakResults will be removed from this data point.
    */
+  public static void convertIsotopicPeakResultsToPattern(ProcessedDataPoint dp,
+      boolean keepResults) {
+    List<DPPIsotopicPeakResult> iprs = getIsotopicPeakResults(dp);
 
-  public static void mergeIsotopePatternResults(ProcessedDataPoint dp) {
-    if(!dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+    if (iprs.isEmpty())
       return;
+
+    List<Integer> charges = getChargeStates(iprs);
+    List<ProcessedDataPoint> peaks = new ArrayList<>();
+    List<String> isotopes = new ArrayList<>();
+
+    peaks.add(dp);
+    isotopes.add("");
     
+    for (int charge : charges) {
+      for (DPPIsotopicPeakResult ipr : iprs) {
+        if (ipr.getCharge() == charge) {
+          peaks.add(ipr.getPeak());
+          isotopes.add(ipr.getIsotope());
+        }
+      }
+      ProcessedDataPoint dps[] = peaks.toArray(new ProcessedDataPoint[0]);
+      String[] isos = isotopes.toArray(new String[0]);
+
+      ExtendedIsotopePattern pattern =
+          new ExtendedIsotopePattern(dps, IsotopePatternStatus.DETECTED,
+              dp.getMZ() + " (" + dp.getNumberOfResultsByType(ResultType.ISOTOPICPEAK), isos);
+
+      dp.addResult(new DPPIsotopePatternResult(pattern,
+          (ProcessedDataPoint[]) pattern.getDataPoints(), charge));
+
+      peaks.clear();
+      isotopes.clear();
+    }
+    if (!keepResults)
+      dp.removeAllResultsByType(ResultType.ISOTOPICPEAK);
+  }
+
+
+  // old-new
+  public static void mergeIsotopePatternResults(ProcessedDataPoint dp) {
+    if (!dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+      return;
+
     List<DPPIsotopePatternResult> patternResults = getIsotopePatternResuls(dp);
     List<DPPResult<?>> newResults = new ArrayList<>();
-    
-    for(DPPIsotopePatternResult dpPatternResult : patternResults) {
+
+    for (DPPIsotopePatternResult dpPatternResult : patternResults) {
       ProcessedDataPoint[] dpPattern = dpPatternResult.getLinkedDataPoints();
-      
+
       int patternCharge = dpPatternResult.getCharge();
-      
-      for(ProcessedDataPoint p : dpPattern) {
+
+      for (ProcessedDataPoint p : dpPattern) {
         List<DPPIsotopePatternResult> pPatternResults = getIsotopePatternResuls(p);
-        
-        for(DPPIsotopePatternResult pPatternResult : pPatternResults) {
-          if(pPatternResult.getCharge() != patternCharge)
+
+        for (DPPIsotopePatternResult pPatternResult : pPatternResults) {
+          if (pPatternResult.getCharge() != patternCharge)
             continue;
-          
+
           ProcessedDataPoint[] dataPoints = pPatternResult.getLinkedDataPoints();
           p.removeResult(pPatternResult);
-          
-          newResults.add(new DPPIsotopePatternResult(new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.DETECTED, ""), dataPoints, patternCharge));
+
+          newResults.add(new DPPIsotopePatternResult(
+              new SimpleIsotopePattern(dataPoints, IsotopePatternStatus.DETECTED, ""), dataPoints,
+              patternCharge));
         }
       }
     }
-    
+
     dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
     dp.addAllResults(newResults);
-    
+
     logger.finest("-------------------------");
-    for(DPPResult<?> result : newResults)
-    logger.finest("FINAL: " + format.format(dp.getMZ()) + " pattern: " + getResultIsoComp(
-        (DPPIsotopePatternResult) result));
-    
+    for (DPPResult<?> result : newResults)
+      logger.finest("FINAL: " + format.format(dp.getMZ()) + " pattern: "
+          + getResultIsoComp((DPPIsotopePatternResult) result));
+
     // TODO: test
   }
 
-  public static @Nonnull List<DPPIsotopePatternResult> getIsotopePatternResuls(@Nonnull ProcessedDataPoint dp) {
+  public static @Nonnull List<DPPIsotopePatternResult> getIsotopePatternResuls(
+      @Nonnull ProcessedDataPoint dp) {
     List<DPPIsotopePatternResult> results = new ArrayList<>();
 
     if (!dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
       return results;
 
     List<DPPResult<?>> patternResults = dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-    
-    for(int i = 0; i < patternResults.size(); i++) 
+
+    for (int i = 0; i < patternResults.size(); i++)
       results.add((DPPIsotopePatternResult) patternResults.get(i));
-    
+
     return results;
-  }
-
-  /**
-   * Checks if a data point has isotope pattern results. In case that a peak of that isotope pattern
-   * contains an isotope pattern itself, they will be merged together and added to the isotope
-   * pattern of the original peak.
-   * 
-   * @param dp
-   * @param results
-   * @return
-   */
-  public static ProcessedDataPoint mergeIsotopePatternResults(ProcessedDataPoint dp,
-      List<ProcessedDataPoint> results, int maxCharge) {
-
-    if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-      // ok, the data point does have an isotope pattern assigned to it
-      List<DPPResult<?>> patternResults = dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-
-      // logger.info("m/z " + dp.getMZ() + " has " + patternResults.size() + " pattern results.");
-
-      // let's check if the peaks in the isotope pattern have isotope patterns assigned to them
-      for (int k_pr = 0; k_pr < patternResults.size(); k_pr++) {
-        // we get every isotope pattern, that has been assigned to dp
-        DPPIsotopePatternResult patternResult = (DPPIsotopePatternResult) patternResults.get(k_pr);
-        ProcessedDataPoint[] linkedDataPoints = patternResult.getLinkedDataPoints();
-        IsotopePattern pattern = patternResult.getValue();
-        int basePatternCharge = patternResult.getCharge();
-
-        List<ProcessedDataPoint> dpToAdd = new ArrayList<>();
-
-        // logger.info("Pattern " + k_pr + " contains " + linkedDataPoints.length + " peaks at " +
-        // dataPointsToString(linkedDataPoints));
-
-        // check the data points linked in the isotope pattern, if they contain isotope patterns
-        // themselves, if yes, add them to our list
-        for (ProcessedDataPoint linked : linkedDataPoints) {
-          // the base peak of the isotope pattern is the current peak
-          if (linked == dp)
-            continue;
-
-          // logger.info("Checking m/z " + linked.getMZ() + " for isotope patterns.");
-
-          // does the linked peak in the isotope pattern have an isotope pattern associated with
-          // it?
-          if (linked.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
-            List<DPPResult<?>> linkedPatternResults =
-                linked.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-
-            // go through every associated isotope pattern and add the data points to the list
-            for (int l_lpr = 0; l_lpr < linkedPatternResults.size(); l_lpr++) {
-              DPPIsotopePatternResult linkedPatternResult =
-                  (DPPIsotopePatternResult) linkedPatternResults.get(l_lpr);
-
-              // logger.info("adding isotope pattern of m/z " + format.format(linked.getMZ()) + "
-              // ("
-              // + dataPointsToString(linkedPatternResult.getLinkedDataPoints()) + ")"
-              // + " to " + format.format(dp.getMZ()));
-
-              // if the charge is the same, we can add this
-              if (linkedPatternResult.getCharge() == basePatternCharge) {
-                // now add the linked isotope pattern's data points
-                dpToAdd.addAll(Arrays.asList(linkedPatternResult.getLinkedDataPoints()));
-
-                // TODO: later on, think of something to keep track of the composition here
-                // now we update the isotope composition.
-                for (ProcessedDataPoint p : linkedPatternResult.getLinkedDataPoints()) {
-                  if (p == linked)
-                    continue;
-                  ((DPPIsotopeCompositionResult) p
-                      .getFirstResultByType(ResultType.ISOTOPECOMPOSITION))
-                          .addAll(((DPPIsotopeCompositionResult) linked
-                              .getFirstResultByType(ResultType.ISOTOPECOMPOSITION)).getValue());
-                }
-
-                // since we merged the isotope patterns now, we remove it from the linked peak
-                linked.removeResult(linkedPatternResult);
-
-                // since we merged the isotope pattern of the linked peak to dp, we can remove it
-                // here, to avoid duplicates
-                results.remove(linked);
-              }
-            }
-
-          } // else logger.info("No pattern at " + format.format(linked.getMZ()));
-          dpToAdd.add(linked);
-        }
-        dpToAdd.addAll(Arrays.asList(patternResult.getLinkedDataPoints()));
-
-        // remove duplicates by adding to a hash set
-        Set<ProcessedDataPoint> set = new LinkedHashSet<>();
-        set.addAll(dpToAdd);
-        dpToAdd.clear();
-        dpToAdd.addAll(set);
-
-        dpToAdd.sort((o1, o2) -> {
-          return Double.compare(o1.getMZ(), o2.getMZ());
-        });
-
-
-
-        dp.removeResult(patternResult);
-        ProcessedDataPoint[] dpToAddArray = dpToAdd.toArray(new ProcessedDataPoint[0]);
-        // can we just pass all previously linked peaks here?
-        dp.addResult(new DPPIsotopePatternResult(
-            new SimpleIsotopePattern(dpToAddArray, IsotopePatternStatus.DETECTED, ""), dpToAddArray,
-            basePatternCharge));
-
-        // logger.info("Adding datapoints " + dataPointsToString(dpToAddArray) + " to " +
-        // format.format(dp.getMZ()));
-      }
-
-      // now we merged all sub results, but we might still have more than one isotope pattern in
-      // dp, so let's merge them
-      int bestCharge = getBestChargeState(dp, maxCharge);
-      List<DPPResult<?>> newPatternResults = dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-      List<ProcessedDataPoint> pattern = new ArrayList<>();
-      for (int x = 0; x < newPatternResults.size(); x++) {
-        DPPIsotopePatternResult newPatternResult =
-            (DPPIsotopePatternResult) newPatternResults.get(x);
-        if (bestCharge == newPatternResult.getCharge())
-          pattern.addAll(Arrays.asList(newPatternResult.getLinkedDataPoints()));
-        dp.removeResult(newPatternResult); // remove anyway, even if it's not the best charge state
-      }
-
-      Set<ProcessedDataPoint> set = new LinkedHashSet<>();
-      set.addAll(pattern);
-      pattern.clear();
-      pattern.addAll(set);
-      pattern.sort((o1, o2) -> {
-        return Double.compare(o1.getMZ(), o2.getMZ());
-      });
-
-      ProcessedDataPoint[] patternArray = pattern.toArray(new ProcessedDataPoint[0]);
-      dp.addResult(new DPPIsotopePatternResult(new SimpleIsotopePattern(patternArray,
-          IsotopePatternStatus.DETECTED, format.format(dp.getMZ())), patternArray, bestCharge));
-      logger.finest("FINAL: " + format.format(dp.getMZ()) + " pattern: " + getResultIsoComp(
-          (DPPIsotopePatternResult) dp.getFirstResultByType(ResultType.ISOTOPEPATTERN)));
-      results.add(dp);
-    }
-
-    return dp;
-  }
-
-  public static int getBestChargeState(ProcessedDataPoint dp, int maxCharge) {
-    int chargePeakNum[] = new int[maxCharge + 1]; // index represents the charge
-
-    List<DPPResult<?>> patternResults = dp.getAllResultsByType(ResultType.ISOTOPEPATTERN);
-    for (int x = 0; x < patternResults.size(); x++) {
-      DPPIsotopePatternResult pattern = (DPPIsotopePatternResult) patternResults.get(x);
-      chargePeakNum[pattern.getCharge()] += pattern.getValue().getNumberOfDataPoints();
-    }
-
-    int bestCharge = 1;
-    int highestNum = 0;
-    for (int i = 1; i < chargePeakNum.length; i++) {
-      if (chargePeakNum[i] > highestNum) {
-        bestCharge = i;
-        highestNum = chargePeakNum[i];
-      }
-    }
-    return bestCharge;
   }
 
   /**
@@ -496,6 +327,17 @@ public class IsotopePatternUtils2 {
     return charges;
   }
 
+  public static @Nonnull List<Integer> getChargeStates(List<DPPIsotopicPeakResult> iprs) {
+    List<Integer> charges = new ArrayList<Integer>();
+
+    for (DPPIsotopicPeakResult ipr : iprs) {
+      if (!charges.contains(ipr.getCharge()))
+        charges.add(ipr.getCharge());
+    }
+
+    return charges;
+  }
+
   public static double getPpmDiff(double realmz, double calcmz) {
     return 10E6 * (realmz - calcmz) / calcmz;
   }
@@ -514,5 +356,71 @@ public class IsotopePatternUtils2 {
     }
     str = str.substring(0, str.length() - 2);
     return str;
+  }
+  
+  public static IsotopePattern checkOverlappingIsotopes(IsotopePattern pattern, IIsotope[] isotopes,
+      double mergeWidth, double minAbundance) {
+    DataPoint[] dp = pattern.getDataPoints();
+    double basemz = dp[0].getMZ();
+    List<DataPoint> newPeaks = new ArrayList<DataPoint>();
+
+    double isotopeBaseMass = 0d;
+    for (IIsotope isotope : isotopes) {
+      if (isotope.getNaturalAbundance() > minAbundance) {
+        isotopeBaseMass = isotope.getExactMass();
+        logger.info("isotopeBaseMass of " + isotope.getSymbol() + " = " + isotopeBaseMass);
+        break;
+      }
+    }
+
+
+    // loop all new isotopes
+    for (IIsotope isotope : isotopes) {
+      if (isotope.getNaturalAbundance() < minAbundance)
+        continue;
+      // the difference added by the heavier isotope peak
+      double possiblemzdiff = isotope.getExactMass() - isotopeBaseMass;
+      if (possiblemzdiff < 0.000001)
+        continue;
+      boolean add = true;
+      for (DataPoint patternDataPoint : dp) {
+        // here check for every peak in the pattern, if a new peak would overlap
+        // if it overlaps good, we dont need to add a new peak
+
+        int i = 1;
+        do {
+          if (Math.abs(patternDataPoint.getMZ() * i - possiblemzdiff) <= mergeWidth) {
+            // TODO: maybe we should do a average of the masses? i can'T say if it makes sense,
+            // since
+            // we're just looking for isotope mass differences and dont look at the total
+            // composition,
+            // so we dont know the intensity ratios
+            logger.info("possible overlap found: " + i + " * pattern dp = "
+                + patternDataPoint.getMZ() + "\toverlaps with " + isotope.getMassNumber()
+                + isotope.getSymbol() + " (" + (isotopeBaseMass - isotope.getExactMass())
+                + ")\tdiff: " + Math.abs(patternDataPoint.getMZ() * i - possiblemzdiff));
+            add = false;
+          }
+          i++;
+          // logger.info("do");
+        } while (patternDataPoint.getMZ() * i <= possiblemzdiff + mergeWidth
+            && patternDataPoint.getMZ() != 0.0);
+      }
+
+      if (add)
+        newPeaks.add(new SimpleDataPoint(possiblemzdiff, 1));
+    }
+
+    // now add all new mzs to the isotopePattern
+    // DataPoint[] newDataPoints = new SimpleDataPoint[dp.length + newPeaks.size()];
+    for (DataPoint p : dp) {
+      newPeaks.add(p);
+    }
+    newPeaks.sort((o1, o2) -> {
+      return Double.compare(o1.getMZ(), o2.getMZ());
+    });
+
+    return new SimpleIsotopePattern(newPeaks.toArray(new DataPoint[0]),
+        IsotopePatternStatus.PREDICTED, "");
   }
 }

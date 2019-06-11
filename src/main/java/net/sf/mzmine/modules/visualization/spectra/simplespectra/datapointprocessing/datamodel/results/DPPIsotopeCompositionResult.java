@@ -55,7 +55,7 @@ public class DPPIsotopeCompositionResult extends DPPResult<List<String>> {
   }
 
   @Override
-  public String generateLabel() {
+  public String toString() {
     String label = "";
     for (String s : value)
       label += s + ", ";

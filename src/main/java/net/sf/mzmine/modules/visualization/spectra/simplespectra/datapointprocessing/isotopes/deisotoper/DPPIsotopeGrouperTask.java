@@ -71,8 +71,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   // parameter values
   private MZTolerance mzTolerance;
-  private boolean monotonicShape;
-  private int maximumCharge;
   private String elements;
   private boolean autoRemove;
   private double mergeWidth;
@@ -86,9 +84,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
     // Get parameter values for easier use
     mzTolerance = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzTolerance).getValue();
-    monotonicShape =
-        parameterSet.getParameter(DPPIsotopeGrouperParameters.monotonicShape).getValue();
-    maximumCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
     elements = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
     autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
     mzrange = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzRange).getValue();
@@ -103,7 +98,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   @Override
   public void run() {
-    if(!checkParameterSet() || !checkValues()) {
+    if (!checkParameterSet() || !checkValues()) {
       setStatus(TaskStatus.ERROR);
       return;
     }
@@ -115,7 +110,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       logger.warning("Invalid element parameter in " + getTaskDescription());
       return;
     }
-    
+
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
           "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
@@ -147,27 +142,45 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
         if (!mzrange.contains(dp.getMZ()))
           continue;
 
-        IsotopePatternUtils.findIsotopePatterns(dp, originalDataPoints, mzTolerance, pattern,
+        IsotopePatternUtils2.findIsotopicPeaks(dp, originalDataPoints, mzTolerance, pattern,
             mzrange, maxCharge);
 
         processedSteps++;
       }
+      
+      if(isCanceled())
+        return;
     }
 
 
     // List<ProcessedDataPoint> results =
-//    IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
-    for(int x = originalDataPoints.length-1; x>=0; x --) {
+    // IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
+    for (int x = 0; x < originalDataPoints.length; x++) {
       ProcessedDataPoint dp = originalDataPoints[x];
-      IsotopePatternUtils2.mergeIsotopePatternResults(dp);
+      if (!mzrange.contains(dp.getMZ()))
+        continue;
+      if(isCanceled())
+        return;
+      IsotopePatternUtils2.mergeIsotopicPeakResults(dp);
     }
+
+    for (int x = 0; x < originalDataPoints.length; x++) {
+      ProcessedDataPoint dp = originalDataPoints[x];
+      if (!mzrange.contains(dp.getMZ()))
+        continue;
+      if(isCanceled())
+        return;
+      IsotopePatternUtils2.convertIsotopicPeakResultsToPattern(dp, true);
+    }
+
+
     List<ProcessedDataPoint> results = new ArrayList<>();
-    
-    for(ProcessedDataPoint dp : originalDataPoints) {
-      if(dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+
+    for (ProcessedDataPoint dp : originalDataPoints) {
+      if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
         results.add(dp);
     }
-    
+
     // now we looped through all dataPoints and link the found isotope patterns together
     // we start from the back so we can just accumulate them by merging the linked the
     // peaks/patterns
@@ -176,71 +189,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
 
   }
 
-  public static IsotopePattern checkOverlappingIsotopes(IsotopePattern pattern, IIsotope[] isotopes,
-      double mergeWidth, double minAbundance) {
-    DataPoint[] dp = pattern.getDataPoints();
-    double basemz = dp[0].getMZ();
-    List<DataPoint> newPeaks = new ArrayList<DataPoint>();
-
-    double isotopeBaseMass = 0d;
-    for (IIsotope isotope : isotopes) {
-      if (isotope.getNaturalAbundance() > minAbundance) {
-        isotopeBaseMass = isotope.getExactMass();
-        logger.info("isotopeBaseMass of " + isotope.getSymbol() + " = " + isotopeBaseMass);
-        break;
-      }
-    }
-
-
-    // loop all new isotopes
-    for (IIsotope isotope : isotopes) {
-      if (isotope.getNaturalAbundance() < minAbundance)
-        continue;
-      // the difference added by the heavier isotope peak
-      double possiblemzdiff = isotope.getExactMass() - isotopeBaseMass;
-      if (possiblemzdiff < 0.000001)
-        continue;
-      boolean add = true;
-      for (DataPoint patternDataPoint : dp) {
-        // here check for every peak in the pattern, if a new peak would overlap
-        // if it overlaps good, we dont need to add a new peak
-
-        int i = 1;
-        do {
-          if (Math.abs(patternDataPoint.getMZ() * i - possiblemzdiff) <= mergeWidth) {
-            // TODO: maybe we should do a average of the masses? i can'T say if it makes sense,
-            // since
-            // we're just looking for isotope mass differences and dont look at the total
-            // composition,
-            // so we dont know the intensity ratios
-            logger.info("possible overlap found: " + i + " * pattern dp = "
-                + patternDataPoint.getMZ() + "\toverlaps with " + isotope.getMassNumber()
-                + isotope.getSymbol() + " (" + (isotopeBaseMass - isotope.getExactMass())
-                + ")\tdiff: " + Math.abs(patternDataPoint.getMZ() * i - possiblemzdiff));
-            add = false;
-          }
-          i++;
-          // logger.info("do");
-        } while (patternDataPoint.getMZ() * i <= possiblemzdiff + mergeWidth
-            && patternDataPoint.getMZ() != 0.0);
-      }
-
-      if (add)
-        newPeaks.add(new SimpleDataPoint(possiblemzdiff, 1));
-    }
-
-    // now add all new mzs to the isotopePattern
-    // DataPoint[] newDataPoints = new SimpleDataPoint[dp.length + newPeaks.size()];
-    for (DataPoint p : dp) {
-      newPeaks.add(p);
-    }
-    newPeaks.sort((o1, o2) -> {
-      return Double.compare(o1.getMZ(), o2.getMZ());
-    });
-
-    return new SimpleIsotopePattern(newPeaks.toArray(new DataPoint[0]),
-        IsotopePatternStatus.PREDICTED, "");
-  }
 
   /**
    * Returns an array of isotope patterns for the given string. Every element gets its own isotope
@@ -318,7 +266,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
               clr.get(j), false);
           j++;
         }
-//      getTargetPlot().addDataSet(new DPPResultsDataSet("Isotopes (" + getResults().length + ")", getResults()), color, false);
+      // getTargetPlot().addDataSet(new DPPResultsDataSet("Isotopes (" + getResults().length + ")",
+      // getResults()), color, false);
     }
   }
 

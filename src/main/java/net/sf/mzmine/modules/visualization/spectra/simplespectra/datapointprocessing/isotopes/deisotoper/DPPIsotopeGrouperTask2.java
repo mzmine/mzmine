@@ -49,7 +49,6 @@ public class DPPIsotopeGrouperTask2 extends DataPointProcessingTask {
 
   // parameter values
   private MZTolerance mzTolerance;
-  private boolean monotonicShape;
   private int maximumCharge;
   private String elements;
   private boolean autoRemove;
@@ -64,8 +63,6 @@ public class DPPIsotopeGrouperTask2 extends DataPointProcessingTask {
 
     // Get parameter values for easier use
     mzTolerance = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzTolerance).getValue();
-    monotonicShape =
-        parameterSet.getParameter(DPPIsotopeGrouperParameters.monotonicShape).getValue();
     maximumCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
     elements = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
     autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();

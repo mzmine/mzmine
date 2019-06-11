@@ -32,7 +32,7 @@ public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
 
   @Override
   public String getName() {
-    return "13C-Isotope grouper";
+    return "Any element isotope grouper";
   }
 
   @Override
