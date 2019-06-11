@@ -2,6 +2,8 @@ package net.sf.mzmine.util;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -208,7 +210,7 @@ public class IsotopePatternUtils2 {
    */
   public static void convertIsotopicPeakResultsToPattern(ProcessedDataPoint dp,
       boolean keepResults) {
-    removeDuplicateIsotopicPeakResult(dp);
+    sortAndRemoveDuplicateIsotopicPeakResult(dp);
     List<DPPIsotopicPeakResult> iprs = getIsotopicPeakResults(dp);
 
     if (iprs.isEmpty())
@@ -233,7 +235,7 @@ public class IsotopePatternUtils2 {
 
       ExtendedIsotopePattern pattern =
           new ExtendedIsotopePattern(dps, IsotopePatternStatus.DETECTED,
-              format.format(dp.getMZ()) + " (" + dp.getNumberOfResultsByType(ResultType.ISOTOPICPEAK) + ")", isos);
+              format.format(dp.getMZ()) + " (" + dp.getAllResultsByType(ResultType.ISOTOPICPEAK) + ")", isos);
 
       dp.addResult(new DPPIsotopePatternResult(pattern,
           (ProcessedDataPoint[]) pattern.getDataPoints(), charge));
@@ -245,7 +247,7 @@ public class IsotopePatternUtils2 {
       dp.removeAllResultsByType(ResultType.ISOTOPICPEAK);
   }
 
-  public static void removeDuplicateIsotopicPeakResult(ProcessedDataPoint dp) {
+  public static void sortAndRemoveDuplicateIsotopicPeakResult(ProcessedDataPoint dp) {
     List<DPPIsotopicPeakResult> results = getIsotopicPeakResults(dp);
 
     for (int i = 0; i < results.size() - 1; i++) {
@@ -254,10 +256,16 @@ public class IsotopePatternUtils2 {
         DPPIsotopicPeakResult b = results.get(j);
         if (a.getPeak() == b.getPeak()) {
 //          logger.info("removed duplicates at positions " + i + ", " + j);
-          dp.removeResult(a);
+          results.remove(a);
         }
       }
     }
+    
+    Collections.sort(results, (o1, o2) -> {
+      return Double.compare(o1.getPeak().getMZ(), o2.getPeak().getMZ());      
+    });
+    for(DPPIsotopicPeakResult r : results)
+      dp.addResult(r);
   }
 
   // old-new

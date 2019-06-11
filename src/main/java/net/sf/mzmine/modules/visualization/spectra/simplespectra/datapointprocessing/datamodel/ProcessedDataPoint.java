@@ -215,10 +215,13 @@ public class ProcessedDataPoint extends SimpleDataPoint {
   }
 
   public synchronized void removeAllResultsByType(DPPResult.ResultType type) {
-    if (results != null)
+    List<DPPResult<?>> remove = new ArrayList<>();
+    if (results != null) {
       for (DPPResult<?> result : results)
         if (result.getResultType() == type)
-          removeResult(result);
+          remove.add(result);
+      removeResults(remove);
+    }
   }
 
   /*
