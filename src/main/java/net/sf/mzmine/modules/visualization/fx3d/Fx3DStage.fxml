@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+
+<fx:root type="StackPane" xmlns:fx="http://ja?vafx.com/fxml/1">
+
+</fx:root>
+
