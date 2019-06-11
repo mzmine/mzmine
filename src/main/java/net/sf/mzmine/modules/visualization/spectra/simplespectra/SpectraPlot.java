@@ -531,13 +531,15 @@ public class SpectraPlot extends EChartPanel {
     this.processingAllowed = processingAllowed;
   }
 
-  public void removeDataPointProcessingResultDataSets() {
+  public synchronized void removeDataPointProcessingResultDataSets() {
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof DPPResultsDataSet) {
         plot.setDataset(i, null);
       }
     }
+    // when adding DPPResultDataSet the label generator is overwritten, revert here
+    SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
+    plot.getRenderer().setDefaultItemLabelGenerator(labelGenerator);
   }
-
 }

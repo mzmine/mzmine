@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
@@ -73,10 +75,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * 
    * @param result
    */
-  public void addResult(DPPResult<?> result) {
-    if (result == null)
-      return;
-
+  public void addResult(@Nonnull DPPResult<?> result) {
     if (results == null)
       results = new Vector<DPPResult<?>>();
 
@@ -88,10 +87,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * 
    * @param results
    */
-  public void addAllResults(Collection<DPPResult<?>> results) {
-    if (results == null)
-      return;
-
+  public void addAllResults(@Nonnull Collection<DPPResult<?>> results) {
     if (this.results == null)
       this.results = new Vector<DPPResult<?>>();
 
@@ -100,10 +96,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
     }
   }
 
-  public void addAllResults(DPPResult<?>[] result) {
-    if (result == null)
-      return;
-
+  public void addAllResults(@Nonnull DPPResult<?>[] result) {
     if (results == null)
       results = new Vector<DPPResult<?>>();
 
@@ -118,7 +111,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * @return DPPResult with the given key, may be null if no result with that key exits or no result
    *         exists at all.
    */
-  public DPPResult<?> getResult(int i) {
+  public @Nullable DPPResult<?> getResult(int i) {
     if (results == null)
       return null;
     return results.get(i);
@@ -133,7 +126,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
   public boolean resultTypeExists(DPPResult.ResultType type) {
     if (results == null)
       return false;
-    
+
     for (DPPResult<?> r : results)
       if (r.getResultType() == type)
         return true;
@@ -142,6 +135,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
 
   /**
    * The number of results with the given type.
+   * 
    * @param type
    * @return
    */
@@ -161,11 +155,11 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    *
    * @return Returns List of all results of the given type. Null if no result exists.
    */
-  public List<DPPResult<?>> getAllResultsByType(DPPResult.ResultType type) {
-    if (results == null)
-      return null;
-
+  public @Nonnull List<DPPResult<?>> getAllResultsByType(DPPResult.ResultType type) {
     List<DPPResult<?>> list = new ArrayList<>();
+    
+    if (results == null)
+      return list;
 
     for (DPPResult<?> r : results) {
       if (r.getResultType() == type) {
@@ -173,33 +167,33 @@ public class ProcessedDataPoint extends SimpleDataPoint {
       }
     }
 
-    if (list.isEmpty())
-      return null;
-
     return list;
   }
-  
+
   /**
    * Returns the first result of the given type.
+   * 
    * @param type
    * @return Instance of DPPResult<?> or null if no result of that type exists.
    */
-  public DPPResult<?> getFirstResultByType(DPPResult.ResultType type){
+  public @Nullable DPPResult<?> getFirstResultByType(DPPResult.ResultType type) {
     if (results == null)
       return null;
-    
-    for(DPPResult<?> r : results)
-      if(r.getResultType() == type)
+
+    for (DPPResult<?> r : results)
+      if (r.getResultType() == type)
         return r;
     return null;
   }
 
   public void removeResult(int i) {
-    results.remove(i);
+    if (results != null)
+      results.remove(i);
   }
-  
+
   public void removeResult(DPPResult<?> result) {
-    results.remove(result);
+    if (results != null)
+      results.remove(result);
   }
   /*
    * public boolean equals(ProcessedDataPoint p) { //TODO }
