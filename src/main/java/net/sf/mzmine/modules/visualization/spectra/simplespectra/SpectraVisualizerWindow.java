@@ -623,6 +623,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
             dppmWindowOpen = false;
             if (exitCode == ExitCode.OK && DataPointProcessingManager.getInst().isEnabled()) {
+              // if processing was run before, this removes the previous results.
+              getSpectrumPlot().removeDataPointProcessingResultDataSets();
               getSpectrumPlot().checkAndRunController();
             }
           }
@@ -641,8 +643,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
           // if the tick is removed, set the data back to default
           if (!inst.isEnabled()) {
-            // getSpectrumPlot().removeDataPointProcessingResultDataSets();
-            loadRawData(currentScan);
+            getSpectrumPlot().removeDataPointProcessingResultDataSets();
+            // loadRawData(currentScan);
           }
         }
       });

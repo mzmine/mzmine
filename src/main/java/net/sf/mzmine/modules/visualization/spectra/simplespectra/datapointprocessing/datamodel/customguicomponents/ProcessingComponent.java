@@ -471,9 +471,6 @@ public class ProcessingComponent extends JPanel implements ActionListener {
   private @Nonnull DPPMSLevelTreeNode getTargetNode() {
     DefaultMutableTreeNode n = getSelectedItem(tvProcessing);
 
-    if (n instanceof DPPModuleTreeNode || n == tiProcessingRoot)
-      return tiLastTarget;
-
     if (n instanceof DPPMSLevelTreeNode)
       tiLastTarget = (DPPMSLevelTreeNode) n;
     if (tiLastTarget == null)
