@@ -21,8 +21,13 @@ public class Fx3DPlotMesh extends MeshView {
     private int mzResolution;
     private static final Logger LOG = Logger
             .getLogger(Fx3DPlotMesh.class.getName());
+    private Fx3DDataset dataset;
 
-    public Fx3DPlotMesh(Fx3DDataset dataset) {
+    public Fx3DPlotMesh() {
+
+    }
+
+    public void setDataset(Fx3DDataset dataset) {
         rtResolution = dataset.getRtResolution();
         mzResolution = dataset.getMzResolution();
 
@@ -128,6 +133,5 @@ public class Fx3DPlotMesh extends MeshView {
         setCullFace(CullFace.NONE);
         setDrawMode(DrawMode.FILL);
         setDepthTest(DepthTest.ENABLE);
-
     }
 }

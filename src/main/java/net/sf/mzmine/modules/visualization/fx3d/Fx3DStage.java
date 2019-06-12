@@ -72,10 +72,6 @@ public class Fx3DStage extends Stage {
             mouseOldY = mousePosY;
         });
 
-        root.setOnMousePressed(me -> {
-
-        });
-
         makeZoomable(root);
         this.setScene(scene);
 

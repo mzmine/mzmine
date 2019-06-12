@@ -25,6 +25,10 @@ import com.google.common.collect.Range;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -99,12 +103,6 @@ class Fx3DSamplingTask extends AbstractTask {
         logger.info("Started sampling 3D plot of " + dataFile);
 
         try {
-
-            // Set domainSet = new Linear2DSet(display.getDomainTuple(),
-            // rtRange.lowerEndpoint(),
-            // rtRange.upperEndpoint(), rtResolution, mzRange.lowerEndpoint(),
-            // mzRange.upperEndpoint(),
-            // mzResolution);
 
             final double rtStep = (rtRange.upperEndpoint()
                     - rtRange.lowerEndpoint()) / rtResolution;
@@ -218,19 +216,22 @@ class Fx3DSamplingTask extends AbstractTask {
             Platform.setImplicitExit(false);
             Platform.runLater(new Runnable() {
                 public void run() {
-                    Fx3DController controller = new Fx3DController();
-                    controller.setDataset(dataset);
                     FXMLLoader loader = new FXMLLoader(
                             (getClass().getResource("Fx3DStage.fxml")));
-                    loader.setController(controller);
-                    loader.setRoot(controller);
-                    Fx3DStage newStage = null;
+
+                    Node nodeFromFXML = null;
                     try {
-                        newStage = new Fx3DStage(loader);
+                        nodeFromFXML = loader.load();
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
+                    Fx3DController controller = loader.getController();
+                    controller.setDataset(dataset);
+                    Scene newScene = new Scene((Parent) nodeFromFXML);
+                    Stage newStage = new Stage();
+                    newStage.setTitle(dataFile.toString());
+                    newStage.setScene(newScene);
                     newStage.show();
                 }
             });

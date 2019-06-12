@@ -13,8 +13,14 @@ public class Fx3DAxes extends Group {
     private static final int SIZE = 500;
     private static float AMPLIFI = 130;
 
-    public Fx3DAxes(Range<Double> rtRange, Range<Double> mzRange,
-            double maxBinnedIntensity) {
+    public Fx3DAxes() {
+
+    }
+
+    public void setDataset(Fx3DDataset dataset) {
+        Range<Double> rtRange = dataset.getRtRange();
+        Range<Double> mzRange = dataset.getMzRange();
+        double maxBinnedIntensity = dataset.getMaxBinnedIntensity();
         // rtAxis
         double rtDelta = (rtRange.upperEndpoint() - rtRange.lowerEndpoint())
                 / 7;
@@ -134,6 +140,5 @@ public class Fx3DAxes extends Group {
         lineY.setTranslateX(-AMPLIFI / 2);
         lineY.setTranslateY(-AMPLIFI / 2);
         this.getChildren().add(lineY);
-
     }
 }

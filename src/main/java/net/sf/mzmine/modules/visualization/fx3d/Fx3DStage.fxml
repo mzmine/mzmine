@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.Group?>
 <?import javafx.scene.control.Button?>
+<?import net.sf.mzmine.modules.visualization.fx3d.*?>
 
-<fx:root type="StackPane" xmlns:fx="http://ja?vafx.com/fxml/1">
-
-</fx:root>
-
+<StackPane id="StackPane"  xmlns:fx="http://ja?vafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DController">
+	<Group fx:id="finalNode">
+		<Group fx:id="plot">
+			<Fx3DPlotMesh fx:id="meshView"/>
+			<Fx3DAxes fx:id="axes"/>
+		</Group>
+	</Group>
+</StackPane>
