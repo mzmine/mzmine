@@ -6,20 +6,14 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 
 public class DPPIsotopicPeakResult extends DPPResult<ProcessedDataPoint> {
 
-  private final ProcessedDataPoint peak;
   private final int charge;
   private final String isotope;
   private static final NumberFormat format = MZmineCore.getConfiguration().getMZFormat();
 
   public DPPIsotopicPeakResult(ProcessedDataPoint peak, String isotope, int charge) {
     super(peak);
-    this.peak = peak;
     this.isotope = isotope;
     this.charge = charge;
-  }
-
-  public ProcessedDataPoint getPeak() {
-    return peak;
   }
 
   public int getCharge() {
@@ -32,7 +26,7 @@ public class DPPIsotopicPeakResult extends DPPResult<ProcessedDataPoint> {
 
   @Override
   public String toString() {
-    return format.format(peak.getMZ()) + " (" + isotope + ")";
+    return format.format(value.getMZ()) + " (" + isotope + ")";
   }
 
   @Override
