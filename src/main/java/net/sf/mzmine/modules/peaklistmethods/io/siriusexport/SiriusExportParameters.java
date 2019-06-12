@@ -27,7 +27,10 @@ import java.awt.*;
 
 public class SiriusExportParameters extends SimpleParameterSet {
 
-  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER = new OptionalModuleParameter<>("Merge MS/MS", "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.", new MsMsSpectraMergeParameters(), true);
+  public static final OptionalModuleParameter<MsMsSpectraMergeParameters> MERGE_PARAMETER =
+      new OptionalModuleParameter<>("Merge MS/MS",
+          "Merge high qualitative MS/MS into one spectrum instead of exporting all MS/MS separately.",
+          new MsMsSpectraMergeParameters(), true);
 
   public SiriusExportParameters() {
     super(new Parameter[] {PEAK_LISTS, MASS_LIST, FILENAME, MERGE_PARAMETER});
@@ -55,8 +58,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
   public static final MassListParameter MASS_LIST = new MassListParameter();
 
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    String message = "<html>SIRIUS Module Disclaimer:"
-        + "<ul>"
+    String message = "<html>SIRIUS Module Disclaimer:" + "<ul>"
         + "<li>If you use the SIRIUS export module, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:<br>"
         + "<a href=\"http://dx.doi.org/10.1038/s41592-019-0344-8\"> K. Dührkop, et al. “Sirius 4: a rapid tool for turning tandem mass spectra into metabolite structure information”, Nature Methods, 2019.</a>"
         + "<li>Sirius can be downloaded at the following address: <a href=\"https://bio.informatik.uni-jena.de/software/sirius/\">https://bio.informatik.uni-jena.de/software/sirius/</a>"
