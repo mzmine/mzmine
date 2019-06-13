@@ -18,17 +18,11 @@
 
 package net.sf.mzmine.modules.visualization.fx3d;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import com.google.common.collect.Range;
 
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -60,6 +54,8 @@ class Fx3DSamplingTask extends AbstractTask {
     // maximum value on Z axis
     private double maxBinnedIntensity;
 
+    private Fx3DStageController controller;
+
     /**
      * Task constructor
      * 
@@ -69,7 +65,7 @@ class Fx3DSamplingTask extends AbstractTask {
      */
     Fx3DSamplingTask(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
             Range<Double> mzRange, int rtResolution, int mzResolution,
-            Fx3DDataset dataset) {
+            Fx3DStageController controller) {
 
         this.dataFile = dataFile;
         this.scans = scans;
@@ -77,6 +73,7 @@ class Fx3DSamplingTask extends AbstractTask {
         this.mzRange = mzRange;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
+        this.controller = controller;
     }
 
     /**
@@ -197,7 +194,6 @@ class Fx3DSamplingTask extends AbstractTask {
                             + (slope * (rtIndex - prevIndex)));
 
                 }
-
             }
 
             float[][] finalIntensityValues = new float[rtResolution][mzResolution];
@@ -213,27 +209,10 @@ class Fx3DSamplingTask extends AbstractTask {
                     rtResolution, mzResolution, maxBinnedIntensity, rtRange,
                     mzRange);
 
-            Platform.setImplicitExit(false);
-            Platform.runLater(new Runnable() {
-                public void run() {
-                    FXMLLoader loader = new FXMLLoader(
-                            (getClass().getResource("Fx3DStage.fxml")));
-
-                    Node nodeFromFXML = null;
-                    try {
-                        nodeFromFXML = loader.load();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    Fx3DController controller = loader.getController();
-                    controller.setDataset(dataset);
-                    Scene newScene = new Scene((Parent) nodeFromFXML);
-                    Stage newStage = new Stage();
-                    newStage.setTitle(dataFile.toString());
-                    newStage.setScene(newScene);
-                    newStage.show();
-                }
+            Platform.runLater(() -> {
+                controller.getAxes().setValues(rtRange, mzRange,
+                        maxBinnedIntensity);
+                controller.setDataset(dataset);
             });
 
         } catch (Throwable e) {

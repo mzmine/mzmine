@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.fx3d;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +27,15 @@ import javax.annotation.Nonnull;
 
 import com.google.common.collect.Range;
 
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.PerspectiveCamera;
+import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.input.ScrollEvent;
+import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -97,14 +107,37 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 .getParameter(Fx3DVisualizerParameters.mzResolution).getValue();
         try {
 
-            Fx3DDataset dataset = null;
-            MZmineCore.getTaskController()
-                    .addTask(
-                            new Fx3DSamplingTask(dataFiles[0], scans, rtRange,
-                                    mzRange, rtRes, mzRes, dataset),
-                            TaskPriority.HIGH);
+            Platform.setImplicitExit(false);
+            Platform.runLater(() -> {
+                FXMLLoader loader = new FXMLLoader(
+                        (getClass().getResource("Fx3DStage.fxml")));
 
-        } catch (Throwable e) {
+                Node nodeFromFXML = null;
+                try {
+                    nodeFromFXML = loader.load();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                Fx3DStageController controller = loader.getController();
+                MZmineCore.getTaskController()
+                        .addTask(new Fx3DSamplingTask(dataFiles[0], scans,
+                                rtRange, mzRange, rtRes, mzRes, controller),
+                                TaskPriority.HIGH);
+                Scene scene = new Scene((Parent) nodeFromFXML, 800, 600, true,
+                        SceneAntialiasing.BALANCED);
+                PerspectiveCamera camera = new PerspectiveCamera();
+                scene.setCamera(camera);
+                makeZoomable(scene);
+                Stage newStage = new Stage();
+                newStage.setTitle(dataFiles[0].toString());
+                newStage.setScene(scene);
+                newStage.show();
+            });
+
+        } catch (
+
+        Throwable e) {
             e.printStackTrace();
             // Missing Java3D may cause UnsatisfiedLinkError or
             // NoClassDefFoundError.
@@ -118,28 +151,42 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
     }
 
-    /*
-     * public static void setupNew3DVisualizer(final RawDataFile dataFile) {
-     * setupNew3DVisualizer(dataFile, null, null); }
-     * 
-     * public static void setupNew3DVisualizer(final RawDataFile dataFile, final
-     * Range<Double> mzRange, final Range<Double> rtRange) {
-     * 
-     * final ParameterSet myParameters = MZmineCore.getConfiguration()
-     * .getModuleParameters(ThreeDVisualizerModule.class); final
-     * ThreeDVisualizerModule myInstance = MZmineCore
-     * .getModuleInstance(ThreeDVisualizerModule.class);
-     * myParameters.getParameter(ThreeDVisualizerParameters.dataFiles)
-     * .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[] {
-     * dataFile });
-     * myParameters.getParameter(ThreeDVisualizerParameters.scanSelection)
-     * .setValue(new ScanSelection(rtRange, 1));
-     * myParameters.getParameter(ThreeDVisualizerParameters.mzRange)
-     * .setValue(mzRange); if (myParameters.showSetupDialog(
-     * MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
-     * myInstance.runModule( MZmineCore.getProjectManager().getCurrentProject(),
-     * myParameters.cloneParameterSet(), new ArrayList<Task>()); } }
-     */
+    public void makeZoomable(Scene scene) {
+
+        final double MAX_SCALE = 20.0;
+        final double MIN_SCALE = 0.1;
+
+        scene.addEventFilter(ScrollEvent.ANY, event -> {
+
+            double delta = 1.2;
+            double scale = ((Node) scene.getRoot()).getScaleX();
+
+            if (event.getDeltaY() < 0) {
+                scale /= delta;
+            } else {
+                scale *= delta;
+            }
+
+            scale = clamp(scale, MIN_SCALE, MAX_SCALE);
+
+            scene.getRoot().setScaleX(scale);
+            scene.getRoot().setScaleY(scale);
+
+            event.consume();
+
+        });
+    }
+
+    public static double clamp(double value, double min, double max) {
+
+        if (Double.compare(value, min) < 0)
+            return min;
+
+        if (Double.compare(value, max) > 0)
+            return max;
+
+        return value;
+    }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {

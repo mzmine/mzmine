@@ -17,10 +17,8 @@ public class Fx3DAxes extends Group {
 
     }
 
-    public void setDataset(Fx3DDataset dataset) {
-        Range<Double> rtRange = dataset.getRtRange();
-        Range<Double> mzRange = dataset.getMzRange();
-        double maxBinnedIntensity = dataset.getMaxBinnedIntensity();
+    public void setValues(Range<Double> rtRange, Range<Double> mzRange,
+            double maxBinnedIntensity) {
         // rtAxis
         double rtDelta = (rtRange.upperEndpoint() - rtRange.lowerEndpoint())
                 / 7;

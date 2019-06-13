@@ -1,9 +1,8 @@
 package net.sf.mzmine.modules.visualization.fx3d;
 
 import com.google.common.collect.Range;
-import com.sun.javafx.scene.control.Properties;
 
-public class Fx3DDataset extends Properties {
+public class Fx3DDataset {
 
     private float[][] intensityValues;
     private int rtResolution;
