@@ -1,3 +1,20 @@
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
 package net.sf.mzmine.modules.visualization.fx3d;
 
 import javafx.fxml.FXML;
@@ -11,8 +28,7 @@ public class Fx3DStageController {
 
     @FXML
     private StackPane root = new StackPane();
-    @FXML
-    private Fx3DPlotMesh meshView = new Fx3DPlotMesh();
+
     @FXML
     private Group plot = new Group();
     @FXML
@@ -33,8 +49,11 @@ public class Fx3DStageController {
         finalNode.getTransforms().addAll(translateX, translateY);
     }
 
-    public void setDataset(Fx3DDataset dataset) {
-        meshView.setDataset(dataset);
+    public void setDataset(Fx3DDataset dataset,
+            double maxOfAllBinnedIntensities) {
+        Fx3DPlotMesh meshView = new Fx3DPlotMesh();
+        meshView.setDataset(dataset, maxOfAllBinnedIntensities);
+        plot.getChildren().addAll(meshView);
     }
 
     public void handleMousePressed(MouseEvent me) {

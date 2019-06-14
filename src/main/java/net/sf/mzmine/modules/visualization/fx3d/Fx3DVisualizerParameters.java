@@ -24,7 +24,6 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
-import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 /**
@@ -32,11 +31,9 @@ import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
  */
 public class Fx3DVisualizerParameters extends SimpleParameterSet {
 
-    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
-            1, 1);
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter(
-            new ScanSelection(1));
+    public static final ScanSelectionParameter scanSelection = new ScanSelectionParameter();
 
     public static final MZRangeParameter mzRange = new MZRangeParameter();
 

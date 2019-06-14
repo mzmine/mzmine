@@ -43,9 +43,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
-//import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
@@ -56,7 +54,7 @@ import net.sf.mzmine.util.scans.ScanUtils;
 public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
     private static final Logger LOG = Logger
-            .getLogger(ThreeDVisualizerModule.class.getName());
+            .getLogger(Fx3DVisualizerModule.class.getName());
 
     private static final String MODULE_NAME = "Fx 3D visualizer";
     private static final String MODULE_DESCRIPTION = "Fx 3D visualizer."; // TODO
@@ -79,13 +77,16 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
         final RawDataFile[] dataFiles = parameters
-                .getParameter(ThreeDVisualizerParameters.dataFiles).getValue()
+                .getParameter(Fx3DVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
         final ScanSelection scanSel = parameters
-                .getParameter(ThreeDVisualizerParameters.scanSelection)
+                .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
-        Scan scans[] = scanSel.getMatchingScans(dataFiles[0]);
-        Range<Double> rtRange = ScanUtils.findRtRange(scans);
+        Scan scans[][] = null;
+        for (int i = 0; i < dataFiles.length; i++) {
+            scans[i] = scanSel.getMatchingScans(dataFiles[i]);
+        }
+        Range<Double> rtRange = ScanUtils.findRtRange(scans[0]);
 
         final Desktop desktop = MZmineCore.getDesktop();
 
@@ -111,18 +112,18 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             Platform.runLater(() -> {
                 FXMLLoader loader = new FXMLLoader(
                         (getClass().getResource("Fx3DStage.fxml")));
-
                 Node nodeFromFXML = null;
                 try {
                     nodeFromFXML = loader.load();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
+
                 Fx3DStageController controller = loader.getController();
                 MZmineCore.getTaskController()
-                        .addTask(new Fx3DSamplingTask(dataFiles[0], scans,
-                                rtRange, mzRange, rtRes, mzRes, controller),
+                        .addTask(
+                                new Fx3DSamplingTask(dataFiles, scans, rtRange,
+                                        mzRange, rtRes, mzRes, controller),
                                 TaskPriority.HIGH);
                 Scene scene = new Scene((Parent) nodeFromFXML, 800, 600, true,
                         SceneAntialiasing.BALANCED);
@@ -135,9 +136,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 newStage.show();
             });
 
-        } catch (
-
-        Throwable e) {
+        } catch (Throwable e) {
             e.printStackTrace();
             // Missing Java3D may cause UnsatisfiedLinkError or
             // NoClassDefFoundError.
