@@ -64,8 +64,9 @@ public class Fx3DPlotMesh extends MeshView {
                 }
             }
         }
-        float factorY = (float) ((float) maxIntensityValue
+        float factorY = (float) ((float) dataset.getMaxBinnedIntensity()
                 / maxOfAllBinnedIntensities);
+        LOG.info("" + factorY);
 
         for (int x = 0; x < rtResolution; x++) {
             for (int z = 0; z < mzResolution; z++) {

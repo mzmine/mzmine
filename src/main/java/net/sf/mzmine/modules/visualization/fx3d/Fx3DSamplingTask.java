@@ -217,9 +217,11 @@ class Fx3DSamplingTask extends AbstractTask {
                 }
 
             }
-            controller.getAxes().setValues(rtRange, mzRange,
-                    maxOfAllBinnedIntensities);
+
             final double maxVal = maxOfAllBinnedIntensities;
+            Platform.runLater(() -> {
+                controller.getAxes().setValues(rtRange, mzRange, maxVal);
+            });
             for (Fx3DDataset i : datasets) {
                 Platform.runLater(() -> {
                     controller.setDataset(i, maxVal);

@@ -43,7 +43,6 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
@@ -71,6 +70,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         return MODULE_DESCRIPTION;
     }
 
+    @SuppressWarnings("null")
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
@@ -82,7 +82,8 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         final ScanSelection scanSel = parameters
                 .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
-        Scan scans[][] = null;
+        int len = dataFiles.length;
+        Scan scans[][] = new Scan[len][];
         for (int i = 0; i < dataFiles.length; i++) {
             scans[i] = scanSel.getMatchingScans(dataFiles[i]);
         }
@@ -194,7 +195,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return ThreeDVisualizerParameters.class;
+        return Fx3DVisualizerParameters.class;
     }
 
 }
