@@ -44,7 +44,7 @@ public class Fx3DPlotMesh extends MeshView {
     }
 
     public void setDataset(Fx3DDataset dataset,
-            double maxOfAllBinnedIntensities) {
+            double maxOfAllBinnedIntensities, Color peakColor) {
         rtResolution = dataset.getRtResolution();
         mzResolution = dataset.getMzResolution();
 
@@ -131,7 +131,7 @@ public class Fx3DPlotMesh extends MeshView {
             for (int y = 0; y < height; y++) {
 
                 if (peakListIndices[x][y] == 1) {
-                    Color color = Color.BLUE;
+                    Color color = peakColor;
                     pw.setColor(x, y, color);
                     if (x - 1 >= 0 && y - 1 >= 0) {
                         pw.setColor(x - 1, y - 1, color);

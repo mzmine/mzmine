@@ -18,7 +18,6 @@
 
 package net.sf.mzmine.modules.visualization.fx3d;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import com.google.common.collect.Range;
@@ -41,8 +40,8 @@ class Fx3DSamplingTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private RawDataFile[] dataFiles;
-    private Scan scans[][];
+    private RawDataFile dataFile;
+    private Scan scans[];
     private Range<Double> rtRange, mzRange;
 
     // Data resolution on m/z and retention time axis
@@ -55,6 +54,9 @@ class Fx3DSamplingTask extends AbstractTask {
 
     private Fx3DStageController controller;
 
+    private int index;
+    private int length;
+
     /**
      * Task constructor
      * 
@@ -62,24 +64,26 @@ class Fx3DSamplingTask extends AbstractTask {
      * @param msLevel
      * @param visualizer
      */
-    Fx3DSamplingTask(RawDataFile[] dataFiles, Scan scans[][],
-            Range<Double> rtRange, Range<Double> mzRange, int rtResolution,
-            int mzResolution, Fx3DStageController controller) {
+    Fx3DSamplingTask(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
+            Range<Double> mzRange, int rtResolution, int mzResolution,
+            Fx3DStageController controller, int index, int length) {
 
-        this.dataFiles = dataFiles;
+        this.dataFile = dataFile;
         this.scans = scans;
         this.rtRange = rtRange;
         this.mzRange = mzRange;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
         this.controller = controller;
+        this.index = index;
+        this.length = length;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Sampling 3D plot of " + dataFiles;
+        return "Sampling 3D plot of " + dataFile;
     }
 
     /**
@@ -96,137 +100,119 @@ class Fx3DSamplingTask extends AbstractTask {
 
         setStatus(TaskStatus.PROCESSING);
 
-        logger.info("Started sampling 3D plot of " + dataFiles);
+        logger.info("Started sampling 3D plot of " + dataFile);
 
         try {
-            ArrayList<Fx3DDataset> datasets = new ArrayList<Fx3DDataset>();
-            double maxOfAllBinnedIntensities = Double.NEGATIVE_INFINITY;
-            for (int i = 0; i < dataFiles.length; i++) {
-                final double rtStep = (rtRange.upperEndpoint()
-                        - rtRange.lowerEndpoint()) / rtResolution;
 
-                // create an array for all data points
-                float[][] intensityValues = new float[1][mzResolution
-                        * rtResolution];
-                boolean rtDataSet[] = new boolean[rtResolution];
+            final double rtStep = (rtRange.upperEndpoint()
+                    - rtRange.lowerEndpoint()) / rtResolution;
 
-                // load scans
-                for (int scanIndex = 0; scanIndex < scans[i].length; scanIndex++) {
+            // create an array for all data points
+            float[][] intensityValues = new float[1][mzResolution
+                    * rtResolution];
+            boolean rtDataSet[] = new boolean[rtResolution];
 
-                    if (isCanceled())
-                        return;
+            // load scans
+            for (int scanIndex = 0; scanIndex < scans.length; scanIndex++) {
 
-                    Scan scan = scans[i][scanIndex];
+                if (isCanceled())
+                    return;
 
-                    DataPoint dataPoints[] = scan.getDataPoints();
-                    double[] scanMZValues = new double[dataPoints.length];
-                    double[] scanIntensityValues = new double[dataPoints.length];
-                    for (int dp = 0; dp < dataPoints.length; dp++) {
-                        scanMZValues[dp] = dataPoints[dp].getMZ();
-                        scanIntensityValues[dp] = dataPoints[dp].getIntensity();
-                    }
+                Scan scan = scans[scanIndex];
 
-                    double[] binnedIntensities = ScanUtils.binValues(
-                            scanMZValues, scanIntensityValues, mzRange,
-                            mzResolution,
-                            scan.getSpectrumType() != MassSpectrumType.CENTROIDED,
-                            BinningType.MAX);
-
-                    int scanBinIndex;
-
-                    double rt = scan.getRetentionTime();
-                    scanBinIndex = (int) ((rt - rtRange.lowerEndpoint())
-                            / rtStep);
-
-                    // last scan falls into last bin
-                    if (scanBinIndex == rtResolution)
-                        scanBinIndex--;
-
-                    for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
-
-                        int intensityValuesIndex = (rtResolution * mzIndex)
-                                + scanBinIndex;
-                        if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex]) {
-                            intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
-                        }
-                        if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
-                            maxBinnedIntensity = (double) binnedIntensities[mzIndex];
-                    }
-
-                    rtDataSet[scanBinIndex] = true;
-
-                    retrievedScans++;
-
+                DataPoint dataPoints[] = scan.getDataPoints();
+                double[] scanMZValues = new double[dataPoints.length];
+                double[] scanIntensityValues = new double[dataPoints.length];
+                for (int dp = 0; dp < dataPoints.length; dp++) {
+                    scanMZValues[dp] = dataPoints[dp].getMZ();
+                    scanIntensityValues[dp] = dataPoints[dp].getIntensity();
                 }
 
-                // Interpolate missing values on the RT-axis
-                for (int rtIndex = 1; rtIndex < rtResolution - 1; rtIndex++) {
+                double[] binnedIntensities = ScanUtils.binValues(scanMZValues,
+                        scanIntensityValues, mzRange, mzResolution,
+                        scan.getSpectrumType() != MassSpectrumType.CENTROIDED,
+                        BinningType.MAX);
 
-                    // If the data was set, go to next RT line
-                    if (rtDataSet[rtIndex])
-                        continue;
-                    int prevIndex, nextIndex;
-                    for (prevIndex = rtIndex - 1; prevIndex >= 0; prevIndex--) {
-                        if (rtDataSet[prevIndex])
-                            break;
+                int scanBinIndex;
+
+                double rt = scan.getRetentionTime();
+                scanBinIndex = (int) ((rt - rtRange.lowerEndpoint()) / rtStep);
+
+                // last scan falls into last bin
+                if (scanBinIndex == rtResolution)
+                    scanBinIndex--;
+
+                for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
+
+                    int intensityValuesIndex = (rtResolution * mzIndex)
+                            + scanBinIndex;
+                    if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex]) {
+                        intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
                     }
-                    for (nextIndex = rtIndex
-                            + 1; nextIndex < rtResolution; nextIndex++) {
-                        if (rtDataSet[nextIndex])
-                            break;
-                    }
-
-                    // If no neighboring data was found, give up
-                    if ((prevIndex < 0) || (nextIndex >= rtResolution))
-                        continue;
-
-                    for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
-
-                        int valueIndex = (rtResolution * mzIndex) + rtIndex;
-                        int nextValueIndex = (rtResolution * mzIndex)
-                                + nextIndex;
-                        int prevValueIndex = (rtResolution * mzIndex)
-                                + prevIndex;
-
-                        double prevValue = intensityValues[0][prevValueIndex];
-                        double nextValue = intensityValues[0][nextValueIndex];
-
-                        double slope = (nextValue - prevValue)
-                                / (nextIndex - prevIndex);
-                        intensityValues[0][valueIndex] = (float) (prevValue
-                                + (slope * (rtIndex - prevIndex)));
-
-                    }
+                    if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
+                        maxBinnedIntensity = (double) binnedIntensities[mzIndex];
                 }
 
-                float[][] finalIntensityValues = new float[rtResolution][mzResolution];
-                for (int rtIndex = 0; rtIndex < rtResolution; rtIndex++) {
-                    for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
-                        int valueIndex = (rtResolution * mzIndex) + rtIndex;
-                        finalIntensityValues[rtIndex][mzIndex] = (float) (intensityValues[0][valueIndex]
-                                / maxBinnedIntensity);
-                    }
-                }
-                Fx3DDataset dataset = new Fx3DDataset(finalIntensityValues,
-                        rtResolution, mzResolution, maxBinnedIntensity, rtRange,
-                        mzRange);
+                rtDataSet[scanBinIndex] = true;
 
-                datasets.add(dataset);
-                if (maxOfAllBinnedIntensities < maxBinnedIntensity) {
-                    maxOfAllBinnedIntensities = maxBinnedIntensity;
-                }
+                retrievedScans++;
 
             }
 
-            final double maxVal = maxOfAllBinnedIntensities;
+            // Interpolate missing values on the RT-axis
+            for (int rtIndex = 1; rtIndex < rtResolution - 1; rtIndex++) {
+
+                // If the data was set, go to next RT line
+                if (rtDataSet[rtIndex])
+                    continue;
+                int prevIndex, nextIndex;
+                for (prevIndex = rtIndex - 1; prevIndex >= 0; prevIndex--) {
+                    if (rtDataSet[prevIndex])
+                        break;
+                }
+                for (nextIndex = rtIndex
+                        + 1; nextIndex < rtResolution; nextIndex++) {
+                    if (rtDataSet[nextIndex])
+                        break;
+                }
+
+                // If no neighboring data was found, give up
+                if ((prevIndex < 0) || (nextIndex >= rtResolution))
+                    continue;
+
+                for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
+
+                    int valueIndex = (rtResolution * mzIndex) + rtIndex;
+                    int nextValueIndex = (rtResolution * mzIndex) + nextIndex;
+                    int prevValueIndex = (rtResolution * mzIndex) + prevIndex;
+
+                    double prevValue = intensityValues[0][prevValueIndex];
+                    double nextValue = intensityValues[0][nextValueIndex];
+
+                    double slope = (nextValue - prevValue)
+                            / (nextIndex - prevIndex);
+                    intensityValues[0][valueIndex] = (float) (prevValue
+                            + (slope * (rtIndex - prevIndex)));
+
+                }
+            }
+
+            float[][] finalIntensityValues = new float[rtResolution][mzResolution];
+            for (int rtIndex = 0; rtIndex < rtResolution; rtIndex++) {
+                for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
+                    int valueIndex = (rtResolution * mzIndex) + rtIndex;
+                    finalIntensityValues[rtIndex][mzIndex] = (float) (intensityValues[0][valueIndex]
+                            / maxBinnedIntensity);
+                }
+            }
+            Fx3DDataset dataset = new Fx3DDataset(finalIntensityValues,
+                    rtResolution, mzResolution, maxBinnedIntensity, rtRange,
+                    mzRange);
+
+            final double maxVal = maxBinnedIntensity;
             Platform.runLater(() -> {
-                controller.getAxes().setValues(rtRange, mzRange, maxVal);
+                controller.setDataset(dataset, maxVal, index, length);
             });
-            for (Fx3DDataset i : datasets) {
-                Platform.runLater(() -> {
-                    controller.setDataset(i, maxVal);
-                });
-            }
 
         } catch (Throwable e) {
             setStatus(TaskStatus.ERROR);
@@ -235,7 +221,7 @@ class Fx3DSamplingTask extends AbstractTask {
             return;
         }
 
-        logger.info("Finished sampling 3D plot of " + dataFiles);
+        logger.info("Finished sampling 3D plot of " + dataFile);
 
         setStatus(TaskStatus.FINISHED);
 

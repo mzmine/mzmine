@@ -17,11 +17,16 @@
  */
 package net.sf.mzmine.modules.visualization.fx3d;
 
+import java.util.ArrayList;
+
+import com.google.common.collect.Range;
+
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 
@@ -47,16 +52,43 @@ public class Fx3DStageController {
     final double MAX_SCALE = 20.0;
     final double MIN_SCALE = 0.1;
 
+    public double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
+
+    public ArrayList<Fx3DDataset> datasets = new ArrayList<Fx3DDataset>();
+    public ArrayList<Color> colors = new ArrayList<Color>();
+
     public void initialize() {
         plot.getTransforms().addAll(rotateX, rotateY);
         finalNode.getTransforms().addAll(translateX, translateY);
+        colors.add(Color.BLUE);
+        colors.add(Color.GREEN);
+        colors.add(Color.RED);
+        colors.add(Color.YELLOW);
+        colors.add(Color.DARKORANGE);
+        colors.add(Color.CYAN);
+        colors.add(Color.FUCHSIA);
+        colors.add(Color.GOLD);
     }
 
-    public void setDataset(Fx3DDataset dataset,
-            double maxOfAllBinnedIntensities) {
-        Fx3DPlotMesh meshView = new Fx3DPlotMesh();
-        meshView.setDataset(dataset, maxOfAllBinnedIntensities);
-        plot.getChildren().addAll(meshView);
+    public void setDataset(Fx3DDataset dataset, double maxBinnedIntensity,
+            int index, int length) {
+        datasets.add(dataset);
+        if (maxOfAllBinnedIntensity < maxBinnedIntensity) {
+            maxOfAllBinnedIntensity = maxBinnedIntensity;
+        }
+        if (index == length - 1) {
+            int i = 0;
+            for (Fx3DDataset data : datasets) {
+                Fx3DPlotMesh meshView = new Fx3DPlotMesh();
+                meshView.setDataset(data, maxOfAllBinnedIntensity,
+                        colors.get(i));
+                plot.getChildren().addAll(meshView);
+                i = (i + 1) % 8;
+            }
+            Range<Double> rtRange = dataset.getRtRange();
+            Range<Double> mzRange = dataset.getMzRange();
+            axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
+        }
     }
 
     public void handleMousePressed(MouseEvent me) {

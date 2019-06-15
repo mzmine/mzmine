@@ -121,11 +121,11 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 }
 
                 Fx3DStageController controller = loader.getController();
-                MZmineCore.getTaskController()
-                        .addTask(
-                                new Fx3DSamplingTask(dataFiles, scans, rtRange,
-                                        mzRange, rtRes, mzRes, controller),
-                                TaskPriority.HIGH);
+                for (int i = 0; i < dataFiles.length; i++) {
+                    MZmineCore.getTaskController().addTask(new Fx3DSamplingTask(
+                            dataFiles[i], scans[i], rtRange, mzRange, rtRes,
+                            mzRes, controller, i, len), TaskPriority.HIGH);
+                }
                 Scene scene = new Scene((Parent) nodeFromFXML, 800, 600, true,
                         SceneAntialiasing.BALANCED);
                 PerspectiveCamera camera = new PerspectiveCamera();
