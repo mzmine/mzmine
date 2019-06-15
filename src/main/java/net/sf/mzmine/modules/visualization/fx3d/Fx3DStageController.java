@@ -70,8 +70,8 @@ public class Fx3DStageController {
         colors.add(Color.GOLD);
     }
 
-    public void setDataset(Fx3DDataset dataset, double maxBinnedIntensity,
-            int index, int length) {
+    public synchronized void setDataset(Fx3DDataset dataset,
+            double maxBinnedIntensity, int index, int length) {
         datasets.add(dataset);
         if (maxOfAllBinnedIntensity < maxBinnedIntensity) {
             maxOfAllBinnedIntensity = maxBinnedIntensity;
