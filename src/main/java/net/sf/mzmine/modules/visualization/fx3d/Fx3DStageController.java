@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.fx3d;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
@@ -28,7 +29,6 @@ public class Fx3DStageController {
 
     @FXML
     private StackPane root = new StackPane();
-
     @FXML
     private Group plot = new Group();
     @FXML
@@ -43,6 +43,9 @@ public class Fx3DStageController {
 
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
+
+    final double MAX_SCALE = 20.0;
+    final double MIN_SCALE = 0.1;
 
     public void initialize() {
         plot.getTransforms().addAll(rotateX, rotateY);
@@ -77,6 +80,35 @@ public class Fx3DStageController {
         }
         mouseOldX = mousePosX;
         mouseOldY = mousePosY;
+    }
+
+    public void onScrollHandler(ScrollEvent event) {
+        double delta = 1.2;
+        double scale = (root.getScaleX());
+
+        if (event.getDeltaY() < 0) {
+            scale /= delta;
+        } else {
+            scale *= delta;
+        }
+
+        scale = clamp(scale, MIN_SCALE, MAX_SCALE);
+
+        root.setScaleX(scale);
+        root.setScaleY(scale);
+
+        event.consume();
+    }
+
+    public static double clamp(double value, double min, double max) {
+
+        if (Double.compare(value, min) < 0)
+            return min;
+
+        if (Double.compare(value, max) > 0)
+            return max;
+
+        return value;
     }
 
     public Fx3DAxes getAxes() {

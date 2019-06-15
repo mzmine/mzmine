@@ -34,7 +34,6 @@ import javafx.scene.Parent;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
-import javafx.scene.input.ScrollEvent;
 import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -116,6 +115,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 Node nodeFromFXML = null;
                 try {
                     nodeFromFXML = loader.load();
+                    LOG.info("Node has been loaded successfully.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -130,7 +130,6 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                         SceneAntialiasing.BALANCED);
                 PerspectiveCamera camera = new PerspectiveCamera();
                 scene.setCamera(camera);
-                makeZoomable(scene);
                 Stage newStage = new Stage();
                 newStage.setTitle(dataFiles[0].toString());
                 newStage.setScene(scene);
@@ -149,43 +148,6 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
         return ExitCode.OK;
 
-    }
-
-    public void makeZoomable(Scene scene) {
-
-        final double MAX_SCALE = 20.0;
-        final double MIN_SCALE = 0.1;
-
-        scene.addEventFilter(ScrollEvent.ANY, event -> {
-
-            double delta = 1.2;
-            double scale = ((Node) scene.getRoot()).getScaleX();
-
-            if (event.getDeltaY() < 0) {
-                scale /= delta;
-            } else {
-                scale *= delta;
-            }
-
-            scale = clamp(scale, MIN_SCALE, MAX_SCALE);
-
-            scene.getRoot().setScaleX(scale);
-            scene.getRoot().setScaleY(scale);
-
-            event.consume();
-
-        });
-    }
-
-    public static double clamp(double value, double min, double max) {
-
-        if (Double.compare(value, min) < 0)
-            return min;
-
-        if (Double.compare(value, max) > 0)
-            return max;
-
-        return value;
     }
 
     @Override

@@ -5,9 +5,9 @@
 <?import javafx.scene.control.Button?>
 <?import net.sf.mzmine.modules.visualization.fx3d.*?>
 
-<StackPane id="StackPane"  xmlns:fx="http://ja?vafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController"
-	onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
-	<Group fx:id="finalNode" >
+<StackPane id="StackPane" fx:id="root" xmlns:fx="http://ja?vafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController"
+	onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
+	<Group fx:id="finalNode">
 		<Group fx:id="plot">
 			<Fx3DAxes fx:id="axes"/>
 		</Group>
