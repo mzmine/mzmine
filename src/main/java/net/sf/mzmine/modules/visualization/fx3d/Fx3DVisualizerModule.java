@@ -29,11 +29,7 @@ import com.google.common.collect.Range;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.PerspectiveCamera;
-import javafx.scene.Scene;
-import javafx.scene.SceneAntialiasing;
 import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -112,27 +108,36 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             Platform.runLater(() -> {
                 FXMLLoader loader = new FXMLLoader(
                         (getClass().getResource("Fx3DStage.fxml")));
-                Node nodeFromFXML = null;
+                // Node nodeFromFXML = null;
+                // try {
+                // nodeFromFXML = loader.load();
+                // LOG.info("Node has been loaded successfully.");
+                // } catch (IOException e) {
+                // e.printStackTrace();
+                // }
+
+                Stage newStage = null;
                 try {
-                    nodeFromFXML = loader.load();
-                    LOG.info("Node has been loaded successfully.");
+                    newStage = loader.load();
                 } catch (IOException e) {
+                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
-
+                String title = "";
                 Fx3DStageController controller = loader.getController();
                 for (int i = 0; i < dataFiles.length; i++) {
                     MZmineCore.getTaskController().addTask(new Fx3DSamplingTask(
                             dataFiles[i], scans[i], rtRange, mzRange, rtRes,
                             mzRes, controller, i, len), TaskPriority.HIGH);
+                    title = title + dataFiles[i].toString() + " ";
                 }
-                Scene scene = new Scene((Parent) nodeFromFXML, 800, 600, true,
-                        SceneAntialiasing.BALANCED);
-                PerspectiveCamera camera = new PerspectiveCamera();
-                scene.setCamera(camera);
-                Stage newStage = new Stage();
-                newStage.setTitle(dataFiles[0].toString());
-                newStage.setScene(scene);
+                // Scene scene = new Scene((Parent) nodeFromFXML, 800, 600,
+                // true,
+                // SceneAntialiasing.BALANCED);
+                // PerspectiveCamera camera = new PerspectiveCamera();
+                // scene.setCamera(camera);
+                newStage.getScene().setCamera(new PerspectiveCamera());
+                newStage.setTitle(title);
                 newStage.show();
             });
 

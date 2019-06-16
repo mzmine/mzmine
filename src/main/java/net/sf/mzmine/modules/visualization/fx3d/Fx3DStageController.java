@@ -21,6 +21,8 @@ import java.util.ArrayList;
 
 import com.google.common.collect.Range;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.input.MouseEvent;
@@ -33,13 +35,13 @@ import javafx.scene.transform.Translate;
 public class Fx3DStageController {
 
     @FXML
-    private StackPane root = new StackPane();
+    private StackPane root;
     @FXML
-    private Group plot = new Group();
+    private Group plot;
     @FXML
-    private Group finalNode = new Group();
+    private Group finalNode;
     @FXML
-    private Fx3DAxes axes = new Fx3DAxes();
+    private Fx3DAxes axes;
 
     private final Rotate rotateX = new Rotate(45, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
@@ -54,7 +56,8 @@ public class Fx3DStageController {
 
     public double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
-    public ArrayList<Fx3DDataset> datasets = new ArrayList<Fx3DDataset>();
+    public ObservableList<Fx3DDataset> datasets = FXCollections
+            .observableArrayList();
     public ArrayList<Color> colors = new ArrayList<Color>();
 
     public void initialize() {

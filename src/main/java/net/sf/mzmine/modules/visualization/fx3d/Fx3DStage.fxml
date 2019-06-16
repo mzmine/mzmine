@@ -2,14 +2,23 @@
 
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.Group?>
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.*?>
 <?import net.sf.mzmine.modules.visualization.fx3d.*?>
+<?import javafx.stage.Stage ?>
 
-<StackPane id="StackPane" fx:id="root" xmlns:fx="http://ja?vafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController"
-	onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
-	<Group fx:id="finalNode">
-		<Group fx:id="plot">
-			<Fx3DAxes fx:id="axes"/>
-		</Group>
-	</Group>
-</StackPane>
+<Stage xmlns:fx="http://ja?vafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController">
+	<scene>
+		<Scene>
+			<root>
+				<StackPane id="StackPane" fx:id="root" prefHeight="600" prefWidth="800"
+					onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
+					<Group fx:id="finalNode">
+						<Group fx:id="plot">
+							<Fx3DAxes fx:id="axes"/>
+						</Group>
+					</Group>
+				</StackPane>
+			</root>
+		</Scene>
+	</scene>
+</Stage>
