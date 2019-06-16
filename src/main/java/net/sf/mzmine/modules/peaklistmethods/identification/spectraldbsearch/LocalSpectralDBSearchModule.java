@@ -22,8 +22,12 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerows.SingleRowLocalSpectralDBSearchParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerows.SingleRowLocalSpectralDBSearchTask;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -59,6 +63,22 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
 
     return ExitCode.OK;
 
+  }
+
+  /**
+   * Show dialog for identifying a single peak-list row.
+   * 
+   * @param row the peak list row.
+   */
+  public static void showSingleRowIdentificationDialog(final PeakListRow row) {
+
+    final ParameterSet parameters = new SingleRowLocalSpectralDBSearchParameters();
+
+    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+
+      MZmineCore.getTaskController()
+          .addTask(new SingleRowLocalSpectralDBSearchTask(row, parameters.cloneParameterSet()));
+    }
   }
 
   @Override

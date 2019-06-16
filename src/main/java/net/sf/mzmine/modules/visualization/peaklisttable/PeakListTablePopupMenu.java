@@ -51,6 +51,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.Fo
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
@@ -120,6 +121,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem showPeakRowSummaryItem;
   private final JMenuItem clearIdsItem;
   private final JMenuItem onlineDbSearchItem;
+  private final JMenuItem spectralDbSearchItem;
   private final JMenuItem formulaItem;
   private final JMenuItem siriusItem;
   private final JMenuItem nistSearchItem;
@@ -167,6 +169,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     searchMenu = new JMenu("Search");
     add(searchMenu);
     onlineDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online database", this);
+    spectralDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search spectral database", this);
     nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search", this);
     formulaItem = GUIUtils.addMenuItem(searchMenu, "Predict molecular formula", this);
     siriusItem = GUIUtils.addMenuItem(searchMenu, "SIRIUS structure prediction", this);
@@ -646,6 +649,28 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         @Override
         public void run() {
           OnlineDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow);
+        }
+      });
+
+    }
+
+    if (spectralDbSearchItem != null && spectralDbSearchItem.equals(src)) {
+
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          LocalSpectralDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow);
+          List<SpectralDBPeakIdentity> spectralID =
+              Arrays.stream(clickedPeakListRow.getPeakIdentities())
+                  .filter(pi -> pi instanceof SpectralDBPeakIdentity)
+                  .map(pi -> ((SpectralDBPeakIdentity) pi)).collect(Collectors.toList());
+          if (!spectralID.isEmpty()) {
+            SpectraIdentificationResultsWindow window = new SpectraIdentificationResultsWindow();
+            window.addMatches(spectralID);
+            window.setTitle("Matched " + spectralID.size() + " compounds for feature list row"
+                + clickedPeakListRow.getID());
+            window.setVisible(true);
+          }
         }
       });
 
