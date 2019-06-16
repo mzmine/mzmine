@@ -119,7 +119,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem manuallyDefineItem;
   private final JMenuItem showPeakRowSummaryItem;
   private final JMenuItem clearIdsItem;
-  private final JMenuItem dbSearchItem;
+  private final JMenuItem onlineDbSearchItem;
   private final JMenuItem formulaItem;
   private final JMenuItem siriusItem;
   private final JMenuItem nistSearchItem;
@@ -166,7 +166,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
     searchMenu = new JMenu("Search");
     add(searchMenu);
-    dbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online database", this);
+    onlineDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online database", this);
     nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search", this);
     formulaItem = GUIUtils.addMenuItem(searchMenu, "Predict molecular formula", this);
     siriusItem = GUIUtils.addMenuItem(searchMenu, "SIRIUS structure prediction", this);
@@ -640,7 +640,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
     }
 
-    if (dbSearchItem != null && dbSearchItem.equals(src)) {
+    if (onlineDbSearchItem != null && onlineDbSearchItem.equals(src)) {
 
       SwingUtilities.invokeLater(new Runnable() {
         @Override
