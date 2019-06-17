@@ -10,12 +10,22 @@
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.SubScene?>
 
-<Group fx:id="node" xmlns:fx="http://ja?vafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController">
-	<StackPane fx:id="root" onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
-		<Group fx:id="finalNode">
-		    <Group fx:id="plot">
-		        <Fx3DAxes fx:id="axes"/>
-		    </Group>
-		</Group>
-	</StackPane>
+<Group fx:id="node" xmlns:fx="http://ja?vafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController"
+  onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
+  <BorderPane>
+     <center>
+        <Group fx:id="finalNode">
+            <Group fx:id="plot">
+                <Fx3DAxes fx:id="axes"/>
+            </Group>
+        </Group>
+      </center>
+      <bottom>
+        <TableView fx:id="tableView" prefWidth="800">
+        	<columns>
+        		<TableColumn fx:id="fileNameCol" prefWidth="800"/>
+        	</columns>
+		</TableView>
+      </bottom>
+  </BorderPane>
 </Group>

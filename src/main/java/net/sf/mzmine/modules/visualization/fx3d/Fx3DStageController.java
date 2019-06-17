@@ -25,16 +25,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
-import javafx.scene.PerspectiveCamera;
-import javafx.scene.SceneAntialiasing;
-import javafx.scene.SubScene;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.ToolBar;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
@@ -53,7 +48,9 @@ public class Fx3DStageController {
     @FXML
     private Fx3DAxes axes;
 
+    @FXML
     private TableView<Fx3DDataset> tableView = new TableView<Fx3DDataset>();
+    @FXML
     private TableColumn<Fx3DDataset, String> fileNameCol = new TableColumn<Fx3DDataset, String>(
             "File Name");
 
@@ -74,10 +71,6 @@ public class Fx3DStageController {
             .observableArrayList();
     public ArrayList<Color> colors = new ArrayList<Color>();
 
-    public BorderPane pane = new BorderPane();
-
-    public ToolBar toolBar = new ToolBar(tableView);
-
     public void initialize() {
         plot.getTransforms().addAll(rotateX, rotateY);
         finalNode.getTransforms().addAll(translateX, translateY);
@@ -92,15 +85,6 @@ public class Fx3DStageController {
 
         fileNameCol.setCellValueFactory(
                 new PropertyValueFactory<Fx3DDataset, String>("fileName"));
-
-        PerspectiveCamera camera = new PerspectiveCamera(true);
-        node.getChildren().add(camera);
-        SubScene subScene = new SubScene(node, 800, 600, true,
-                SceneAntialiasing.BALANCED);
-        subScene.setCamera(camera);
-        pane.setCenter(subScene);
-        pane.setBottom(toolBar);
-        pane.setPrefSize(800, 600);
     }
 
     public void setDataset(Fx3DDataset dataset, double maxBinnedIntensity,
@@ -122,7 +106,6 @@ public class Fx3DStageController {
             Range<Double> mzRange = dataset.getMzRange();
             axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
             tableView.setItems(datasets);
-            tableView.getColumns().add(fileNameCol);
         }
     }
 

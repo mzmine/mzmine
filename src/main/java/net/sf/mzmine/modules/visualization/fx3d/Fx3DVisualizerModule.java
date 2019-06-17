@@ -30,7 +30,10 @@ import com.google.common.collect.Range;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -125,8 +128,10 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                     title = title + dataFiles[i].toString() + " ";
                 }
                 Stage newStage = new Stage();
-
-                Scene scene = new Scene(nodeFromFXML.getParent());
+                Scene scene = new Scene((Parent) nodeFromFXML, 800, 600, true,
+                        SceneAntialiasing.BALANCED);
+                PerspectiveCamera camera = new PerspectiveCamera();
+                scene.setCamera(camera);
                 newStage.setScene(scene);
                 newStage.setTitle(title);
                 newStage.show();
