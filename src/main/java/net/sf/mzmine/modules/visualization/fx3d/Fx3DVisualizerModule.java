@@ -29,7 +29,8 @@ import com.google.common.collect.Range;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.PerspectiveCamera;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -108,19 +109,11 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             Platform.runLater(() -> {
                 FXMLLoader loader = new FXMLLoader(
                         (getClass().getResource("Fx3DStage.fxml")));
-                // Node nodeFromFXML = null;
-                // try {
-                // nodeFromFXML = loader.load();
-                // LOG.info("Node has been loaded successfully.");
-                // } catch (IOException e) {
-                // e.printStackTrace();
-                // }
-
-                Stage newStage = null;
+                Node nodeFromFXML = null;
                 try {
-                    newStage = loader.load();
+                    nodeFromFXML = loader.load();
+                    LOG.info("Node has been loaded successfully.");
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 String title = "";
@@ -131,12 +124,10 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                             mzRes, controller, i, len), TaskPriority.HIGH);
                     title = title + dataFiles[i].toString() + " ";
                 }
-                // Scene scene = new Scene((Parent) nodeFromFXML, 800, 600,
-                // true,
-                // SceneAntialiasing.BALANCED);
-                // PerspectiveCamera camera = new PerspectiveCamera();
-                // scene.setCamera(camera);
-                newStage.getScene().setCamera(new PerspectiveCamera());
+                Stage newStage = new Stage();
+
+                Scene scene = new Scene(nodeFromFXML.getParent());
+                newStage.setScene(scene);
                 newStage.setTitle(title);
                 newStage.show();
             });

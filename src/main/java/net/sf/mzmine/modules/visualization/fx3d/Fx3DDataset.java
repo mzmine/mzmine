@@ -19,6 +19,8 @@ package net.sf.mzmine.modules.visualization.fx3d;
 
 import com.google.common.collect.Range;
 
+import javafx.beans.property.SimpleStringProperty;
+
 public class Fx3DDataset {
 
     private float[][] intensityValues;
@@ -26,39 +28,45 @@ public class Fx3DDataset {
     private int mzResolution;
     private double maxBinnedIntensity;
     private Range<Double> rtRange, mzRange;
+    private SimpleStringProperty fileName = new SimpleStringProperty("");
 
     public Fx3DDataset(float[][] intensityValues, int rtResolution,
             int mzResolution, double maxBinnedIntensity, Range<Double> rtRange,
-            Range<Double> mzRange) {
+            Range<Double> mzRange, String fileName) {
         this.intensityValues = intensityValues;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
         this.maxBinnedIntensity = maxBinnedIntensity;
         this.rtRange = rtRange;
         this.mzRange = mzRange;
+        this.fileName.set(fileName);
     }
 
-    float[][] getIntensityValues() {
+    public float[][] getIntensityValues() {
         return intensityValues;
     }
 
-    int getRtResolution() {
+    public int getRtResolution() {
         return rtResolution;
     }
 
-    int getMzResolution() {
+    public int getMzResolution() {
         return mzResolution;
     }
 
-    double getMaxBinnedIntensity() {
+    public double getMaxBinnedIntensity() {
         return maxBinnedIntensity;
     }
 
-    Range<Double> getRtRange() {
+    public Range<Double> getRtRange() {
         return rtRange;
     }
 
-    Range<Double> getMzRange() {
+    public Range<Double> getMzRange() {
         return mzRange;
+    }
+
+    public String getFileName() {
+        return fileName.get();
     }
 }

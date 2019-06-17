@@ -25,8 +25,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
+import javafx.scene.PerspectiveCamera;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.SubScene;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
@@ -35,6 +43,8 @@ import javafx.scene.transform.Translate;
 public class Fx3DStageController {
 
     @FXML
+    private Group node;
+    @FXML
     private StackPane root;
     @FXML
     private Group plot;
@@ -42,6 +52,10 @@ public class Fx3DStageController {
     private Group finalNode;
     @FXML
     private Fx3DAxes axes;
+
+    private TableView<Fx3DDataset> tableView = new TableView<Fx3DDataset>();
+    private TableColumn<Fx3DDataset, String> fileNameCol = new TableColumn<Fx3DDataset, String>(
+            "File Name");
 
     private final Rotate rotateX = new Rotate(45, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
@@ -60,6 +74,10 @@ public class Fx3DStageController {
             .observableArrayList();
     public ArrayList<Color> colors = new ArrayList<Color>();
 
+    public BorderPane pane = new BorderPane();
+
+    public ToolBar toolBar = new ToolBar(tableView);
+
     public void initialize() {
         plot.getTransforms().addAll(rotateX, rotateY);
         finalNode.getTransforms().addAll(translateX, translateY);
@@ -71,10 +89,22 @@ public class Fx3DStageController {
         colors.add(Color.CYAN);
         colors.add(Color.FUCHSIA);
         colors.add(Color.GOLD);
+
+        fileNameCol.setCellValueFactory(
+                new PropertyValueFactory<Fx3DDataset, String>("fileName"));
+
+        PerspectiveCamera camera = new PerspectiveCamera(true);
+        node.getChildren().add(camera);
+        SubScene subScene = new SubScene(node, 800, 600, true,
+                SceneAntialiasing.BALANCED);
+        subScene.setCamera(camera);
+        pane.setCenter(subScene);
+        pane.setBottom(toolBar);
+        pane.setPrefSize(800, 600);
     }
 
-    public synchronized void setDataset(Fx3DDataset dataset,
-            double maxBinnedIntensity, int index, int length) {
+    public void setDataset(Fx3DDataset dataset, double maxBinnedIntensity,
+            int index, int length) {
         datasets.add(dataset);
         if (maxOfAllBinnedIntensity < maxBinnedIntensity) {
             maxOfAllBinnedIntensity = maxBinnedIntensity;
@@ -91,6 +121,8 @@ public class Fx3DStageController {
             Range<Double> rtRange = dataset.getRtRange();
             Range<Double> mzRange = dataset.getMzRange();
             axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
+            tableView.setItems(datasets);
+            tableView.getColumns().add(fileNameCol);
         }
     }
 
@@ -119,7 +151,7 @@ public class Fx3DStageController {
 
     public void onScrollHandler(ScrollEvent event) {
         double delta = 1.2;
-        double scale = (root.getScaleX());
+        double scale = (finalNode.getScaleX());
 
         if (event.getDeltaY() < 0) {
             scale /= delta;
@@ -129,8 +161,8 @@ public class Fx3DStageController {
 
         scale = clamp(scale, MIN_SCALE, MAX_SCALE);
 
-        root.setScaleX(scale);
-        root.setScaleY(scale);
+        finalNode.setScaleX(scale);
+        finalNode.setScaleY(scale);
 
         event.consume();
     }

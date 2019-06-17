@@ -207,7 +207,7 @@ class Fx3DSamplingTask extends AbstractTask {
             }
             Fx3DDataset dataset = new Fx3DDataset(finalIntensityValues,
                     rtResolution, mzResolution, maxBinnedIntensity, rtRange,
-                    mzRange);
+                    mzRange, dataFile.toString());
 
             final double maxVal = maxBinnedIntensity;
             Platform.runLater(() -> {
