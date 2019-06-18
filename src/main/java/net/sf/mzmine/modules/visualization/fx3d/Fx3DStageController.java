@@ -69,7 +69,7 @@ public class Fx3DStageController {
     private double mouseOldX, mouseOldY;
 
     final double MAX_SCALE = 20.0;
-    final double MIN_SCALE = 0.1;
+    final double MIN_SCALE = 1;
 
     public double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
@@ -103,7 +103,7 @@ public class Fx3DStageController {
 
         fileNameCol.setCellValueFactory(
                 new PropertyValueFactory<Fx3DDataset, String>("fileName"));
-        fileNameCol.setCellValueFactory(
+        colorCol.setCellValueFactory(
                 new PropertyValueFactory<Fx3DDataset, String>("color"));
 
         PointLight light1 = new PointLight(Color.WHITE);
@@ -126,17 +126,20 @@ public class Fx3DStageController {
         cameraLight.setTranslateY(camera.getTranslateY());
         cameraLight.setTranslateZ(camera.getTranslateZ());
 
-        SubScene scene3d = new SubScene(finalNode, 800, 600, true,
+        SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
-
-        scene3d.setCamera(camera);
-        scene3d.setPickOnBounds(true);
-        subSceneRootNode.getChildren().add(scene3d);
+        scene3D.widthProperty().bind(root.widthProperty());
+        scene3D.heightProperty().bind(root.heightProperty());
+        scene3D.setCamera(camera);
+        scene3D.setPickOnBounds(true);
+        subSceneRootNode.getChildren().add(scene3D);
     }
 
     public synchronized void setDataset(Fx3DDataset dataset,
             double maxBinnedIntensity, int index, int length) {
-        dataset.setColor(colors.get(index).toString());
+
+        dataset.setColor(getColorName(index));
+
         datasets.add(dataset);
         if (maxOfAllBinnedIntensity < maxBinnedIntensity) {
             maxOfAllBinnedIntensity = maxBinnedIntensity;
@@ -155,6 +158,38 @@ public class Fx3DStageController {
             axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
             tableView.setItems(datasets);
         }
+    }
+
+    public String getColorName(int index) {
+        String name = "UNKNOWN";
+
+        switch (index) {
+        case 0:
+            name = "BLUE";
+            break;
+        case 1:
+            name = "GREEN";
+            break;
+        case 2:
+            name = "RED";
+            break;
+        case 3:
+            name = "YELLOW";
+            break;
+        case 4:
+            name = "DARKORANGE";
+            break;
+        case 5:
+            name = "CYAN";
+            break;
+        case 6:
+            name = "FUCHSIA";
+            break;
+        case 7:
+            name = "GOLD";
+            break;
+        }
+        return name;
     }
 
     public void handleMousePressed(MouseEvent me) {

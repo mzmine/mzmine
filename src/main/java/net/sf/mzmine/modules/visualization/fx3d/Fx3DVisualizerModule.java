@@ -20,12 +20,9 @@ package net.sf.mzmine.modules.visualization.fx3d;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-
-import org.fxyz3d.utils.CameraTransformer;
 
 import com.google.common.collect.Range;
 
@@ -34,9 +31,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.PerspectiveCamera;
-import javafx.scene.PointLight;
 import javafx.scene.Scene;
-import javafx.scene.SceneAntialiasing;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -71,7 +66,6 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         return MODULE_DESCRIPTION;
     }
 
-    @SuppressWarnings("null")
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
@@ -108,56 +102,38 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 .getParameter(Fx3DVisualizerParameters.rtResolution).getValue();
         int mzRes = myParameters
                 .getParameter(Fx3DVisualizerParameters.mzResolution).getValue();
-        try {
 
-            Platform.setImplicitExit(false);
-            Platform.runLater(() -> {
-                FXMLLoader loader = new FXMLLoader(
-                        (getClass().getResource("Fx3DStage.fxml")));
-                Node nodeFromFXML = null;
-                try {
-                    nodeFromFXML = loader.load();
-                    LOG.info("Node has been loaded successfully.");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                String title = "";
-                Fx3DStageController controller = loader.getController();
-                for (int i = 0; i < dataFiles.length; i++) {
-                    MZmineCore.getTaskController().addTask(new Fx3DSamplingTask(
-                            dataFiles[i], scans[i], rtRange, mzRange, rtRes,
-                            mzRes, controller, i, len), TaskPriority.HIGH);
-                    title = title + dataFiles[i].toString() + " ";
-                }
-                Stage newStage = new Stage();
-                Scene scene = new Scene((Parent) nodeFromFXML, 800, 600, true,
-                        SceneAntialiasing.BALANCED);
+        Platform.setImplicitExit(false);
+        Platform.runLater(() -> {
+            FXMLLoader loader = new FXMLLoader(
+                    (getClass().getResource("Fx3DStage.fxml")));
+            Node nodeFromFXML = null;
+            try {
+                nodeFromFXML = loader.load();
+                LOG.info("Node has been loaded successfully.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String title = "";
+            Fx3DStageController controller = loader.getController();
+            for (int i = 0; i < dataFiles.length; i++) {
+                MZmineCore.getTaskController().addTask(
+                        new Fx3DSamplingTask(dataFiles[i], scans[i], rtRange,
+                                mzRange, rtRes, mzRes, controller, i, len),
+                        TaskPriority.HIGH);
+                title = title + dataFiles[i].toString() + " ";
+            }
+            Stage newStage = new Stage();
+            Scene scene = new Scene((Parent) nodeFromFXML, 800, 600);
 
-                PerspectiveCamera camera = new PerspectiveCamera();
-                CameraTransformer cameraTransform = new CameraTransformer();
-                cameraTransform.getChildren().add(camera);
-                PointLight cameraLight = new PointLight(Color.WHITE);
-                cameraTransform.getChildren().add(cameraLight);
-                cameraLight.setTranslateX(camera.getTranslateX());
-                cameraLight.setTranslateY(camera.getTranslateY());
-                cameraLight.setTranslateZ(camera.getTranslateZ());
+            PerspectiveCamera camera = new PerspectiveCamera();
 
-                scene.setCamera(camera);
-                scene.setFill(Color.BISQUE);
-                newStage.setScene(scene);
-                newStage.setTitle(title);
-                newStage.show();
-            });
-
-        } catch (Throwable e) {
-            e.printStackTrace();
-            // Missing Java3D may cause UnsatisfiedLinkError or
-            // NoClassDefFoundError.
-            final String msg = "Error initializing Java3D. Please file an issue at https://github.com/mzmine/mzmine2/issues and include the complete output of your MZmine console.";
-            LOG.log(Level.SEVERE, msg, e);
-            desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-                    msg);
-        }
+            scene.setCamera(camera);
+            scene.setFill(Color.BISQUE);
+            newStage.setScene(scene);
+            newStage.setTitle(title);
+            newStage.show();
+        });
 
         return ExitCode.OK;
 

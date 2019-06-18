@@ -27,6 +27,7 @@
             <items>
                 <Button>
                     <graphic>
+	                    <Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
                     </graphic>
                     <tooltip>
                         <Tooltip text="Click here to load previous scan" />
