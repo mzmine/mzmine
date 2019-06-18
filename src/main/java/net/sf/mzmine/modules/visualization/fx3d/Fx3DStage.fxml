@@ -1,31 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.Group?>
 <?import javafx.scene.*?>
 <?import javafx.scene.layout.* ?>
-<?import net.sf.mzmine.modules.visualization.fx3d.*?>
-<?import javafx.stage.Stage ?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.SubScene?>
+<?import javafx.scene.control.* ?>
+<?import javafx.scene.image.* ?>
+<?import net.sf.mzmine.modules.visualization.fx3d.* ?>
+<?import org.controlsfx.glyphfont.Glyph ?>
 
-<Group fx:id="node" xmlns:fx="http://ja?vafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController"
-  onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
-  <BorderPane>
+<BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController" minWidth="400" minHeight="400">
      <center>
-        <Group fx:id="finalNode">
-            <Group fx:id="plot">
-                <Fx3DAxes fx:id="axes"/>
-            </Group>
-        </Group>
-      </center>
-      <bottom>
-        <TableView fx:id="tableView" prefWidth="800">
-        	<columns>
-        		<TableColumn fx:id="fileNameCol" prefWidth="800"/>
-        	</columns>
-		</TableView>
-      </bottom>
-  </BorderPane>
-</Group>
+       <Group fx:id="subSceneRootNode" onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
+        </Group>     
+     </center>
+     <bottom>
+      <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
+       <TableView fx:id="tableView" minHeight="50" prefHeight="150">
+           <columns>
+               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="400" />
+               <TableColumn fx:id="colorCol" text="Color" prefWidth="400" />
+           </columns>
+        </TableView>
+       </ScrollPane>
+     </bottom>
+     <right>
+     <ToolBar orientation="VERTICAL">
+            <items>
+                <Button>
+                    <graphic>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Click here to load previous scan" />
+                    </tooltip>
+                </Button>
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <Button>
+                    <graphic>
+                    	<Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Zoom out" />
+                    </tooltip>
+                </Button>
+                <Button>
+                    <graphic>
+	                    <Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Manual zoom" />
+                    </tooltip>
+                </Button>
+            </items>
+        </ToolBar>
+    </right>
+</BorderPane>

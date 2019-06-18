@@ -19,18 +19,24 @@ package net.sf.mzmine.modules.visualization.fx3d;
 
 import java.util.ArrayList;
 
+import org.fxyz3d.utils.CameraTransformer;
+
 import com.google.common.collect.Range;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
+import javafx.scene.PerspectiveCamera;
+import javafx.scene.PointLight;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.SubScene;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
@@ -38,22 +44,22 @@ import javafx.scene.transform.Translate;
 public class Fx3DStageController {
 
     @FXML
-    private Group node;
+    private BorderPane root;
     @FXML
-    private StackPane root;
-    @FXML
-    private Group plot;
-    @FXML
-    private Group finalNode;
-    @FXML
-    private Fx3DAxes axes;
+    private Group subSceneRootNode;
+    private Group finalNode = new Group();
 
+    private Group plot = new Group();
+
+    private Fx3DAxes axes = new Fx3DAxes();
     @FXML
     private TableView<Fx3DDataset> tableView = new TableView<Fx3DDataset>();
     @FXML
-    private TableColumn<Fx3DDataset, String> fileNameCol = new TableColumn<Fx3DDataset, String>(
-            "File Name");
+    private TableColumn<Fx3DDataset, String> fileNameCol = new TableColumn<Fx3DDataset, String>();
+    @FXML
+    private TableColumn<Fx3DDataset, String> colorCol = new TableColumn<Fx3DDataset, String>();
 
+    private static final int SIZE = 500;
     private final Rotate rotateX = new Rotate(45, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private final Translate translateX = new Translate();
@@ -71,9 +77,21 @@ public class Fx3DStageController {
             .observableArrayList();
     public ArrayList<Color> colors = new ArrayList<Color>();
 
+    public CameraTransformer cameraTransform = new CameraTransformer();
+
     public void initialize() {
+        rotateX.setPivotZ(SIZE / 2);
+        rotateX.setPivotX(SIZE / 2);
+        rotateY.setPivotZ(SIZE / 2);
+        rotateY.setPivotX(SIZE / 2);
         plot.getTransforms().addAll(rotateX, rotateY);
+        translateY.setY(400);
+        translateX.setX(200);
         finalNode.getTransforms().addAll(translateX, translateY);
+        finalNode.getChildren().add(plot);
+
+        plot.getChildren().add(axes);
+
         colors.add(Color.BLUE);
         colors.add(Color.GREEN);
         colors.add(Color.RED);
@@ -85,10 +103,40 @@ public class Fx3DStageController {
 
         fileNameCol.setCellValueFactory(
                 new PropertyValueFactory<Fx3DDataset, String>("fileName"));
+        fileNameCol.setCellValueFactory(
+                new PropertyValueFactory<Fx3DDataset, String>("color"));
+
+        PointLight light1 = new PointLight(Color.WHITE);
+        light1.setTranslateX(SIZE / 2);
+        light1.setTranslateZ(SIZE / 2);
+        light1.setTranslateY(-1000);
+
+        PointLight light2 = new PointLight(Color.WHITE);
+        light2.setTranslateX(SIZE / 2);
+        light2.setTranslateZ(SIZE / 2);
+        light2.setTranslateY(1000);
+
+        plot.getChildren().addAll(light1, light2);
+
+        PerspectiveCamera camera = new PerspectiveCamera();
+        cameraTransform.getChildren().add(camera);
+        PointLight cameraLight = new PointLight(Color.WHITE);
+        cameraTransform.getChildren().add(cameraLight);
+        cameraLight.setTranslateX(camera.getTranslateX());
+        cameraLight.setTranslateY(camera.getTranslateY());
+        cameraLight.setTranslateZ(camera.getTranslateZ());
+
+        SubScene scene3d = new SubScene(finalNode, 800, 600, true,
+                SceneAntialiasing.BALANCED);
+
+        scene3d.setCamera(camera);
+        scene3d.setPickOnBounds(true);
+        subSceneRootNode.getChildren().add(scene3d);
     }
 
-    public void setDataset(Fx3DDataset dataset, double maxBinnedIntensity,
-            int index, int length) {
+    public synchronized void setDataset(Fx3DDataset dataset,
+            double maxBinnedIntensity, int index, int length) {
+        dataset.setColor(colors.get(index).toString());
         datasets.add(dataset);
         if (maxOfAllBinnedIntensity < maxBinnedIntensity) {
             maxOfAllBinnedIntensity = maxBinnedIntensity;
@@ -99,7 +147,7 @@ public class Fx3DStageController {
                 Fx3DPlotMesh meshView = new Fx3DPlotMesh();
                 meshView.setDataset(data, maxOfAllBinnedIntensity,
                         colors.get(i));
-                plot.getChildren().addAll(meshView);
+                plot.getChildren().add(meshView);
                 i = (i + 1) % 8;
             }
             Range<Double> rtRange = dataset.getRtRange();

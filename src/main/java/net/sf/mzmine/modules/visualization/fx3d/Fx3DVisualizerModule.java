@@ -25,6 +25,8 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import org.fxyz3d.utils.CameraTransformer;
+
 import com.google.common.collect.Range;
 
 import javafx.application.Platform;
@@ -32,8 +34,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.PerspectiveCamera;
+import javafx.scene.PointLight;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -56,8 +60,6 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "Fx 3D visualizer";
     private static final String MODULE_DESCRIPTION = "Fx 3D visualizer."; // TODO
-
-    private Fx3DDataset dataset;
 
     @Override
     public @Nonnull String getName() {
@@ -130,8 +132,18 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 Stage newStage = new Stage();
                 Scene scene = new Scene((Parent) nodeFromFXML, 800, 600, true,
                         SceneAntialiasing.BALANCED);
+
                 PerspectiveCamera camera = new PerspectiveCamera();
+                CameraTransformer cameraTransform = new CameraTransformer();
+                cameraTransform.getChildren().add(camera);
+                PointLight cameraLight = new PointLight(Color.WHITE);
+                cameraTransform.getChildren().add(cameraLight);
+                cameraLight.setTranslateX(camera.getTranslateX());
+                cameraLight.setTranslateY(camera.getTranslateY());
+                cameraLight.setTranslateZ(camera.getTranslateZ());
+
                 scene.setCamera(camera);
+                scene.setFill(Color.BISQUE);
                 newStage.setScene(scene);
                 newStage.setTitle(title);
                 newStage.show();

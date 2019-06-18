@@ -29,6 +29,7 @@ public class Fx3DDataset {
     private double maxBinnedIntensity;
     private Range<Double> rtRange, mzRange;
     private SimpleStringProperty fileName = new SimpleStringProperty("");
+    private SimpleStringProperty color = new SimpleStringProperty("");
 
     public Fx3DDataset(float[][] intensityValues, int rtResolution,
             int mzResolution, double maxBinnedIntensity, Range<Double> rtRange,
@@ -68,5 +69,13 @@ public class Fx3DDataset {
 
     public String getFileName() {
         return fileName.get();
+    }
+
+    public void setColor(String color) {
+        this.color.set(color);
+    }
+
+    public String getColor() {
+        return color.get();
     }
 }
