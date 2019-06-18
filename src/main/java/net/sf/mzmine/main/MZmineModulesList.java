@@ -214,12 +214,12 @@ public class MZmineModulesList {
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class,
       IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class,
 
-      // all other regular MZmineRunnableModule (not MZmineProcessingModule) NOT LISTED IN MENU
+      // all other regular MZmineModule (not MZmineRunnableModule) NOT LISTED IN MENU
       SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class,
       CustomDBSpectraSearchModule.class, LipidSpectraSearchModule.class,
       OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
 
-      // Data point processing
+      // Data point processing, implement DataPointProcessingModule
       DataPointProcessingManager.class, DPPMassDetectionModule.class,
       DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class};
 }
