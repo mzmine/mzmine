@@ -59,7 +59,6 @@ import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.Onlin
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
-import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
@@ -166,9 +165,9 @@ public class MZmineModulesList {
 
       // I/O
       CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
-      SQLExportModule.class, XMLExportModule.class, CasmiImportModule.class,
-      MzTabImportModule.class, XMLImportModule.class, MSPExportModule.class, MGFExportModule.class,
-      GNPSExportAndSubmitModule.class, SiriusExportModule.class,
+      SQLExportModule.class, XMLExportModule.class, MzTabImportModule.class, XMLImportModule.class,
+      MSPExportModule.class, MGFExportModule.class, GNPSExportAndSubmitModule.class,
+      SiriusExportModule.class,
 
       // Gap filling
       PeakFinderModule.class, MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class,
