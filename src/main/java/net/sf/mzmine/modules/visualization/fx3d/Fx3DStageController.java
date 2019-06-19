@@ -97,6 +97,9 @@ public class Fx3DStageController {
     public Timeline timeline;
     int animationFlag = 0;
 
+    public Translate pivot = new Translate(250, 0, 250);
+    public Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
+
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
         rotateX.setPivotX(SIZE / 2);
@@ -104,7 +107,7 @@ public class Fx3DStageController {
         rotateY.setPivotX(SIZE / 2);
         plot.getTransforms().addAll(rotateX, rotateY);
         translateY.setY(350);
-        translateX.setX(0);
+        translateX.setX(170);
         finalNode.getTransforms().addAll(translateX, translateY);
         finalNode.getChildren().add(plot);
 
@@ -135,12 +138,6 @@ public class Fx3DStageController {
         light2.setTranslateY(1000);
 
         plot.getChildren().addAll(light1, light2);
-
-        Translate pivot = new Translate(250, 0, 250);
-        Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
-
-        camera.getTransforms().addAll(pivot, yRotate,
-                new Rotate(-20, Rotate.X_AXIS), new Translate(-370, 0, -200));
 
         timeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
@@ -248,9 +245,13 @@ public class Fx3DStageController {
     public void handleAnimate() {
 
         if (animationFlag == 0) {
+            camera.getTransforms().addAll(pivot, yRotate,
+                    new Rotate(-20, Rotate.X_AXIS),
+                    new Translate(-350, 0, -200));
             timeline.play();
             animationFlag = 1;
         } else {
+            camera.getTransforms().clear();
             timeline.stop();
             animationFlag = 0;
         }
@@ -261,7 +262,7 @@ public class Fx3DStageController {
         plot.setScaleY(DEFAULT_SCALE);
         rotateX.setAngle(0);
         rotateY.setAngle(0);
-        translateX.setX(0);
+        translateX.setX(150);
         translateY.setY(350);
     }
 
