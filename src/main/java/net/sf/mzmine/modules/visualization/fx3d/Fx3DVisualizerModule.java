@@ -110,9 +110,10 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             Node nodeFromFXML = null;
             try {
                 nodeFromFXML = loader.load();
-                LOG.info("Node has been loaded successfully.");
+                LOG.finest("Node has been loaded successfully.");
             } catch (IOException e) {
                 e.printStackTrace();
+                return;
             }
             String title = "";
             Fx3DStageController controller = loader.getController();
@@ -123,16 +124,23 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                         TaskPriority.HIGH);
                 title = title + dataFiles[i].toString() + " ";
             }
-            Stage newStage = new Stage();
+            controller.setLabel("3D plot of files [" + title + "], "
+                    + mzRange.lowerEndpoint().toString() + "-"
+                    + mzRange.upperEndpoint().toString() + " m/z, RT "
+                    + rtRange.lowerEndpoint().intValue() + "-"
+                    + rtRange.upperEndpoint().intValue() + " min");
+            Stage stage = new Stage();
             Scene scene = new Scene((Parent) nodeFromFXML, 800, 600);
 
             PerspectiveCamera camera = new PerspectiveCamera();
-
             scene.setCamera(camera);
             scene.setFill(Color.BISQUE);
-            newStage.setScene(scene);
-            newStage.setTitle(title);
-            newStage.show();
+            stage.setScene(scene);
+            stage.sizeToScene();
+            stage.setTitle(title);
+            stage.show();
+            stage.setMinWidth(stage.getWidth());
+            stage.setMinHeight(stage.getHeight());
         });
 
         return ExitCode.OK;

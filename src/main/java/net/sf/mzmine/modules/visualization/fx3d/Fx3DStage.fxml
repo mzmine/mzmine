@@ -8,6 +8,9 @@
 <?import org.controlsfx.glyphfont.Glyph ?>
 
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController" minWidth="400" minHeight="400">
+     <top>
+     	<Label fx:id="label" />
+     </top>
      <center>
        <Group fx:id="subSceneRootNode" onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
         </Group>     
@@ -36,7 +39,7 @@
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                <Button>
+                <Button onAction="#handleZoomOut">
                     <graphic>
                     	<Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
                     </graphic>
@@ -44,12 +47,12 @@
                         <Tooltip text="Zoom out" />
                     </tooltip>
                 </Button>
-                <Button>
+                <Button onAction="#handleAnimate">
                     <graphic>
 	                    <Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Manual zoom" />
+                        <Tooltip text="Animate" />
                     </tooltip>
                 </Button>
             </items>

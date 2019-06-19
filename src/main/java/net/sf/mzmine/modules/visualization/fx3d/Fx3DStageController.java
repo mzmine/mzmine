@@ -23,14 +23,17 @@ import org.fxyz3d.utils.CameraTransformer;
 
 import com.google.common.collect.Range;
 
+import javafx.animation.RotateTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -40,17 +43,16 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
+import javafx.util.Duration;
 
 public class Fx3DStageController {
 
     @FXML
+    private Label label;
+    @FXML
     private BorderPane root;
     @FXML
     private Group subSceneRootNode;
-    private Group finalNode = new Group();
-
-    private Group plot = new Group();
-
     private Fx3DAxes axes = new Fx3DAxes();
     @FXML
     private TableView<Fx3DDataset> tableView = new TableView<Fx3DDataset>();
@@ -59,8 +61,10 @@ public class Fx3DStageController {
     @FXML
     private TableColumn<Fx3DDataset, String> colorCol = new TableColumn<Fx3DDataset, String>();
 
+    private Group finalNode = new Group();
+    private Group plot = new Group();
     private static final int SIZE = 500;
-    private final Rotate rotateX = new Rotate(45, Rotate.X_AXIS);
+    private final Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private final Translate translateX = new Translate();
     private final Translate translateY = new Translate();
@@ -68,8 +72,9 @@ public class Fx3DStageController {
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
 
-    final double MAX_SCALE = 20.0;
-    final double MIN_SCALE = 1;
+    final double MAX_SCALE = 10.0;
+    final double MIN_SCALE = 0.1;
+    final double DEFAULT_SCALE = 1.0;
 
     public double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
@@ -79,14 +84,17 @@ public class Fx3DStageController {
 
     public CameraTransformer cameraTransform = new CameraTransformer();
 
+    public RotateTransition rt = new RotateTransition(Duration.millis(3000),
+            finalNode);
+
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
         rotateX.setPivotX(SIZE / 2);
         rotateY.setPivotZ(SIZE / 2);
         rotateY.setPivotX(SIZE / 2);
         plot.getTransforms().addAll(rotateX, rotateY);
-        translateY.setY(400);
-        translateX.setX(200);
+        translateY.setY(350);
+        translateX.setX(170);
         finalNode.getTransforms().addAll(translateX, translateY);
         finalNode.getChildren().add(plot);
 
@@ -160,6 +168,10 @@ public class Fx3DStageController {
         }
     }
 
+    public void setLabel(String labelText) {
+        this.label.setText(labelText);
+    }
+
     public String getColorName(int index) {
         String name = "UNKNOWN";
 
@@ -215,9 +227,27 @@ public class Fx3DStageController {
         mouseOldY = mousePosY;
     }
 
+    public void handleAnimate() {
+        rotateX.setAngle(0);
+        rotateY.setAngle(0);
+        rt.setAxis(Rotate.Y_AXIS);
+        rt.setFromAngle(-90);
+        rt.setToAngle(90);
+        rt.play();
+    }
+
+    public void handleZoomOut(Event event) {
+        plot.setScaleX(DEFAULT_SCALE);
+        plot.setScaleY(DEFAULT_SCALE);
+        rotateX.setAngle(0);
+        rotateY.setAngle(0);
+        translateX.setX(170);
+        translateY.setY(350);
+    }
+
     public void onScrollHandler(ScrollEvent event) {
         double delta = 1.2;
-        double scale = (finalNode.getScaleX());
+        double scale = (plot.getScaleX());
 
         if (event.getDeltaY() < 0) {
             scale /= delta;
@@ -227,8 +257,8 @@ public class Fx3DStageController {
 
         scale = clamp(scale, MIN_SCALE, MAX_SCALE);
 
-        finalNode.setScaleX(scale);
-        finalNode.setScaleY(scale);
+        plot.setScaleX(scale);
+        plot.setScaleY(scale);
 
         event.consume();
     }
