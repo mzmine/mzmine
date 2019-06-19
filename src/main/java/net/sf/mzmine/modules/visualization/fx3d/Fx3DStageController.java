@@ -18,12 +18,16 @@
 package net.sf.mzmine.modules.visualization.fx3d;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import org.fxyz3d.utils.CameraTransformer;
 
 import com.google.common.collect.Range;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -68,6 +72,7 @@ public class Fx3DStageController {
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private final Translate translateX = new Translate();
     private final Translate translateY = new Translate();
+    private Logger LOG = Logger.getLogger(this.getClass().getName());
 
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
@@ -85,7 +90,12 @@ public class Fx3DStageController {
     public CameraTransformer cameraTransform = new CameraTransformer();
 
     public RotateTransition rt = new RotateTransition(Duration.millis(3000),
-            finalNode);
+            plot);
+
+    public PerspectiveCamera camera = new PerspectiveCamera();
+
+    public Timeline timeline;
+    int animationFlag = 0;
 
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
@@ -94,7 +104,7 @@ public class Fx3DStageController {
         rotateY.setPivotX(SIZE / 2);
         plot.getTransforms().addAll(rotateX, rotateY);
         translateY.setY(350);
-        translateX.setX(170);
+        translateX.setX(0);
         finalNode.getTransforms().addAll(translateX, translateY);
         finalNode.getChildren().add(plot);
 
@@ -126,13 +136,18 @@ public class Fx3DStageController {
 
         plot.getChildren().addAll(light1, light2);
 
-        PerspectiveCamera camera = new PerspectiveCamera();
-        cameraTransform.getChildren().add(camera);
-        PointLight cameraLight = new PointLight(Color.WHITE);
-        cameraTransform.getChildren().add(cameraLight);
-        cameraLight.setTranslateX(camera.getTranslateX());
-        cameraLight.setTranslateY(camera.getTranslateY());
-        cameraLight.setTranslateZ(camera.getTranslateZ());
+        Translate pivot = new Translate(250, 0, 250);
+        Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
+
+        camera.getTransforms().addAll(pivot, yRotate,
+                new Rotate(-20, Rotate.X_AXIS), new Translate(-370, 0, -200));
+
+        timeline = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(yRotate.angleProperty(), 0)),
+                new KeyFrame(Duration.seconds(50),
+                        new KeyValue(yRotate.angleProperty(), 360)));
+        timeline.setCycleCount(Timeline.INDEFINITE);
 
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
@@ -225,15 +240,20 @@ public class Fx3DStageController {
         }
         mouseOldX = mousePosX;
         mouseOldY = mousePosY;
+
+        LOG.finest("Plot's center X:" + translateX.getX());
+
     }
 
     public void handleAnimate() {
-        rotateX.setAngle(0);
-        rotateY.setAngle(0);
-        rt.setAxis(Rotate.Y_AXIS);
-        rt.setFromAngle(-90);
-        rt.setToAngle(90);
-        rt.play();
+
+        if (animationFlag == 0) {
+            timeline.play();
+            animationFlag = 1;
+        } else {
+            timeline.stop();
+            animationFlag = 0;
+        }
     }
 
     public void handleZoomOut(Event event) {
@@ -241,7 +261,7 @@ public class Fx3DStageController {
         plot.setScaleY(DEFAULT_SCALE);
         rotateX.setAngle(0);
         rotateY.setAngle(0);
-        translateX.setX(170);
+        translateX.setX(0);
         translateY.setY(350);
     }
 
