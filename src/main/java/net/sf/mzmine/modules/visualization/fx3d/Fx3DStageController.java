@@ -246,8 +246,7 @@ public class Fx3DStageController {
 
         if (animationFlag == 0) {
             camera.getTransforms().addAll(pivot, yRotate,
-                    new Rotate(-20, Rotate.X_AXIS),
-                    new Translate(-350, 0, -200));
+                    new Translate(-250, 0, -250));
             timeline.play();
             animationFlag = 1;
         } else {
