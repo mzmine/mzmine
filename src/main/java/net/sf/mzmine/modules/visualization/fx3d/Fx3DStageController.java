@@ -68,7 +68,7 @@ public class Fx3DStageController {
     private Group finalNode = new Group();
     private Group plot = new Group();
     private static final int SIZE = 500;
-    private final Rotate rotateX = new Rotate(35, Rotate.X_AXIS);
+    private final Rotate rotateX = new Rotate(30, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private final Translate translateX = new Translate();
     private final Translate translateY = new Translate();
@@ -266,9 +266,42 @@ public class Fx3DStageController {
         deltaAngle = 0;
         animationFlag = 0;
         plot.getTransforms().clear();
-        rotateX.setAngle(35);
-        rotateY.setAngle(0);
         plot.getTransforms().addAll(rotateX, rotateY);
+
+        Timeline timeline1 = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(translateX.xProperty(),
+                                translateX.getX())),
+                new KeyFrame(Duration.seconds(3),
+                        new KeyValue(translateX.xProperty(), 170)));
+        timeline1.play();
+
+        Timeline timeline2 = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(translateY.yProperty(),
+                                translateY.getY())),
+                new KeyFrame(Duration.seconds(3),
+                        new KeyValue(translateY.yProperty(), 350)));
+        timeline2.play();
+
+        Timeline timeline3 = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(rotateX.angleProperty(),
+                                rotateX.getAngle())),
+                new KeyFrame(Duration.seconds(3),
+                        new KeyValue(rotateX.angleProperty(), 30)));
+        timeline3.play();
+
+        Timeline timeline4 = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(rotateY.angleProperty(),
+                                rotateY.getAngle())),
+                new KeyFrame(Duration.seconds(3),
+                        new KeyValue(rotateY.angleProperty(), 0)));
+        timeline4.play();
+
+        plot.setScaleX(DEFAULT_SCALE);
+        plot.setScaleY(DEFAULT_SCALE);
     }
 
     public void onScrollHandler(ScrollEvent event) {
