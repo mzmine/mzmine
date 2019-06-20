@@ -64,13 +64,13 @@ class Fx3DSamplingTask extends AbstractTask {
      * @param msLevel
      * @param visualizer
      */
-    Fx3DSamplingTask(RawDataFile dataFile, Scan scans[], Range<Double> rtRange,
-            Range<Double> mzRange, int rtResolution, int mzResolution,
-            Fx3DStageController controller, int index, int length) {
+    Fx3DSamplingTask(RawDataFile dataFile, Scan scans[], Range<Double> mzRange,
+            int rtResolution, int mzResolution, Fx3DStageController controller,
+            int index, int length) {
 
         this.dataFile = dataFile;
         this.scans = scans;
-        this.rtRange = rtRange;
+        this.rtRange = ScanUtils.findRtRange(scans);
         this.mzRange = mzRange;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
@@ -139,20 +139,14 @@ class Fx3DSamplingTask extends AbstractTask {
                 scanBinIndex = (int) ((rt - rtRange.lowerEndpoint()) / rtStep);
 
                 // last scan falls into last bin
-                if (scanBinIndex == rtResolution)
+                if (scanBinIndex == rtResolution) {
                     scanBinIndex--;
+                }
 
                 for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
 
                     int intensityValuesIndex = (rtResolution * mzIndex)
                             + scanBinIndex;
-                    if (intensityValuesIndex == rtResolution * mzResolution) {
-                        intensityValuesIndex--;
-                    }
-                    if (intensityValuesIndex >= 250000
-                            || intensityValuesIndex < 0) {
-                        continue;
-                    }
                     if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex]) {
                         intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
                     }

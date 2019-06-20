@@ -66,6 +66,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         return MODULE_DESCRIPTION;
     }
 
+    @SuppressWarnings("null")
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull MZmineProject project,
@@ -83,7 +84,6 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             scans[i] = scanSel.getMatchingScans(dataFiles[i]);
         }
         Range<Double> rtRange = ScanUtils.findRtRange(scans[0]);
-
         final Desktop desktop = MZmineCore.getDesktop();
 
         // Check scan numbers.
@@ -118,16 +118,16 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             String title = "";
             Fx3DStageController controller = loader.getController();
             for (int i = 0; i < dataFiles.length; i++) {
-                MZmineCore.getTaskController().addTask(
-                        new Fx3DSamplingTask(dataFiles[i], scans[i], rtRange,
+                MZmineCore.getTaskController()
+                        .addTask(new Fx3DSamplingTask(dataFiles[i], scans[i],
                                 mzRange, rtRes, mzRes, controller, i, len),
-                        TaskPriority.HIGH);
+                                TaskPriority.HIGH);
                 title = title + dataFiles[i].toString() + " ";
             }
             controller.setLabel("3D plot of files [" + title + "], "
                     + mzRange.lowerEndpoint().toString() + "-"
                     + mzRange.upperEndpoint().toString() + " m/z, RT "
-                    + rtRange.lowerEndpoint().intValue() + "-"
+                    + rtRange.lowerEndpoint() + "-"
                     + rtRange.upperEndpoint().intValue() + " min");
             Stage stage = new Stage();
             Scene scene = new Scene((Parent) nodeFromFXML, 800, 600);

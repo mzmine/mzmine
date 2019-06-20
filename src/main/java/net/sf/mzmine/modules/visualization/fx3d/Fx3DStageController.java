@@ -305,8 +305,19 @@ public class Fx3DStageController {
                         new KeyValue(rotateY.angleProperty(), 0)));
         timeline4.play();
 
-        plot.setScaleX(DEFAULT_SCALE);
-        plot.setScaleY(DEFAULT_SCALE);
+        Timeline timeline5 = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(plot.scaleXProperty(), plot.getScaleX())),
+                new KeyFrame(Duration.seconds(1.5),
+                        new KeyValue(plot.scaleXProperty(), DEFAULT_SCALE)));
+        timeline5.play();
+
+        Timeline timeline6 = new Timeline(
+                new KeyFrame(Duration.seconds(0),
+                        new KeyValue(plot.scaleYProperty(), plot.getScaleY())),
+                new KeyFrame(Duration.seconds(1.5),
+                        new KeyValue(plot.scaleYProperty(), DEFAULT_SCALE)));
+        timeline6.play();
     }
 
     public void onScrollHandler(ScrollEvent event) {
