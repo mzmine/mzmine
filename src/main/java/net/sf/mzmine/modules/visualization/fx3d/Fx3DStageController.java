@@ -68,7 +68,7 @@ public class Fx3DStageController {
     private Group finalNode = new Group();
     private Group plot = new Group();
     private static final int SIZE = 500;
-    private final Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
+    private final Rotate rotateX = new Rotate(35, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     private final Translate translateX = new Translate();
     private final Translate translateY = new Translate();
@@ -143,9 +143,9 @@ public class Fx3DStageController {
 
         timeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(yRotate.angleProperty(), 0)),
+                        new KeyValue(yRotate.angleProperty(), 360)),
                 new KeyFrame(Duration.seconds(50),
-                        new KeyValue(yRotate.angleProperty(), 360)));
+                        new KeyValue(yRotate.angleProperty(), 0)));
         timeline.setCycleCount(Timeline.INDEFINITE);
 
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
@@ -266,7 +266,7 @@ public class Fx3DStageController {
         deltaAngle = 0;
         animationFlag = 0;
         plot.getTransforms().clear();
-        rotateX.setAngle(0);
+        rotateX.setAngle(35);
         rotateY.setAngle(0);
         plot.getTransforms().addAll(rotateX, rotateY);
     }

@@ -49,7 +49,7 @@
                 </Button>
                 <Button onAction="#handleAnimate">
                     <graphic>
-	                    <Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
+	                    <Glyph fontFamily="FontAwesome" icon="REFRESH" />
                     </graphic>
                     <tooltip>
                         <Tooltip text="Animate" />
