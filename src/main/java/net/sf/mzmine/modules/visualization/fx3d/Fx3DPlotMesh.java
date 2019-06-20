@@ -152,7 +152,7 @@ public class Fx3DPlotMesh extends MeshView {
         setMesh(mesh);
         setMaterial(material);
         setCullFace(CullFace.NONE);
-        setDrawMode(DrawMode.LINE);
+        setDrawMode(DrawMode.FILL);
         setDepthTest(DepthTest.ENABLE);
     }
 }

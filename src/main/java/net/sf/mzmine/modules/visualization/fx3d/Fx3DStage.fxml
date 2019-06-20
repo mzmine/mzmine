@@ -41,7 +41,7 @@
 
                 <Button onAction="#handleZoomOut">
                     <graphic>
-                    	<Glyph fontFamily="FontAwesome" icon="SEARCH_MINUS" />
+                    	<Glyph fontFamily="FontAwesome" icon="ARROWS_ALT" />
                     </graphic>
                     <tooltip>
                         <Tooltip text="Zoom out" />

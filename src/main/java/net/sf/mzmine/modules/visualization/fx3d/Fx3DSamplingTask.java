@@ -146,6 +146,13 @@ class Fx3DSamplingTask extends AbstractTask {
 
                     int intensityValuesIndex = (rtResolution * mzIndex)
                             + scanBinIndex;
+                    if (intensityValuesIndex == rtResolution * mzResolution) {
+                        intensityValuesIndex--;
+                    }
+                    if (intensityValuesIndex >= 250000
+                            || intensityValuesIndex < 0) {
+                        continue;
+                    }
                     if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex]) {
                         intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
                     }

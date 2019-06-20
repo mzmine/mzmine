@@ -32,6 +32,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -43,7 +45,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
@@ -184,6 +189,9 @@ public class Fx3DStageController {
 
     public void setLabel(String labelText) {
         this.label.setText(labelText);
+        label.setAlignment(Pos.CENTER);
+        label.setBackground(new Background(new BackgroundFill(Color.ALICEBLUE,
+                CornerRadii.EMPTY, Insets.EMPTY)));
     }
 
     public String getColorName(int index) {
@@ -239,9 +247,6 @@ public class Fx3DStageController {
         }
         mouseOldX = mousePosX;
         mouseOldY = mousePosY;
-
-        LOG.finest("Plot's center X:" + translateX.getX());
-
     }
 
     public void handleAnimate() {
@@ -272,7 +277,7 @@ public class Fx3DStageController {
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(translateX.xProperty(),
                                 translateX.getX())),
-                new KeyFrame(Duration.seconds(3),
+                new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(translateX.xProperty(), 170)));
         timeline1.play();
 
@@ -280,7 +285,7 @@ public class Fx3DStageController {
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(translateY.yProperty(),
                                 translateY.getY())),
-                new KeyFrame(Duration.seconds(3),
+                new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(translateY.yProperty(), 350)));
         timeline2.play();
 
@@ -288,7 +293,7 @@ public class Fx3DStageController {
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(rotateX.angleProperty(),
                                 rotateX.getAngle())),
-                new KeyFrame(Duration.seconds(3),
+                new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(rotateX.angleProperty(), 30)));
         timeline3.play();
 
@@ -296,7 +301,7 @@ public class Fx3DStageController {
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(rotateY.angleProperty(),
                                 rotateY.getAngle())),
-                new KeyFrame(Duration.seconds(3),
+                new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(rotateY.angleProperty(), 0)));
         timeline4.play();
 
