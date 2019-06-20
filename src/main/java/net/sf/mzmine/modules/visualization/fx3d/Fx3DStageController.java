@@ -99,6 +99,8 @@ public class Fx3DStageController {
 
     public Translate pivot = new Translate(250, 0, 250);
     public Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
+    public Rotate yRotateDelta = new Rotate();
+    double deltaAngle;
 
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
@@ -245,24 +247,28 @@ public class Fx3DStageController {
     public void handleAnimate() {
 
         if (animationFlag == 0) {
-            camera.getTransforms().addAll(pivot, yRotate,
+            yRotate.setAngle(rotateY.getAngle() + deltaAngle);
+            plot.getTransforms().addAll(pivot, yRotate,
                     new Translate(-250, 0, -250));
             timeline.play();
             animationFlag = 1;
         } else {
-            camera.getTransforms().clear();
+            plot.getTransforms().remove(yRotate);
+            rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
+            deltaAngle = yRotate.getAngle();
             timeline.stop();
             animationFlag = 0;
         }
     }
 
     public void handleZoomOut(Event event) {
-        plot.setScaleX(DEFAULT_SCALE);
-        plot.setScaleY(DEFAULT_SCALE);
+        timeline.stop();
+        deltaAngle = 0;
+        animationFlag = 0;
+        plot.getTransforms().clear();
         rotateX.setAngle(0);
         rotateY.setAngle(0);
-        translateX.setX(150);
-        translateY.setY(350);
+        plot.getTransforms().addAll(rotateX, rotateY);
     }
 
     public void onScrollHandler(ScrollEvent event) {
