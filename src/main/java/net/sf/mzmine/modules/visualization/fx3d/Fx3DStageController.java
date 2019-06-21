@@ -83,7 +83,7 @@ public class Fx3DStageController {
     private double mouseOldX, mouseOldY;
 
     final double MAX_SCALE = 10.0;
-    final double MIN_SCALE = 0.1;
+    final double MIN_SCALE = 0.7;
     final double DEFAULT_SCALE = 1.0;
 
     public double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
@@ -106,6 +106,7 @@ public class Fx3DStageController {
     public Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
     public Rotate yRotateDelta = new Rotate();
     double deltaAngle;
+    int axisFlag = 0;
 
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
@@ -189,6 +190,7 @@ public class Fx3DStageController {
 
     public void setLabel(String labelText) {
         this.label.setText(labelText);
+        label.minWidth(root.getWidth());
         label.setAlignment(Pos.CENTER);
         label.setBackground(new Background(new BackgroundFill(Color.ALICEBLUE,
                 CornerRadii.EMPTY, Insets.EMPTY)));
@@ -267,6 +269,9 @@ public class Fx3DStageController {
     }
 
     public void handleZoomOut(Event event) {
+        if (animationFlag != 0) {
+            rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
+        }
         timeline.stop();
         deltaAngle = 0;
         animationFlag = 0;
@@ -297,10 +302,16 @@ public class Fx3DStageController {
                         new KeyValue(rotateX.angleProperty(), 30)));
         timeline3.play();
 
+        double angle = rotateY.getAngle();
+        if (angle > 180 && angle < 360) {
+            angle = -(360 - (rotateY.getAngle() % 360));
+        } else {
+            angle = rotateY.getAngle() % 360;
+        }
+        LOG.finest("Rotate Angle:" + rotateY.getAngle());
         Timeline timeline4 = new Timeline(
                 new KeyFrame(Duration.seconds(0),
-                        new KeyValue(rotateY.angleProperty(),
-                                rotateY.getAngle())),
+                        new KeyValue(rotateY.angleProperty(), angle)),
                 new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(rotateY.angleProperty(), 0)));
         timeline4.play();
@@ -318,6 +329,16 @@ public class Fx3DStageController {
                 new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(plot.scaleYProperty(), DEFAULT_SCALE)));
         timeline6.play();
+    }
+
+    public void handleAxis(Event event) {
+        if (axisFlag == 0) {
+            plot.getChildren().remove(axes);
+            axisFlag = 1;
+        } else if (axisFlag == 1) {
+            plot.getChildren().add(axes);
+            axisFlag = 0;
+        }
     }
 
     public void onScrollHandler(ScrollEvent event) {

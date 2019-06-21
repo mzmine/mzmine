@@ -28,12 +28,12 @@
      <right>
      <ToolBar orientation="VERTICAL">
             <items>
-                <Button>
+                <Button onAction="#handleAxis">
                     <graphic>
-	                    <Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
+	                    <Glyph fontFamily="FontAwesome" icon='AREA_CHART' />
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Click here to load previous scan" />
+                        <Tooltip text="Axis ON/OFF" />
                     </tooltip>
                 </Button>
 
