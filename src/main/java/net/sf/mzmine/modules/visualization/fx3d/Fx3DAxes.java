@@ -39,7 +39,7 @@ public class Fx3DAxes extends Group {
         // rtAxis
         double rtDelta = (rtRange.upperEndpoint() - rtRange.lowerEndpoint())
                 / 7;
-        double rtscaleValue = rtRange.lowerEndpoint();
+        double rtScaleValue = rtRange.lowerEndpoint();
         Text rtLabel = new Text("Retention Time");
         rtLabel.setRotationAxis(Rotate.X_AXIS);
         rtLabel.setRotate(-45);
@@ -54,13 +54,14 @@ public class Fx3DAxes extends Group {
             tickLineX.setTranslateY(-4);
             tickLineX.setTranslateX(y);
             tickLineX.setTranslateZ(-3.5);
-            Text text = new Text("" + (int) rtscaleValue);
+            float roundOff = (float) (Math.round(rtScaleValue * 10.0) / 10.0);
+            Text text = new Text("" + (float) roundOff);
             text.setRotationAxis(Rotate.X_AXIS);
             text.setRotate(-45);
             text.setTranslateY(9);
             text.setTranslateX(y - 5);
             text.setTranslateZ(-15);
-            rtscaleValue += rtDelta;
+            rtScaleValue += rtDelta;
             this.getChildren().addAll(text, tickLineX);
         }
 

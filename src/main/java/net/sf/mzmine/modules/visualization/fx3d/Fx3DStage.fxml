@@ -9,7 +9,8 @@
 
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController" minWidth="400" minHeight="400">
      <top>
-     	<Label fx:id="label" />
+     	<HBox fx:id="hBox">
+     	</HBox>
      </top>
      <center>
        <Group fx:id="subSceneRootNode" onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
@@ -28,17 +29,6 @@
      <right>
      <ToolBar orientation="VERTICAL">
             <items>
-                <Button onAction="#handleAxis">
-                    <graphic>
-	                    <Glyph fontFamily="FontAwesome" icon='AREA_CHART' />
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="Axis ON/OFF" />
-                    </tooltip>
-                </Button>
-
-                <Region HBox.hgrow="ALWAYS" />
-
                 <Button onAction="#handleZoomOut">
                     <graphic>
                     	<Glyph fontFamily="FontAwesome" icon="ARROWS_ALT" />
@@ -55,6 +45,14 @@
                         <Tooltip text="Animate" />
                     </tooltip>
                 </Button>
+                <Button onAction="#handleAxis">
+                  <graphic>
+                   <Glyph fontFamily="FontAwesome" icon='AREA_CHART' />
+                  </graphic>
+                  <tooltip>
+                      <Tooltip text="Axis ON/OFF" />
+                  </tooltip>
+               </Button>
             </items>
         </ToolBar>
     </right>

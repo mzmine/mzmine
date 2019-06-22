@@ -28,16 +28,11 @@ import com.google.common.collect.Range;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
@@ -79,20 +74,9 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
         int len = dataFiles.length;
-        Scan scans[][] = new Scan[len][];
-        for (int i = 0; i < dataFiles.length; i++) {
-            scans[i] = scanSel.getMatchingScans(dataFiles[i]);
-        }
-        Range<Double> rtRange = ScanUtils.findRtRange(scans[0]);
-        final Desktop desktop = MZmineCore.getDesktop();
 
-        // Check scan numbers.
-        if (scans.length == 0) {
-            desktop.displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-                    "No scans found");
-            return ExitCode.ERROR;
-
-        }
+        Range<Double> rtRange = ScanUtils
+                .findRtRange(scanSel.getMatchingScans(dataFiles[0]));
 
         ParameterSet myParameters = MZmineCore.getConfiguration()
                 .getModuleParameters(Fx3DVisualizerModule.class);
@@ -107,7 +91,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         Platform.runLater(() -> {
             FXMLLoader loader = new FXMLLoader(
                     (getClass().getResource("Fx3DStage.fxml")));
-            Node nodeFromFXML = null;
+            Parent nodeFromFXML = null;
             try {
                 nodeFromFXML = loader.load();
                 LOG.finest("Node has been loaded successfully.");
@@ -119,7 +103,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             Fx3DStageController controller = loader.getController();
             for (int i = 0; i < dataFiles.length; i++) {
                 MZmineCore.getTaskController()
-                        .addTask(new Fx3DSamplingTask(dataFiles[i], scans[i],
+                        .addTask(new Fx3DSamplingTask(dataFiles[i], scanSel,
                                 mzRange, rtRes, mzRes, controller, i, len),
                                 TaskPriority.HIGH);
                 title = title + dataFiles[i].toString() + " ";
@@ -127,14 +111,11 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             controller.setLabel("3D plot of files [" + title + "], "
                     + mzRange.lowerEndpoint().toString() + "-"
                     + mzRange.upperEndpoint().toString() + " m/z, RT "
-                    + rtRange.lowerEndpoint() + "-"
-                    + rtRange.upperEndpoint().intValue() + " min");
+                    + rtRange.lowerEndpoint().toString() + "-"
+                    + rtRange.upperEndpoint().toString() + " min");
             Stage stage = new Stage();
-            Scene scene = new Scene((Parent) nodeFromFXML, 800, 600);
+            Scene scene = new Scene(nodeFromFXML, 800, 600);
 
-            PerspectiveCamera camera = new PerspectiveCamera();
-            scene.setCamera(camera);
-            scene.setFill(Color.BISQUE);
             stage.setScene(scene);
             stage.sizeToScene();
             stage.setTitle(title);

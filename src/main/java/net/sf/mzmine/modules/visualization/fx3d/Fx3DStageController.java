@@ -33,7 +33,6 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -45,10 +44,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
@@ -57,7 +56,8 @@ import javafx.util.Duration;
 public class Fx3DStageController {
 
     @FXML
-    private Label label;
+    private HBox hBox;
+    private Label label = new Label();
     @FXML
     private BorderPane root;
     @FXML
@@ -99,14 +99,13 @@ public class Fx3DStageController {
 
     public PerspectiveCamera camera = new PerspectiveCamera();
 
-    public Timeline timeline;
-    int animationFlag = 0;
+    public Timeline rotateAnimationTimeline;
+    boolean animationRunning = false;
 
     public Translate pivot = new Translate(250, 0, 250);
     public Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
     public Rotate yRotateDelta = new Rotate();
     double deltaAngle;
-    int axisFlag = 0;
 
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
@@ -145,14 +144,18 @@ public class Fx3DStageController {
         light2.setTranslateZ(SIZE / 2);
         light2.setTranslateY(1000);
 
+        hBox.setPadding(new Insets(15, 12, 15, 12));
+        // hBox.setSpacing(10);
+        hBox.setStyle("-fx-background-color: #FFA500;");
+
         plot.getChildren().addAll(light1, light2);
 
-        timeline = new Timeline(
+        rotateAnimationTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(yRotate.angleProperty(), 360)),
                 new KeyFrame(Duration.seconds(50),
                         new KeyValue(yRotate.angleProperty(), 0)));
-        timeline.setCycleCount(Timeline.INDEFINITE);
+        rotateAnimationTimeline.setCycleCount(Timeline.INDEFINITE);
 
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
@@ -189,11 +192,13 @@ public class Fx3DStageController {
     }
 
     public void setLabel(String labelText) {
-        this.label.setText(labelText);
+        Region leftRegion = new Region();
+        HBox.setHgrow(leftRegion, Priority.ALWAYS);
+        Region rightRegion = new Region();
+        HBox.setHgrow(rightRegion, Priority.ALWAYS);
+        label.setText(labelText);
         label.minWidth(root.getWidth());
-        label.setAlignment(Pos.CENTER);
-        label.setBackground(new Background(new BackgroundFill(Color.ALICEBLUE,
-                CornerRadii.EMPTY, Insets.EMPTY)));
+        hBox.getChildren().addAll(leftRegion, label, rightRegion);
     }
 
     public String getColorName(int index) {
@@ -252,55 +257,55 @@ public class Fx3DStageController {
     }
 
     public void handleAnimate() {
-
-        if (animationFlag == 0) {
+        if (!animationRunning) {
             yRotate.setAngle(rotateY.getAngle() + deltaAngle);
             plot.getTransforms().addAll(pivot, yRotate,
                     new Translate(-250, 0, -250));
-            timeline.play();
-            animationFlag = 1;
+            rotateAnimationTimeline.play();
+            animationRunning = true;
         } else {
             plot.getTransforms().remove(yRotate);
             rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
             deltaAngle = yRotate.getAngle();
-            timeline.stop();
-            animationFlag = 0;
+            rotateAnimationTimeline.stop();
+            animationRunning = false;
         }
     }
 
     public void handleZoomOut(Event event) {
-        if (animationFlag != 0) {
+        if (animationRunning) {
             rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
         }
-        timeline.stop();
+        rotateAnimationTimeline.stop();
         deltaAngle = 0;
-        animationFlag = 0;
+        animationRunning = false;
         plot.getTransforms().clear();
         plot.getTransforms().addAll(rotateX, rotateY);
 
-        Timeline timeline1 = new Timeline(
+        Timeline resetTranslateXTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(translateX.xProperty(),
                                 translateX.getX())),
                 new KeyFrame(Duration.seconds(1.5),
-                        new KeyValue(translateX.xProperty(), 170)));
-        timeline1.play();
+                        new KeyValue(translateX.xProperty(),
+                                (root.getWidth() * 2 / 7) - 50)));
+        resetTranslateXTimeline.play();
 
-        Timeline timeline2 = new Timeline(
+        Timeline resetTranslateYTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(translateY.yProperty(),
                                 translateY.getY())),
-                new KeyFrame(Duration.seconds(1.5),
-                        new KeyValue(translateY.yProperty(), 350)));
-        timeline2.play();
+                new KeyFrame(Duration.seconds(1.5), new KeyValue(
+                        translateY.yProperty(), root.getHeight() / 2)));
+        resetTranslateYTimeline.play();
 
-        Timeline timeline3 = new Timeline(
+        Timeline resetRotateXTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(rotateX.angleProperty(),
                                 rotateX.getAngle())),
                 new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(rotateX.angleProperty(), 30)));
-        timeline3.play();
+        resetRotateXTimeline.play();
 
         double angle = rotateY.getAngle();
         if (angle > 180 && angle < 360) {
@@ -309,35 +314,33 @@ public class Fx3DStageController {
             angle = rotateY.getAngle() % 360;
         }
         LOG.finest("Rotate Angle:" + rotateY.getAngle());
-        Timeline timeline4 = new Timeline(
+        Timeline resetRotateYTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(rotateY.angleProperty(), angle)),
                 new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(rotateY.angleProperty(), 0)));
-        timeline4.play();
+        resetRotateYTimeline.play();
 
-        Timeline timeline5 = new Timeline(
+        Timeline resetScaleXTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(plot.scaleXProperty(), plot.getScaleX())),
                 new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(plot.scaleXProperty(), DEFAULT_SCALE)));
-        timeline5.play();
+        resetScaleXTimeline.play();
 
-        Timeline timeline6 = new Timeline(
+        Timeline resetScaleYTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(plot.scaleYProperty(), plot.getScaleY())),
                 new KeyFrame(Duration.seconds(1.5),
                         new KeyValue(plot.scaleYProperty(), DEFAULT_SCALE)));
-        timeline6.play();
+        resetScaleYTimeline.play();
     }
 
     public void handleAxis(Event event) {
-        if (axisFlag == 0) {
+        if (plot.getChildren().contains(axes)) {
             plot.getChildren().remove(axes);
-            axisFlag = 1;
-        } else if (axisFlag == 1) {
+        } else {
             plot.getChildren().add(axes);
-            axisFlag = 0;
         }
     }
 

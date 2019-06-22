@@ -27,6 +27,9 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -64,12 +67,12 @@ class Fx3DSamplingTask extends AbstractTask {
      * @param msLevel
      * @param visualizer
      */
-    Fx3DSamplingTask(RawDataFile dataFile, Scan scans[], Range<Double> mzRange,
-            int rtResolution, int mzResolution, Fx3DStageController controller,
-            int index, int length) {
+    Fx3DSamplingTask(RawDataFile dataFile, ScanSelection scanSel,
+            Range<Double> mzRange, int rtResolution, int mzResolution,
+            Fx3DStageController controller, int index, int length) {
 
         this.dataFile = dataFile;
-        this.scans = scans;
+        this.scans = scanSel.getMatchingScans(dataFile);
         this.rtRange = ScanUtils.findRtRange(scans);
         this.mzRange = mzRange;
         this.rtResolution = rtResolution;
@@ -119,6 +122,15 @@ class Fx3DSamplingTask extends AbstractTask {
                     return;
 
                 Scan scan = scans[scanIndex];
+                final Desktop desktop = MZmineCore.getDesktop();
+
+                // Check scan numbers.
+                if (scans.length == 0) {
+                    desktop.displayErrorMessage(
+                            MZmineCore.getDesktop().getMainWindow(),
+                            "No scans found");
+                    return;
+                }
 
                 DataPoint dataPoints[] = scan.getDataPoints();
                 double[] scanMZValues = new double[dataPoints.length];
