@@ -2,6 +2,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.se
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +19,8 @@ import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.Loc
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesTask;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
+import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -50,12 +53,12 @@ public class SingleRowSpectralMatchTask extends AbstractTask {
   private int finishedRows = 0;
   private final int totalRows;
 
-  private ParameterSet parameters;
-
   private final int msLevel;
   private final double noiseLevel;
   private final int minMatch;
   private List<SpectralDBEntry> list;
+  private List<SpectralDBPeakIdentity> matches;
+  private SpectraIdentificationResultsWindow resultWindow;
 
   private int count = 0;
 
@@ -71,11 +74,12 @@ public class SingleRowSpectralMatchTask extends AbstractTask {
   private final boolean cropSpectraToOverlap;
 
   public SingleRowSpectralMatchTask(PeakListRow peakListRow, ParameterSet parameters,
-      int startEntry, List<SpectralDBEntry> list) {
+      int startEntry, List<SpectralDBEntry> list, SpectraIdentificationResultsWindow resultWindow) {
     this.peakListRow = peakListRow;
-    this.parameters = parameters;
     this.startEntry = startEntry;
     this.list = list;
+    this.resultWindow = resultWindow;
+
     listsize = list.size();
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
@@ -158,11 +162,14 @@ public class SingleRowSpectralMatchTask extends AbstractTask {
           peakListRowMassList = removeIsotopes(peakListRowMassList);
 
         // match against all library entries
+        matches = new ArrayList<>();
         for (SpectralDBEntry ident : list) {
           SpectralSimilarity sim = spectraDBMatch(peakListRow, peakListRowMassList, ident);
           if (sim != null) {
             count++;
             addIdentity(peakListRow, ident, sim);
+            matches.add(new SpectralDBPeakIdentity(scan, massListName, ident, sim,
+                SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
           }
         }
         // sort identities based on similarity score
@@ -309,6 +316,11 @@ public class SingleRowSpectralMatchTask extends AbstractTask {
     // add new identity to the row
     row.addPeakIdentity(new SpectralDBPeakIdentity(getScan(row), massListName, ident, sim, METHOD),
         false);
+
+    resultWindow.addMatches(matches);
+    resultWindow.revalidate();
+    resultWindow.repaint();
+    setStatus(TaskStatus.FINISHED);
   }
 
   public int getCount() {

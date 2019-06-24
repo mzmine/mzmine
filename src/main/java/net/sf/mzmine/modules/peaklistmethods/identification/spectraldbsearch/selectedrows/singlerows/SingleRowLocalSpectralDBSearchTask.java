@@ -12,6 +12,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchParameters;
+import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
+import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -32,11 +34,17 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
 
   private List<SingleRowSpectralMatchTask> tasks;
 
+  private SpectraIdentificationResultsWindow resultWindow;
+
+  private PeakListTable table;
+
   private int totalTasks;
 
-  public SingleRowLocalSpectralDBSearchTask(PeakListRow peakListRow, ParameterSet parameters) {
+  public SingleRowLocalSpectralDBSearchTask(PeakListRow peakListRow, PeakListTable table,
+      ParameterSet parameters) {
     this.peakListRow = peakListRow;
     this.parameters = parameters;
+    this.table = table;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
   }
@@ -66,6 +74,11 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     int count = 0;
+
+    // add result frame
+    resultWindow = new SpectraIdentificationResultsWindow();
+    resultWindow.setVisible(true);
+
     try {
       tasks = parseFile(dataBaseFile);
       totalTasks = tasks.size();
@@ -100,12 +113,16 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
       setErrorMessage(e.toString());
     }
     logger.info("Added " + count + " spectral library matches");
-
+    resultWindow.setTitle("Matched " + count + " compounds for feature list row: " + peakListRow);
+    resultWindow.revalidate();
+    resultWindow.repaint();
     // Repaint the window to reflect the change in the peak list
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
       desktop.getMainWindow().repaint();
-
+    // work around to update feature list identities
+    if (table.getRowCount() > 0)
+      table.setRowSelectionInterval(0, 0);
     setStatus(TaskStatus.FINISHED);
 
   }
@@ -124,8 +141,8 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
-        SingleRowSpectralMatchTask task =
-            new SingleRowSpectralMatchTask(peakListRow, parameters, alreadyProcessed + 1, list);
+        SingleRowSpectralMatchTask task = new SingleRowSpectralMatchTask(peakListRow, parameters,
+            alreadyProcessed + 1, list, resultWindow);
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }
