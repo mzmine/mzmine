@@ -171,11 +171,11 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
             SpectralSimilarity sim = spectraDBMatch(peakListRow, peakListRowMassList, ident);
             if (sim != null) {
               count++;
-              addIdentity(peakListRow, ident, sim);
               if (resultWindow != null) {
                 matches.add(new SpectralDBPeakIdentity(scan, massListName, ident, sim,
                     SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
               }
+              addIdentity(peakListRow, ident, sim);
             }
           }
           // sort identities based on similarity score
