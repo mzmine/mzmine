@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerows;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerow;
 
 import java.io.File;
 import java.text.MessageFormat;
