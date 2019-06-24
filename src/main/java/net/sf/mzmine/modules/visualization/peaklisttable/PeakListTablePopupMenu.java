@@ -239,7 +239,17 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     exportMenu.setEnabled(rowsSelected);
 
     final boolean oneRowSelected = selectedRows.length == 1;
-    searchMenu.setEnabled(oneRowSelected);
+    searchMenu.setEnabled(true);
+
+    // search methods for single rows
+    onlineDbSearchItem.setEnabled(oneRowSelected);
+    nistSearchItem.setEnabled(oneRowSelected);
+    formulaItem.setEnabled(oneRowSelected);
+    siriusItem.setEnabled(oneRowSelected);
+
+    // search methods for single and multiple rows
+    spectralDbSearchItem.setEnabled(true);
+
 
     // Find the row and column where the user clicked
     clickedDataFile = null;
@@ -659,7 +669,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
-          LocalSpectralDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow, table);
+          if (allClickedPeakListRows != null && allClickedPeakListRows.length > 1) {
+            LocalSpectralDBSearchModule.showMultipleRowsIdentificationDialog(allClickedPeakListRows,
+                table);
+          } else
+            LocalSpectralDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow,
+                table);
         }
       });
 
