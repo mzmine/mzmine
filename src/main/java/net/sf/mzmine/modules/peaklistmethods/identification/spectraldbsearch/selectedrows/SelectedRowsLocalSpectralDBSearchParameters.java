@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerow;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows;
 
 import java.awt.Window;
 import javax.swing.JComponent;
@@ -22,7 +22,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 
-public class SingleRowLocalSpectralDBSearchParameters extends SimpleParameterSet {
+public class SelectedRowsLocalSpectralDBSearchParameters extends SimpleParameterSet {
 
   public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
       "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
@@ -69,7 +69,7 @@ public class SingleRowLocalSpectralDBSearchParameters extends SimpleParameterSet
           SpectralSimilarityFunction.FUNCTIONS);
 
 
-  public SingleRowLocalSpectralDBSearchParameters() {
+  public SelectedRowsLocalSpectralDBSearchParameters() {
     super(new Parameter[] {massList, dataBaseFile, msLevel, mzTolerancePrecursor, noiseLevel,
         deisotoping, cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction});
   }

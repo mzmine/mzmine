@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerow;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,17 +22,17 @@ import net.sf.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import net.sf.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
 import net.sf.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 
-public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
+public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private final PeakListRow peakListRow;
+  private final PeakListRow[] peakListRows;
   private final @Nonnull String massListName;
   private final File dataBaseFile;
 
   private ParameterSet parameters;
 
-  private List<SingleRowSpectralMatchTask> tasks;
+  private List<SelectedRowsSpectralMatchTask> tasks;
 
   private SpectraIdentificationResultsWindow resultWindow;
 
@@ -40,9 +40,9 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
 
   private int totalTasks;
 
-  public SingleRowLocalSpectralDBSearchTask(PeakListRow peakListRow, PeakListTable table,
+  public SelectedRowsLocalSpectralDBSearchTask(PeakListRow[] peakListRows, PeakListTable table,
       ParameterSet parameters) {
-    this.peakListRow = peakListRow;
+    this.peakListRows = peakListRows;
     this.parameters = parameters;
     this.table = table;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
@@ -64,7 +64,8 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
    */
   @Override
   public String getTaskDescription() {
-    return "Spectral database identification of " + peakListRow + " using database " + dataBaseFile;
+    return "Spectral database identification of " + peakListRows.length
+        + " feature lists using database " + dataBaseFile;
   }
 
   /**
@@ -75,9 +76,13 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     int count = 0;
 
-    // add result frame
-    resultWindow = new SpectraIdentificationResultsWindow();
-    resultWindow.setVisible(true);
+    if (peakListRows.length == 1) {
+      // add result frame
+      resultWindow = new SpectraIdentificationResultsWindow();
+      resultWindow.setVisible(true);
+    } else {
+      resultWindow = null;
+    }
 
     try {
       tasks = parseFile(dataBaseFile);
@@ -113,9 +118,12 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
       setErrorMessage(e.toString());
     }
     logger.info("Added " + count + " spectral library matches");
-    resultWindow.setTitle("Matched " + count + " compounds for feature list row: " + peakListRow);
-    resultWindow.revalidate();
-    resultWindow.repaint();
+    if (resultWindow != null) {
+      resultWindow
+          .setTitle("Matched " + count + " compounds for feature list row: " + peakListRows[0]);
+      resultWindow.revalidate();
+      resultWindow.repaint();
+    }
     // Repaint the window to reflect the change in the peak list
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
@@ -133,16 +141,16 @@ public class SingleRowLocalSpectralDBSearchTask extends AbstractTask {
    * @param dataBaseFile
    * @return
    */
-  private List<SingleRowSpectralMatchTask> parseFile(File dataBaseFile)
+  private List<SelectedRowsSpectralMatchTask> parseFile(File dataBaseFile)
       throws UnsupportedFormatException, IOException {
     //
-    List<SingleRowSpectralMatchTask> tasks = new ArrayList<>();
+    List<SelectedRowsSpectralMatchTask> tasks = new ArrayList<>();
     AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
-        SingleRowSpectralMatchTask task = new SingleRowSpectralMatchTask(peakListRow, parameters,
-            alreadyProcessed + 1, list, resultWindow);
+        SelectedRowsSpectralMatchTask task = new SelectedRowsSpectralMatchTask(peakListRows,
+            parameters, alreadyProcessed + 1, list, resultWindow);
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }

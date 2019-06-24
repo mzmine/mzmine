@@ -669,12 +669,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
-          if (allClickedPeakListRows != null && allClickedPeakListRows.length > 1) {
-            LocalSpectralDBSearchModule.showMultipleRowsIdentificationDialog(allClickedPeakListRows,
-                table);
-          } else
-            LocalSpectralDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow,
-                table);
+          LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(allClickedPeakListRows,
+              table);
         }
       });
 

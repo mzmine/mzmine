@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerow;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows;
 
 import java.io.File;
 import java.text.MessageFormat;
@@ -36,14 +36,14 @@ import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
-public class SingleRowSpectralMatchTask extends AbstractTask {
+public class SelectedRowsSpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final String METHOD = "Spectral DB search";
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
-  private final PeakListRow peakListRow;
+  private final PeakListRow[] peakListRows;
   private final @Nonnull String massListName;
   private final File dataBaseFile;
   private final MZTolerance mzToleranceSpectra;
@@ -73,9 +73,9 @@ public class SingleRowSpectralMatchTask extends AbstractTask {
 
   private final boolean cropSpectraToOverlap;
 
-  public SingleRowSpectralMatchTask(PeakListRow peakListRow, ParameterSet parameters,
+  public SelectedRowsSpectralMatchTask(PeakListRow[] peakListRows, ParameterSet parameters,
       int startEntry, List<SpectralDBEntry> list, SpectraIdentificationResultsWindow resultWindow) {
-    this.peakListRow = peakListRow;
+    this.peakListRows = peakListRows;
     this.startEntry = startEntry;
     this.list = list;
     this.resultWindow = resultWindow;
@@ -126,7 +126,7 @@ public class SingleRowSpectralMatchTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return MessageFormat.format(
-        "(entry {2}-{3}) spectral database identification in {0} using database {1}", peakListRow,
+        "(entry {2}-{3}) spectral database identification in {0} using database {1}", peakListRows,
         dataBaseFile.getName(), startEntry, startEntry + listsize - 1);
   }
 
@@ -142,50 +142,57 @@ public class SingleRowSpectralMatchTask extends AbstractTask {
       return;
     }
 
-    // check for MS1 or MSMS scan
-    Scan scan;
-    if (msLevel == 1) {
-      scan = peakListRow.getBestPeak().getRepresentativeScan();
-    } else if (msLevel >= 2) {
-      scan = peakListRow.getBestFragmentation();
-    } else {
-      logger.log(Level.WARNING, "Data base matching failed. MS level is not set correctly");
-      setStatus(TaskStatus.ERROR);
-      setErrorMessage("Data base matching failed. MS level is not set correctly");
-      return;
-    }
-    if (scan != null) {
-      try {
-        // get mass list and perform deisotoping if active
-        DataPoint[] peakListRowMassList = getDataPoints(peakListRow, true);
-        if (removeIsotopes)
-          peakListRowMassList = removeIsotopes(peakListRowMassList);
+    for (PeakListRow peakListRow : peakListRows) {
 
-        // match against all library entries
-        matches = new ArrayList<>();
-        for (SpectralDBEntry ident : list) {
-          SpectralSimilarity sim = spectraDBMatch(peakListRow, peakListRowMassList, ident);
-          if (sim != null) {
-            count++;
-            addIdentity(peakListRow, ident, sim);
-            matches.add(new SpectralDBPeakIdentity(scan, massListName, ident, sim,
-                SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
-          }
-        }
-        // sort identities based on similarity score
-        SortSpectralDBIdentitiesTask.sortIdentities(peakListRow);
-      } catch (MissingMassListException e) {
-        logger.log(Level.WARNING,
-            "No mass list in spectrum for peakListRowID=" + peakListRow.getID(), e);
-        errorCounter++;
-      }
-      // check for max error (missing masslist)
-      if (errorCounter > MAX_ERROR) {
-        logger.log(Level.WARNING, "Data base matching failed. To many missing mass lists ");
+      // check for MS1 or MSMS scan
+      Scan scan;
+      if (msLevel == 1) {
+        scan = peakListRow.getBestPeak().getRepresentativeScan();
+      } else if (msLevel >= 2) {
+        scan = peakListRow.getBestFragmentation();
+      } else {
+        logger.log(Level.WARNING, "Data base matching failed. MS level is not set correctly");
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Data base matching failed. To many missing mass lists ");
-        list = null;
+        setErrorMessage("Data base matching failed. MS level is not set correctly");
         return;
+      }
+      if (scan != null) {
+        try {
+          // get mass list and perform deisotoping if active
+          DataPoint[] peakListRowMassList = getDataPoints(peakListRow, true);
+          if (removeIsotopes)
+            peakListRowMassList = removeIsotopes(peakListRowMassList);
+
+          // match against all library entries
+          if (resultWindow != null) {
+            matches = new ArrayList<>();
+          }
+          for (SpectralDBEntry ident : list) {
+            SpectralSimilarity sim = spectraDBMatch(peakListRow, peakListRowMassList, ident);
+            if (sim != null) {
+              count++;
+              addIdentity(peakListRow, ident, sim);
+              if (resultWindow != null) {
+                matches.add(new SpectralDBPeakIdentity(scan, massListName, ident, sim,
+                    SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
+              }
+            }
+          }
+          // sort identities based on similarity score
+          SortSpectralDBIdentitiesTask.sortIdentities(peakListRow);
+        } catch (MissingMassListException e) {
+          logger.log(Level.WARNING,
+              "No mass list in spectrum for peakListRowID=" + peakListRow.getID(), e);
+          errorCounter++;
+        }
+        // check for max error (missing masslist)
+        if (errorCounter > MAX_ERROR) {
+          logger.log(Level.WARNING, "Data base matching failed. To many missing mass lists ");
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage("Data base matching failed. To many missing mass lists ");
+          list = null;
+          return;
+        }
       }
     }
     // next peakListRow
@@ -316,10 +323,11 @@ public class SingleRowSpectralMatchTask extends AbstractTask {
     // add new identity to the row
     row.addPeakIdentity(new SpectralDBPeakIdentity(getScan(row), massListName, ident, sim, METHOD),
         false);
-
-    resultWindow.addMatches(matches);
-    resultWindow.revalidate();
-    resultWindow.repaint();
+    if (resultWindow != null) {
+      resultWindow.addMatches(matches);
+      resultWindow.revalidate();
+      resultWindow.repaint();
+    }
     setStatus(TaskStatus.FINISHED);
   }
 

@@ -26,10 +26,8 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.multiplerows.MultipleRowsLocalSpectralDBSearchParameters;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.multiplerows.MultipleRowsLocalSpectralDBSearchTask;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerow.SingleRowLocalSpectralDBSearchParameters;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.singlerow.SingleRowLocalSpectralDBSearchTask;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.SelectedRowsLocalSpectralDBSearchParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.SelectedRowsLocalSpectralDBSearchTask;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
@@ -69,35 +67,19 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   }
 
   /**
-   * Show dialog for identifying a single peak-list row.
-   * 
-   * @param row the peak list row.
-   */
-  public static void showSingleRowIdentificationDialog(final PeakListRow row, PeakListTable table) {
-
-    final ParameterSet parameters = new SingleRowLocalSpectralDBSearchParameters();
-
-    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
-
-      MZmineCore.getTaskController().addTask(
-          new SingleRowLocalSpectralDBSearchTask(row, table, parameters.cloneParameterSet()));
-    }
-  }
-
-  /**
    * Show dialog for identifying multiple selected peak-list rows.
    * 
    * @param row the peak list row.
    */
-  public static void showMultipleRowsIdentificationDialog(final PeakListRow[] rows,
+  public static void showSelectedRowsIdentificationDialog(final PeakListRow[] rows,
       PeakListTable table) {
 
-    final ParameterSet parameters = new MultipleRowsLocalSpectralDBSearchParameters();
+    final ParameterSet parameters = new SelectedRowsLocalSpectralDBSearchParameters();
 
     if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(
-          new MultipleRowsLocalSpectralDBSearchTask(rows, table, parameters.cloneParameterSet()));
+          new SelectedRowsLocalSpectralDBSearchTask(rows, table, parameters.cloneParameterSet()));
     }
   }
 
