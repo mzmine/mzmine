@@ -19,7 +19,10 @@ package net.sf.mzmine.modules.visualization.fx3d;
 
 import com.google.common.collect.Range;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.scene.paint.Color;
 
 public class Fx3DDataset {
 
@@ -29,7 +32,8 @@ public class Fx3DDataset {
     private double maxBinnedIntensity;
     private Range<Double> rtRange, mzRange;
     private SimpleStringProperty fileName = new SimpleStringProperty("");
-    private SimpleStringProperty color = new SimpleStringProperty("");
+    private ObjectProperty<Color> color = new SimpleObjectProperty<>(this,
+            "color");
 
     public Fx3DDataset(float[][] intensityValues, int rtResolution,
             int mzResolution, double maxBinnedIntensity, Range<Double> rtRange,
@@ -71,11 +75,15 @@ public class Fx3DDataset {
         return fileName.get();
     }
 
-    public void setColor(String color) {
-        this.color.set(color);
+    public Color getColor() {
+        return color.get();
     }
 
-    public String getColor() {
-        return color.get();
+    public void setColor(Color newColor) {
+        color.set(newColor);
+    }
+
+    public ObjectProperty<Color> colorProperty() {
+        return color;
     }
 }

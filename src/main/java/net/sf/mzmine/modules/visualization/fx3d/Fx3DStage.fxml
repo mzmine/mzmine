@@ -3,6 +3,7 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.layout.* ?>
 <?import javafx.scene.control.* ?>
+<?import javafx.scene.control.cell.* ?>
 <?import javafx.scene.image.* ?>
 <?import net.sf.mzmine.modules.visualization.fx3d.* ?>
 <?import org.controlsfx.glyphfont.Glyph ?>
@@ -10,7 +11,10 @@
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController" minWidth="400" minHeight="400">
      <top>
      	<HBox fx:id="hBox">
-     	</HBox>
+	     	<Region fx:id="leftRegion"/>
+	     		<Label fx:id="label"/>
+		     <Region fx:id="rightRegion"/>
+		</HBox>
      </top>
      <center>
        <Group fx:id="subSceneRootNode" onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
@@ -20,8 +24,16 @@
       <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
        <TableView fx:id="tableView" minHeight="50" prefHeight="150">
            <columns>
-               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="400" />
-               <TableColumn fx:id="colorCol" text="Color" prefWidth="400" />
+               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="400" >
+               		<cellValueFactory>
+               			<PropertyValueFactory property="fileName" />
+               		</cellValueFactory>
+               </TableColumn>
+               <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="400" >
+               		<cellValueFactory>
+               			<PropertyValueFactory property="color" />
+               		</cellValueFactory>
+               </TableColumn>
            </columns>
         </TableView>
        </ScrollPane>
@@ -39,7 +51,7 @@
                 </Button>
                 <Button onAction="#handleAnimate">
                     <graphic>
-	                    <Glyph fontFamily="FontAwesome" icon="REFRESH" />
+                    	<Glyph fontFamily="FontAwesome" icon="REFRESH" />
                     </graphic>
                     <tooltip>
                         <Tooltip text="Animate" />
@@ -47,7 +59,7 @@
                 </Button>
                 <Button onAction="#handleAxis">
                   <graphic>
-                   <Glyph fontFamily="FontAwesome" icon='AREA_CHART' />
+ 		                <Glyph fontFamily="FontAwesome" icon="AREA_CHART" />
                   </graphic>
                   <tooltip>
                       <Tooltip text="Axis ON/OFF" />

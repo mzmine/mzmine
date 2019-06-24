@@ -20,13 +20,10 @@ package net.sf.mzmine.modules.visualization.fx3d;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import org.fxyz3d.utils.CameraTransformer;
-
 import com.google.common.collect.Range;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
-import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -41,7 +38,6 @@ import javafx.scene.SubScene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
@@ -52,12 +48,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
+import net.sf.mzmine.util.components.ColorTableCell;
 
 public class Fx3DStageController {
 
     @FXML
     private HBox hBox;
-    private Label label = new Label();
+    @FXML
+    Region leftRegion;
+    @FXML
+    private Label label;
+    @FXML
+    Region rightRegion;
     @FXML
     private BorderPane root;
     @FXML
@@ -68,7 +70,7 @@ public class Fx3DStageController {
     @FXML
     private TableColumn<Fx3DDataset, String> fileNameCol = new TableColumn<Fx3DDataset, String>();
     @FXML
-    private TableColumn<Fx3DDataset, String> colorCol = new TableColumn<Fx3DDataset, String>();
+    private TableColumn<Fx3DDataset, Color> colorCol;
 
     private Group finalNode = new Group();
     private Group plot = new Group();
@@ -86,20 +88,15 @@ public class Fx3DStageController {
     final double MIN_SCALE = 0.7;
     final double DEFAULT_SCALE = 1.0;
 
-    public double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
+    private double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
-    public ObservableList<Fx3DDataset> datasets = FXCollections
+    private ObservableList<Fx3DDataset> datasets = FXCollections
             .observableArrayList();
-    public ArrayList<Color> colors = new ArrayList<Color>();
+    private ArrayList<Color> colors = new ArrayList<Color>();
 
-    public CameraTransformer cameraTransform = new CameraTransformer();
+    private PerspectiveCamera camera = new PerspectiveCamera();
 
-    public RotateTransition rt = new RotateTransition(Duration.millis(3000),
-            plot);
-
-    public PerspectiveCamera camera = new PerspectiveCamera();
-
-    public Timeline rotateAnimationTimeline;
+    private Timeline rotateAnimationTimeline;
     boolean animationRunning = false;
 
     public Translate pivot = new Translate(250, 0, 250);
@@ -129,10 +126,8 @@ public class Fx3DStageController {
         colors.add(Color.FUCHSIA);
         colors.add(Color.GOLD);
 
-        fileNameCol.setCellValueFactory(
-                new PropertyValueFactory<Fx3DDataset, String>("fileName"));
-        colorCol.setCellValueFactory(
-                new PropertyValueFactory<Fx3DDataset, String>("color"));
+        colorCol.setCellFactory(
+                column -> new ColorTableCell<Fx3DDataset>(column));
 
         PointLight light1 = new PointLight(Color.WHITE);
         light1.setTranslateX(SIZE / 2);
@@ -145,7 +140,6 @@ public class Fx3DStageController {
         light2.setTranslateY(1000);
 
         hBox.setPadding(new Insets(15, 12, 15, 12));
-        // hBox.setSpacing(10);
         hBox.setStyle("-fx-background-color: #FFA500;");
 
         plot.getChildren().addAll(light1, light2);
@@ -169,7 +163,7 @@ public class Fx3DStageController {
     public synchronized void setDataset(Fx3DDataset dataset,
             double maxBinnedIntensity, int index, int length) {
 
-        dataset.setColor(getColorName(index));
+        dataset.setColor(colors.get(index));
 
         datasets.add(dataset);
         if (maxOfAllBinnedIntensity < maxBinnedIntensity) {
@@ -192,45 +186,9 @@ public class Fx3DStageController {
     }
 
     public void setLabel(String labelText) {
-        Region leftRegion = new Region();
         HBox.setHgrow(leftRegion, Priority.ALWAYS);
-        Region rightRegion = new Region();
         HBox.setHgrow(rightRegion, Priority.ALWAYS);
         label.setText(labelText);
-        label.minWidth(root.getWidth());
-        hBox.getChildren().addAll(leftRegion, label, rightRegion);
-    }
-
-    public String getColorName(int index) {
-        String name = "UNKNOWN";
-
-        switch (index) {
-        case 0:
-            name = "BLUE";
-            break;
-        case 1:
-            name = "GREEN";
-            break;
-        case 2:
-            name = "RED";
-            break;
-        case 3:
-            name = "YELLOW";
-            break;
-        case 4:
-            name = "DARKORANGE";
-            break;
-        case 5:
-            name = "CYAN";
-            break;
-        case 6:
-            name = "FUCHSIA";
-            break;
-        case 7:
-            name = "GOLD";
-            break;
-        }
-        return name;
     }
 
     public void handleMousePressed(MouseEvent me) {
@@ -286,9 +244,9 @@ public class Fx3DStageController {
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(translateX.xProperty(),
                                 translateX.getX())),
-                new KeyFrame(Duration.seconds(1.5),
-                        new KeyValue(translateX.xProperty(),
-                                (root.getWidth() * 2 / 7) - 50)));
+                new KeyFrame(Duration.seconds(1.5), new KeyValue(
+                        translateX.xProperty(),
+                        (root.getWidth() * 3 / 4) - root.getHeight() * 3 / 4)));
         resetTranslateXTimeline.play();
 
         Timeline resetTranslateYTimeline = new Timeline(
@@ -308,8 +266,10 @@ public class Fx3DStageController {
         resetRotateXTimeline.play();
 
         double angle = rotateY.getAngle();
-        if (angle > 180 && angle < 360) {
+        if ((angle > 180 && angle < 360)) {
             angle = -(360 - (rotateY.getAngle() % 360));
+        } else if ((angle > -360 && angle < -180)) {
+            angle = Math.abs(angle);
         } else {
             angle = rotateY.getAngle() % 360;
         }
@@ -337,10 +297,10 @@ public class Fx3DStageController {
     }
 
     public void handleAxis(Event event) {
-        if (plot.getChildren().contains(axes)) {
-            plot.getChildren().remove(axes);
+        if (axes.isVisible()) {
+            axes.setVisible(false);
         } else {
-            plot.getChildren().add(axes);
+            axes.setVisible(true);
         }
     }
 
@@ -362,7 +322,7 @@ public class Fx3DStageController {
         event.consume();
     }
 
-    public static double clamp(double value, double min, double max) {
+    private static double clamp(double value, double min, double max) {
 
         if (Double.compare(value, min) < 0)
             return min;
