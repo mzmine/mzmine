@@ -158,6 +158,19 @@ public class Fx3DStageController {
         scene3D.setCamera(camera);
         scene3D.setPickOnBounds(true);
         subSceneRootNode.getChildren().add(scene3D);
+
+        int i = 1;
+        for (Fx3DDataset data : datasets) {
+            final int index = i + 2;
+            data.colorProperty().addListener(e -> {
+                plot.getChildren().remove(index);
+                Fx3DPlotMesh newMeshView = new Fx3DPlotMesh();
+                newMeshView.setDataset(data, maxOfAllBinnedIntensity,
+                        data.getColor());
+                plot.getChildren().add(newMeshView);
+            });
+            i++;
+        }
     }
 
     public synchronized void setDataset(Fx3DDataset dataset,
@@ -177,6 +190,7 @@ public class Fx3DStageController {
                         colors.get(i));
                 plot.getChildren().add(meshView);
                 i = (i + 1) % 8;
+
             }
             Range<Double> rtRange = dataset.getRtRange();
             Range<Double> mzRange = dataset.getMzRange();
