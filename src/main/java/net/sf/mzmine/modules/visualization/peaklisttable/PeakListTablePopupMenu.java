@@ -168,8 +168,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
     searchMenu = new JMenu("Search");
     add(searchMenu);
-    onlineDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online database", this);
-    spectralDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search spectral database", this);
+    onlineDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online compound database", this);
+    spectralDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search local spectral database", this);
     nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search", this);
     formulaItem = GUIUtils.addMenuItem(searchMenu, "Predict molecular formula", this);
     siriusItem = GUIUtils.addMenuItem(searchMenu, "SIRIUS structure prediction", this);
