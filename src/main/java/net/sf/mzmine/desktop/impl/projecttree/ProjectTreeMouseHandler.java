@@ -58,7 +58,6 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionTy
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.dialogs.RenameFeatureListDialog;
 
 /**
  * This class handles pop-up menus and double click events in the project tree
@@ -86,6 +85,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
     GUIUtils.addMenuItem(dataFilePopupMenu, "Sort alphabetically", this, "SORT_FILES");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file extension", this, "REMOVE_EXTENSION");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Export file", this, "EXPORT_FILE");
+    GUIUtils.addMenuItem(dataFilePopupMenu, "Rename file", this, "RENAME_FILE");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file", this, "REMOVE_FILE");
 
     scanPopupMenu = new JPopupMenu();
@@ -199,6 +199,13 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       }
     }
 
+    if (command.equals("RENAME_FILE")) {
+      TreePath path = tree.getSelectionPath();
+      if (path == null)
+        return;
+      else
+        tree.startEditingAtPath(path);
+    }
 
     if (command.equals("REMOVE_FILE")) {
       RawDataFile[] selectedFiles = tree.getSelectedObjects(RawDataFile.class);
@@ -301,12 +308,11 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
     }
 
     if (command.equals("RENAME_FEATURELIST")) {
-      PeakList[] selectedPeakLists = tree.getSelectedObjects(PeakList.class);
-      for (PeakList peakList : selectedPeakLists) {
-        RenameFeatureListDialog renameDialog = new RenameFeatureListDialog(peakList);
-        renameDialog.setVisible(true);
-      }
-
+      TreePath path = tree.getSelectionPath();
+      if (path == null)
+        return;
+      else
+        tree.startEditingAtPath(path);
     }
 
     if (command.equals("REMOVE_PEAKLIST")) {
