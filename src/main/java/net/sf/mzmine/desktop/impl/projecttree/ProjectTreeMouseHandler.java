@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,13 +24,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-
 import org.apache.commons.io.FilenameUtils;
-
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
@@ -88,6 +85,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
     GUIUtils.addMenuItem(dataFilePopupMenu, "Sort alphabetically", this, "SORT_FILES");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file extension", this, "REMOVE_EXTENSION");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Export file", this, "EXPORT_FILE");
+    GUIUtils.addMenuItem(dataFilePopupMenu, "Rename file", this, "RENAME_FILE");
     GUIUtils.addMenuItem(dataFilePopupMenu, "Remove file", this, "REMOVE_FILE");
 
     scanPopupMenu = new JPopupMenu();
@@ -108,6 +106,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
     GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list info", this, "SHOW_PEAKLIST_INFO");
     GUIUtils.addMenuItem(peakListPopupMenu, "Show scatter plot", this, "SHOW_SCATTER_PLOT");
     GUIUtils.addMenuItem(peakListPopupMenu, "Sort alphabetically", this, "SORT_PEAKLISTS");
+    GUIUtils.addMenuItem(peakListPopupMenu, "Rename", this, "RENAME_FEATURELIST");
     GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this, "REMOVE_PEAKLIST");
 
     peakListRowPopupMenu = new JPopupMenu();
@@ -116,6 +115,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent e) {
 
     String command = e.getActionCommand();
@@ -199,6 +199,13 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       }
     }
 
+    if (command.equals("RENAME_FILE")) {
+      TreePath path = tree.getSelectionPath();
+      if (path == null)
+        return;
+      else
+        tree.startEditingAtPath(path);
+    }
 
     if (command.equals("REMOVE_FILE")) {
       RawDataFile[] selectedFiles = tree.getSelectedObjects(RawDataFile.class);
@@ -300,6 +307,14 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       tree.setSelectionPaths(savedSelection);
     }
 
+    if (command.equals("RENAME_FEATURELIST")) {
+      TreePath path = tree.getSelectionPath();
+      if (path == null)
+        return;
+      else
+        tree.startEditingAtPath(path);
+    }
+
     if (command.equals("REMOVE_PEAKLIST")) {
       PeakList[] selectedPeakLists = tree.getSelectedObjects(PeakList.class);
       for (PeakList peakList : selectedPeakLists)
@@ -317,6 +332,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void mouseClicked(MouseEvent e) {
 
     if (e.isPopupTrigger())
@@ -327,11 +343,13 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void mousePressed(MouseEvent e) {
     if (e.isPopupTrigger())
       handlePopupTriggerEvent(e);
   }
 
+  @Override
   public void mouseReleased(MouseEvent e) {
     if (e.isPopupTrigger())
       handlePopupTriggerEvent(e);
