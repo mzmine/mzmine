@@ -22,9 +22,9 @@
      </center>
      <bottom>
       <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
-       <TableView fx:id="tableView" minHeight="50" prefHeight="150">
+       <TableView fx:id="tableView" minHeight="50" prefHeight="150" editable="true">
            <columns>
-               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="400" >
+               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="400">
                		<cellValueFactory>
                			<PropertyValueFactory property="fileName" />
                		</cellValueFactory>

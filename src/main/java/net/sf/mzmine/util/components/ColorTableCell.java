@@ -17,18 +17,26 @@
  */
 package net.sf.mzmine.util.components;
 
+import java.util.logging.Logger;
+
+import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.paint.Color;
+import net.sf.mzmine.modules.visualization.fx3d.Fx3DDataset;
 
 public class ColorTableCell<T> extends TableCell<T, Color> {
 
     private final ColorPicker colorPicker;
 
-    public ColorTableCell(TableColumn<T, Color> column) {
+    private static final Logger LOG = Logger
+            .getLogger(ColorTableCell.class.getName());
+
+    public ColorTableCell(TableColumn<T, Color> column,
+            ObservableList<Fx3DDataset> datasets) {
         colorPicker = new ColorPicker();
         colorPicker.editableProperty().bind(column.editableProperty());
         colorPicker.disableProperty().bind(column.editableProperty().not());
@@ -40,9 +48,9 @@ public class ColorTableCell<T> extends TableCell<T, Color> {
         });
         colorPicker.valueProperty()
                 .addListener((observable, oldValue, newValue) -> {
-                    if (isEditing()) {
-                        commitEdit(newValue);
-                    }
+                    commitEdit(newValue);
+                    datasets.get(getTableRow().getIndex()).colorProperty()
+                            .set(newValue);
                 });
         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }

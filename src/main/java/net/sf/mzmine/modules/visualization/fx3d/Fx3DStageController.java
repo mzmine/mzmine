@@ -66,9 +66,9 @@ public class Fx3DStageController {
     private Group subSceneRootNode;
     private Fx3DAxes axes = new Fx3DAxes();
     @FXML
-    private TableView<Fx3DDataset> tableView = new TableView<Fx3DDataset>();
+    private TableView<Fx3DDataset> tableView;
     @FXML
-    private TableColumn<Fx3DDataset, String> fileNameCol = new TableColumn<Fx3DDataset, String>();
+    private TableColumn<Fx3DDataset, String> fileNameCol;
     @FXML
     private TableColumn<Fx3DDataset, Color> colorCol;
 
@@ -127,7 +127,7 @@ public class Fx3DStageController {
         colors.add(Color.GOLD);
 
         colorCol.setCellFactory(
-                column -> new ColorTableCell<Fx3DDataset>(column));
+                column -> new ColorTableCell<Fx3DDataset>(column, datasets));
 
         PointLight light1 = new PointLight(Color.WHITE);
         light1.setTranslateX(SIZE / 2);
@@ -151,6 +151,7 @@ public class Fx3DStageController {
                         new KeyValue(yRotate.angleProperty(), 0)));
         rotateAnimationTimeline.setCycleCount(Timeline.INDEFINITE);
 
+        tableView.setItems(datasets);
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
         scene3D.widthProperty().bind(root.widthProperty());
@@ -162,13 +163,15 @@ public class Fx3DStageController {
         int i = 1;
         for (Fx3DDataset data : datasets) {
             final int index = i + 2;
-            data.colorProperty().addListener(e -> {
-                plot.getChildren().remove(index);
-                Fx3DPlotMesh newMeshView = new Fx3DPlotMesh();
-                newMeshView.setDataset(data, maxOfAllBinnedIntensity,
-                        data.getColor());
-                plot.getChildren().add(newMeshView);
-            });
+            colorCol.getCellObservableValue(data)
+                    .addListener((e, oldValue, newValue) -> {
+                        plot.getChildren().remove(index);
+                        Fx3DPlotMesh newMeshView = new Fx3DPlotMesh();
+                        newMeshView.setDataset(data, maxOfAllBinnedIntensity,
+                                newValue);
+                        plot.getChildren().add(newMeshView);
+                        LOG.finest("Listener Triggered");
+                    });
             i++;
         }
     }
@@ -190,12 +193,10 @@ public class Fx3DStageController {
                         colors.get(i));
                 plot.getChildren().add(meshView);
                 i = (i + 1) % 8;
-
             }
             Range<Double> rtRange = dataset.getRtRange();
             Range<Double> mzRange = dataset.getMzRange();
             axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
-            tableView.setItems(datasets);
         }
     }
 
