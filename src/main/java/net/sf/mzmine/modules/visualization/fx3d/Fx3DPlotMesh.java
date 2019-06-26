@@ -39,6 +39,10 @@ public class Fx3DPlotMesh extends MeshView {
     private static final Logger LOG = Logger
             .getLogger(Fx3DPlotMesh.class.getName());
 
+    private int[][] peakListIndices;
+    private int width;
+    private int height;
+
     public Fx3DPlotMesh() {
 
     }
@@ -50,7 +54,7 @@ public class Fx3DPlotMesh extends MeshView {
 
         TriangleMesh mesh = new TriangleMesh();
 
-        int[][] peakListIndices = new int[rtResolution][mzResolution];
+        peakListIndices = new int[rtResolution][mzResolution];
         float factorX = (float) SIZE / rtResolution;
         float factorZ = (float) SIZE / mzResolution;
 
@@ -122,9 +126,17 @@ public class Fx3DPlotMesh extends MeshView {
 
             }
         }
-        int width = rtLength;
-        int height = mzLength;
+        setColor(peakColor);
+        setMesh(mesh);
+        setCullFace(CullFace.NONE);
+        setDrawMode(DrawMode.FILL);
+        setDepthTest(DepthTest.ENABLE);
+        LOG.info("Plot mesh is ready.");
+    }
 
+    public void setColor(Color peakColor) {
+        width = rtResolution;
+        height = mzResolution;
         WritableImage wr = new WritableImage(width, height);
         PixelWriter pw = wr.getPixelWriter();
         for (int x = 0; x < width; x++) {
@@ -147,12 +159,6 @@ public class Fx3DPlotMesh extends MeshView {
         Image diffuseMap = wr;
         PhongMaterial material = new PhongMaterial();
         material.setDiffuseMap(diffuseMap);
-
-        LOG.info("Plot mesh is ready.");
-        setMesh(mesh);
         setMaterial(material);
-        setCullFace(CullFace.NONE);
-        setDrawMode(DrawMode.FILL);
-        setDepthTest(DepthTest.ENABLE);
     }
 }

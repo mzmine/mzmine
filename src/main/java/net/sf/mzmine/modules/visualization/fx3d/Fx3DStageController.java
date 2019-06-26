@@ -93,7 +93,8 @@ public class Fx3DStageController {
     private ObservableList<Fx3DDataset> datasets = FXCollections
             .observableArrayList();
     private ArrayList<Color> colors = new ArrayList<Color>();
-
+    private ObservableList<Fx3DPlotMesh> meshList = FXCollections
+            .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
 
     private Timeline rotateAnimationTimeline;
@@ -127,7 +128,7 @@ public class Fx3DStageController {
         colors.add(Color.GOLD);
 
         colorCol.setCellFactory(
-                column -> new ColorTableCell<Fx3DDataset>(column, datasets));
+                column -> new ColorTableCell<Fx3DDataset>(column));
 
         PointLight light1 = new PointLight(Color.WHITE);
         light1.setTranslateX(SIZE / 2);
@@ -160,20 +161,6 @@ public class Fx3DStageController {
         scene3D.setPickOnBounds(true);
         subSceneRootNode.getChildren().add(scene3D);
 
-        int i = 1;
-        for (Fx3DDataset data : datasets) {
-            final int index = i + 2;
-            colorCol.getCellObservableValue(data)
-                    .addListener((e, oldValue, newValue) -> {
-                        plot.getChildren().remove(index);
-                        Fx3DPlotMesh newMeshView = new Fx3DPlotMesh();
-                        newMeshView.setDataset(data, maxOfAllBinnedIntensity,
-                                newValue);
-                        plot.getChildren().add(newMeshView);
-                        LOG.finest("Listener Triggered");
-                    });
-            i++;
-        }
     }
 
     public synchronized void setDataset(Fx3DDataset dataset,
@@ -191,12 +178,27 @@ public class Fx3DStageController {
                 Fx3DPlotMesh meshView = new Fx3DPlotMesh();
                 meshView.setDataset(data, maxOfAllBinnedIntensity,
                         colors.get(i));
-                plot.getChildren().add(meshView);
+                meshList.add(meshView);
                 i = (i + 1) % 8;
             }
             Range<Double> rtRange = dataset.getRtRange();
             Range<Double> mzRange = dataset.getMzRange();
             axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
+            plot.getChildren().addAll(meshList);
+            addListener();
+        }
+    }
+
+    public void addListener() {
+        int i = 0;
+        for (Fx3DDataset data : datasets) {
+            final int index = i;
+            colorCol.getCellObservableValue(data)
+                    .addListener((e, oldValue, newValue) -> {
+                        meshList.get(index).setColor(newValue);
+                        LOG.finest("Listener Triggered");
+                    });
+            i++;
         }
     }
 
