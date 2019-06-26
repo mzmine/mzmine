@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,13 +24,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-
 import org.apache.commons.io.FilenameUtils;
-
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
@@ -61,6 +58,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionTy
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.dialogs.RenameFeatureListDialog;
 
 /**
  * This class handles pop-up menus and double click events in the project tree
@@ -108,6 +106,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
     GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list info", this, "SHOW_PEAKLIST_INFO");
     GUIUtils.addMenuItem(peakListPopupMenu, "Show scatter plot", this, "SHOW_SCATTER_PLOT");
     GUIUtils.addMenuItem(peakListPopupMenu, "Sort alphabetically", this, "SORT_PEAKLISTS");
+    GUIUtils.addMenuItem(peakListPopupMenu, "Rename", this, "RENAME_FEATURELIST");
     GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this, "REMOVE_PEAKLIST");
 
     peakListRowPopupMenu = new JPopupMenu();
@@ -116,6 +115,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void actionPerformed(ActionEvent e) {
 
     String command = e.getActionCommand();
@@ -300,6 +300,15 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       tree.setSelectionPaths(savedSelection);
     }
 
+    if (command.equals("RENAME_FEATURELIST")) {
+      PeakList[] selectedPeakLists = tree.getSelectedObjects(PeakList.class);
+      for (PeakList peakList : selectedPeakLists) {
+        RenameFeatureListDialog renameDialog = new RenameFeatureListDialog(peakList);
+        renameDialog.setVisible(true);
+      }
+
+    }
+
     if (command.equals("REMOVE_PEAKLIST")) {
       PeakList[] selectedPeakLists = tree.getSelectedObjects(PeakList.class);
       for (PeakList peakList : selectedPeakLists)
@@ -317,6 +326,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void mouseClicked(MouseEvent e) {
 
     if (e.isPopupTrigger())
@@ -327,11 +337,13 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
   }
 
+  @Override
   public void mousePressed(MouseEvent e) {
     if (e.isPopupTrigger())
       handlePopupTriggerEvent(e);
   }
 
+  @Override
   public void mouseReleased(MouseEvent e) {
     if (e.isPopupTrigger())
       handlePopupTriggerEvent(e);
