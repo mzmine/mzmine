@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.* ?>
 <?import javafx.scene.control.* ?>
 <?import javafx.scene.control.cell.* ?>
@@ -11,6 +12,7 @@
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController" minWidth="400" minHeight="400">
      <top>
      	<HBox fx:id="hBox">
+     		<padding><Insets top="15" right="12" bottom="15" left="12"/></padding>
 	     	<Region fx:id="leftRegion"/>
 	     		<Label fx:id="label"/>
 		     <Region fx:id="rightRegion"/>
@@ -24,14 +26,19 @@
       <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
        <TableView fx:id="tableView" minHeight="50" prefHeight="150" editable="true">
            <columns>
-               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="400">
+               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="300">
                		<cellValueFactory>
                			<PropertyValueFactory property="fileName" />
                		</cellValueFactory>
                </TableColumn>
-               <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="400" >
+               <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="250" >
                		<cellValueFactory>
                			<PropertyValueFactory property="color" />
+               		</cellValueFactory>
+               </TableColumn>
+               <TableColumn fx:id="opacityCol" text="Opacity Level" editable="true" prefWidth="250" >
+               		<cellValueFactory>
+               			<PropertyValueFactory property="opacity" />
                		</cellValueFactory>
                </TableColumn>
            </columns>

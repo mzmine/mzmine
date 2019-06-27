@@ -47,7 +47,7 @@ public class Fx3DPlotMesh extends MeshView {
 
     }
 
-    public void setDataset(Fx3DDataset dataset,
+    public synchronized void setDataset(Fx3DDataset dataset,
             double maxOfAllBinnedIntensities, Color peakColor) {
         rtResolution = dataset.getRtResolution();
         mzResolution = dataset.getMzResolution();

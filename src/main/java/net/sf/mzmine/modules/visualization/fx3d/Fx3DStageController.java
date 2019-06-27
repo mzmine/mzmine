@@ -49,6 +49,7 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
 import net.sf.mzmine.util.components.ColorTableCell;
+import net.sf.mzmine.util.components.SliderCell;
 
 public class Fx3DStageController {
 
@@ -71,6 +72,8 @@ public class Fx3DStageController {
     private TableColumn<Fx3DDataset, String> fileNameCol;
     @FXML
     private TableColumn<Fx3DDataset, Color> colorCol;
+    @FXML
+    private TableColumn<Fx3DDataset, Double> opacityCol;
 
     private Group finalNode = new Group();
     private Group plot = new Group();
@@ -129,6 +132,10 @@ public class Fx3DStageController {
 
         colorCol.setCellFactory(
                 column -> new ColorTableCell<Fx3DDataset>(column));
+        double minValue = 0;
+        double maxValue = 1;
+        opacityCol.setCellFactory(column -> new SliderCell<Fx3DDataset>(column,
+                minValue, maxValue));
 
         PointLight light1 = new PointLight(Color.WHITE);
         light1.setTranslateX(SIZE / 2);
@@ -141,7 +148,6 @@ public class Fx3DStageController {
         light2.setTranslateY(1000);
 
         hBox.setPadding(new Insets(15, 12, 15, 12));
-        hBox.setStyle("-fx-background-color: #FFA500;");
 
         plot.getChildren().addAll(light1, light2);
 
@@ -185,11 +191,14 @@ public class Fx3DStageController {
             Range<Double> mzRange = dataset.getMzRange();
             axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
             plot.getChildren().addAll(meshList);
-            addListener();
+            addcolorListener();
+            addopacityListener();
+            LOG.finest("Number of plot meshes:" + meshList.size());
+            LOG.finest("Number of datasets sampled:" + datasets.size());
         }
     }
 
-    public void addListener() {
+    private void addcolorListener() {
         int i = 0;
         for (Fx3DDataset data : datasets) {
             final int index = i;
@@ -198,6 +207,19 @@ public class Fx3DStageController {
                         meshList.get(index).setColor(newValue);
                         LOG.finest("Listener Triggered");
                     });
+            i++;
+        }
+    }
+
+    private void addopacityListener() {
+        int i = 0;
+        for (Fx3DDataset data : datasets) {
+            final int index = i;
+            data.opacityProperty().addListener((e, oldValue, newValue) -> {
+                meshList.get(index).setColor(data.getColor().deriveColor(0, 1,
+                        1, (double) newValue));
+                LOG.finest("Listener Triggered");
+            });
             i++;
         }
     }

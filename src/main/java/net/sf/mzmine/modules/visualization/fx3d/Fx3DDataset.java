@@ -34,6 +34,7 @@ public class Fx3DDataset {
     private SimpleStringProperty fileName = new SimpleStringProperty("");
     private ObjectProperty<Color> color = new SimpleObjectProperty<>(this,
             "color");
+    private ObjectProperty<Double> opacity = new SimpleObjectProperty<Double>();
 
     public Fx3DDataset(float[][] intensityValues, int rtResolution,
             int mzResolution, double maxBinnedIntensity, Range<Double> rtRange,
@@ -45,6 +46,7 @@ public class Fx3DDataset {
         this.rtRange = rtRange;
         this.mzRange = mzRange;
         this.fileName.set(fileName);
+        this.opacity.set(1.0);
     }
 
     public float[][] getIntensityValues() {
@@ -85,5 +87,17 @@ public class Fx3DDataset {
 
     public ObjectProperty<Color> colorProperty() {
         return color;
+    }
+
+    public double getOpacity() {
+        return opacity.get();
+    }
+
+    public void setOpacity(double value) {
+        opacity.set(value);
+    }
+
+    public ObjectProperty<Double> opacityProperty() {
+        return opacity;
     }
 }
