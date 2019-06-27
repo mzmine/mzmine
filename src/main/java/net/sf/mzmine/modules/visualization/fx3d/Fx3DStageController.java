@@ -218,6 +218,7 @@ public class Fx3DStageController {
             data.opacityProperty().addListener((e, oldValue, newValue) -> {
                 meshList.get(index).setColor(data.getColor().deriveColor(0, 1,
                         1, (double) newValue));
+                // meshList.get(index).setOpacity((double) newValue);
                 LOG.finest("Listener Triggered");
             });
             i++;

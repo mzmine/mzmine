@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.fx3d;
 import com.google.common.collect.Range;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.paint.Color;
@@ -34,7 +35,7 @@ public class Fx3DDataset {
     private SimpleStringProperty fileName = new SimpleStringProperty("");
     private ObjectProperty<Color> color = new SimpleObjectProperty<>(this,
             "color");
-    private ObjectProperty<Double> opacity = new SimpleObjectProperty<Double>();
+    private SimpleDoubleProperty opacity = new SimpleDoubleProperty();
 
     public Fx3DDataset(float[][] intensityValues, int rtResolution,
             int mzResolution, double maxBinnedIntensity, Range<Double> rtRange,
@@ -97,7 +98,7 @@ public class Fx3DDataset {
         opacity.set(value);
     }
 
-    public ObjectProperty<Double> opacityProperty() {
+    public SimpleDoubleProperty opacityProperty() {
         return opacity;
     }
 }
