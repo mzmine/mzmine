@@ -139,6 +139,7 @@ public class Fx3DPlotMesh extends MeshView {
         height = mzResolution;
         WritableImage wr = new WritableImage(width, height);
         PixelWriter pw = wr.getPixelWriter();
+        double opacity = peakColor.getOpacity();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
 
@@ -151,7 +152,7 @@ public class Fx3DPlotMesh extends MeshView {
                         pw.setColor(x - 1, y, color);
                     }
                 } else {
-                    Color color = Color.DARKGREY;
+                    Color color = Color.rgb(169, 169, 169, opacity);
                     pw.setColor(x, y, color);
                 }
             }

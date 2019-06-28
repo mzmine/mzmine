@@ -144,19 +144,22 @@ public class Fx3DStageController {
         PointLight left = new PointLight(Color.WHITE);
         left.setTranslateX(-1000);
         left.setTranslateZ(SIZE / 2);
-        left.setTranslateY(-SIZE / 2);
+        left.setTranslateY(10);
 
         PointLight right = new PointLight(Color.WHITE);
-        right.setTranslateX(1000);
+        right.setTranslateX(1500);
         right.setTranslateZ(SIZE / 2);
-        right.setTranslateY(-SIZE / 2);
+        right.setTranslateY(-10);
 
         PointLight bottom = new PointLight(Color.WHITE);
         bottom.setTranslateX(SIZE / 2);
         bottom.setTranslateZ(SIZE / 2);
         bottom.setTranslateY(1000);
 
-        plot.getChildren().addAll(top, bottom, left, right);
+        plot.getChildren().add(left);
+        plot.getChildren().add(right);
+        plot.getChildren().add(top);
+        plot.getChildren().add(bottom);
 
         rotateAnimationTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
@@ -249,7 +252,7 @@ public class Fx3DStageController {
     }
 
     public void handleMouseDragged(MouseEvent me) {
-        double rotateFactor = 0.08;
+        double rotateFactor = 0.12;
         mousePosX = me.getSceneX();
         mousePosY = me.getSceneY();
         if (me.isPrimaryButtonDown()) {
