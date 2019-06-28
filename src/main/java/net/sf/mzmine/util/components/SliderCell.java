@@ -34,7 +34,8 @@ public class SliderCell<T> extends TableCell<T, Double> {
         slider.setShowTickMarks(true);
         slider.setShowTickLabels(true);
         slider.setBlockIncrement(0.2f);
-        slider.setOnDragDetected(event -> {
+
+        slider.setOnMouseDragged(event -> {
             final TableView<T> tableView = getTableView();
             tableView.getSelectionModel().select(getTableRow().getIndex());
             tableView.edit(tableView.getSelectionModel().getSelectedIndex(),

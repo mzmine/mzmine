@@ -29,7 +29,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
@@ -137,19 +136,27 @@ public class Fx3DStageController {
         opacityCol.setCellFactory(column -> new SliderCell<Fx3DDataset>(column,
                 minValue, maxValue));
 
-        PointLight light1 = new PointLight(Color.WHITE);
-        light1.setTranslateX(SIZE / 2);
-        light1.setTranslateZ(SIZE / 2);
-        light1.setTranslateY(-1000);
+        PointLight top = new PointLight(Color.WHITE);
+        top.setTranslateX(SIZE / 2);
+        top.setTranslateZ(SIZE / 2);
+        top.setTranslateY(-1000);
 
-        PointLight light2 = new PointLight(Color.WHITE);
-        light2.setTranslateX(SIZE / 2);
-        light2.setTranslateZ(SIZE / 2);
-        light2.setTranslateY(1000);
+        PointLight left = new PointLight(Color.WHITE);
+        left.setTranslateX(-1000);
+        left.setTranslateZ(SIZE / 2);
+        left.setTranslateY(-SIZE / 2);
 
-        hBox.setPadding(new Insets(15, 12, 15, 12));
+        PointLight right = new PointLight(Color.WHITE);
+        right.setTranslateX(1000);
+        right.setTranslateZ(SIZE / 2);
+        right.setTranslateY(-SIZE / 2);
 
-        plot.getChildren().addAll(light1, light2);
+        PointLight bottom = new PointLight(Color.WHITE);
+        bottom.setTranslateX(SIZE / 2);
+        bottom.setTranslateZ(SIZE / 2);
+        bottom.setTranslateY(1000);
+
+        plot.getChildren().addAll(top, bottom, left, right);
 
         rotateAnimationTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
@@ -216,10 +223,15 @@ public class Fx3DStageController {
         for (Fx3DDataset data : datasets) {
             final int index = i;
             data.opacityProperty().addListener((e, oldValue, newValue) -> {
-                meshList.get(index).setColor(data.getColor().deriveColor(0, 1,
-                        1, (double) newValue));
+                Color color = data.getColor();
+                int red = (int) (color.getRed() * 255);
+                int green = (int) (color.getGreen() * 255);
+                int blue = (int) (color.getBlue() * 255);
+
+                meshList.get(index).setColor(
+                        Color.rgb(red, green, blue, (double) newValue));
                 // meshList.get(index).setOpacity((double) newValue);
-                LOG.finest("Listener Triggered");
+                LOG.finest("Slider's current value :" + newValue);
             });
             i++;
         }
