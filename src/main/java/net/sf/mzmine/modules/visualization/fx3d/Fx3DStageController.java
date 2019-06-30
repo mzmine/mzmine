@@ -47,6 +47,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
+import net.sf.mzmine.util.components.ButtonCell;
 import net.sf.mzmine.util.components.ColorTableCell;
 import net.sf.mzmine.util.components.SliderCell;
 
@@ -73,6 +74,8 @@ public class Fx3DStageController {
     private TableColumn<Fx3DDataset, Color> colorCol;
     @FXML
     private TableColumn<Fx3DDataset, Double> opacityCol;
+    @FXML
+    private TableColumn<Fx3DDataset, Boolean> visibilityCol;
 
     private Group finalNode = new Group();
     private Group plot = new Group();
@@ -135,6 +138,8 @@ public class Fx3DStageController {
         double maxValue = 1;
         opacityCol.setCellFactory(column -> new SliderCell<Fx3DDataset>(column,
                 minValue, maxValue));
+        visibilityCol
+                .setCellFactory(column -> new ButtonCell<Fx3DDataset>(column));
 
         PointLight top = new PointLight(Color.WHITE);
         top.setTranslateX(SIZE / 2);
@@ -203,6 +208,7 @@ public class Fx3DStageController {
             plot.getChildren().addAll(meshList);
             addcolorListener();
             addopacityListener();
+            addvisibilityListener();
             LOG.finest("Number of plot meshes:" + meshList.size());
             LOG.finest("Number of datasets sampled:" + datasets.size());
         }
@@ -214,8 +220,11 @@ public class Fx3DStageController {
             final int index = i;
             colorCol.getCellObservableValue(data)
                     .addListener((e, oldValue, newValue) -> {
-                        meshList.get(index).setColor(newValue);
-                        LOG.finest("Listener Triggered");
+                        int red = (int) (newValue.getRed() * 255);
+                        int green = (int) (newValue.getGreen() * 255);
+                        int blue = (int) (newValue.getBlue() * 255);
+                        meshList.get(index).setColor(Color.rgb(red, green, blue,
+                                (double) data.opacityProperty().get()));
                     });
             i++;
         }
@@ -230,12 +239,22 @@ public class Fx3DStageController {
                 int red = (int) (color.getRed() * 255);
                 int green = (int) (color.getGreen() * 255);
                 int blue = (int) (color.getBlue() * 255);
-
                 meshList.get(index).setColor(
                         Color.rgb(red, green, blue, (double) newValue));
-                // meshList.get(index).setOpacity((double) newValue);
                 LOG.finest("Slider's current value :" + newValue);
             });
+            i++;
+        }
+    }
+
+    private void addvisibilityListener() {
+        int i = 1;
+        for (Fx3DDataset data : datasets) {
+            final int index = i + 4;
+            visibilityCol.getCellObservableValue(data)
+                    .addListener((e, oldValue, newValue) -> {
+                        plot.getChildren().get(index).setVisible(newValue);
+                    });
             i++;
         }
     }

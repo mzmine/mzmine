@@ -74,7 +74,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
         int len = dataFiles.length;
-
+        LOG.finest("Number of datafiles:" + len);
         Range<Double> rtRange = ScanUtils
                 .findRtRange(scanSel.getMatchingScans(dataFiles[0]));
 

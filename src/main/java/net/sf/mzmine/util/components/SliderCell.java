@@ -41,6 +41,12 @@ public class SliderCell<T> extends TableCell<T, Double> {
             tableView.edit(tableView.getSelectionModel().getSelectedIndex(),
                     column);
         });
+        slider.setOnMouseClicked(event -> {
+            final TableView<T> tableView = getTableView();
+            tableView.getSelectionModel().select(getTableRow().getIndex());
+            tableView.edit(tableView.getSelectionModel().getSelectedIndex(),
+                    column);
+        });
         slider.valueProperty().addListener((observable, oldValue, newValue) -> {
             commitEdit((Double) newValue);
         });

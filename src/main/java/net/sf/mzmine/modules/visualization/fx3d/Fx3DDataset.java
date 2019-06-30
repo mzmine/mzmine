@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.fx3d;
 import com.google.common.collect.Range;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -36,6 +37,7 @@ public class Fx3DDataset {
     private ObjectProperty<Color> color = new SimpleObjectProperty<>(this,
             "color");
     private SimpleDoubleProperty opacity = new SimpleDoubleProperty();
+    private SimpleBooleanProperty visibility = new SimpleBooleanProperty();
 
     public Fx3DDataset(float[][] intensityValues, int rtResolution,
             int mzResolution, double maxBinnedIntensity, Range<Double> rtRange,
@@ -48,6 +50,7 @@ public class Fx3DDataset {
         this.mzRange = mzRange;
         this.fileName.set(fileName);
         this.opacity.set(1.0);
+        this.visibility.set(true);
     }
 
     public float[][] getIntensityValues() {
@@ -100,5 +103,17 @@ public class Fx3DDataset {
 
     public SimpleDoubleProperty opacityProperty() {
         return opacity;
+    }
+
+    public boolean getVisibility() {
+        return visibility.get();
+    }
+
+    public void setVisibility(boolean value) {
+        visibility.set(value);
+    }
+
+    public SimpleBooleanProperty visibilityProperty() {
+        return visibility;
     }
 }

@@ -26,19 +26,24 @@
       <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
        <TableView fx:id="tableView" minHeight="50" prefHeight="150" editable="true">
            <columns>
-               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="300">
+               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="200">
                		<cellValueFactory>
                			<PropertyValueFactory property="fileName" />
                		</cellValueFactory>
                </TableColumn>
-               <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="250" >
+               <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="200" >
                		<cellValueFactory>
                			<PropertyValueFactory property="color" />
                		</cellValueFactory>
                </TableColumn>
-               <TableColumn fx:id="opacityCol" text="Opacity Level" editable="true" prefWidth="250" >
+               <TableColumn fx:id="opacityCol" text="Opacity Level" editable="true" prefWidth="200" >
                		<cellValueFactory>
-               			<PropertyValueFactory property="opacity" />
+               			<PropertyValueFactory property="opacity"/>
+               		</cellValueFactory>
+               </TableColumn>
+               <TableColumn fx:id="visibilityCol" text="Visibility" editable="true" prefWidth="200" >
+               		<cellValueFactory>
+               			<PropertyValueFactory property="visibility"/>
                		</cellValueFactory>
                </TableColumn>
            </columns>
