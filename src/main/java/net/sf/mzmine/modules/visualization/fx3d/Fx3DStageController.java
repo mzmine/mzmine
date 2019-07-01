@@ -132,14 +132,18 @@ public class Fx3DStageController {
         colors.add(Color.FUCHSIA);
         colors.add(Color.GOLD);
 
+        fileNameCol.setStyle("-fx-alignment: CENTER;");
         colorCol.setCellFactory(
                 column -> new ColorTableCell<Fx3DDataset>(column));
+        colorCol.setStyle("-fx-alignment: CENTER;");
         double minValue = 0;
         double maxValue = 1;
         opacityCol.setCellFactory(column -> new SliderCell<Fx3DDataset>(column,
                 minValue, maxValue));
+        opacityCol.setStyle("-fx-alignment: CENTER;");
         visibilityCol
                 .setCellFactory(column -> new ButtonCell<Fx3DDataset>(column));
+        visibilityCol.setStyle("-fx-alignment: CENTER;");
 
         PointLight top = new PointLight(Color.WHITE);
         top.setTranslateX(SIZE / 2);
@@ -248,14 +252,11 @@ public class Fx3DStageController {
     }
 
     private void addvisibilityListener() {
-        int i = 1;
+        int i = 0;
         for (Fx3DDataset data : datasets) {
-            final int index = i + 4;
-            visibilityCol.getCellObservableValue(data)
-                    .addListener((e, oldValue, newValue) -> {
-                        plot.getChildren().get(index).setVisible(newValue);
-                    });
-            i++;
+            final int index = i;
+            data.visibilityProperty()
+                    .bindBidirectional(meshList.get(index).visibleProperty());
         }
     }
 

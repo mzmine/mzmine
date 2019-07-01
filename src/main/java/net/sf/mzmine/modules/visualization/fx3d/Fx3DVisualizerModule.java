@@ -23,9 +23,12 @@ import java.util.Collection;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import com.google.common.collect.Range;
 
+import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -89,6 +92,12 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
         Platform.setImplicitExit(false);
         Platform.runLater(() -> {
+            if (!Platform.isSupported(ConditionalFeature.SCENE3D)) {
+                JFrame frame = new JFrame();
+                JOptionPane.showMessageDialog(frame,
+                        "The platform does not provide 3D support.");
+                return;
+            }
             FXMLLoader loader = new FXMLLoader(
                     (getClass().getResource("Fx3DStage.fxml")));
             Parent nodeFromFXML = null;
