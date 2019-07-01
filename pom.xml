@@ -712,31 +712,13 @@
 			<version>${threetenbp.version}</version>
 		</dependency>
 		<!-- End of swagger dependencies -->
-		
-		<!-- Fxyz dependencies -->
-		
+		<!-- Controlsfx dependency -->
 		<dependency>
-		  	<groupId>org.fxyz3d</groupId>
-		  	<artifactId>fxyz3d</artifactId>
-		  	<version>0.5.0</version>
+    		<groupId>org.controlsfx</groupId>
+    		<artifactId>controlsfx</artifactId>
+    		<version>8.40.15</version>	
 		</dependency>
-		<dependency>
-  			<groupId>org.fxyz3d</groupId>
-		  	<artifactId>fxyz3d-client</artifactId>
-		  	<version>0.5.0</version>
-		</dependency>
-		<dependency>
-		  	<groupId>org.fxyz3d</groupId>
-		  	<artifactId>fxyz3d-importers</artifactId>
-		  	<version>0.5.0</version>
-		</dependency>
-		<dependency>
-  			<groupId>org.jzy3d</groupId>
-  			<artifactId>jzy3d-api</artifactId>
-  			<version>1.0.0</version>
-		</dependency>
-		<!-- End of Fxyz dependencies-->
-		
+		<!-- End of Controlsfx dependency -->
 	</dependencies>
 
 </project>
