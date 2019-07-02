@@ -131,7 +131,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   private String helpID;
 
   //
-  private boolean isFragmentScan = false;
+  private boolean isFragmentScan = true;
   // data either rows or list of entries with 1 or multiple scans
   private PeakListRow[] rows;
   private List<Scan[]> scanList;
@@ -262,6 +262,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
    * @param raw
    */
   public void setData(PeakListRow[] rows, boolean isFragmentScan) {
+    getMSLevelComponent().setText(isFragmentScan ? "2" : "1");
     scanList = null;
     this.rows = rows;
     this.pnScanSelect = new ScanSelectPanel[rows.length];
@@ -330,7 +331,7 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     // disable gnps
     if (!isFragmentScan) {
       paramSubmit.getParameter(LibrarySubmitParameters.SUBMIT_GNPS).setValue(false);
-      getGnpsSubmitComponent().setSelected(false);;
+      getGnpsSubmitComponent().setSelected(false);
     }
     getGnpsSubmitComponent().setEnabled(isFragmentScan);
   }
@@ -623,13 +624,13 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
         group.resetZoom();
     });
 
-    JMenuItem setSize = new JMenuItem("chart size");
-    menu.add(setSize);
-    setSize.addActionListener(e -> {
-      Dimension dim = SizeSelectDialog.getSizeInput();
-      if (dim != null)
-        setChartSize(dim);
-    });
+    // JMenuItem setSize = new JMenuItem("chart size");
+    // menu.add(setSize);
+    // setSize.addActionListener(e -> {
+    // Dimension dim = SizeSelectDialog.getSizeInput();
+    // if (dim != null)
+    // setChartSize(dim);
+    // });
 
     //
     addCheckBox(settings, "show legend", showLegend,
