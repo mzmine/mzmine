@@ -393,6 +393,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   }
 
   public void setSortMode(ScanSortMode sort) {
+    if (this.sort.equals(sort))
+      return;
+
     this.sort = sort;
     switch (sort) {
       case NUMBER_OF_SIGNALS:
