@@ -117,6 +117,7 @@ public class Fx3DStageController {
     public Rotate yRotateDelta = new Rotate();
     double deltaAngle;
     private int totalFiles;
+    private int fileCount = 0;
 
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
@@ -202,17 +203,17 @@ public class Fx3DStageController {
 
         int index = dataset.getIndex();
         dataset.setColor(colors.get(index));
-
+        fileCount++;
         datasets.add(dataset);
         if (maxOfAllBinnedIntensity < dataset.getMaxBinnedIntensity()) {
             maxOfAllBinnedIntensity = dataset.getMaxBinnedIntensity();
         }
-        if (index == totalFiles - 1) {
+        if (fileCount == totalFiles) {
             int i = 0;
             for (Fx3DDataset data : datasets) {
                 Fx3DPlotMesh meshView = new Fx3DPlotMesh();
                 meshView.setDataset(data, maxOfAllBinnedIntensity,
-                        colors.get(i));
+                        data.getColor());
                 meshList.add(meshView);
                 i = (i + 1) % 8;
             }
