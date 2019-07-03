@@ -4,6 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.* ?>
 <?import javafx.scene.control.* ?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.cell.* ?>
 <?import javafx.scene.image.* ?>
 <?import net.sf.mzmine.modules.visualization.fx3d.* ?>
@@ -26,6 +27,11 @@
       <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
        <TableView fx:id="tableView" minHeight="50" prefHeight="150" editable="true">
            <columns>
+	           <TableColumn fx:id="visibilityCol" editable="true" maxWidth="50" >
+               		<cellValueFactory>
+               			<PropertyValueFactory property="visibility"/>
+               		</cellValueFactory>
+               </TableColumn>
                <TableColumn fx:id="fileNameCol" text="Name" prefWidth="200">
                		<cellValueFactory>
                			<PropertyValueFactory property="fileName" />
@@ -36,14 +42,9 @@
                			<PropertyValueFactory property="color" />
                		</cellValueFactory>
                </TableColumn>
-               <TableColumn fx:id="opacityCol" text="Opacity Level" editable="true" prefWidth="200" >
+               <TableColumn fx:id="opacityCol" text="Opacity" editable="true" prefWidth="200" >
                		<cellValueFactory>
                			<PropertyValueFactory property="opacity"/>
-               		</cellValueFactory>
-               </TableColumn>
-               <TableColumn fx:id="visibilityCol" text="Visibility" editable="true" prefWidth="200" >
-               		<cellValueFactory>
-               			<PropertyValueFactory property="visibility"/>
                		</cellValueFactory>
                </TableColumn>
            </columns>
@@ -61,22 +62,22 @@
                         <Tooltip text="Zoom out" />
                     </tooltip>
                 </Button>
-                <Button onAction="#handleAnimate">
+                <ToggleButton fx:id="animateBtn" onAction="#handleAnimate">
                     <graphic>
                     	<Glyph fontFamily="FontAwesome" icon="REFRESH" />
                     </graphic>
                     <tooltip>
                         <Tooltip text="Animate" />
                     </tooltip>
-                </Button>
-                <Button onAction="#handleAxis">
+                </ToggleButton>
+                <ToggleButton onAction="#handleAxis">
                   <graphic>
  		                <Glyph fontFamily="FontAwesome" icon="AREA_CHART" />
                   </graphic>
                   <tooltip>
                       <Tooltip text="Axis ON/OFF" />
                   </tooltip>
-               </Button>
+               </ToggleButton>
             </items>
         </ToolBar>
     </right>

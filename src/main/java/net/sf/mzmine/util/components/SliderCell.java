@@ -31,8 +31,6 @@ public class SliderCell<T> extends TableCell<T, Double> {
         slider = new Slider();
         slider.setMin(min);
         slider.setMax(max);
-        slider.setShowTickMarks(true);
-        slider.setShowTickLabels(true);
         slider.setBlockIncrement(0.2f);
 
         slider.setOnMouseDragged(event -> {

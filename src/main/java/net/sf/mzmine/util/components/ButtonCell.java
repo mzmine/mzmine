@@ -28,18 +28,22 @@ import javafx.scene.control.ToggleButton;
 public class ButtonCell<T> extends TableCell<T, Boolean> {
     ToggleButton button;
 
-    public ButtonCell(TableColumn<T, Boolean> column) {
+    public ButtonCell(TableColumn<T, Boolean> column, Glyph onGraphic,
+            Glyph offGraphic) {
         button = new ToggleButton();
-        button.setGraphic(new Glyph("FontAwesome", "EYE"));
+        button.setGraphic(onGraphic);
+        button.setSelected(true);
         button.setOnMouseClicked(event -> {
             final TableView<T> tableView = getTableView();
             tableView.getSelectionModel().select(getTableRow().getIndex());
             tableView.edit(tableView.getSelectionModel().getSelectedIndex(),
                     column);
             if (button.isSelected()) {
-                commitEdit(false);
-            } else {
                 commitEdit(true);
+                button.setGraphic(onGraphic);
+            } else {
+                commitEdit(false);
+                button.setGraphic(offGraphic);
             }
         });
 

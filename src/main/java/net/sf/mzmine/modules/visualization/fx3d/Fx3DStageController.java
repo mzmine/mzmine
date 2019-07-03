@@ -20,6 +20,8 @@ package net.sf.mzmine.modules.visualization.fx3d;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import org.controlsfx.glyphfont.Glyph;
+
 import com.google.common.collect.Range;
 
 import javafx.animation.KeyFrame;
@@ -37,6 +39,7 @@ import javafx.scene.SubScene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
@@ -66,6 +69,8 @@ public class Fx3DStageController {
     @FXML
     private Group subSceneRootNode;
     private Fx3DAxes axes = new Fx3DAxes();
+    @FXML
+    private ToggleButton animateBtn;
     @FXML
     private TableView<Fx3DDataset> tableView;
     @FXML
@@ -141,8 +146,11 @@ public class Fx3DStageController {
         opacityCol.setCellFactory(column -> new SliderCell<Fx3DDataset>(column,
                 minValue, maxValue));
         opacityCol.setStyle("-fx-alignment: CENTER;");
+
         visibilityCol
-                .setCellFactory(column -> new ButtonCell<Fx3DDataset>(column));
+                .setCellFactory(column -> new ButtonCell<Fx3DDataset>(column,
+                        new Glyph("FontAwesome", "EYE"),
+                        new Glyph("FontAwesome", "EYE_SLASH")));
         visibilityCol.setStyle("-fx-alignment: CENTER;");
 
         PointLight top = new PointLight(Color.WHITE);
@@ -257,6 +265,7 @@ public class Fx3DStageController {
             final int index = i;
             data.visibilityProperty()
                     .bindBidirectional(meshList.get(index).visibleProperty());
+            i++;
         }
     }
 
@@ -309,6 +318,7 @@ public class Fx3DStageController {
         if (animationRunning) {
             rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
         }
+        animateBtn.setSelected(false);
         rotateAnimationTimeline.stop();
         deltaAngle = 0;
         animationRunning = false;
