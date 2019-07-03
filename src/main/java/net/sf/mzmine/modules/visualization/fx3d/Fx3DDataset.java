@@ -31,6 +31,7 @@ public class Fx3DDataset {
     private float[][] intensityValues;
     private int rtResolution;
     private int mzResolution;
+    private int index;
     private double maxBinnedIntensity;
     private Range<Double> rtRange, mzRange;
     private SimpleStringProperty fileName = new SimpleStringProperty("");
@@ -41,10 +42,11 @@ public class Fx3DDataset {
 
     public Fx3DDataset(float[][] intensityValues, int rtResolution,
             int mzResolution, double maxBinnedIntensity, Range<Double> rtRange,
-            Range<Double> mzRange, String fileName) {
+            Range<Double> mzRange, String fileName, int index) {
         this.intensityValues = intensityValues;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
+        this.index = index;
         this.maxBinnedIntensity = maxBinnedIntensity;
         this.rtRange = rtRange;
         this.mzRange = mzRange;
@@ -63,6 +65,10 @@ public class Fx3DDataset {
 
     public int getMzResolution() {
         return mzResolution;
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     public double getMaxBinnedIntensity() {

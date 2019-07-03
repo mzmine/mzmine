@@ -110,11 +110,12 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             }
             String title = "";
             Fx3DStageController controller = loader.getController();
+            controller.setTotalFiles(len);
             for (int i = 0; i < dataFiles.length; i++) {
-                MZmineCore.getTaskController()
-                        .addTask(new Fx3DSamplingTask(dataFiles[i], scanSel,
-                                mzRange, rtRes, mzRes, controller, i, len),
-                                TaskPriority.HIGH);
+                MZmineCore.getTaskController().addTask(
+                        new Fx3DSamplingTask(dataFiles[i], scanSel, mzRange,
+                                rtRes, mzRes, controller, i),
+                        TaskPriority.HIGH);
                 title = title + dataFiles[i].toString() + " ";
             }
             controller.setLabel("3D plot of files [" + title + "], "

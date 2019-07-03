@@ -58,7 +58,6 @@ class Fx3DSamplingTask extends AbstractTask {
     private Fx3DStageController controller;
 
     private int index;
-    private int length;
 
     /**
      * Task constructor
@@ -69,7 +68,7 @@ class Fx3DSamplingTask extends AbstractTask {
      */
     Fx3DSamplingTask(RawDataFile dataFile, ScanSelection scanSel,
             Range<Double> mzRange, int rtResolution, int mzResolution,
-            Fx3DStageController controller, int index, int length) {
+            Fx3DStageController controller, int index) {
 
         this.dataFile = dataFile;
         this.scans = scanSel.getMatchingScans(dataFile);
@@ -79,7 +78,6 @@ class Fx3DSamplingTask extends AbstractTask {
         this.mzResolution = mzResolution;
         this.controller = controller;
         this.index = index;
-        this.length = length;
     }
 
     /**
@@ -220,11 +218,10 @@ class Fx3DSamplingTask extends AbstractTask {
             }
             Fx3DDataset dataset = new Fx3DDataset(finalIntensityValues,
                     rtResolution, mzResolution, maxBinnedIntensity, rtRange,
-                    mzRange, dataFile.toString());
+                    mzRange, dataFile.toString(), index);
 
-            final double maxVal = maxBinnedIntensity;
             Platform.runLater(() -> {
-                controller.setDataset(dataset, maxVal, index, length);
+                controller.addDataset(dataset);
             });
 
         } catch (Throwable e) {

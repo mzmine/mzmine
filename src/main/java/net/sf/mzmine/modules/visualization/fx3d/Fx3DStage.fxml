@@ -70,12 +70,12 @@
                         <Tooltip text="Animate" />
                     </tooltip>
                 </ToggleButton>
-                <ToggleButton onAction="#handleAxis">
+                <ToggleButton fx:id="axesBtn" onAction="#handleAxis">
                   <graphic>
  		                <Glyph fontFamily="FontAwesome" icon="AREA_CHART" />
                   </graphic>
                   <tooltip>
-                      <Tooltip text="Axis ON/OFF" />
+                      <Tooltip text="Axes ON/OFF" />
                   </tooltip>
                </ToggleButton>
             </items>

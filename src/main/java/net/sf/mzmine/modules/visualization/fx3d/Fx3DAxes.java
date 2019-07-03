@@ -29,6 +29,7 @@ public class Fx3DAxes extends Group {
 
     private static final int SIZE = 500;
     private static float AMPLIFI = 130;
+    private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
 
     public Fx3DAxes() {
 
@@ -91,6 +92,7 @@ public class Fx3DAxes extends Group {
             text.setTranslateY(8);
             text.setTranslateX(y - 10);
             text.setTranslateZ(20);
+
             mzScaleValue -= mzDelta;
             mzAxisTicks.getChildren().add(tickLineZ);
             mzAxisLabels.getChildren().add(text);
@@ -115,8 +117,6 @@ public class Fx3DAxes extends Group {
 
         Text intensityLabel = new Text("Intensity");
         intensityLabel.setTranslateX(-75);
-        intensityLabel.setRotationAxis(Rotate.Y_AXIS);
-        intensityLabel.setRotate(-45);
         intensityLabel.setRotationAxis(Rotate.Z_AXIS);
         intensityLabel.setRotate(90);
         intensityLabel.setTranslateZ(-40);
@@ -139,6 +139,7 @@ public class Fx3DAxes extends Group {
             text.setTranslateY(-transLen + 5);
             text.setTranslateX(-40);
             text.setTranslateZ(-26);
+            text.getTransforms().add(rotateY);
             this.getChildren().add(text);
             transLen += gapLen;
         }
@@ -156,5 +157,9 @@ public class Fx3DAxes extends Group {
         lineY.setTranslateX(-AMPLIFI / 2);
         lineY.setTranslateY(-AMPLIFI / 2);
         this.getChildren().add(lineY);
+    }
+
+    public Rotate getRotateY() {
+        return rotateY;
     }
 }
