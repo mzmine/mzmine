@@ -18,11 +18,13 @@
 
 package net.sf.mzmine.modules.visualization.fx3d;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import com.google.common.collect.Range;
 
 import javafx.application.Platform;
+import javafx.scene.paint.Color;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -56,7 +58,7 @@ class Fx3DSamplingTask extends AbstractTask {
     private double maxBinnedIntensity;
 
     private Fx3DStageController controller;
-
+    private ArrayList<Color> colors = new ArrayList<Color>();
     private int index;
 
     /**
@@ -78,6 +80,14 @@ class Fx3DSamplingTask extends AbstractTask {
         this.mzResolution = mzResolution;
         this.controller = controller;
         this.index = index;
+        colors.add(Color.BLUE);
+        colors.add(Color.GREEN);
+        colors.add(Color.RED);
+        colors.add(Color.YELLOW);
+        colors.add(Color.DARKORANGE);
+        colors.add(Color.CYAN);
+        colors.add(Color.FUCHSIA);
+        colors.add(Color.GOLD);
     }
 
     /**
@@ -216,12 +226,12 @@ class Fx3DSamplingTask extends AbstractTask {
                             / maxBinnedIntensity);
                 }
             }
-            Fx3DDataset dataset = new Fx3DDataset(finalIntensityValues,
-                    rtResolution, mzResolution, maxBinnedIntensity, rtRange,
-                    mzRange, dataFile.toString(), index);
+            Fx3DPlotMesh plotMesh = new Fx3DPlotMesh(finalIntensityValues,
+                    rtResolution, mzResolution, maxBinnedIntensity,
+                    dataFile.toString(), index, colors.get(index % 8));
 
             Platform.runLater(() -> {
-                controller.addDataset(dataset);
+                controller.addPlotMesh(plotMesh);
             });
 
         } catch (Throwable e) {

@@ -52,7 +52,7 @@
        </ScrollPane>
      </bottom>
      <right>
-     <ToolBar orientation="VERTICAL">
+     	<ToolBar orientation="VERTICAL">
             <items>
                 <Button onAction="#handleZoomOut">
                     <graphic>
@@ -78,6 +78,14 @@
                       <Tooltip text="Axes ON/OFF" />
                   </tooltip>
                </ToggleButton>
+               <ToggleButton fx:id="lightsBtn" onAction="#handleLights">
+                 <graphic>
+		                <Glyph fontFamily="FontAwesome" icon="LIGHTBULB_ALT" />
+                 </graphic>
+                 <tooltip>
+                     <Tooltip text="Lights ON/OFF" />
+                 </tooltip>
+              </ToggleButton>
             </items>
         </ToolBar>
     </right>

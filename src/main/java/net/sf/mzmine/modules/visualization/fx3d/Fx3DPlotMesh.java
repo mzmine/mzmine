@@ -30,37 +30,35 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 
-public class Fx3DPlotMesh extends MeshView {
+public class Fx3DPlotMesh extends Fx3DDataset {
 
     private static final int SIZE = 500;
     private static float AMPLIFI = 130;
     private int rtResolution;
     private int mzResolution;
+    private MeshView meshView = new MeshView();
     private static final Logger LOG = Logger
             .getLogger(Fx3DPlotMesh.class.getName());
-
+    private TriangleMesh mesh;
     private int[][] peakListIndices;
-    private int width;
-    private int height;
+    private float[][] intensityValues;
+    private double maxBinnedIntensity;
+    private float maxIntensityValue = Float.NEGATIVE_INFINITY;
 
-    public Fx3DPlotMesh() {
-
-    }
-
-    public synchronized void setDataset(Fx3DDataset dataset,
-            double maxOfAllBinnedIntensities, Color peakColor) {
-        rtResolution = dataset.getRtResolution();
-        mzResolution = dataset.getMzResolution();
-
-        TriangleMesh mesh = new TriangleMesh();
+    public Fx3DPlotMesh(float[][] intensityValues, int rtResolution,
+            int mzResolution, double maxBinnedIntensity, String fileName,
+            int index, Color peakColor) {
+        super(fileName, index, peakColor);
+        this.intensityValues = intensityValues;
+        this.rtResolution = rtResolution;
+        this.mzResolution = mzResolution;
+        this.maxBinnedIntensity = maxBinnedIntensity;
+        mesh = new TriangleMesh();
 
         peakListIndices = new int[rtResolution][mzResolution];
         float factorX = (float) SIZE / rtResolution;
         float factorZ = (float) SIZE / mzResolution;
 
-        float[][] intensityValues = dataset.getIntensityValues();
-
-        float maxIntensityValue = Float.NEGATIVE_INFINITY;
         for (int i = 0; i < rtResolution; i++) {
             for (int j = 0; j < mzResolution; j++) {
                 if (maxIntensityValue < intensityValues[i][j]) {
@@ -68,15 +66,11 @@ public class Fx3DPlotMesh extends MeshView {
                 }
             }
         }
-        float factorY = (float) ((float) dataset.getMaxBinnedIntensity()
-                / maxOfAllBinnedIntensities);
-        LOG.info("Normalization factor for max intensity:" + factorY);
 
         for (int x = 0; x < rtResolution; x++) {
             for (int z = 0; z < mzResolution; z++) {
                 mesh.getPoints().addAll((float) x * factorX,
-                        -intensityValues[x][z] * AMPLIFI * factorY,
-                        (float) z * factorZ);
+                        -intensityValues[x][z] * AMPLIFI, (float) z * factorZ);
                 if (intensityValues[x][z] > 0.022 * maxIntensityValue) {
                     peakListIndices[x][z] = 1;
                 }
@@ -127,16 +121,17 @@ public class Fx3DPlotMesh extends MeshView {
             }
         }
         setColor(peakColor);
-        setMesh(mesh);
-        setCullFace(CullFace.NONE);
-        setDrawMode(DrawMode.FILL);
-        setDepthTest(DepthTest.ENABLE);
-        LOG.info("Plot mesh is ready.");
+        meshView.setMesh(mesh);
+        meshView.setCullFace(CullFace.NONE);
+        meshView.setDrawMode(DrawMode.FILL);
+        meshView.setDepthTest(DepthTest.ENABLE);
+        LOG.finest("Plot mesh is ready.");
+        this.visibilityProperty().bindBidirectional(meshView.visibleProperty());
     }
 
     public void setColor(Color peakColor) {
-        width = rtResolution;
-        height = mzResolution;
+        int width = rtResolution;
+        int height = mzResolution;
         WritableImage wr = new WritableImage(width, height);
         PixelWriter pw = wr.getPixelWriter();
         double opacity = peakColor.getOpacity();
@@ -160,6 +155,34 @@ public class Fx3DPlotMesh extends MeshView {
         Image diffuseMap = wr;
         PhongMaterial material = new PhongMaterial();
         material.setDiffuseMap(diffuseMap);
-        setMaterial(material);
+        meshView.setMaterial(material);
     }
+
+    public void normalize(double maxOfAllBinnedIntensities) {
+        float factorX = (float) SIZE / rtResolution;
+        float factorZ = (float) SIZE / mzResolution;
+        float factorY = (float) ((float) maxBinnedIntensity
+                / maxOfAllBinnedIntensities);
+        LOG.finest("Normalization factor for max intensity:" + factorY);
+        mesh.getPoints().clear();
+        for (int x = 0; x < rtResolution; x++) {
+            for (int z = 0; z < mzResolution; z++) {
+                mesh.getPoints().addAll((float) x * factorX,
+                        -intensityValues[x][z] * AMPLIFI * factorY,
+                        (float) z * factorZ);
+                if (intensityValues[x][z] > 0.022 * maxIntensityValue) {
+                    peakListIndices[x][z] = 1;
+                }
+            }
+        }
+    }
+
+    public double getMaxBinnedIntensity() {
+        return maxBinnedIntensity;
+    }
+
+    public MeshView getMeshView() {
+        return meshView;
+    }
+
 }

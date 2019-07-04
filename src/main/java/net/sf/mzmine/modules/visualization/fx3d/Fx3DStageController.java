@@ -17,7 +17,6 @@
  */
 package net.sf.mzmine.modules.visualization.fx3d;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import org.controlsfx.glyphfont.Glyph;
@@ -47,6 +46,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.util.Duration;
@@ -74,15 +74,17 @@ public class Fx3DStageController {
     @FXML
     private ToggleButton axesBtn;
     @FXML
-    private TableView<Fx3DDataset> tableView;
+    private ToggleButton lightsBtn;
     @FXML
-    private TableColumn<Fx3DDataset, String> fileNameCol;
+    private TableView<Fx3DPlotMesh> tableView;
     @FXML
-    private TableColumn<Fx3DDataset, Color> colorCol;
+    private TableColumn<Fx3DPlotMesh, String> fileNameCol;
     @FXML
-    private TableColumn<Fx3DDataset, Double> opacityCol;
+    private TableColumn<Fx3DPlotMesh, Color> colorCol;
     @FXML
-    private TableColumn<Fx3DDataset, Boolean> visibilityCol;
+    private TableColumn<Fx3DPlotMesh, Double> opacityCol;
+    @FXML
+    private TableColumn<Fx3DPlotMesh, Boolean> visibilityCol;
 
     private Group finalNode = new Group();
     private Group plot = new Group();
@@ -102,22 +104,26 @@ public class Fx3DStageController {
 
     private double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
-    private ObservableList<Fx3DDataset> datasets = FXCollections
+    private ObservableList<Fx3DPlotMesh> meshPlots = FXCollections
             .observableArrayList();
-    private ArrayList<Color> colors = new ArrayList<Color>();
-    private ObservableList<Fx3DPlotMesh> meshList = FXCollections
+    private ObservableList<MeshView> meshList = FXCollections
             .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
 
     private Timeline rotateAnimationTimeline;
     boolean animationRunning = false;
-
+    private Range<Double> rtRange;
+    private Range<Double> mzRange;
     public Translate pivot = new Translate(250, 0, 250);
     public Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
     public Rotate yRotateDelta = new Rotate();
     double deltaAngle;
     private int totalFiles;
     private int fileCount = 0;
+    private PointLight top;
+    private PointLight bottom;
+    private PointLight left;
+    private PointLight right;
 
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
@@ -132,56 +138,24 @@ public class Fx3DStageController {
 
         plot.getChildren().add(axes);
 
-        colors.add(Color.BLUE);
-        colors.add(Color.GREEN);
-        colors.add(Color.RED);
-        colors.add(Color.YELLOW);
-        colors.add(Color.DARKORANGE);
-        colors.add(Color.CYAN);
-        colors.add(Color.FUCHSIA);
-        colors.add(Color.GOLD);
-
         fileNameCol.setStyle("-fx-alignment: CENTER;");
         colorCol.setCellFactory(
-                column -> new ColorTableCell<Fx3DDataset>(column));
+                column -> new ColorTableCell<Fx3DPlotMesh>(column));
         colorCol.setStyle("-fx-alignment: CENTER;");
         double minValue = 0;
         double maxValue = 1;
-        opacityCol.setCellFactory(column -> new SliderCell<Fx3DDataset>(column,
+        opacityCol.setCellFactory(column -> new SliderCell<Fx3DPlotMesh>(column,
                 minValue, maxValue));
         opacityCol.setStyle("-fx-alignment: CENTER;");
 
         visibilityCol
-                .setCellFactory(column -> new ButtonCell<Fx3DDataset>(column,
+                .setCellFactory(column -> new ButtonCell<Fx3DPlotMesh>(column,
                         new Glyph("FontAwesome", "EYE"),
                         new Glyph("FontAwesome", "EYE_SLASH")));
         visibilityCol.setStyle("-fx-alignment: CENTER;");
         axesBtn.setSelected(true);
-        PointLight top = new PointLight(Color.WHITE);
-        top.setTranslateX(SIZE / 2);
-        top.setTranslateZ(SIZE / 2);
-        top.setTranslateY(-1000);
-
-        PointLight left = new PointLight(Color.WHITE);
-        left.setTranslateX(-1000);
-        left.setTranslateZ(SIZE / 2);
-        left.setTranslateY(10);
-
-        PointLight right = new PointLight(Color.WHITE);
-        right.setTranslateX(1500);
-        right.setTranslateZ(SIZE / 2);
-        right.setTranslateY(-10);
-
-        PointLight bottom = new PointLight(Color.WHITE);
-        bottom.setTranslateX(SIZE / 2);
-        bottom.setTranslateZ(SIZE / 2);
-        bottom.setTranslateY(1000);
-
-        plot.getChildren().add(left);
-        plot.getChildren().add(right);
-        plot.getChildren().add(top);
-        plot.getChildren().add(bottom);
-
+        lightsBtn.setSelected(true);
+        addLights();
         rotateAnimationTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(yRotate.angleProperty(), 360)),
@@ -189,7 +163,7 @@ public class Fx3DStageController {
                         new KeyValue(yRotate.angleProperty(), 0)));
         rotateAnimationTimeline.setCycleCount(Timeline.INDEFINITE);
 
-        tableView.setItems(datasets);
+        tableView.setItems(meshPlots);
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
         scene3D.widthProperty().bind(root.widthProperty());
@@ -199,78 +173,87 @@ public class Fx3DStageController {
         subSceneRootNode.getChildren().add(scene3D);
     }
 
-    public synchronized void addDataset(Fx3DDataset dataset) {
+    private void addLights() {
+        top = new PointLight(Color.WHITE);
+        top.setTranslateX(SIZE / 2);
+        top.setTranslateZ(SIZE / 2);
+        top.setTranslateY(-1000);
 
-        int index = dataset.getIndex();
-        dataset.setColor(colors.get(index));
-        fileCount++;
-        datasets.add(dataset);
-        if (maxOfAllBinnedIntensity < dataset.getMaxBinnedIntensity()) {
-            maxOfAllBinnedIntensity = dataset.getMaxBinnedIntensity();
-        }
-        if (fileCount == totalFiles) {
-            int i = 0;
-            for (Fx3DDataset data : datasets) {
-                Fx3DPlotMesh meshView = new Fx3DPlotMesh();
-                meshView.setDataset(data, maxOfAllBinnedIntensity,
-                        data.getColor());
-                meshList.add(meshView);
-                i = (i + 1) % 8;
-            }
-            Range<Double> rtRange = dataset.getRtRange();
-            Range<Double> mzRange = dataset.getMzRange();
-            axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
-            plot.getChildren().addAll(meshList);
-            addvisibilityListener();
-            addcolorListener();
-            addopacityListener();
-            LOG.finest("Number of plot meshes:" + meshList.size());
-            LOG.finest("Number of datasets sampled:" + datasets.size());
-        }
-        LOG.finest("Dataset" + dataset.getIndex() + " has been added.");
+        left = new PointLight(Color.WHITE);
+        left.setTranslateX(-1000);
+        left.setTranslateZ(SIZE / 2);
+        left.setTranslateY(10);
+
+        right = new PointLight(Color.WHITE);
+        right.setTranslateX(1500);
+        right.setTranslateZ(SIZE / 2);
+        right.setTranslateY(-10);
+
+        bottom = new PointLight(Color.WHITE);
+        bottom.setTranslateX(SIZE / 2);
+        bottom.setTranslateZ(SIZE / 2);
+        bottom.setTranslateY(1000);
+
+        plot.getChildren().add(left);
+        plot.getChildren().add(right);
+        plot.getChildren().add(top);
+        plot.getChildren().add(bottom);
     }
 
-    private void addcolorListener() {
-        int i = 0;
-        for (Fx3DDataset data : datasets) {
-            final int index = i;
-            colorCol.getCellObservableValue(data)
+    public synchronized void addPlotMesh(Fx3DPlotMesh plotMesh) {
+        fileCount++;
+        meshPlots.add(plotMesh);
+        if (maxOfAllBinnedIntensity < plotMesh.getMaxBinnedIntensity()) {
+            maxOfAllBinnedIntensity = plotMesh.getMaxBinnedIntensity();
+        }
+        if (fileCount == totalFiles) {
+            addColorListener();
+            addOpacityListener();
+            for (Fx3DPlotMesh mesh : meshPlots) {
+                mesh.normalize(maxOfAllBinnedIntensity);
+                meshList.add(mesh.getMeshView());
+            }
+            axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
+            plot.getChildren().addAll(meshList);
+            LOG.finest("Number of plot meshes:" + meshList.size());
+            LOG.finest("Number of datasets sampled:" + meshPlots.size());
+        }
+        LOG.finest("Dataset no. " + plotMesh.getIndex()
+                + " has been added to the datasets list.");
+    }
+
+    private void addColorListener() {
+        for (Fx3DPlotMesh mesh : meshPlots) {
+            colorCol.getCellObservableValue(mesh)
                     .addListener((e, oldValue, newValue) -> {
                         int red = (int) (newValue.getRed() * 255);
                         int green = (int) (newValue.getGreen() * 255);
                         int blue = (int) (newValue.getBlue() * 255);
-                        meshList.get(index).setColor(Color.rgb(red, green, blue,
-                                (double) data.opacityProperty().get()));
+                        mesh.setColor(Color.rgb(red, green, blue,
+                                (double) mesh.opacityProperty().get()));
+                        mesh.setOpacity((double) mesh.opacityProperty().get());
                     });
-            i++;
         }
     }
 
-    private void addopacityListener() {
-        int i = 0;
-        for (Fx3DDataset data : datasets) {
-            final int index = i;
-            data.opacityProperty().addListener((e, oldValue, newValue) -> {
-                Color color = data.getColor();
-                int red = (int) (color.getRed() * 255);
-                int green = (int) (color.getGreen() * 255);
-                int blue = (int) (color.getBlue() * 255);
-                meshList.get(index).setColor(
-                        Color.rgb(red, green, blue, (double) newValue));
-                LOG.finest("Slider's current value :" + newValue);
-            });
-            i++;
+    private void addOpacityListener() {
+        for (Fx3DPlotMesh mesh : meshPlots) {
+            opacityCol.getCellObservableValue(mesh)
+                    .addListener((e, oldValue, newValue) -> {
+                        Color color = mesh.getColor();
+                        int red = (int) (color.getRed() * 255);
+                        int green = (int) (color.getGreen() * 255);
+                        int blue = (int) (color.getBlue() * 255);
+                        mesh.setOpacity((double) newValue);
+                        mesh.setColor(
+                                Color.rgb(red, green, blue, (double) newValue));
+                    });
         }
     }
 
-    private void addvisibilityListener() {
-        int i = 0;
-        for (Fx3DDataset data : datasets) {
-            final int index = i;
-            data.visibilityProperty()
-                    .bindBidirectional(meshList.get(index).visibleProperty());
-            i++;
-        }
+    public void setRtMzValues(Range<Double> rt, Range<Double> mz) {
+        this.rtRange = rt;
+        this.mzRange = mz;
     }
 
     public void setLabel(String labelText) {
@@ -364,7 +347,9 @@ public class Fx3DStageController {
         } else {
             angle = rotateY.getAngle() % 360;
         }
-        LOG.finest("Rotate Angle:" + rotateY.getAngle());
+        LOG.finest("Zoom out button clicked. Current rotation angles X="
+                + rotateX.getAngle() + " Y=" + rotateY.getAngle()
+                + "Starting 1.5s animation to angle X=0 Y=0");
         Timeline resetRotateYTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(rotateY.angleProperty(), angle)),
@@ -392,6 +377,20 @@ public class Fx3DStageController {
             axes.setVisible(false);
         } else {
             axes.setVisible(true);
+        }
+    }
+
+    public void handleLights() {
+        if (lightsBtn.isSelected()) {
+            top.setLightOn(true);
+            bottom.setLightOn(true);
+            left.setLightOn(true);
+            right.setLightOn(true);
+        } else {
+            top.setLightOn(false);
+            bottom.setLightOn(false);
+            left.setLightOn(false);
+            right.setLightOn(false);
         }
     }
 

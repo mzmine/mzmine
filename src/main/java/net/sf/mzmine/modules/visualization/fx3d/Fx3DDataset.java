@@ -17,8 +17,6 @@
  */
 package net.sf.mzmine.modules.visualization.fx3d;
 
-import com.google.common.collect.Range;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -26,61 +24,25 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.paint.Color;
 
-public class Fx3DDataset {
+abstract class Fx3DDataset {
 
-    private float[][] intensityValues;
-    private int rtResolution;
-    private int mzResolution;
     private int index;
-    private double maxBinnedIntensity;
-    private Range<Double> rtRange, mzRange;
     private SimpleStringProperty fileName = new SimpleStringProperty("");
     private ObjectProperty<Color> color = new SimpleObjectProperty<>(this,
             "color");
     private SimpleDoubleProperty opacity = new SimpleDoubleProperty();
     private SimpleBooleanProperty visibility = new SimpleBooleanProperty();
 
-    public Fx3DDataset(float[][] intensityValues, int rtResolution,
-            int mzResolution, double maxBinnedIntensity, Range<Double> rtRange,
-            Range<Double> mzRange, String fileName, int index) {
-        this.intensityValues = intensityValues;
-        this.rtResolution = rtResolution;
-        this.mzResolution = mzResolution;
+    Fx3DDataset(String fileName, int index, Color color) {
         this.index = index;
-        this.maxBinnedIntensity = maxBinnedIntensity;
-        this.rtRange = rtRange;
-        this.mzRange = mzRange;
         this.fileName.set(fileName);
+        this.color.set(color);
         this.opacity.set(1.0);
         this.visibility.set(true);
     }
 
-    public float[][] getIntensityValues() {
-        return intensityValues;
-    }
-
-    public int getRtResolution() {
-        return rtResolution;
-    }
-
-    public int getMzResolution() {
-        return mzResolution;
-    }
-
     public int getIndex() {
         return index;
-    }
-
-    public double getMaxBinnedIntensity() {
-        return maxBinnedIntensity;
-    }
-
-    public Range<Double> getRtRange() {
-        return rtRange;
-    }
-
-    public Range<Double> getMzRange() {
-        return mzRange;
     }
 
     public String getFileName() {

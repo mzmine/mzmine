@@ -77,7 +77,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                 .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
         int len = dataFiles.length;
-        LOG.finest("Number of datafiles:" + len);
+        LOG.finest("Number of datafiles to be plotted:" + len);
         Range<Double> rtRange = ScanUtils
                 .findRtRange(scanSel.getMatchingScans(dataFiles[0]));
 
@@ -103,7 +103,8 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             Parent nodeFromFXML = null;
             try {
                 nodeFromFXML = loader.load();
-                LOG.finest("Node has been loaded successfully.");
+                LOG.finest(
+                        "Node has been successfully loaded from the FXML loader.");
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
@@ -111,6 +112,7 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             String title = "";
             Fx3DStageController controller = loader.getController();
             controller.setTotalFiles(len);
+            controller.setRtMzValues(rtRange, mzRange);
             for (int i = 0; i < dataFiles.length; i++) {
                 MZmineCore.getTaskController().addTask(
                         new Fx3DSamplingTask(dataFiles[i], scanSel, mzRange,
