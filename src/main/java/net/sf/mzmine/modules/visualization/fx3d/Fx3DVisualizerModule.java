@@ -120,11 +120,16 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                         TaskPriority.HIGH);
                 title = title + dataFiles[i].toString() + " ";
             }
-            controller.setLabel("3D plot of files [" + title + "], "
-                    + mzRange.lowerEndpoint().toString() + "-"
-                    + mzRange.upperEndpoint().toString() + " m/z, RT "
-                    + rtRange.lowerEndpoint().toString() + "-"
-                    + rtRange.upperEndpoint().toString() + " min");
+            controller
+                    .setLabel("3D plot of files [" + title + "], "
+                            + mzRange.lowerEndpoint().toString() + "-"
+                            + mzRange.upperEndpoint().toString() + " m/z, RT "
+                            + (float) (Math.round(
+                                    rtRange.lowerEndpoint() * 100.0) / 100.0)
+                            + "-"
+                            + (float) (Math.round(
+                                    rtRange.upperEndpoint() * 100.0) / 100.0)
+                            + " min");
             Stage stage = new Stage();
             Scene scene = new Scene(nodeFromFXML, 800, 600);
 

@@ -10,12 +10,13 @@
 <?import net.sf.mzmine.modules.visualization.fx3d.* ?>
 <?import org.controlsfx.glyphfont.Glyph ?>
 
-<BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController" minWidth="400" minHeight="400">
+<BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController" minWidth="800" minHeight="600">
      <top>
      	<HBox fx:id="hBox">
-     		<padding><Insets top="15" right="12" bottom="15" left="12"/></padding>
 	     	<Region fx:id="leftRegion"/>
-	     		<Label fx:id="label"/>
+	     		<Label fx:id="label" style="-fx-background-color:black">
+	     		<padding><Insets top="10" right="12" bottom="10" left="12"/></padding>
+	     		</Label>
 		     <Region fx:id="rightRegion"/>
 		</HBox>
      </top>
@@ -27,22 +28,22 @@
       <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
        <TableView fx:id="tableView" minHeight="50" prefHeight="150" editable="true">
            <columns>
-	           <TableColumn fx:id="visibilityCol" editable="true" maxWidth="50" >
+	           <TableColumn fx:id="visibilityCol" editable="true" maxWidth="50" style="-fx-alignment: CENTER" >
                		<cellValueFactory>
                			<PropertyValueFactory property="visibility"/>
                		</cellValueFactory>
                </TableColumn>
-               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="200">
+               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="200" style="-fx-alignment: CENTER">
                		<cellValueFactory>
                			<PropertyValueFactory property="fileName" />
                		</cellValueFactory>
                </TableColumn>
-               <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="200" >
+               <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="200" style="-fx-alignment: CENTER" >
                		<cellValueFactory>
                			<PropertyValueFactory property="color" />
                		</cellValueFactory>
                </TableColumn>
-               <TableColumn fx:id="opacityCol" text="Opacity" editable="true" prefWidth="200" >
+               <TableColumn fx:id="opacityCol" text="Opacity" editable="true" prefWidth="200" style="-fx-alignment: CENTER">
                		<cellValueFactory>
                			<PropertyValueFactory property="opacity"/>
                		</cellValueFactory>
@@ -52,9 +53,9 @@
        </ScrollPane>
      </bottom>
      <right>
-     	<ToolBar orientation="VERTICAL">
+     	<ToolBar orientation="VERTICAL"  style="-fx-background-color:white">
             <items>
-                <Button onAction="#handleZoomOut">
+                <Button onAction="#handleZoomOut" minWidth="35">
                     <graphic>
                     	<Glyph fontFamily="FontAwesome" icon="ARROWS_ALT" />
                     </graphic>
@@ -62,7 +63,7 @@
                         <Tooltip text="Zoom out" />
                     </tooltip>
                 </Button>
-                <ToggleButton fx:id="animateBtn" onAction="#handleAnimate">
+                <ToggleButton fx:id="animateBtn" onAction="#handleAnimate" minWidth="35">
                     <graphic>
                     	<Glyph fontFamily="FontAwesome" icon="REFRESH" />
                     </graphic>
@@ -70,7 +71,7 @@
                         <Tooltip text="Animate" />
                     </tooltip>
                 </ToggleButton>
-                <ToggleButton fx:id="axesBtn" onAction="#handleAxis">
+                <ToggleButton fx:id="axesBtn" onAction="#handleAxis" minWidth="35">
                   <graphic>
  		                <Glyph fontFamily="FontAwesome" icon="AREA_CHART" />
                   </graphic>
@@ -78,7 +79,7 @@
                       <Tooltip text="Axes ON/OFF" />
                   </tooltip>
                </ToggleButton>
-               <ToggleButton fx:id="lightsBtn" onAction="#handleLights">
+               <ToggleButton fx:id="lightsBtn" onAction="#handleLights" minWidth="35">
                  <graphic>
 		                <Glyph fontFamily="FontAwesome" icon="LIGHTBULB_ALT" />
                  </graphic>

@@ -138,21 +138,17 @@ public class Fx3DStageController {
 
         plot.getChildren().add(axes);
 
-        fileNameCol.setStyle("-fx-alignment: CENTER;");
         colorCol.setCellFactory(
                 column -> new ColorTableCell<Fx3DPlotMesh>(column));
-        colorCol.setStyle("-fx-alignment: CENTER;");
         double minValue = 0;
         double maxValue = 1;
         opacityCol.setCellFactory(column -> new SliderCell<Fx3DPlotMesh>(column,
                 minValue, maxValue));
-        opacityCol.setStyle("-fx-alignment: CENTER;");
 
         visibilityCol
                 .setCellFactory(column -> new ButtonCell<Fx3DPlotMesh>(column,
                         new Glyph("FontAwesome", "EYE"),
                         new Glyph("FontAwesome", "EYE_SLASH")));
-        visibilityCol.setStyle("-fx-alignment: CENTER;");
         axesBtn.setSelected(true);
         lightsBtn.setSelected(true);
         addLights();
@@ -260,6 +256,7 @@ public class Fx3DStageController {
         HBox.setHgrow(leftRegion, Priority.ALWAYS);
         HBox.setHgrow(rightRegion, Priority.ALWAYS);
         label.setText(labelText);
+        label.setTextFill(Color.WHITE);
     }
 
     public void handleMousePressed(MouseEvent me) {
