@@ -24,25 +24,19 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.paint.Color;
 
-abstract class Fx3DDataset {
+abstract class Fx3DAbstractDataset {
 
-    private int index;
     private SimpleStringProperty fileName = new SimpleStringProperty("");
     private ObjectProperty<Color> color = new SimpleObjectProperty<>(this,
             "color");
     private SimpleDoubleProperty opacity = new SimpleDoubleProperty();
     private SimpleBooleanProperty visibility = new SimpleBooleanProperty();
 
-    Fx3DDataset(String fileName, int index, Color color) {
-        this.index = index;
+    Fx3DAbstractDataset(String fileName, Color color) {
         this.fileName.set(fileName);
         this.color.set(color);
         this.opacity.set(1.0);
         this.visibility.set(true);
-    }
-
-    public int getIndex() {
-        return index;
     }
 
     public String getFileName() {

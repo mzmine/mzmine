@@ -226,9 +226,10 @@ class Fx3DSamplingTask extends AbstractTask {
                             / maxBinnedIntensity);
                 }
             }
-            Fx3DPlotMesh plotMesh = new Fx3DPlotMesh(finalIntensityValues,
-                    rtResolution, mzResolution, maxBinnedIntensity,
-                    dataFile.toString(), index, colors.get(index % 8));
+            Fx3DRawDataFileDataset plotMesh = new Fx3DRawDataFileDataset(
+                    finalIntensityValues, rtResolution, mzResolution,
+                    maxBinnedIntensity, dataFile.toString(),
+                    colors.get(index % 8));
 
             Platform.runLater(() -> {
                 controller.addPlotMesh(plotMesh);

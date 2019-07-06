@@ -11,83 +11,83 @@
 <?import org.controlsfx.glyphfont.Glyph ?>
 
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController" minWidth="800" minHeight="600">
-     <top>
-     	<HBox fx:id="hBox">
-	     	<Region fx:id="leftRegion"/>
-	     		<Label fx:id="label" style="-fx-background-color:black">
-	     		<padding><Insets top="10" right="12" bottom="10" left="12"/></padding>
-	     		</Label>
-		     <Region fx:id="rightRegion"/>
+	   <center>
+	     <Group fx:id="subSceneRootNode" onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
+	      </Group>     
+	   </center>
+	   <top>
+	   	<HBox fx:id="hBox">
+	    	<Region fx:id="leftRegion"/>
+	    		<Label fx:id="label" style="-fx-background-color:black">
+	    		<padding><Insets top="10" right="12" bottom="10" left="12"/></padding>
+	    		</Label>
+	     <Region fx:id="rightRegion"/>
 		</HBox>
-     </top>
-     <center>
-       <Group fx:id="subSceneRootNode" onScroll="#onScrollHandler" onMousePressed="#handleMousePressed" onMouseDragged="#handleMouseDragged">
-        </Group>     
-     </center>
-     <bottom>
-      <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
-       <TableView fx:id="tableView" minHeight="50" prefHeight="150" editable="true">
-           <columns>
-	           <TableColumn fx:id="visibilityCol" editable="true" maxWidth="50" style="-fx-alignment: CENTER" >
-               		<cellValueFactory>
-               			<PropertyValueFactory property="visibility"/>
-               		</cellValueFactory>
-               </TableColumn>
-               <TableColumn fx:id="fileNameCol" text="Name" prefWidth="200" style="-fx-alignment: CENTER">
-               		<cellValueFactory>
-               			<PropertyValueFactory property="fileName" />
-               		</cellValueFactory>
-               </TableColumn>
-               <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="200" style="-fx-alignment: CENTER" >
-               		<cellValueFactory>
-               			<PropertyValueFactory property="color" />
-               		</cellValueFactory>
-               </TableColumn>
-               <TableColumn fx:id="opacityCol" text="Opacity" editable="true" prefWidth="200" style="-fx-alignment: CENTER">
-               		<cellValueFactory>
-               			<PropertyValueFactory property="opacity"/>
-               		</cellValueFactory>
-               </TableColumn>
-           </columns>
-        </TableView>
-       </ScrollPane>
-     </bottom>
-     <right>
-     	<ToolBar orientation="VERTICAL"  style="-fx-background-color:white">
-            <items>
-                <Button onAction="#handleZoomOut" minWidth="35">
-                    <graphic>
-                    	<Glyph fontFamily="FontAwesome" icon="ARROWS_ALT" />
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="Zoom out" />
-                    </tooltip>
-                </Button>
-                <ToggleButton fx:id="animateBtn" onAction="#handleAnimate" minWidth="35">
-                    <graphic>
-                    	<Glyph fontFamily="FontAwesome" icon="REFRESH" />
-                    </graphic>
-                    <tooltip>
-                        <Tooltip text="Animate" />
-                    </tooltip>
-                </ToggleButton>
-                <ToggleButton fx:id="axesBtn" onAction="#handleAxis" minWidth="35">
-                  <graphic>
- 		                <Glyph fontFamily="FontAwesome" icon="AREA_CHART" />
-                  </graphic>
-                  <tooltip>
-                      <Tooltip text="Axes ON/OFF" />
-                  </tooltip>
-               </ToggleButton>
-               <ToggleButton fx:id="lightsBtn" onAction="#handleLights" minWidth="35">
-                 <graphic>
-		                <Glyph fontFamily="FontAwesome" icon="LIGHTBULB_ALT" />
-                 </graphic>
-                 <tooltip>
-                     <Tooltip text="Lights ON/OFF" />
-                 </tooltip>
-              </ToggleButton>
-            </items>
-        </ToolBar>
-    </right>
+	   </top>
+	   <right>
+	   	<ToolBar orientation="VERTICAL"  style="-fx-background-color:transparent" minWidth="0">
+	          <items>
+	              <Button onAction="#handleZoomOut" minWidth="35">
+	                  <graphic>
+	                  	<Glyph fontFamily="FontAwesome" icon="ARROWS_ALT" />
+	                  </graphic>
+	                  <tooltip>
+	                      <Tooltip text="Zoom out" />
+	                  </tooltip>
+	              </Button>
+	              <ToggleButton fx:id="animateBtn" onAction="#handleAnimate" minWidth="35">
+	                  <graphic>
+	                  	<Glyph fontFamily="FontAwesome" icon="REFRESH" />
+	                  </graphic>
+	                  <tooltip>
+	                      <Tooltip text="Animate" />
+	                  </tooltip>
+	              </ToggleButton>
+	              <ToggleButton fx:id="axesBtn" onAction="#handleAxis" minWidth="35">
+	                <graphic>
+		                <Glyph fontFamily="FontAwesome" icon="AREA_CHART" />
+	                </graphic>
+	                <tooltip>
+	                    <Tooltip text="Axes ON/OFF" />
+	                </tooltip>
+	             </ToggleButton>
+	             <ToggleButton fx:id="lightsBtn" onAction="#handleLights" minWidth="35">
+	               <graphic>
+	                <Glyph fontFamily="FontAwesome" icon="LIGHTBULB_ALT" />
+	               </graphic>
+	               <tooltip>
+	                   <Tooltip text="Lights ON/OFF" />
+	               </tooltip>
+	            </ToggleButton>
+	          </items>
+	      </ToolBar>
+	   </right>
+	   <bottom>
+	    <ScrollPane fitToWidth="true" fitToHeight="true" minWidth="400" prefWidth="600" minHeight="50" prefHeight="150">
+	     <TableView fx:id="tableView" minHeight="50" prefHeight="150" editable="true">
+	         <columns>
+	          <TableColumn fx:id="visibilityCol" editable="true" maxWidth="50" style="-fx-alignment: CENTER" >
+	             		<cellValueFactory>
+	             			<PropertyValueFactory property="visibility"/>
+	             		</cellValueFactory>
+	             </TableColumn>
+	             <TableColumn fx:id="fileNameCol" text="Name" prefWidth="200" style="-fx-alignment: CENTER">
+	             		<cellValueFactory>
+	             			<PropertyValueFactory property="fileName" />
+	             		</cellValueFactory>
+	             </TableColumn>
+	             <TableColumn fx:id="colorCol" text="Color" editable="true" prefWidth="200" style="-fx-alignment: CENTER" >
+	             		<cellValueFactory>
+	             			<PropertyValueFactory property="color" />
+	             		</cellValueFactory>
+	             </TableColumn>
+	             <TableColumn fx:id="opacityCol" text="Opacity" editable="true" prefWidth="200" style="-fx-alignment: CENTER">
+	             		<cellValueFactory>
+	             			<PropertyValueFactory property="opacity"/>
+	             		</cellValueFactory>
+	             </TableColumn>
+	         </columns>
+	      </TableView>
+	     </ScrollPane>
+	   </bottom>
 </BorderPane>

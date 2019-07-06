@@ -17,6 +17,8 @@
  */
 package net.sf.mzmine.modules.visualization.fx3d;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.logging.Logger;
 
 import org.controlsfx.glyphfont.Glyph;
@@ -76,15 +78,15 @@ public class Fx3DStageController {
     @FXML
     private ToggleButton lightsBtn;
     @FXML
-    private TableView<Fx3DPlotMesh> tableView;
+    private TableView<Fx3DRawDataFileDataset> tableView;
     @FXML
-    private TableColumn<Fx3DPlotMesh, String> fileNameCol;
+    private TableColumn<Fx3DRawDataFileDataset, String> fileNameCol;
     @FXML
-    private TableColumn<Fx3DPlotMesh, Color> colorCol;
+    private TableColumn<Fx3DRawDataFileDataset, Color> colorCol;
     @FXML
-    private TableColumn<Fx3DPlotMesh, Double> opacityCol;
+    private TableColumn<Fx3DRawDataFileDataset, Double> opacityCol;
     @FXML
-    private TableColumn<Fx3DPlotMesh, Boolean> visibilityCol;
+    private TableColumn<Fx3DRawDataFileDataset, Boolean> visibilityCol;
 
     private Group finalNode = new Group();
     private Group plot = new Group();
@@ -104,9 +106,9 @@ public class Fx3DStageController {
 
     private double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
-    private ObservableList<Fx3DPlotMesh> meshPlots = FXCollections
+    private ObservableList<Fx3DRawDataFileDataset> meshPlots = FXCollections
             .observableArrayList();
-    private ObservableList<MeshView> meshList = FXCollections
+    private ObservableList<MeshView> meshViewList = FXCollections
             .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
 
@@ -139,14 +141,15 @@ public class Fx3DStageController {
         plot.getChildren().add(axes);
 
         colorCol.setCellFactory(
-                column -> new ColorTableCell<Fx3DPlotMesh>(column));
+                column -> new ColorTableCell<Fx3DRawDataFileDataset>(column));
         double minValue = 0;
         double maxValue = 1;
-        opacityCol.setCellFactory(column -> new SliderCell<Fx3DPlotMesh>(column,
-                minValue, maxValue));
+        opacityCol.setCellFactory(
+                column -> new SliderCell<Fx3DRawDataFileDataset>(column,
+                        minValue, maxValue));
 
-        visibilityCol
-                .setCellFactory(column -> new ButtonCell<Fx3DPlotMesh>(column,
+        visibilityCol.setCellFactory(
+                column -> new ButtonCell<Fx3DRawDataFileDataset>(column,
                         new Glyph("FontAwesome", "EYE"),
                         new Glyph("FontAwesome", "EYE_SLASH")));
         axesBtn.setSelected(true);
@@ -160,6 +163,7 @@ public class Fx3DStageController {
         rotateAnimationTimeline.setCycleCount(Timeline.INDEFINITE);
 
         tableView.setItems(meshPlots);
+
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
         scene3D.widthProperty().bind(root.widthProperty());
@@ -196,7 +200,7 @@ public class Fx3DStageController {
         plot.getChildren().add(bottom);
     }
 
-    public synchronized void addPlotMesh(Fx3DPlotMesh plotMesh) {
+    public synchronized void addPlotMesh(Fx3DRawDataFileDataset plotMesh) {
         fileCount++;
         meshPlots.add(plotMesh);
         if (maxOfAllBinnedIntensity < plotMesh.getMaxBinnedIntensity()) {
@@ -205,45 +209,56 @@ public class Fx3DStageController {
         if (fileCount == totalFiles) {
             addColorListener();
             addOpacityListener();
-            for (Fx3DPlotMesh mesh : meshPlots) {
+            for (Fx3DRawDataFileDataset mesh : meshPlots) {
                 mesh.normalize(maxOfAllBinnedIntensity);
-                meshList.add(mesh.getMeshView());
+                meshViewList.add(mesh.getMeshView());
             }
             axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
-            plot.getChildren().addAll(meshList);
-            LOG.finest("Number of plot meshes:" + meshList.size());
+            plot.getChildren().addAll(meshViewList);
+            LOG.finest("Number of plot meshes:" + meshViewList.size());
             LOG.finest("Number of datasets sampled:" + meshPlots.size());
         }
-        LOG.finest("Dataset no. " + plotMesh.getIndex()
-                + " has been added to the datasets list.");
     }
 
     private void addColorListener() {
-        for (Fx3DPlotMesh mesh : meshPlots) {
+        for (Fx3DRawDataFileDataset mesh : meshPlots) {
             colorCol.getCellObservableValue(mesh)
                     .addListener((e, oldValue, newValue) -> {
                         int red = (int) (newValue.getRed() * 255);
                         int green = (int) (newValue.getGreen() * 255);
                         int blue = (int) (newValue.getBlue() * 255);
-                        mesh.setColor(Color.rgb(red, green, blue,
+                        mesh.setPeakColor(Color.rgb(red, green, blue,
                                 (double) mesh.opacityProperty().get()));
-                        mesh.setOpacity((double) mesh.opacityProperty().get());
+                        mesh.getMeshView().setOpacity(
+                                (double) mesh.opacityProperty().get());
                     });
         }
     }
 
     private void addOpacityListener() {
-        for (Fx3DPlotMesh mesh : meshPlots) {
+        for (Fx3DRawDataFileDataset mesh : meshPlots) {
             opacityCol.getCellObservableValue(mesh)
                     .addListener((e, oldValue, newValue) -> {
                         Color color = mesh.getColor();
                         int red = (int) (color.getRed() * 255);
                         int green = (int) (color.getGreen() * 255);
                         int blue = (int) (color.getBlue() * 255);
-                        mesh.setOpacity((double) newValue);
+                        mesh.setOpacity(newValue);
                         mesh.setColor(
                                 Color.rgb(red, green, blue, (double) newValue));
+                        Collections.sort(meshViewList, new SortByOpacity());
+                        for (MeshView meshview : meshViewList) {
+                            LOG.finest("Current order of mesh list is:"
+                                    + meshview.getOpacity());
+                        }
                     });
+        }
+    }
+
+    class SortByOpacity implements Comparator<MeshView> {
+        @Override
+        public int compare(MeshView a, MeshView b) {
+            return -(int) (a.getOpacity() * 10 - b.getOpacity() * 10);
         }
     }
 
@@ -379,13 +394,9 @@ public class Fx3DStageController {
 
     public void handleLights() {
         if (lightsBtn.isSelected()) {
-            top.setLightOn(true);
-            bottom.setLightOn(true);
             left.setLightOn(true);
             right.setLightOn(true);
         } else {
-            top.setLightOn(false);
-            bottom.setLightOn(false);
             left.setLightOn(false);
             right.setLightOn(false);
         }

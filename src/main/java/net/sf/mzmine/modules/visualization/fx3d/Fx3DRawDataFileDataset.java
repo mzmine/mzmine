@@ -30,7 +30,7 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 
-public class Fx3DPlotMesh extends Fx3DDataset {
+public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
 
     private static final int SIZE = 500;
     private static float AMPLIFI = 130;
@@ -38,17 +38,17 @@ public class Fx3DPlotMesh extends Fx3DDataset {
     private int mzResolution;
     private MeshView meshView = new MeshView();
     private static final Logger LOG = Logger
-            .getLogger(Fx3DPlotMesh.class.getName());
+            .getLogger(Fx3DRawDataFileDataset.class.getName());
     private TriangleMesh mesh;
     private int[][] peakListIndices;
     private float[][] intensityValues;
     private double maxBinnedIntensity;
     private float maxIntensityValue = Float.NEGATIVE_INFINITY;
 
-    public Fx3DPlotMesh(float[][] intensityValues, int rtResolution,
+    public Fx3DRawDataFileDataset(float[][] intensityValues, int rtResolution,
             int mzResolution, double maxBinnedIntensity, String fileName,
-            int index, Color peakColor) {
-        super(fileName, index, peakColor);
+            Color peakColor) {
+        super(fileName, peakColor);
         this.intensityValues = intensityValues;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
@@ -120,7 +120,7 @@ public class Fx3DPlotMesh extends Fx3DDataset {
 
             }
         }
-        setColor(peakColor);
+        setPeakColor(peakColor);
         meshView.setMesh(mesh);
         meshView.setCullFace(CullFace.NONE);
         meshView.setDrawMode(DrawMode.FILL);
@@ -129,7 +129,7 @@ public class Fx3DPlotMesh extends Fx3DDataset {
         this.visibilityProperty().bindBidirectional(meshView.visibleProperty());
     }
 
-    public void setColor(Color peakColor) {
+    public void setPeakColor(Color peakColor) {
         int width = rtResolution;
         int height = mzResolution;
         WritableImage wr = new WritableImage(width, height);
