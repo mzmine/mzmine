@@ -232,7 +232,7 @@ class Fx3DSamplingTask extends AbstractTask {
                     colors.get(index % 8));
 
             Platform.runLater(() -> {
-                controller.addPlotMesh(plotMesh);
+                controller.addDataset(plotMesh);
             });
 
         } catch (Throwable e) {

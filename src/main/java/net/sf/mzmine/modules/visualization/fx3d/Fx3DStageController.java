@@ -17,7 +17,6 @@
  */
 package net.sf.mzmine.modules.visualization.fx3d;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.logging.Logger;
 
@@ -33,6 +32,7 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.SceneAntialiasing;
@@ -90,6 +90,7 @@ public class Fx3DStageController {
 
     private Group finalNode = new Group();
     private Group plot = new Group();
+    private Group meshViews = new Group();
     private static final int SIZE = 500;
     private final Rotate rotateX = new Rotate(30, Rotate.X_AXIS);
     private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
@@ -200,11 +201,13 @@ public class Fx3DStageController {
         plot.getChildren().add(bottom);
     }
 
-    public synchronized void addPlotMesh(Fx3DRawDataFileDataset plotMesh) {
+    public synchronized void addDataset(Fx3DAbstractDataset dataset) {
         fileCount++;
-        meshPlots.add(plotMesh);
-        if (maxOfAllBinnedIntensity < plotMesh.getMaxBinnedIntensity()) {
-            maxOfAllBinnedIntensity = plotMesh.getMaxBinnedIntensity();
+        meshPlots.add((Fx3DRawDataFileDataset) dataset);
+        if (maxOfAllBinnedIntensity < ((Fx3DRawDataFileDataset) dataset)
+                .getMaxBinnedIntensity()) {
+            maxOfAllBinnedIntensity = ((Fx3DRawDataFileDataset) dataset)
+                    .getMaxBinnedIntensity();
         }
         if (fileCount == totalFiles) {
             addColorListener();
@@ -214,7 +217,8 @@ public class Fx3DStageController {
                 meshViewList.add(mesh.getMeshView());
             }
             axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
-            plot.getChildren().addAll(meshViewList);
+            meshViews.getChildren().addAll(meshViewList);
+            plot.getChildren().add(meshViews);
             LOG.finest("Number of plot meshes:" + meshViewList.size());
             LOG.finest("Number of datasets sampled:" + meshPlots.size());
         }
@@ -246,19 +250,26 @@ public class Fx3DStageController {
                         mesh.setOpacity(newValue);
                         mesh.setColor(
                                 Color.rgb(red, green, blue, (double) newValue));
-                        Collections.sort(meshViewList, new SortByOpacity());
-                        for (MeshView meshview : meshViewList) {
-                            LOG.finest("Current order of mesh list is:"
-                                    + meshview.getOpacity());
+                        // meshViews.getChildren().sort(new SortByOpacity());
+                        FXCollections.sort(meshViews.getChildren(),
+                                new SortByOpacity());
+                        LOG.finest("Current order is:");
+                        int i = 0;
+                        for (Node meshview : meshViews.getChildren()) {
+                            LOG.finest("" + i + ":" + meshview.getOpacity());
+                            i++;
                         }
+
                     });
         }
     }
 
-    class SortByOpacity implements Comparator<MeshView> {
+    class SortByOpacity implements Comparator<Node> {
         @Override
-        public int compare(MeshView a, MeshView b) {
-            return -(int) (a.getOpacity() * 10 - b.getOpacity() * 10);
+        public int compare(Node a, Node b) {
+            final Double aOpacity = a.getOpacity();
+            final Double bOpacity = b.getOpacity();
+            return bOpacity.compareTo(aOpacity);
         }
     }
 
