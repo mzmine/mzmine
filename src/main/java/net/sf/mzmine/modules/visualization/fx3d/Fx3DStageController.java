@@ -27,9 +27,12 @@ import com.google.common.collect.Range;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -37,8 +40,11 @@ import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
@@ -51,6 +57,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
+import javafx.util.Callback;
 import javafx.util.Duration;
 import net.sf.mzmine.util.components.ButtonCell;
 import net.sf.mzmine.util.components.ColorTableCell;
@@ -109,6 +116,8 @@ public class Fx3DStageController {
 
     private ObservableList<Fx3DRawDataFileDataset> meshPlots = FXCollections
             .observableArrayList();
+    private ObservableList<Fx3DRawDataFileDataset> removedItems = FXCollections
+            .observableArrayList();
     private ObservableList<MeshView> meshViewList = FXCollections
             .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
@@ -164,6 +173,58 @@ public class Fx3DStageController {
         rotateAnimationTimeline.setCycleCount(Timeline.INDEFINITE);
 
         tableView.setItems(meshPlots);
+        tableView.setRowFactory(
+                new Callback<TableView<Fx3DRawDataFileDataset>, TableRow<Fx3DRawDataFileDataset>>() {
+                    @Override
+                    public TableRow<Fx3DRawDataFileDataset> call(
+                            TableView<Fx3DRawDataFileDataset> tableView) {
+                        final TableRow<Fx3DRawDataFileDataset> row = new TableRow<>();
+                        final ContextMenu contextMenu = new ContextMenu();
+                        final MenuItem removeMenuItem = new MenuItem("Remove");
+                        final MenuItem addMenuItem = new MenuItem("Add");
+                        addMenuItem
+                                .setOnAction(new EventHandler<ActionEvent>() {
+                                    @Override
+                                    public void handle(ActionEvent event) {
+                                        if (!removedItems.isEmpty()) {
+                                            int lastIndex = removedItems.size()
+                                                    - 1;
+                                            tableView.getItems()
+                                                    .add(removedItems
+                                                            .get(lastIndex));
+                                            meshViews.getChildren()
+                                                    .add(removedItems
+                                                            .get(lastIndex)
+                                                            .getMeshView());
+                                            removedItems.remove(removedItems
+                                                    .get(lastIndex));
+                                        }
+                                    }
+
+                                });
+                        removeMenuItem
+                                .setOnAction(new EventHandler<ActionEvent>() {
+                                    @Override
+                                    public void handle(ActionEvent event) {
+                                        removedItems.add(row.getItem());
+                                        tableView.getItems()
+                                                .remove(row.getItem());
+                                        int lastIndex = removedItems.size() - 1;
+                                        meshViews.getChildren()
+                                                .remove(removedItems
+                                                        .get(lastIndex)
+                                                        .getMeshView());
+                                    }
+                                });
+                        contextMenu.getItems().addAll(addMenuItem,
+                                removeMenuItem);
+                        row.contextMenuProperty()
+                                .bind(Bindings.when(row.emptyProperty())
+                                        .then((ContextMenu) null)
+                                        .otherwise(contextMenu));
+                        return row;
+                    }
+                });
 
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
@@ -250,16 +311,8 @@ public class Fx3DStageController {
                         mesh.setOpacity(newValue);
                         mesh.setColor(
                                 Color.rgb(red, green, blue, (double) newValue));
-                        // meshViews.getChildren().sort(new SortByOpacity());
                         FXCollections.sort(meshViews.getChildren(),
                                 new SortByOpacity());
-                        LOG.finest("Current order is:");
-                        int i = 0;
-                        for (Node meshview : meshViews.getChildren()) {
-                            LOG.finest("" + i + ":" + meshview.getOpacity());
-                            i++;
-                        }
-
                     });
         }
     }
