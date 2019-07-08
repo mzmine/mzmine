@@ -148,12 +148,12 @@ public class SpectraIdentificationLipidSearchTask extends AbstractTask {
       massDetector = new CentroidMassDetector();
       CentroidMassDetectorParameters parameters = new CentroidMassDetectorParameters();
       CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan, parameters);
+      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
     } else {
       massDetector = new ExactMassDetector();
       ExactMassDetectorParameters parameters = new ExactMassDetectorParameters();
       ExactMassDetectorParameters.noiseLevel.setValue(noiseLevel);
-      massList = massDetector.getMassValues(currentScan, parameters);
+      massList = massDetector.getMassValues(currentScan.getDataPoints(), parameters);
     }
     totalSteps = massList.length;
     // loop through every peak in mass list

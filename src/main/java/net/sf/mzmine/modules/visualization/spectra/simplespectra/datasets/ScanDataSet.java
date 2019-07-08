@@ -143,4 +143,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     return null;
   }
 
+  public DataPoint[] getDataPoints() {
+    return dataPoints;
+  }
 }

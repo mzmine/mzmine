@@ -59,7 +59,6 @@ import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.Onlin
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
-import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
@@ -121,6 +120,10 @@ import net.sf.mzmine.modules.visualization.productionfilter.ProductIonFilterVisu
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.identification.sumformulaprediction.DPPSumFormulaPredictionModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection.DPPMassDetectionModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
@@ -162,9 +165,9 @@ public class MZmineModulesList {
 
       // I/O
       CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
-      SQLExportModule.class, XMLExportModule.class, CasmiImportModule.class,
-      MzTabImportModule.class, XMLImportModule.class, MSPExportModule.class, MGFExportModule.class,
-      GNPSExportAndSubmitModule.class, SiriusExportModule.class,
+      SQLExportModule.class, XMLExportModule.class, MzTabImportModule.class, XMLImportModule.class,
+      MSPExportModule.class, MGFExportModule.class, GNPSExportAndSubmitModule.class,
+      SiriusExportModule.class,
 
       // Gap filling
       PeakFinderModule.class, MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class,
@@ -211,10 +214,12 @@ public class MZmineModulesList {
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class,
       IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class,
 
-      // all other regular MZmineRunnableModule (not MZmineProcessingModule) NOT LISTED IN MENU
+      // all other regular MZmineModule (not MZmineRunnableModule) NOT LISTED IN MENU
       SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class,
       CustomDBSpectraSearchModule.class, LipidSpectraSearchModule.class,
-      OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class
+      OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
 
-  };
+      // Data point processing, implement DataPointProcessingModule
+      DataPointProcessingManager.class, DPPMassDetectionModule.class,
+      DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class};
 }

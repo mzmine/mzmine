@@ -348,7 +348,7 @@ public class MzDataReadTask extends AbstractTask {
         mzArrayBinaryFlag = false;
         mzDataPoints = new double[peaksCount];
 
-        byte[] peakBytes = Base64.getDecoder().decode(charBuffer.toString());
+        byte[] peakBytes = Base64.getDecoder().decode(charBuffer.toString().trim());
 
         ByteBuffer currentMzBytes = ByteBuffer.wrap(peakBytes);
 
@@ -372,7 +372,7 @@ public class MzDataReadTask extends AbstractTask {
         intenArrayBinaryFlag = false;
         intensityDataPoints = new double[peaksCount];
 
-        byte[] peakBytes = Base64.getDecoder().decode(charBuffer.toString());
+        byte[] peakBytes = Base64.getDecoder().decode(charBuffer.toString().trim());
 
         ByteBuffer currentIntensityBytes = ByteBuffer.wrap(peakBytes);
 

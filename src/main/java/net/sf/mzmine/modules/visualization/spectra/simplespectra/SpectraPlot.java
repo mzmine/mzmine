@@ -34,6 +34,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -47,13 +48,16 @@ import net.sf.mzmine.chartbasics.listener.ZoomHistory;
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.MSLevel;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.renderers.ContinuousRenderer;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.renderers.PeakRenderer;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraItemLabelGenerator;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.SaveImage;
 import net.sf.mzmine.util.SaveImage.FileType;
@@ -94,7 +98,11 @@ public class SpectraPlot extends EChartPanel {
   // increasing even when we remove old data sets
   private int numOfDataSets = 0;
 
-  public SpectraPlot(ActionListener masterPlot) {
+  // Spectra processing
+  DataPointProcessingController controller;
+  private boolean processingAllowed;
+
+  public SpectraPlot(ActionListener masterPlot, boolean processingAllowed) {
 
     super(ChartFactory.createXYLineChart("", // title
         "m/z", // x-axis label
@@ -217,6 +225,13 @@ public class SpectraPlot extends EChartPanel {
     ZoomHistory history = getZoomHistory();
     if (history != null)
       history.clear();
+
+    // set processingAllowed
+    setProcessingAllowed(processingAllowed);
+  }
+
+  public SpectraPlot(ActionListener masterPlot) {
+    this(masterPlot, false);
   }
 
   @Override
@@ -376,6 +391,12 @@ public class SpectraPlot extends EChartPanel {
   }
 
   public synchronized void removeAllDataSets() {
+
+    // if the data sets are removed, we have to cancel the tasks.
+    if (controller != null)
+      controller.cancelTasks();
+    controller = null;
+
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       plot.setDataset(i, null);
     }
@@ -410,11 +431,13 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
+    if (dataSet instanceof ScanDataSet)
+      checkAndRunController();
   }
 
   // add Dataset with label generator
   public synchronized void addDataSet(XYDataset dataSet, Color color, boolean transparency,
-      SpectraDatabaseSearchLabelGenerator labelGenerator) {
+      XYItemLabelGenerator labelGenerator) {
 
     XYItemRenderer newRenderer;
 
@@ -445,6 +468,8 @@ public class SpectraPlot extends EChartPanel {
     plot.setRenderer(numOfDataSets, newRenderer);
     numOfDataSets++;
 
+    if (dataSet instanceof ScanDataSet)
+      checkAndRunController();
   }
 
 
@@ -457,7 +482,7 @@ public class SpectraPlot extends EChartPanel {
     }
   }
 
-  ScanDataSet getMainScanDataSet() {
+  public ScanDataSet getMainScanDataSet() {
     for (int i = 0; i < plot.getDatasetCount(); i++) {
       XYDataset dataSet = plot.getDataset(i);
       if (dataSet instanceof ScanDataSet) {
@@ -467,4 +492,54 @@ public class SpectraPlot extends EChartPanel {
     return null;
   }
 
+  /**
+   * Checks if the spectra processing is enabled & allowed and executes the controller if it is.
+   * Processing is forbidden for instances of ParameterSetupDialogWithScanPreviews
+   */
+  public void checkAndRunController() {
+
+    // if controller != null, processing on the current spectra has already been executed. When
+    // loading a new spectrum, the controller is set to null in removeAllDataSets()
+    DataPointProcessingManager inst = DataPointProcessingManager.getInst();
+
+    if (!isProcessingAllowed() || !inst.isEnabled())
+      return;
+
+    if (controller != null)
+      controller = null;
+
+    // if a controller is re-run then delete previous results
+    removeDataPointProcessingResultDataSets();
+
+    // if enabled, do the data point processing as set up by the user
+    XYDataset dataSet = getMainScanDataSet();
+    if (dataSet instanceof ScanDataSet) {
+      Scan scan = ((ScanDataSet) dataSet).getScan();
+      MSLevel mslevel = inst.decideMSLevel(scan);
+      controller =
+          new DataPointProcessingController(inst.getProcessingQueue(mslevel), this,
+              getMainScanDataSet().getDataPoints());
+      inst.addController(controller);
+    }
+  }
+
+  public boolean isProcessingAllowed() {
+    return processingAllowed;
+  }
+
+  public void setProcessingAllowed(boolean processingAllowed) {
+    this.processingAllowed = processingAllowed;
+  }
+
+  public synchronized void removeDataPointProcessingResultDataSets() {
+    for (int i = 0; i < plot.getDatasetCount(); i++) {
+      XYDataset dataSet = plot.getDataset(i);
+      if (dataSet instanceof DPPResultsDataSet) {
+        plot.setDataset(i, null);
+      }
+    }
+    // when adding DPPResultDataSet the label generator is overwritten, revert here
+    SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(this);
+    plot.getRenderer().setDefaultItemLabelGenerator(labelGenerator);
+  }
 }

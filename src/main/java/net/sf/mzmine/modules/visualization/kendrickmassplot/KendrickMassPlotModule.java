@@ -19,10 +19,12 @@
 package net.sf.mzmine.modules.visualization.kendrickmassplot;
 
 import java.util.Collection;
+
 import javax.annotation.Nonnull;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -32,7 +34,7 @@ import net.sf.mzmine.util.ExitCode;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotModule implements MZmineProcessingModule {
+public class KendrickMassPlotModule implements MZmineRunnableModule {
 
   private static final String MODULE_NAME = "Kendrick mass plot";
   private static final String MODULE_DESCRIPTION = "Kendrick mass plot.";

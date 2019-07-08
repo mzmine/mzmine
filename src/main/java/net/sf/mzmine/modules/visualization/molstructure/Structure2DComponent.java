@@ -27,9 +27,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JComponent;
-
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.geometry.GeometryUtil;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -50,6 +48,8 @@ import org.openscience.cdk.tools.manipulator.AtomContainerManipulator;
 public class Structure2DComponent extends JComponent {
 
   private static final long serialVersionUID = 1L;
+
+  public static final Font FONT = new Font("Verdana", Font.PLAIN, 14);
 
   private AtomContainerRenderer renderer;
   private IAtomContainer molecule;
@@ -93,6 +93,10 @@ public class Structure2DComponent extends JComponent {
   }
 
   public Structure2DComponent(IAtomContainer container) throws CDKException {
+    this(container, FONT);
+  }
+
+  public Structure2DComponent(IAtomContainer container, Font font) throws CDKException {
     molecule = container;
 
     // Suppress the hydrogens
@@ -106,7 +110,6 @@ public class Structure2DComponent extends JComponent {
     }
 
     // Generators make the image elements
-    Font font = new Font("Verdana", Font.PLAIN, 14);
     List<IGenerator<IAtomContainer>> generators = new ArrayList<IGenerator<IAtomContainer>>();
     generators.add(new BasicSceneGenerator());
     generators.add(new StandardGenerator(font));

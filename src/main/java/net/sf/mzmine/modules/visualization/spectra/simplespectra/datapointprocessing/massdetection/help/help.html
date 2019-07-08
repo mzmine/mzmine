@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>SP - Peak detection - Mass detection</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Mass detection</h1>
+
+<h2>Description</h2>
+
+<p>
+The Mass detection module generates a list of masses (ions) for a scan.
+Several algorithms are provided for this step.
+The choice of the optimal algorithm depends on the raw data characteristics (mass resolution, mass precision, peak shape, noise).
+In case the raw data is already centroided, only one algorithm (Centroid mass detector) can be used.
+Other algorithms work only with continuous type data.
+A mass detection is needed for other processing steps.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Mass detector</dt>
+<dd>Algorithm to use for mass detection and its parameters</dd>
+
+<dt>Display results</dt>
+<dd>If enabled, the result will be displayed in the spectrum plot. If this is the last module in the processing list, the results will be displayed in any way.</dd>
+
+<dt>Dataset color</dt>
+<dd>Select the color, the results of this module shall be displayed in.</dd>
+
+</body>
+</html>

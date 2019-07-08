@@ -19,16 +19,19 @@
 package net.sf.mzmine.modules.visualization.mzhistogram;
 
 import java.util.Collection;
+
 import javax.annotation.Nonnull;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class MZDistributionHistoModule implements MZmineProcessingModule {
+public class MZDistributionHistoModule implements MZmineRunnableModule {
+  
   private static final String MODULE_NAME = "m/z scan histogram";
   private static final String MODULE_DESCRIPTION =
       "This module plots all m/z values of all selected scans into one histogram and offers a Gaussian fit.";

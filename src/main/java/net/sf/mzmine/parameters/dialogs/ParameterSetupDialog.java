@@ -30,7 +30,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
-
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -46,11 +45,11 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
-
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.HiddenParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.GridBagPanel;
@@ -89,9 +88,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
 
   protected JButton btnHelp;
 
-  //Button panel - added here so it is possible to move buttons as a whole, if needed.
+  // Button panel - added here so it is possible to move buttons as a whole, if needed.
   protected JPanel pnlButtons;
-  
+
   // Footer message
   protected String footerMessage;
 
@@ -303,11 +302,19 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
   @SuppressWarnings({"unchecked", "rawtypes"})
   protected void updateParameterSetFromComponents() {
     for (Parameter<?> p : parameterSet.getParameters()) {
-      if (!(p instanceof UserParameter))
+      if (!(p instanceof UserParameter) && !(p instanceof HiddenParameter))
         continue;
-      UserParameter up = (UserParameter) p;
+      UserParameter up;
+      if (p instanceof UserParameter)
+        up = (UserParameter) p;
+      else
+        up = (UserParameter) ((HiddenParameter) p).getEmbeddedParameter();
+
       JComponent component = parametersAndComponents.get(p.getName());
-      up.setValueFromComponent(component);
+
+      // if a parameter is a HiddenParameter it does not necessarily have component
+      if (component != null)
+        up.setValueFromComponent(component);
     }
   }
 

@@ -884,6 +884,17 @@ public class ScanUtils {
   }
 
   /**
+   * below threshold: keep data points < noiseLevel
+   * 
+   * @param data
+   * @param noiseLevel
+   * @return
+   */
+  public static DataPoint[] getBelowThreshold(DataPoint[] data, double noiseLevel) {
+    return Stream.of(data).filter(dp -> dp.getIntensity() < noiseLevel).toArray(DataPoint[]::new);
+  }
+
+  /**
    * Number of signals >=noiseLevel
    * 
    * @param data
