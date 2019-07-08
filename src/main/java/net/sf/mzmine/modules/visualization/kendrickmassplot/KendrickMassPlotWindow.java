@@ -47,7 +47,7 @@ import net.sf.mzmine.util.dialogs.FeatureOverviewWindow;
 public class KendrickMassPlotWindow extends JFrame implements ActionListener {
 
   private static final long serialVersionUID = 1L;
-  private KendrickMassPlotToolBar toolBar;
+  private KendrickMassPlotToolBar kendrickToolBar;
   private JFreeChart chart;
   private PeakListRow selectedRows[];
   private String xAxisKMBase;
@@ -107,9 +107,18 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     this.yAxisCharge = 1;
     this.xAxisCharge = 1;
     this.zAxisCharge = 1;
-    this.yAxisDivisor = 1;
-    this.xAxisDivisor = 1;
-    this.zAxisDivisor = 1;
+    if (customYAxisKMBase != null)
+      this.yAxisDivisor = getDivisorKM(customYAxisKMBase);
+    else
+      this.yAxisDivisor = 1;
+    if (customXAxisKMBase != null)
+      this.xAxisDivisor = getDivisorKM(customXAxisKMBase);
+    else
+      this.xAxisDivisor = 1;
+    if (customZAxisKMBase != null)
+      this.zAxisDivisor = getDivisorKM(customZAxisKMBase);
+    else
+      this.zAxisDivisor = 1;
     this.xAxisShift = 0;
     this.yAxisShift = 0;
     this.zAxisShift = 0;
@@ -121,10 +130,13 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     setBackground(Color.white);
 
     // Add toolbar
-    toolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift, xAxisCharge,
-        yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor, useCustomXAxisKMBase,
-        useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
-    add(toolBar, BorderLayout.EAST);
+    kendrickToolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift,
+        xAxisCharge, yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor,
+        useCustomXAxisKMBase, useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
+    add(kendrickToolBar, BorderLayout.EAST);
+
+    // set tooltips
+    setTooltips();
 
     // Add the Windows menu
     JMenuBar menuBar = new JMenuBar();
@@ -238,14 +250,14 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       Double shiftValue = 0.01;
       yAxisShift = yAxisShift + shiftValue;
       XYPlot plot = chart.getXYPlot();
-      shiftChanged(plot, shiftValue, command);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("SHIFT_KMD_DOWN_Y")) {
       Double shiftValue = -0.01;
       yAxisShift = yAxisShift + shiftValue;
       XYPlot plot = chart.getXYPlot();
-      shiftChanged(plot, shiftValue, command);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_CHARGE_UP_Y")) {
@@ -266,9 +278,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     if (command.equals("CHANGE_DIVISOR_UP_Y")) {
       int minDivisor = getMinimumRecommendedDivisor(customYAxisKMBase);
       int maxDivisor = getMaximumRecommendedDivisor(customYAxisKMBase);
-      if (yAxisDivisor == 1) {
-        yAxisDivisor = minDivisor;
-      } else if (yAxisDivisor >= minDivisor && yAxisDivisor < maxDivisor) {
+      if (yAxisDivisor >= minDivisor && yAxisDivisor < maxDivisor) {
         yAxisDivisor++;
       }
       XYPlot plot = chart.getXYPlot();
@@ -280,8 +290,6 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int maxDivisor = getMaximumRecommendedDivisor(customYAxisKMBase);
       if (yAxisDivisor > minDivisor && yAxisDivisor <= maxDivisor) {
         yAxisDivisor = yAxisDivisor - 1;
-      } else if (yAxisDivisor == minDivisor) {
-        yAxisDivisor = 1;
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -304,14 +312,14 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       Double shiftValue = 0.01;
       xAxisShift = xAxisShift + shiftValue;
       XYPlot plot = chart.getXYPlot();
-      shiftChanged(plot, shiftValue, command);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("SHIFT_KMD_DOWN_X")) {
       Double shiftValue = -0.01;
       xAxisShift = xAxisShift + shiftValue;
       XYPlot plot = chart.getXYPlot();
-      shiftChanged(plot, shiftValue, command);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_CHARGE_UP_X")) {
@@ -332,9 +340,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     if (command.equals("CHANGE_DIVISOR_UP_X")) {
       int minDivisor = getMinimumRecommendedDivisor(customXAxisKMBase);
       int maxDivisor = getMaximumRecommendedDivisor(customXAxisKMBase);
-      if (xAxisDivisor == 1) {
-        xAxisDivisor = minDivisor;
-      } else if (xAxisDivisor >= minDivisor && xAxisDivisor < maxDivisor) {
+      if (xAxisDivisor >= minDivisor && xAxisDivisor < maxDivisor) {
         xAxisDivisor++;
       }
       XYPlot plot = chart.getXYPlot();
@@ -346,8 +352,6 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int maxDivisor = getMaximumRecommendedDivisor(customXAxisKMBase);
       if (xAxisDivisor > minDivisor && xAxisDivisor <= maxDivisor) {
         xAxisDivisor = xAxisDivisor - 1;
-      } else if (xAxisDivisor == minDivisor) {
-        xAxisDivisor = 1;
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -371,7 +375,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       Double shiftValue = 0.01;
       zAxisShift = zAxisShift + shiftValue;
       XYPlot plot = chart.getXYPlot();
-      shiftChanged(plot, shiftValue, command);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("SHIFT_KMD_DOWN_Z")) {
@@ -379,7 +383,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       Double shiftValue = -0.01;
       zAxisShift = zAxisShift + shiftValue;
       XYPlot plot = chart.getXYPlot();
-      shiftChanged(plot, shiftValue, command);
+      kendrickVariableChanged(plot);
     }
 
     if (command.equals("CHANGE_CHARGE_UP_Z")) {
@@ -398,12 +402,9 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     }
 
     if (command.equals("CHANGE_DIVISOR_UP_Z")) {
-
       int minDivisor = getMinimumRecommendedDivisor(customZAxisKMBase);
       int maxDivisor = getMaximumRecommendedDivisor(customZAxisKMBase);
-      if (zAxisDivisor == 1) {
-        zAxisDivisor = minDivisor;
-      } else if (zAxisDivisor >= minDivisor && zAxisDivisor < maxDivisor) {
+      if (zAxisDivisor >= minDivisor && zAxisDivisor < maxDivisor) {
         zAxisDivisor++;
       }
       XYPlot plot = chart.getXYPlot();
@@ -415,8 +416,6 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int maxDivisor = getMaximumRecommendedDivisor(customZAxisKMBase);
       if (zAxisDivisor > minDivisor && zAxisDivisor <= maxDivisor) {
         zAxisDivisor = zAxisDivisor - 1;
-      } else if (zAxisDivisor == minDivisor) {
-        zAxisDivisor = 1;
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -439,63 +438,6 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     }
   }
 
-  /*
-   * Method to shift a Kendrick mass plot up or down
-   */
-  private void shiftChanged(XYPlot plot, double shiftValue, String command) {
-    if (plot.getDataset() instanceof KendrickMassPlotXYDataset) {
-      KendrickMassPlotXYDataset dataset = (KendrickMassPlotXYDataset) plot.getDataset();
-      if (command.contains("_Y")) {
-        double[] yValues = new double[dataset.getItemCount(0)];
-        for (int i = 0; i < yValues.length; i++) {
-          yValues[i] = dataset.getYValue(0, i) + shiftValue
-              - Math.floor(dataset.getYValue(0, i) + shiftValue);
-        }
-        dataset.setyValues(yValues);
-      } else if (command.contains("_X")) {
-        double[] xValues = new double[dataset.getItemCount(0)];
-        for (int i = 0; i < xValues.length; i++) {
-          xValues[i] = dataset.getXValue(0, i) + shiftValue
-              - Math.floor(dataset.getXValue(0, i) + shiftValue);
-        }
-        dataset.setxValues(xValues);
-      }
-    } else if (plot.getDataset() instanceof KendrickMassPlotXYZDataset) {
-      KendrickMassPlotXYZDataset dataset = (KendrickMassPlotXYZDataset) plot.getDataset();
-      if (command.contains("_Y")) {
-        double[] yValues = new double[dataset.getItemCount(0)];
-        for (int i = 0; i < yValues.length; i++) {
-          yValues[i] = dataset.getYValue(0, i) + shiftValue
-              - Math.floor(dataset.getYValue(0, i) + shiftValue);
-        }
-        dataset.setyValues(yValues);
-      } else if (command.contains("_X")) {
-        double[] xValues = new double[dataset.getItemCount(0)];
-        for (int i = 0; i < xValues.length; i++) {
-          xValues[i] = dataset.getXValue(0, i) + shiftValue
-              - Math.floor(dataset.getXValue(0, i) + shiftValue);
-        }
-        dataset.setxValues(xValues);
-      } else if (command.contains("_Z")) {
-        double[] zValues = new double[dataset.getItemCount(0)];
-        for (int i = 0; i < zValues.length; i++) {
-          zValues[i] = dataset.getZValue(0, i) + shiftValue
-              - Math.floor(dataset.getZValue(0, i) + shiftValue);
-        }
-        dataset.setzValues(zValues);
-      }
-    }
-    chart.fireChartChanged();
-    validate();
-
-    // update toolbar
-    this.remove(toolBar);
-    toolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift, xAxisCharge,
-        yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor, useCustomXAxisKMBase,
-        useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
-    this.add(toolBar, BorderLayout.EAST);
-    this.revalidate();
-  }
 
   /*
    * Method to calculate the data sets for a Kendrick mass plot
@@ -511,15 +453,16 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       if (useCustomXAxisKMBase == true) {
         if (useRKM_X == false) {
           for (int i = 0; i < selectedRows.length; i++) {
-            xValues[i] = Math
+            double unshiftedValue = Math
                 .ceil(xAxisCharge * selectedRows[i].getAverageMZ()
                     * getKendrickMassFactor(customXAxisKMBase, xAxisDivisor))
                 - xAxisCharge * selectedRows[i].getAverageMZ()
                     * getKendrickMassFactor(customXAxisKMBase, xAxisDivisor);
+            xValues[i] = unshiftedValue + xAxisShift - Math.floor(unshiftedValue + xAxisShift);
           }
         } else {
           for (int i = 0; i < selectedRows.length; i++) {
-            xValues[i] = (xAxisCharge
+            double unshiftedValue = (xAxisCharge
                 * (xAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customXAxisKMBase)))
                 * selectedRows[i].getAverageMZ())
                 / FormulaUtils.calculateExactMass(customXAxisKMBase)//
@@ -528,6 +471,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
                         - Math.round(FormulaUtils.calculateExactMass(customXAxisKMBase)))
                     * selectedRows[i].getAverageMZ())
                     / FormulaUtils.calculateExactMass(customXAxisKMBase));
+            xValues[i] = unshiftedValue + xAxisShift - Math.floor(unshiftedValue + xAxisShift);
           }
         }
       } else {
@@ -550,21 +494,23 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       double[] yValues = new double[selectedRows.length];
       if (useRKM_Y == false) {
         for (int i = 0; i < selectedRows.length; i++) {
-          yValues[i] = Math
+          double unshiftedValue = Math
               .ceil(yAxisCharge * (selectedRows[i].getAverageMZ())
                   * getKendrickMassFactor(customYAxisKMBase, yAxisDivisor))
               - yAxisCharge * (selectedRows[i].getAverageMZ())
                   * getKendrickMassFactor(customYAxisKMBase, yAxisDivisor);
+          yValues[i] = unshiftedValue + yAxisShift - Math.floor(unshiftedValue + yAxisShift);
         }
       } else {
         for (int i = 0; i < selectedRows.length; i++) {
-          yValues[i] = (yAxisCharge
+          double unshiftedValue = (yAxisCharge
               * (yAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customYAxisKMBase)))
               * selectedRows[i].getAverageMZ()) / FormulaUtils.calculateExactMass(customYAxisKMBase)//
               - Math.floor((yAxisCharge
                   * (yAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customYAxisKMBase)))
                   * selectedRows[i].getAverageMZ())
                   / FormulaUtils.calculateExactMass(customYAxisKMBase));
+          yValues[i] = unshiftedValue + yAxisShift - Math.floor(unshiftedValue + yAxisShift);
         }
       }
       dataset.setyValues(yValues);
@@ -580,15 +526,16 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       if (useCustomXAxisKMBase == true) {
         if (useRKM_X == false) {
           for (int i = 0; i < selectedRows.length; i++) {
-            xValues[i] = Math
+            double unshiftedValue = Math
                 .ceil(xAxisCharge * selectedRows[i].getAverageMZ()
                     * getKendrickMassFactor(customXAxisKMBase, xAxisDivisor))
                 - xAxisCharge * selectedRows[i].getAverageMZ()
                     * getKendrickMassFactor(customXAxisKMBase, xAxisDivisor);
+            xValues[i] = unshiftedValue + xAxisShift - Math.floor(unshiftedValue + xAxisShift);
           }
         } else {
           for (int i = 0; i < selectedRows.length; i++) {
-            xValues[i] = (xAxisCharge
+            double unshiftedValue = (xAxisCharge
                 * (xAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customXAxisKMBase)))
                 * selectedRows[i].getAverageMZ())
                 / FormulaUtils.calculateExactMass(customXAxisKMBase)//
@@ -597,6 +544,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
                         - Math.round(FormulaUtils.calculateExactMass(customXAxisKMBase)))
                     * selectedRows[i].getAverageMZ())
                     / FormulaUtils.calculateExactMass(customXAxisKMBase));
+            xValues[i] = unshiftedValue + xAxisShift - Math.floor(unshiftedValue + xAxisShift);
           }
         }
       } else {
@@ -619,21 +567,23 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       double[] yValues = new double[selectedRows.length];
       if (useRKM_Y == false) {
         for (int i = 0; i < selectedRows.length; i++) {
-          yValues[i] = Math
+          double unshiftedValue = Math
               .ceil(yAxisCharge * (selectedRows[i].getAverageMZ())
                   * getKendrickMassFactor(customYAxisKMBase, yAxisDivisor))
               - yAxisCharge * (selectedRows[i].getAverageMZ())
                   * getKendrickMassFactor(customYAxisKMBase, yAxisDivisor);
+          yValues[i] = unshiftedValue + yAxisShift - Math.floor(unshiftedValue + yAxisShift);
         }
       } else {
         for (int i = 0; i < selectedRows.length; i++) {
-          yValues[i] = (yAxisCharge
+          double unshiftedValue = (yAxisCharge
               * (yAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customYAxisKMBase)))
               * selectedRows[i].getAverageMZ()) / FormulaUtils.calculateExactMass(customYAxisKMBase)//
               - Math.floor((yAxisCharge
                   * (yAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customYAxisKMBase)))
                   * selectedRows[i].getAverageMZ())
                   / FormulaUtils.calculateExactMass(customYAxisKMBase));
+          yValues[i] = unshiftedValue + yAxisShift - Math.floor(unshiftedValue + yAxisShift);
         }
       }
 
@@ -642,15 +592,16 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       if (useCustomZAxisKMBase == true) {
         if (useRKM_Z == false) {
           for (int i = 0; i < selectedRows.length; i++) {
-            zValues[i] = Math
+            double unshiftedValue = Math
                 .ceil(zAxisCharge * (selectedRows[i].getAverageMZ())
                     * getKendrickMassFactor(customZAxisKMBase, zAxisDivisor))
                 - zAxisCharge * (selectedRows[i].getAverageMZ())
                     * getKendrickMassFactor(customZAxisKMBase, zAxisDivisor);
+            zValues[i] = unshiftedValue + zAxisShift - Math.floor(unshiftedValue + zAxisShift);
           }
         } else {
           for (int i = 0; i < selectedRows.length; i++) {
-            zValues[i] = (zAxisCharge
+            double unshiftedValue = (zAxisCharge
                 * (zAxisDivisor - Math.round(FormulaUtils.calculateExactMass(customZAxisKMBase)))
                 * selectedRows[i].getAverageMZ())
                 / FormulaUtils.calculateExactMass(customZAxisKMBase)//
@@ -659,6 +610,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
                         - Math.round(FormulaUtils.calculateExactMass(customZAxisKMBase)))
                     * selectedRows[i].getAverageMZ())
                     / FormulaUtils.calculateExactMass(customZAxisKMBase));
+            zValues[i] = unshiftedValue + zAxisShift - Math.floor(unshiftedValue + zAxisShift);
           }
         }
       } else
@@ -689,11 +641,13 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     }
 
     // update toolbar
-    this.remove(toolBar);
-    toolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift, xAxisCharge,
-        yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor, useCustomXAxisKMBase,
-        useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
-    this.add(toolBar, BorderLayout.EAST);
+    this.remove(kendrickToolBar);
+    kendrickToolBar = new KendrickMassPlotToolBar(this, xAxisShift, yAxisShift, zAxisShift,
+        xAxisCharge, yAxisCharge, zAxisCharge, xAxisDivisor, yAxisDivisor, zAxisDivisor,
+        useCustomXAxisKMBase, useCustomZAxisKMBase, useRKM_X, useRKM_Y, useRKM_Z);
+    setTooltips();
+
+    this.add(kendrickToolBar, BorderLayout.EAST);
     this.revalidate();
   }
 
@@ -703,6 +657,22 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
   private double getKendrickMassFactor(String formula, int divisor) {
     double exactMassFormula = FormulaUtils.calculateExactMass(formula);
     return Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
+  }
+
+  /*
+   * Method to calculate the divisor for Kendrick mass defect analysis
+   */
+  private int getDivisorKM(String formula) {
+    double exactMass = FormulaUtils.calculateExactMass(formula);
+    return (int) Math.round(exactMass);
+  }
+
+  /*
+   * Method to calculate the divisor for remainders of Kendrick masses
+   */
+  private int getDivisorRKM(String formula) {
+    double exactMass = FormulaUtils.calculateExactMass(formula);
+    return (int) Math.round(exactMass) - 1;
   }
 
   /*
@@ -721,4 +691,18 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
     return (int) Math.round(2.0 * exactMass);
   }
 
+  private void setTooltips() {
+    if (customYAxisKMBase != null)
+      kendrickToolBar.getyAxisDivisorLabel().//
+          setToolTipText("The KM-Plot for divisor " + //
+              getDivisorKM(customYAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+    if (customXAxisKMBase != null)
+      kendrickToolBar.getxAxisDivisorLabel().//
+          setToolTipText("The KM-Plot for divisor " + //
+              getDivisorKM(customXAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+    if (customZAxisKMBase != null)
+      kendrickToolBar.getzAxisDivisorLabel().//
+          setToolTipText("The KM-Plot for divisor " + //
+              getDivisorKM(customZAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+  }
 }
