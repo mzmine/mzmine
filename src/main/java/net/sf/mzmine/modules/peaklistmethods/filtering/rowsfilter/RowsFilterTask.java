@@ -337,12 +337,16 @@ public class RowsFilterTask extends AbstractTask {
       // Filter by KMD range
       if (filterByKMD) {
 
+        // get embedded parameters
         final Range<Double> rangeKMD = parameters
             .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
             .getParameter(KendrickMassDefectFilterParameters.kendrickMassDefectRange).getValue();
         final String kendrickMassBase = parameters
             .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
             .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
+        final double shift = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
+            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.shift)
+            .getValue();
         final int charge = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
             .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.charge)
             .getValue();
@@ -350,14 +354,26 @@ public class RowsFilterTask extends AbstractTask {
             .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.divisor)
             .getValue();
 
+        // get m/z
         Double valueMZ = row.getBestPeak().getMZ();
 
+        // calc exact mass of Kendrick mass base
         double exactMassFormula = FormulaUtils.calculateExactMass(kendrickMassBase);
+
+        // calc exact mass of Kendrick mass factor
         double kendrickMassFactor =
             Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
+
+        // calc Kendrick mass defect
         double kendrickMassDefect = Math.ceil(charge * (valueMZ * kendrickMassFactor))
             - charge * (valueMZ * kendrickMassFactor);
-        if (!rangeKMD.contains(kendrickMassDefect))
+
+        // shift Kendrick mass defect
+        double kendrickMassDefectShifted =
+            kendrickMassDefect + shift - Math.floor(kendrickMassDefect + shift);
+
+        // check if shifted Kendrick mass defect is in range
+        if (!rangeKMD.contains(kendrickMassDefectShifted))
           filterRowCriteriaFailed = true;
       }
 
