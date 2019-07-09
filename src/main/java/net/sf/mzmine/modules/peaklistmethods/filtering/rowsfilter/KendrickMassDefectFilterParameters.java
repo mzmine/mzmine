@@ -5,6 +5,7 @@ import com.google.common.collect.Range;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
@@ -28,8 +29,13 @@ public class KendrickMassDefectFilterParameters extends SimpleParameterSet {
   public static final IntegerParameter divisor = new IntegerParameter("Divisor",
       "Enter a divisor for fractional base unit dependent KMD filtering", 1);
 
+  public static final BooleanParameter useRemainderOfKendrickMass =
+      new BooleanParameter("Use Remainder of Kendrick mass",
+          "Use Remainder of Kendrick mass (RKM) instead of Kendrick mass defect (KMD)", false);
+
   public KendrickMassDefectFilterParameters() {
-    super(new Parameter[] {kendrickMassDefectRange, kendrickMassBase, shift, charge, divisor});
+    super(new Parameter[] {kendrickMassDefectRange, kendrickMassBase, shift, charge, divisor,
+        useRemainderOfKendrickMass});
   }
 
 }

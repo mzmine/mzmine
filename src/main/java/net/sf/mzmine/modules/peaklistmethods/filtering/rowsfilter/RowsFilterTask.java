@@ -354,6 +354,10 @@ public class RowsFilterTask extends AbstractTask {
             .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.divisor)
             .getValue();
 
+        final boolean useRemainderOfKendrickMass = parameters
+            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
+            .getParameter(KendrickMassDefectFilterParameters.useRemainderOfKendrickMass).getValue();
+
         // get m/z
         Double valueMZ = row.getBestPeak().getMZ();
 
@@ -364,15 +368,26 @@ public class RowsFilterTask extends AbstractTask {
         double kendrickMassFactor =
             Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
 
-        // calc Kendrick mass defect
-        double kendrickMassDefect = Math.ceil(charge * (valueMZ * kendrickMassFactor))
-            - charge * (valueMZ * kendrickMassFactor);
+        double defectOrRemainder = 0.0;
 
-        // shift Kendrick mass defect
+        if (!useRemainderOfKendrickMass) {
+          // calc Kendrick mass defect
+          defectOrRemainder = Math.ceil(charge * (valueMZ * kendrickMassFactor))
+              - charge * (valueMZ * kendrickMassFactor);
+        } else {
+          defectOrRemainder =
+              (charge * (divisor - Math.round(FormulaUtils.calculateExactMass(kendrickMassBase)))
+                  * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase)//
+                  - Math.floor((charge
+                      * (divisor - Math.round(FormulaUtils.calculateExactMass(kendrickMassBase)))
+                      * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase));
+        }
+
+        // shift Kendrick mass defect or Remainder of Kendrick mass
         double kendrickMassDefectShifted =
-            kendrickMassDefect + shift - Math.floor(kendrickMassDefect + shift);
+            defectOrRemainder + shift - Math.floor(defectOrRemainder + shift);
 
-        // check if shifted Kendrick mass defect is in range
+        // check if shifted Kendrick mass defect or Remainder of Kendrick mass is in range
         if (!rangeKMD.contains(kendrickMassDefectShifted))
           filterRowCriteriaFailed = true;
       }
