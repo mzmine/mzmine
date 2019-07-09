@@ -169,8 +169,9 @@ public class RowsFilterTask extends AbstractTask {
     final boolean filterByDuration =
         parameters.getParameter(RowsFilterParameters.PEAK_DURATION).getValue();
     final boolean filterByFWHM = parameters.getParameter(RowsFilterParameters.FWHM).getValue();
+    final boolean filterByCharge = parameters.getParameter(RowsFilterParameters.CHARGE).getValue();
     final boolean filterByKMD =
-        parameters.getParameter(RowsFilterParameters.kendrickMassDefect).getValue();
+        parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getValue();
     final boolean filterByMS2 = parameters.getParameter(RowsFilterParameters.MS2_Filter).getValue();
     final String removeRowString =
         parameters.getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
@@ -323,21 +324,31 @@ public class RowsFilterTask extends AbstractTask {
           filterRowCriteriaFailed = true;
       }
 
+      // Filter by charge range
+      if (filterByCharge) {
+
+        final Range<Integer> chargeRange =
+            parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter().getValue();
+        int charge = row.getBestPeak().getCharge();
+        if (charge == 0 || !chargeRange.contains(charge))
+          filterRowCriteriaFailed = true;
+      }
+
       // Filter by KMD range
       if (filterByKMD) {
 
         final Range<Double> rangeKMD = parameters
-            .getParameter(RowsFilterParameters.kendrickMassDefect).getEmbeddedParameters()
+            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
             .getParameter(KendrickMassDefectFilterParameters.kendrickMassDefectRange).getValue();
-        final String kendrickMassBase =
-            parameters.getParameter(RowsFilterParameters.kendrickMassDefect).getEmbeddedParameters()
-                .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
-        final int charge =
-            parameters.getParameter(RowsFilterParameters.kendrickMassDefect).getEmbeddedParameters()
-                .getParameter(KendrickMassDefectFilterParameters.charge).getValue();
-        final int divisor =
-            parameters.getParameter(RowsFilterParameters.kendrickMassDefect).getEmbeddedParameters()
-                .getParameter(KendrickMassDefectFilterParameters.divisor).getValue();
+        final String kendrickMassBase = parameters
+            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
+            .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
+        final int charge = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
+            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.charge)
+            .getValue();
+        final int divisor = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
+            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.divisor)
+            .getValue();
 
         Double valueMZ = row.getBestPeak().getMZ();
 

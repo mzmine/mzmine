@@ -32,6 +32,7 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
@@ -72,7 +73,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "Permissible range of chromatographic FWHM per row",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)));
 
-  public static final OptionalModuleParameter kendrickMassDefect = new OptionalModuleParameter(
+  public static final OptionalParameter<IntRangeParameter> CHARGE = new OptionalParameter<>(
+      new IntRangeParameter("Charge", "Filter by charge, run isotopic peaks grouper first"));
+
+  public static final OptionalModuleParameter KENDRICK_MASS_DEFECT = new OptionalModuleParameter(
       "Kendrick mass defect", "Permissible range of a Kendrick mass defect per row",
       new KendrickMassDefectFilterParameters());
 
@@ -105,8 +109,9 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public RowsFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT, MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE,
-        RT_RANGE, PEAK_DURATION, FWHM, kendrickMassDefect, GROUPSPARAMETER, HAS_IDENTITIES,
-        IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID, AUTO_REMOVE});
+        RT_RANGE, PEAK_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, GROUPSPARAMETER,
+        HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID,
+        AUTO_REMOVE});
   }
 
   @Override
