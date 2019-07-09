@@ -23,9 +23,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -42,6 +40,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
 
@@ -170,9 +169,11 @@ public class RowsFilterTask extends AbstractTask {
     final boolean filterByDuration =
         parameters.getParameter(RowsFilterParameters.PEAK_DURATION).getValue();
     final boolean filterByFWHM = parameters.getParameter(RowsFilterParameters.FWHM).getValue();
+    final boolean filterByKMD =
+        parameters.getParameter(RowsFilterParameters.kendrickMassDefect).getValue();
     final boolean filterByMS2 = parameters.getParameter(RowsFilterParameters.MS2_Filter).getValue();
     final String removeRowString =
-        (String) parameters.getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
+        parameters.getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
     Double minCount = parameters.getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
         .getEmbeddedParameter().getValue();
     final boolean renumber = parameters.getParameter(RowsFilterParameters.Reset_ID).getValue();
@@ -318,12 +319,35 @@ public class RowsFilterTask extends AbstractTask {
         // If any of the peaks fail the FWHM criteria,
         Double FWHM_value = row.getBestPeak().getFWHM();
 
-
-
         if (FWHM_value != null && !FWHMRange.contains(FWHM_value))
           filterRowCriteriaFailed = true;
+      }
 
+      // Filter by KMD range
+      if (filterByKMD) {
 
+        final Range<Double> rangeKMD = parameters
+            .getParameter(RowsFilterParameters.kendrickMassDefect).getEmbeddedParameters()
+            .getParameter(KendrickMassDefectFilterParameters.kendrickMassDefectRange).getValue();
+        final String kendrickMassBase =
+            parameters.getParameter(RowsFilterParameters.kendrickMassDefect).getEmbeddedParameters()
+                .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
+        final int charge =
+            parameters.getParameter(RowsFilterParameters.kendrickMassDefect).getEmbeddedParameters()
+                .getParameter(KendrickMassDefectFilterParameters.charge).getValue();
+        final int divisor =
+            parameters.getParameter(RowsFilterParameters.kendrickMassDefect).getEmbeddedParameters()
+                .getParameter(KendrickMassDefectFilterParameters.divisor).getValue();
+
+        Double valueMZ = row.getBestPeak().getMZ();
+
+        double exactMassFormula = FormulaUtils.calculateExactMass(kendrickMassBase);
+        double kendrickMassFactor =
+            Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
+        double kendrickMassDefect = Math.ceil(charge * (valueMZ * kendrickMassFactor))
+            - charge * (valueMZ * kendrickMassFactor);
+        if (!rangeKMD.contains(kendrickMassDefect))
+          filterRowCriteriaFailed = true;
       }
 
       // Check ms2 filter .

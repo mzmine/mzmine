@@ -19,7 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
 import java.awt.Window;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
@@ -31,13 +31,12 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import com.google.common.collect.Range;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -73,6 +72,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "Permissible range of chromatographic FWHM per row",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)));
 
+  public static final OptionalModuleParameter kendrickMassDefect = new OptionalModuleParameter(
+      "Kendrick mass defect", "Permissible range of a Kendrick mass defect per row",
+      new KendrickMassDefectFilterParameters());
+
   public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
       "Parameter", "Paremeter defining the group of each sample.", new Object[0]);
 
@@ -102,8 +105,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public RowsFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT, MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE,
-        RT_RANGE, PEAK_DURATION, FWHM, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-        REMOVE_ROW, MS2_Filter, Reset_ID, AUTO_REMOVE});
+        RT_RANGE, PEAK_DURATION, FWHM, kendrickMassDefect, GROUPSPARAMETER, HAS_IDENTITIES,
+        IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID, AUTO_REMOVE});
   }
 
   @Override
