@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.exportscans;
+package net.sf.mzmine.modules.rawdatamethods.extractscans;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
