@@ -20,7 +20,6 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import java.io.IOException;
 import java.util.logging.Logger;
-
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
@@ -28,6 +27,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -49,6 +49,9 @@ class ScanFilteringTask extends AbstractTask {
   // Raw Data Filter
   private MZmineProcessingStep<ScanFilter> rawDataFilter;
 
+  private ScanSelection select;
+
+
   /**
    * @param dataFile
    * @param parameters
@@ -61,12 +64,14 @@ class ScanFilteringTask extends AbstractTask {
     rawDataFilter = parameters.getParameter(ScanFiltersParameters.filter).getValue();
 
     suffix = parameters.getParameter(ScanFiltersParameters.suffix).getValue();
+    select = parameters.getParameter(ScanFiltersParameters.scanSelect).getValue();
 
   }
 
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Filtering scans in " + dataFile;
   }
@@ -74,6 +79,7 @@ class ScanFilteringTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalScans == 0) {
       return 0;
@@ -89,13 +95,14 @@ class ScanFilteringTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
 
     logger.info("Started filtering scans on " + dataFile);
 
-    scanNumbers = dataFile.getScanNumbers(1);
+    scanNumbers = dataFile.getScanNumbers();
     totalScans = scanNumbers.length;
 
     try {
@@ -111,8 +118,14 @@ class ScanFilteringTask extends AbstractTask {
           return;
         }
 
+
         Scan scan = dataFile.getScan(scanNumbers[i]);
-        Scan newScan = rawDataFilter.getModule().filterScan(scan, rawDataFilter.getParameterSet());
+        Scan newScan = null;
+        if (select.matches(scan))
+          newScan = rawDataFilter.getModule().filterScan(scan, rawDataFilter.getParameterSet());
+        else
+          newScan = scan;
+
         if (newScan != null) {
           rawDataFileWriter.addScan(newScan);
         }
