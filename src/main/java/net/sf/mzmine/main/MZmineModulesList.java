@@ -124,6 +124,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.identification.sumformulaprediction.DPPSumFormulaPredictionModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection.DPPMassDetectionModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.export.ExportSpectraModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
@@ -218,6 +219,7 @@ public class MZmineModulesList {
       SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class,
       CustomDBSpectraSearchModule.class, LipidSpectraSearchModule.class,
       OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
+      ExportSpectraModule.class,
 
       // Data point processing, implement DataPointProcessingModule
       DataPointProcessingManager.class, DPPMassDetectionModule.class,

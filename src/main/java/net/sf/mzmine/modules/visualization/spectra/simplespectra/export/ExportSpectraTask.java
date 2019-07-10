@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.export;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import io.github.msdk.MSDKException;
 import io.github.msdk.datamodel.FileType;
 import io.github.msdk.datamodel.MsScan;
@@ -33,10 +32,13 @@ import io.github.msdk.datamodel.SimpleRawDataFile;
 import io.github.msdk.io.mzml.MzMLFileExportMethod;
 import io.github.msdk.io.mzml.data.MzMLCompressionType;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.MZmineToMSDKMsScan;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.files.FileAndPathUtil;
 
 /**
  * Exports a spectrum to a file.
@@ -54,18 +56,21 @@ public class ExportSpectraTask extends AbstractTask {
   private int progress;
   private int progressMax;
 
-  /**
-   * Create the task.
-   *
-   * @param currentScan scan to export.
-   * @param file file to save scan data to.
-   */
-  public ExportSpectraTask(final Scan currentScan, final File file, final String ext) {
-    scan = currentScan;
-    exportFile = file;
-    extension = ext;
+  private boolean useMassList;
+
+  private String massListName;
+
+  public ExportSpectraTask(Scan scan, ParameterSet parameters) {
     progress = 0;
     progressMax = 0;
+    this.scan = scan;
+    useMassList = parameters.getParameter(ExportSpectraParameters.masslist).getValue();
+    massListName =
+        parameters.getParameter(ExportSpectraParameters.masslist).getEmbeddedParameter().getValue();
+    extension = parameters.getParameter(ExportSpectraParameters.formats).getValue().toString();
+
+    this.exportFile = FileAndPathUtil.getRealFilePath(
+        parameters.getParameter(ExportSpectraParameters.file).getValue(), extension);
   }
 
   @Override
@@ -88,7 +93,7 @@ public class ExportSpectraTask extends AbstractTask {
     try {
 
       // Handle mzML export
-      if (extension.equals("mzML")) {
+      if (extension.equalsIgnoreCase("mzML")) {
         exportmzML();
       } else {
         // Handle text export
@@ -142,7 +147,15 @@ public class ExportSpectraTask extends AbstractTask {
       }
 
       // Write the data points
-      DataPoint[] dataPoints = scan.getDataPoints();
+      DataPoint[] dataPoints = null;
+      if (useMassList && massListName != null) {
+        MassList list = scan.getMassList(massListName);
+        if (list != null)
+          dataPoints = list.getDataPoints();
+      }
+      if (dataPoints == null)
+        dataPoints = scan.getDataPoints();
+
       final int itemCount = dataPoints.length;
       progressMax = itemCount;
 
