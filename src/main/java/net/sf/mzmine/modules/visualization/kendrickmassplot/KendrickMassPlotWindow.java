@@ -280,6 +280,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int maxDivisor = getMaximumRecommendedDivisor(customYAxisKMBase);
       if (yAxisDivisor >= minDivisor && yAxisDivisor < maxDivisor) {
         yAxisDivisor++;
+        yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, true);
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -289,7 +290,8 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int minDivisor = getMinimumRecommendedDivisor(customYAxisKMBase);
       int maxDivisor = getMaximumRecommendedDivisor(customYAxisKMBase);
       if (yAxisDivisor > minDivisor && yAxisDivisor <= maxDivisor) {
-        yAxisDivisor = yAxisDivisor - 1;
+        yAxisDivisor--;
+        yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, false);
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -302,6 +304,9 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         plot.getRangeAxis().setLabel("KMD(" + customYAxisKMBase + ")");
       } else {
         useRKM_Y = true;
+
+        // if the divisor is round(R) switch to round(R)-1 for RKM plot
+        yAxisDivisor = checkDivisor(yAxisDivisor, useRKM_Y, customYAxisKMBase, false);
         plot.getRangeAxis().setLabel("RKM(" + customYAxisKMBase + ")");
       }
       kendrickVariableChanged(plot);
@@ -342,6 +347,7 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int maxDivisor = getMaximumRecommendedDivisor(customXAxisKMBase);
       if (xAxisDivisor >= minDivisor && xAxisDivisor < maxDivisor) {
         xAxisDivisor++;
+        xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, true);
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -351,7 +357,8 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int minDivisor = getMinimumRecommendedDivisor(customXAxisKMBase);
       int maxDivisor = getMaximumRecommendedDivisor(customXAxisKMBase);
       if (xAxisDivisor > minDivisor && xAxisDivisor <= maxDivisor) {
-        xAxisDivisor = xAxisDivisor - 1;
+        xAxisDivisor--;
+        xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, false);
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -364,6 +371,9 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
         plot.getDomainAxis().setLabel("KMD(" + customXAxisKMBase + ")");
       } else {
         useRKM_X = true;
+
+        // if the divisor is round(R) switch to round(R)-1 for RKM plot
+        xAxisDivisor = checkDivisor(xAxisDivisor, useRKM_X, customXAxisKMBase, false);
         plot.getDomainAxis().setLabel("RKM(" + customXAxisKMBase + ")");
       }
       kendrickVariableChanged(plot);
@@ -406,6 +416,8 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int maxDivisor = getMaximumRecommendedDivisor(customZAxisKMBase);
       if (zAxisDivisor >= minDivisor && zAxisDivisor < maxDivisor) {
         zAxisDivisor++;
+        zAxisDivisor = checkDivisor(zAxisDivisor, useRKM_Z, customZAxisKMBase, true);
+
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -415,7 +427,8 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       int minDivisor = getMinimumRecommendedDivisor(customZAxisKMBase);
       int maxDivisor = getMaximumRecommendedDivisor(customZAxisKMBase);
       if (zAxisDivisor > minDivisor && zAxisDivisor <= maxDivisor) {
-        zAxisDivisor = zAxisDivisor - 1;
+        zAxisDivisor--;
+        zAxisDivisor = checkDivisor(zAxisDivisor, useRKM_Z, customZAxisKMBase, false);
       }
       XYPlot plot = chart.getXYPlot();
       kendrickVariableChanged(plot);
@@ -430,6 +443,9 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
           legend.getAxis().setLabel("KMD(" + customZAxisKMBase + ")");
         } else {
           useRKM_Z = true;
+
+          // if the divisor is round(R) switch to round(R)-1 for RKM plot
+          zAxisDivisor = checkDivisor(zAxisDivisor, useRKM_Z, customZAxisKMBase, false);
           PaintScaleLegend legend = (PaintScaleLegend) chart.getSubtitle(1);
           legend.getAxis().setLabel("RKM(" + customZAxisKMBase + ")");
         }
@@ -668,14 +684,6 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
   }
 
   /*
-   * Method to calculate the divisor for remainders of Kendrick masses
-   */
-  private int getDivisorRKM(String formula) {
-    double exactMass = FormulaUtils.calculateExactMass(formula);
-    return (int) Math.round(exactMass) - 1;
-  }
-
-  /*
    * Method to calculate the recommended minimum of a divisor for Kendrick mass defect analysis
    */
   private int getMinimumRecommendedDivisor(String formula) {
@@ -704,5 +712,19 @@ public class KendrickMassPlotWindow extends JFrame implements ActionListener {
       kendrickToolBar.getzAxisDivisorLabel().//
           setToolTipText("The KM-Plot for divisor " + //
               getDivisorKM(customZAxisKMBase) + " is equal to a regular KM-Plot with divisor 1");
+  }
+
+  /*
+   * Method to avoid round(R) as divisor for RKM plots All RKM values would be 0 in that case
+   */
+  private int checkDivisor(int divisor, boolean useRKM, String kmdBase, boolean divisorUp) {
+    if (useRKM && divisor == getDivisorKM(kmdBase) && divisorUp) {
+      divisor++;
+      return divisor;
+    } else if (useRKM && divisor == getDivisorKM(kmdBase) && !divisorUp) {
+      divisor--;
+      return divisor;
+    } else
+      return divisor;
   }
 }
