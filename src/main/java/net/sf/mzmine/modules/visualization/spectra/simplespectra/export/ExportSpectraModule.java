@@ -49,13 +49,16 @@ public class ExportSpectraModule implements MZmineModule {
    * 
    */
   public static void showSetupDialog(final Scan scan) {
+    showSetupDialog(new Scan[] {scan});
+  }
 
+  public static void showSetupDialog(Scan[] scans) {
     final ExportSpectraParameters parameters = (ExportSpectraParameters) MZmineCore
         .getConfiguration().getModuleParameters(ExportSpectraModule.class);;
 
     // Run task.
     if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
-      MZmineCore.getTaskController().addTask(new ExportSpectraTask(scan, parameters));
+      MZmineCore.getTaskController().addTask(new ExportSpectraTask(scans, parameters));
     }
   }
 
@@ -63,4 +66,5 @@ public class ExportSpectraModule implements MZmineModule {
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
     return ExportSpectraParameters.class;
   }
+
 }

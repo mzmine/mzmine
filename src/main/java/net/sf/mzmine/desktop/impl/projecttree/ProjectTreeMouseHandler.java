@@ -49,6 +49,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualiz
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.export.ExportSpectraModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -91,6 +92,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
     scanPopupMenu = new JPopupMenu();
 
     GUIUtils.addMenuItem(scanPopupMenu, "Show scan", this, "SHOW_SCAN");
+
+    GUIUtils.addMenuItem(scanPopupMenu, "Export scan", this, "EXPORT_SCAN");
 
     massListPopupMenu = new JPopupMenu();
 
@@ -231,6 +234,11 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       for (Scan scan : selectedScans) {
         SpectraVisualizerModule.showNewSpectrumWindow(scan.getDataFile(), scan.getScanNumber());
       }
+    }
+
+    if (command.equals("EXPORT_SCAN")) {
+      Scan selectedScans[] = tree.getSelectedObjects(Scan.class);
+      ExportSpectraModule.showSetupDialog(selectedScans);
     }
 
     if (command.equals("SHOW_MASSLIST")) {

@@ -50,7 +50,7 @@ public class ExportSpectraTask extends AbstractTask {
   private static final Logger LOG = Logger.getLogger(ExportSpectraTask.class.getName());
 
   private final File exportFile;
-  private final Scan scan;
+  private final Scan[] scans;
   private final String extension;
 
   private int progress;
@@ -60,10 +60,10 @@ public class ExportSpectraTask extends AbstractTask {
 
   private String massListName;
 
-  public ExportSpectraTask(Scan scan, ParameterSet parameters) {
+  public ExportSpectraTask(Scan[] scans, ParameterSet parameters) {
     progress = 0;
     progressMax = 0;
-    this.scan = scan;
+    this.scans = scans;
     useMassList = parameters.getParameter(ExportSpectraParameters.masslist).getValue();
     massListName =
         parameters.getParameter(ExportSpectraParameters.masslist).getEmbeddedParameter().getValue();
@@ -75,7 +75,13 @@ public class ExportSpectraTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting spectrum # " + scan.getScanNumber() + " for " + scan.getDataFile().getName();
+    if (scans == null)
+      return "";
+    if (scans.length == 1)
+      return "Exporting spectrum # " + scans[0].getScanNumber() + " for "
+          + scans[0].getDataFile().getName();
+    else
+      return "Exporting " + scans.length + " spectra";
   }
 
   @Override
@@ -100,8 +106,7 @@ public class ExportSpectraTask extends AbstractTask {
         exportText();
       }
       // Success
-      LOG.info(
-          "Exported spectrum # " + scan.getScanNumber() + " for " + scan.getDataFile().getName());
+      LOG.info("Export of spectra finished");
 
       setStatus(TaskStatus.FINISHED);
 
@@ -123,63 +128,66 @@ public class ExportSpectraTask extends AbstractTask {
     // Open the writer - append data if file already exists
     final BufferedWriter writer = new BufferedWriter(new FileWriter(exportFile, true));
     try {
-      // Write Header row
-      switch (extension) {
-        case "txt":
-          writer.write(
-              "Name: Scan#: " + scan.getScanNumber() + ", RT: " + scan.getRetentionTime() + " min");
-          writer.newLine();
-          break;
-        case "mgf":
-          writer.write("BEGIN IONS");
-          writer.newLine();
-          writer.write("PEPMASS=" + scan.getPrecursorMZ());
-          writer.newLine();
-          writer.write("CHARGE=" + scan.getPrecursorCharge());
-          writer.newLine();
-          writer.write("Title: Scan#: " + scan.getScanNumber() + ", RT: " + scan.getRetentionTime()
-              + " min");
-          writer.newLine();
-          writer.newLine();
-          break;
-        case "msp":
-          break;
-      }
+      for (Scan scan : scans) {
+        LOG.info("Exporting scan #" + scan.getScanNumber() + " of raw file: "
+            + scan.getDataFile().getName());
+        // Write Header row
+        switch (extension) {
+          case "txt":
+            writer.write("Name: Scan#: " + scan.getScanNumber() + ", RT: " + scan.getRetentionTime()
+                + " min");
+            writer.newLine();
+            break;
+          case "mgf":
+            writer.write("BEGIN IONS");
+            writer.newLine();
+            writer.write("PEPMASS=" + scan.getPrecursorMZ());
+            writer.newLine();
+            writer.write("CHARGE=" + scan.getPrecursorCharge());
+            writer.newLine();
+            writer.write("MSLEVEL=" + scan.getMSLevel());
+            writer.newLine();
+            writer.write("Title: Scan#: " + scan.getScanNumber() + ", RT: "
+                + scan.getRetentionTime() + " min");
+            writer.newLine();
+            break;
+          case "msp":
+            break;
+        }
 
-      // Write the data points
-      DataPoint[] dataPoints = null;
-      if (useMassList && massListName != null) {
-        MassList list = scan.getMassList(massListName);
-        if (list != null)
-          dataPoints = list.getDataPoints();
-      }
-      if (dataPoints == null)
-        dataPoints = scan.getDataPoints();
+        // Write the data points
+        DataPoint[] dataPoints = null;
+        if (useMassList && massListName != null) {
+          MassList list = scan.getMassList(massListName);
+          if (list != null)
+            dataPoints = list.getDataPoints();
+        }
+        if (dataPoints == null)
+          dataPoints = scan.getDataPoints();
 
-      final int itemCount = dataPoints.length;
-      progressMax = itemCount;
+        final int itemCount = dataPoints.length;
+        progressMax = itemCount;
 
-      for (int i = 0; i < itemCount; i++) {
+        for (int i = 0; i < itemCount; i++) {
 
-        // Write data point row
-        writer.write(dataPoints[i].getMZ() + " " + dataPoints[i].getIntensity());
+          // Write data point row
+          writer.write(dataPoints[i].getMZ() + " " + dataPoints[i].getIntensity());
+          writer.newLine();
+
+          progress = i + 1;
+        }
+
+        // Write footer row
+        if (extension.equals("mgf")) {
+          writer.write("END IONS");
+          writer.newLine();
+        }
+
         writer.newLine();
-
-        progress = i + 1;
       }
-
-      // Write footer row
-      if (extension.equals("mgf")) {
-        writer.newLine();
-        writer.write("END IONS");
-        writer.newLine();
-      }
-
-      writer.newLine();
     } catch (Exception e) {
       throw (new IOException(e));
     } finally {
-
       // Close
       writer.close();
     }
@@ -196,9 +204,10 @@ public class ExportSpectraTask extends AbstractTask {
     // Initialize objects
     SimpleRawDataFile msdkRawFile =
         new SimpleRawDataFile("MZmine 2 mzML export", Optional.empty(), FileType.MZML);
-    MsScan MSDKscan = new MZmineToMSDKMsScan(scan);
-    msdkRawFile.addScan(MSDKscan);
-
+    for (Scan scan : scans) {
+      MsScan MSDKscan = new MZmineToMSDKMsScan(scan);
+      msdkRawFile.addScan(MSDKscan);
+    }
     // Actually write to disk
     MzMLFileExportMethod method = new MzMLFileExportMethod(msdkRawFile, exportFile,
         MzMLCompressionType.ZLIB, MzMLCompressionType.ZLIB);
