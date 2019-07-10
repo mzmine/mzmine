@@ -17,7 +17,9 @@
  */
 package net.sf.mzmine.modules.visualization.fx3d;
 
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.controlsfx.glyphfont.Glyph;
@@ -27,7 +29,6 @@ import com.google.common.collect.Range;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -40,11 +41,10 @@ import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
@@ -57,14 +57,17 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
-import javafx.util.Callback;
+import javafx.stage.Stage;
 import javafx.util.Duration;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.util.components.ButtonCell;
 import net.sf.mzmine.util.components.ColorTableCell;
 import net.sf.mzmine.util.components.SliderCell;
 
 public class Fx3DStageController {
 
+    @FXML
+    private Stage stage;
     @FXML
     private HBox hBox;
     @FXML
@@ -74,9 +77,15 @@ public class Fx3DStageController {
     @FXML
     Region rightRegion;
     @FXML
+    private Menu addMenu;
+    @FXML
+    private Menu removeMenu;
+    @FXML
     private BorderPane root;
     @FXML
     private Group subSceneRootNode;
+    @FXML
+    private SubScene scene3D;
     private Fx3DAxes axes = new Fx3DAxes();
     @FXML
     private ToggleButton animateBtn;
@@ -114,13 +123,14 @@ public class Fx3DStageController {
 
     private double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
-    private ObservableList<Fx3DRawDataFileDataset> meshPlots = FXCollections
+    private ObservableList<Fx3DRawDataFileDataset> visualizedMeshPlots = FXCollections
             .observableArrayList();
-    private ObservableList<Fx3DRawDataFileDataset> removedItems = FXCollections
+    private ObservableList<Fx3DRawDataFileDataset> remainingMeshPlots = FXCollections
             .observableArrayList();
     private ObservableList<MeshView> meshViewList = FXCollections
             .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
+    private List<RawDataFile> currentDataFiles;
 
     private Timeline rotateAnimationTimeline;
     boolean animationRunning = false;
@@ -130,8 +140,6 @@ public class Fx3DStageController {
     public Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
     public Rotate yRotateDelta = new Rotate();
     double deltaAngle;
-    private int totalFiles;
-    private int fileCount = 0;
     private PointLight top;
     private PointLight bottom;
     private PointLight left;
@@ -147,9 +155,9 @@ public class Fx3DStageController {
         translateX.setX(170);
         finalNode.getTransforms().addAll(translateX, translateY);
         finalNode.getChildren().add(plot);
-
+        HBox.setHgrow(leftRegion, Priority.ALWAYS);
+        HBox.setHgrow(rightRegion, Priority.ALWAYS);
         plot.getChildren().add(axes);
-
         colorCol.setCellFactory(
                 column -> new ColorTableCell<Fx3DRawDataFileDataset>(column));
         double minValue = 0;
@@ -172,59 +180,8 @@ public class Fx3DStageController {
                         new KeyValue(yRotate.angleProperty(), 0)));
         rotateAnimationTimeline.setCycleCount(Timeline.INDEFINITE);
 
-        tableView.setItems(meshPlots);
-        tableView.setRowFactory(
-                new Callback<TableView<Fx3DRawDataFileDataset>, TableRow<Fx3DRawDataFileDataset>>() {
-                    @Override
-                    public TableRow<Fx3DRawDataFileDataset> call(
-                            TableView<Fx3DRawDataFileDataset> tableView) {
-                        final TableRow<Fx3DRawDataFileDataset> row = new TableRow<>();
-                        final ContextMenu contextMenu = new ContextMenu();
-                        final MenuItem removeMenuItem = new MenuItem("Remove");
-                        final MenuItem addMenuItem = new MenuItem("Add");
-                        addMenuItem
-                                .setOnAction(new EventHandler<ActionEvent>() {
-                                    @Override
-                                    public void handle(ActionEvent event) {
-                                        if (!removedItems.isEmpty()) {
-                                            int lastIndex = removedItems.size()
-                                                    - 1;
-                                            tableView.getItems()
-                                                    .add(removedItems
-                                                            .get(lastIndex));
-                                            meshViews.getChildren()
-                                                    .add(removedItems
-                                                            .get(lastIndex)
-                                                            .getMeshView());
-                                            removedItems.remove(removedItems
-                                                    .get(lastIndex));
-                                        }
-                                    }
-
-                                });
-                        removeMenuItem
-                                .setOnAction(new EventHandler<ActionEvent>() {
-                                    @Override
-                                    public void handle(ActionEvent event) {
-                                        removedItems.add(row.getItem());
-                                        tableView.getItems()
-                                                .remove(row.getItem());
-                                        int lastIndex = removedItems.size() - 1;
-                                        meshViews.getChildren()
-                                                .remove(removedItems
-                                                        .get(lastIndex)
-                                                        .getMeshView());
-                                    }
-                                });
-                        contextMenu.getItems().addAll(addMenuItem,
-                                removeMenuItem);
-                        row.contextMenuProperty()
-                                .bind(Bindings.when(row.emptyProperty())
-                                        .then((ContextMenu) null)
-                                        .otherwise(contextMenu));
-                        return row;
-                    }
-                });
+        tableView.setItems(visualizedMeshPlots);
+        plot.getChildren().add(meshViews);
 
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
@@ -263,30 +220,57 @@ public class Fx3DStageController {
     }
 
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
-        fileCount++;
-        meshPlots.add((Fx3DRawDataFileDataset) dataset);
-        if (maxOfAllBinnedIntensity < ((Fx3DRawDataFileDataset) dataset)
-                .getMaxBinnedIntensity()) {
-            maxOfAllBinnedIntensity = ((Fx3DRawDataFileDataset) dataset)
-                    .getMaxBinnedIntensity();
+        if (currentDataFiles.contains(dataset.getDataFile())) {
+            visualizedMeshPlots.add((Fx3DRawDataFileDataset) dataset);
+        } else {
+            remainingMeshPlots.add((Fx3DRawDataFileDataset) dataset);
         }
-        if (fileCount == totalFiles) {
-            addColorListener();
-            addOpacityListener();
-            for (Fx3DRawDataFileDataset mesh : meshPlots) {
-                mesh.normalize(maxOfAllBinnedIntensity);
-                meshViewList.add(mesh.getMeshView());
+        maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
+        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
+            if (maxOfAllBinnedIntensity < ((Fx3DRawDataFileDataset) mesh)
+                    .getMaxBinnedIntensity()) {
+                maxOfAllBinnedIntensity = ((Fx3DRawDataFileDataset) mesh)
+                        .getMaxBinnedIntensity();
             }
-            axes.setValues(rtRange, mzRange, maxOfAllBinnedIntensity);
-            meshViews.getChildren().addAll(meshViewList);
-            plot.getChildren().add(meshViews);
-            LOG.finest("Number of plot meshes:" + meshViewList.size());
-            LOG.finest("Number of datasets sampled:" + meshPlots.size());
         }
+        axes.updateAxisParameters(rtRange, mzRange, maxOfAllBinnedIntensity);
+        meshViewList.clear();
+        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
+            mesh.normalize(maxOfAllBinnedIntensity);
+            meshViewList.add(mesh.getMeshView());
+        }
+        meshViews.getChildren().clear();
+        meshViews.getChildren().addAll(meshViewList);
+        addMenuItems();
+        addColorListener();
+        addOpacityListener();
+        updateLabel();
+    }
+
+    private void updateGraph() {
+        maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
+        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
+            if (maxOfAllBinnedIntensity < ((Fx3DRawDataFileDataset) mesh)
+                    .getMaxBinnedIntensity()) {
+                maxOfAllBinnedIntensity = ((Fx3DRawDataFileDataset) mesh)
+                        .getMaxBinnedIntensity();
+            }
+        }
+        axes.updateAxisParameters(rtRange, mzRange, maxOfAllBinnedIntensity);
+        meshViewList.clear();
+        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
+            mesh.normalize(maxOfAllBinnedIntensity);
+            meshViewList.add(mesh.getMeshView());
+        }
+        meshViews.getChildren().clear();
+        meshViews.getChildren().addAll(meshViewList);
+        addColorListener();
+        addOpacityListener();
+        updateLabel();
     }
 
     private void addColorListener() {
-        for (Fx3DRawDataFileDataset mesh : meshPlots) {
+        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
             colorCol.getCellObservableValue(mesh)
                     .addListener((e, oldValue, newValue) -> {
                         int red = (int) (newValue.getRed() * 255);
@@ -301,7 +285,7 @@ public class Fx3DStageController {
     }
 
     private void addOpacityListener() {
-        for (Fx3DRawDataFileDataset mesh : meshPlots) {
+        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
             opacityCol.getCellObservableValue(mesh)
                     .addListener((e, oldValue, newValue) -> {
                         Color color = mesh.getColor();
@@ -326,15 +310,55 @@ public class Fx3DStageController {
         }
     }
 
+    private void addMenuItems() {
+        removeMenu.getItems().clear();
+        for (Fx3DRawDataFileDataset dataset : visualizedMeshPlots) {
+            MenuItem menuItem = new MenuItem(dataset.getFileName());
+            removeMenu.getItems().add(menuItem);
+            menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent e) {
+                    remainingMeshPlots.add(dataset);
+                    visualizedMeshPlots.remove(dataset);
+                    updateGraph();
+                    addMenuItems();
+                }
+            });
+        }
+        addMenu.getItems().clear();
+        for (Fx3DRawDataFileDataset dataset : remainingMeshPlots) {
+            MenuItem menuItem = new MenuItem(dataset.getFileName());
+            addMenu.getItems().add(menuItem);
+            menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent e) {
+                    remainingMeshPlots.remove(dataset);
+                    visualizedMeshPlots.add(dataset);
+                    updateGraph();
+                    addMenuItems();
+                }
+            });
+        }
+    }
+
     public void setRtMzValues(Range<Double> rt, Range<Double> mz) {
         this.rtRange = rt;
         this.mzRange = mz;
     }
 
-    public void setLabel(String labelText) {
-        HBox.setHgrow(leftRegion, Priority.ALWAYS);
-        HBox.setHgrow(rightRegion, Priority.ALWAYS);
-        label.setText(labelText);
+    private void updateLabel() {
+        String title = "";
+        for (Fx3DRawDataFileDataset dataset : visualizedMeshPlots) {
+            title = title + dataset.getFileName() + " ";
+        }
+        stage.setTitle(title);
+        title = "3D plot of files [" + title + "], "
+                + mzRange.lowerEndpoint().toString() + "-"
+                + mzRange.upperEndpoint().toString() + " m/z, RT "
+                + (float) (Math.round(rtRange.lowerEndpoint() * 100.0) / 100.0)
+                + "-"
+                + (float) (Math.round(rtRange.upperEndpoint() * 100.0) / 100.0)
+                + " min";
+
+        label.setText(title);
         label.setTextFill(Color.WHITE);
     }
 
@@ -358,6 +382,7 @@ public class Fx3DStageController {
         if (me.isSecondaryButtonDown()) {
             translateX.setX(translateX.getX() + (mousePosX - mouseOldX));
             translateY.setY(translateY.getY() + (mousePosY - mouseOldY));
+
         }
         mouseOldX = mousePosX;
         mouseOldY = mousePosY;
@@ -495,8 +520,8 @@ public class Fx3DStageController {
         return value;
     }
 
-    public void setTotalFiles(int noOfFiles) {
-        totalFiles = noOfFiles;
+    public void setCurrentDataFiles(RawDataFile[] dataFiles) {
+        this.currentDataFiles = Arrays.asList(dataFiles);
     }
 
     public Fx3DAxes getAxes() {

@@ -23,20 +23,27 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.paint.Color;
+import net.sf.mzmine.datamodel.RawDataFile;
 
 abstract class Fx3DAbstractDataset {
 
+    private RawDataFile dataFile;
     private SimpleStringProperty fileName = new SimpleStringProperty("");
     private ObjectProperty<Color> color = new SimpleObjectProperty<>(this,
             "color");
     private SimpleDoubleProperty opacity = new SimpleDoubleProperty();
     private SimpleBooleanProperty visibility = new SimpleBooleanProperty();
 
-    Fx3DAbstractDataset(String fileName, Color color) {
+    Fx3DAbstractDataset(RawDataFile dataFile, String fileName, Color color) {
+        this.dataFile = dataFile;
         this.fileName.set(fileName);
         this.color.set(color);
         this.opacity.set(1.0);
         this.visibility.set(true);
+    }
+
+    public RawDataFile getDataFile() {
+        return this.dataFile;
     }
 
     public String getFileName() {

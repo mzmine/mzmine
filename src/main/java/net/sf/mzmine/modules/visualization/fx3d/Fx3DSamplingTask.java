@@ -18,7 +18,6 @@
 
 package net.sf.mzmine.modules.visualization.fx3d;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import com.google.common.collect.Range;
@@ -58,7 +57,9 @@ class Fx3DSamplingTask extends AbstractTask {
     private double maxBinnedIntensity;
 
     private Fx3DStageController controller;
-    private ArrayList<Color> colors = new ArrayList<Color>();
+    private static final Color[] PEAK_COLORS = { Color.BLUE, Color.GREEN,
+            Color.RED, Color.YELLOW, Color.DARKORANGE, Color.CYAN,
+            Color.FUCHSIA, Color.GOLD };
     private int index;
 
     /**
@@ -80,14 +81,6 @@ class Fx3DSamplingTask extends AbstractTask {
         this.mzResolution = mzResolution;
         this.controller = controller;
         this.index = index;
-        colors.add(Color.BLUE);
-        colors.add(Color.GREEN);
-        colors.add(Color.RED);
-        colors.add(Color.YELLOW);
-        colors.add(Color.DARKORANGE);
-        colors.add(Color.CYAN);
-        colors.add(Color.FUCHSIA);
-        colors.add(Color.GOLD);
     }
 
     /**
@@ -227,9 +220,9 @@ class Fx3DSamplingTask extends AbstractTask {
                 }
             }
             Fx3DRawDataFileDataset plotMesh = new Fx3DRawDataFileDataset(
-                    finalIntensityValues, rtResolution, mzResolution,
+                    dataFile, finalIntensityValues, rtResolution, mzResolution,
                     maxBinnedIntensity, dataFile.toString(),
-                    colors.get(index % 8));
+                    PEAK_COLORS[index % 8]);
 
             Platform.runLater(() -> {
                 controller.addDataset(plotMesh);

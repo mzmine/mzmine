@@ -29,6 +29,7 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
+import net.sf.mzmine.datamodel.RawDataFile;
 
 public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
 
@@ -45,10 +46,10 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
     private double maxBinnedIntensity;
     private float maxIntensityValue = Float.NEGATIVE_INFINITY;
 
-    public Fx3DRawDataFileDataset(float[][] intensityValues, int rtResolution,
-            int mzResolution, double maxBinnedIntensity, String fileName,
-            Color peakColor) {
-        super(fileName, peakColor);
+    public Fx3DRawDataFileDataset(RawDataFile dataFile,
+            float[][] intensityValues, int rtResolution, int mzResolution,
+            double maxBinnedIntensity, String fileName, Color peakColor) {
+        super(dataFile, fileName, peakColor);
         this.intensityValues = intensityValues;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
@@ -163,7 +164,6 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         float factorZ = (float) SIZE / mzResolution;
         float factorY = (float) ((float) maxBinnedIntensity
                 / maxOfAllBinnedIntensities);
-        LOG.finest("Normalization factor for max intensity:" + factorY);
         mesh.getPoints().clear();
         for (int x = 0; x < rtResolution; x++) {
             for (int z = 0; z < mzResolution; z++) {

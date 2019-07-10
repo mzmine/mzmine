@@ -31,8 +31,6 @@ import com.google.common.collect.Range;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -70,16 +68,18 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     public ExitCode runModule(@Nonnull MZmineProject project,
             @Nonnull ParameterSet parameters, @Nonnull Collection<Task> tasks) {
 
-        final RawDataFile[] dataFiles = parameters
+        final RawDataFile[] currentDataFiles = parameters
                 .getParameter(Fx3DVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
+        final RawDataFile[] allDataFiles = MZmineCore.getProjectManager()
+                .getCurrentProject().getDataFiles();
         final ScanSelection scanSel = parameters
                 .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
-        int len = dataFiles.length;
+        int len = currentDataFiles.length;
         LOG.finest("Number of datafiles to be plotted:" + len);
         Range<Double> rtRange = ScanUtils
-                .findRtRange(scanSel.getMatchingScans(dataFiles[0]));
+                .findRtRange(scanSel.getMatchingScans(allDataFiles[0]));
 
         ParameterSet myParameters = MZmineCore.getConfiguration()
                 .getModuleParameters(Fx3DVisualizerModule.class);
@@ -100,42 +100,29 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             }
             FXMLLoader loader = new FXMLLoader(
                     (getClass().getResource("Fx3DStage.fxml")));
-            Parent nodeFromFXML = null;
+            Stage stage = null;
             try {
-                nodeFromFXML = loader.load();
+                stage = loader.load();
                 LOG.finest(
-                        "Node has been successfully loaded from the FXML loader.");
+                        "Stage has been successfully loaded from the FXML loader.");
             } catch (IOException e) {
                 e.printStackTrace();
                 return;
             }
             String title = "";
             Fx3DStageController controller = loader.getController();
-            controller.setTotalFiles(len);
+            controller.setCurrentDataFiles(currentDataFiles);
             controller.setRtMzValues(rtRange, mzRange);
-            for (int i = 0; i < dataFiles.length; i++) {
+            for (int i = 0; i < allDataFiles.length; i++) {
                 MZmineCore.getTaskController().addTask(
-                        new Fx3DSamplingTask(dataFiles[i], scanSel, mzRange,
+                        new Fx3DSamplingTask(allDataFiles[i], scanSel, mzRange,
                                 rtRes, mzRes, controller, i),
                         TaskPriority.HIGH);
-                title = title + dataFiles[i].toString() + " ";
-            }
-            controller
-                    .setLabel("3D plot of files [" + title + "], "
-                            + mzRange.lowerEndpoint().toString() + "-"
-                            + mzRange.upperEndpoint().toString() + " m/z, RT "
-                            + (float) (Math.round(
-                                    rtRange.lowerEndpoint() * 100.0) / 100.0)
-                            + "-"
-                            + (float) (Math.round(
-                                    rtRange.upperEndpoint() * 100.0) / 100.0)
-                            + " min");
-            Stage stage = new Stage();
-            Scene scene = new Scene(nodeFromFXML, 800, 600);
 
-            stage.setScene(scene);
-            stage.sizeToScene();
-            stage.setTitle(title);
+            }
+            for (int i = 0; i < currentDataFiles.length; i++) {
+                title = title + currentDataFiles[i].toString() + " ";
+            }
             stage.show();
             stage.setMinWidth(stage.getWidth());
             stage.setMinHeight(stage.getHeight());

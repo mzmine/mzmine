@@ -159,6 +159,12 @@ public class Fx3DAxes extends Group {
         this.getChildren().add(lineY);
     }
 
+    public void updateAxisParameters(Range<Double> rtRange,
+            Range<Double> mzRange, double maxBinnedIntensity) {
+        this.getChildren().clear();
+        setValues(rtRange, mzRange, maxBinnedIntensity);
+    }
+
     public Rotate getRotateY() {
         return rotateY;
     }
