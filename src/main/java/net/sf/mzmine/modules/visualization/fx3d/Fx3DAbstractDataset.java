@@ -62,7 +62,7 @@ abstract class Fx3DAbstractDataset {
         return color;
     }
 
-    public double getOpacity() {
+    public Double getOpacity() {
         return opacity.get();
     }
 

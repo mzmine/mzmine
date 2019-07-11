@@ -127,7 +127,6 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         meshView.setDrawMode(DrawMode.FILL);
         meshView.setDepthTest(DepthTest.ENABLE);
         LOG.finest("Plot mesh is ready.");
-        this.visibilityProperty().bindBidirectional(meshView.visibleProperty());
     }
 
     public void setPeakColor(Color peakColor) {

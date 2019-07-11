@@ -40,7 +40,7 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.PointLight;
-import javafx.scene.SceneAntialiasing;
+import javafx.scene.Scene;
 import javafx.scene.SubScene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -73,6 +73,8 @@ public class Fx3DStageController {
     @FXML
     private Stage stage;
     @FXML
+    private Scene scene;
+    @FXML
     private HBox hBox;
     @FXML
     Region leftRegion;
@@ -81,6 +83,8 @@ public class Fx3DStageController {
     @FXML
     Region rightRegion;
     @FXML
+    private SubScene scene3D;
+    @FXML
     private Menu addMenu;
     @FXML
     private Menu removeMenu;
@@ -88,8 +92,6 @@ public class Fx3DStageController {
     private BorderPane root;
     @FXML
     private Group subSceneRootNode;
-    @FXML
-    private SubScene scene3D;
     private Fx3DAxes axes = new Fx3DAxes();
     @FXML
     private ToggleButton animateBtn;
@@ -107,8 +109,8 @@ public class Fx3DStageController {
     private TableColumn<Fx3DRawDataFileDataset, Double> opacityCol;
     @FXML
     private TableColumn<Fx3DRawDataFileDataset, Boolean> visibilityCol;
-
-    private Group finalNode = new Group();
+    @FXML
+    private Group finalNode;
     private Group plot = new Group();
     private Group meshViews = new Group();
     private static final int SIZE = 500;
@@ -157,7 +159,7 @@ public class Fx3DStageController {
         rotateY.setPivotZ(SIZE / 2);
         rotateY.setPivotX(SIZE / 2);
         plot.getTransforms().addAll(rotateX, rotateY);
-        translateY.setY(350);
+        translateY.setY(250);
         translateX.setX(170);
         finalNode.getTransforms().addAll(translateX, translateY);
         finalNode.getChildren().add(plot);
@@ -191,13 +193,10 @@ public class Fx3DStageController {
         allDataFiles = Arrays.asList(MZmineCore.getProjectManager()
                 .getCurrentProject().getDataFiles());
 
-        SubScene scene3D = new SubScene(finalNode, 800, 600, true,
-                SceneAntialiasing.BALANCED);
         scene3D.widthProperty().bind(root.widthProperty());
         scene3D.heightProperty().bind(root.heightProperty());
         scene3D.setCamera(camera);
         scene3D.setPickOnBounds(true);
-        subSceneRootNode.getChildren().add(scene3D);
     }
 
     private void addLights() {
@@ -247,8 +246,11 @@ public class Fx3DStageController {
         meshViews.getChildren().clear();
         meshViews.getChildren().addAll(meshViewList);
         addMenuItems();
-        addColorListener();
-        addOpacityListener();
+        addColorListener((Fx3DRawDataFileDataset) dataset);
+        addOpacityListener((Fx3DRawDataFileDataset) dataset);
+        dataset.visibilityProperty()
+                .bindBidirectional(((Fx3DRawDataFileDataset) dataset)
+                        .getMeshView().visibleProperty());
         updateLabel();
     }
 
@@ -269,41 +271,34 @@ public class Fx3DStageController {
         }
         meshViews.getChildren().clear();
         meshViews.getChildren().addAll(meshViewList);
-        addColorListener();
-        addOpacityListener();
         updateLabel();
     }
 
-    private void addColorListener() {
-        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
-            colorCol.getCellObservableValue(mesh)
-                    .addListener((e, oldValue, newValue) -> {
-                        int red = (int) (newValue.getRed() * 255);
-                        int green = (int) (newValue.getGreen() * 255);
-                        int blue = (int) (newValue.getBlue() * 255);
-                        mesh.setPeakColor(Color.rgb(red, green, blue,
-                                (double) mesh.opacityProperty().get()));
-                        mesh.getMeshView().setOpacity(
-                                (double) mesh.opacityProperty().get());
-                    });
-        }
+    private void addColorListener(Fx3DRawDataFileDataset dataset) {
+        dataset.colorProperty().addListener((e, oldValue, newValue) -> {
+            int red = (int) (newValue.getRed() * 255);
+            int green = (int) (newValue.getGreen() * 255);
+            int blue = (int) (newValue.getBlue() * 255);
+            dataset.setPeakColor(Color.rgb(red, green, blue,
+                    (double) dataset.opacityProperty().get()));
+            dataset.getMeshView()
+                    .setOpacity((double) dataset.opacityProperty().get());
+            LOG.finest("Color is changed from " + oldValue + " to " + newValue
+                    + " for the dataset " + dataset.getFileName());
+        });
     }
 
-    private void addOpacityListener() {
-        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
-            opacityCol.getCellObservableValue(mesh)
-                    .addListener((e, oldValue, newValue) -> {
-                        Color color = mesh.getColor();
-                        int red = (int) (color.getRed() * 255);
-                        int green = (int) (color.getGreen() * 255);
-                        int blue = (int) (color.getBlue() * 255);
-                        mesh.setOpacity(newValue);
-                        mesh.setColor(
-                                Color.rgb(red, green, blue, (double) newValue));
-                        FXCollections.sort(meshViews.getChildren(),
-                                new SortByOpacity());
-                    });
-        }
+    private void addOpacityListener(Fx3DRawDataFileDataset dataset) {
+        dataset.opacityProperty().addListener((e, oldValue, newValue) -> {
+            Color color = dataset.getColor();
+            int red = (int) (color.getRed() * 255);
+            int green = (int) (color.getGreen() * 255);
+            int blue = (int) (color.getBlue() * 255);
+            dataset.setOpacity((double) newValue);
+            dataset.setColor(Color.rgb(red, green, blue, (double) newValue));
+            FXCollections.sort(meshViews.getChildren(), new SortByOpacity());
+        });
+
     }
 
     class SortByOpacity implements Comparator<Node> {
@@ -322,6 +317,10 @@ public class Fx3DStageController {
             removeMenu.getItems().add(menuItem);
             menuItem.setOnAction(new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent e) {
+                    LOG.finest(
+                            "Context menu invoked. Remove button clicked. Removing dataset "
+                                    + dataset.getFileName()
+                                    + " from the plot.");
                     remainingMeshPlots.add(dataset);
                     visualizedFiles.remove(dataset.getDataFile());
                     visualizedMeshPlots.remove(dataset);
@@ -337,6 +336,9 @@ public class Fx3DStageController {
                 addMenu.getItems().add(menuItem);
                 menuItem.setOnAction(new EventHandler<ActionEvent>() {
                     public void handle(ActionEvent e) {
+                        LOG.finest(
+                                "Context menu invoked. Add button clicked. Adding dataset "
+                                        + file.getName() + " to the plot.");
                         MZmineCore.getTaskController().addTask(
                                 new Fx3DSamplingTask(file, scanSel, mzRange,
                                         rtResolution, mzResolution, controller),
@@ -399,12 +401,14 @@ public class Fx3DStageController {
                     new Translate(-250, 0, -250));
             rotateAnimationTimeline.play();
             animationRunning = true;
+            LOG.finest("ANIMATE button clicked.Starting animation.");
         } else {
             plot.getTransforms().remove(yRotate);
             rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
             deltaAngle = yRotate.getAngle();
             rotateAnimationTimeline.stop();
             animationRunning = false;
+            LOG.finest("ANIMATE button clicked.Stopping animation.");
         }
     }
 
@@ -433,7 +437,7 @@ public class Fx3DStageController {
                         new KeyValue(translateY.yProperty(),
                                 translateY.getY())),
                 new KeyFrame(Duration.seconds(1.5), new KeyValue(
-                        translateY.yProperty(), root.getHeight() / 2)));
+                        translateY.yProperty(), root.getHeight() / 3)));
         resetTranslateYTimeline.play();
 
         Timeline resetRotateXTimeline = new Timeline(
@@ -480,8 +484,10 @@ public class Fx3DStageController {
     public void handleAxis(Event event) {
         if (axes.isVisible()) {
             axes.setVisible(false);
+            LOG.finest("Axes ON/OFF button clicked.Setting axes to invisible.");
         } else {
             axes.setVisible(true);
+            LOG.finest("Axes ON/OFF button clicked.Setting axes to visible.");
         }
     }
 
@@ -489,9 +495,11 @@ public class Fx3DStageController {
         if (lightsBtn.isSelected()) {
             left.setLightOn(true);
             right.setLightOn(true);
+            LOG.finest("Lights ON/OFF button clicked.Switching lights ON.");
         } else {
             left.setLightOn(false);
             right.setLightOn(false);
+            LOG.finest("Lights ON/OFF button clicked.Switching lights OFF.");
         }
     }
 
