@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.export;
+package net.sf.mzmine.modules.rawdatamethods.exportscans;
 
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.Scan;
@@ -30,7 +30,7 @@ import net.sf.mzmine.util.ExitCode;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-public class ExportSpectraModule implements MZmineModule {
+public class ExportScansModule implements MZmineModule {
 
   private static final String MODULE_NAME = "Export spectra module";
   private static final String MODULE_DESCRIPTION = "Export spectra to different formats";
@@ -53,18 +53,18 @@ public class ExportSpectraModule implements MZmineModule {
   }
 
   public static void showSetupDialog(Scan[] scans) {
-    final ExportSpectraParameters parameters = (ExportSpectraParameters) MZmineCore
-        .getConfiguration().getModuleParameters(ExportSpectraModule.class);;
+    final ExportScansParameters parameters = (ExportScansParameters) MZmineCore
+        .getConfiguration().getModuleParameters(ExportScansModule.class);;
 
     // Run task.
     if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
-      MZmineCore.getTaskController().addTask(new ExportSpectraTask(scans, parameters));
+      MZmineCore.getTaskController().addTask(new ExportScansTask(scans, parameters));
     }
   }
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return ExportSpectraParameters.class;
+    return ExportScansParameters.class;
   }
 
 }

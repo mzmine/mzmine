@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.export;
+package net.sf.mzmine.modules.rawdatamethods.exportscans;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -44,10 +44,10 @@ import net.sf.mzmine.util.files.FileAndPathUtil;
  * Exports a spectrum to a file.
  *
  */
-public class ExportSpectraTask extends AbstractTask {
+public class ExportScansTask extends AbstractTask {
 
   // Logger
-  private static final Logger LOG = Logger.getLogger(ExportSpectraTask.class.getName());
+  private static final Logger LOG = Logger.getLogger(ExportScansTask.class.getName());
 
   private final File exportFile;
   private final Scan[] scans;
@@ -60,17 +60,17 @@ public class ExportSpectraTask extends AbstractTask {
 
   private String massListName;
 
-  public ExportSpectraTask(Scan[] scans, ParameterSet parameters) {
+  public ExportScansTask(Scan[] scans, ParameterSet parameters) {
     progress = 0;
     progressMax = 0;
     this.scans = scans;
-    useMassList = parameters.getParameter(ExportSpectraParameters.masslist).getValue();
+    useMassList = parameters.getParameter(ExportScansParameters.masslist).getValue();
     massListName =
-        parameters.getParameter(ExportSpectraParameters.masslist).getEmbeddedParameter().getValue();
-    extension = parameters.getParameter(ExportSpectraParameters.formats).getValue().toString();
+        parameters.getParameter(ExportScansParameters.masslist).getEmbeddedParameter().getValue();
+    extension = parameters.getParameter(ExportScansParameters.formats).getValue().toString();
 
     this.exportFile = FileAndPathUtil.getRealFilePath(
-        parameters.getParameter(ExportSpectraParameters.file).getValue(), extension);
+        parameters.getParameter(ExportScansParameters.file).getValue(), extension);
   }
 
   @Override

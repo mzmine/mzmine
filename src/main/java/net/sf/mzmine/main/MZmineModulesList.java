@@ -88,6 +88,8 @@ import net.sf.mzmine.modules.projectmethods.projectclose.ProjectCloseModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaveAsModule;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaveModule;
+import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansFromRawFilesModule;
+import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansModule;
 import net.sf.mzmine.modules.rawdatamethods.extractscans.ExtractScansModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.alignscans.AlignScansModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrectionModule;
@@ -124,7 +126,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.identification.sumformulaprediction.DPPSumFormulaPredictionModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection.DPPMassDetectionModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.export.ExportSpectraModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
@@ -151,8 +152,9 @@ public class MZmineModulesList {
 
       // Raw data methods
       RawDataImportModule.class, RawDataExportModule.class, RawFileMergeModule.class,
-      ExtractScansModule.class, MassDetectionModule.class, ShoulderPeaksFilterModule.class,
-      ChromatogramBuilderModule.class, ADAPChromatogramBuilderModule.class,
+      ExportScansFromRawFilesModule.class, ExtractScansModule.class, MassDetectionModule.class,
+      ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
+      ADAPChromatogramBuilderModule.class,
       // Not ready for prime time: ADAP3DModule.class,
       GridMassModule.class, ManualPeakPickerModule.class, MsMsPeakPickerModule.class,
       ScanFiltersModule.class, CropFilterModule.class, BaselineCorrectionModule.class,
@@ -219,7 +221,7 @@ public class MZmineModulesList {
       SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class,
       CustomDBSpectraSearchModule.class, LipidSpectraSearchModule.class,
       OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
-      ExportSpectraModule.class,
+      ExportScansModule.class,
 
       // Data point processing, implement DataPointProcessingModule
       DataPointProcessingManager.class, DPPMassDetectionModule.class,

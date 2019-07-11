@@ -49,12 +49,12 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.SinglePeakDataSet;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.export.ExportSpectraModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.lipidsearch.LipidSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
@@ -437,7 +437,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     }
 
     if (command.equals("EXPORT_SPECTRA")) {
-      ExportSpectraModule.showSetupDialog(currentScan);
+      ExportScansModule.showSetupDialog(currentScan);
     }
 
     if (command.equals("ADD_ISOTOPE_PATTERN")) {

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.export;
+package net.sf.mzmine.modules.rawdatamethods.exportscans;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -24,9 +24,13 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
-public class ExportSpectraParameters extends SimpleParameterSet {
+public class ExportScansFromRawFilesParameters extends SimpleParameterSet {
 
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+  public static final ScanSelectionParameter scanSelect = new ScanSelectionParameter();
   public static final OptionalParameter<MassListParameter> masslist =
       new OptionalParameter<MassListParameter>(new MassListParameter());
   public static final FileNameParameter file = new FileNameParameter("File", "file destination");
@@ -34,8 +38,8 @@ public class ExportSpectraParameters extends SimpleParameterSet {
       "Export formats. mgf: MASCOT, SIRIUS;  txt: plain text;  mzML: Open standard",
       ScanFormats.values(), ScanFormats.mgf);
 
-  public ExportSpectraParameters() {
-    super(new Parameter[] {file, masslist, formats});
+  public ExportScansFromRawFilesParameters() {
+    super(new Parameter[] {dataFiles, scanSelect, masslist, file, formats});
   }
 
 }

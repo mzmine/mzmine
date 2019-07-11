@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.export;
+package net.sf.mzmine.modules.rawdatamethods.exportscans;
 
 public enum ScanFormats {
   mgf, txt, mzML, msp;

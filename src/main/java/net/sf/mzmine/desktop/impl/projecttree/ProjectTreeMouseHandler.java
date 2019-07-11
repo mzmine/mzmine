@@ -37,6 +37,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParameters;
+import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
 import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
@@ -49,7 +50,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualiz
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.export.ExportSpectraModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
@@ -238,7 +238,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
     if (command.equals("EXPORT_SCAN")) {
       Scan selectedScans[] = tree.getSelectedObjects(Scan.class);
-      ExportSpectraModule.showSetupDialog(selectedScans);
+      ExportScansModule.showSetupDialog(selectedScans);
     }
 
     if (command.equals("SHOW_MASSLIST")) {
