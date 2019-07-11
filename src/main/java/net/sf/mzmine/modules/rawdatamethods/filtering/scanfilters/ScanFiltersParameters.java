@@ -28,6 +28,8 @@ import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelectionParameter;
 
 public class ScanFiltersParameters extends SimpleParameterSet {
 
@@ -35,6 +37,9 @@ public class ScanFiltersParameters extends SimpleParameterSet {
       {new SGFilter(), new MeanFilter(), new ResampleFilter(), new RndResampleFilter()};
 
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+
+  public static final ScanSelectionParameter scanSelect =
+      new ScanSelectionParameter(new ScanSelection(1));
 
   public static final StringParameter suffix =
       new StringParameter("Suffix", "This string is added to filename as suffix", "filtered");
@@ -47,7 +52,7 @@ public class ScanFiltersParameters extends SimpleParameterSet {
           "If checked, original file will be removed and only filtered version remains");
 
   public ScanFiltersParameters() {
-    super(new Parameter[] {dataFiles, suffix, filter, autoRemove});
+    super(new Parameter[] {dataFiles, scanSelect, suffix, filter, autoRemove});
   }
 
 }
