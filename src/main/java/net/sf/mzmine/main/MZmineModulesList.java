@@ -151,8 +151,8 @@ public class MZmineModulesList {
       BatchModeModule.class,
 
       // Raw data methods
-      RawDataImportModule.class, RawDataExportModule.class, RawFileMergeModule.class,
-      ExportScansFromRawFilesModule.class, ExtractScansModule.class, MassDetectionModule.class,
+      RawDataImportModule.class, RawDataExportModule.class, ExportScansFromRawFilesModule.class,
+      RawFileMergeModule.class, ExtractScansModule.class, MassDetectionModule.class,
       ShoulderPeaksFilterModule.class, ChromatogramBuilderModule.class,
       ADAPChromatogramBuilderModule.class,
       // Not ready for prime time: ADAP3DModule.class,
