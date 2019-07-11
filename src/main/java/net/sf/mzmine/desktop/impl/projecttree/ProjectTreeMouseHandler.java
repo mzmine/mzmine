@@ -37,6 +37,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
 import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParameters;
+import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
 import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
 import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
@@ -91,6 +92,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
     scanPopupMenu = new JPopupMenu();
 
     GUIUtils.addMenuItem(scanPopupMenu, "Show scan", this, "SHOW_SCAN");
+
+    GUIUtils.addMenuItem(scanPopupMenu, "Export scan", this, "EXPORT_SCAN");
 
     massListPopupMenu = new JPopupMenu();
 
@@ -231,6 +234,11 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       for (Scan scan : selectedScans) {
         SpectraVisualizerModule.showNewSpectrumWindow(scan.getDataFile(), scan.getScanNumber());
       }
+    }
+
+    if (command.equals("EXPORT_SCAN")) {
+      Scan selectedScans[] = tree.getSelectedObjects(Scan.class);
+      ExportScansModule.showSetupDialog(selectedScans);
     }
 
     if (command.equals("SHOW_MASSLIST")) {

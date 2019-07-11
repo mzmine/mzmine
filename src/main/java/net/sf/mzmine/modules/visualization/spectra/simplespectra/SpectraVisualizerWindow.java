@@ -28,15 +28,10 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
@@ -54,8 +49,8 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.ScanDataSet;
@@ -442,83 +437,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     }
 
     if (command.equals("EXPORT_SPECTRA")) {
-
-      File selectedFile = null;
-      String extension = "";
-
-      JFileChooser fileChooser = new JFileChooser();
-
-      // Remove the accept-all (.*) file filter
-      fileChooser.setAcceptAllFileFilterUsed(false);
-
-      // Add file filters
-      fileChooser.addChoosableFileFilter(
-          new FileNameExtensionFilter("MGF - Mascot Generic Format", "mgf"));
-      fileChooser
-          .addChoosableFileFilter(new FileNameExtensionFilter("MSP - NIST file Format", "msp"));
-      fileChooser
-          .addChoosableFileFilter(new FileNameExtensionFilter("TXT - Plain text Format", "txt"));
-      fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("mzML - mzML Format", "mzML"));
-
-      // Export file chooser
-      do {
-
-        if ((lastExportDirectory != null) && (lastExportDirectory.isDirectory())) {
-          fileChooser.setCurrentDirectory(lastExportDirectory);
-        }
-
-        int result = fileChooser.showSaveDialog(null);
-        if (result != JFileChooser.APPROVE_OPTION)
-          return;
-
-        selectedFile = fileChooser.getSelectedFile();
-        lastExportDirectory = selectedFile.getParentFile();
-
-        String path = selectedFile.getAbsolutePath();
-
-        FileFilter selectedFilter = fileChooser.getFileFilter();
-
-        if (selectedFilter == null) {
-          extension = "mgf";
-        } else {
-          if (selectedFilter.getDescription().contains("MGF")) {
-            extension = "mgf";
-          } else if (selectedFilter.getDescription().contains("TXT")) {
-            extension = "txt";
-          } else if (selectedFilter.getDescription().contains("MSP")) {
-            extension = "msp";
-          } else if (selectedFilter.getDescription().contains("mzML")) {
-            extension = "mzML";
-          }
-        }
-
-        if (!path.toLowerCase().endsWith(extension.toLowerCase())) {
-          path += "." + extension;
-          selectedFile = new File(path);
-        }
-
-        if (selectedFile.exists()) {
-
-          String msg;
-          if (extension.equals("mzML"))
-            msg = "The file already exists. Do you want to overwrite the file?";
-          else
-            msg = "The file already exists. Do you want to append the spectra to the file?";
-
-          int confirmResult = JOptionPane.showConfirmDialog(this, msg, "Existing file",
-              JOptionPane.YES_NO_CANCEL_OPTION);
-
-          if (confirmResult == JOptionPane.NO_OPTION)
-            selectedFile = null;
-
-          if (confirmResult == JOptionPane.CANCEL_OPTION)
-            return;
-
-        }
-      } while (selectedFile == null);
-
-      MZmineCore.getTaskController()
-          .addTask(new ExportSpectraTask(currentScan, selectedFile, extension));
+      ExportScansModule.showSetupDialog(currentScan);
     }
 
     if (command.equals("ADD_ISOTOPE_PATTERN")) {
