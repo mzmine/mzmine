@@ -126,7 +126,16 @@ public class ScanSelection {
 
   public boolean matches(Scan scan) {
     // scan offset was changed
-    int offset = scanNumberRange == null ? 1 : scanNumberRange.lowerEndpoint();
+    int offset;
+    if (scanNumberRange != null)
+      offset = scanNumberRange.lowerEndpoint();
+    else {
+      // first scan number
+      if (scan.getDataFile() != null && scan.getDataFile().getScanNumbers().length > 0)
+        offset = scan.getDataFile().getScanNumbers()[0];
+      else
+        offset = 1;
+    }
     return matches(scan, offset);
   }
 
