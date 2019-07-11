@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.fx3d;
 
+import java.util.Random;
 import java.util.logging.Logger;
 
 import com.google.common.collect.Range;
@@ -50,7 +51,7 @@ class Fx3DSamplingTask extends AbstractTask {
 
     // Data resolution on m/z and retention time axis
     private int rtResolution, mzResolution;
-
+    private Random random = new Random();
     private int retrievedScans = 0;
 
     // maximum value on Z axis
@@ -59,8 +60,9 @@ class Fx3DSamplingTask extends AbstractTask {
     private Fx3DStageController controller;
     private static final Color[] PEAK_COLORS = { Color.BLUE, Color.GREEN,
             Color.RED, Color.YELLOW, Color.DARKORANGE, Color.CYAN,
-            Color.FUCHSIA, Color.GOLD };
-    private int index;
+            Color.FUCHSIA, Color.GOLD, Color.AQUA, Color.BROWN,
+            Color.CHARTREUSE, Color.CRIMSON, Color.DARKBLUE,
+            Color.DARKMAGENTA };
 
     /**
      * Task constructor
@@ -71,7 +73,7 @@ class Fx3DSamplingTask extends AbstractTask {
      */
     Fx3DSamplingTask(RawDataFile dataFile, ScanSelection scanSel,
             Range<Double> mzRange, int rtResolution, int mzResolution,
-            Fx3DStageController controller, int index) {
+            Fx3DStageController controller) {
 
         this.dataFile = dataFile;
         this.scans = scanSel.getMatchingScans(dataFile);
@@ -80,7 +82,6 @@ class Fx3DSamplingTask extends AbstractTask {
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
         this.controller = controller;
-        this.index = index;
     }
 
     /**
@@ -222,7 +223,7 @@ class Fx3DSamplingTask extends AbstractTask {
             Fx3DRawDataFileDataset plotMesh = new Fx3DRawDataFileDataset(
                     dataFile, finalIntensityValues, rtResolution, mzResolution,
                     maxBinnedIntensity, dataFile.toString(),
-                    PEAK_COLORS[index % 8]);
+                    PEAK_COLORS[random.nextInt(14)]);
 
             Platform.runLater(() -> {
                 controller.addDataset(plotMesh);

@@ -17,6 +17,7 @@
  */
 package net.sf.mzmine.modules.visualization.fx3d;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -60,6 +61,9 @@ import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.components.ButtonCell;
 import net.sf.mzmine.util.components.ColorTableCell;
 import net.sf.mzmine.util.components.SliderCell;
@@ -113,7 +117,7 @@ public class Fx3DStageController {
     private final Translate translateX = new Translate();
     private final Translate translateY = new Translate();
     private Logger LOG = Logger.getLogger(this.getClass().getName());
-
+    private int rtResolution, mzResolution;
     private double mousePosX, mousePosY;
     private double mouseOldX, mouseOldY;
 
@@ -130,8 +134,10 @@ public class Fx3DStageController {
     private ObservableList<MeshView> meshViewList = FXCollections
             .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
-    private List<RawDataFile> currentDataFiles;
-
+    private Fx3DStageController controller;
+    private ScanSelection scanSel;
+    private List<RawDataFile> allDataFiles;
+    private List<RawDataFile> visualizedFiles = new ArrayList<RawDataFile>();
     private Timeline rotateAnimationTimeline;
     boolean animationRunning = false;
     private Range<Double> rtRange;
@@ -182,6 +188,8 @@ public class Fx3DStageController {
 
         tableView.setItems(visualizedMeshPlots);
         plot.getChildren().add(meshViews);
+        allDataFiles = Arrays.asList(MZmineCore.getProjectManager()
+                .getCurrentProject().getDataFiles());
 
         SubScene scene3D = new SubScene(finalNode, 800, 600, true,
                 SceneAntialiasing.BALANCED);
@@ -220,11 +228,8 @@ public class Fx3DStageController {
     }
 
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
-        if (currentDataFiles.contains(dataset.getDataFile())) {
-            visualizedMeshPlots.add((Fx3DRawDataFileDataset) dataset);
-        } else {
-            remainingMeshPlots.add((Fx3DRawDataFileDataset) dataset);
-        }
+        visualizedMeshPlots.add((Fx3DRawDataFileDataset) dataset);
+        visualizedFiles.add(dataset.getDataFile());
         maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
         for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
             if (maxOfAllBinnedIntensity < ((Fx3DRawDataFileDataset) mesh)
@@ -318,6 +323,7 @@ public class Fx3DStageController {
             menuItem.setOnAction(new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent e) {
                     remainingMeshPlots.add(dataset);
+                    visualizedFiles.remove(dataset.getDataFile());
                     visualizedMeshPlots.remove(dataset);
                     updateGraph();
                     addMenuItems();
@@ -325,23 +331,21 @@ public class Fx3DStageController {
             });
         }
         addMenu.getItems().clear();
-        for (Fx3DRawDataFileDataset dataset : remainingMeshPlots) {
-            MenuItem menuItem = new MenuItem(dataset.getFileName());
-            addMenu.getItems().add(menuItem);
-            menuItem.setOnAction(new EventHandler<ActionEvent>() {
-                public void handle(ActionEvent e) {
-                    remainingMeshPlots.remove(dataset);
-                    visualizedMeshPlots.add(dataset);
-                    updateGraph();
-                    addMenuItems();
-                }
-            });
+        for (RawDataFile file : allDataFiles) {
+            if (!visualizedFiles.contains(file)) {
+                MenuItem menuItem = new MenuItem(file.getName());
+                addMenu.getItems().add(menuItem);
+                menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                    public void handle(ActionEvent e) {
+                        MZmineCore.getTaskController().addTask(
+                                new Fx3DSamplingTask(file, scanSel, mzRange,
+                                        rtResolution, mzResolution, controller),
+                                TaskPriority.HIGH);
+                        addMenuItems();
+                    }
+                });
+            }
         }
-    }
-
-    public void setRtMzValues(Range<Double> rt, Range<Double> mz) {
-        this.rtRange = rt;
-        this.mzRange = mz;
     }
 
     private void updateLabel() {
@@ -520,8 +524,22 @@ public class Fx3DStageController {
         return value;
     }
 
-    public void setCurrentDataFiles(RawDataFile[] dataFiles) {
-        this.currentDataFiles = Arrays.asList(dataFiles);
+    public void setRtAndMzResolutions(int rtRes, int mzRes) {
+        this.rtResolution = rtRes;
+        this.mzResolution = mzRes;
+    }
+
+    public void setController(Fx3DStageController controller) {
+        this.controller = controller;
+    }
+
+    public void setScanSelection(ScanSelection scanselectn) {
+        this.scanSel = scanselectn;
+    }
+
+    public void setRtMzValues(Range<Double> rt, Range<Double> mz) {
+        this.rtRange = rt;
+        this.mzRange = mz;
     }
 
     public Fx3DAxes getAxes() {

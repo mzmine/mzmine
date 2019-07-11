@@ -71,20 +71,21 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         final RawDataFile[] currentDataFiles = parameters
                 .getParameter(Fx3DVisualizerParameters.dataFiles).getValue()
                 .getMatchingRawDataFiles();
-        final RawDataFile[] allDataFiles = MZmineCore.getProjectManager()
-                .getCurrentProject().getDataFiles();
+
         final ScanSelection scanSel = parameters
                 .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
         int len = currentDataFiles.length;
         LOG.finest("Number of datafiles to be plotted:" + len);
-        Range<Double> rtRange = ScanUtils
-                .findRtRange(scanSel.getMatchingScans(allDataFiles[0]));
+        Range<Double> rtRange = ScanUtils.findRtRange(
+                scanSel.getMatchingScans(MZmineCore.getProjectManager()
+                        .getCurrentProject().getDataFiles()[0]));
 
         ParameterSet myParameters = MZmineCore.getConfiguration()
                 .getModuleParameters(Fx3DVisualizerModule.class);
         Range<Double> mzRange = myParameters
                 .getParameter(Fx3DVisualizerParameters.mzRange).getValue();
+
         int rtRes = myParameters
                 .getParameter(Fx3DVisualizerParameters.rtResolution).getValue();
         int mzRes = myParameters
@@ -111,13 +112,15 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             }
             String title = "";
             Fx3DStageController controller = loader.getController();
-            controller.setCurrentDataFiles(currentDataFiles);
+            controller.setController(controller);
+            controller.setScanSelection(scanSel);
+            controller.setRtAndMzResolutions(rtRes, mzRes);
             controller.setRtMzValues(rtRange, mzRange);
-            for (int i = 0; i < allDataFiles.length; i++) {
-                MZmineCore.getTaskController().addTask(
-                        new Fx3DSamplingTask(allDataFiles[i], scanSel, mzRange,
-                                rtRes, mzRes, controller, i),
-                        TaskPriority.HIGH);
+            for (int i = 0; i < currentDataFiles.length; i++) {
+                MZmineCore.getTaskController()
+                        .addTask(new Fx3DSamplingTask(currentDataFiles[i],
+                                scanSel, mzRange, rtRes, mzRes, controller),
+                                TaskPriority.HIGH);
 
             }
             for (int i = 0; i < currentDataFiles.length; i++) {
