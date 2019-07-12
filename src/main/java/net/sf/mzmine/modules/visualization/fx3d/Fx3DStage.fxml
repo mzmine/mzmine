@@ -30,12 +30,12 @@
 				                  </SubScene>
 				               </children>
 				            </AnchorPane>
-				          <AnchorPane minHeight="0.0" minWidth="0.0">
-				               <children>
+				          <!-- <AnchorPane minHeight="0.0" minWidth="0.0">
+				               <children> -->
 				                  <ScrollPane prefHeight="200.0" fitToWidth="true" fitToHeight="true" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 				                    <content>
-				                      <AnchorPane minHeight="0.0" minWidth="0.0">
-				                           <children>
+				                      <!-- <AnchorPane minHeight="0.0" minWidth="0.0">
+				                           <children> -->
 				                              <TableView fx:id="tableView" prefHeight="600" editable="true" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 										     	<contextMenu>
 											      <ContextMenu>
@@ -69,19 +69,19 @@
 										             			<PropertyValueFactory property="color" />
 										             		</cellValueFactory>
 										             </TableColumn>
-										             <TableColumn fx:id="opacityCol" text="Opacity" editable="true" prefWidth="200" style="-fx-alignment: CENTER">
+										             <TableColumn fx:id="opacityCol" text="Opacity" editable="true" prefWidth="130" style="-fx-alignment: CENTER">
 										             		<cellValueFactory>
 										             			<PropertyValueFactory property="opacity"/>
 										             		</cellValueFactory>
 										             </TableColumn>
 										         </columns>
 										      </TableView>
-				                           </children>
-				                        </AnchorPane>
+				                          <!--  </children>
+				                        </AnchorPane> -->
 				                    </content>
 				                  </ScrollPane>
-				               </children>
-				            </AnchorPane>
+				            <!--    </children>
+				            </AnchorPane> -->
 				        </items>
 				      </SplitPane>
 				   </center>
@@ -120,6 +120,14 @@
 				                   <Tooltip text="Lights ON/OFF" />
 				               </tooltip>
 				            </ToggleButton>
+				            <Button onAction="#handleToggleAxes" minWidth="35">
+				                  <graphic>
+				                  	<Glyph fontFamily="FontAwesome" icon="ANGLE_DOUBLE_RIGHT" />
+				                  </graphic>
+				                  <tooltip>
+				                      <Tooltip text="Toggle Axes" />
+				                  </tooltip>
+				              </Button>
 				          </items>
 				      </ToolBar>
 				   </right>

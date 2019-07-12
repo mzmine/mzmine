@@ -55,7 +55,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.MeshView;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
@@ -152,6 +154,7 @@ public class Fx3DStageController {
     private PointLight bottom;
     private PointLight left;
     private PointLight right;
+    private int axesPosition = 0;
 
     public void initialize() {
         rotateX.setPivotZ(SIZE / 2);
@@ -271,6 +274,7 @@ public class Fx3DStageController {
         }
         meshViews.getChildren().clear();
         meshViews.getChildren().addAll(meshViewList);
+        FXCollections.sort(meshViews.getChildren(), new SortByOpacity());
         updateLabel();
     }
 
@@ -382,8 +386,6 @@ public class Fx3DStageController {
                     + rotateFactor * (mousePosY - mouseOldY));
             rotateY.setAngle(rotateY.getAngle()
                     - rotateFactor * (mousePosX - mouseOldX));
-            axes.getRotateY().setAngle(axes.getRotateY().getAngle()
-                    + rotateFactor * (mousePosX - mouseOldX));
         }
         if (me.isSecondaryButtonDown()) {
             translateX.setX(translateX.getX() + (mousePosX - mouseOldX));
@@ -392,6 +394,130 @@ public class Fx3DStageController {
         }
         mouseOldX = mousePosX;
         mouseOldY = mousePosY;
+    }
+
+    private void setMzAxis() {
+        axes.getMzAxisLabels().getChildren().clear();
+        axes.getMzAxisTicks().getChildren().clear();
+        double mzDelta = (mzRange.upperEndpoint() - mzRange.lowerEndpoint())
+                / 7;
+        double mzScaleValue = mzRange.lowerEndpoint();
+        Text mzLabel = new Text("m/z");
+        mzLabel.setRotationAxis(Rotate.X_AXIS);
+        mzLabel.setRotate(-45);
+        mzLabel.setTranslateX(SIZE / 2);
+        mzLabel.setTranslateZ(-5);
+        mzLabel.setTranslateY(8);
+        axes.getMzAxisLabels().getChildren().add(mzLabel);
+        for (int y = 0; y <= SIZE; y += SIZE / 7) {
+            Line tickLineZ = new Line(0, 0, 0, 9);
+            tickLineZ.setRotationAxis(Rotate.X_AXIS);
+            tickLineZ.setRotate(-90);
+            tickLineZ.setTranslateY(-4);
+            tickLineZ.setTranslateX(y - 2);
+            float roundOff = (float) (Math.round(mzScaleValue * 100.0) / 100.0);
+            Text text = new Text("" + (float) roundOff);
+            text.setRotationAxis(Rotate.X_AXIS);
+            text.setRotate(-45);
+            text.setTranslateY(8);
+            text.setTranslateX(y - 10);
+            text.setTranslateZ(20);
+            mzScaleValue += mzDelta;
+            axes.getMzAxisTicks().getChildren().add(tickLineZ);
+            axes.getMzAxisLabels().getChildren().add(text);
+        }
+        axes.getMzAxisLabels().setRotate(270);
+        axes.getMzAxisLabels().setTranslateX(SIZE / 2 + SIZE / 30);
+        axes.getMzAxisTicks().setTranslateX(SIZE / 2 + 10);
+        axes.getMzAxisTicks().setTranslateY(-1);
+        axes.getMzAxis().setTranslateX(SIZE);
+    }
+
+    private void setRtAxis() {
+        axes.getRtAxis().getChildren().clear();
+        double rtDelta = (rtRange.upperEndpoint() - rtRange.lowerEndpoint())
+                / 7;
+        double rtScaleValue = rtRange.upperEndpoint();
+        Text rtLabel = new Text("Retention Time");
+        rtLabel.setRotationAxis(Rotate.X_AXIS);
+        rtLabel.setRotate(-45);
+        rtLabel.setTranslateX(SIZE * 3 / 8);
+        rtLabel.setTranslateZ(-25);
+        rtLabel.setTranslateY(13);
+        axes.getRtAxis().getChildren().add(rtLabel);
+        for (int y = 0; y <= SIZE; y += SIZE / 7) {
+            Line tickLineX = new Line(0, 0, 0, 9);
+            tickLineX.setRotationAxis(Rotate.X_AXIS);
+            tickLineX.setRotate(-90);
+            tickLineX.setTranslateY(-5);
+            tickLineX.setTranslateX(y);
+            tickLineX.setTranslateZ(-3.5);
+            float roundOff = (float) (Math.round(rtScaleValue * 10.0) / 10.0);
+            Text text = new Text("" + (float) roundOff);
+            text.setRotationAxis(Rotate.X_AXIS);
+            text.setRotate(-45);
+            text.setTranslateY(9);
+            text.setTranslateX(y - 5);
+            text.setTranslateZ(-15);
+            rtScaleValue -= rtDelta;
+            axes.getRtAxis().getChildren().addAll(text, tickLineX);
+        }
+        Line lineX = new Line(0, 0, SIZE, 0);
+        axes.getRtAxis().getChildren().add(lineX);
+        axes.getRtRotate().setAngle(180);
+        axes.getRtTranslate().setZ(-SIZE);
+        axes.getRtTranslate().setX(-SIZE);
+    }
+
+    private void setCameraAngle(int angle) {
+        rotateX.setAngle(30);
+        translateX.setX(root.getWidth() * 3 / 4 - root.getHeight() * 3 / 4);
+        translateY.setY(root.getHeight() / 3);
+        rotateY.setAngle(angle);
+        plot.setScaleX(DEFAULT_SCALE);
+        plot.setScaleY(DEFAULT_SCALE);
+    }
+
+    public void handleToggleAxes(Event event) {
+        if (axesPosition == 0) {
+            axesPosition = 1;
+            axes.getIntensityTranslate().setX(SIZE);
+            setMzAxis();
+            setCameraAngle(44);
+        } else if (axesPosition == 1) {
+            axesPosition = 2;
+            axes.getIntensityTranslate().setZ(-SIZE);
+            axes.getIntensityRotate().setAngle(-91);
+            setRtAxis();
+            setCameraAngle(135);
+        } else if (axesPosition == 2) {
+            axesPosition = 3;
+            axes.updateAxisParameters(rtRange, mzRange,
+                    maxOfAllBinnedIntensity);
+            axes.getIntensityRotate().setAngle(181);
+            axes.getIntensityTranslate().setZ(-SIZE);
+            axes.getMzAxis().setTranslateX(0);
+            setRtAxis();
+            setCameraAngle(135 + 90);
+        } else if (axesPosition == 3) {
+            axesPosition = 4;
+            axes.getIntensityRotate().setAngle(89);
+            axes.getIntensityTranslate().setZ(0);
+            axes.getIntensityTranslate().setX(-SIZE);
+            setCameraAngle(270);
+        } else if (axesPosition == 4) {
+            axesPosition = 5;
+            axes.updateAxisParameters(rtRange, mzRange,
+                    maxOfAllBinnedIntensity);
+            axes.getIntensityRotate().setAngle(89);
+            setCameraAngle(135 + 180);
+        } else if (axesPosition == 5) {
+            axesPosition = 0;
+            axes.updateAxisParameters(rtRange, mzRange,
+                    maxOfAllBinnedIntensity);
+            setCameraAngle(0);
+        }
+
     }
 
     public void handleAnimate() {

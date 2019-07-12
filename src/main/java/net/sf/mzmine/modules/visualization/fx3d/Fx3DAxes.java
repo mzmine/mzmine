@@ -23,16 +23,37 @@ import javafx.scene.Group;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 import net.sf.mzmine.main.MZmineCore;
 
 public class Fx3DAxes extends Group {
 
     private static final int SIZE = 500;
     private static float AMPLIFI = 130;
-    private final Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
+
+    private Group rtAxis = new Group();
+    // private Group rtLabels = new Group();
+    private Group mzAxis = new Group();
+    // private Group mzLabels = new Group();
+    private Group intensityAxis = new Group();
+
+    private Group mzAxisTicks = new Group();
+    private Group mzAxisLabels = new Group();
+
+    public Rotate rtRotate = new Rotate(0, Rotate.Y_AXIS);
+    public Translate rtTranslate = new Translate();
+
+    public Rotate mzRotate = new Rotate(0, Rotate.Z_AXIS);
+    public Translate mzTranslate = new Translate();
+
+    public Rotate intensityRotate = new Rotate(0, Rotate.Y_AXIS);
+    public Translate intensityTranslate = new Translate();
 
     public Fx3DAxes() {
-
+        rtAxis.getTransforms().addAll(rtRotate, rtTranslate);
+        mzAxis.getTransforms().addAll(mzRotate, mzTranslate);
+        intensityAxis.getTransforms().addAll(intensityRotate,
+                intensityTranslate);
     }
 
     public void setValues(Range<Double> rtRange, Range<Double> mzRange,
@@ -47,7 +68,7 @@ public class Fx3DAxes extends Group {
         rtLabel.setTranslateX(SIZE * 3 / 8);
         rtLabel.setTranslateZ(-25);
         rtLabel.setTranslateY(13);
-        this.getChildren().add(rtLabel);
+        rtAxis.getChildren().add(rtLabel);
         for (int y = 0; y <= SIZE; y += SIZE / 7) {
             Line tickLineX = new Line(0, 0, 0, 9);
             tickLineX.setRotationAxis(Rotate.X_AXIS);
@@ -63,15 +84,14 @@ public class Fx3DAxes extends Group {
             text.setTranslateX(y - 5);
             text.setTranslateZ(-15);
             rtScaleValue += rtDelta;
-            this.getChildren().addAll(text, tickLineX);
+            rtAxis.getChildren().addAll(text, tickLineX);
         }
-
+        this.getChildren().add(rtAxis);
         // mzAxis
         double mzDelta = (mzRange.upperEndpoint() - mzRange.lowerEndpoint())
                 / 7;
         double mzScaleValue = mzRange.upperEndpoint();
-        Group mzAxisTicks = new Group();
-        Group mzAxisLabels = new Group();
+
         Text mzLabel = new Text("m/z");
         mzLabel.setRotationAxis(Rotate.X_AXIS);
         mzLabel.setRotate(-45);
@@ -92,7 +112,6 @@ public class Fx3DAxes extends Group {
             text.setTranslateY(8);
             text.setTranslateX(y - 10);
             text.setTranslateZ(20);
-
             mzScaleValue -= mzDelta;
             mzAxisTicks.getChildren().add(tickLineZ);
             mzAxisLabels.getChildren().add(text);
@@ -106,7 +125,7 @@ public class Fx3DAxes extends Group {
         mzAxisLabels.setTranslateX(-SIZE / 2 - SIZE / 14);
         mzAxisLabels.setTranslateZ(SIZE / 2);
         this.getChildren().addAll(mzAxisTicks, mzAxisLabels);
-
+        this.getChildren().add(mzAxis);
         // intensityAxis
 
         int numScale = 5;
@@ -121,7 +140,7 @@ public class Fx3DAxes extends Group {
         intensityLabel.setRotate(90);
         intensityLabel.setTranslateZ(-40);
         intensityLabel.setTranslateY(-70);
-        this.getChildren().add(intensityLabel);
+        intensityAxis.getChildren().add(intensityLabel);
         for (int y = 0; y <= numScale; y++) {
             Line tickLineY = new Line(0, 0, 7, 0);
             tickLineY.setRotationAxis(Rotate.Y_AXIS);
@@ -129,7 +148,7 @@ public class Fx3DAxes extends Group {
             tickLineY.setTranslateX(-6);
             tickLineY.setTranslateZ(-3);
             tickLineY.setTranslateY(-transLen);
-            this.getChildren().add(tickLineY);
+            intensityAxis.getChildren().add(tickLineY);
 
             Text text = new Text("" + MZmineCore.getConfiguration()
                     .getIntensityFormat().format(intensityValue));
@@ -139,33 +158,77 @@ public class Fx3DAxes extends Group {
             text.setTranslateY(-transLen + 5);
             text.setTranslateX(-40);
             text.setTranslateZ(-26);
-            text.getTransforms().add(rotateY);
-            this.getChildren().add(text);
+            intensityAxis.getChildren().add(text);
             transLen += gapLen;
         }
-
+        this.getChildren().add(intensityAxis);
         Line lineX = new Line(0, 0, SIZE, 0);
-        this.getChildren().add(lineX);
+        rtAxis.getChildren().add(lineX);
         Line lineZ = new Line(0, 0, SIZE, 0);
         lineZ.setRotationAxis(Rotate.Y_AXIS);
         lineZ.setRotate(90);
         lineZ.setTranslateX(-SIZE / 2);
         lineZ.setTranslateZ(SIZE / 2);
-        this.getChildren().add(lineZ);
+        mzAxis.getChildren().add(lineZ);
         Line lineY = new Line(0, 0, AMPLIFI, 0);
         lineY.setRotate(90);
         lineY.setTranslateX(-AMPLIFI / 2);
         lineY.setTranslateY(-AMPLIFI / 2);
-        this.getChildren().add(lineY);
+        intensityAxis.getChildren().add(lineY);
+    }
+
+    public Rotate getRtRotate() {
+        return rtRotate;
+    }
+
+    public Rotate getMzRotate() {
+        return mzRotate;
+    }
+
+    public Rotate getIntensityRotate() {
+        return intensityRotate;
+    }
+
+    public Translate getRtTranslate() {
+        return rtTranslate;
+    }
+
+    public Translate getIntensityTranslate() {
+        return intensityTranslate;
+    }
+
+    public Group getRtAxis() {
+        return rtAxis;
+    }
+
+    public Group getMzAxis() {
+        return mzAxis;
+    }
+
+    public Group getMzAxisLabels() {
+        return mzAxisLabels;
+    }
+
+    public Group getMzAxisTicks() {
+        return mzAxisTicks;
     }
 
     public void updateAxisParameters(Range<Double> rtRange,
             Range<Double> mzRange, double maxBinnedIntensity) {
         this.getChildren().clear();
+        rtRotate.setAngle(0);
+        mzRotate.setAngle(0);
+        intensityRotate.setAngle(0);
+        rtTranslate.setX(0);
+        rtTranslate.setZ(0);
+        intensityTranslate.setX(0);
+        intensityTranslate.setZ(0);
+        rtAxis.getChildren().clear();
+        mzAxis.getChildren().clear();
+        intensityAxis.getChildren().clear();
+        mzAxisLabels.getChildren().clear();
+        mzAxisTicks.getChildren().clear();
         setValues(rtRange, mzRange, maxBinnedIntensity);
     }
 
-    public Rotate getRotateY() {
-        return rotateY;
-    }
 }
