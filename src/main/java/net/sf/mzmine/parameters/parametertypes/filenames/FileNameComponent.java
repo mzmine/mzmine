@@ -22,7 +22,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -31,7 +31,7 @@ import javax.swing.JTextField;
 
 /**
  */
-public class FileNameComponent extends JPanel implements ActionListener {
+public class FileNameComponent extends JPanel implements ActionListener, LastFilesComponent {
 
   /**
    * 
@@ -40,9 +40,9 @@ public class FileNameComponent extends JPanel implements ActionListener {
   public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
   private JTextField txtFilename;
+  private JLastFilesButton btnLastFiles;
 
-  public FileNameComponent(int textfieldcolumns) {
-
+  public FileNameComponent(int textfieldcolumns, List<File> lastFiles) {
     setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 
     txtFilename = new JTextField();
@@ -50,10 +50,21 @@ public class FileNameComponent extends JPanel implements ActionListener {
     txtFilename.setFont(smallFont);
     add(txtFilename);
 
+    // last used files chooser button
+    // on click - set file name to textField
+    btnLastFiles = new JLastFilesButton("last", file -> txtFilename.setText(file.getPath()));
+    add(btnLastFiles);
+
     JButton btnFileBrowser = new JButton("...");
     btnFileBrowser.addActionListener(this);
     add(btnFileBrowser);
 
+    setLastFiles(lastFiles);
+  }
+
+  @Override
+  public void setLastFiles(List<File> value) {
+    btnLastFiles.setLastFiles(value);
   }
 
   public File getValue() {
@@ -66,6 +77,7 @@ public class FileNameComponent extends JPanel implements ActionListener {
     txtFilename.setText(value.getPath());
   }
 
+  @Override
   public void actionPerformed(ActionEvent e) {
 
     JFileChooser fileChooser = new JFileChooser();

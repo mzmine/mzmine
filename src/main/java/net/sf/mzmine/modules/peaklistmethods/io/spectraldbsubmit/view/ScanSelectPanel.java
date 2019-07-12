@@ -23,6 +23,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.text.MessageFormat;
 import java.util.List;
@@ -50,18 +52,23 @@ import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.framework.documentfilter.DocumentSizeFilter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.AdductParser;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
+import net.sf.mzmine.util.ColorPalettes;
+import net.sf.mzmine.util.ColorPalettes.Vision;
 import net.sf.mzmine.util.exceptions.MissingMassListException;
 import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
-public class ScanSelectPanel extends JPanel {
+public class ScanSelectPanel extends JPanel implements ActionListener {
+
+
+  public final Color colorRemovedData;
+  public final Color colorUsedData;
 
   private static final int SIZE = 40;
   // icons
@@ -79,7 +86,6 @@ public class ScanSelectPanel extends JPanel {
 
   private JToggleButton btnToggleUse;
   private JTextField txtAdduct;
-  private PeakListRow row;
   private ScanSortMode sort;
   // null or empty to use first masslist
   private @Nullable String massListName;
@@ -95,12 +101,8 @@ public class ScanSelectPanel extends JPanel {
 
   private JPanel pnChart;
 
-  private boolean showLegend = true;
-
   private JToggleButton btnSignals;
-
   private JToggleButton btnMaxTic;
-
   private SpectraPlot spectrumPlot;
 
   private Consumer<EChartPanel> listener;
@@ -115,13 +117,48 @@ public class ScanSelectPanel extends JPanel {
   private JLabel lblChargeMz;
   private JButton btnFromScan;
 
+  private boolean showRemovedData = true;
+  private boolean showLegend = true;
+  // MS1 or MS2
+  private boolean isFragmentScan = true;
+
+  // data either row or scans
+  private PeakListRow row;
+  private Scan[] scansEntry;
+  private JLabel lblAdduct;
+  private JPanel pnData;
+
   /**
    * Create the panel.
    */
   public ScanSelectPanel(PeakListRow row, ScanSortMode sort, double noiseLevel,
       int minNumberOfSignals, String massListName) {
-    setBorder(new LineBorder(UIManager.getColor("textHighlight")));
+    this(sort, noiseLevel, minNumberOfSignals, massListName);
     this.row = row;
+    // create chart with current sort mode
+    setSortMode(sort);
+    createChart();
+    setMZandChargeFromScan();
+  }
+
+  public ScanSelectPanel(Scan[] scansEntry, ScanSortMode sort, double noiseLevel,
+      int minNumberOfSignals, String massListName) {
+    this(sort, noiseLevel, minNumberOfSignals, massListName);
+    this.scansEntry = scansEntry;
+    // create chart with current sort mode
+    setSortMode(sort);
+    createChart();
+    setMZandChargeFromScan();
+  }
+
+  public ScanSelectPanel(ScanSortMode sort, double noiseLevel, int minNumberOfSignals,
+      String massListName) {
+    // get colors for vision
+    Vision vision = MZmineCore.getConfiguration().getColorVision();
+    colorUsedData = ColorPalettes.getPositiveColor(vision);
+    colorRemovedData = ColorPalettes.getNegativeColor(vision);
+
+    setBorder(new LineBorder(UIManager.getColor("textHighlight")));
     this.massListName = massListName;
     this.sort = sort;
     this.noiseLevel = noiseLevel;
@@ -184,11 +221,11 @@ public class ScanSelectPanel extends JPanel {
     group.add(btnSignals);
     group.add(btnMaxTic);
 
-    JPanel pnData = new JPanel();
+    pnData = new JPanel();
     pnMenu.add(pnData, BorderLayout.CENTER);
     pnData.setLayout(new MigLayout("", "[grow][][]", "[][][][][][][][]"));
 
-    JLabel lblAdduct = new JLabel("Adduct:");
+    lblAdduct = new JLabel("Adduct:");
     pnData.add(lblAdduct, "cell 0 0 3 1");
 
     txtAdduct = new JTextField();
@@ -235,25 +272,54 @@ public class ScanSelectPanel extends JPanel {
     lbMassListError.setForeground(new Color(220, 20, 60));
     lbMassListError.setVisible(false);
     add(lbMassListError, BorderLayout.NORTH);
-
-    // create chart with current sort mode
-    setSortMode(sort);
-    createChart();
-    setMZandChargeFromScan();
   }
+
+  /**
+   * Fragment scan with adduct, precursor mz and charge or MS1
+   * 
+   * @param isFragmentScan
+   */
+  public void setFragmentScan(boolean isFragmentScan) {
+    this.isFragmentScan = isFragmentScan;
+
+    lblChargeMz.setVisible(isFragmentScan);
+    lblAdduct.setVisible(isFragmentScan);
+    txtAdduct.setVisible(isFragmentScan);
+    txtCharge.setVisible(isFragmentScan);
+    txtPrecursorMZ.setVisible(isFragmentScan);
+    btnFromScan.setVisible(isFragmentScan);
+    pnData.revalidate();
+    pnData.repaint();
+
+    // if data is from rows - get new list of scans
+    if (row != null) {
+      createSortedScanList();
+      setMZandChargeFromScan();
+    }
+  }
+
 
   /**
    * 
    */
   public void setMZandChargeFromScan() {
+    // MS1
+    if (!isFragmentScan)
+      return;
+
     if (scans != null && !scans.isEmpty()) {
       Scan scan = scans.get(selectedScanI);
       double mz = scan.getPrecursorMZ();
-      if (mz == 0)
-        mz = row.getAverageMZ();
+      if (mz == 0) {
+        if (row != null)
+          mz = row.getAverageMZ();
+      }
       int charge = scan.getPrecursorCharge();
-      if (charge == 0)
+      if (charge == 0 && row != null)
         charge = row.getRowCharge();
+
+      if (charge == 0)
+        charge = 1;
 
       // set as text
       txtCharge.setText(String.valueOf(charge));
@@ -267,18 +333,46 @@ public class ScanSelectPanel extends JPanel {
 
   public double getPrecursorMZ() {
     try {
-      return Double.parseDouble(txtPrecursorMZ.getText());
+      double c = Double.parseDouble(txtPrecursorMZ.getText());
+      txtCharge.setBorder(BorderFactory.createLineBorder(Color.black));
+      return c;
     } catch (Exception e) {
+      txtCharge.setBorder(BorderFactory.createLineBorder(Color.red));
       return 0;
     }
   }
 
   public int getPrecursorCharge() {
     try {
-      return Integer.parseInt(txtCharge.getText());
+      int c = Integer.parseInt(txtCharge.getText());
+      txtCharge.setBorder(BorderFactory.createLineBorder(Color.black));
+      return c;
     } catch (Exception e) {
+      txtCharge.setBorder(BorderFactory.createLineBorder(Color.red));
       return 0;
     }
+  }
+
+
+  public boolean checkParameterValues(List<String> messages) {
+    // no parameters for MS1 scan
+    if (!isFragmentScan)
+      return true;
+
+    // for MS/MS scans:
+    String adduct = getAdduct();
+    if (adduct.isEmpty())
+      messages.add("Adduct is not set properly: " + txtAdduct.getText());
+
+    int charge = getPrecursorCharge();
+    if (charge <= 0)
+      messages.add("Charge is not set properly: " + txtCharge.getText());
+
+    double mz = getPrecursorCharge();
+    if (mz <= 0)
+      messages.add("Precursor m/z is not set properly: " + txtPrecursorMZ.getText());
+
+    return !(adduct.isEmpty() || charge <= 0 || mz <= 0);
   }
 
   /**
@@ -299,6 +393,9 @@ public class ScanSelectPanel extends JPanel {
   }
 
   public void setSortMode(ScanSortMode sort) {
+    if (this.sort.equals(sort))
+      return;
+
     this.sort = sort;
     switch (sort) {
       case NUMBER_OF_SIGNALS:
@@ -323,11 +420,24 @@ public class ScanSelectPanel extends JPanel {
    * Creates a sorted list of all scans that match the minimum criteria
    */
   private void createSortedScanList() {
+    if (row == null && scansEntry == null)
+      return;
     // get all scans that match filter criteria
     try {
-      // first entry is the best scan
-      scans =
-          ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals, sort);
+      if (row != null) {
+        if (isFragmentScan) {
+          // first entry is the best fragmentation scan
+          scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minNumberOfSignals,
+              sort);
+        } else {
+          // get most representative MS 1 scans of all features
+          scans =
+              ScanUtils.listAllMS1Scans(row, massListName, noiseLevel, minNumberOfSignals, sort);
+        }
+      } else if (scansEntry != null) {
+        scans =
+            ScanUtils.listAllScans(scansEntry, massListName, noiseLevel, minNumberOfSignals, sort);
+      }
       selectedScanI = 0;
 
       // no error
@@ -376,32 +486,42 @@ public class ScanSelectPanel extends JPanel {
    */
   public void createChart() {
     setValidSelection(false);
-    EChartPanel oldChart = spectrumPlot;
-    // empty
     pnChart.removeAll();
-    spectrumPlot = null;
 
     if (scans != null && !scans.isEmpty()) {
-      Scan scan = scans.get(selectedScanI);
-      RawDataFile raw = scan.getDataFile();
       // get MS/MS spectra window only for the spectra chart
-      SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(raw);
-      spectraWindow.loadRawData(scan);
+      // create dataset
 
-      spectrumPlot = spectraWindow.getSpectrumPlot();
+      if (spectrumPlot == null) {
+        spectrumPlot = new SpectraPlot(this, false);
+        if (listener != null)
+          // chart has changed
+          listener.accept(spectrumPlot);
+      }
+      spectrumPlot.removeAllDataSets();
+
+      DataPointsDataSet data = new DataPointsDataSet("Data", getFilteredDataPoints());
+      // green
+      spectrumPlot.addDataSet(data, colorUsedData, false);
+      if (showRemovedData) {
+        // orange
+        DataPointsDataSet dataRemoved =
+            new DataPointsDataSet("Removed", getFilteredDataPointsRemoved());
+        spectrumPlot.addDataSet(dataRemoved, colorRemovedData, false);
+      }
       spectrumPlot.getChart().getLegend().setVisible(showLegend);
       spectrumPlot.setMaximumSize(new Dimension(chartSize.width, 10000));
       spectrumPlot.setPreferredSize(chartSize);
       pnChart.add(spectrumPlot, BorderLayout.CENTER);
 
+      Scan scan = scans.get(selectedScanI);
       analyzeScan(scan);
       applySelectionState();
       setValidSelection(true);
     } else {
       // add error label
-      JLabel error =
-          new JLabel(MessageFormat.format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria",
-              row.getAllMS2Fragmentations().length));
+      JLabel error = new JLabel(MessageFormat
+          .format("NO MS2 SPECTRA: 0 of {0} match the minimum criteria", getTotalScans()));
       error.setFont(new Font("Tahoma", Font.BOLD, 13));
       error.setHorizontalAlignment(SwingConstants.CENTER);
       error.setForeground(new Color(220, 20, 60));
@@ -409,14 +529,16 @@ public class ScanSelectPanel extends JPanel {
       //
     }
 
-    // listener on change
-    if (listener != null && oldChart != spectrumPlot
-        && (oldChart != null && !oldChart.equals(spectrumPlot))) {
-      listener.accept(spectrumPlot);
-    }
-
     revalidate();
     repaint();
+  }
+
+  private int getTotalScans() {
+    if (row != null)
+      return row.getAllMS2Fragmentations().length;
+    if (scansEntry != null)
+      return scansEntry.length;
+    return 0;
   }
 
   private void setValidSelection(boolean state) {
@@ -436,6 +558,11 @@ public class ScanSelectPanel extends JPanel {
     }
   }
 
+  /**
+   * Remaining data points after filtering
+   * 
+   * @return
+   */
   @Nullable
   public DataPoint[] getFilteredDataPoints() {
     if (scans != null && !scans.isEmpty()) {
@@ -443,6 +570,22 @@ public class ScanSelectPanel extends JPanel {
       MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
       if (massList != null)
         return ScanUtils.getFiltered(massList.getDataPoints(), noiseLevel);
+    }
+    return null;
+  }
+
+  /**
+   * Removed data points
+   * 
+   * @return
+   */
+  @Nullable
+  public DataPoint[] getFilteredDataPointsRemoved() {
+    if (scans != null && !scans.isEmpty()) {
+      Scan scan = scans.get(selectedScanI);
+      MassList massList = ScanUtils.getMassListOrFirst(scan, massListName);
+      if (massList != null)
+        return ScanUtils.getBelowThreshold(massList.getDataPoints(), noiseLevel);
     }
     return null;
   }
@@ -500,6 +643,10 @@ public class ScanSelectPanel extends JPanel {
     chartSize = dim;
   }
 
+  public void setShowRemovedData(boolean showRemovedData) {
+    this.showRemovedData = showRemovedData;
+  }
+
   /**
    * Valid spectrum and is selected? Still check for correct adduct
    * 
@@ -520,4 +667,11 @@ public class ScanSelectPanel extends JPanel {
   public boolean hasAdduct() {
     return !getAdduct().isEmpty();
   }
+
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    // TODO Auto-generated method stub
+
+  }
+
 }

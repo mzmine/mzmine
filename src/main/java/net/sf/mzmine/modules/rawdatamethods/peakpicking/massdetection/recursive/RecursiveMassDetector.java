@@ -34,6 +34,10 @@ import net.sf.mzmine.util.SortingProperty;
 public class RecursiveMassDetector implements MassDetector {
 
   public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+    return getMassValues(scan.getDataPoints(), parameters);
+  }
+  
+  public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 
     double noiseLevel =
         parameters.getParameter(RecursiveMassDetectorParameters.noiseLevel).getValue();
@@ -42,7 +46,6 @@ public class RecursiveMassDetector implements MassDetector {
     double maximumMZPeakWidth =
         parameters.getParameter(RecursiveMassDetectorParameters.maximumMZPeakWidth).getValue();
 
-    DataPoint dataPoints[] = scan.getDataPoints();
     TreeSet<DataPoint> mzPeaks =
         new TreeSet<DataPoint>(new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending));
 

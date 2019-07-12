@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.chartbasics.listener;
 
+import javax.annotation.Nullable;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.event.AxisChangeEvent;
 import org.jfree.chart.event.AxisChangeListener;
@@ -30,7 +31,7 @@ public abstract class AxisRangeChangedListener implements AxisChangeListener {
   private Range lastRange = null;
   private ChartViewWrapper chart;
 
-  public AxisRangeChangedListener(ChartViewWrapper cp) {
+  public AxisRangeChangedListener(@Nullable ChartViewWrapper cp) {
     chart = cp;
   }
 
@@ -49,10 +50,11 @@ public abstract class AxisRangeChangedListener implements AxisChangeListener {
   /**
    * only if axis range has changed
    * 
+   * @param chart (null if no chart was defined when this listener was created)
    * @param axis
    * @param lastR
    * @param newR
    */
-  public abstract void axisRangeChanged(ChartViewWrapper chart, ValueAxis axis, Range lastR,
-      Range newR);
+  public abstract void axisRangeChanged(@Nullable ChartViewWrapper chart, ValueAxis axis,
+      Range lastR, Range newR);
 }

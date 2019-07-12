@@ -18,12 +18,26 @@
 
 package net.sf.mzmine.util.spectraldb.entry;
 
+import org.apache.commons.lang3.StringUtils;
+
 public enum DBEntryField {
 
-  ENTRY_ID, NAME, SYNONYM, COMMENT, IONTYPE, RT(Double.class), MZ(Double.class), CHARGE(
+  ENTRY_ID, NAME, SYNONYM, COMMENT, ION_TYPE, RT(Double.class), MZ(Double.class), CHARGE(
       Integer.class), ION_MODE, COLLISION_ENERGY, FORMULA, MOLWEIGHT(Double.class), EXACT_MASS(
           Double.class), INCHI, INCHIKEY, SMILES, CAS, PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, INSTRUMENT_TYPE, INSTRUMENT, ION_SOURCE, NUM_PEAKS(
-              Integer.class), ACQUISITION, PRINZIPLE_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;
+              Integer.class), ACQUISITION, PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, SOFTWARE, MS_LEVEL, RESOLUTION;
+
+  // group of DBEntryFields logically
+  public static final DBEntryField[] OTHER_FIELDS =
+      new DBEntryField[] {PRINCIPAL_INVESTIGATOR, DATA_COLLECTOR, ENTRY_ID, COMMENT};
+  public static final DBEntryField[] DATABASE_FIELDS =
+      new DBEntryField[] {PUBMED, PUBCHEM, MONA_ID, CHEMSPIDER, CAS};
+  public static final DBEntryField[] COMPOUND_FIELDS =
+      new DBEntryField[] {NAME, SYNONYM, FORMULA, MOLWEIGHT, EXACT_MASS, ION_TYPE, MZ, CHARGE, RT,
+          ION_MODE, INCHI, INCHIKEY, SMILES, NUM_PEAKS};
+  public static final DBEntryField[] INSTRUMENT_FIELDS = new DBEntryField[] {INSTRUMENT_TYPE,
+      INSTRUMENT, ION_SOURCE, RESOLUTION, MS_LEVEL, COLLISION_ENERGY, ACQUISITION, SOFTWARE};
+
 
   private final Class clazz;
 
@@ -37,6 +51,30 @@ public enum DBEntryField {
 
   public Class getObjectClass() {
     return clazz;
+  }
+
+  @Override
+  public String toString() {
+    switch (this) {
+      case RT:
+      case SMILES:
+      case CAS:
+        return super.toString().replace('_', ' ');
+      case ENTRY_ID:
+        return "Entry ID";
+      case INCHI:
+        return "InChI";
+      case INCHIKEY:
+        return "InChI key";
+      case MOLWEIGHT:
+        return "Mol. weight";
+      case MONA_ID:
+        return "MoNA ID";
+      case MZ:
+        return "Precursor m/z";
+      default:
+        return StringUtils.capitalize(super.toString().replace('_', ' ').toLowerCase());
+    }
   }
 
   /**
@@ -71,7 +109,7 @@ public enum DBEntryField {
         return "INSTRUMENT_NAME";
       case INSTRUMENT_TYPE:
         return "INSTRUMENT";
-      case IONTYPE:
+      case ION_TYPE:
         return "ADDUCT";
       case ION_MODE:
         return "IONMODE";
@@ -81,7 +119,7 @@ public enum DBEntryField {
         return "MZ";
       case NAME:
         return "COMPOUND_NAME";
-      case PRINZIPLE_INVESTIGATOR:
+      case PRINCIPAL_INVESTIGATOR:
         return "PI";
       case PUBMED:
         return "PUBMED";
@@ -116,7 +154,8 @@ public enum DBEntryField {
    */
   public static DBEntryField forGnpsJasonID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getGnpsJsonID().equals(key))
+      // equalsIgnoreCase is more robust against changes in library consistency
+      if (f.getGnpsJsonID().equalsIgnoreCase(key))
         return f;
     }
     return null;
@@ -156,7 +195,7 @@ public enum DBEntryField {
         return "Instrument";
       case INSTRUMENT_TYPE:
         return "Instrument_type";
-      case IONTYPE:
+      case ION_TYPE:
         return "Precursor_type";
       case ION_MODE:
         return "Ion_mode"; // P / N
@@ -166,7 +205,7 @@ public enum DBEntryField {
         return "PrecursorMZ";
       case NAME:
         return "Name";
-      case PRINZIPLE_INVESTIGATOR:
+      case PRINCIPAL_INVESTIGATOR:
         return "";
       case PUBMED:
         return "";
@@ -201,7 +240,95 @@ public enum DBEntryField {
    */
   public static DBEntryField forMspID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getNistMspID().equals(key))
+      // equalsIgnoreCase is more robust against changes in library consistency
+      if (f.getNistMspID().equalsIgnoreCase(key))
+        return f;
+    }
+    return null;
+  }
+
+  /**
+   *
+   * @return The mgf format (used by GNPS)
+   */
+  public String getMgfID() {
+    switch (this) {
+      case ENTRY_ID:
+        return "SPECTRUMID";
+      case ACQUISITION:
+        return "";
+      case SOFTWARE:
+        return "";
+      case CAS:
+        return "";
+      case CHARGE:
+        return "CHARGE";
+      case COLLISION_ENERGY:
+        return "";
+      case COMMENT:
+        return "ORGANISM";
+      case DATA_COLLECTOR:
+        return "DATACOLLECTOR";
+      case EXACT_MASS:
+        return "ExactMass";
+      case FORMULA:
+        return "Formula";
+      case INCHI:
+        return "INCHI";
+      case INCHIKEY:
+        return "INCHIAUX";
+      case INSTRUMENT:
+        return "SOURCE_INSTRUMENT";
+      case INSTRUMENT_TYPE:
+        return "Instrument_type";
+      case ION_TYPE:
+        return "Precursor_type";
+      case ION_MODE:
+        return "IONMODE"; // Positive Negative
+      case ION_SOURCE:
+        return "";
+      case MZ:
+        return "PEPMASS";
+      case NAME:
+        return "NAME";
+      case PRINCIPAL_INVESTIGATOR:
+        return "PI";
+      case PUBMED:
+        return "PUBMED";
+      case RT:
+        return "";
+      case SMILES:
+        return "SMILES";
+      case MS_LEVEL:
+        return "MSLEVEL";
+      case PUBCHEM:
+        return "";
+      case CHEMSPIDER:
+        return "";
+      case MONA_ID:
+        return "";
+      case NUM_PEAKS:
+        return "";
+      case RESOLUTION:
+      case SYNONYM:
+      case MOLWEIGHT:
+        return "";
+      // SUBMITUSER
+      // LIBRARYQUALITY
+    }
+    return "";
+  }
+
+  /**
+   * DBENtryField for mgf (GNPS) key
+   * 
+   * @param key
+   * @return
+   */
+  public static DBEntryField forMgfID(String key) {
+    for (DBEntryField f : values()) {
+      // equalsIgnoreCase is more robust against changes in library consistency
+      if (f.getMgfID().equalsIgnoreCase(key))
         return f;
     }
     return null;
@@ -241,7 +368,7 @@ public enum DBEntryField {
         return "";
       case INSTRUMENT_TYPE:
         return "";
-      case IONTYPE:
+      case ION_TYPE:
         return "";
       case ION_MODE:
         return "";
@@ -251,7 +378,7 @@ public enum DBEntryField {
         return "";
       case NAME:
         return "##TITLE";
-      case PRINZIPLE_INVESTIGATOR:
+      case PRINCIPAL_INVESTIGATOR:
         return "";
       case PUBMED:
         return "";
@@ -286,7 +413,8 @@ public enum DBEntryField {
    */
   public static DBEntryField forJdxID(String key) {
     for (DBEntryField f : values()) {
-      if (f.getJdxID().equals(key))
+      // equalsIgnoreCase is more robust against changes in library consistency
+      if (f.getJdxID().equalsIgnoreCase(key))
         return f;
     }
     return null;
@@ -308,4 +436,5 @@ public enum DBEntryField {
       return Integer.parseInt(content);
     return content;
   }
+
 }

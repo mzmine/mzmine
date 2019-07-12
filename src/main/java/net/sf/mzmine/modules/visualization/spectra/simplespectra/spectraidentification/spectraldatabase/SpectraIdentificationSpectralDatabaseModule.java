@@ -18,16 +18,12 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
-import java.util.Collection;
 import javax.annotation.Nonnull;
-import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
 /**
@@ -35,7 +31,7 @@ import net.sf.mzmine.util.ExitCode;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class SpectraIdentificationSpectralDatabaseModule implements MZmineProcessingModule {
+public class SpectraIdentificationSpectralDatabaseModule implements MZmineModule {
 
   public static final String MODULE_NAME = "Local spectral database search for single spectra";
   private static final String MODULE_DESCRIPTION =
@@ -46,18 +42,8 @@ public class SpectraIdentificationSpectralDatabaseModule implements MZmineProces
     return MODULE_NAME;
   }
 
-  @Override
   public @Nonnull String getDescription() {
     return MODULE_DESCRIPTION;
-  }
-
-  @Override
-  @Nonnull
-  public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
-      @Nonnull Collection<Task> tasks) {
-
-    return ExitCode.OK;
-
   }
 
   /**
@@ -67,19 +53,17 @@ public class SpectraIdentificationSpectralDatabaseModule implements MZmineProces
   public static void showSpectraIdentificationDialog(final Scan scan,
       final SpectraPlot spectraPlot) {
 
-    final ParameterSet parameters = new SpectraIdentificationSpectralDatabaseParameters();
+    final SpectraIdentificationSpectralDatabaseParameters parameters =
+        (SpectraIdentificationSpectralDatabaseParameters) MZmineCore.getConfiguration()
+            .getModuleParameters(SpectraIdentificationSpectralDatabaseModule.class);
 
     // Run task.
-    if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(), true) == ExitCode.OK) {
+    if (parameters.showSetupDialog(scan, MZmineCore.getDesktop().getMainWindow(),
+        true) == ExitCode.OK) {
 
       MZmineCore.getTaskController().addTask(new SpectraIdentificationSpectralDatabaseTask(
           parameters.cloneParameterSet(), scan, spectraPlot));
     }
-  }
-
-  @Override
-  public @Nonnull MZmineModuleCategory getModuleCategory() {
-    return MZmineModuleCategory.IDENTIFICATION;
   }
 
   @Override

@@ -19,10 +19,12 @@
 package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.util.Collection;
+
 import javax.annotation.Nonnull;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -32,7 +34,7 @@ import net.sf.mzmine.util.ExitCode;
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster)
  */
-public class VanKrevelenDiagramModule implements MZmineProcessingModule {
+public class VanKrevelenDiagramModule implements MZmineRunnableModule {
 
   private static final String MODULE_NAME = "Van Krevelen Diagram";
   private static final String MODULE_DESCRIPTION = "Van Krevelen Diagram.";

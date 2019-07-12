@@ -99,7 +99,7 @@ public class SpectraVisualizerModule implements MZmineRunnableModule {
       return null;
     }
 
-    SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(dataFile);
+    SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(dataFile, true);
     newWindow.loadRawData(scan);
 
     if (peak != null)

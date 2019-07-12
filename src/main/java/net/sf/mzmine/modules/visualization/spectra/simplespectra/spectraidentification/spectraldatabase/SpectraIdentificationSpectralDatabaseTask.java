@@ -29,12 +29,14 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import net.sf.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
+import net.sf.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 
 /**
  * Task to compare single spectra with spectral databases
@@ -97,7 +99,7 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
     int count = 0;
 
     // add result frame
-    resultWindow = new SpectraIdentificationResultsWindow(currentScan);
+    resultWindow = new SpectraIdentificationResultsWindow();
     resultWindow.setVisible(true);
 
     try {
@@ -120,6 +122,10 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
             cancel();
           }
         }
+        // cancelled
+        if (isCanceled()) {
+          tasks.stream().forEach(AbstractTask::cancel);
+        }
       } else {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
@@ -132,8 +138,8 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
       setErrorMessage(e.toString());
     }
     logger.info("Added " + count + " spectral library matches");
-    resultWindow.sortTotalMatches(currentScan);
-    resultWindow.setTitle("Matched " + count + " compunds for scan#" + currentScan.getScanNumber());
+    resultWindow
+        .setTitle("Matched " + count + " compounds for scan#" + currentScan.getScanNumber());
     resultWindow.revalidate();
     resultWindow.repaint();
     // Repaint the window
@@ -168,11 +174,9 @@ class SpectraIdentificationSpectralDatabaseTask extends AbstractTask {
     // return tasks
     try {
       // parse and create spectral matching tasks for batches of entries
-      if (parser.parse(this, dataBaseFile))
-        return tasks;
-      else
-        return new ArrayList<>();
-    } catch (IOException e) {
+      parser.parse(this, dataBaseFile);
+      return tasks;
+    } catch (UnsupportedFormatException | IOException e) {
       logger.log(Level.WARNING, "Library parsing error for file " + dataBaseFile.getAbsolutePath(),
           e);
       return new ArrayList<>();

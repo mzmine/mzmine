@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -30,7 +31,7 @@ public class SpectraVisualizerParameters extends SimpleParameterSet {
 
   public static final IntegerParameter scanNumber =
       new IntegerParameter("Scan number", "Scan number");
-
+  
   /**
    * Windows size and position
    */

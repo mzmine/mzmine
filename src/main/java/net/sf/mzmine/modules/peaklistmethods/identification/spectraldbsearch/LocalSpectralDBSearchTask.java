@@ -36,6 +36,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.parser.AutoLibraryParser;
 import net.sf.mzmine.util.spectraldb.parser.LibraryEntryProcessor;
+import net.sf.mzmine.util.spectraldb.parser.UnsupportedFormatException;
 
 class LocalSpectralDBSearchTask extends AbstractTask {
 
@@ -103,6 +104,10 @@ class LocalSpectralDBSearchTask extends AbstractTask {
             cancel();
           }
         }
+        // cancelled
+        if (isCanceled()) {
+          tasks.stream().forEach(AbstractTask::cancel);
+        }
       } else {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("DB file was empty - or error while parsing " + dataBaseFile);
@@ -133,10 +138,11 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    * @param dataBaseFile
    * @return
    */
-  private List<PeakListSpectralMatchTask> parseFile(File dataBaseFile) throws IOException {
+  private List<PeakListSpectralMatchTask> parseFile(File dataBaseFile)
+      throws UnsupportedFormatException, IOException {
     //
     List<PeakListSpectralMatchTask> tasks = new ArrayList<>();
-    AutoLibraryParser parser = new AutoLibraryParser(1000, new LibraryEntryProcessor() {
+    AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
@@ -148,10 +154,8 @@ class LocalSpectralDBSearchTask extends AbstractTask {
     });
 
     // return tasks
-    if (parser.parse(this, dataBaseFile))
-      return tasks;
-    else
-      return new ArrayList<>();
+    parser.parse(this, dataBaseFile);
+    return tasks;
   }
 
 }

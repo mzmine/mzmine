@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -50,6 +51,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.Fo
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
@@ -61,10 +63,11 @@ import net.sf.mzmine.modules.visualization.peaklisttable.table.DataFileColumnTyp
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
-import net.sf.mzmine.modules.visualization.spectra.mirrorspectra.MirrorScanWindow;
 import net.sf.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
+import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
@@ -99,7 +102,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem showXICSetupItem;
   private final JMenuItem showMSMSItem;
   private final JMenuItem showMSMSMirrorItem;
-  private final JMenuItem showMSMSMirrorMatchDBItem;
+  private final JMenuItem showSpectralDBResults;
   private final JMenuItem showAllMSMSItem;
   private final JMenuItem showIsotopePatternItem;
   private final JMenuItem show2DItem;
@@ -112,11 +115,13 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem exportToSirius;
   // for building MS/MS library and submission to online libraries
   private final JMenuItem exportMSMSLibrary;
+  private final JMenuItem exportMS1Library;
   ////
   private final JMenuItem manuallyDefineItem;
   private final JMenuItem showPeakRowSummaryItem;
   private final JMenuItem clearIdsItem;
-  private final JMenuItem dbSearchItem;
+  private final JMenuItem onlineDbSearchItem;
+  private final JMenuItem spectralDbSearchItem;
   private final JMenuItem formulaItem;
   private final JMenuItem siriusItem;
   private final JMenuItem nistSearchItem;
@@ -157,14 +162,14 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     showMSMSItem.setToolTipText("MS/MS of a single or multiple rows");
     showAllMSMSItem = GUIUtils.addMenuItem(showMenu, "All MS/MS", this);
     showMSMSMirrorItem = GUIUtils.addMenuItem(showMenu, "MS/MS mirror (select 2 rows)", this);
-    showMSMSMirrorMatchDBItem =
-        GUIUtils.addMenuItem(showMenu, "MS/MS mirror (DB matched identity)", this);
+    showSpectralDBResults = GUIUtils.addMenuItem(showMenu, "Spectral DB search results", this);
     showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
     showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu, "Peak row summary", this);
 
     searchMenu = new JMenu("Search");
     add(searchMenu);
-    dbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online database", this);
+    onlineDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online compound database", this);
+    spectralDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search local spectral database", this);
     nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search", this);
     formulaItem = GUIUtils.addMenuItem(searchMenu, "Predict molecular formula", this);
     siriusItem = GUIUtils.addMenuItem(searchMenu, "SIRIUS structure prediction", this);
@@ -175,6 +180,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     // kaidu edit
     exportToSirius = GUIUtils.addMenuItem(exportMenu, "Export to SIRIUS", this);
     exportMSMSLibrary = GUIUtils.addMenuItem(exportMenu, "Export MS/MS library", this);
+    exportMS1Library = GUIUtils.addMenuItem(exportMenu, "Export MS1 library", this);
     //
     exportMSMSItem = GUIUtils.addMenuItem(exportMenu, "MS/MS pattern", this);
 
@@ -209,7 +215,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     manuallyDefineItem.setEnabled(false);
     showMSMSItem.setEnabled(false);
     showMSMSMirrorItem.setEnabled(false);
-    showMSMSMirrorMatchDBItem.setEnabled(false);
+    showSpectralDBResults.setEnabled(false);
     showAllMSMSItem.setEnabled(false);
     showIsotopePatternItem.setEnabled(false);
     showPeakRowSummaryItem.setEnabled(false);
@@ -229,10 +235,21 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     exportIsotopesItem.setEnabled(rowsSelected);
     exportToSirius.setEnabled(rowsSelected);
     exportMSMSLibrary.setEnabled(rowsSelected);
+    exportMS1Library.setEnabled(rowsSelected);
     exportMenu.setEnabled(rowsSelected);
 
     final boolean oneRowSelected = selectedRows.length == 1;
-    searchMenu.setEnabled(oneRowSelected);
+    searchMenu.setEnabled(true);
+
+    // search methods for single rows
+    onlineDbSearchItem.setEnabled(oneRowSelected);
+    nistSearchItem.setEnabled(oneRowSelected);
+    formulaItem.setEnabled(oneRowSelected);
+    siriusItem.setEnabled(oneRowSelected);
+
+    // search methods for single and multiple rows
+    spectralDbSearchItem.setEnabled(true);
+
 
     // Find the row and column where the user clicked
     clickedDataFile = null;
@@ -294,11 +311,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       boolean bothMS2 = selectedRows.length == 2 && nRowsWithFragmentation == 2;
       showMSMSMirrorItem.setEnabled(bothMS2);
 
-      // has identity of MS/MS database match
-      PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
-      showMSMSMirrorMatchDBItem.setEnabled(pi != null && pi instanceof SpectralDBPeakIdentity);
+      // has identity of spectral database match
+      showSpectralDBResults.setEnabled(hasSpectralDBIdentities(clickedPeakListRow));
 
       // open id url if available
+      PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
       String url = null;
       if (pi != null)
         url = pi.getPropertyValue(PeakIdentity.PROPERTY_URL);
@@ -309,6 +326,20 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         .setEnabled(oneRowSelected && allClickedPeakListRows[0].getPreferredPeakIdentity() != null);
 
     super.show(invoker, x, y);
+  }
+
+  /**
+   * 
+   * @param clickedRow
+   * @return true if any peakidentity is instance of {@link SpectralDBPeakIdentity}
+   */
+  private boolean hasSpectralDBIdentities(PeakListRow clickedRow) {
+    if (clickedRow == null)
+      return false;
+    for (PeakIdentity pi : clickedRow.getPeakIdentities())
+      if (pi instanceof SpectralDBPeakIdentity)
+        return true;
+    return false;
   }
 
   /**
@@ -548,15 +579,18 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
         }
       }
     }
-    // mirror of MS/MS and MS/MS library match identity
-    if (showMSMSMirrorMatchDBItem.equals(src)) {
-      PeakIdentity pi = clickedPeakListRow.getPreferredPeakIdentity();
-      if (pi != null && pi instanceof SpectralDBPeakIdentity) {
-        SpectralDBPeakIdentity db = (SpectralDBPeakIdentity) pi;
-        // show mirror msms window of two rows
-        MirrorScanWindow mirrorWindow = new MirrorScanWindow();
-        mirrorWindow.setScans(clickedPeakListRow, db);
-        mirrorWindow.setVisible(true);
+    // show spectral db matches
+    if (showSpectralDBResults.equals(src)) {
+      List<SpectralDBPeakIdentity> spectralID =
+          Arrays.stream(clickedPeakListRow.getPeakIdentities())
+              .filter(pi -> pi instanceof SpectralDBPeakIdentity)
+              .map(pi -> ((SpectralDBPeakIdentity) pi)).collect(Collectors.toList());
+      if (!spectralID.isEmpty()) {
+        SpectraIdentificationResultsWindow window = new SpectraIdentificationResultsWindow();
+        window.addMatches(spectralID);
+        window.setTitle("Matched " + spectralID.size() + " compounds for feature list row"
+            + clickedPeakListRow.getID());
+        window.setVisible(true);
       }
     }
 
@@ -619,12 +653,24 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
     }
 
-    if (dbSearchItem != null && dbSearchItem.equals(src)) {
+    if (onlineDbSearchItem != null && onlineDbSearchItem.equals(src)) {
 
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
           OnlineDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow);
+        }
+      });
+
+    }
+
+    if (spectralDbSearchItem != null && spectralDbSearchItem.equals(src)) {
+
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(allClickedPeakListRows,
+              table);
         }
       });
 
@@ -667,7 +713,15 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     if (exportMSMSLibrary.equals(src)) {
       // open window with all selected rows
       MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
-      libraryWindow.setData(allClickedPeakListRows, SortingProperty.MZ, SortingDirection.Ascending);
+      libraryWindow.setData(allClickedPeakListRows, SortingProperty.MZ, SortingDirection.Ascending,
+          true);
+      libraryWindow.setVisible(true);
+    }
+    if (exportMS1Library.equals(src)) {
+      // open window with all selected rows
+      MSMSLibrarySubmissionWindow libraryWindow = new MSMSLibrarySubmissionWindow();
+      libraryWindow.setData(allClickedPeakListRows, SortingProperty.MZ, SortingDirection.Ascending,
+          false);
       libraryWindow.setVisible(true);
     }
 

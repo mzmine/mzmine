@@ -33,24 +33,31 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
 
   private final String name, description;
   protected final boolean valueRequired;
+  private final boolean nonEmptyRequired;
   private NumberFormat format;
   private Range<Double> value;
 
   public DoubleRangeParameter(String name, String description, NumberFormat format) {
-    this(name, description, format, true, null);
+    this(name, description, format, true, false, null);
   }
 
   public DoubleRangeParameter(String name, String description, NumberFormat format,
       Range<Double> defaultValue) {
-    this(name, description, format, true, defaultValue);
+    this(name, description, format, true, false, defaultValue);
   }
 
   public DoubleRangeParameter(String name, String description, NumberFormat format,
-      boolean valueRequired, Range<Double> defaultValue) {
+                              boolean valueRequired, Range<Double> defaultValue) {
+    this(name, description, format, valueRequired, false, defaultValue);
+  }
+
+  public DoubleRangeParameter(String name, String description, NumberFormat format,
+      boolean valueRequired, boolean nonEmptyRequired, Range<Double> defaultValue) {
     this.name = name;
     this.description = description;
     this.format = format;
     this.valueRequired = valueRequired;
+    this.nonEmptyRequired = nonEmptyRequired;
     this.value = defaultValue;
   }
 
@@ -139,9 +146,15 @@ public class DoubleRangeParameter implements UserParameter<Range<Double>, Double
       errorMessages.add(name + " is not set properly");
       return false;
     }
-    if ((value != null) && (value.lowerEndpoint() > value.upperEndpoint())) {
-      errorMessages.add(name + " range maximum must be higher than minimum, or equal");
-      return false;
+    if (value != null) {
+      if (!nonEmptyRequired && value.lowerEndpoint() > value.upperEndpoint()) {
+        errorMessages.add(name + " range maximum must be higher than minimum, or equal");
+        return false;
+      }
+      if (nonEmptyRequired && value.lowerEndpoint() >= value.upperEndpoint()) {
+        errorMessages.add(name + " range maximum must be higher than minimum");
+        return false;
+      }
     }
 
     return true;

@@ -39,6 +39,8 @@ public class MassListSorter implements Comparator<DataPoint[]> {
         // same number of signals? use max TIC
         if (result == 0)
           return Double.compare(getTIC(a), getTIC(b));
+        else
+          return result;
       case MAX_TIC:
         return Double.compare(getTIC(a), getTIC(b));
     }

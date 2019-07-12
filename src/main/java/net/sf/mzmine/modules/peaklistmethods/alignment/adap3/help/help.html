@@ -34,9 +34,32 @@
 </p>
 
 <p>
-    For details, see Jiang, W.; Qiu, Y.; Ni, Y.; Su, M.; Jia, W.; Du, X.: <b>An automated data analysis pipeline for GC-TOF-MS
+    For details, see Jiang, W.; Qiu, Y.; Ni, Y.; Su, M.; Jia, W.; Du, X.: <b>An automated data analysis pipeline for
+    GC-TOF-MS
     metabonomics studies.</b> <i>Journal of proteome research</i> 2010, 9 (11), 5974-81
 </p>
+
+<h2>Requirements</h2>
+
+<p>
+    <strong>ADAP Aligner</strong> requires mass spectra to be constructed prior to the alignment (e.g. using Spectral
+    Deconvolution or CAMERA). A typical workflow where this alignment is used can be as following:
+</p>
+<ol>
+    <li><b>Raw data methods / Raw data import</b> imports raw data files</li>
+    <li><b>Raw datamethods / Peak detection / Mass detection</b> detects masses in the raw data</li>
+    <li><b>Raw datamethods / Peak detection / ADAP Chromatogram builder</b> builds extracted-ion chromatograms</li>
+    <li><b>Peak list methods / Peak deteciton / Chromatogram deconvoltion</b> detects peaks (features) in each
+        chromatogram
+    </li>
+    <li><b>Peak list methods / Spectral deconvolution / Multivariate Curve Resolution</b> combines the detected
+        peaks (features) into analytes and builds pure fragmentation mass spectra for each analyte
+    </li>
+    <li><b>Peak list methods / Alignment / ADAP Aligner (GC)</b> aligns the analytes produced by the previous step</li>
+    <li><b>Peak list methods / Export/Import / Export to MSP file</b> exports fragmentation mass spectra into
+        MSP format
+    </li>
+</ol>
 
 <h2>Description</h2>
 
@@ -46,8 +69,7 @@
     across all samples, using their <em>m/z and retention time</em> similarity. Instead, <strong>ADAP Aligner</strong>
     uses <em>mass spectra and retention time</em> to detect similar features in each sample and align them together.
     Due to the usage of mass spectra, this alignment approach is significantly different from the
-    approach of <strong>Join Aligner</strong>. Therefore, <strong>ADAP Aligner</strong> requires mass spectra to
-    be constructed prior to the alignment (e.g. using Spectral Deconvolution or CAMERA).
+    approach of <strong>Join Aligner</strong>. Therefore,
 </p>
 
 <p>
@@ -59,7 +81,8 @@
     Similarity between two features f<sub>1</sub> and f<sub>2</sub> is calculated by the following score:
 </p>
 <div align="center" style="margin: 10pt">
-    S(f<sub>1</sub>, f<sub>2</sub>) = w S<sub>time</sub>(f<sub>1</sub>, f<sub>2</sub>) + (1 - w) S<sub>spec</sub>(f<sub>1</sub>, f<sub>2</sub>)
+    S(f<sub>1</sub>, f<sub>2</sub>) = w S<sub>time</sub>(f<sub>1</sub>, f<sub>2</sub>) + (1 - w) S<sub>spec</sub>(f<sub>1</sub>,
+    f<sub>2</sub>)
 </div>
 <p>
     where S<sub>time</sub>(f<sub>1</sub>, f<sub>2</sub>) is the relative retention time difference between two features
@@ -76,11 +99,13 @@
     </li>
 
     <li><b>Retention time range</b> (minutes) is the maximum allowed retention time difference between aligned features
-        from different samples.</li>
+        from different samples.
+    </li>
 
 
     <li><b>M/z tolerance</b> is the maximum m/z difference, when two peaks from different mass spectra are considered
-        equal.</li>
+        equal.
+    </li>
 
     <li><b>Score threshold</b> (number between 0 and 1) is the minimum value of the similarity function
         S(f<sub>1</sub>, f<sub>2</sub>) required for features to be aligned together. The default value is 0.75.

@@ -23,9 +23,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
+import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -37,16 +38,16 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineConfiguration;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
+import net.sf.mzmine.util.ColorPalettes;
 
 /**
  * MZmine configuration class
@@ -57,11 +58,15 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   private final MZminePreferences preferences;
 
+  // list of last used projects
+  private final @Nonnull FileNameListSilentParameter lastProjects;
+
   private final Map<Class<? extends MZmineModule>, ParameterSet> moduleParameters;
 
   public MZmineConfigurationImpl() {
     moduleParameters = new Hashtable<Class<? extends MZmineModule>, ParameterSet>();
     preferences = new MZminePreferences();
+    lastProjects = new FileNameListSilentParameter("Last projets");
   }
 
   @Override
@@ -87,6 +92,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
     }
     moduleParameters.put(moduleClass, parameters);
 
+  }
+
+  // color palettes
+  @Override
+  public ColorPalettes.Vision getColorVision() {
+    return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
   }
 
   // Number formatting functions
@@ -140,6 +151,14 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         preferences.loadValuesFromXML(preferencesElement);
       }
 
+      logger.finest("Loading last projects");
+      expr = xpath.compile("//configuration/lastprojects");
+      nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
+      if (nodes.getLength() == 1) {
+        Element lastProjectsElement = (Element) nodes.item(0);
+        lastProjects.loadValueFromXML(lastProjectsElement);
+      }
+
       logger.finest("Loading modules configuration");
 
       for (MZmineModule module : MZmineCore.getAllModules()) {
@@ -176,6 +195,10 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       Element prefElement = configuration.createElement("preferences");
       configRoot.appendChild(prefElement);
       preferences.saveValuesToXML(prefElement);
+
+      Element lastFilesElement = configuration.createElement("lastprojects");
+      configRoot.appendChild(lastFilesElement);
+      lastProjects.saveValueToXML(lastFilesElement);
 
       Element modulesElement = configuration.createElement("modules");
       configRoot.appendChild(modulesElement);
@@ -223,6 +246,18 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public MZminePreferences getPreferences() {
     return preferences;
+  }
+
+  @Override
+  @Nonnull
+  public List<File> getLastProjects() {
+    return lastProjects.getValue();
+  }
+
+  @Override
+  @Nonnull
+  public FileNameListSilentParameter getLastProjectsParameter() {
+    return lastProjects;
   }
 
 }

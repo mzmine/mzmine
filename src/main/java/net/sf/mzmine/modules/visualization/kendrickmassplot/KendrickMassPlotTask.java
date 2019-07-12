@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -68,6 +68,7 @@ public class KendrickMassPlotTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
+  private ParameterSet parameters;
   private XYDataset dataset2D;
   private XYZDataset dataset3D;
   private JFreeChart chart;
@@ -86,6 +87,8 @@ public class KendrickMassPlotTask extends AbstractTask {
   public KendrickMassPlotTask(ParameterSet parameters) {
     peakList = parameters.getParameter(KendrickMassPlotParameters.peakList).getValue()
         .getMatchingPeakLists()[0];
+
+    this.parameters = parameters;
 
     title = "Kendrick mass plot [" + peakList + "]";
 
@@ -141,7 +144,7 @@ public class KendrickMassPlotTask extends AbstractTask {
       return;
 
     JFreeChart chart = null;
-    // 2D, if no thrid dimension was selected
+    // 2D, if no third dimension was selected
     if (zAxisLabel.equals("none")) {
       chart = create2DKendrickMassPlot();
     }
@@ -151,11 +154,11 @@ public class KendrickMassPlotTask extends AbstractTask {
     }
     chart.setBackgroundPaint(Color.white);
 
-    // Create Kendrick mass plot Window
-    KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart);
-
     // create chart JPanel
     EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
+
+    // Create Kendrick mass plot Window
+    KendrickMassPlotWindow frame = new KendrickMassPlotWindow(chart, parameters, chartPanel);
     frame.add(chartPanel, BorderLayout.CENTER);
 
     // set title properties
@@ -188,10 +191,14 @@ public class KendrickMassPlotTask extends AbstractTask {
 
       // create chart
       chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset2D,
-          PlotOrientation.VERTICAL, true, true, false);
+          PlotOrientation.VERTICAL, true, true, true);
 
       XYPlot plot = (XYPlot) chart.getPlot();
       plot.setBackgroundPaint(Color.WHITE);
+      plot.setDomainCrosshairPaint(Color.GRAY);
+      plot.setRangeCrosshairPaint(Color.GRAY);
+      plot.setDomainCrosshairVisible(true);
+      plot.setRangeCrosshairVisible(true);
       appliedSteps++;
 
       // set axis
@@ -210,11 +217,14 @@ public class KendrickMassPlotTask extends AbstractTask {
           new KendrickMassPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
       renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
       plot.setRenderer(renderer);
+
       // set item label generator
       NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
       renderer.setDefaultItemLabelGenerator(generator);
       renderer.setDefaultItemLabelsVisible(false);
       renderer.setDefaultItemLabelFont(legendFont);
+      renderer.setDefaultPositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.CENTER,
+          TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);
     }
     return chart;
   }
@@ -242,7 +252,7 @@ public class KendrickMassPlotTask extends AbstractTask {
     double max = 0;
 
     if (zAxisScaleType.equals("percentile")) {
-      minScaleIndex = (int) Math.floor(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
+      minScaleIndex = (int) Math.ceil(copyZValues.length * (zScaleRange.lowerEndpoint() / 100));
       maxScaleIndex = copyZValues.length
           - (int) (Math.ceil(copyZValues.length * ((100 - zScaleRange.upperEndpoint()) / 100)));
       if (zScaleRange.upperEndpoint() == 100) {
@@ -275,7 +285,7 @@ public class KendrickMassPlotTask extends AbstractTask {
 
     // create chart
     chart = ChartFactory.createScatterPlot(title, xAxisLabel, yAxisLabel, dataset3D,
-        PlotOrientation.VERTICAL, true, true, false);
+        PlotOrientation.VERTICAL, true, true, true);
     XYPlot plot = chart.getXYPlot();
 
     // set axis
@@ -310,6 +320,10 @@ public class KendrickMassPlotTask extends AbstractTask {
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
     plot.setBackgroundPaint(Color.white);
+    plot.setDomainCrosshairPaint(Color.GRAY);
+    plot.setRangeCrosshairPaint(Color.GRAY);
+    plot.setDomainCrosshairVisible(true);
+    plot.setRangeCrosshairVisible(true);
 
     // Legend
     NumberAxis scaleAxis = new NumberAxis(zAxisLabel);

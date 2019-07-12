@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -46,12 +47,15 @@ public class NistMspParser extends SpectralDBParser {
   public boolean parse(AbstractTask mainTask, File dataBaseFile) throws IOException {
     logger.info("Parsing NIST msp spectral library " + dataBaseFile.getAbsolutePath());
 
-    int correct = 0;
-    boolean isData = false;
+    // metadata fields and data points
     Map<DBEntryField, Object> fields = new EnumMap<>(DBEntryField.class);
     List<DataPoint> dps = new ArrayList<>();
-    // create db
+    // separation index (metadata is separated by ': '
     int sep = -1;
+    // currently loading data?
+    boolean isData = false;
+
+    // read DB file
     try (BufferedReader br = new BufferedReader(new FileReader(dataBaseFile))) {
       for (String l; (l = br.readLine()) != null;) {
         // main task was canceled?
@@ -62,55 +66,91 @@ public class NistMspParser extends SpectralDBParser {
           if (l.length() > 1) {
             // meta data?
             sep = isData ? -1 : l.indexOf(": ");
-            if (sep != -1) {
-              DBEntryField field = DBEntryField.forMspID(l.substring(0, sep));
-              if (field != null) {
-                String content = l.substring(sep + 2, l.length());
-                if (content.length() > 0) {
-                  try {
-                    Object value = field.convertValue(content);
-                    fields.put(field, value);
-                  } catch (Exception e) {
-                    logger.log(Level.WARNING, "Cannot convert value type of " + content + " to "
-                        + field.getObjectClass().toString(), e);
-                  }
-                }
-              }
+            if (sep != -1 && sep < l.length() - 2) {
+              extractMetaData(fields, l, sep);
             } else {
               // data?
-              String[] dataAndComment = l.split("\"");
-              String[] data = dataAndComment[0].split(" ");
-              if (data.length == 2) {
-                try {
-                  dps.add(new SimpleDataPoint(Double.parseDouble(data[0]),
-                      Double.parseDouble(data[1])));
-                  isData = true;
-                } catch (Exception e) {
-                  isData = false;
-                }
-              }
+              DataPoint dp = extractDataPoint(l);
+              if (dp != null) {
+                dps.add(dp);
+                isData = true;
+              } else
+                isData = false;
+            }
+          } else {
+            // empty row
+            if (isData) {
+              // empty row after data
+              // add entry and reset
+              SpectralDBEntry entry =
+                  new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
+              // add and push
+              addLibraryEntry(entry);
+              // reset
+              fields = new EnumMap<>(fields);
+              dps.clear();
+              isData = false;
             }
           }
-          if (isData) {
-            // empty row after data
-            // add entry and reset
-            SpectralDBEntry entry =
-                new SpectralDBEntry(fields, dps.toArray(new DataPoint[dps.size()]));
-            fields = new EnumMap<>(fields);
-            dps.clear();
-            // add and push
-            addLibraryEntry(entry);
-            correct++;
-          }
-          // reset
-          isData = false;
         } catch (Exception ex) {
           logger.log(Level.WARNING, "Error for entry", ex);
+          // reset on error
+          isData = false;
+          fields = new EnumMap<>(fields);
+          dps.clear();
         }
       }
       // finish and process all entries
       finish();
       return true;
+    }
+  }
+
+  /**
+   * Extract data point
+   * 
+   * @param line
+   * @return DataPoint or null
+   */
+  @Nullable
+  private DataPoint extractDataPoint(String line) {
+    // comment possible as mz intensity"
+    String[] dataAndComment = line.split("\"");
+    // split by space
+    String[] data = dataAndComment[0].split(" ");
+    if (data.length == 2) {
+      try {
+        return new SimpleDataPoint(Double.parseDouble(data[0]), Double.parseDouble(data[1]));
+      } catch (Exception e) {
+        logger.log(Level.WARNING, "Cannot parse data point", e);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Extracts metadata from a line which is separated by ': ' and inserts the metadata inta a map
+   * 
+   * @param fields The map of metadata fields
+   * @param line String with metadata
+   * @param sep index of the separation char ':'
+   */
+  private void extractMetaData(Map<DBEntryField, Object> fields, String line, int sep) {
+    String key = line.substring(0, sep);
+    DBEntryField field = DBEntryField.forMspID(key);
+    if (field != null) {
+      // spe +2 for colon and space
+      String content = line.substring(sep + 2, line.length());
+      if (content.length() > 0) {
+        try {
+          // convert into value type
+          Object value = field.convertValue(content);
+          fields.put(field, value);
+        } catch (Exception e) {
+          logger.log(Level.WARNING, "Cannot convert value type of " + content + " to "
+              + field.getObjectClass().toString(), e);
+        }
+      }
     }
   }
 
