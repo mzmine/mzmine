@@ -214,54 +214,6 @@ public class ADAP3AlignerTask extends AbstractTask {
 
             newRow.setComment("Alignment Score = " + referenceComponent.getScore());
 
-//            // -----------------------------------------------
-//            // Determine the quantitative mass and intensities
-//            // -----------------------------------------------
-//
-//            double mass = getQuantitativeMass(component);
-//            double mzTolerance = parameters.getParameter(ADAP3AlignerParameters.MZ_RANGE)
-//                    .getValue()
-//                    .getMzTolerance();
-//
-//            SimplePeakInformation information = new SimplePeakInformation();
-//            information.addProperty("REFERENCE FILE", refRow.getRawDataFiles()[0].getName());
-//            information.addProperty("QUANTITATION MASS", Double.toString(mass));
-//
-//            List<Component> components =
-//                    new ArrayList<>(component.getComponents());
-//
-//            for (int i = 0; i < components.size(); ++i) {
-//
-//                Component c = components.get(i);
-//
-//                PeakList peakList = findPeakList(component.getSampleID(i));
-//                if (peakList == null)
-//                    throw new IllegalArgumentException("Cannot find peak list " + component.getSampleID(i));
-//
-//                RawDataFile file = peakList.getRawDataFile(0);
-//
-//                double minDistance = Double.MAX_VALUE;
-//                double intensity = 0.0;
-//
-//                for (Entry<Double, Double> e : c.getSpectrum().entrySet()) {
-//                    double mz = e.getKey();
-//                    double distance = Math.abs(mz - mass);
-//
-//                    if (distance > mzTolerance) continue;
-//
-//                    if (distance < minDistance) {
-//                        minDistance = distance;
-//                        intensity = e.getValue();
-//                    }
-//                }
-//
-//                information.addProperty(
-//                        "QUANTITATION INTENSITY for " + file.getName(),
-//                        Double.toString(intensity));
-//            }
-//
-//            newRow.setPeakInformation(information);
-
             alignedPeakList.addRow(newRow);
         }
 
