@@ -112,7 +112,6 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
             }
             String title = "";
             Fx3DStageController controller = loader.getController();
-            controller.setController(controller);
             controller.setScanSelection(scanSel);
             controller.setRtAndMzResolutions(rtRes, mzRes);
             controller.setRtMzValues(rtRange, mzRange);

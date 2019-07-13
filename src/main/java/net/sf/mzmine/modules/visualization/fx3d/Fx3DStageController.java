@@ -138,7 +138,6 @@ public class Fx3DStageController {
     private ObservableList<MeshView> meshViewList = FXCollections
             .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
-    private Fx3DStageController controller;
     private ScanSelection scanSel;
     private List<RawDataFile> allDataFiles;
     private List<RawDataFile> visualizedFiles = new ArrayList<RawDataFile>();
@@ -338,7 +337,9 @@ public class Fx3DStageController {
             if (!visualizedFiles.contains(file)) {
                 MenuItem menuItem = new MenuItem(file.getName());
                 addMenu.getItems().add(menuItem);
+                final Fx3DStageController controller = this;
                 menuItem.setOnAction(new EventHandler<ActionEvent>() {
+
                     public void handle(ActionEvent e) {
                         LOG.finest(
                                 "Context menu invoked. Add button clicked. Adding dataset "
@@ -349,6 +350,7 @@ public class Fx3DStageController {
                                 TaskPriority.HIGH);
                         addMenuItems();
                     }
+
                 });
             }
         }
@@ -479,6 +481,13 @@ public class Fx3DStageController {
     }
 
     public void handleToggleAxes(Event event) {
+        if (animationRunning) {
+            animateBtn.setSelected(false);
+            rotateAnimationTimeline.stop();
+            deltaAngle = 0;
+            animationRunning = false;
+            plot.getTransforms().remove(yRotate);
+        }
         if (axesPosition == 0) {
             axesPosition = 1;
             axes.getIntensityTranslate().setX(SIZE);
@@ -486,12 +495,18 @@ public class Fx3DStageController {
             setCameraAngle(44);
         } else if (axesPosition == 1) {
             axesPosition = 2;
+            setCameraAngle(90);
+        } else if (axesPosition == 2) {
+            axesPosition = 3;
             axes.getIntensityTranslate().setZ(-SIZE);
             axes.getIntensityRotate().setAngle(-91);
             setRtAxis();
             setCameraAngle(135);
-        } else if (axesPosition == 2) {
-            axesPosition = 3;
+        } else if (axesPosition == 3) {
+            axesPosition = 4;
+            setCameraAngle(180);
+        } else if (axesPosition == 4) {
+            axesPosition = 5;
             axes.updateAxisParameters(rtRange, mzRange,
                     maxOfAllBinnedIntensity);
             axes.getIntensityRotate().setAngle(181);
@@ -499,20 +514,22 @@ public class Fx3DStageController {
             axes.getMzAxis().setTranslateX(0);
             setRtAxis();
             setCameraAngle(135 + 90);
-        } else if (axesPosition == 3) {
-            axesPosition = 4;
+        } else if (axesPosition == 5) {
+            axesPosition = 6;
+            setCameraAngle(270);
             axes.getIntensityRotate().setAngle(89);
             axes.getIntensityTranslate().setZ(0);
             axes.getIntensityTranslate().setX(-SIZE);
             setCameraAngle(270);
-        } else if (axesPosition == 4) {
-            axesPosition = 5;
+        } else if (axesPosition == 6) {
+            axesPosition = 7;
             axes.updateAxisParameters(rtRange, mzRange,
                     maxOfAllBinnedIntensity);
             axes.getIntensityRotate().setAngle(89);
             setCameraAngle(135 + 180);
-        } else if (axesPosition == 5) {
+        } else if (axesPosition == 7) {
             axesPosition = 0;
+            axesPosition = 6;
             axes.updateAxisParameters(rtRange, mzRange,
                     maxOfAllBinnedIntensity);
             setCameraAngle(0);
@@ -546,6 +563,7 @@ public class Fx3DStageController {
         rotateAnimationTimeline.stop();
         deltaAngle = 0;
         animationRunning = false;
+
         plot.getTransforms().clear();
         plot.getTransforms().addAll(rotateX, rotateY);
 
@@ -661,10 +679,6 @@ public class Fx3DStageController {
     public void setRtAndMzResolutions(int rtRes, int mzRes) {
         this.rtResolution = rtRes;
         this.mzResolution = mzRes;
-    }
-
-    public void setController(Fx3DStageController controller) {
-        this.controller = controller;
     }
 
     public void setScanSelection(ScanSelection scanselectn) {

@@ -137,7 +137,7 @@ public class Fx3DAxes extends Group {
         Text intensityLabel = new Text("Intensity");
         intensityLabel.setTranslateX(-75);
         intensityLabel.setRotationAxis(Rotate.Z_AXIS);
-        intensityLabel.setRotate(90);
+        intensityLabel.setRotate(-90);
         intensityLabel.setTranslateZ(-40);
         intensityLabel.setTranslateY(-70);
         intensityAxis.getChildren().add(intensityLabel);
