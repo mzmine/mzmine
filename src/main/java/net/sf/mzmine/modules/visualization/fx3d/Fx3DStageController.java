@@ -529,7 +529,6 @@ public class Fx3DStageController {
             setCameraAngle(135 + 180);
         } else if (axesPosition == 7) {
             axesPosition = 0;
-            axesPosition = 6;
             axes.updateAxisParameters(rtRange, mzRange,
                     maxOfAllBinnedIntensity);
             setCameraAngle(0);
