@@ -495,22 +495,29 @@ public class Fx3DStageController {
             setCameraAngle(44);
         } else if (axesPosition == 1) {
             axesPosition = 2;
+            axes.getIntensityRotate().setAngle(-91);
+            axes.getIntensityTranslate().setZ(-SIZE);
+            axes.getIntensityTranslate().setX(-5);
             setCameraAngle(90);
         } else if (axesPosition == 2) {
             axesPosition = 3;
-            axes.getIntensityTranslate().setZ(-SIZE);
+            axes.getIntensityTranslate().setZ(-SIZE - 9);
+            axes.getIntensityTranslate().setX(SIZE - 9);
             axes.getIntensityRotate().setAngle(-91);
             setRtAxis();
             setCameraAngle(135);
         } else if (axesPosition == 3) {
             axesPosition = 4;
+            axes.getIntensityRotate().setAngle(181);
+            axes.getIntensityTranslate().setZ(-SIZE - 6);
+            axes.getIntensityTranslate().setX(-SIZE + 9);
             setCameraAngle(180);
         } else if (axesPosition == 4) {
             axesPosition = 5;
             axes.updateAxisParameters(rtRange, mzRange,
                     maxOfAllBinnedIntensity);
             axes.getIntensityRotate().setAngle(181);
-            axes.getIntensityTranslate().setZ(-SIZE);
+            axes.getIntensityTranslate().setZ(-SIZE + 10);
             axes.getMzAxis().setTranslateX(0);
             setRtAxis();
             setCameraAngle(135 + 90);
@@ -518,8 +525,8 @@ public class Fx3DStageController {
             axesPosition = 6;
             setCameraAngle(270);
             axes.getIntensityRotate().setAngle(89);
-            axes.getIntensityTranslate().setZ(0);
-            axes.getIntensityTranslate().setX(-SIZE);
+            axes.getIntensityTranslate().setZ(10);
+            axes.getIntensityTranslate().setX(-SIZE + 2);
             setCameraAngle(270);
         } else if (axesPosition == 6) {
             axesPosition = 7;
