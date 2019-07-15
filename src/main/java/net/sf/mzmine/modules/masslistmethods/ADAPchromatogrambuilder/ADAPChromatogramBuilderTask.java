@@ -178,6 +178,25 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
       prevRT = s.getRetentionTime();
     }
 
+    // Check if the scans are MS1-only or MS2-only.
+
+    int minMsLevel = Arrays.stream(scans)
+            .mapToInt(Scan::getMSLevel)
+            .min()
+            .orElseThrow(() -> new IllegalStateException("Cannot find the minimum MS level"));
+
+    int maxMsLevel = Arrays.stream(scans)
+            .mapToInt(Scan::getMSLevel)
+            .max()
+            .orElseThrow(() -> new IllegalStateException("Cannot find the maximum MS level"));
+
+    if (minMsLevel != maxMsLevel) {
+      setStatus(TaskStatus.ERROR);
+      setErrorMessage("Only scans of one MS level should be used for building chromatograms. " +
+              "Please, set the scan filter parameter to a specific MS level");
+      return;
+    }
+
 
     // Create new peak list
     newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
