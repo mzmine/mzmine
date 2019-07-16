@@ -691,7 +691,7 @@ public class Fx3DStageController {
         this.scanSel = scanselectn;
     }
 
-    public void setRtMzValues(Range<Double> rt, Range<Double> mz) {
+    public void setRtAndMzValues(Range<Double> rt, Range<Double> mz) {
         this.rtRange = rt;
         this.mzRange = mz;
     }
