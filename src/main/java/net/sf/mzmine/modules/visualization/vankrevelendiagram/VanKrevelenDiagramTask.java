@@ -31,6 +31,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
@@ -39,6 +41,7 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.ui.TextAnchor;
 import com.google.common.collect.Range;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.PeakIdentity;
@@ -72,7 +75,6 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private PeakListRow rows[];
   private PeakListRow filteredRows[];
   private String title;
-  private ParameterSet parameterSet;
   private int totalSteps = 3, appliedSteps = 0;
 
   public VanKrevelenDiagramTask(ParameterSet parameters) {
@@ -122,10 +124,14 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
       chart.setBackgroundPaint(Color.white);
 
-      // Create Van Krevelen Diagram window
-      VanKrevelenDiagramWindow frame = new VanKrevelenDiagramWindow(chart);
       // create chart JPanel
       EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
+
+      // Create Van Krevelen Diagram window
+      VanKrevelenDiagramWindow frame =
+          new VanKrevelenDiagramWindow(chart, chartPanel, filteredRows);
+
+      // create chart JPanel
       frame.add(chartPanel, BorderLayout.CENTER);
 
       // set title properties
@@ -167,6 +173,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
     XYPlot plot = (XYPlot) chart.getPlot();
     plot.setBackgroundPaint(Color.WHITE);
+    plot.setDomainCrosshairPaint(Color.GRAY);
+    plot.setRangeCrosshairPaint(Color.GRAY);
+    plot.setDomainCrosshairVisible(true);
+    plot.setRangeCrosshairVisible(true);
     appliedSteps++;
 
     // set renderer
@@ -190,6 +200,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     renderer.setDefaultItemLabelGenerator(generator);
     renderer.setDefaultItemLabelsVisible(false);
     renderer.setDefaultItemLabelFont(legendFont);
+    renderer.setDefaultPositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.CENTER,
+        TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);
 
     return chart;
   }
@@ -268,6 +280,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     VanKrevelenDiagramToolTipGenerator tooltipGenerator =
         new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
     renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
+    renderer.setDefaultPositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.CENTER,
+        TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);
 
     // set item label generator
     NameItemLabelGenerator generator = new NameItemLabelGenerator(filteredRows);
@@ -281,6 +295,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
     plot.setBackgroundPaint(Color.white);
+    plot.setDomainCrosshairPaint(Color.GRAY);
+    plot.setRangeCrosshairPaint(Color.GRAY);
+    plot.setDomainCrosshairVisible(true);
+    plot.setRangeCrosshairVisible(true);
 
     // Legend
     NumberAxis scaleAxis = new NumberAxis(zAxisLabel);
