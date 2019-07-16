@@ -27,7 +27,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
- * Tooltip generator for Kendrick mass plots
+ * Tooltip generator for any type of scatter plots
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
