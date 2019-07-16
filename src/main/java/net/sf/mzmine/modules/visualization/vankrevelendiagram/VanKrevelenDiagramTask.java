@@ -43,13 +43,14 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.chart.ui.TextAnchor;
 import com.google.common.collect.Range;
+import net.sf.mzmine.chartbasics.chartutils.NameItemLabelGenerator;
+import net.sf.mzmine.chartbasics.chartutils.ScatterPlotToolTipGenerator;
+import net.sf.mzmine.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import net.sf.mzmine.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.NameItemLabelGenerator;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizePaintScales;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -190,8 +191,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
 
     // set tooltip generator
-    VanKrevelenDiagramToolTipGenerator tooltipGenerator =
-        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
+    ScatterPlotToolTipGenerator tooltipGenerator =
+        new ScatterPlotToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
     renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
     plot.setRenderer(renderer);
 
@@ -277,8 +278,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
 
     // set tooltip generator
-    VanKrevelenDiagramToolTipGenerator tooltipGenerator =
-        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
+    ScatterPlotToolTipGenerator tooltipGenerator =
+        new ScatterPlotToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
     renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
     renderer.setDefaultPositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.CENTER,
         TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);

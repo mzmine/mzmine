@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils;
+package net.sf.mzmine.chartbasics.chartutils;
 
 /*
  * =========================================================== JFreeChart : a free chart library for

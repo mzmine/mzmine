@@ -29,10 +29,10 @@ import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
+import net.sf.mzmine.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.util.dialogs.FeatureOverviewWindow;
 
 /**
