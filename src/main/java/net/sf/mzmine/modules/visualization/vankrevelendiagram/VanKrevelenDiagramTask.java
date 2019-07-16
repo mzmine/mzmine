@@ -22,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -40,6 +41,7 @@ import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
+import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.NameItemLabelGenerator;
@@ -68,6 +70,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private Range<Double> zScaleRange;
   private String paintScaleStyle;
   private PeakListRow rows[];
+  private PeakListRow filteredRows[];
   private String title;
   private ParameterSet parameterSet;
   private int totalSteps = 3, appliedSteps = 0;
@@ -83,9 +86,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     rows = parameters.getParameter(VanKrevelenDiagramParameters.selectedRows)
         .getMatchingRows(peakList);
 
+    filteredRows = filterSelectedRows(rows);
+
     title = "Van Krevelen Diagram [" + peakList + "]";
 
-    parameterSet = parameters;
   }
 
   @Override
@@ -155,7 +159,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     appliedSteps++;
 
     // load dataset
-    VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(parameterSet);
+    VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(filteredRows);
 
     // create chart
     chart = ChartFactory.createScatterPlot(title, "O/C", "H/C", dataset2D, PlotOrientation.VERTICAL,
@@ -177,12 +181,12 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
     // set tooltip generator
     VanKrevelenDiagramToolTipGenerator tooltipGenerator =
-        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, rows);
+        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
     renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
     plot.setRenderer(renderer);
 
     // set item label generator
-    NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
+    NameItemLabelGenerator generator = new NameItemLabelGenerator(filteredRows);
     renderer.setDefaultItemLabelGenerator(generator);
     renderer.setDefaultItemLabelsVisible(false);
     renderer.setDefaultItemLabelFont(legendFont);
@@ -196,8 +200,9 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private JFreeChart create3DVanKrevelenDiagram() {
     logger.info("Creating new 3D chart instance");
     appliedSteps++;
-    // load dataseta
-    VanKrevelenDiagramXYZDataset dataset3D = new VanKrevelenDiagramXYZDataset(parameterSet);
+    // load data set
+    VanKrevelenDiagramXYZDataset dataset3D =
+        new VanKrevelenDiagramXYZDataset(zAxisLabel, filteredRows);
 
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset3D.getItemCount(0)];
@@ -261,11 +266,11 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
     // set tooltip generator
     VanKrevelenDiagramToolTipGenerator tooltipGenerator =
-        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, rows);
+        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
     renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
 
     // set item label generator
-    NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
+    NameItemLabelGenerator generator = new NameItemLabelGenerator(filteredRows);
     renderer.setDefaultItemLabelGenerator(generator);
     renderer.setDefaultItemLabelsVisible(false);
     renderer.setDefaultItemLabelFont(legendFont);
@@ -298,6 +303,24 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     appliedSteps++;
 
     return chart;
+  }
+
+
+  private PeakListRow[] filterSelectedRows(PeakListRow[] selectedRows) {
+    ArrayList<PeakListRow> rows = new ArrayList<PeakListRow>();
+    for (PeakListRow peakListRow : selectedRows) {
+      boolean hasIdentity = false;
+      if (peakListRow.getPreferredPeakIdentity() != null)
+        hasIdentity = true;
+      if (hasIdentity && peakListRow.getPreferredPeakIdentity()
+          .getPropertyValue(PeakIdentity.PROPERTY_FORMULA) != null) {
+        rows.add(peakListRow);
+      }
+    }
+    if (rows.size() > 0) {
+      return rows.stream().toArray(PeakListRow[]::new);
+    } else
+      return null;
   }
 
 }

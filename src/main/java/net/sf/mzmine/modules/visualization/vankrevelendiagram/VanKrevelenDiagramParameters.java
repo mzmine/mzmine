@@ -30,7 +30,6 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakSelectionParameter;
-import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
@@ -70,7 +69,7 @@ public class VanKrevelenDiagramParameters extends SimpleParameterSet {
 
   public VanKrevelenDiagramParameters() {
     super(new Parameter[] {peakList, selectedRows, zAxisValues, zScaleType, zScaleRange, paintScale,
-        windowSettings,});
+        windowSettings});
   }
 
   @Override
