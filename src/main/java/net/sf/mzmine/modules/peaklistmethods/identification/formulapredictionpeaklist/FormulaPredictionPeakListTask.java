@@ -84,8 +84,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
      */
     this.peakList = peakList;
     charge = parameters.getParameter(FormulaPredictionPeakListParameters.charge).getValue();
-    ionType = (IonizationType) parameters
-        .getParameter(FormulaPredictionPeakListParameters.ionization).getValue();
+    ionType = parameters.getParameter(FormulaPredictionPeakListParameters.ionization).getValue();
     mzTolerance =
         parameters.getParameter(FormulaPredictionPeakListParameters.mzTolerance).getValue();
     elementCounts =
@@ -119,6 +118,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0.0;
@@ -128,6 +128,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return message;
   }
@@ -135,6 +136,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
   /**
    * @see java.lang.Runnable#run()
    */
+  @Override
   public void run() {
 
     setStatus(TaskStatus.PROCESSING);
@@ -192,7 +194,8 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
       int ctr = 0;
       for (Map.Entry<Double, String> entry : possibleFormulasSorted.entrySet()) {
         if (ctr < maxBestFormulasPerPeak) {
-          SimplePeakIdentity newIdentity = new SimplePeakIdentity(entry.getValue());
+          SimplePeakIdentity newIdentity = new SimplePeakIdentity(entry.getValue(),
+              entry.getValue(), this.getClass().getName(), null, null);
           row.addPeakIdentity(newIdentity, false);
           ctr++;
         }

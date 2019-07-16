@@ -20,9 +20,7 @@ package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.util.ArrayList;
 import org.jfree.data.xy.AbstractXYZDataset;
-import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.parameters.ParameterSet;
 
 /*
  * XYZDataset for Van Krevelen diagram
@@ -33,49 +31,47 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private PeakListRow selectedRows[];
+  private PeakListRow filteredRows[];
   private int numberOfDatapoints = 0;
   private double[] xValues;
   private double[] yValues;
   private double[] zValues;
-  private String zAxisLabel;
 
-  public VanKrevelenDiagramXYZDataset(ParameterSet parameters) {
+  public VanKrevelenDiagramXYZDataset(String zAxisLabel, PeakListRow[] filteredRows) {
 
-    PeakList peakList = parameters.getParameter(VanKrevelenDiagramParameters.peakList).getValue()
-        .getMatchingPeakLists()[0];
+    this.filteredRows = filteredRows;
 
-    zAxisLabel =
-        parameters.getParameter(VanKrevelenDiagramParameters.zAxisValues).getValue().toString();
-
-    this.selectedRows = parameters.getParameter(VanKrevelenDiagramParameters.selectedRows)
-        .getMatchingRows(peakList);
     ArrayList<Integer> numberOfCAtoms = new ArrayList<Integer>();
     ArrayList<Integer> numberOfOAtoms = new ArrayList<Integer>();
     ArrayList<Integer> numberOfHAtoms = new ArrayList<Integer>();
     ArrayList<Double> zValuesList = new ArrayList<Double>();
     // get number of atoms
-    for (int i = 0; i < selectedRows.length; i++) {
-      if (getNumberOfCAtoms(selectedRows[i]) != 0 && getNumberOfOAtoms(selectedRows[i]) != 0
-          && getNumberOfHAtoms(selectedRows[i]) != 0) {
-        numberOfCAtoms.add(getNumberOfCAtoms(selectedRows[i]));
-        numberOfOAtoms.add(getNumberOfOAtoms(selectedRows[i]));
-        numberOfHAtoms.add(getNumberOfHAtoms(selectedRows[i]));
+    int atomsC = 0;
+    int atomsO = 0;
+    int atomsH = 0;
+    for (int i = 0; i < filteredRows.length; i++) {
+      atomsC = getNumberOfCAtoms(filteredRows[i]);
+      atomsO = getNumberOfOAtoms(filteredRows[i]);
+      atomsH = getNumberOfHAtoms(filteredRows[i]);
+      if (atomsC != 0 && atomsO != 0 && atomsH != 0) {
+        numberOfCAtoms.add(atomsC);
+        numberOfOAtoms.add(atomsO);
+        numberOfHAtoms.add(atomsH);
         // plot selected feature characteristic as z Axis
         if (zAxisLabel.equals("Retention time")) {
-          zValuesList.add(selectedRows[i].getAverageRT());
+          zValuesList.add(filteredRows[i].getAverageRT());
         } else if (zAxisLabel.equals("Intensity")) {
-          zValuesList.add(selectedRows[i].getAverageHeight());
+          zValuesList.add(filteredRows[i].getAverageHeight());
         } else if (zAxisLabel.equals("Area")) {
-          zValuesList.add(selectedRows[i].getAverageArea());
+          zValuesList.add(filteredRows[i].getAverageArea());
         } else if (zAxisLabel.equals("Tailing factor")) {
-          zValuesList.add(selectedRows[i].getBestPeak().getTailingFactor());
+          zValuesList.add(filteredRows[i].getBestPeak().getTailingFactor());
         } else if (zAxisLabel.equals("Asymmetry factor")) {
-          zValuesList.add(selectedRows[i].getBestPeak().getAsymmetryFactor());
+          zValuesList.add(filteredRows[i].getBestPeak().getAsymmetryFactor());
         } else if (zAxisLabel.equals("FWHM")) {
-          zValuesList.add(selectedRows[i].getBestPeak().getFWHM());
+          zValuesList.add(filteredRows[i].getBestPeak().getFWHM());
         } else if (zAxisLabel.equals("m/z")) {
-          zValuesList.add(selectedRows[i].getBestPeak().getMZ());
+          zValuesList.add(filteredRows[i].getBestPeak().getMZ());
         }
 
       }
@@ -89,7 +85,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
     } // Calc yValues
     yValues = new double[numberOfCAtoms.size()];
     for (int i = 0; i < numberOfCAtoms.size(); i++) {
-      // calc the ratio of O/C
+      // calc the ratio of H/C
       yValues[i] = (double) numberOfHAtoms.get(i) / numberOfCAtoms.get(i);
     }
     zValues = new double[numberOfCAtoms.size()];
@@ -263,7 +259,7 @@ class VanKrevelenDiagramXYZDataset extends AbstractXYZDataset {
   }
 
   public Comparable<?> getRowKey(int row) {
-    return selectedRows[row].toString();
+    return filteredRows[row].toString();
   }
 
   @Override
