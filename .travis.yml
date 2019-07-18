@@ -1,6 +1,8 @@
 language: java
 
-script: mvn -ntp -DskipTests clean package
+script: 
+    mvn clean package | pv > make.log 2>&1
+    tail --lines=4K make.log
 
 install: echo "skipping install"
 
