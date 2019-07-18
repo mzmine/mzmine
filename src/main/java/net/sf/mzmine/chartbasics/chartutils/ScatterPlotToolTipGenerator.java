@@ -16,9 +16,8 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils;
+package net.sf.mzmine.chartbasics.chartutils;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.chart.util.PublicCloneable;
@@ -28,18 +27,18 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
- * Tooltip generator for Kendrick mass plots
+ * Tooltip generator for any type of scatter plots
  * 
  * @author Ansgar Korf (ansgar.korf@uni-muenster.de)
  */
-public class KendrickMassPlotToolTipGenerator implements XYZToolTipGenerator, PublicCloneable {
+public class ScatterPlotToolTipGenerator implements XYZToolTipGenerator, PublicCloneable {
 
   private String xAxisLabel, yAxisLabel, zAxisLabel;
   private NumberFormat numberFormat = MZmineCore.getConfiguration().getMZFormat();
   private PeakListRow rows[];
   private String featureIdentity;
 
-  public KendrickMassPlotToolTipGenerator(String xAxisLabel, String yAxisLabel, String zAxisLabel,
+  public ScatterPlotToolTipGenerator(String xAxisLabel, String yAxisLabel, String zAxisLabel,
       PeakListRow rows[]) {
     super();
     this.xAxisLabel = xAxisLabel;

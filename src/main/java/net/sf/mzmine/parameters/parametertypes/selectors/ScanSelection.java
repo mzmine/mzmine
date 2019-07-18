@@ -20,15 +20,10 @@ package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.Immutable;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
-import org.apache.xpath.functions.FuncFalse;
-
 import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -101,57 +96,16 @@ public class ScanSelection {
   public Scan[] getMatchingScans(RawDataFile dataFile) {
 
     final List<Scan> matchingScans = new ArrayList<>();
-    boolean offsetSet = false;
-    int offset = 1;
 
     int scanNumbers[] = dataFile.getScanNumbers();
     for (int scanNumber : scanNumbers) {
 
       Scan scan = dataFile.getScan(scanNumber);
-
-      if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel())))
-        continue;
-
-      if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
-        continue;
-
-      if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType())))
-        continue;
-
-      if ((scanNumberRange != null) && (!scanNumberRange.contains(scanNumber))) {
-        continue;
-      } else {
-        if (!offsetSet) {
-          offsetSet = true;
-          offset = scanNumber;
-        }
-      }
-
-      if ((baseFilteringInteger != null) && ((scanNumber - offset) % baseFilteringInteger != 0))
-        continue;
-
-      if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime())))
-        continue;
-
-      if (!Strings.isNullOrEmpty(scanDefinition)) {
-
-        final String actualScanDefition = scan.getScanDefinition();
-
-        if (Strings.isNullOrEmpty(actualScanDefition))
-          continue;
-
-        final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
-
-        if (!actualScanDefition.matches(regex))
-          continue;
-
-      }
-
-      matchingScans.add(scan);
+      if (matches(scan))
+        matchingScans.add(scan);
     }
 
     return matchingScans.toArray(new Scan[matchingScans.size()]);
-
   }
 
   public int[] getMatchingScanNumbers(RawDataFile dataFile) {
@@ -159,54 +113,70 @@ public class ScanSelection {
     final List<Integer> matchingScans = new ArrayList<>();
 
     int scanNumbers[] = dataFile.getScanNumbers();
-    boolean offsetSet = false;
-    int offset = 1;
+
     for (int scanNumber : scanNumbers) {
-
       Scan scan = dataFile.getScan(scanNumber);
-
-      if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel())))
-        continue;
-
-      if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
-        continue;
-
-      if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType())))
-        continue;
-
-      if ((scanNumberRange != null) && (!scanNumberRange.contains(scanNumber))) {
-        continue;
-      } else {
-        if (!offsetSet) {
-          offsetSet = true;
-          offset = scanNumber;
-        }
-      }
-      if ((baseFilteringInteger != null)
-          && ((scan.getScanNumber() - offset) % baseFilteringInteger != 0))
-        continue;
-
-      if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime())))
-        continue;
-
-      if (!Strings.isNullOrEmpty(scanDefinition)) {
-
-        final String actualScanDefinition = scan.getScanDefinition();
-
-        if (Strings.isNullOrEmpty(actualScanDefinition))
-          continue;
-
-        final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
-
-        if (!actualScanDefinition.matches(regex))
-          continue;
-
-      }
-
-      matchingScans.add(scanNumber);
+      if (matches(scan))
+        matchingScans.add(scanNumber);
     }
 
     return Ints.toArray(matchingScans);
+  }
 
+
+  public boolean matches(Scan scan) {
+    // scan offset was changed
+    int offset;
+    if (scanNumberRange != null)
+      offset = scanNumberRange.lowerEndpoint();
+    else {
+      // first scan number
+      if (scan.getDataFile() != null && scan.getDataFile().getScanNumbers().length > 0)
+        offset = scan.getDataFile().getScanNumbers()[0];
+      else
+        offset = 1;
+    }
+    return matches(scan, offset);
+  }
+
+  /**
+   * 
+   * @param scan
+   * @param scanNumberOffset is used for baseFilteringInteger (filter every n-th scan)
+   * @return
+   */
+  public boolean matches(Scan scan, int scanNumberOffset) {
+    if ((msLevel != null) && (!msLevel.equals(scan.getMSLevel())))
+      return false;
+
+    if ((polarity != null) && (!polarity.equals(scan.getPolarity())))
+      return false;
+
+    if ((spectrumType != null) && (!spectrumType.equals(scan.getSpectrumType())))
+      return false;
+
+    if ((scanNumberRange != null) && (!scanNumberRange.contains(scan.getScanNumber())))
+      return false;
+
+    if ((baseFilteringInteger != null)
+        && ((scan.getScanNumber() - scanNumberOffset) % baseFilteringInteger != 0))
+      return false;
+
+    if ((scanRTRange != null) && (!scanRTRange.contains(scan.getRetentionTime())))
+      return false;
+
+    if (!Strings.isNullOrEmpty(scanDefinition)) {
+
+      final String actualScanDefinition = scan.getScanDefinition();
+
+      if (Strings.isNullOrEmpty(actualScanDefinition))
+        return false;
+
+      final String regex = TextUtils.createRegexFromWildcards(scanDefinition);
+
+      if (!actualScanDefinition.matches(regex))
+        return false;
+    }
+    return true;
   }
 }

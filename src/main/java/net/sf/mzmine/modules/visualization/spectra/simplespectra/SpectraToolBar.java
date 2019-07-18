@@ -91,6 +91,8 @@ public class SpectraToolBar extends JToolBar {
     GUIUtils.addButton(this, null, exportIcon, masterFrame, "EXPORT_SPECTRA",
         "Export spectra to spectra file");
 
+    addSeparator();
+
     GUIUtils.addButton(this, null, exportIcon, masterFrame, "CREATE_LIBRARY_ENTRY",
         "Create spectral library entry");
 

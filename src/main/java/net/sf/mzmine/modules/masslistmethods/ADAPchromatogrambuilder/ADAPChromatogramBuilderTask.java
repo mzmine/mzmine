@@ -34,6 +34,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -176,6 +177,24 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
         return;
       }
       prevRT = s.getRetentionTime();
+    }
+
+    // Check if the scans are MS1-only or MS2-only.
+    int minMsLevel = Arrays.stream(scans)
+            .mapToInt(Scan::getMSLevel)
+            .min()
+            .orElseThrow(() -> new IllegalStateException("Cannot find the minimum MS level"));
+
+    int maxMsLevel = Arrays.stream(scans)
+            .mapToInt(Scan::getMSLevel)
+            .max()
+            .orElseThrow(() -> new IllegalStateException("Cannot find the maximum MS level"));
+
+    if (minMsLevel != maxMsLevel) {
+      MZmineCore.getDesktop().displayMessage(null,
+              "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. " +
+                      "This will likely produce wrong results. " +
+                      "Please, set the scan filter parameter to a specific MS level");
     }
 
 

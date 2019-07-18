@@ -18,15 +18,14 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Scan;
-
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
-
 import com.google.common.collect.Range;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Scan;
 
 /**
  * Spectra visualizer data set for scan data points
@@ -53,6 +52,20 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     this.dataPoints = scan.getDataPoints();
     this.scan = scan;
     this.label = label;
+
+    // remove all extra zeros
+    List<DataPoint> dp = new ArrayList<>();
+    dp.add(dataPoints[0]);
+    for (int i = 1; i < dataPoints.length - 1; i++) {
+      // previous , this and next are zero --> do not add this data point
+      if (Double.compare(dataPoints[i - 1].getIntensity(), 0d) != 0
+          || Double.compare(dataPoints[i].getIntensity(), 0d) != 0
+          || Double.compare(dataPoints[i + 1].getIntensity(), 0d) != 0) {
+        dp.add(dataPoints[i]);
+      }
+    }
+    dp.add(dataPoints[dataPoints.length - 1]);
+    this.dataPoints = dp.toArray(new DataPoint[0]);
   }
 
   @Override
@@ -65,46 +78,57 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     return label;
   }
 
+  @Override
   public int getItemCount(int series) {
     return dataPoints.length;
   }
 
+  @Override
   public Number getX(int series, int item) {
     return dataPoints[item].getMZ();
   }
 
+  @Override
   public Number getY(int series, int item) {
     return dataPoints[item].getIntensity();
   }
 
+  @Override
   public Number getEndX(int series, int item) {
     return getX(series, item);
   }
 
+  @Override
   public double getEndXValue(int series, int item) {
     return getXValue(series, item);
   }
 
+  @Override
   public Number getEndY(int series, int item) {
     return getY(series, item);
   }
 
+  @Override
   public double getEndYValue(int series, int item) {
     return getYValue(series, item);
   }
 
+  @Override
   public Number getStartX(int series, int item) {
     return getX(series, item);
   }
 
+  @Override
   public double getStartXValue(int series, int item) {
     return getXValue(series, item);
   }
 
+  @Override
   public Number getStartY(int series, int item) {
     return getY(series, item);
   }
 
+  @Override
   public double getStartYValue(int series, int item) {
     return getYValue(series, item);
   }
