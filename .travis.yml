@@ -1,6 +1,6 @@
 language: java
 
-script: mvn -DskipTests clean package
+script: mvn -ntp -DskipTests clean package
 
 install: echo "skipping install"
 
