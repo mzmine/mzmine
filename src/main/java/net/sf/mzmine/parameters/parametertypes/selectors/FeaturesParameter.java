@@ -16,7 +16,7 @@ public class FeaturesParameter
         implements UserParameter<List<Feature>, FeaturesComponent> {
 
     private String name = "Features";
-    private List<Feature> featureList;
+    private List<Feature> featuresList;
 
     @Override
     public String getName() {
@@ -25,7 +25,7 @@ public class FeaturesParameter
 
     @Override
     public List<Feature> getValue() {
-        featureList = new ArrayList<Feature>();
+        featuresList = new ArrayList<Feature>();
         PeakList allPeakLists[] = MZmineCore.getProjectManager()
                 .getCurrentProject().getPeakLists();
         for (int i = 0; i < allPeakLists.length; i++) {
@@ -34,16 +34,16 @@ public class FeaturesParameter
                 RawDataFile dataFile = allPeakLists[i].getRawDataFile(j);
                 int rows = allPeakLists[i].getNumberOfRows();
                 for (int k = 0; k < rows; k++) {
-                    featureList.add(allPeakLists[i].getPeak(k, dataFile));
+                    featuresList.add(allPeakLists[i].getPeak(k, dataFile));
                 }
             }
         }
-        return featureList;
+        return featuresList;
     }
 
     @Override
     public void setValue(List<Feature> newValue) {
-        this.featureList = newValue;
+        this.featuresList = newValue;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class FeaturesParameter
 
     @Override
     public void setValueFromComponent(FeaturesComponent component) {
-        featureList = component.getValue();
+        featuresList = component.getValue();
     }
 
     @Override
@@ -88,7 +88,6 @@ public class FeaturesParameter
 
     @Override
     public UserParameter<List<Feature>, FeaturesComponent> cloneParameter() {
-        // TODO Auto-generated method stub
         return null;
     }
 

@@ -55,8 +55,8 @@ public class Fx3DVisualizerParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public Fx3DVisualizerParameters() {
-        super(new Parameter[] { dataFiles, scanSelection, mzRange, rtResolution,
-                mzResolution, windowSettings });
+        super(new Parameter[] { dataFiles, features, scanSelection, mzRange,
+                rtResolution, mzResolution, windowSettings });
     }
 
 }
