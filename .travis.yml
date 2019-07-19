@@ -1,9 +1,6 @@
 language: java
 
-script: 
-    mvn -DskipTests clean package | pv > make.log 2>&1 ; tail --lines=4K make.log
-
-install: echo "skipping install"
+script: gradle runtime 
 
 jdk:
   - openjdk12
