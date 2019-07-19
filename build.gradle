@@ -122,7 +122,7 @@ dependencies {
 }
 
 group = 'io.github.mzmine'
-version = '3.0a'
+version = '2.90'
 description = 'MZmine'
 sourceCompatibility = '12'
 targetCompatibility = '12'
@@ -144,8 +144,9 @@ application {
     executableDir = ""
 }
 
-// Temporary fix until gradle 5.6 comes out
+// Temporary start script fix until gradle 5.6 comes out
 startScripts {
+    applicationName = 'startMZmine'
     doLast {
         unixScript.text = unixScript.text
                 .replace("cd \"`dirname \\\"\$PRG\\\"`/..\" >/dev/null", "cd \"`dirname \\\"\$PRG\\\"`\" >/dev/null")
