@@ -66,7 +66,6 @@ dependencies {
     compile 'org.nuiton.thirdparty:REngine:1.8-5'
     compile 'org.nuiton.thirdparty:Rserve:1.8-5'
     compile 'com.github.jbytecode:RCaller:3.0'
-    compile 'mzmine:macspecificsetup:2.7'
     compile 'mzmine:jmprojection:1.0'
     compile 'mzmine:gslibml:0.0.1'
     compile 'mzmine:visad:20131024'
@@ -142,7 +141,18 @@ application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
     applicationName = 'MZmine'
     applicationDefaultJvmArgs = ['-showversion', '-XX:InitialRAMPercentage=20', '-XX:MaxRAMPercentage=80']
-    executableDir = ''
+    executableDir = ""
+}
+
+// Temporary fix until gradle 5.6 comes out
+startScripts {
+    doLast {
+        unixScript.text = unixScript.text
+                .replace("cd \"`dirname \\\"\$PRG\\\"`/..\" >/dev/null", "cd \"`dirname \\\"\$PRG\\\"`\" >/dev/null")
+        
+        windowsScript.text = windowsScript.text
+                .replace("set APP_HOME=%DIRNAME%..", "set APP_HOME=%DIRNAME%")
+    }
 }
 
 runtime {
@@ -151,15 +161,15 @@ runtime {
     imageZip = file("${buildDir}/${applicationName}-${version}.zip")
 }
 
-
 tasks.runtime.doLast {
-    copy {
-        from('src/main/icons')
-        into("${buildDir}/${applicationName}-${version}/icons")
-    }
-    copy {
-        from('src/main/log')
-        into("${buildDir}/${applicationName}-${version}/log")
-    }    
+        copy {
+            from('src/main/icons')
+            into("${buildDir}/${applicationName}-${version}/icons")
+        }
+        copy {
+            from('src/main/log')
+            into("${buildDir}/${applicationName}-${version}/log")
+        }    
+    
 }
 
