@@ -189,10 +189,6 @@ public class ADAPDetector implements PeakResolver {
 
     } else {
 
-      LOG.finest("Processing peak matrix...");
-
-
-
       // Process peak matrix.
       resolvedPeaks = new ArrayList<ResolvedPeak>(ADAPPeaks.size());
 
