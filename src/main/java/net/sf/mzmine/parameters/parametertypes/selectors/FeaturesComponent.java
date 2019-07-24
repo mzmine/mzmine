@@ -20,6 +20,8 @@ package net.sf.mzmine.parameters.parametertypes.selectors;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -51,8 +53,7 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         add(scrollPane, BorderLayout.CENTER);
 
         JToolBar toolBar = new JToolBar();
-
-        add(toolBar, BorderLayout.EAST);
+        add(toolBar, BorderLayout.SOUTH);
         addButton = new JButton("Add");
         addButton.setEnabled(true);
         addButton.addActionListener(this);
@@ -79,8 +80,13 @@ public class FeaturesComponent extends JPanel implements ActionListener {
             LOG.finest("Add Button Clicked!");
             FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
             featuresSelectionDialog.setVisible(true);
-            jlist.setListData(
-                    (Feature[]) featuresSelectionDialog.getSelectedFeatures());
+            featuresSelectionDialog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    jlist.setListData((Feature[]) featuresSelectionDialog
+                            .getSelectedFeatures());
+                }
+            });
         }
 
         if (src == removeButton) {
