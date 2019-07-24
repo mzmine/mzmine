@@ -16,18 +16,18 @@
  * USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.orderdatafiles;
+package net.sf.mzmine.modules.peaklistmethods.sortpeaklists;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
-public class OrderDataFilesParameters extends SimpleParameterSet {
+public class SortPeakListsParameters extends SimpleParameterSet {
 
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+  public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public OrderDataFilesParameters() {
-    super(new Parameter[] {dataFiles});
+  public SortPeakListsParameters() {
+    super(new Parameter[] {peakLists});
   }
 
 }

@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.orderpeaklists;
+package net.sf.mzmine.modules.peaklistmethods.sortpeaklists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,12 +45,12 @@ import net.sf.mzmine.util.ExitCode;
  * This is a very simple module which reorders feature lists alphabetically
  * 
  */
-public class OrderPeakListsModule implements MZmineProcessingModule {
+public class SortPeakListsModule implements MZmineProcessingModule {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
-  private static final String MODULE_NAME = "Order feature lists";
-  private static final String MODULE_DESCRIPTION = "Order selected feature lists alphabetically";
+  private static final String MODULE_NAME = "Sort feature lists";
+  private static final String MODULE_DESCRIPTION = "Sort selected feature lists alphabetically";
 
   @Override
   public @Nonnull String getName() {
@@ -68,7 +68,7 @@ public class OrderPeakListsModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     List<PeakList> peakLists = Arrays.asList(parameters
-        .getParameter(OrderPeakListsParameters.peakLists).getValue().getMatchingPeakLists());
+        .getParameter(SortPeakListsParameters.peakLists).getValue().getMatchingPeakLists());
 
 
     PeakListTreeModel model = null;
@@ -133,7 +133,7 @@ public class OrderPeakListsModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return OrderPeakListsParameters.class;
+    return SortPeakListsParameters.class;
   }
 
 }

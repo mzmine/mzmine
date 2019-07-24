@@ -35,12 +35,12 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
-import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsParameters;
+import net.sf.mzmine.modules.peaklistmethods.sortpeaklists.SortPeakListsModule;
+import net.sf.mzmine.modules.peaklistmethods.sortpeaklists.SortPeakListsParameters;
 import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansModule;
-import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
-import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesParameters;
 import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
+import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesModule;
+import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesParameters;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
@@ -169,10 +169,10 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       // save current selection
       TreePath savedSelection[] = tree.getSelectionPaths();
       RawDataFile selectedFiles[] = tree.getSelectedObjects(RawDataFile.class);
-      OrderDataFilesModule module = MZmineCore.getModuleInstance(OrderDataFilesModule.class);
+      SortDataFilesModule module = MZmineCore.getModuleInstance(SortDataFilesModule.class);
       ParameterSet params =
-          MZmineCore.getConfiguration().getModuleParameters(OrderDataFilesModule.class);
-      params.getParameter(OrderDataFilesParameters.dataFiles)
+          MZmineCore.getConfiguration().getModuleParameters(SortDataFilesModule.class);
+      params.getParameter(SortDataFilesParameters.dataFiles)
           .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, selectedFiles);
       module.runModule(MZmineCore.getProjectManager().getCurrentProject(), params,
           new ArrayList<Task>());
@@ -304,10 +304,10 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       // save current selection
       TreePath savedSelection[] = tree.getSelectionPaths();
       PeakList selectedPeakLists[] = tree.getSelectedObjects(PeakList.class);
-      OrderPeakListsModule module = MZmineCore.getModuleInstance(OrderPeakListsModule.class);
+      SortPeakListsModule module = MZmineCore.getModuleInstance(SortPeakListsModule.class);
       ParameterSet params =
-          MZmineCore.getConfiguration().getModuleParameters(OrderPeakListsModule.class);
-      params.getParameter(OrderPeakListsParameters.peakLists)
+          MZmineCore.getConfiguration().getModuleParameters(SortPeakListsModule.class);
+      params.getParameter(SortPeakListsParameters.peakLists)
           .setValue(PeakListsSelectionType.SPECIFIC_PEAKLISTS, selectedPeakLists);
       module.runModule(MZmineCore.getProjectManager().getCurrentProject(), params,
           new ArrayList<Task>());

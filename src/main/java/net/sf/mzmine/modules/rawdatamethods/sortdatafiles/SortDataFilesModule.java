@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.orderdatafiles;
+package net.sf.mzmine.modules.rawdatamethods.sortdatafiles;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,10 +43,10 @@ import net.sf.mzmine.util.ExitCode;
 /**
  * This is a very simple module which reorders data files alphabetically
  */
-public class OrderDataFilesModule implements MZmineProcessingModule {
+public class SortDataFilesModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Order raw data files";
-  private static final String MODULE_DESCRIPTION = "Order selected raw data files alphabetically";
+  private static final String MODULE_NAME = "Sort raw data files";
+  private static final String MODULE_DESCRIPTION = "Sort selected raw data files alphabetically";
 
   @Override
   public @Nonnull String getName() {
@@ -64,7 +64,7 @@ public class OrderDataFilesModule implements MZmineProcessingModule {
       @Nonnull Collection<Task> tasks) {
 
     List<RawDataFile> dataFiles = Arrays.asList(parameters
-        .getParameter(OrderDataFilesParameters.dataFiles).getValue().getMatchingRawDataFiles());
+        .getParameter(SortDataFilesParameters.dataFiles).getValue().getMatchingRawDataFiles());
 
 
     RawDataTreeModel model = null;
@@ -128,7 +128,7 @@ public class OrderDataFilesModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return OrderDataFilesParameters.class;
+    return SortDataFilesParameters.class;
   }
 
 }

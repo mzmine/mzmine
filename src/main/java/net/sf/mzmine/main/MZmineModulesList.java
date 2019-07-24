@@ -77,13 +77,13 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopeP
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizerModule;
-import net.sf.mzmine.modules.peaklistmethods.orderpeaklists.OrderPeakListsModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5.ADAP3DecompositionV1_5Module;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2.ADAP3DecompositionV2Module;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender.PeakExtenderModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.ShapeModelerModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.smoothing.SmoothingModule;
+import net.sf.mzmine.modules.peaklistmethods.sortpeaklists.SortPeakListsModule;
 import net.sf.mzmine.modules.projectmethods.projectclose.ProjectCloseModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaveAsModule;
@@ -97,7 +97,6 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.cropper.CropFilterModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFiltersModule;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scansmoothing.ScanSmoothingModule;
 import net.sf.mzmine.modules.rawdatamethods.merge.RawFileMergeModule;
-import net.sf.mzmine.modules.rawdatamethods.orderdatafiles.OrderDataFilesModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass.GridMassModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectionModule;
@@ -105,6 +104,7 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.msms.MsMsPeakPickerModul
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection.TargetedPeakDetectionModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
+import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesModule;
 import net.sf.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
@@ -158,10 +158,10 @@ public class MZmineModulesList {
       // Not ready for prime time: ADAP3DModule.class,
       GridMassModule.class, ManualPeakPickerModule.class, MsMsPeakPickerModule.class,
       ScanFiltersModule.class, CropFilterModule.class, BaselineCorrectionModule.class,
-      AlignScansModule.class, ScanSmoothingModule.class, OrderDataFilesModule.class,
+      AlignScansModule.class, ScanSmoothingModule.class, SortDataFilesModule.class,
 
       // Alignment
-      OrderPeakListsModule.class, JoinAlignerModule.class, HierarAlignerGcModule.class,
+      SortPeakListsModule.class, JoinAlignerModule.class, HierarAlignerGcModule.class,
 
       RansacAlignerModule.class, ADAP3AlignerModule.class,
       // PathAlignerModule.class,
