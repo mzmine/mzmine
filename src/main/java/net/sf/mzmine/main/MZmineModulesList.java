@@ -178,7 +178,7 @@ public class MZmineModulesList {
       // Isotopes
       IsotopeGrouperModule.class, IsotopePatternCalculator.class, IsotopePeakScannerModule.class,
 
-      // Peak detection
+      // Feature detection
       SmoothingModule.class, DeconvolutionModule.class, ShapeModelerModule.class,
       PeakExtenderModule.class, TargetedPeakDetectionModule.class,
       ADAP3DecompositionV1_5Module.class, ADAP3DecompositionV2Module.class,

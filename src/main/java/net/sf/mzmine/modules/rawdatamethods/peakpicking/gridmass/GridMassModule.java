@@ -33,7 +33,7 @@ import net.sf.mzmine.util.ExitCode;
 
 public class GridMassModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "GridMass - 2D peak detection";
+  private static final String MODULE_NAME = "GridMass - 2D feature detection";
   private static final String MODULE_DESCRIPTION =
       "This module detect peaks based on a 2D peak recognition procedure.";
 

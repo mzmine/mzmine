@@ -179,9 +179,9 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Targeted peak detection ", parameters));
+        new SimplePeakListAppliedMethod("Targeted feature detection ", parameters));
 
-    logger.log(Level.INFO, "Finished targeted peak detection on {0}", this.dataFile);
+    logger.log(Level.INFO, "Finished targeted feature detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -231,6 +231,6 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Targeted peak detection " + this.dataFile;
+    return "Targeted feature detection " + this.dataFile;
   }
 }

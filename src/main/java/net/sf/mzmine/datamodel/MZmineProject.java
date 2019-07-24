@@ -30,7 +30,7 @@ import net.sf.mzmine.parameters.UserParameter;
  * <li>Experimental parameters and their values for each RawDataFile. Experimental parameters are
  * available for defining any properties of the sample, for instance concentration or a class label.
  * <li>Opened RawDataFiles
- * <li>PeakLists of each RawDataFile. A feature list represents results of peak detection on a single
+ * <li>PeakLists of each RawDataFile. A feature list represents results of feature detection on a single
  * RawDataFile or a processed version of a preceding PeakList.
  * <li>PeakLists of multiple aligned PeakLists. An aligned feature list represent results of aligning
  * multiple PeakLists of individual runs or a processed version of a preceding aligned PeakList.

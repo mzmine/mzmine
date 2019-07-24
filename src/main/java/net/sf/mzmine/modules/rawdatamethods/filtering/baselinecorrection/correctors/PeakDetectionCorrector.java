@@ -27,7 +27,7 @@ import net.sf.mzmine.util.R.RSessionWrapper;
 import net.sf.mzmine.util.R.RSessionWrapperException;
 
 /**
- * @description Peak Detection baseline corrector. Peak detection is done in several steps sorting
+ * @description Feature Detection baseline corrector. Feature detection is done in several steps sorting
  *              out real peaks through different criteria. Peaks are removed from spectra and
  *              minimums and medians are used to smooth the remaining parts of the spectra. Uses
  *              "peakDetection" feature from "baseline" R-package
@@ -46,7 +46,7 @@ public class PeakDetectionCorrector extends BaselineCorrector {
   public double[] computeBaseline(final RSessionWrapper rSession, final RawDataFile origDataFile,
       double[] chromatogram, ParameterSet parameters) throws RSessionWrapperException {
 
-    // Peak Detection parameters.
+    // Feature Detection parameters.
     int left = parameters.getParameter(PeakDetectionCorrectorParameters.LEFT).getValue();
     int right = parameters.getParameter(PeakDetectionCorrectorParameters.RIGHT).getValue();
     int lwin = parameters.getParameter(PeakDetectionCorrectorParameters.LWIN).getValue();

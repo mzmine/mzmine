@@ -25,7 +25,7 @@ import org.jfree.data.xy.IntervalXYDataset;
 import net.sf.mzmine.datamodel.DataPoint;
 
 /**
- * Data set for MzPeaks, used in peak detection preview
+ * Data set for MzPeaks, used in feature detection preview
  */
 public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDataset {
 

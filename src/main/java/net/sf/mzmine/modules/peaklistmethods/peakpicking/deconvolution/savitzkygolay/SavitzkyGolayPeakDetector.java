@@ -144,7 +144,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
     boolean passThreshold = false;
 
     // Number of times that 2nd derivative cross zero value for the current
-    // peak detection.
+    // feature detection.
     int crossZero = 0;
 
     final int totalNumberPoints = derivativeOfIntensities.length;

@@ -135,7 +135,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
     rawDataFilteringMenu.setMnemonic(KeyEvent.VK_F);
     rawDataMenu.add(rawDataFilteringMenu);
 
-    peakDetectionMenu = new JMenu("Peak detection");
+    peakDetectionMenu = new JMenu("Feature detection");
     peakDetectionMenu.setMnemonic(KeyEvent.VK_D);
     rawDataMenu.add(peakDetectionMenu);
 
@@ -147,7 +147,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
     peakListMenu.setMnemonic(KeyEvent.VK_L);
     this.add(peakListMenu);
 
-    peakListPeakPickingMenu = new JMenu("Peak detection");
+    peakListPeakPickingMenu = new JMenu("Feature detection");
     peakListPeakPickingMenu.setMnemonic(KeyEvent.VK_P);
     peakListMenu.add(peakListPeakPickingMenu);
 

@@ -51,7 +51,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
   public static final OptionalParameter<DoubleParameter> MIN_PEAK_COUNT =
       new OptionalParameter<>(new DoubleParameter("Minimum peaks in a row",
-          "Minimum number of peak detections required per row.\nValues <1 will be interpreted as a %-value of the total # samples in the feature list. The value will be rounded down to the nearest whole number."));
+          "Minimum number of feature detections required per row.\nValues <1 will be interpreted as a %-value of the total # samples in the feature list. The value will be rounded down to the nearest whole number."));
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT =
       new OptionalParameter<>(new IntegerParameter("Minimum peaks in an isotope pattern",

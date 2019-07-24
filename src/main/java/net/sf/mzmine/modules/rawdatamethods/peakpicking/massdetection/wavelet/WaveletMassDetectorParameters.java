@@ -36,10 +36,10 @@ public class WaveletMassDetectorParameters extends SimpleParameterSet {
       MZmineCore.getConfiguration().getIntensityFormat());
 
   public static final IntegerParameter scaleLevel = new IntegerParameter("Scale level",
-      "Number of wavelet'scale (coeficients) to use in m/z peak detection");
+      "Number of wavelet'scale (coeficients) to use in m/z feature detection");
 
   public static final PercentParameter waveletWindow = new PercentParameter(
-      "Wavelet window size (%)", "Size in % of wavelet window to apply in m/z peak detection");
+      "Wavelet window size (%)", "Size in % of wavelet window to apply in m/z feature detection");
 
   public WaveletMassDetectorParameters() {
     super(new Parameter[] {noiseLevel, scaleLevel, waveletWindow});
