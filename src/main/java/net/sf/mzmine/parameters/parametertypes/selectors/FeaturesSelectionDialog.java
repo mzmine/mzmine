@@ -15,11 +15,13 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.components.MultipleSelectionComponent;
 
 public class FeaturesSelectionDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private Logger LOG = Logger.getLogger(this.getClass().getName());
+    private Object[] selectedFeatures;
 
     public FeaturesSelectionDialog() {
         PeakList allPeakLists[] = MZmineCore.getProjectManager()
@@ -29,17 +31,13 @@ public class FeaturesSelectionDialog extends JDialog {
             allPeakListStrings[i] = allPeakLists[i].toString();
         }
 
-        JPanel panel1 = new JPanel();
-        this.add(panel1, BorderLayout.NORTH);
-        JPanel panel2 = new JPanel();
-        this.add(panel2, BorderLayout.SOUTH);
+        JPanel panel = new JPanel(new BorderLayout());
+        this.add(panel, BorderLayout.NORTH);
         JComboBox<Object> peakListsComboBox = new JComboBox<Object>(
                 allPeakListStrings);
-        panel1.add(peakListsComboBox);
-        JComboBox<Object> peakListRowComboBox = new JComboBox<Object>();
-
+        panel.add(peakListsComboBox, BorderLayout.NORTH);
+        final FeaturesSelectionDialog dialog = this;
         peakListsComboBox.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
                 LOG.finest("Peak List Selected!");
                 String str = (String) peakListsComboBox.getSelectedItem();
@@ -48,11 +46,17 @@ public class FeaturesSelectionDialog extends JDialog {
                         RawDataFile datafile = allPeakLists[j]
                                 .getRawDataFile(0);
                         Feature[] features = allPeakLists[j].getPeaks(datafile);
-                        String[] featuresStrings = new String[features.length];
+                        String[] featuresList = new String[features.length];
                         for (int k = 0; k < features.length; k++) {
-                            peakListRowComboBox.addItem(featuresStrings[k]);
+                            featuresList[k] = features[k].toString();
                         }
-                        panel2.add(peakListRowComboBox);
+                        MultipleSelectionComponent peakListRowSelectionBox = new MultipleSelectionComponent(
+                                featuresList);
+
+                        panel.add(peakListRowSelectionBox, BorderLayout.SOUTH);
+                        dialog.setSize(620, 270);
+                        selectedFeatures = peakListRowSelectionBox
+                                .getSelectedValues();
                         LOG.finest("PeakListRowComboBox is Added");
                     }
                 }
@@ -64,4 +68,9 @@ public class FeaturesSelectionDialog extends JDialog {
                 insets.top + insets.bottom + 100));
         this.setLocationRelativeTo(null);
     }
+
+    public Object[] getSelectedFeatures() {
+        return selectedFeatures;
+    }
+
 }
