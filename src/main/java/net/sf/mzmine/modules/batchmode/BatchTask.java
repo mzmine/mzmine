@@ -120,7 +120,7 @@ public class BatchTask extends AbstractTask {
     MZmineProcessingModule method = (MZmineProcessingModule) currentStep.getModule();
     ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-    // If the last step did not produce any data files or peak lists, use
+    // If the last step did not produce any data files or feature lists, use
     // the ones from the previous step
     if (createdDataFiles.isEmpty())
       createdDataFiles.addAll(previousCreatedDataFiles);
@@ -147,7 +147,7 @@ public class BatchTask extends AbstractTask {
       }
     }
 
-    // Clear the saved data files and peak lists. Save them to the
+    // Clear the saved data files and feature lists. Save them to the
     // "previous" lists, in case the next step does not produce any new data
     previousCreatedDataFiles.clear();
     previousCreatedDataFiles.addAll(createdDataFiles);

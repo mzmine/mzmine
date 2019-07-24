@@ -34,7 +34,7 @@ public class MzTabImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Import mzTab file";
   private static final String MODULE_DESCRIPTION =
-      "This method imports a peak list from a mzTab file.";
+      "This method imports a feature list from a mzTab file.";
 
   @Override
   public @Nonnull String getName() {

@@ -107,7 +107,7 @@ class MsMsBottomPanel extends JPanel implements TreeModelListener, ActionListene
     peakThresholdPanel.add(peakTextField);
     add(peakThresholdPanel);
 
-    GUIUtils.addLabel(this, " from peak list: ", SwingConstants.RIGHT);
+    GUIUtils.addLabel(this, " from feature list: ", SwingConstants.RIGHT);
 
     peakListSelector = new JComboBox<PeakList>();
     peakListSelector.setBackground(Color.white);
@@ -127,7 +127,7 @@ class MsMsBottomPanel extends JPanel implements TreeModelListener, ActionListene
   }
 
   /**
-   * Returns a peak list different peaks depending on the selected option of the "peak Threshold"
+   * Returns a feature list different peaks depending on the selected option of the "peak Threshold"
    * combo box
    */
   PeakList getPeaksInThreshold() {
@@ -152,7 +152,7 @@ class MsMsBottomPanel extends JPanel implements TreeModelListener, ActionListene
   }
 
   /**
-   * Returns a peak list with the peaks which intensity is above the parameter "intensity"
+   * Returns a feature list with the peaks which intensity is above the parameter "intensity"
    */
   PeakList getIntensityThresholdPeakList(double intensity) {
     PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
@@ -173,7 +173,7 @@ class MsMsBottomPanel extends JPanel implements TreeModelListener, ActionListene
   }
 
   /**
-   * Returns a peak list with the top peaks defined by the parameter "threshold"
+   * Returns a feature list with the top peaks defined by the parameter "threshold"
    */
   PeakList getTopThresholdPeakList(int threshold) {
 
@@ -215,7 +215,7 @@ class MsMsBottomPanel extends JPanel implements TreeModelListener, ActionListene
   }
 
   /**
-   * Returns selected peak list
+   * Returns selected feature list
    */
   PeakList getSelectedPeakList() {
     PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
@@ -223,11 +223,11 @@ class MsMsBottomPanel extends JPanel implements TreeModelListener, ActionListene
   }
 
   /**
-   * Reloads peak lists from the project to the selector combo box
+   * Reloads feature lists from the project to the selector combo box
    */
   void rebuildPeakListSelector() {
 
-    logger.finest("Rebuilding the peak list selector");
+    logger.finest("Rebuilding the feature list selector");
 
     PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
     PeakList currentPeakLists[] =

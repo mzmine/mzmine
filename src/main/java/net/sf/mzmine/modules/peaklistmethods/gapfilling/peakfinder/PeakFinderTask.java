@@ -86,10 +86,10 @@ class PeakFinderTask extends AbstractTask {
     }
     processedScans = new AtomicInteger();
 
-    // Create new peak list
+    // Create new feature list
     processedPeakList = new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
 
-    // Fill new peak list with empty rows
+    // Fill new feature list with empty rows
     for (int row = 0; row < peakList.getNumberOfRows(); row++) {
       PeakListRow sourceRow = peakList.getRow(row);
       PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
@@ -200,7 +200,7 @@ class PeakFinderTask extends AbstractTask {
     if (isCanceled())
       return;
 
-    // Append processed peak list to the project
+    // Append processed feature list to the project
     project.addPeakList(processedPeakList);
 
     // Add quality parameters to peaks

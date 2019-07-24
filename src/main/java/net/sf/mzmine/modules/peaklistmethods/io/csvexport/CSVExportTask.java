@@ -104,7 +104,7 @@ public class CSVExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting peak list(s) " + Arrays.toString(peakLists) + " to CSV file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to CSV file(s)";
   }
 
   @Override
@@ -120,7 +120,7 @@ public class CSVExportTask extends AbstractTask {
       totalRows += peakList.getNumberOfRows();
     }
 
-    // Process peak lists
+    // Process feature lists
     for (PeakList peakList : peakLists) {
 
       // Filename
@@ -160,8 +160,8 @@ public class CSVExportTask extends AbstractTask {
         return;
       }
 
-      // If peak list substitution pattern wasn't found,
-      // treat one peak list only
+      // If feature list substitution pattern wasn't found,
+      // treat one feature list only
       if (!substitute)
         break;
     }

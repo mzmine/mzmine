@@ -86,7 +86,7 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 
     updateTitle();
 
-    // After we have constructed everything, load the peak lists into the
+    // After we have constructed everything, load the feature lists into the
     // bottom panel
     bottomPanel.rebuildPeakListSelector();
 
@@ -177,7 +177,7 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
     if ("PEAKLIST_CHANGE".equals(command)) {
       final PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
       if (selectedPeakList != null) {
-        logger.finest("Loading a peak list " + selectedPeakList + " to a 2D view of " + dataFile);
+        logger.finest("Loading a feature list " + selectedPeakList + " to a 2D view of " + dataFile);
         twoDPlot.loadPeakList(selectedPeakList);
       }
     }

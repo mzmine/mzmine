@@ -89,7 +89,7 @@ public class XMLExportTask extends AbstractTask {
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
   public String getTaskDescription() {
-    return "Exporting peak list(s) " + Arrays.toString(peakLists) + " to MPL file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MPL file(s)";
   }
 
   /**
@@ -102,7 +102,7 @@ public class XMLExportTask extends AbstractTask {
     // Shall export several files?
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    // Process peak lists
+    // Process feature lists
     for (int i = 0; i < peakLists.length; i++) {
 
       PeakList peakList = peakLists[i];
@@ -130,7 +130,7 @@ public class XMLExportTask extends AbstractTask {
           return;
         }
 
-        logger.info("Started saving peak list " + peakList.getName());
+        logger.info("Started saving feature list " + peakList.getName());
 
         // write the saving file
         FileOutputStream fos = new FileOutputStream(curFile);

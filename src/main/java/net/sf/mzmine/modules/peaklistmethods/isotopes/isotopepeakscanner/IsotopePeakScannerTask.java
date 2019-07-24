@@ -64,7 +64,7 @@ import net.sf.mzmine.util.SortingProperty;
 
 
 /**
- * This will scan a peak list for calculated isotope patterns. This class loops through every peak
+ * This will scan a feature list for calculated isotope patterns. This class loops through every peak
  * and checks if there are peaks within a specified RT and m/z window. The m/z window is calculated
  * by the maximum mass shift caused by the isotope pattern. Every peak that fits the m/z window is
  * also checked for RT if specified => groupedPeaks. The next step checks for peaks inside the
@@ -72,8 +72,8 @@ import net.sf.mzmine.util.SortingProperty;
  * (isotope[i]-isotope[0])). Every peak that fits the criteria is added to resultBuffer.
  * Furthermore, every peak in the resultBuffer is rated by m/z and intensity, if the rating is
  * better that the previous one the peak will be added as a candidate (by Candidates.java). If the
- * algorithm was able to find a peak inside the peak list for every expected isotope peak the result
- * will be added to a result peak list including a description.
+ * algorithm was able to find a peak inside the feature list for every expected isotope peak the result
+ * will be added to a result feature list including a description.
  * 
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  * 
@@ -541,12 +541,12 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
   
   /**
-   * Extracts a peak list row from a Candidates array.
+   * Extracts a feature list row from a Candidates array.
    * @param candidates
    * @param bestPatternIndex The index of the isotope pattern that was found to be the best fit for the detected pattern
-   * @param peakIndex the index of the candidate peak, the peak list row should be extracted for.
+   * @param peakIndex the index of the candidate peak, the feature list row should be extracted for.
    * @param plh
-   * @return null if no peak with the given parameters exists, the specified peak list row otherwise.
+   * @return null if no peak with the given parameters exists, the specified feature list row otherwise.
    */
   private @Nullable PeakListRow getRowFromCandidate(@Nonnull Candidates[] candidates, int bestPatternIndex, int peakIndex, @Nonnull PeakListHandler plh) {
     
@@ -708,13 +708,13 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * Create a copy of a peak list row.
+   * Create a copy of a feature list row.
    *
    * @param row the row to copy.
    * @return the newly created copy.
    */
   private static PeakListRow copyPeakRow(final PeakListRow row) {
-    // Copy the peak list row.
+    // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
     PeakUtils.copyPeakListRowProperties(row, newRow);
 
@@ -771,7 +771,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
   }
 
   /**
-   * Add peak list to project, delete old if requested, add description to result
+   * Add feature list to project, delete old if requested, add description to result
    */
   public void addResultToProject() {
     // Add new peakList to the project
@@ -813,7 +813,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         return false;
       }
       if (peakList.getNumberOfRawDataFiles() > 1) {
-        setErrorMessage("The number of raw data files of peak list \"" + peakList.getName()
+        setErrorMessage("The number of raw data files of feature list \"" + peakList.getName()
         + "\" is greater than 1. This is not supported by this module.");
         setStatus(TaskStatus.ERROR);
         return false;
@@ -832,7 +832,7 @@ public class IsotopePeakScannerTask extends AbstractTask {
         }
       }
       if (foundMassList == false) {
-        setErrorMessage("Peak list \"" + peakList.getName() + "\" does not contain a mass list by the name of "
+        setErrorMessage("Feature list \"" + peakList.getName() + "\" does not contain a mass list by the name of "
                 + massListName + ".");
         setStatus(TaskStatus.ERROR);
         return false;

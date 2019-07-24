@@ -24,7 +24,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakListRow;
 
 /**
- * Compare peak list rows either by ID, average m/z or median area of peaks
+ * Compare feature list rows either by ID, average m/z or median area of peaks
  * 
  */
 public class PeakListRowSorter implements Comparator<PeakListRow> {

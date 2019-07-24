@@ -36,8 +36,8 @@ public class TargetedPeakDetectionParameters extends SimpleParameterSet {
   public static final IntegerParameter msLevel =
       new IntegerParameter("MS level", "MS level", 1, true);
   public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "detectedPeak");
-  public static final FileNameParameter peakListFile = new FileNameParameter("Peak list file",
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "detectedPeak");
+  public static final FileNameParameter peakListFile = new FileNameParameter("Feature list file",
       "Name of the file that contains a list of peaks for targeted peak detection.");
   public static final StringParameter fieldSeparator = new StringParameter("Field separator",
       "Character(s) used to separate fields in the database file", ",");

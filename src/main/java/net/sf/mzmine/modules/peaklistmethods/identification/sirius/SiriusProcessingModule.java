@@ -66,7 +66,7 @@ public class SiriusProcessingModule implements MZmineProcessingModule {
   /**
    * Show dialog for identifying a single peak-list row.
    *
-   * @param row the peak list row.
+   * @param row the feature list row.
    */
   public static void showSingleRowIdentificationDialog(final PeakListRow row) {
 

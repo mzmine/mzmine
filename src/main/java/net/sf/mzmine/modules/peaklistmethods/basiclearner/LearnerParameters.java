@@ -34,7 +34,7 @@ public class LearnerParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "deisotoped");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "deisotoped");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 

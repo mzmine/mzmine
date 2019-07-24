@@ -53,7 +53,7 @@ public class SubTaskFinishListener implements Consumer<PeakList> {
     if (finished == tasks) {
       logger.info("All sub tasks of multithreaded gap-filling have finished. Finalising results.");
       // add pkl to project
-      // Append processed peak list to the project
+      // Append processed feature list to the project
       project.addPeakList(processedPeakList);
 
       // Add quality parameters to peaks

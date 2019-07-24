@@ -140,10 +140,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
     rawDataMenu.add(peakDetectionMenu);
 
     /*
-     * Peak list methods menu
+     * Feature list methods menu
      */
 
-    peakListMenu = new JMenu("Peak list methods");
+    peakListMenu = new JMenu("Feature list methods");
     peakListMenu.setMnemonic(KeyEvent.VK_L);
     this.add(peakListMenu);
 

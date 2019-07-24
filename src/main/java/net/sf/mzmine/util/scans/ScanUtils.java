@@ -953,7 +953,7 @@ public class ScanUtils {
   }
 
   /**
-   * Selects best N MS/MS scans from a peak list row
+   * Selects best N MS/MS scans from a feature list row
    */
   public static @Nonnull Collection<Scan> selectBestMS2Scans(@Nonnull PeakListRow row,
       @Nonnull String massListName, @Nonnull Integer topN) throws MissingMassListException {

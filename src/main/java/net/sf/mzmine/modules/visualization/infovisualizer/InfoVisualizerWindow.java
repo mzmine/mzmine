@@ -59,7 +59,7 @@ class InfoVisualizerWindow extends JFrame {
 
   InfoVisualizerWindow(PeakList peakList) {
 
-    super("Peak list information");
+    super("Feature list information");
 
     // this.setTitle(peakList.getName() + " information");
 

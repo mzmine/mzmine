@@ -41,7 +41,7 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "filtered");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "filtered");
 
   public static final ComboParameter<FilterMode> filterMode = new ComboParameter<>("Filter mode",
       "Old average: Only keep the row with the maximum avg area.\n New average: Create consensus row from duplicates (DETECTED>ESTIMATED>UNKNOWN).\n "

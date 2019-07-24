@@ -75,7 +75,7 @@ public class SiriusExportTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Exporting peak list(s) " + Arrays.toString(peakLists) + " to MGF file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MGF file(s)";
   }
 
   SiriusExportTask(ParameterSet parameters) {
@@ -99,7 +99,7 @@ public class SiriusExportTask extends AbstractTask {
       prefillStatistics(l.getRows());
     }
 
-    // Process peak lists
+    // Process feature lists
     for (PeakList peakList : peakLists) {
 
       // Filename
@@ -121,8 +121,8 @@ public class SiriusExportTask extends AbstractTask {
         setErrorMessage("Could not open file " + curFile + " for writing.");
       }
 
-      // If peak list substitution pattern wasn't found,
-      // treat one peak list only
+      // If feature list substitution pattern wasn't found,
+      // treat one feature list only
       if (!substitute)
         break;
     }

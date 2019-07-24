@@ -42,7 +42,7 @@ public class ADAP3AlignerParameters extends SimpleParameterSet {
             new PeakListsParameter();
 
     public static final StringParameter NEW_PEAK_LIST_NAME =
-            new StringParameter("Aligned Peak List Name", "Peak list name", "Aligned peak list");
+            new StringParameter("Aligned Feature List Name", "Feature list name", "Aligned feature list");
 
     public static final DoubleParameter SAMPLE_COUNT_RATIO =
             new DoubleParameter("Min confidence (between 0 and 1)",

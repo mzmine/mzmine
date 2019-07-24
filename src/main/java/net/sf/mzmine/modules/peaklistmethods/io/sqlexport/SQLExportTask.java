@@ -74,7 +74,7 @@ class SQLExportTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Exporting peak list \"" + peakList + "\" to SQL table " + tableName;
+    return "Exporting feature list \"" + peakList + "\" to SQL table " + tableName;
   }
 
   public void run() {
@@ -302,7 +302,7 @@ class SQLExportTask extends AbstractTask {
 
         // If no data file elements are selected then don't loop through
         // all
-        // data files in peak list
+        // data files in feature list
         if (!loopDataFiles) {
           break;
         }

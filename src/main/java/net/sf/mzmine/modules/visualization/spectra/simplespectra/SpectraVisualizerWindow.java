@@ -237,7 +237,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     spectrumPlot.removeAllDataSets();
     spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
 
-    // Reload peak list
+    // Reload feature list
     bottomPanel.rebuildPeakListSelector();
 
   }
@@ -251,7 +251,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
     }
 
     logger
-        .finest("Loading a peak list " + selectedPeakList + " to a spectrum window " + getTitle());
+        .finest("Loading a feature list " + selectedPeakList + " to a spectrum window " + getTitle());
 
     PeakListDataSet peaksDataSet =
         new PeakListDataSet(dataFile, currentScan.getScanNumber(), selectedPeakList);

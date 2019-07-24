@@ -39,7 +39,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 
 /**
- * This class represents a MZmine project. That includes raw data files, peak lists and parameters.
+ * This class represents a MZmine project. That includes raw data files, feature lists and parameters.
  */
 public class MZmineProjectImpl implements MZmineProject {
 

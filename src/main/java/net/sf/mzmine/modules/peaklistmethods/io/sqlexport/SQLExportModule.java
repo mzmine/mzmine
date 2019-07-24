@@ -33,7 +33,7 @@ public class SQLExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to SQL database";
   private static final String MODULE_DESCRIPTION =
-      "This method exports the peak list contents into an SQL database using JDBC.";
+      "This method exports the feature list contents into an SQL database using JDBC.";
 
   @Override
   public @Nonnull String getName() {

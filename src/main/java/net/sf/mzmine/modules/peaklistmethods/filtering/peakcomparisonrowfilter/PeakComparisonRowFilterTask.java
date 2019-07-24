@@ -38,13 +38,13 @@ import net.sf.mzmine.util.PeakUtils;
 import com.google.common.collect.Range;
 
 /**
- * Filters out peak list rows.
+ * Filters out feature list rows.
  */
 public class PeakComparisonRowFilterTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(PeakComparisonRowFilterTask.class.getName());
-  // Peak lists.
+  // Feature lists.
   private final MZmineProject project;
   private final PeakList origPeakList;
   private PeakList filteredPeakList;
@@ -56,7 +56,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list peak list to process.
+   * @param list feature list to process.
    * @param parameterSet task parameters.
    */
   public PeakComparisonRowFilterTask(final MZmineProject project, final PeakList list,
@@ -80,7 +80,7 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
 
-    return "Filtering peak list rows based on peak comparisons";
+    return "Filtering feature list rows based on peak comparisons";
   }
 
   @Override
@@ -88,9 +88,9 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering peak list rows");
+      LOG.info("Filtering feature list rows");
 
-      // Filter the peak list.
+      // Filter the feature list.
       filteredPeakList = filterPeakListRows(origPeakList);
 
       if (getStatus() == TaskStatus.ERROR)
@@ -120,14 +120,14 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
   }
 
   /**
-   * Filter the peak list rows by comparing peaks within a row.
+   * Filter the feature list rows by comparing peaks within a row.
    *
-   * @param peakList peak list to filter.
-   * @return a new peak list with rows of the original peak list that pass the filtering.
+   * @param peakList feature list to filter.
+   * @return a new feature list with rows of the original feature list that pass the filtering.
    */
   private PeakList filterPeakListRows(final PeakList peakList) {
 
-    // Create new peak list.
+    // Create new feature list.
     final PeakList newPeakList = new SimplePeakList(
         peakList.getName() + ' '
             + parameters.getParameter(PeakComparisonRowFilterParameters.SUFFIX).getValue(),
@@ -257,14 +257,14 @@ public class PeakComparisonRowFilterTask extends AbstractTask {
   }
 
   /**
-   * Create a copy of a peak list row.
+   * Create a copy of a feature list row.
    *
    * @param row the row to copy.
    * @return the newly created copy.
    */
   private static PeakListRow copyPeakRow(final PeakListRow row) {
 
-    // Copy the peak list row.
+    // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
     PeakUtils.copyPeakListRowProperties(row, newRow);
 

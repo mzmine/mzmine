@@ -71,7 +71,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * Create the identification task.
    * 
    * @param parameters task parameters.
-   * @param list peak list to operate on.
+   * @param list feature list to operate on.
    */
   PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
 
@@ -119,7 +119,7 @@ public class PeakListIdentificationTask extends AbstractTask {
         // Create database gateway.
         gateway = db.getModule().getGatewayClass().newInstance();
 
-        // Identify the peak list rows starting from the biggest peaks.
+        // Identify the feature list rows starting from the biggest peaks.
         final PeakListRow[] rows = peakList.getRows();
         Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 
@@ -149,7 +149,7 @@ public class PeakListIdentificationTask extends AbstractTask {
   /**
    * Search the database for the peak's identity.
    * 
-   * @param row the peak list row.
+   * @param row the feature list row.
    * @throws IOException if there are i/o problems.
    */
   private void retrieveIdentification(final PeakListRow row) throws IOException {
@@ -205,12 +205,12 @@ public class PeakListIdentificationTask extends AbstractTask {
           continue;
       }
 
-      // Add the retrieved identity to the peak list row
+      // Add the retrieved identity to the feature list row
       row.addPeakIdentity(compound, false);
 
       // Notify the GUI about the change in the project
       MZmineCore.getProjectManager().getCurrentProject().notifyObjectChanged(row, false);
-      // Repaint the window to reflect the change in the peak list
+      // Repaint the window to reflect the change in the feature list
       Desktop desktop = MZmineCore.getDesktop();
       if (!(desktop instanceof HeadLessDesktop))
         desktop.getMainWindow().repaint();

@@ -88,7 +88,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 
       if (type == PeakListsSelectionType.SPECIFIC_PEAKLISTS) {
         final MultiChoiceParameter<PeakList> plsParameter =
-            new MultiChoiceParameter<PeakList>("Select peak lists", "Select peak lists",
+            new MultiChoiceParameter<PeakList>("Select feature lists", "Select feature lists",
                 MZmineCore.getProjectManager().getCurrentProject().getPeakLists(),
                 currentValue.getSpecificPeakLists());
         final SimpleParameterSet paramSet = new SimpleParameterSet(new Parameter[] {plsParameter});

@@ -29,7 +29,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
- * Utilities for peaks and peak lists
+ * Utilities for peaks and feature lists
  * 
  */
 public class PeakUtils {
@@ -52,7 +52,7 @@ public class PeakUtils {
   }
 
   /**
-   * Compares identities of two peak list rows. 1) if preferred identities are available, they must
+   * Compares identities of two feature list rows. 1) if preferred identities are available, they must
    * be same 2) if no identities are available on both rows, return true 3) otherwise all identities
    * on both rows must be same
    * 
@@ -120,7 +120,7 @@ public class PeakUtils {
   }
 
   /**
-   * Returns true if peak list row contains a compound identity matching to id
+   * Returns true if feature list row contains a compound identity matching to id
    * 
    */
   public static boolean containsIdentity(PeakListRow row, PeakIdentity id) {

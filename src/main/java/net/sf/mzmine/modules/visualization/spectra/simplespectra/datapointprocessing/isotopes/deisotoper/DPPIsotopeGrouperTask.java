@@ -159,7 +159,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       assert bestFitPeaks != null;
 
       // Verify the number of detected isotopes. If there is only one
-      // isotope, we skip this left the original peak in the peak list.
+      // isotope, we skip this left the original peak in the feature list.
       if (bestFitPeaks.size() == 1) {
         if (!autoRemove)
           deisotopedDataPoints.add(sortedDataPoints[i]);

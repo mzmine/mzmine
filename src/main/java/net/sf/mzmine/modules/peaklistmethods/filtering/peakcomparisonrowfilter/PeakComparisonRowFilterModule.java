@@ -39,7 +39,7 @@ public class PeakComparisonRowFilterModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Peak comparison rows filter";
   private static final String MODULE_DESCRIPTION =
-      "This method removes certain rows from a peak list based on peak comparisons.";
+      "This method removes certain rows from a feature list based on peak comparisons.";
 
   @Override
   public @Nonnull String getName() {

@@ -33,7 +33,7 @@ public class XMLImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Import from XML file";
   private static final String MODULE_DESCRIPTION =
-      "This method imports a peak list from an XML file.";
+      "This method imports a feature list from an XML file.";
 
   @Override
   public @Nonnull String getName() {

@@ -26,7 +26,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public class InfoVisualizerModule implements MZmineModule {
 
-  private static final String MODULE_NAME = "Peak list info window";
+  private static final String MODULE_NAME = "Feature list info window";
 
   @Override
   public @Nonnull String getName() {

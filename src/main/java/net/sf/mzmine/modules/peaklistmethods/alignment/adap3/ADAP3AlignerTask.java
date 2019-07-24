@@ -91,7 +91,7 @@ public class ADAP3AlignerTask extends AbstractTask {
     @Override
     public String getTaskDescription() {
         return "ADAP Aligner, " + peakListName + " (" + peakLists.length
-                + " peak lists)";
+                + " feature lists)";
     }
 
     @Override
@@ -128,7 +128,7 @@ public class ADAP3AlignerTask extends AbstractTask {
                 LOG.info("Finished ADAP Peak Alignment");
             }
         } catch (IllegalArgumentException e) {
-            errorMsg = "Incorrect Peak Lists:\n" + e.getMessage();
+            errorMsg = "Incorrect Feature Lists:\n" + e.getMessage();
         } catch (Exception e) {
             errorMsg = "'Unknown error' during alignment. \n"
                     + e.getMessage();
@@ -179,7 +179,7 @@ public class ADAP3AlignerTask extends AbstractTask {
 
         process();
 
-        // Create new peak list
+        // Create new feature list
         final PeakList alignedPeakList = new SimplePeakList(peakListName,
                 allDataFiles.toArray(new RawDataFile[0]));
 
@@ -204,7 +204,7 @@ public class ADAP3AlignerTask extends AbstractTask {
 
                 if (row == null)
                     throw new IllegalStateException(String.format(
-                            "Cannot find a peak list row for fileId = %d and peakId = %d",
+                            "Cannot find a feature list row for fileId = %d and peakId = %d",
                             referenceComponent.getSampleID(), peak.getInfo().peakID));
 
                 RawDataFile file = row.getRawDataFiles()[0];
@@ -296,16 +296,16 @@ public class ADAP3AlignerTask extends AbstractTask {
     }
 
     /**
-     * Find the existing {@link PeakListRow} for a given peak list ID and row ID.
+     * Find the existing {@link PeakListRow} for a given feature list ID and row ID.
      *
-     * @param peakListID number of a peak list in the array of {@link PeakList}. The numeration starts with 0.
+     * @param peakListID number of a feature list in the array of {@link PeakList}. The numeration starts with 0.
      * @param rowID integer that is returned by method getId() of {@link PeakListRow}.
      * @return an instance of {@link PeakListRow} if an existing row is found. Otherwise it returns null.
      */
     @Nullable
     private PeakListRow findPeakListRow(final int peakListID, final int rowID) {
 
-        // Find peak list
+        // Find feature list
         PeakList peakList = findPeakList(peakListID);
         if (peakList == null)
             return null;
@@ -322,9 +322,9 @@ public class ADAP3AlignerTask extends AbstractTask {
     }
 
     /**
-     * Find the existing {@link PeakList} for a given peak list ID.
-     * @param peakListId number of a peak list in the array of {@link PeakList}. The numeration starts with 0.
-     * @return an instance of {@link PeakList} if a peak list is found, or null.
+     * Find the existing {@link PeakList} for a given feature list ID.
+     * @param peakListId number of a feature list in the array of {@link PeakList}. The numeration starts with 0.
+     * @return an instance of {@link PeakList} if a feature list is found, or null.
      */
     @Nullable
     private PeakList findPeakList(int peakListId) {

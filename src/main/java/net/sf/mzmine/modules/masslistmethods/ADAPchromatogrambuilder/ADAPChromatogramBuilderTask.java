@@ -198,7 +198,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
     }
 
 
-    // Create new peak list
+    // Create new feature list
     newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
     // make a list of all the data points
@@ -406,7 +406,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
     Arrays.sort(chromatograms, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
 
-    // Add the chromatograms to the new peak list
+    // Add the chromatograms to the new feature list
     for (Feature finishedPeak : chromatograms) {
       SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
       newPeakID++;

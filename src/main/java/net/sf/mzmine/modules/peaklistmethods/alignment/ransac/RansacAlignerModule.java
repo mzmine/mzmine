@@ -34,7 +34,7 @@ public class RansacAlignerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "RANSAC aligner";
   private static final String MODULE_DESCRIPTION =
-      "Peak list aligner based on the RANSAC algorithm.";
+      "Feature list aligner based on the RANSAC algorithm.";
 
   @Override
   public @Nonnull String getName() {

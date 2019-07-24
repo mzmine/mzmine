@@ -183,7 +183,7 @@ public class MZmineModulesList {
       PeakExtenderModule.class, TargetedPeakDetectionModule.class,
       ADAP3DecompositionV1_5Module.class, ADAP3DecompositionV2Module.class,
 
-      // Peak list filtering
+      // Feature list filtering
       GroupMS2Module.class, DuplicateFilterModule.class, RowsFilterModule.class,
       PeakComparisonRowFilterModule.class, PeakFilterModule.class,
       PeaklistClearAnnotationsModule.class, NeutralLossFilterModule.class,

@@ -84,7 +84,7 @@ public class UserParameterOpenHandler_2_3 extends DefaultHandler
   }
 
   /**
-   * @return the progress of these functions loading the peak list from the zip file.
+   * @return the progress of these functions loading the feature list from the zip file.
    */
   public double getProgress() {
     if (totalParams == 0)

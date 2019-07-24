@@ -48,7 +48,7 @@ public class ClusteringParameters extends SimpleParameterSet {
       new RawDataFilesParameter(new RawDataFilesSelection(RawDataFilesSelectionType.ALL_FILES));
 
   public static final PeakSelectionParameter rows =
-      new PeakSelectionParameter("Peak list rows", "Peak list rows to include in calculation",
+      new PeakSelectionParameter("Feature list rows", "Feature list rows to include in calculation",
           Arrays.asList(new PeakSelection[] {new PeakSelection(null, null, null, null)}));
 
   private static ClusteringAlgorithm algorithms[] = new ClusteringAlgorithm[] {new EMClusterer(),

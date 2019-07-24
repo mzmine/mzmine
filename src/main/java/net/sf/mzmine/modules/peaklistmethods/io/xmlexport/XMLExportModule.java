@@ -33,7 +33,7 @@ public class XMLExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to XML file";
   private static final String MODULE_DESCRIPTION =
-      "This method exports the peak list contents into an XML file.";
+      "This method exports the feature list contents into an XML file.";
 
   @Override
   public @Nonnull String getName() {

@@ -125,7 +125,7 @@ public class NistMsSearchTask extends AbstractTask {
   // The peak-list.
   private final PeakList peakList;
 
-  // The peak list row to search for (null => all).
+  // The feature list row to search for (null => all).
   private final PeakListRow peakListRow;
 
   // Progress counters.
@@ -151,7 +151,7 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list the peak list to search.
+   * @param list the feature list to search.
    * @param params search parameters.
    */
   public NistMsSearchTask(final PeakList list, final ParameterSet params) {
@@ -162,8 +162,8 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param row the peak list row to search for.
-   * @param list the peak list to search.
+   * @param row the feature list row to search for.
+   * @param list the feature list to search.
    * @param params search parameters.
    */
   public NistMsSearchTask(final PeakListRow row, final PeakList list, final ParameterSet params) {
@@ -212,7 +212,7 @@ public class NistMsSearchTask extends AbstractTask {
         LOG.info("NIST MS Search completed");
       }
 
-      // Repaint the window to reflect the change in the peak list
+      // Repaint the window to reflect the change in the feature list
       Desktop desktop = MZmineCore.getDesktop();
       if (!(desktop instanceof HeadLessDesktop))
         desktop.getMainWindow().repaint();
@@ -288,7 +288,7 @@ public class NistMsSearchTask extends AbstractTask {
         // Search command string.
         final String command = nistMsSearchExe.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
-        // Perform searches for each peak list row..
+        // Perform searches for each feature list row..
         progress = 0;
         progressMax = numRows;
         for (final PeakListRow row : peakListRows) {
@@ -364,7 +364,7 @@ public class NistMsSearchTask extends AbstractTask {
   /**
    * Trims the row neighbourhoods to the specified size.
    *
-   * @param neighbourhoods map from each peak list row to its neighbours.
+   * @param neighbourhoods map from each feature list row to its neighbours.
    */
   private void trimNeighbours(final Map<PeakListRow, Set<PeakListRow>> neighbourhoods) {
 
@@ -504,7 +504,7 @@ public class NistMsSearchTask extends AbstractTask {
   }
 
   /**
-   * Reads the search results file for a given peak list row.
+   * Reads the search results file for a given feature list row.
    *
    * @param row the row.
    * @return a list of identities corresponding to the search results, or null if none is found.

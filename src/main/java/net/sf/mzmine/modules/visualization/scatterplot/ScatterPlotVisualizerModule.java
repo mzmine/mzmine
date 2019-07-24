@@ -55,7 +55,7 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
         parameters.getParameter(ScatterPlotParameters.peakLists).getValue().getMatchingPeakLists();
     if ((peakLists == null) || (peakLists.length != 1)) {
       MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
-          "Please select a single aligned peak list");
+          "Please select a single aligned feature list");
       return ExitCode.ERROR;
     }
 
@@ -63,7 +63,7 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
     if (peakList.getNumberOfRawDataFiles() < 2) {
       MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
           "There is only one raw data file in the selected "
-              + "peak list, it is necessary at least two for comparison");
+              + "feature list, it is necessary at least two for comparison");
       return ExitCode.ERROR;
     }
 
@@ -88,7 +88,7 @@ public class ScatterPlotVisualizerModule implements MZmineRunnableModule {
     if (peakList.getNumberOfRawDataFiles() < 2) {
       MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
           "There is only one raw data file in the selected "
-              + "peak list, it is necessary at least two for comparison");
+              + "feature list, it is necessary at least two for comparison");
       return;
     }
 

@@ -66,10 +66,10 @@ public class PeakListSaveHandler {
   }
 
   /**
-   * Create an XML document with the peak list information an save it into the project zip file
+   * Create an XML document with the feature list information an save it into the project zip file
    * 
    * @param peakList
-   * @param peakListSavedName name of the peak list
+   * @param peakListSavedName name of the feature list
    * @throws java.io.IOException
    */
   public void savePeakList(PeakList peakList)
@@ -429,7 +429,7 @@ public class PeakListSaveHandler {
   }
 
   /**
-   * @return the progress of these functions saving the peak list to the zip file.
+   * @return the progress of these functions saving the feature list to the zip file.
    */
   public double getProgress() {
     if (numberOfRows == 0)

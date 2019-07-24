@@ -80,7 +80,7 @@ class RTNormalizerTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Retention time normalization of " + originalPeakLists.length + " peak lists";
+    return "Retention time normalization of " + originalPeakLists.length + " feature lists";
   }
 
   public void run() {
@@ -88,10 +88,10 @@ class RTNormalizerTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running retention time normalizer");
 
-    // First we need to find standards by iterating through first peak list
+    // First we need to find standards by iterating through first feature list
     totalRows = originalPeakLists[0].getNumberOfRows();
 
-    // Create new peak lists
+    // Create new feature lists
     normalizedPeakLists = new SimplePeakList[originalPeakLists.length];
     for (int i = 0; i < originalPeakLists.length; i++) {
       normalizedPeakLists[i] = new SimplePeakList(originalPeakLists[i] + " " + suffix,
@@ -147,7 +147,7 @@ class RTNormalizerTask extends AbstractTask {
             continue standardIteration;
         }
 
-        // Save reference to matching peak in this peak list
+        // Save reference to matching peak in this feature list
         goodStandardCandidate[i] = matchingRows[0];
 
       }
@@ -176,10 +176,10 @@ class RTNormalizerTask extends AbstractTask {
       averagedRTs[i] = rtAverage;
     }
 
-    // Normalize each peak list
+    // Normalize each feature list
     for (int peakListIndex = 0; peakListIndex < originalPeakLists.length; peakListIndex++) {
 
-      // Get standard rows for this peak list only
+      // Get standard rows for this feature list only
       PeakListRow standards[] = new PeakListRow[goodStandards.size()];
       for (int i = 0; i < goodStandards.size(); i++) {
         standards[i] = goodStandards.get(i)[peakListIndex];
@@ -222,12 +222,12 @@ class RTNormalizerTask extends AbstractTask {
   }
 
   /**
-   * Normalize retention time of all rows in given peak list and save normalized rows into new peak
+   * Normalize retention time of all rows in given feature list and save normalized rows into new peak
    * list.
    * 
-   * @param originalPeakList Peak list to be normalized
-   * @param normalizedPeakList New peak list, where normalized rows are to be saved
-   * @param standards Standard rows in same peak list
+   * @param originalPeakList Feature list to be normalized
+   * @param normalizedPeakList New feature list, where normalized rows are to be saved
+   * @param standards Standard rows in same feature list
    * @param normalizedStdRTs Normalized retention times of standard rows
    */
   private void normalizePeakList(PeakList originalPeakList, PeakList normalizedPeakList,
@@ -235,7 +235,7 @@ class RTNormalizerTask extends AbstractTask {
 
     PeakListRow originalRows[] = originalPeakList.getRows();
 
-    // Iterate peak list rows
+    // Iterate feature list rows
     for (PeakListRow originalRow : originalRows) {
 
       // Cancel?
@@ -252,7 +252,7 @@ class RTNormalizerTask extends AbstractTask {
         normalizedRow.addPeakIdentity(ident, false);
       normalizedRow.setPreferredPeakIdentity(originalRow.getPreferredPeakIdentity());
 
-      // Add the new row to normalized peak list
+      // Add the new row to normalized feature list
       normalizedPeakList.addRow(normalizedRow);
 
       processedRows++;
@@ -264,10 +264,10 @@ class RTNormalizerTask extends AbstractTask {
   /**
    * Normalize retention time of given row using selected standards
    * 
-   * @param originalRow Peak list row to be normalized
-   * @param standards Standard rows in same peak list
+   * @param originalRow Feature list row to be normalized
+   * @param standards Standard rows in same feature list
    * @param normalizedStdRTs Normalized retention times of standard rows
-   * @return New peak list row with normalized retention time
+   * @return New feature list row with normalized retention time
    */
   private PeakListRow normalizeRow(PeakListRow originalRow, PeakListRow standards[],
       double normalizedStdRTs[]) {

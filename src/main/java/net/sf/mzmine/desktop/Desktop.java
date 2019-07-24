@@ -103,9 +103,9 @@ public interface Desktop extends MZmineModule {
   public RawDataFile[] getSelectedDataFiles();
 
   /**
-   * Returns array of currently selected peak lists in GUI
+   * Returns array of currently selected feature lists in GUI
    * 
-   * @return Array of selected peak lists
+   * @return Array of selected feature lists
    */
   public PeakList[] getSelectedPeakLists();
 

@@ -91,7 +91,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
 
     topPanel.add(Box.createHorizontalGlue());
 
-    GUIUtils.addLabel(topPanel, "Peak list: ", SwingConstants.RIGHT);
+    GUIUtils.addLabel(topPanel, "Feature list: ", SwingConstants.RIGHT);
 
     peakListSelector = new JComboBox<PeakList>();
     peakListSelector.setBackground(Color.white);
@@ -152,7 +152,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
   }
 
   /**
-   * Returns selected peak list
+   * Returns selected feature list
    */
   PeakList getSelectedPeakList() {
     PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
@@ -160,7 +160,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
   }
 
   /**
-   * Reloads peak lists from the project to the selector combo box
+   * Reloads feature lists from the project to the selector combo box
    */
   void rebuildPeakListSelector() {
 
@@ -168,7 +168,7 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     if (System.currentTimeMillis() - lastRebuildTime < REDRAW_INTERVAL)
       return;
 
-    logger.finest("Rebuilding the peak list selector");
+    logger.finest("Rebuilding the feature list selector");
 
     PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
     PeakList currentPeakLists[] =
@@ -177,13 +177,13 @@ class SpectraBottomPanel extends JPanel implements TreeModelListener {
     peakListSelector.removeActionListener(masterFrame);
     peakListSelector.removeAllItems();
 
-    // Add all peak lists in reverse order (last added peak list will be
+    // Add all feature lists in reverse order (last added feature list will be
     // first)
     for (int i = currentPeakLists.length - 1; i >= 0; i--) {
       peakListSelector.addItem(currentPeakLists[i]);
     }
 
-    // If there is any peak list, make a selection
+    // If there is any feature list, make a selection
     if (currentPeakLists.length > 0) {
       peakListSelector.setEnabled(true);
       peakListSelector.addActionListener(masterFrame);

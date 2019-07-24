@@ -45,7 +45,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
 
     private final ADAP3DecompositionV2Utils utils = new ADAP3DecompositionV2Utils();
 
-    // Peak lists.
+    // Feature lists.
     private final MZmineProject project;
     private final ChromatogramPeakPair originalLists;
     private PeakList newPeakList;
@@ -86,7 +86,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
             if (originalLists.chromatograms.getNumberOfRawDataFiles() > 1
                     && originalLists.peaks.getNumberOfRawDataFiles() > 1) {
                 setStatus(TaskStatus.ERROR);
-                setErrorMessage("Peak Decomposition can only be performed on peak lists with a single raw data file");
+                setErrorMessage("Peak Decomposition can only be performed on feature lists with a single raw data file");
             } else {
 
                 try {
@@ -112,7 +112,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
                     }
 
                 } catch (IllegalArgumentException e) {
-                    errorMsg = "Incorrect Peak List selected:\n"
+                    errorMsg = "Incorrect Feature List selected:\n"
                             + e.getMessage();
                     e.printStackTrace();
                 } catch (IllegalStateException e) {
@@ -143,7 +143,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
     private PeakList decomposePeaks(@Nonnull ChromatogramPeakPair lists) {
         RawDataFile dataFile = lists.chromatograms.getRawDataFile(0);
 
-        // Create new peak list.
+        // Create new feature list.
         final PeakList resolvedPeakList = new SimplePeakList(lists.peaks + " "
                 + parameters.getParameter(ADAP3DecompositionV2Parameters.SUFFIX).getValue(), dataFile);
 
@@ -152,7 +152,7 @@ public class ADAP3DecompositionV2Task extends AbstractTask {
             resolvedPeakList.addDescriptionOfAppliedTask(method);
         }
 
-        // Add task description to peak list.
+        // Add task description to feature list.
         resolvedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
                 "Peak deconvolution by ADAP-3", parameters));
 

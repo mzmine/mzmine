@@ -161,7 +161,7 @@ public class GridMassTask extends AbstractTask {
       prevRT = s.getRetentionTime();
     }
 
-    // Create new peak list
+    // Create new feature list
     newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
     int j;

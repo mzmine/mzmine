@@ -105,8 +105,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
 
     peakListPopupMenu = new JPopupMenu();
 
-    GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list table", this, "SHOW_PEAKLIST_TABLES");
-    GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list info", this, "SHOW_PEAKLIST_INFO");
+    GUIUtils.addMenuItem(peakListPopupMenu, "Show feature list table", this, "SHOW_PEAKLIST_TABLES");
+    GUIUtils.addMenuItem(peakListPopupMenu, "Show feature list info", this, "SHOW_PEAKLIST_INFO");
     GUIUtils.addMenuItem(peakListPopupMenu, "Show scatter plot", this, "SHOW_SCATTER_PLOT");
     GUIUtils.addMenuItem(peakListPopupMenu, "Sort alphabetically", this, "SORT_PEAKLISTS");
     GUIUtils.addMenuItem(peakListPopupMenu, "Rename", this, "RENAME_FEATURELIST");
@@ -217,7 +217,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
         for (PeakList peakList : allPeakLists) {
           if (peakList.hasRawDataFile(file)) {
             String msg = "Cannot remove file " + file.getName()
-                + ", because it is present in the peak list " + peakList.getName();
+                + ", because it is present in the feature list " + peakList.getName();
             MZmineCore.getDesktop().displayErrorMessage(MZmineCore.getDesktop().getMainWindow(),
                 msg);
             return;
@@ -277,7 +277,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       }
     }
 
-    // Actions for peak lists
+    // Actions for feature lists
 
     if (command.equals("SHOW_PEAKLIST_TABLES")) {
       PeakList[] selectedPeakLists = tree.getSelectedObjects(PeakList.class);
@@ -329,7 +329,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
         MZmineCore.getProjectManager().getCurrentProject().removePeakList(peakList);
     }
 
-    // Actions for peak list rows
+    // Actions for feature list rows
 
     if (command.equals("SHOW_PEAK_SUMMARY")) {
       PeakListRow[] selectedRows = tree.getSelectedObjects(PeakListRow.class);

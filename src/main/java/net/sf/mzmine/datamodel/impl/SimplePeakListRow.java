@@ -110,7 +110,7 @@ public class SimplePeakListRow implements PeakListRow {
   @Override
   public synchronized void addPeak(RawDataFile rawData, Feature peak) {
     if (peak == null)
-      throw new IllegalArgumentException("Cannot add null peak to a peak list row");
+      throw new IllegalArgumentException("Cannot add null feature to a feature list row");
 
     // ConcurrentHashMap is already synchronized
     peaks.put(rawData, peak);

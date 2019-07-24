@@ -78,7 +78,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
     logger.info("Running multithreaded gap filler on " + peakList);
 
-    // Create new results peak list
+    // Create new results feature list
     processedPeakList = createResultsPeakList();
     progress = 0.5;
 
@@ -138,7 +138,7 @@ class MultiThreadPeakFinderMainTask extends AbstractTask {
     SimplePeakList processedPeakList =
         new SimplePeakList(peakList + " " + suffix, peakList.getRawDataFiles());
 
-    // Fill new peak list with empty rows
+    // Fill new feature list with empty rows
     for (int row = 0; row < peakList.getNumberOfRows(); row++) {
       PeakListRow sourceRow = peakList.getRow(row);
       PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());

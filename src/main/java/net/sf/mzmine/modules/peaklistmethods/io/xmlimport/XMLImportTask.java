@@ -86,7 +86,7 @@ public class XMLImportTask extends AbstractTask {
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
   public String getTaskDescription() {
-    return "Loading peak list from " + fileName;
+    return "Loading feature list from " + fileName;
   }
 
   /**

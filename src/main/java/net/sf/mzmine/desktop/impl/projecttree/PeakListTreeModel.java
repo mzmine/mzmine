@@ -43,7 +43,7 @@ public class PeakListTreeModel extends DefaultTreeModel {
    */
   private static final long serialVersionUID = 1L;
 
-  public static final String peakListsNodeName = "Peak lists";
+  public static final String peakListsNodeName = "Feature lists";
 
   private Hashtable<Object, DefaultMutableTreeNode> treeObjects =
       new Hashtable<Object, DefaultMutableTreeNode>();

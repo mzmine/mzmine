@@ -220,7 +220,7 @@ public class HierarAlignerGCTask extends AbstractTask {
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
   public String getTaskDescription() {
-    return "Join aligner GC, " + peakListName + " (" + peakLists.length + " peak lists)";
+    return "Join aligner GC, " + peakListName + " (" + peakLists.length + " feature lists)";
   }
 
   /**
@@ -283,11 +283,11 @@ public class HierarAlignerGCTask extends AbstractTask {
 
       for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
-        // Each data file can only have one column in aligned peak list
+        // Each data file can only have one column in aligned feature list
         if (allDataFiles.contains(dataFile)) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Cannot run alignment, because file " + dataFile
-              + " is present in multiple peak lists");
+              + " is present in multiple feature lists");
           return;
         }
 
@@ -295,14 +295,14 @@ public class HierarAlignerGCTask extends AbstractTask {
       }
     }
 
-    // Create a new aligned peak list
+    // Create a new aligned feature list
     alignedPeakList = new SimplePeakList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
 
     if (DEBUG)
       printMemoryUsage(logger, run_time, prevTotal, prevFree, "COMPOUND DETECTED");
 
     /** Alignment mapping **/
-    // Iterate source peak lists
+    // Iterate source feature lists
     Hashtable<SimpleFeature, Double> rtPeaksBackup = new Hashtable<SimpleFeature, Double>();
     Hashtable<PeakListRow, Object[]> infoRowsBackup = new Hashtable<PeakListRow, Object[]>();
 
@@ -546,7 +546,7 @@ public class HierarAlignerGCTask extends AbstractTask {
     List<List<PeakListRow>> clustersList = new ArrayList<>();
 
     // TODO: ...!
-    // Build peak list row clusters
+    // Build feature list row clusters
     for (List<Integer> cl : gnfClusters) {
 
       List<PeakListRow> rows_cluster = new ArrayList<>();
@@ -656,7 +656,7 @@ public class HierarAlignerGCTask extends AbstractTask {
 
     // ----------------------------------------------------------------------
 
-    // Add new aligned peak list to the project
+    // Add new aligned feature list to the project
     this.project.addPeakList(alignedPeakList);
 
     if (DEBUG) {

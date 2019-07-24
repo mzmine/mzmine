@@ -32,7 +32,7 @@ public class PeakExtenderParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "extended");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "extended");
 
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 

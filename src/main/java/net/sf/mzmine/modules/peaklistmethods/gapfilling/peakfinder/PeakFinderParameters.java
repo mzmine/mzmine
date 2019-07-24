@@ -32,7 +32,7 @@ public class PeakFinderParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "gap-filled");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "gap-filled");
 
   public static final PercentParameter intTolerance = new PercentParameter("Intensity tolerance",
       "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
@@ -51,7 +51,7 @@ public class PeakFinderParameters extends SimpleParameterSet {
           "Parallel processing of gaps (RT correction is always on a single thread)");
 
   public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original peak list", "If checked, the original peak list will be removed");
+      "Remove original feature list", "If checked, the original feature list will be removed");
 
   public PeakFinderParameters() {
     super(new Parameter[] {peakLists, suffix, intTolerance, MZTolerance, RTTolerance, RTCorrection,

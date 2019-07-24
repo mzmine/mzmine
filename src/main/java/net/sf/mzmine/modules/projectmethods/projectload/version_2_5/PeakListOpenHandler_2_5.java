@@ -99,7 +99,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
   }
 
   /**
-   * Load the peak list from the zip file reading the XML peak list file
+   * Load the feature list from the zip file reading the XML feature list file
    */
   @Override
   public PeakList readPeakList(InputStream peakListStream)
@@ -132,7 +132,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
   }
 
   /**
-   * @return the progress of these functions loading the peak list from the zip file.
+   * @return the progress of these functions loading the feature list from the zip file.
    */
   public double getProgress() {
     if (totalRows == 0)
@@ -248,7 +248,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
     // <NAME>
     if (qName.equals(PeakListElementName_2_5.PEAKLIST_NAME.getElementName())) {
       name = getTextOfElement();
-      logger.info("Loading peak list: " + name);
+      logger.info("Loading feature list: " + name);
       peakListName = name;
     }
 
@@ -269,7 +269,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
       RawDataFile dataFile = dataFilesIDMap.get(rawDataFileID);
       if (dataFile == null) {
         throw new SAXException(
-            "Cannot open peak list, because raw data file " + rawDataFileID + " is missing.");
+            "Cannot open feature list, because raw data file " + rawDataFileID + " is missing.");
       }
       currentPeakListDataFiles.add(dataFile);
     }
@@ -484,7 +484,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
   }
 
   /**
-   * Initializes the peak list
+   * Initializes the feature list
    */
   private void initializePeakList() {
 

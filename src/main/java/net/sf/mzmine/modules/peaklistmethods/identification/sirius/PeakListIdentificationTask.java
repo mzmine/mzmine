@@ -69,7 +69,7 @@ public class PeakListIdentificationTask extends AbstractTask {
    * Create the identification task.
    * 
    * @param parameters task parameters.
-   * @param list peak list to operate on.
+   * @param list feature list to operate on.
    */
   PeakListIdentificationTask(final ParameterSet parameters, final PeakList list) {
     peakList = list;
@@ -126,7 +126,7 @@ public class PeakListIdentificationTask extends AbstractTask {
       try {
         setStatus(TaskStatus.PROCESSING);
 
-        // Identify the peak list rows starting from the biggest peaks.
+        // Identify the feature list rows starting from the biggest peaks.
         final PeakListRow[] rows = peakList.getRows();
         Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
 

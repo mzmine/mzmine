@@ -33,7 +33,7 @@ public class RTNormalizerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Retention time normalizer";
   private static final String MODULE_DESCRIPTION =
-      "The retention time normalizer attempts to reduce the deviation of retention times between peak lists, by searching for common peaks in these peak lists and using them as normalization standards.";
+      "The retention time normalizer attempts to reduce the deviation of retention times between feature lists, by searching for common peaks in these feature lists and using them as normalization standards.";
 
   @Override
   public @Nonnull String getName() {

@@ -153,7 +153,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       setErrorMessage(
           "Nothing to plot here or some peaks have other identities than sum formulas.\n"
               + "Have you annotated your features with sum formulas?\n"
-              + "You can use the peak list method \"Formula prediction\" to handle the task.");
+              + "You can use the feature list method \"Formula prediction\" to handle the task.");
       setStatus(TaskStatus.ERROR);
     }
   }

@@ -136,7 +136,7 @@ class PeakLearnerTask extends AbstractTask {
       // ...
 
 
-      // add row to result peak list
+      // add row to result feature list
       PeakListRow row = peakList.getPeakRow(aPeak);
       row = copyPeakRow(row);
       resultPeakList.addRow(row);
@@ -154,13 +154,13 @@ class PeakLearnerTask extends AbstractTask {
 
 
   /**
-   * Create a copy of a peak list row.
+   * Create a copy of a feature list row.
    *
    * @param row the row to copy.
    * @return the newly created copy.
    */
   private static PeakListRow copyPeakRow(final PeakListRow row) {
-    // Copy the peak list row.
+    // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
     PeakUtils.copyPeakListRowProperties(row, newRow);
 

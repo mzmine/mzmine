@@ -94,7 +94,7 @@ class MzTabImportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Loading peak list from mzTab file " + inputFile;
+    return "Loading feature list from mzTab file " + inputFile;
   }
 
   @Override
@@ -138,7 +138,7 @@ class MzTabImportTask extends AbstractTask {
       if (isCanceled())
         return;
 
-      // Create a new peak list
+      // Create a new feature list
       String peakListName = inputFile.getName().replace(".mzTab", "");
       RawDataFile rawDataArray[] = rawDataFiles.values().toArray(new RawDataFile[0]);
       PeakList newPeakList = new SimplePeakList(peakListName, rawDataArray);
@@ -154,14 +154,14 @@ class MzTabImportTask extends AbstractTask {
       if (isCanceled())
         return;
 
-      // import small molecules (=peak list rows)
+      // import small molecules (=feature list rows)
       importSmallMolecules(newPeakList, mzTabFile, rawDataFiles);
 
       // Check if not canceled
       if (isCanceled())
         return;
 
-      // Add the new peak list to the project
+      // Add the new feature list to the project
       project.addPeakList(newPeakList);
 
       // Finish
@@ -450,7 +450,7 @@ class MzTabImportTask extends AbstractTask {
 
       }
 
-      // Add row to peak list
+      // Add row to feature list
       newPeakList.addRow(newRow);
 
     }

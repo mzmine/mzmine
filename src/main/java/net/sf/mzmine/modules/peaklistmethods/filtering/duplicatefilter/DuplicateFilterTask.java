@@ -44,14 +44,14 @@ import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 /**
- * A task to filter out duplicate peak list rows.
+ * A task to filter out duplicate feature list rows.
  */
 public class DuplicateFilterTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(DuplicateFilterTask.class.getName());
 
-  // Original and resultant peak lists.
+  // Original and resultant feature lists.
   private final MZmineProject project;
   private final PeakList peakList;
   private PeakList filteredPeakList;
@@ -78,7 +78,7 @@ public class DuplicateFilterTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
 
-    return "Filtering duplicate peak list rows of " + peakList;
+    return "Filtering duplicate feature list rows of " + peakList;
   }
 
   @Override
@@ -116,7 +116,7 @@ public class DuplicateFilterTask extends AbstractTask {
           }
 
           // Finished.
-          LOG.info("Finished filtering duplicate peak list rows on " + peakList);
+          LOG.info("Finished filtering duplicate feature list rows on " + peakList);
           setStatus(TaskStatus.FINISHED);
         }
       } catch (Throwable t) {
@@ -129,14 +129,14 @@ public class DuplicateFilterTask extends AbstractTask {
   }
 
   /**
-   * Filter our duplicate peak list rows.
+   * Filter our duplicate feature list rows.
    *
-   * @param origPeakList the original peak list.
-   * @param suffix the suffix to apply to the new peak list name.
+   * @param origPeakList the original feature list.
+   * @param suffix the suffix to apply to the new feature list name.
    * @param mzTolerance m/z tolerance.
    * @param rtTolerance RT tolerance.
    * @param requireSameId must duplicate peaks have the same identities?
-   * @return the filtered peak list.
+   * @return the filtered feature list.
    */
   private PeakList filterDuplicatePeakListRows(final PeakList origPeakList, final String suffix,
       final MZTolerance mzTolerance, final RTTolerance rtTolerance, final boolean requireSameId,
@@ -145,7 +145,7 @@ public class DuplicateFilterTask extends AbstractTask {
     final int rowCount = peakListRows.length;
     RawDataFile[] rawFiles = origPeakList.getRawDataFiles();
 
-    // Create the new peak list.
+    // Create the new feature list.
     final PeakList newPeakList =
         new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
 
@@ -160,7 +160,7 @@ public class DuplicateFilterTask extends AbstractTask {
     // filter by average mz and rt
     boolean filterByAvgRTMZ = !mode.equals(FilterMode.SINGLE_FEATURE);
 
-    // Loop through all peak list rows
+    // Loop through all feature list rows
     processedRows = 0;
     int n = 0;
     totalRows = rowCount;
@@ -215,7 +215,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
       // Add task description to peakList
       newPeakList.addDescriptionOfAppliedTask(
-          new SimplePeakListAppliedMethod("Duplicate peak list rows filter", parameters));
+          new SimplePeakListAppliedMethod("Duplicate feature list rows filter", parameters));
       LOG.info("Removed " + n + " duplicate rows");
     }
 
@@ -296,7 +296,7 @@ public class DuplicateFilterTask extends AbstractTask {
   }
 
   public PeakListRow copyRow(PeakListRow row) {
-    // Copy the peak list row.
+    // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
     PeakUtils.copyPeakListRowProperties(row, newRow);
 

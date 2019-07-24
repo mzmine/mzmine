@@ -176,7 +176,7 @@ public class LipidSearchTask extends AbstractTask {
     ((SimplePeakList) peakList)
         .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Lipid search", parameters));
 
-    // Repaint the window to reflect the change in the peak list
+    // Repaint the window to reflect the change in the feature list
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
       desktop.getMainWindow().repaint();

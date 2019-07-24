@@ -27,7 +27,7 @@ public class AdductIdentity extends SimplePeakIdentity {
   /**
    * Create the identity.
    *
-   * @param originalPeakListRow adduct of this peak list row.
+   * @param originalPeakListRow adduct of this feature list row.
    * @param adduct type of adduct.
    */
   public AdductIdentity(final PeakListRow originalPeakListRow, final AdductType adduct) {

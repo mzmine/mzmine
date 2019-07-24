@@ -38,14 +38,14 @@ import net.sf.mzmine.util.PeakUtils;
 import com.google.common.collect.Range;
 
 /**
- * Filters out peaks from peak list.
+ * Filters out peaks from feature list.
  */
 public class PeakFilterTask extends AbstractTask {
 
   // Logger
   private static final Logger LOG = Logger.getLogger(PeakFilterTask.class.getName());
 
-  // Peak lists
+  // Feature lists
   private final MZmineProject project;
   private final PeakList origPeakList;
   private PeakList filteredPeakList;
@@ -59,7 +59,7 @@ public class PeakFilterTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list peak list to process.
+   * @param list feature list to process.
    * @param parameterSet task parameters.
    */
   public PeakFilterTask(final MZmineProject project, final PeakList list,
@@ -81,7 +81,7 @@ public class PeakFilterTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Filtering peak list";
+    return "Filtering feature list";
   }
 
   @Override
@@ -93,9 +93,9 @@ public class PeakFilterTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering peak list");
+      LOG.info("Filtering feature list");
 
-      // Filter the peak list
+      // Filter the feature list
       filteredPeakList = filterPeakList(origPeakList);
 
       if (!isCanceled()) {
@@ -108,22 +108,22 @@ public class PeakFilterTask extends AbstractTask {
           project.removePeakList(origPeakList);
         }
         setStatus(TaskStatus.FINISHED);
-        LOG.info("Finished peak list filter");
+        LOG.info("Finished feature list filter");
       }
     } catch (Throwable t) {
 
       setErrorMessage(t.getMessage());
       setStatus(TaskStatus.ERROR);
-      LOG.log(Level.SEVERE, "Peak list filter error", t);
+      LOG.log(Level.SEVERE, "Feature list filter error", t);
     }
 
   }
 
   /**
-   * Filter the peak list.
+   * Filter the feature list.
    *
-   * @param peakList peak list to filter.
-   * @return a new peak list with entries of the original peak list that pass the filtering.
+   * @param peakList feature list to filter.
+   * @return a new feature list with entries of the original feature list that pass the filtering.
    */
   private PeakList filterPeakList(final PeakList peakList) {
 
@@ -147,7 +147,7 @@ public class PeakFilterTask extends AbstractTask {
         parameters.getParameter(PeakFilterParameters.PEAK_ASYMMETRYFACTOR).getValue();
     final boolean filterByMS2 = parameters.getParameter(PeakFilterParameters.MS2_Filter).getValue();
 
-    // Loop through all rows in peak list
+    // Loop through all rows in feature list
     final PeakListRow[] rows = peakList.getRows();
     totalRows = rows.length;
     for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
@@ -267,11 +267,11 @@ public class PeakFilterTask extends AbstractTask {
   }
 
   /**
-   * Create a copy of a peak list row.
+   * Create a copy of a feature list row.
    */
   private static PeakListRow copyPeakRow(final PeakListRow row, final boolean[] keepPeak) {
 
-    // Copy the peak list row.
+    // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
     PeakUtils.copyPeakListRowProperties(row, newRow);
 

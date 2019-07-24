@@ -40,7 +40,7 @@ public class SiriusExportParameters extends SimpleParameterSet {
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the output MGF file. "
-          + "Use pattern \"{}\" in the file name to substitute with peak list name. "
+          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.",
       "mgf");

@@ -52,7 +52,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
   // Logger.
   private static final Logger LOG = Logger.getLogger(ADAP3DecompositionV1_5Task.class.getName());
 
-  // Peak lists.
+  // Feature lists.
   private final MZmineProject project;
   private final PeakList originalPeakList;
   private PeakList newPeakList;
@@ -94,7 +94,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
 
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Peak Decomposition can only be performed on peak lists with a single raw data file");
+            "Peak Decomposition can only be performed on feature lists with a single raw data file");
 
       } else {
 
@@ -120,7 +120,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
           }
 
         } catch (IllegalArgumentException e) {
-          errorMsg = "Incorrect Peak List selected:\n" + e.getMessage();
+          errorMsg = "Incorrect Feature List selected:\n" + e.getMessage();
         } catch (IllegalStateException e) {
           errorMsg = "Peak decompostion error:\n" + e.getMessage();
         } catch (Exception e) {
@@ -145,7 +145,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       throws CloneNotSupportedException, IOException {
     RawDataFile dataFile = peakList.getRawDataFile(0);
 
-    // Create new peak list.
+    // Create new feature list.
     final PeakList resolvedPeakList = new SimplePeakList(
         peakList + " "
             + parameters.getParameter(ADAP3DecompositionV1_5Parameters.SUFFIX).getValue(),
@@ -156,7 +156,7 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       resolvedPeakList.addDescriptionOfAppliedTask(method);
     }
 
-    // Add task description to peak list.
+    // Add task description to feature list.
     resolvedPeakList.addDescriptionOfAppliedTask(
         new SimplePeakListAppliedMethod("Peak deconvolution by ADAP-3", parameters));
 

@@ -52,7 +52,7 @@ public class HighestDataPointConnector {
     this.allScanNumbers = allScanNumbers;
 
     // We use LinkedHashSet to maintain a reproducible ordering. If we use
-    // plain HashSet, the resulting peak list row IDs will have different
+    // plain HashSet, the resulting feature list row IDs will have different
     // order every time the method is invoked.
     buildingChromatograms = new LinkedHashSet<Chromatogram>();
 

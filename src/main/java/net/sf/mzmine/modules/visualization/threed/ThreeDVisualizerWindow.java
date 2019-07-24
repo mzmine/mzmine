@@ -216,7 +216,7 @@ public class ThreeDVisualizerWindow extends JFrame implements MouseWheelListener
       final PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
       if (selectedPeakList != null) {
 
-        LOG.finest("Loading a peak list " + selectedPeakList + " to a 3D view of " + dataFile);
+        LOG.finest("Loading a feature list " + selectedPeakList + " to a 3D view of " + dataFile);
 
         try {
           display.setPeaks(selectedPeakList,

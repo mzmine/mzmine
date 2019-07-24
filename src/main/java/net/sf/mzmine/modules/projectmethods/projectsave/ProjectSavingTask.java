@@ -314,7 +314,7 @@ public class ProjectSavingTask extends AbstractTask {
   }
 
   /**
-   * Save the peak lists
+   * Save the feature lists
    * 
    * @throws SAXException
    * @throws TransformerConfigurationException
@@ -329,9 +329,9 @@ public class ProjectSavingTask extends AbstractTask {
       if (isCanceled())
         return;
 
-      logger.info("Saving peak list: " + peakLists[i].getName());
+      logger.info("Saving feature list: " + peakLists[i].getName());
 
-      String peakListSavedName = "Peak list #" + (i + 1) + " " + peakLists[i].getName();
+      String peakListSavedName = "Feature list #" + (i + 1) + " " + peakLists[i].getName();
 
       zipStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
 
@@ -344,7 +344,7 @@ public class ProjectSavingTask extends AbstractTask {
   }
 
   /**
-   * Save the peak lists
+   * Save the feature lists
    * 
    * @throws SAXException
    * @throws TransformerConfigurationException

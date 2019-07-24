@@ -205,7 +205,7 @@ public class PeakListSpectralMatchTask extends AbstractTask {
     if (count > 0)
       logger.info("Added " + count + " spectral library matches");
 
-    // Repaint the window to reflect the change in the peak list
+    // Repaint the window to reflect the change in the feature list
     repaintWindow();
 
     list = null;

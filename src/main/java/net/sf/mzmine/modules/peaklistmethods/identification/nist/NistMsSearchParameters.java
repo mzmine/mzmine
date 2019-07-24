@@ -46,7 +46,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 public class NistMsSearchParameters extends SimpleParameterSet {
 
   /**
-   * Peak lists to operate on.
+   * Feature lists to operate on.
    */
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 

@@ -69,7 +69,7 @@ public class LocalSpectralDBSearchModule implements MZmineProcessingModule {
   /**
    * Show dialog for identifying multiple selected peak-list rows.
    * 
-   * @param row the peak list row.
+   * @param row the feature list row.
    */
   public static void showSelectedRowsIdentificationDialog(final PeakListRow[] rows,
       PeakListTable table) {

@@ -34,7 +34,7 @@ import net.sf.mzmine.util.ExitCode;
 public class MGFExportModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Export to MGF file";
   private static final String MODULE_DESCRIPTION =
-      "This method exports the peak list spectra into a MGF file.";
+      "This method exports the feature list spectra into a MGF file.";
 
   @Override
   public @Nonnull String getName() {

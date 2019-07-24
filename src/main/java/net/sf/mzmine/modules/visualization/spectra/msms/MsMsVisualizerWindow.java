@@ -88,7 +88,7 @@ public class MsMsVisualizerWindow extends JFrame implements ActionListener {
 
     updateTitle();
 
-    // After we have constructed everything, load the peak lists into the
+    // After we have constructed everything, load the feature lists into the
     // bottom panel
     bottomPanel.rebuildPeakListSelector();
 

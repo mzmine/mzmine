@@ -263,7 +263,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog
     pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
     JComponent tableComponents[] = new JComponent[4];
-    tableComponents[0] = new JLabel("Peak list");
+    tableComponents[0] = new JLabel("Feature list");
 
     comboPeakList = new JComboBox<PeakList>();
     for (PeakList peakList : peakLists) {

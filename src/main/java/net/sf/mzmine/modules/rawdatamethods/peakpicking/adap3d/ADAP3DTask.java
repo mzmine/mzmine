@@ -148,7 +148,7 @@ public class ADAP3DTask extends AbstractTask {
     logger.info("ADAP3D detected " + features.size() + " features in " + dataFile
         + ", converting to MZmine peaklist");
 
-    // Create new MZmine 2 peak list
+    // Create new MZmine 2 feature list
     SimplePeakList newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
     int rowId = 1;
