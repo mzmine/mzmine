@@ -123,15 +123,10 @@ public class MultipleSelectionComponent<ValueType> extends JPanel
     public List<ValueType> getSelectedValues() {
         ArrayList<ValueType> selectedObjects = new ArrayList<ValueType>();
         for (ExtendedCheckBox<?> ecb : checkBoxes) {
-            LOG.finest("Feature selected" + ecb.getObject().toString()
-                    + ecb.isSelected());
             if (ecb.isSelected()) {
                 selectedObjects.add((ValueType) ecb.getObject());
-                LOG.finest("Feature added to the list is:"
-                        + ecb.getObject().toString());
             }
         }
-        LOG.finest("List of selected features is:" + selectedObjects);
         return selectedObjects;
     }
 

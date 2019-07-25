@@ -36,7 +36,7 @@ public class FeaturesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
     public List<Feature> featuresList;
-    private JList<Object> jlist;
+    private JList<Object> jlist = new JList<Object>();
     private final JButton addButton;
     private final JButton removeButton;
 
@@ -46,6 +46,7 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         super(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
+        // jlist.setVisible(true);
         JScrollPane scrollPane = new JScrollPane(jlist);
         scrollPane.setSize(30, 10);
         add(scrollPane, BorderLayout.CENTER);
@@ -79,10 +80,14 @@ public class FeaturesComponent extends JPanel implements ActionListener {
             FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
             featuresSelectionDialog.setModal(true);
             featuresSelectionDialog.setVisible(true);
-            LOG.finest("List of selected features is:"
-                    + featuresSelectionDialog.getSelectedFeatures().toString());
+            // LOG.finest("List of selected features is:"
+            // + featuresSelectionDialog.getSelectedFeatures().toString());
+            LOG.finest(
+                    "List of selected features is:" + featuresSelectionDialog);
+            jlist.setVisible(true);
             jlist.setListData(
-                    (featuresSelectionDialog.getSelectedFeatures().toArray()));
+                    (featuresSelectionDialog.getMultipleSelectionComponent()
+                            .getSelectedValues().toArray()));
             if (src == removeButton) {
 
             }
