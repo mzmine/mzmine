@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
@@ -21,7 +22,7 @@ public class FeaturesSelectionDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private Logger LOG = Logger.getLogger(this.getClass().getName());
-    private Object[] selectedFeatures;
+    public List<Feature> selectedFeatures;
 
     public FeaturesSelectionDialog() {
         PeakList allPeakLists[] = MZmineCore.getProjectManager()
@@ -50,13 +51,15 @@ public class FeaturesSelectionDialog extends JDialog {
                         for (int k = 0; k < features.length; k++) {
                             featuresList[k] = features[k].toString();
                         }
-                        MultipleSelectionComponent peakListRowSelectionBox = new MultipleSelectionComponent(
+                        MultipleSelectionComponent<Feature> peakListRowSelectionBox = new MultipleSelectionComponent<Feature>(
                                 featuresList);
 
                         panel.add(peakListRowSelectionBox, BorderLayout.SOUTH);
                         dialog.setSize(620, 270);
                         selectedFeatures = peakListRowSelectionBox
                                 .getSelectedValues();
+                        LOG.finest("List of selected features is:"
+                                + selectedFeatures);
                         LOG.finest("PeakListRowComboBox is Added");
                     }
                 }
@@ -69,7 +72,7 @@ public class FeaturesSelectionDialog extends JDialog {
         this.setLocationRelativeTo(null);
     }
 
-    public Object[] getSelectedFeatures() {
+    public List<Feature> getSelectedFeatures() {
         return selectedFeatures;
     }
 

@@ -20,8 +20,6 @@ package net.sf.mzmine.parameters.parametertypes.selectors;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -38,7 +36,7 @@ public class FeaturesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
     public List<Feature> featuresList;
-    private JList<Feature> jlist;
+    private JList<Object> jlist;
     private final JButton addButton;
     private final JButton removeButton;
 
@@ -79,20 +77,16 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         if (src == addButton) {
             LOG.finest("Add Button Clicked!");
             FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
+            featuresSelectionDialog.setModal(true);
             featuresSelectionDialog.setVisible(true);
-            featuresSelectionDialog.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent e) {
-                    jlist.setListData((Feature[]) featuresSelectionDialog
-                            .getSelectedFeatures());
-                }
-            });
+            LOG.finest("List of selected features is:"
+                    + featuresSelectionDialog.getSelectedFeatures().toString());
+            jlist.setListData(
+                    (featuresSelectionDialog.getSelectedFeatures().toArray()));
+            if (src == removeButton) {
+
+            }
         }
-
-        if (src == removeButton) {
-
-        }
-
     }
 
 }
