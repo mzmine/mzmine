@@ -331,7 +331,7 @@ public class ProjectSavingTask extends AbstractTask {
 
       logger.info("Saving feature list: " + peakLists[i].getName());
 
-      String peakListSavedName = "Feature list #" + (i + 1) + " " + peakLists[i].getName();
+      String peakListSavedName = "Peak list #" + (i + 1) + " " + peakLists[i].getName();
 
       zipStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
 

@@ -161,7 +161,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
       final Pattern rawFilePattern = Pattern.compile("Raw data file #([\\d]+) (.*)\\.xml$");
       final Pattern scansFilePattern = Pattern.compile("Raw data file #([\\d]+) (.*)\\.scans$");
-      final Pattern peakListPattern = Pattern.compile("Feature list #([\\d]+) (.*)\\.xml$");
+      final Pattern peakListPattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml$");
 
       boolean versionInformationLoaded = false;
 
