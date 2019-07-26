@@ -75,7 +75,7 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperM
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.IsotopePeakScannerModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerModule;
-import net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizerModule;
+import net.sf.mzmine.modules.peaklistmethods.normalization.rtcalibration.RTCalibrationModule;
 import net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizerModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5.ADAP3DecompositionV1_5Module;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV2.ADAP3DecompositionV2Module;
@@ -189,7 +189,7 @@ public class MZmineModulesList {
       PeaklistClearAnnotationsModule.class, NeutralLossFilterModule.class,
 
       // Normalization
-      RTNormalizerModule.class, LinearNormalizerModule.class,
+      RTCalibrationModule.class, LinearNormalizerModule.class,
       StandardCompoundNormalizerModule.class,
 
       // Data analysis

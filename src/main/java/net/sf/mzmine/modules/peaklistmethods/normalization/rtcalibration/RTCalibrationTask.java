@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer;
+package net.sf.mzmine.modules.peaklistmethods.normalization.rtcalibration;
 
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -41,7 +41,7 @@ import net.sf.mzmine.util.PeakUtils;
 
 import com.google.common.collect.Range;
 
-class RTNormalizerTask extends AbstractTask {
+class RTCalibrationTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -58,18 +58,18 @@ class RTNormalizerTask extends AbstractTask {
   private boolean removeOriginal;
   private ParameterSet parameters;
 
-  public RTNormalizerTask(MZmineProject project, ParameterSet parameters) {
+  public RTCalibrationTask(MZmineProject project, ParameterSet parameters) {
 
     this.project = project;
     this.originalPeakLists =
-        parameters.getParameter(RTNormalizerParameters.peakLists).getValue().getMatchingPeakLists();
+        parameters.getParameter(RTCalibrationParameters.peakLists).getValue().getMatchingPeakLists();
     this.parameters = parameters;
 
-    suffix = parameters.getParameter(RTNormalizerParameters.suffix).getValue();
-    mzTolerance = parameters.getParameter(RTNormalizerParameters.MZTolerance).getValue();
-    rtTolerance = parameters.getParameter(RTNormalizerParameters.RTTolerance).getValue();
-    minHeight = parameters.getParameter(RTNormalizerParameters.minHeight).getValue();
-    removeOriginal = parameters.getParameter(RTNormalizerParameters.autoRemove).getValue();
+    suffix = parameters.getParameter(RTCalibrationParameters.suffix).getValue();
+    mzTolerance = parameters.getParameter(RTCalibrationParameters.MZTolerance).getValue();
+    rtTolerance = parameters.getParameter(RTCalibrationParameters.RTTolerance).getValue();
+    minHeight = parameters.getParameter(RTCalibrationParameters.minHeight).getValue();
+    removeOriginal = parameters.getParameter(RTCalibrationParameters.autoRemove).getValue();
 
   }
 

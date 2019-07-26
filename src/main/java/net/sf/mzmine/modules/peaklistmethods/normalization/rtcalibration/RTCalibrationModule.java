@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer;
+package net.sf.mzmine.modules.peaklistmethods.normalization.rtcalibration;
 
 import java.util.Collection;
 
@@ -29,11 +29,11 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class RTNormalizerModule implements MZmineProcessingModule {
+public class RTCalibrationModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Retention time normalizer";
+  private static final String MODULE_NAME = "Retention time calibration";
   private static final String MODULE_DESCRIPTION =
-      "The retention time normalizer attempts to reduce the deviation of retention times between feature lists, by searching for common peaks in these feature lists and using them as normalization standards.";
+      "The retention time calibration attempts to reduce the deviation of retention times between feature lists, by searching for common features in these lists and using them as calibration standards.";
 
   @Override
   public @Nonnull String getName() {
@@ -49,7 +49,7 @@ public class RTNormalizerModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    RTNormalizerTask newTask = new RTNormalizerTask(project, parameters);
+    RTCalibrationTask newTask = new RTCalibrationTask(project, parameters);
     tasks.add(newTask);
     return ExitCode.OK;
 
@@ -62,7 +62,7 @@ public class RTNormalizerModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return RTNormalizerParameters.class;
+    return RTCalibrationParameters.class;
   }
 
 }

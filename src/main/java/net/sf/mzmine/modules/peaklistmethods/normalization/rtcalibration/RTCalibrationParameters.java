@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer;
+package net.sf.mzmine.modules.peaklistmethods.normalization.rtcalibration;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -28,7 +28,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 
-public class RTNormalizerParameters extends SimpleParameterSet {
+public class RTCalibrationParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter(2);
 
@@ -47,7 +47,7 @@ public class RTNormalizerParameters extends SimpleParameterSet {
       new BooleanParameter("Remove original feature list",
           "If checked, original feature list will be removed and only normalized version remains");
 
-  public RTNormalizerParameters() {
+  public RTCalibrationParameters() {
     super(new Parameter[] {peakLists, suffix, MZTolerance, RTTolerance, minHeight, autoRemove});
   }
 
