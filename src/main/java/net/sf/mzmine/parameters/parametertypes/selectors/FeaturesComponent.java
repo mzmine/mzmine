@@ -80,16 +80,15 @@ public class FeaturesComponent extends JPanel implements ActionListener {
             FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
             featuresSelectionDialog.setModal(true);
             featuresSelectionDialog.setVisible(true);
-            // LOG.finest("List of selected features is:"
-            // + featuresSelectionDialog.getSelectedFeatures().toString());
-            LOG.finest(
-                    "List of selected features is:" + featuresSelectionDialog);
-            jlist.setVisible(true);
-            jlist.setListData(
-                    (featuresSelectionDialog.getMultipleSelectionComponent()
-                            .getSelectedValues().toArray()));
+            if (featuresSelectionDialog.getReturnState() == true) {
+                jlist.setVisible(true);
+                jlist.setListData(
+                        (featuresSelectionDialog.getMultipleSelectionComponent()
+                                .getSelectedValues().toArray()));
+            }
             if (src == removeButton) {
-
+                Object[] emptyArray = null;
+                jlist.setListData(emptyArray);
             }
         }
     }
