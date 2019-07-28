@@ -36,6 +36,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -45,9 +46,7 @@ import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.*;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -209,7 +208,20 @@ public class ADAP3AlignerTask extends AbstractTask {
 
                 RawDataFile file = row.getRawDataFiles()[0];
 
-                newRow.addPeak(file, ADAPInterface.peakToFeature(file, peak));
+                // Create a new MZmine feature
+                Feature feature = ADAPInterface.peakToFeature(file, peak);
+
+                // Add spectrum as an isotopic pattern
+                DataPoint[] spectrum = component.getSpectrum()
+                        .entrySet()
+                        .stream()
+                        .map(e -> new SimpleDataPoint(e.getKey(), e.getValue()))
+                        .toArray(DataPoint[]::new);
+
+                feature.setIsotopePattern(new SimpleIsotopePattern(
+                        spectrum, IsotopePattern.IsotopePatternStatus.PREDICTED,"Spectrum"));
+
+                newRow.addPeak(file, feature);
             }
 
             newRow.setComment("Alignment Score = " + referenceComponent.getScore());
