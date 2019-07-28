@@ -60,12 +60,14 @@ mkdir $TMP_FILE_DIRECTORY
 # Java specific commands
 # **********************
 
-JAVA_PARAMETERS="-showversion -classpath lib/\* -XX:+UseG1GC -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Xms256m -Xmx${HEAP_SIZE}m"
+JAVA_PARAMETERS="-showversion -classpath lib/\* -XX:+UseG1GC -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Djava.library.path=$TMP_FILE_DIRECTORY -Xms256m -Xmx${HEAP_SIZE}m"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 # Make sure we are in the correct directory
 SCRIPTDIR=`dirname "$0"`
 cd "$SCRIPTDIR"
+
+export LD_LIBRARY_PATH="$TMP_FILE_DIRECTORY"
 
 # This command starts the Java Virtual Machine
 echo "$JAVA_PARAMETERS" $MAIN_CLASS "$@" | xargs $JAVA_COMMAND
