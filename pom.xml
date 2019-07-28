@@ -181,6 +181,12 @@
 			<groupId>edu.ucar</groupId>
 			<artifactId>netcdf4</artifactId>
 			<version>4.5.5</version>
+			<exclusions>
+				<exclusion>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.ostermiller</groupId>
@@ -644,13 +650,6 @@
 			<groupId>javax.mail</groupId>
 			<artifactId>javax.mail-api</artifactId>
 			<version>1.6.2</version>
-		</dependency>
-
-		<!-- JNA runtime error fix -->
-		<dependency>
-			<groupId>net.java.dev.jna</groupId>
-			<artifactId>jna</artifactId>
-			<version>5.0.0</version>
 		</dependency>
 
 		<!-- JavaFX has been removed from JDK 11 and is a separate module now -->
