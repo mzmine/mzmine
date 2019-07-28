@@ -46,7 +46,6 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         super(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
-        // jlist.setVisible(true);
         JScrollPane scrollPane = new JScrollPane(jlist);
         scrollPane.setSize(30, 10);
         add(scrollPane, BorderLayout.CENTER);
@@ -86,10 +85,10 @@ public class FeaturesComponent extends JPanel implements ActionListener {
                         (featuresSelectionDialog.getMultipleSelectionComponent()
                                 .getSelectedValues().toArray()));
             }
-            if (src == removeButton) {
-                Object[] emptyArray = null;
-                jlist.setListData(emptyArray);
-            }
+        }
+        if (src == removeButton) {
+            LOG.finest("Remove Button Clicked!");
+            jlist.setListData(new Object[1]);
         }
     }
 
