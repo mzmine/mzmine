@@ -4,11 +4,17 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.optim.nonlinear.scalar.gradient.NonLinearConjugateGradientOptimizer.Formula;
 import org.openscience.cdk.interfaces.IIsotope;
 import com.google.common.collect.Range;
+import com.sun.tools.xjc.model.SymbolSpace;
+import cern.colt.Arrays;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -23,6 +29,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
+import visad.formula.FormulaUtil;
 
 public class IsotopePatternUtils2 {
 
@@ -134,12 +141,6 @@ public class IsotopePatternUtils2 {
         dp.addResult(
             new DPPIsotopicPeakResult(p, pattern.getIsotopeComposition(isotopeIndex), i_charge));
       }
-
-      // IsotopePattern patternx =
-      // new SimpleIsotopePattern(bestdp, IsotopePatternStatus.DETECTED, pattern.getDescription());
-      // // pattern.getDescription()
-      // is
-      // dp.addResult(new DPPIsotopePatternResult(patternx, bestdp, i_charge));
     }
 
     return dp;
@@ -195,7 +196,7 @@ public class IsotopePatternUtils2 {
         if (charges.contains(childIPR.getCharge())) {
           // make new result, combine isotopes
           DPPIsotopicPeakResult newResult = new DPPIsotopicPeakResult(childIPR.getValue(),
-              ipr.getIsotope() + " " + childIPR.getIsotope(), childIPR.getCharge());
+              ipr.getIsotope() + "" + childIPR.getIsotope(), childIPR.getCharge());
 
           parent.addResult(newResult);
           child.removeResult(childIPR);
@@ -230,15 +231,15 @@ public class IsotopePatternUtils2 {
       for (DPPIsotopicPeakResult ipr : iprs) {
         if (ipr.getCharge() == charge) {
           peaks.add(ipr.getValue());
-          isotopes.add(ipr.getIsotope());
+          isotopes.add(mergeIsotopicPeakDescription(ipr.getIsotope()));
         }
       }
       ProcessedDataPoint dps[] = peaks.toArray(new ProcessedDataPoint[0]);
       String[] isos = isotopes.toArray(new String[0]);
-
+      
       ExtendedIsotopePattern pattern = new ExtendedIsotopePattern(dps,
           IsotopePatternStatus.DETECTED,
-          format.format(dp.getMZ()) + " (" + dp.getAllResultsByType(ResultType.ISOTOPICPEAK) + ")",
+          format.format(dp.getMZ()) /*+ Arrays.toString(isos)*/,
           isos);
 
       dp.addResult(new DPPIsotopePatternResult(pattern,
@@ -251,8 +252,166 @@ public class IsotopePatternUtils2 {
       dp.removeAllResultsByType(ResultType.ISOTOPICPEAK);
   }
 
+
+  public static ExtendedIsotopePattern makePatternSuggestion(String[] composition) {
+
+    String[] isotopes = getIsotopesFromComposition(composition);
+
+    String[] elements = getElementsFromIsotopes(isotopes);
+
+    int[] maxNumIsos = getIsotopeOccurrence(composition, isotopes);
+
+    System.out.println(Arrays.toString(isotopes));
+    System.out.println(Arrays.toString(maxNumIsos));
+    System.out.println(Arrays.toString(elements));
+    
+    // match elements and isotope count
+
+    int[] elementCount = new int[elements.length];
+    for (int i = 0; i < elements.length; i++) {
+      String element = elements[i];
+      for (int j = 0; j < isotopes.length; j++) {
+        String isotope = isotopes[j];
+        if (isotope.endsWith(element)) {
+          if (elementCount[i] < maxNumIsos[j]) {
+            System.out.println("Isotope count of " + isotope + "(" + maxNumIsos[j] + ")"
+                + " is bigger than element count of" + element + "(" + elementCount[i] + ")");
+            elementCount[i] = maxNumIsos[j];
+          }
+        }
+      }
+    }
+    
+    for(int k = 0; k < elements.length; k++) {
+      System.out.println(elements[k] + elementCount[k] + " ");
+    }
+    
+    String formula = "";
+    for(int i = 0; i < elements.length; i++)
+      formula += elements[i] + elementCount[i];
+    
+    System.out.println(formula);
+
+    return null;
+  }
+  
+  /**
+   * Compresses the peak description from [37]Cl[37]Cl to [37]Cl2
+   * @param descr
+   * @return
+   */
+  public static String mergeIsotopicPeakDescription(String descr) {
+   
+    HashSet<String> set = new HashSet<>();
+    
+    String merged = "";
+    
+    String[] isotopes = descr.split(Pattern.quote("["));
+    for (String isotope : isotopes)
+      set.add("[" + isotope);
+    set.remove("[");
+    
+    for(String str : set) {
+      String count = "";
+      int c = StringUtils.countMatches(descr, str);
+      if(c > 1)
+        count = String.valueOf(c);
+        
+      merged += str + count;
+    }
+    return merged;
+  }
+
+
+  /**
+   * Returns the maximum number of isotope occurrences within a full isotope pattern. 
+   * @param comps
+   * @param isotopes
+   * @return
+   */
+  public static int[] getIsotopeOccurrence(String[] comps, String[] isotopes) {
+    int[] max = new int[isotopes.length];
+    int[] counts = new int[isotopes.length];
+
+    for (int x = 0; x < comps.length; x++) {
+      String comp = comps[x];
+      for (int i = 0; i < isotopes.length; i++) {
+
+        if(comp.contains(isotopes[i])) {
+          String[] str = comp.split(Pattern.quote(isotopes[i]));
+          if(str.length > 1 && !str[1].startsWith("[")) {
+            int end = str[1].indexOf("[");
+            if(end < 0)
+              end = str[1].length();
+            counts[i] = Integer.valueOf(str[1].substring(0, end));
+          }
+          else
+            counts[i] = 1;
+        }
+        
+        if (counts[i] > max[i])
+          max[i] = counts[i];
+      }
+    }
+
+    return max;
+  }
+
+  /**
+   * 
+   * @param comps Isotope composition of an isotope pattern in the format [13]C[37]Cl[13]C
+   * @return Array of all occurring isotopes within comp
+   */
+  public static String[] getIsotopesFromComposition(String[] comps) {
+    HashSet<String> set = new HashSet<>();
+
+    for (String comp : comps) {
+      // the elements are allocated between ] [ e.g.: [13]C[37]Cl[13]C
+      String[] isotopes = comp.split(Pattern.quote("["));
+      for (String isotope : isotopes) {
+        isotope = StringUtils.stripEnd(isotope, "0123456789");
+        set.add("[" + isotope);
+      }
+    }
+    set.remove("["); // gets added by default due to split, removing should be faster than a check
+    return set.toArray(new String[0]);
+  }
+
+  /**
+   * 
+   * @param isotopes Array of strings, each String must contain one expression like [37]Cl
+   * @return Array of only element strings, no duplicates
+   */
+  public static String[] getElementsFromIsotopes(String[] isotopes) {
+    HashSet<String> set = new HashSet<>();
+
+    for (String isotope : isotopes) {
+      // the elements are allocated between ] [ e.g.: [13]C[37]Cl[13]C
+      int close = isotope.indexOf(']');
+      String element = isotope.substring(close + 1);
+      set.add(element);
+    }
+    return set.toArray(new String[0]);
+  }
+
+  public static void main(String[] args) {
+    String[] str = {"", "[13]C", "[13]C2", "[37]Cl", "[13]C[37]Cl",  "[37]Cl2[13]C" };
+    String[] i = getIsotopesFromComposition(str);
+    String[] e = getElementsFromIsotopes(i);
+    int[] c = getIsotopeOccurrence(str, i);
+
+//    System.out.println(Arrays.toString(str));
+//    System.out.println(Arrays.toString(i));
+//    System.out.println(Arrays.toString(c));
+//    System.out.println(Arrays.toString(e));
+    
+    makePatternSuggestion(str);
+//    System.out.println(mergeIsotopicPeakDescription(str[0]));
+  }
+
   /**
    * Sorts DPPIsotopicPeakResults by m/z and removes duplicates
+   * 
    * @param dp
    */
   public static void sortAndRemoveDuplicateIsotopicPeakResult(ProcessedDataPoint dp) {
@@ -275,7 +434,7 @@ public class IsotopePatternUtils2 {
     for (DPPIsotopicPeakResult r : results)
       dp.addResult(r);
   }
-  
+
   /**
    * Returns a list of all DPPIsotopicPeakResults
    * 
@@ -303,7 +462,7 @@ public class IsotopePatternUtils2 {
    * @param dp
    * @return
    */
-  public static @Nonnull List<DPPIsotopePatternResult> getIsotopePatternResuls(
+  public static @Nonnull List<DPPIsotopePatternResult> getIsotopePatternResults(
       @Nonnull ProcessedDataPoint dp) {
     List<DPPIsotopePatternResult> results = new ArrayList<>();
 
@@ -435,7 +594,7 @@ public class IsotopePatternUtils2 {
     if (!dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
       return;
 
-    List<DPPIsotopePatternResult> patternResults = getIsotopePatternResuls(dp);
+    List<DPPIsotopePatternResult> patternResults = getIsotopePatternResults(dp);
     List<DPPResult<?>> newResults = new ArrayList<>();
 
     for (DPPIsotopePatternResult dpPatternResult : patternResults) {
@@ -444,7 +603,7 @@ public class IsotopePatternUtils2 {
       int patternCharge = dpPatternResult.getCharge();
 
       for (ProcessedDataPoint p : dpPattern) {
-        List<DPPIsotopePatternResult> pPatternResults = getIsotopePatternResuls(p);
+        List<DPPIsotopePatternResult> pPatternResults = getIsotopePatternResults(p);
 
         for (DPPIsotopePatternResult pPatternResult : pPatternResults) {
           if (pPatternResult.getCharge() != patternCharge)

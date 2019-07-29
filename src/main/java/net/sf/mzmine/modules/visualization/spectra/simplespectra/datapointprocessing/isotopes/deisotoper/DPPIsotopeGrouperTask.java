@@ -170,7 +170,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
         continue;
       if(isCanceled())
         return;
-      IsotopePatternUtils2.convertIsotopicPeakResultsToPattern(dp, true);
+      IsotopePatternUtils2.convertIsotopicPeakResultsToPattern(dp, false);
     }
 
 
