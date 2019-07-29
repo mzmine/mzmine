@@ -41,8 +41,8 @@ public class ShapeModelerParameters extends SimpleParameterSet {
           + "\nPeak width is taken as the full width at half maximum intensity (FWHM).");
 
   public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove original peak list",
-          "If checked, original peak list will be removed and only resolved version remains");
+      new BooleanParameter("Remove original feature list",
+          "If checked, original feature list will be removed and only resolved version remains");
 
   public ShapeModelerParameters() {
     super(new Parameter[] {peakLists, suffix, massResolution, shapeModelerType, autoRemove});

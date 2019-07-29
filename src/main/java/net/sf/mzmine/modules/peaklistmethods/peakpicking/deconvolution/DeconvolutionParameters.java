@@ -44,7 +44,7 @@ public class DeconvolutionParameters extends SimpleParameterSet {
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
-      "This string is added to peak list name as suffix", "deconvoluted");
+      "This string is added to feature list name as suffix", "deconvoluted");
 
   public static final ModuleComboParameter<PeakResolver> PEAK_RESOLVER =
       new ModuleComboParameter<PeakResolver>("Algorithm", "Peak recognition description",
@@ -58,7 +58,7 @@ public class DeconvolutionParameters extends SimpleParameterSet {
       CenterMeasure.values(), null, CenterMeasure.MEDIAN, null);
 
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-      "Remove original peak list",
+      "Remove original feature list",
       "If checked, original chromatogram will be removed and only the deconvolved version remains");
   public static final OptionalParameter<DoubleParameter> mzRangeMSMS =
       new OptionalParameter<>(new DoubleParameter("m/z range for MS2 scan pairing (Da)",

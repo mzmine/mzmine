@@ -26,9 +26,9 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 
 /**
- * This class can be used to handle peak lists by ID rather than row indices. Set up via the
- * constructor by passing a peak list or via setUp(PeakList) Rows can also be added manually, for
- * example if you want to create a result peak list that does not contain duplicates. Since this
+ * This class can be used to handle feature lists by ID rather than row indices. Set up via the
+ * constructor by passing a feature list or via setUp(PeakList) Rows can also be added manually, for
+ * example if you want to create a result feature list that does not contain duplicates. Since this
  * class uses a tree map the results will be in order and duplicates will be overwritten, which is
  * why it has the method containsID to check.
  *
@@ -51,7 +51,7 @@ public class PeakListHandler {
   /**
    * use this if you want to manage an existing PeakList
    * 
-   * @param pL the peak list you want to manage
+   * @param pL the feature list you want to manage
    */
   public void setUp(PeakList pL) {
     for (PeakListRow row : pL.getRows()) {
@@ -87,7 +87,7 @@ public class PeakListHandler {
 
   /**
    * 
-   * @return ArrayList<Integer> of all IDs of the peak list rows
+   * @return ArrayList<Integer> of all IDs of the feature list rows
    */
   public ArrayList<Integer> getAllKeys() {
     Set<Integer> set = map.keySet();

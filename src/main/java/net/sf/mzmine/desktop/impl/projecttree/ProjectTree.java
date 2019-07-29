@@ -29,7 +29,7 @@ import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.TreePath;
 
 /**
- * This class implements a selector of raw data files and peak lists
+ * This class implements a selector of raw data files and feature lists
  */
 public class ProjectTree extends JTree {
 

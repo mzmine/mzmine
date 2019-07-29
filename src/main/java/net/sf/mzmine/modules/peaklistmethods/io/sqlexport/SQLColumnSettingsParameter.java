@@ -37,7 +37,7 @@ public class SQLColumnSettingsParameter
 
   private static final String name = "Export columns";
   private static final String description =
-      "Please set the mapping of peak list data to your database columns";
+      "Please set the mapping of feature list data to your database columns";
 
   @Nullable
   private SQLColumnSettings value;

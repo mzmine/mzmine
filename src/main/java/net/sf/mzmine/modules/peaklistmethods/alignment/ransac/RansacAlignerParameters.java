@@ -37,7 +37,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter peakListName =
-      new StringParameter("Peak list name", "Peak list name", "Aligned peak list");
+      new StringParameter("Feature list name", "Feature list name", "Aligned feature list");
 
   public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 

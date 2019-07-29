@@ -39,13 +39,13 @@ import net.sf.mzmine.util.PeakUtils;
 import com.google.common.collect.Range;
 
 /**
- * Filters out peak list rows.
+ * Filters out feature list rows.
  */
 public class PeaklistClearAnnotationsTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(PeaklistClearAnnotationsTask.class.getName());
-  // Peak lists.
+  // Feature lists.
   private final MZmineProject project;
   private final PeakList origPeakList;
   private PeakList filteredPeakList;
@@ -57,7 +57,7 @@ public class PeaklistClearAnnotationsTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list peak list to process.
+   * @param list feature list to process.
    * @param parameterSet task parameters.
    */
   public PeaklistClearAnnotationsTask(final MZmineProject project, final PeakList list,
@@ -89,10 +89,10 @@ public class PeaklistClearAnnotationsTask extends AbstractTask {
 
     try {
       setStatus(TaskStatus.PROCESSING);
-      LOG.info("Filtering peak list rows");
+      LOG.info("Filtering feature list rows");
 
       totalRows = origPeakList.getRows().length;
-      // Filter the peak list.
+      // Filter the feature list.
       for (PeakListRow row : origPeakList.getRows()) {
 
         if (parameters.getParameter(PeaklistClearAnnotationsParameters.CLEAR_IDENTITY).getValue()) {

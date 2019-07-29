@@ -43,8 +43,8 @@ public class PeaklistClearAnnotationsParameters extends SimpleParameterSet {
 
   /*
    * public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-   * "Remove source peak list after filtering",
-   * "If checked, the original peak list will be removed leaving only the filtered version");
+   * "Remove source feature list after filtering",
+   * "If checked, the original feature list will be removed leaving only the filtered version");
    */
 
   public PeaklistClearAnnotationsParameters() {

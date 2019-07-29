@@ -19,7 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
 import java.awt.Window;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
@@ -31,13 +31,13 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import com.google.common.collect.Range;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -47,11 +47,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
   public static final StringParameter SUFFIX =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "filtered");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "filtered");
 
   public static final OptionalParameter<DoubleParameter> MIN_PEAK_COUNT =
       new OptionalParameter<>(new DoubleParameter("Minimum peaks in a row",
-          "Minimum number of peak detections required per row.\nValues <1 will be interpreted as a %-value of the total # samples in the peak list. The value will be rounded down to the nearest whole number."));
+          "Minimum number of feature detections required per row.\nValues <1 will be interpreted as a %-value of the total # samples in the feature list. The value will be rounded down to the nearest whole number."));
 
   public static final OptionalParameter<IntegerParameter> MIN_ISOTOPE_PATTERN_COUNT =
       new OptionalParameter<>(new IntegerParameter("Minimum peaks in an isotope pattern",
@@ -73,6 +73,13 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "Permissible range of chromatographic FWHM per row",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.0, 1.0)));
 
+  public static final OptionalParameter<IntRangeParameter> CHARGE = new OptionalParameter<>(
+      new IntRangeParameter("Charge", "Filter by charge, run isotopic peaks grouper first"));
+
+  public static final OptionalModuleParameter KENDRICK_MASS_DEFECT = new OptionalModuleParameter(
+      "Kendrick mass defect", "Permissible range of a Kendrick mass defect per row",
+      new KendrickMassDefectFilterParameters());
+
   public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
       "Parameter", "Paremeter defining the group of each sample.", new Object[0]);
 
@@ -92,18 +99,19 @@ public class RowsFilterParameters extends SimpleParameterSet {
           "If selected, rows will be removed based on criteria instead of kept", removeRowChoices);
 
   public static final BooleanParameter AUTO_REMOVE =
-      new BooleanParameter("Remove source peak list after filtering",
-          "If checked, the original peak list will be removed leaving only the filtered version");
+      new BooleanParameter("Remove source feature list after filtering",
+          "If checked, the original feature list will be removed leaving only the filtered version");
   public static final BooleanParameter MS2_Filter =
       new BooleanParameter("Keep only peaks with MS2 scan (GNPS)",
           "If checked, the rows that don't contain MS2 scan will be removed.");
   public static final BooleanParameter Reset_ID = new BooleanParameter("Reset the peak number ID",
-      "If checked, the row number of original peak list will be reset.");
+      "If checked, the row number of original feature list will be reset.");
 
   public RowsFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT, MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE,
-        RT_RANGE, PEAK_DURATION, FWHM, GROUPSPARAMETER, HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT,
-        REMOVE_ROW, MS2_Filter, Reset_ID, AUTO_REMOVE});
+        RT_RANGE, PEAK_DURATION, FWHM, CHARGE, KENDRICK_MASS_DEFECT, GROUPSPARAMETER,
+        HAS_IDENTITIES, IDENTITY_TEXT, COMMENT_TEXT, REMOVE_ROW, MS2_Filter, Reset_ID,
+        AUTO_REMOVE});
   }
 
   @Override

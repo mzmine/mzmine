@@ -40,7 +40,7 @@ public class PeakFilterParameters extends SimpleParameterSet {
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
   public static final StringParameter SUFFIX =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "filtered");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "filtered");
 
   public static final OptionalParameter<DoubleRangeParameter> PEAK_DURATION =
       new OptionalParameter<>(
@@ -76,8 +76,8 @@ public class PeakFilterParameters extends SimpleParameterSet {
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.5, 2.0)));
 
   public static final BooleanParameter AUTO_REMOVE =
-      new BooleanParameter("Remove source peak list after filtering",
-          "If checked, the original peak list will be removed leaving only the filtered version");
+      new BooleanParameter("Remove source feature list after filtering",
+          "If checked, the original feature list will be removed leaving only the filtered version");
 
   public static final BooleanParameter MS2_Filter =
       new BooleanParameter("Keep only features with MS/MS scan",

@@ -49,7 +49,7 @@ public class OnlineDBSpectraSearchModule implements MZmineModule {
   /**
    * Show dialog for identifying a single peak-list row.
    * 
-   * @param row the peak list row.
+   * @param row the feature list row.
    */
   public static void showSpectraIdentificationDialog(final Scan scan,
       final SpectraPlot spectraPlot) {

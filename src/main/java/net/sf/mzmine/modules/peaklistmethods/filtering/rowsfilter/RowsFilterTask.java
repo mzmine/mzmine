@@ -23,9 +23,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -42,17 +40,18 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
 
 /**
- * Filters out peak list rows.
+ * Filters out feature list rows.
  */
 public class RowsFilterTask extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(RowsFilterTask.class.getName());
-  // Peak lists.
+  // Feature lists.
   private final MZmineProject project;
   private final PeakList origPeakList;
   private PeakList filteredPeakList;
@@ -64,7 +63,7 @@ public class RowsFilterTask extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list peak list to process.
+   * @param list feature list to process.
    * @param parameterSet task parameters.
    */
   public RowsFilterTask(final MZmineProject project, final PeakList list,
@@ -89,7 +88,7 @@ public class RowsFilterTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
 
-    return "Filtering peak list rows";
+    return "Filtering feature list rows";
   }
 
   @Override
@@ -99,9 +98,9 @@ public class RowsFilterTask extends AbstractTask {
 
       try {
         setStatus(TaskStatus.PROCESSING);
-        LOG.info("Filtering peak list rows");
+        LOG.info("Filtering feature list rows");
 
-        // Filter the peak list.
+        // Filter the feature list.
         filteredPeakList = filterPeakListRows(origPeakList);
 
         if (!isCanceled()) {
@@ -115,26 +114,26 @@ public class RowsFilterTask extends AbstractTask {
             project.removePeakList(origPeakList);
           }
           setStatus(TaskStatus.FINISHED);
-          LOG.info("Finished peak list rows filter");
+          LOG.info("Finished feature list rows filter");
         }
       } catch (Throwable t) {
 
         setErrorMessage(t.getMessage());
         setStatus(TaskStatus.ERROR);
-        LOG.log(Level.SEVERE, "Peak list row filter error", t);
+        LOG.log(Level.SEVERE, "Feature list row filter error", t);
       }
     }
   }
 
   /**
-   * Filter the peak list rows.
+   * Filter the feature list rows.
    *
-   * @param peakList peak list to filter.
-   * @return a new peak list with rows of the original peak list that pass the filtering.
+   * @param peakList feature list to filter.
+   * @return a new feature list with rows of the original feature list that pass the filtering.
    */
   private PeakList filterPeakListRows(final PeakList peakList) {
 
-    // Create new peak list.
+    // Create new feature list.
 
     final PeakList newPeakList = new SimplePeakList(
         peakList.getName() + ' ' + parameters.getParameter(RowsFilterParameters.SUFFIX).getValue(),
@@ -170,9 +169,12 @@ public class RowsFilterTask extends AbstractTask {
     final boolean filterByDuration =
         parameters.getParameter(RowsFilterParameters.PEAK_DURATION).getValue();
     final boolean filterByFWHM = parameters.getParameter(RowsFilterParameters.FWHM).getValue();
+    final boolean filterByCharge = parameters.getParameter(RowsFilterParameters.CHARGE).getValue();
+    final boolean filterByKMD =
+        parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getValue();
     final boolean filterByMS2 = parameters.getParameter(RowsFilterParameters.MS2_Filter).getValue();
     final String removeRowString =
-        (String) parameters.getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
+        parameters.getParameter(RowsFilterParameters.REMOVE_ROW).getValue();
     Double minCount = parameters.getParameter(RowsFilterParameters.MIN_PEAK_COUNT)
         .getEmbeddedParameter().getValue();
     final boolean renumber = parameters.getParameter(RowsFilterParameters.Reset_ID).getValue();
@@ -318,12 +320,78 @@ public class RowsFilterTask extends AbstractTask {
         // If any of the peaks fail the FWHM criteria,
         Double FWHM_value = row.getBestPeak().getFWHM();
 
-
-
         if (FWHM_value != null && !FWHMRange.contains(FWHM_value))
           filterRowCriteriaFailed = true;
+      }
 
+      // Filter by charge range
+      if (filterByCharge) {
 
+        final Range<Integer> chargeRange =
+            parameters.getParameter(RowsFilterParameters.CHARGE).getEmbeddedParameter().getValue();
+        int charge = row.getBestPeak().getCharge();
+        if (charge == 0 || !chargeRange.contains(charge))
+          filterRowCriteriaFailed = true;
+      }
+
+      // Filter by KMD or RKM range
+      if (filterByKMD) {
+
+        // get embedded parameters
+        final Range<Double> rangeKMD = parameters
+            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
+            .getParameter(KendrickMassDefectFilterParameters.kendrickMassDefectRange).getValue();
+        final String kendrickMassBase = parameters
+            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
+            .getParameter(KendrickMassDefectFilterParameters.kendrickMassBase).getValue();
+        final double shift = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
+            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.shift)
+            .getValue();
+        final int charge = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
+            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.charge)
+            .getValue();
+        final int divisor = parameters.getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT)
+            .getEmbeddedParameters().getParameter(KendrickMassDefectFilterParameters.divisor)
+            .getValue();
+        final boolean useRemainderOfKendrickMass = parameters
+            .getParameter(RowsFilterParameters.KENDRICK_MASS_DEFECT).getEmbeddedParameters()
+            .getParameter(KendrickMassDefectFilterParameters.useRemainderOfKendrickMass).getValue();
+
+        // get m/z
+        Double valueMZ = row.getBestPeak().getMZ();
+
+        // calc exact mass of Kendrick mass base
+        double exactMassFormula = FormulaUtils.calculateExactMass(kendrickMassBase);
+
+        // calc exact mass of Kendrick mass factor
+        double kendrickMassFactor =
+            Math.round(exactMassFormula / divisor) / (exactMassFormula / divisor);
+
+        double defectOrRemainder = 0.0;
+
+        if (!useRemainderOfKendrickMass) {
+
+          // calc Kendrick mass defect
+          defectOrRemainder = Math.ceil(charge * (valueMZ * kendrickMassFactor))
+              - charge * (valueMZ * kendrickMassFactor);
+        } else {
+
+          // calc Kendrick mass remainder
+          defectOrRemainder =
+              (charge * (divisor - Math.round(FormulaUtils.calculateExactMass(kendrickMassBase)))
+                  * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase)//
+                  - Math.floor((charge
+                      * (divisor - Math.round(FormulaUtils.calculateExactMass(kendrickMassBase)))
+                      * valueMZ) / FormulaUtils.calculateExactMass(kendrickMassBase));
+        }
+
+        // shift Kendrick mass defect or remainder of Kendrick mass
+        double kendrickMassDefectShifted =
+            defectOrRemainder + shift - Math.floor(defectOrRemainder + shift);
+
+        // check if shifted Kendrick mass defect or remainder of Kendrick mass is in range
+        if (!rangeKMD.contains(kendrickMassDefectShifted))
+          filterRowCriteriaFailed = true;
       }
 
       // Check ms2 filter .
@@ -369,14 +437,14 @@ public class RowsFilterTask extends AbstractTask {
   }
 
   /**
-   * Create a copy of a peak list row.
+   * Create a copy of a feature list row.
    *
    * @param row the row to copy.
    * @return the newly created copy.
    */
   private static PeakListRow copyPeakRow(final PeakListRow row) {
 
-    // Copy the peak list row.
+    // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
     PeakUtils.copyPeakListRowProperties(row, newRow);
 

@@ -37,7 +37,7 @@ public class MSPExportParameters extends SimpleParameterSet {
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
       "Name of the output MSP file. "
-          + "Use pattern \"{}\" in the file name to substitute with peak list name. "
+          + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.msp\" would become \"blahSourcePeakListNameblah.msp\"). "
           + "If the file already exists, it will be overwritten.",
       "msp");

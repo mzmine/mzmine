@@ -30,9 +30,9 @@ import net.sf.mzmine.parameters.UserParameter;
  * <li>Experimental parameters and their values for each RawDataFile. Experimental parameters are
  * available for defining any properties of the sample, for instance concentration or a class label.
  * <li>Opened RawDataFiles
- * <li>PeakLists of each RawDataFile. A peak list represents results of peak detection on a single
+ * <li>PeakLists of each RawDataFile. A feature list represents results of feature detection on a single
  * RawDataFile or a processed version of a preceding PeakList.
- * <li>PeakLists of multiple aligned PeakLists. An aligned peak list represent results of aligning
+ * <li>PeakLists of multiple aligned PeakLists. An aligned feature list represent results of aligning
  * multiple PeakLists of individual runs or a processed version of a preceding aligned PeakList.
  * </ul>
  * 
@@ -106,22 +106,22 @@ public interface MZmineProject {
   public RawDataFile[] getDataFiles();
 
   /**
-   * Adds a peak list to the project
+   * Adds a feature list to the project
    */
   public void addPeakList(PeakList peaklist);
 
   /**
-   * Removes a peak list from the project
+   * Removes a feature list from the project
    */
   public void removePeakList(PeakList peaklist);
 
   /**
-   * Returns all peak lists of the project
+   * Returns all feature lists of the project
    */
   public PeakList[] getPeakLists();
 
   /**
-   * Returns all peak lists which contain given data file
+   * Returns all feature lists which contain given data file
    */
   public PeakList[] getPeakLists(RawDataFile file);
 

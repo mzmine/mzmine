@@ -32,8 +32,8 @@ import net.sf.mzmine.util.ExitCode;
 
 public class TargetedPeakDetectionModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Targeted peak detection";
-  private static final String MODULE_DESCRIPTION = "Targeted peak detection"; // TODO
+  private static final String MODULE_NAME = "Targeted feature detection";
+  private static final String MODULE_DESCRIPTION = "Targeted feature detection"; // TODO
 
   @Override
   public @Nonnull String getName() {

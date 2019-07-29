@@ -34,7 +34,7 @@ import net.sf.mzmine.util.ExitCode;
 public class MSPExportModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Export to MSP file";
   private static final String MODULE_DESCRIPTION =
-      "This method exports the peak list spectra into a MSP file.";
+      "This method exports the feature list spectra into a MSP file.";
 
   @Override
   public @Nonnull String getName() {

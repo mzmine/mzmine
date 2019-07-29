@@ -36,7 +36,7 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
   public static final StringParameter SUFFIX =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "filtered");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "filtered");
 
   public static final IntegerParameter COLUMN_INDEX_1 =
       new IntegerParameter("1st peak column to compare (zero indexed)",
@@ -62,8 +62,8 @@ public class PeakComparisonRowFilterParameters extends SimpleParameterSet {
           Range.closed(-0.2, 0.2)));
 
   public static final BooleanParameter AUTO_REMOVE =
-      new BooleanParameter("Remove source peak list after filtering",
-          "If checked, the original peak list will be removed leaving only the filtered version");
+      new BooleanParameter("Remove source feature list after filtering",
+          "If checked, the original feature list will be removed leaving only the filtered version");
 
   public PeakComparisonRowFilterParameters() {
     super(new Parameter[] {PEAK_LISTS, SUFFIX, COLUMN_INDEX_1, COLUMN_INDEX_2, FOLD_CHANGE,

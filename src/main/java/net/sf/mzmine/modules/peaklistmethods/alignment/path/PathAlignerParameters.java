@@ -33,7 +33,7 @@ public class PathAlignerParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter peakListName =
-      new StringParameter("Peak list name", "Peak list name");
+      new StringParameter("Feature list name", "Feature list name");
 
   public static final MZToleranceParameter MZTolerance =
       new MZToleranceParameter("m/z tolerance", "Maximum allowed M/Z difference");

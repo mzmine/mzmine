@@ -49,7 +49,7 @@ public class DeconvolutionTask extends AbstractTask {
   // Logger.
   private static final Logger LOG = Logger.getLogger(DeconvolutionTask.class.getName());
 
-  // Peak lists.
+  // Feature lists.
   private final MZmineProject project;
   private final PeakList originalPeakList;
   private PeakList newPeakList;
@@ -72,7 +72,7 @@ public class DeconvolutionTask extends AbstractTask {
   /**
    * Create the task.
    * 
-   * @param list peak list to operate on.
+   * @param list feature list to operate on.
    * @param parameterSet task parameters.
    */
   public DeconvolutionTask(final MZmineProject project, final PeakList list,
@@ -115,7 +115,7 @@ public class DeconvolutionTask extends AbstractTask {
 
         setStatus(TaskStatus.ERROR);
         setErrorMessage(
-            "Peak deconvolution can only be performed on peak lists with a single raw data file");
+            "Peak deconvolution can only be performed on feature lists with a single raw data file");
 
       } else {
 
@@ -204,7 +204,7 @@ public class DeconvolutionTask extends AbstractTask {
    * 
    * @param peakList holds the chromatogram to deconvolve.
    * @param mzCenterFunction2
-   * @return a new peak list holding the resolved peaks.
+   * @return a new feature list holding the resolved peaks.
    * @throws RSessionWrapperException
    */
   private PeakList resolvePeaks(final PeakList peakList, RSessionWrapper rSession)
@@ -230,7 +230,7 @@ public class DeconvolutionTask extends AbstractTask {
     else
       this.RTRangeMSMS = 0;
 
-    // Create new peak list.
+    // Create new feature list.
     final PeakList resolvedPeaks =
         new SimplePeakList(peakList + " " + parameters.getParameter(SUFFIX).getValue(), dataFile);
 
@@ -240,7 +240,7 @@ public class DeconvolutionTask extends AbstractTask {
       resolvedPeaks.addDescriptionOfAppliedTask(method);
     }
 
-    // Add task description to peak list.
+    // Add task description to feature list.
     resolvedPeaks.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
         "Peak deconvolution by " + resolver, resolver.getParameterSet()));
 
@@ -263,7 +263,7 @@ public class DeconvolutionTask extends AbstractTask {
       final ResolvedPeak[] peaks = resolverModule.resolvePeaks(chromatogram, resolverParams, rSession,
           mzCenterFunction, msmsRange, RTRangeMSMS);
 
-      // Add peaks to the new peak list.
+      // Add peaks to the new feature list.
       for (final ResolvedPeak peak : peaks) {
 
         peak.setParentChromatogramRowID(currentRow.getID());

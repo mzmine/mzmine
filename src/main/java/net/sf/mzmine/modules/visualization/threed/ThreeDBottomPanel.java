@@ -68,7 +68,7 @@ class ThreeDBottomPanel extends JPanel implements TreeModelListener {
 
     add(Box.createHorizontalGlue());
 
-    GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
+    GUIUtils.addLabel(this, "Feature list: ", SwingConstants.RIGHT);
 
     peakListSelector = new JComboBox<PeakList>();
     peakListSelector.setBackground(Color.white);
@@ -94,7 +94,7 @@ class ThreeDBottomPanel extends JPanel implements TreeModelListener {
   }
 
   /**
-   * Returns selected peak list
+   * Returns selected feature list
    */
   PeakList getSelectedPeakList() {
     PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
@@ -102,11 +102,11 @@ class ThreeDBottomPanel extends JPanel implements TreeModelListener {
   }
 
   /**
-   * Reloads peak lists from the project to the selector combo box
+   * Reloads feature lists from the project to the selector combo box
    */
   void rebuildPeakListSelector() {
 
-    logger.finest("Rebuilding the peak list selector");
+    logger.finest("Rebuilding the feature list selector");
 
     PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
     PeakList currentPeakLists[] =

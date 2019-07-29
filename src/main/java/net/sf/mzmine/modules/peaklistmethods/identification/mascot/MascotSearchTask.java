@@ -41,7 +41,7 @@ public class MascotSearchTask extends AbstractTask {
    * The default constructor
    * 
    * @param parameters the search parameter
-   * @param peakList the peak list
+   * @param peakList the feature list
    * 
    *        public MascotSearchTask(ParameterSet parameters, PeakList peakList) {
    * 

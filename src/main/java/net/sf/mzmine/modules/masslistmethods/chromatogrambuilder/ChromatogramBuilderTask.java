@@ -132,7 +132,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
       prevRT = s.getRetentionTime();
     }
 
-    // Create new peak list
+    // Create new feature list
     newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
     Chromatogram[] chromatograms;
@@ -170,7 +170,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
     // Sort the final chromatograms by m/z
     Arrays.sort(chromatograms, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
-    // Add the chromatograms to the new peak list
+    // Add the chromatograms to the new feature list
     for (Feature finishedPeak : chromatograms) {
       SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
       newPeakID++;

@@ -19,10 +19,12 @@
 package net.sf.mzmine.modules.tools.isotopepatternpreview;
 
 import java.util.Collection;
+
 import javax.annotation.Nonnull;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -31,7 +33,7 @@ import net.sf.mzmine.util.ExitCode;
  * @author Steffen Heuckeroth steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class IsotopePatternPreviewModule implements MZmineProcessingModule {
+public class IsotopePatternPreviewModule implements MZmineRunnableModule {
 
   private static final String MODULE_NAME = "Isotope pattern preview";
   private static final String MODULE_DESCRIPTION =

@@ -31,7 +31,7 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "normalized");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "normalized");
 
   public static final ComboParameter<NormalizationType> normalizationType =
       new ComboParameter<NormalizationType>("Normalization type", "Normalize intensities by...",
@@ -42,8 +42,8 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
           PeakMeasurementType.values());
 
   public static final BooleanParameter autoRemove =
-      new BooleanParameter("Remove original peak list",
-          "If checked, original peak list will be removed and only normalized version remains");
+      new BooleanParameter("Remove original feature list",
+          "If checked, original feature list will be removed and only normalized version remains");
 
   public LinearNormalizerParameters() {
     super(new Parameter[] {peakLists, suffix, normalizationType, peakMeasurementType, autoRemove});

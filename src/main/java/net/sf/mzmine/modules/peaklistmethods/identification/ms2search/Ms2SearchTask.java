@@ -183,7 +183,7 @@ class Ms2SearchTask extends AbstractTask {
     ((SimplePeakList) peakList1).addDescriptionOfAppliedTask(
         new SimplePeakListAppliedMethod("Identification of similar MS2s", parameters));
 
-    // Repaint the window to reflect the change in the peak list
+    // Repaint the window to reflect the change in the feature list
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
       desktop.getMainWindow().repaint();

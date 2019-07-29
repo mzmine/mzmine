@@ -121,7 +121,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         pnlUIElements = new JPanel(new BorderLayout());
         pnlUIElements.add(panel, BorderLayout.NORTH);
 
-        // ComboBox for Peak lists
+        // ComboBox for Feature lists
         cboPeakLists = new JComboBox<>();
         cboPeakLists.setFont(COMBO_FONT);
         for (ChromatogramPeakPair p : ChromatogramPeakPair.fromParameterSet(parameterSet).values())
@@ -140,7 +140,7 @@ public class ADAP3DecompositionV2SetupDialog extends ParameterSetupDialog {
         cboClusters.addActionListener(this);
 
         pnlComboBoxes = GUIUtils.makeTablePanel(2, 3, 1, new JComponent[]{
-                new JLabel("Peak Lists"), cboPeakLists, btnRefresh,
+                new JLabel("Feature Lists"), cboPeakLists, btnRefresh,
                 new JLabel("Clusters"), cboClusters, new JPanel()});
 
         // --------------------------------------------------------------------

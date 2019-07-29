@@ -39,7 +39,7 @@ public class PeakSummaryVisualizerModule implements MZmineModule {
    */
   @Override
   public @Nonnull String getName() {
-    return "Peak list row summary";
+    return "Feature list row summary";
   }
 
   /**

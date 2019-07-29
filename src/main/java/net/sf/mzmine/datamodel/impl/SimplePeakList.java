@@ -56,7 +56,7 @@ public class SimplePeakList implements PeakList {
 
   public SimplePeakList(String name, RawDataFile[] dataFiles) {
     if ((dataFiles == null) || (dataFiles.length == 0)) {
-      throw (new IllegalArgumentException("Cannot create a peak list with no data files"));
+      throw (new IllegalArgumentException("Cannot create a feature list with no data files"));
     }
     this.name = name;
     this.dataFiles = new RawDataFile[dataFiles.length];
@@ -181,7 +181,7 @@ public class SimplePeakList implements PeakList {
     List<RawDataFile> myFiles = Arrays.asList(this.getRawDataFiles());
     for (RawDataFile testFile : row.getRawDataFiles()) {
       if (!myFiles.contains(testFile))
-        throw (new IllegalArgumentException("Data file " + testFile + " is not in this peak list"));
+        throw (new IllegalArgumentException("Data file " + testFile + " is not in this feature list"));
     }
 
     peakListRows.add(row);

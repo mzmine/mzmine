@@ -94,7 +94,7 @@ class JoinAlignerTask extends AbstractTask {
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
   public String getTaskDescription() {
-    return "Join aligner, " + peakListName + " (" + peakLists.length + " peak lists)";
+    return "Join aligner, " + peakListName + " (" + peakLists.length + " feature lists)";
   }
 
   /**
@@ -132,11 +132,11 @@ class JoinAlignerTask extends AbstractTask {
 
       for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
-        // Each data file can only have one column in aligned peak list
+        // Each data file can only have one column in aligned feature list
         if (allDataFiles.contains(dataFile)) {
           setStatus(TaskStatus.ERROR);
           setErrorMessage("Cannot run alignment, because file " + dataFile
-              + " is present in multiple peak lists");
+              + " is present in multiple feature lists");
           return;
         }
 
@@ -144,10 +144,10 @@ class JoinAlignerTask extends AbstractTask {
       }
     }
 
-    // Create a new aligned peak list
+    // Create a new aligned feature list
     alignedPeakList = new SimplePeakList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
 
-    // Iterate source peak lists
+    // Iterate source feature lists
     for (PeakList peakList : peakLists) {
 
       // Create a sorted set of scores matching
@@ -255,9 +255,9 @@ class JoinAlignerTask extends AbstractTask {
 
       }
 
-    } // Next peak list
+    } // Next feature list
 
-    // Add new aligned peak list to the project
+    // Add new aligned feature list to the project
     project.addPeakList(alignedPeakList);
 
     // Add task description to peakList

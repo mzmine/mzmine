@@ -27,10 +27,7 @@ import dulab.adap.workflow.AlignmentParameters;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -44,15 +41,14 @@ import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.*;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 import javax.annotation.Nullable;
+import net.sf.mzmine.util.adap.ADAPInterface;
 
 /**
  * @author aleksandrsmirnov
@@ -89,7 +85,7 @@ public class ADAP3AlignerTask extends AbstractTask {
     @Override
     public String getTaskDescription() {
         return "ADAP Aligner, " + peakListName + " (" + peakLists.length
-                + " peak lists)";
+                + " feature lists)";
     }
 
     @Override
@@ -126,7 +122,7 @@ public class ADAP3AlignerTask extends AbstractTask {
                 LOG.info("Finished ADAP Peak Alignment");
             }
         } catch (IllegalArgumentException e) {
-            errorMsg = "Incorrect Peak Lists:\n" + e.getMessage();
+            errorMsg = "Incorrect Feature Lists:\n" + e.getMessage();
         } catch (Exception e) {
             errorMsg = "'Unknown error' during alignment. \n"
                     + e.getMessage();
@@ -177,7 +173,7 @@ public class ADAP3AlignerTask extends AbstractTask {
 
         process();
 
-        // Create new peak list
+        // Create new feature list
         final PeakList alignedPeakList = new SimplePeakList(peakListName,
                 allDataFiles.toArray(new RawDataFile[0]));
 
@@ -187,88 +183,43 @@ public class ADAP3AlignerTask extends AbstractTask {
 
         Collections.sort(alignedComponents);
 
-        for (final ReferenceComponent component : alignedComponents) {
-            final Peak peak = component.getBestPeak();
-
-            PeakListRow refRow = findPeakListRow(component.getSampleID(), peak.getInfo().peakID);
-            if (refRow == null)
-                throw new IllegalStateException(String.format(
-                        "Cannot find a peak list row for fileId = %d and peakId = %d",
-                        component.getSampleID(), peak.getInfo().peakID));
+        for (final ReferenceComponent referenceComponent : alignedComponents) {
 
             SimplePeakListRow newRow = new SimplePeakListRow(++rowID);
+            for (int i = 0; i < referenceComponent.size(); ++i) {
 
-            newRow.addPeak(refRow.getRawDataFiles()[0], refRow.getBestPeak());
-
-            for (int i = 0; i < component.size(); ++i) {
+                Component component = referenceComponent.getComponent(i);
+                Peak peak = component.getBestPeak();
+                peak.getInfo().mzValue(component.getMZ());
 
                 PeakListRow row = findPeakListRow(
-                        component.getSampleID(i),
-                        component.getComponent(i).getBestPeak().getInfo().peakID);
+                        referenceComponent.getSampleID(i),
+                        peak.getInfo().peakID);
 
                 if (row == null)
                     throw new IllegalStateException(String.format(
-                            "Cannot find a peak list row for fileId = %d and peakId = %d",
-                            component.getSampleID(), peak.getInfo().peakID));
+                            "Cannot find a feature list row for fileId = %d and peakId = %d",
+                            referenceComponent.getSampleID(), peak.getInfo().peakID));
 
-                if (row != refRow)
-                    newRow.addPeak(row.getRawDataFiles()[0], row.getBestPeak());
+                RawDataFile file = row.getRawDataFiles()[0];
+
+                // Create a new MZmine feature
+                Feature feature = ADAPInterface.peakToFeature(file, peak);
+
+                // Add spectrum as an isotopic pattern
+                DataPoint[] spectrum = component.getSpectrum()
+                        .entrySet()
+                        .stream()
+                        .map(e -> new SimpleDataPoint(e.getKey(), e.getValue()))
+                        .toArray(DataPoint[]::new);
+
+                feature.setIsotopePattern(new SimpleIsotopePattern(
+                        spectrum, IsotopePattern.IsotopePatternStatus.PREDICTED,"Spectrum"));
+
+                newRow.addPeak(file, feature);
             }
 
-            PeakIdentity identity = refRow.getPreferredPeakIdentity();
-
-            if (identity != null)
-                newRow.addPeakIdentity(identity, true);
-
-            newRow.setComment("Alignment Score = " + component.getScore());
-
-            // -----------------------------------------------
-            // Determine the quantitative mass and intensities
-            // -----------------------------------------------
-
-            double mass = getQuantitativeMass(component);
-            double mzTolerance = parameters.getParameter(ADAP3AlignerParameters.MZ_RANGE)
-                    .getValue()
-                    .getMzTolerance();
-
-            SimplePeakInformation information = new SimplePeakInformation();
-            information.addProperty("REFERENCE FILE", refRow.getRawDataFiles()[0].getName());
-            information.addProperty("QUANTITATION MASS", Double.toString(mass));
-
-            List<Component> components =
-                    new ArrayList<>(component.getComponents());
-
-            for (int i = 0; i < components.size(); ++i) {
-
-                Component c = components.get(i);
-
-                PeakList peakList = findPeakList(component.getSampleID(i));
-                if (peakList == null)
-                    throw new IllegalArgumentException("Cannot find peak list " + component.getSampleID(i));
-
-                RawDataFile file = peakList.getRawDataFile(0);
-
-                double minDistance = Double.MAX_VALUE;
-                double intensity = 0.0;
-
-                for (Entry<Double, Double> e : c.getSpectrum().entrySet()) {
-                    double mz = e.getKey();
-                    double distance = Math.abs(mz - mass);
-
-                    if (distance > mzTolerance) continue;
-
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        intensity = e.getValue();
-                    }
-                }
-
-                information.addProperty(
-                        "QUANTITATION INTENSITY for " + file.getName(),
-                        Double.toString(intensity));
-            }
-
-            newRow.setPeakInformation(information);
+            newRow.setComment("Alignment Score = " + referenceComponent.getScore());
 
             alignedPeakList.addRow(newRow);
         }
@@ -338,7 +289,9 @@ public class ADAP3AlignerTask extends AbstractTask {
                 .maxShift(2 * parameters.getParameter(
                         ADAP3AlignerParameters.RET_TIME_RANGE).getValue().getTolerance())
                 .eicScore(parameters.getParameter(
-                        ADAP3AlignerParameters.EIC_SCORE).getValue());
+                        ADAP3AlignerParameters.EIC_SCORE).getValue())
+                .mzRange(parameters.getParameter(
+                        ADAP3AlignerParameters.MZ_RANGE).getValue().getMzTolerance());
 
         params.optimizationParameters = new OptimizationParameters()
                 .gradientTolerance(1e-6)
@@ -350,16 +303,16 @@ public class ADAP3AlignerTask extends AbstractTask {
     }
 
     /**
-     * Find the existing {@link PeakListRow} for a given peak list ID and row ID.
+     * Find the existing {@link PeakListRow} for a given feature list ID and row ID.
      *
-     * @param peakListID number of a peak list in the array of {@link PeakList}. The numeration starts with 0.
+     * @param peakListID number of a feature list in the array of {@link PeakList}. The numeration starts with 0.
      * @param rowID integer that is returned by method getId() of {@link PeakListRow}.
      * @return an instance of {@link PeakListRow} if an existing row is found. Otherwise it returns null.
      */
     @Nullable
     private PeakListRow findPeakListRow(final int peakListID, final int rowID) {
 
-        // Find peak list
+        // Find feature list
         PeakList peakList = findPeakList(peakListID);
         if (peakList == null)
             return null;
@@ -376,9 +329,9 @@ public class ADAP3AlignerTask extends AbstractTask {
     }
 
     /**
-     * Find the existing {@link PeakList} for a given peak list ID.
-     * @param peakListId number of a peak list in the array of {@link PeakList}. The numeration starts with 0.
-     * @return an instance of {@link PeakList} if a peak list is found, or null.
+     * Find the existing {@link PeakList} for a given feature list ID.
+     * @param peakListId number of a feature list in the array of {@link PeakList}. The numeration starts with 0.
+     * @return an instance of {@link PeakList} if a feature list is found, or null.
      */
     @Nullable
     private PeakList findPeakList(int peakListId) {
@@ -389,69 +342,5 @@ public class ADAP3AlignerTask extends AbstractTask {
                 break;
             }
         return peakList;
-    }
-
-    /**
-     * Find Quantitative Mass for a list of components, as the m/z-value that
-     * is closest to the average of components' m/z-values.
-     *
-     * @param refComponent reference component
-     * @return quantitative mass
-     */
-
-    private double getQuantitativeMass(final ReferenceComponent refComponent) {
-        List<Component> components = refComponent.getComponents();
-
-        // ------------------------------------------
-        // Round up m/z-values to the closest integer
-        // ------------------------------------------
-
-        List<Long> integerMZs = new ArrayList<>(components.size());
-        for (Component c : components) integerMZs.add(Math.round(c.getMZ()));
-
-        // ----------------------------------------
-        // Find the most frequent integer m/z-value
-        // ----------------------------------------
-
-        Map<Long, Integer> counts = new HashMap<>();
-        for (Long mz : integerMZs) {
-            Integer count = counts.get(mz);
-            if (count == null) count = 0;
-            counts.put(mz, count + 1);
-        }
-
-        Long bestMZ = null;
-        int maxCount = 0;
-        for (Entry<Long, Integer> e : counts.entrySet()) {
-            int count = e.getValue();
-
-            if (maxCount < count) {
-                maxCount = count;
-                bestMZ = e.getKey();
-            }
-        }
-
-        if (bestMZ == null)
-            throw new IllegalArgumentException("Cannot find the most frequent m/z-value");
-
-        // ----------------------------------------------------
-        // Find m/z-value that is the closest to the integer mz
-        // ----------------------------------------------------
-
-        double minDistance = Double.MAX_VALUE;
-        Double quantitativeMass = null;
-        for (Component c : components) {
-            double mz = c.getMZ();
-            double distance = Math.abs(mz - bestMZ.doubleValue());
-            if (distance < minDistance) {
-                minDistance = distance;
-                quantitativeMass = mz;
-            }
-        }
-
-        if (quantitativeMass == null)
-            throw new IllegalArgumentException("Cannot find the quantitative mass");
-
-        return quantitativeMass;
     }
 }

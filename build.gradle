@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.7'
-    id 'org.beryx.runtime' version '1.1.5'
+    id 'org.beryx.runtime' version '1.2.0'
 }
 
 defaultTasks 'clean', 'runtimeZip'
@@ -36,7 +36,7 @@ dependencies {
     compile 'org.jfree:jfreechart-fx:1.0.1'
     compile 'org.jfree:jfreesvg:3.3'
     compile 'com.orsonpdf:orsonpdf:1.9'
-    compile 'com.google.guava:guava:27.1-jre'
+    compile 'com.google.guava:guava:28.0-jre'
     compile 'org.apache.commons:commons-math:2.2'
     compile 'javax.help:javahelp:2.0.05'
     compile 'edu.ucar:netcdf4:4.5.5'
@@ -66,7 +66,6 @@ dependencies {
     compile 'org.nuiton.thirdparty:REngine:1.8-5'
     compile 'org.nuiton.thirdparty:Rserve:1.8-5'
     compile 'com.github.jbytecode:RCaller:3.0'
-    compile 'mzmine:macspecificsetup:2.7'
     compile 'mzmine:jmprojection:1.0'
     compile 'mzmine:gslibml:0.0.1'
     compile 'mzmine:visad:20131024'
@@ -84,7 +83,7 @@ dependencies {
     compile 'io.github.msdk:msdk-featuredetection-adap3d:0.0.21'
     compile 'io.github.msdk:msdk-id-sirius:0.0.21'
     compile 'org.xerial:sqlite-jdbc:3.8.11.2'
-    compile 'org.du-lab.adap:adap:4.0.1'
+    compile 'org.du-lab.adap:adap:4.0.4'
     compile 'gnf:clustering:20130919'
     compile 'it.unimi.dsi:fastutil:8.2.2'
     compile 'com.itextpdf:itextpdf:5.5.13'
@@ -108,7 +107,6 @@ dependencies {
     compile 'com.sun.xml.bind:jaxb-impl:2.3.2'
     compile 'javax.activation:javax.activation-api:1.2.0'
     compile 'javax.mail:javax.mail-api:1.6.2'
-    compile 'net.java.dev.jna:jna:5.0.0'
     compile 'org.openjfx:javafx-controls:12.0.1'
     compile 'org.openjfx:javafx-swing:12.0.1'
     compile 'org.openjfx:javafx-fxml:12.0.1'
@@ -118,11 +116,12 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'io.gsonfire:gson-fire:1.8.0'
     compile 'org.threeten:threetenbp:1.3.8'
+    compile 'org.controlsfx:controlsfx:11.0.0'
     testCompile 'junit:junit:4.12'
 }
 
 group = 'io.github.mzmine'
-version = '3.0a'
+version = '2.90'
 description = 'MZmine'
 sourceCompatibility = '12'
 targetCompatibility = '12'
@@ -133,6 +132,7 @@ tasks.withType(JavaCompile) {
 
 
 javafx {
+    version = '12'
     modules = ['javafx.controls', 'javafx.swing', 'javafx.fxml']
 }
 
@@ -140,9 +140,19 @@ application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
     applicationName = 'MZmine'
     applicationDefaultJvmArgs = ['-showversion', '-XX:InitialRAMPercentage=20', '-XX:MaxRAMPercentage=80']
-    
-    // Note: this currently breaks the start script
-    // executableDir = ''
+    executableDir = ""
+}
+
+// Temporary start script fix until gradle 5.6 comes out
+startScripts {
+    applicationName = 'startMZmine'
+    doLast {
+        unixScript.text = unixScript.text
+                .replace("cd \"`dirname \\\"\$PRG\\\"`/..\" >/dev/null", "cd \"`dirname \\\"\$PRG\\\"`\" >/dev/null")
+        
+        windowsScript.text = windowsScript.text
+                .replace("set APP_HOME=%DIRNAME%..", "set APP_HOME=%DIRNAME%")
+    }
 }
 
 runtime {
@@ -151,15 +161,15 @@ runtime {
     imageZip = file("${buildDir}/${applicationName}-${version}.zip")
 }
 
-
 tasks.runtime.doLast {
-    copy {
-        from('src/main/icons')
-        into("${buildDir}/${applicationName}-${version}/icons")
-    }
-    copy {
-        from('src/main/log')
-        into("${buildDir}/${applicationName}-${version}/log")
-    }    
+        copy {
+            from('src/main/icons')
+            into("${buildDir}/${applicationName}-${version}/icons")
+        }
+        copy {
+            from('src/main/log')
+            into("${buildDir}/${applicationName}-${version}/log")
+        }    
+    
 }
 

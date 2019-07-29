@@ -136,7 +136,7 @@ public class PeakSelectionParameter
   }
 
   /**
-   * Shortcut to set value based on peak list rows
+   * Shortcut to set value based on feature list rows
    */
   public void setValue(PeakListRow rows[]) {
     List<PeakSelection> newValue = Lists.newArrayList();

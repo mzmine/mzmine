@@ -19,9 +19,7 @@
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay;
 
 import java.util.Hashtable;
-
 import javax.annotation.Nonnull;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -72,6 +70,7 @@ public class SGFilter implements ScanFilter {
 
   }
 
+  @Override
   public Scan filterScan(Scan scan, ParameterSet parameters) {
 
     int numOfDataPoints = parameters.getParameter(SGFilterParameters.datapoints).getValue();
@@ -82,10 +81,7 @@ public class SGFilter implements ScanFilter {
     int[] aVals = Avalues.get(numOfDataPoints);
     int h = Hvalues.get(numOfDataPoints).intValue();
 
-    // only process MS level 1 scans
-    if (scan.getMSLevel() != 1) {
-      return scan;
-    }
+    // changed to also allow MS2 if selected in ScanSelection
 
     int marginSize = (numOfDataPoints + 1) / 2 - 1;
     double sumOfInts;
@@ -132,6 +128,7 @@ public class SGFilter implements ScanFilter {
 
   }
 
+  @Override
   public @Nonnull String getName() {
     return "Savitzky-Golay filter";
   }

@@ -90,7 +90,7 @@ class LinearNormalizerTask extends AbstractTask {
     Hashtable<PeakListRow, SimplePeakListRow> rowMap =
         new Hashtable<PeakListRow, SimplePeakListRow>();
 
-    // Create new peak list
+    // Create new feature list
     normalizedPeakList =
         new SimplePeakList(originalPeakList + " " + suffix, originalPeakList.getRawDataFiles());
 

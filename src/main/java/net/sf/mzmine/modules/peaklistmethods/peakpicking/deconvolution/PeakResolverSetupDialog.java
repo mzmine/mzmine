@@ -300,7 +300,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     previewPanel.add(preview, BorderLayout.CENTER);
     previewPanel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
-    // Peak list combo-box.
+    // Feature list combo-box.
     comboPeakList = new JComboBox<PeakList>();
     comboPeakList.setFont(COMBO_FONT);
     for (final PeakList peakList : peakLists) {
@@ -317,7 +317,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     comboPeak.setPreferredSize(
         new Dimension(PREFERRED_PEAK_COMBO_WIDTH, comboPeak.getPreferredSize().height));
 
-    pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, new JComponent[] {new JLabel("Peak list"),
+    pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, new JComponent[] {new JLabel("Feature list"),
         comboPeakList, new JLabel("Chromatogram"), comboPeak});
 
     // Put all together.

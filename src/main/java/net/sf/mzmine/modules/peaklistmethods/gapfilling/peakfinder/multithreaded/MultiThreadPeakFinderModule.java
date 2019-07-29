@@ -32,7 +32,7 @@ public class MultiThreadPeakFinderModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Peak finder (multithreaded)";
   private static final String MODULE_DESCRIPTION =
-      "This method fills the missing peaks (gaps) in the peak list by searching for a peak in the raw data.";
+      "This method fills the missing peaks (gaps) in the feature list by searching for a peak in the raw data.";
 
   @Override
   public @Nonnull String getName() {

@@ -29,7 +29,7 @@ import com.google.common.collect.Range;
 
 /**
  * This class defines a search condition - searching either by peak name, m/z or retention time.
- * Such search can be defined by any module and then conforming peak list rows can be tested by the
+ * Such search can be defined by any module and then conforming feature list rows can be tested by the
  * conforms() method.
  * 
  */
@@ -81,7 +81,7 @@ public class SearchDefinition {
   }
 
   /**
-   * Checks whether given peak list row conforms to this search condition.
+   * Checks whether given feature list row conforms to this search condition.
    */
   public boolean conforms(PeakListRow row) {
     switch (type) {

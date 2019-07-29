@@ -198,7 +198,7 @@ class ThreeDSamplingTask extends AbstractTask {
       display.setData(intensityValues, domainSet, rtRange.lowerEndpoint(), rtRange.upperEndpoint(),
           mzRange.lowerEndpoint(), mzRange.upperEndpoint(), maxBinnedIntensity);
 
-      // After we have constructed everything, load the peak lists into
+      // After we have constructed everything, load the feature lists into
       // the bottom panel
       bottomPanel.rebuildPeakListSelector();
 

@@ -127,12 +127,22 @@ class FragmentScan {
         this.ms1SucceedingScanNumber = ms1ScanNumber2;
         this.ms2ScanNumbers = ms2ScanNumbers;
         double[] precInfo = new double[2];
-        detectPrecursor(ms1ScanNumber, feature.getMZ(), isolationWindow, massAccuracy, precInfo);
-        this.precursorIntensityLeft = precInfo[0];
-        this.chimericIntensityLeft = precInfo[1];
-        detectPrecursor(ms1SucceedingScanNumber, feature.getMZ(), isolationWindow, massAccuracy, precInfo);
-        this.precursorIntensityRight = precInfo[0];
-        this.chimericIntensityRight = precInfo[1];
+        if (ms1ScanNumber!=null) {
+            detectPrecursor(ms1ScanNumber, feature.getMZ(), isolationWindow, massAccuracy, precInfo);
+            this.precursorIntensityLeft = precInfo[0];
+            this.chimericIntensityLeft = precInfo[1];
+        } else {
+            this.precursorIntensityLeft = 0d;
+            this.chimericIntensityLeft = 0d;
+        }
+        if (ms1SucceedingScanNumber!=null) {
+            detectPrecursor(ms1SucceedingScanNumber, feature.getMZ(), isolationWindow, massAccuracy, precInfo);
+            this.precursorIntensityRight = precInfo[0];
+            this.chimericIntensityRight = precInfo[1];
+        } else {
+            this.precursorIntensityRight=0d;
+            this.chimericIntensityRight=0d;
+        }
     }
 
     /**
@@ -141,19 +151,27 @@ class FragmentScan {
      * @return two arrays, one for precursor intensities, one for chimeric intensities, for all MS2 scans
      */
     protected double[][] getInterpolatedPrecursorAndChimericIntensities() {
-        Scan left = origin.getScan(ms1ScanNumber);
-        Scan right = origin.getScan(ms1SucceedingScanNumber);
         final double[][] values = new double[2][ms2ScanNumbers.length];
-        for (int k=0; k < ms2ScanNumbers.length; ++k) {
-            Scan ms2 = origin.getScan(ms2ScanNumbers[k]);
-            double rtRange = (ms2.getRetentionTime() - left.getRetentionTime())/(right.getRetentionTime()-left.getRetentionTime());
-            if (rtRange >= 0 && rtRange <= 1) {
-                values[0][k] = (1d-rtRange) * precursorIntensityLeft + (rtRange)*precursorIntensityRight;
-                values[1][k] = (1d-rtRange) * chimericIntensityLeft + (rtRange)*chimericIntensityRight;
-            } else {
-                LoggerFactory.getLogger(FragmentScan.class).warn("Retention time is non-monotonic within scan numbers.");
-                values[0][k] = precursorIntensityLeft+precursorIntensityRight;
-                values[1][k] = chimericIntensityLeft+chimericIntensityRight;
+        if (ms1ScanNumber==null) {
+            Arrays.fill(values[0], precursorIntensityRight);
+            Arrays.fill(values[1], chimericIntensityRight);
+        } else if (ms1SucceedingScanNumber==null) {
+            Arrays.fill(values[0], precursorIntensityLeft);
+            Arrays.fill(values[1], chimericIntensityLeft);
+        } else {
+            Scan left = origin.getScan(ms1ScanNumber);
+            Scan right = origin.getScan(ms1SucceedingScanNumber);
+            for (int k=0; k < ms2ScanNumbers.length; ++k) {
+                Scan ms2 = origin.getScan(ms2ScanNumbers[k]);
+                double rtRange = (ms2.getRetentionTime() - left.getRetentionTime())/(right.getRetentionTime()-left.getRetentionTime());
+                if (rtRange >= 0 && rtRange <= 1) {
+                    values[0][k] = (1d-rtRange) * precursorIntensityLeft + (rtRange)*precursorIntensityRight;
+                    values[1][k] = (1d-rtRange) * chimericIntensityLeft + (rtRange)*chimericIntensityRight;
+                } else {
+                    LoggerFactory.getLogger(FragmentScan.class).warn("Retention time is non-monotonic within scan numbers.");
+                    values[0][k] = precursorIntensityLeft+precursorIntensityRight;
+                    values[1][k] = chimericIntensityLeft+chimericIntensityRight;
+                }
             }
         }
         return values;

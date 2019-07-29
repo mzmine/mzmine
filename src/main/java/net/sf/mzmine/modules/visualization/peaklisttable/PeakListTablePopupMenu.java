@@ -51,6 +51,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.Fo
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
@@ -119,7 +120,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
   private final JMenuItem manuallyDefineItem;
   private final JMenuItem showPeakRowSummaryItem;
   private final JMenuItem clearIdsItem;
-  private final JMenuItem dbSearchItem;
+  private final JMenuItem onlineDbSearchItem;
+  private final JMenuItem spectralDbSearchItem;
   private final JMenuItem formulaItem;
   private final JMenuItem siriusItem;
   private final JMenuItem nistSearchItem;
@@ -166,7 +168,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
     searchMenu = new JMenu("Search");
     add(searchMenu);
-    dbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online database", this);
+    onlineDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online compound database", this);
+    spectralDbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search local spectral database", this);
     nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search", this);
     formulaItem = GUIUtils.addMenuItem(searchMenu, "Predict molecular formula", this);
     siriusItem = GUIUtils.addMenuItem(searchMenu, "SIRIUS structure prediction", this);
@@ -236,7 +239,17 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
     exportMenu.setEnabled(rowsSelected);
 
     final boolean oneRowSelected = selectedRows.length == 1;
-    searchMenu.setEnabled(oneRowSelected);
+    searchMenu.setEnabled(true);
+
+    // search methods for single rows
+    onlineDbSearchItem.setEnabled(oneRowSelected);
+    nistSearchItem.setEnabled(oneRowSelected);
+    formulaItem.setEnabled(oneRowSelected);
+    siriusItem.setEnabled(oneRowSelected);
+
+    // search methods for single and multiple rows
+    spectralDbSearchItem.setEnabled(true);
+
 
     // Find the row and column where the user clicked
     clickedDataFile = null;
@@ -640,12 +653,24 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
     }
 
-    if (dbSearchItem != null && dbSearchItem.equals(src)) {
+    if (onlineDbSearchItem != null && onlineDbSearchItem.equals(src)) {
 
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
           OnlineDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow);
+        }
+      });
+
+    }
+
+    if (spectralDbSearchItem != null && spectralDbSearchItem.equals(src)) {
+
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          LocalSpectralDBSearchModule.showSelectedRowsIdentificationDialog(allClickedPeakListRows,
+              table);
         }
       });
 

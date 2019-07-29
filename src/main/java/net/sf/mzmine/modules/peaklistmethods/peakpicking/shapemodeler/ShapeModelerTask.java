@@ -100,7 +100,7 @@ class ShapeModelerTask extends AbstractTask {
     // Get data file information
     RawDataFile dataFile = originalPeakList.getRawDataFile(0);
 
-    // Create new peak list
+    // Create new feature list
     newPeakList = new SimplePeakList(originalPeakList + " " + suffix, dataFile);
 
     totalRows = originalPeakList.getNumberOfRows();

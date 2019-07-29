@@ -70,7 +70,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
     logger.finest("Computing: " + datasetTitle);
 
-    // Loop through rows of aligned peak list
+    // Loop through rows of aligned feature list
     Vector<Double> xCoordsV = new Vector<Double>();
     Vector<Double> yCoordsV = new Vector<Double>();
     Vector<Double> colorCoordsV = new Vector<Double>();

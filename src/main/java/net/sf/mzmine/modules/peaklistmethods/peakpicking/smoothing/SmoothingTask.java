@@ -53,7 +53,7 @@ public class SmoothingTask extends AbstractTask {
   // Logger.
   private static final Logger LOG = Logger.getLogger(SmoothingTask.class.getName());
 
-  // Peak lists: original and processed.
+  // Feature lists: original and processed.
   private final MZmineProject project;
   private final PeakList origPeakList;
   private SimplePeakList newPeakList;
@@ -108,7 +108,7 @@ public class SmoothingTask extends AbstractTask {
       // Get filter weights.
       final double[] filterWeights = SavitzkyGolayFilter.getNormalizedWeights(filterWidth);
 
-      // Create new peak list
+      // Create new feature list
       newPeakList = new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
 
       // Process each row.

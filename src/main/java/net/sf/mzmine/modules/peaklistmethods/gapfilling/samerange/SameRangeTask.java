@@ -81,10 +81,10 @@ class SameRangeTask extends AbstractTask {
     // Get total number of rows
     totalRows = peakList.getNumberOfRows();
 
-    // Get peak list columns
+    // Get feature list columns
     RawDataFile columns[] = peakList.getRawDataFiles();
 
-    // Create new peak list
+    // Create new feature list
     processedPeakList = new SimplePeakList(peakList + " " + suffix, columns);
 
     /*************************************************************
@@ -144,7 +144,7 @@ class SameRangeTask extends AbstractTask {
     // Canceled?
     if (isCanceled())
       return;
-    // Append processed peak list to the project
+    // Append processed feature list to the project
     project.addPeakList(processedPeakList);
 
     // Add quality parameters to peaks

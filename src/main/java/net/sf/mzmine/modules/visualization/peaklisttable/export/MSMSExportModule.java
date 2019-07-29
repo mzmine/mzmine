@@ -59,7 +59,7 @@ public class MSMSExportModule implements MZmineModule {
     if ((outputFile == null) || (massListName == null))
       return;
 
-    // Best peak always exists, because peak list row has at least one peak
+    // Best peak always exists, because feature list row has at least one peak
     Feature bestPeak = row.getBestPeak();
 
     // Get the MS/MS scan number

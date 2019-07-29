@@ -113,7 +113,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
     processedScans = 0;
 
     // dataList that will contain output m/z values, RT, and scan number for ID, ##for use in
-    // targeted peak detection
+    // targeted feature detection
     List<String> dataList = new ArrayList<String>();
 
     // in house generated list, used to output each precursor/product ion m/z for plotting in R
@@ -321,7 +321,7 @@ class ProductIonFilterDataSet extends AbstractXYDataset implements Task, XYToolT
       processedScans++;
     }
 
-    // Write output to csv file - for targeted peak detection module.
+    // Write output to csv file - for targeted feature detection module.
     try {
       // Cancel?
       if (status == TaskStatus.CANCELED)

@@ -76,7 +76,7 @@ class MzTabExportTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Exporting peak list(s) " + Arrays.toString(peakLists) + " to MzTab file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MzTab file(s)";
   }
 
   public void run() {
@@ -91,7 +91,7 @@ class MzTabExportTask extends AbstractTask {
       totalRows += peakList.getNumberOfRows();
     }
 
-    // Process peak lists
+    // Process feature lists
     for (PeakList peakList : peakLists) {
 
       File curFile = fileName;
@@ -273,7 +273,7 @@ class MzTabExportTask extends AbstractTask {
       } catch (Exception e) {
         e.printStackTrace();
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not export peak list to file " + curFile + ": " + e.getMessage());
+        setErrorMessage("Could not export feature list to file " + curFile + ": " + e.getMessage());
         return;
       }
     }

@@ -113,7 +113,7 @@ public class CameraSearchParameters extends SimpleParameterSet {
           "If checked, features with no found isotope pattern will be included", false);
 
   public static final StringParameter SUFFIX =
-      new StringParameter("Suffix", "This string is added to peak list name as suffix", "CAMERA");
+      new StringParameter("Suffix", "This string is added to feature list name as suffix", "CAMERA");
 
   /**
    * R engine type.

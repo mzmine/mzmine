@@ -34,7 +34,7 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter(1);
 
   public static final FileNameParameter filename = new FileNameParameter("Filename",
-      "Use pattern \"{}\" in the file name to substitute with peak list name. "
+      "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.csv\" would become \"blahSourcePeakListNameblah.csv\"). "
           + "If the file already exists, it will be overwritten.",
       "csv");

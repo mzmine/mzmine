@@ -62,7 +62,7 @@ public class AdductSearchTask extends AbstractTask {
    * Create the task.
    *
    * @param parameterSet the parameters.
-   * @param list peak list.
+   * @param list feature list.
    */
   public AdductSearchTask(final ParameterSet parameterSet, final PeakList list) {
 
@@ -98,7 +98,7 @@ public class AdductSearchTask extends AbstractTask {
 
     try {
 
-      // Search the peak list for adducts.
+      // Search the feature list for adducts.
       searchAdducts();
 
       if (!isCanceled()) {
@@ -107,7 +107,7 @@ public class AdductSearchTask extends AbstractTask {
         peakList.addDescriptionOfAppliedTask(
             new SimplePeakListAppliedMethod("Identification of adducts", parameters));
 
-        // Repaint the window to reflect the change in the peak list
+        // Repaint the window to reflect the change in the feature list
         Desktop desktop = MZmineCore.getDesktop();
         if (!(desktop instanceof HeadLessDesktop))
           desktop.getMainWindow().repaint();

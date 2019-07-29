@@ -25,7 +25,7 @@ import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 public class XMLImportParameters extends SimpleParameterSet {
 
   public static final FileNameParameter filename =
-      new FileNameParameter("Filename", "Name of imported peak list file name", "mpl");
+      new FileNameParameter("Filename", "Name of imported feature list file name", "mpl");
 
   public XMLImportParameters() {
     super(new Parameter[] {filename});

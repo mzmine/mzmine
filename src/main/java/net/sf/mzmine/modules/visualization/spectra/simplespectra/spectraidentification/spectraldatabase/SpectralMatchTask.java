@@ -217,7 +217,7 @@ public class SpectralMatchTask extends AbstractTask {
       return;
     }
 
-    // Repaint the window to reflect the change in the peak list
+    // Repaint the window to reflect the change in the feature list
     repaintWindow();
 
     list = null;

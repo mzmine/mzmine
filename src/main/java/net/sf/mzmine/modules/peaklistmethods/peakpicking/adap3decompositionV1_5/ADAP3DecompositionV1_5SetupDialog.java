@@ -154,7 +154,7 @@ public class ADAP3DecompositionV1_5SetupDialog extends ParameterSetupDialog {
     comboClusters.setFont(COMBO_FONT);
     comboClusters.addActionListener(this);
 
-    pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, new JComponent[] {new JLabel("Peak list"),
+    pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, new JComponent[] {new JLabel("Feature list"),
         comboPeakList, new JLabel("Cluster list"), comboClusters});
 
     pnlVisible = new JPanel(new BorderLayout());

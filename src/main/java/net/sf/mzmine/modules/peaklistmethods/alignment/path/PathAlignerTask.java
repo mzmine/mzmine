@@ -55,7 +55,7 @@ class PathAlignerTask extends AbstractTask {
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
   public String getTaskDescription() {
-    return "Path aligner, " + peakListName + " (" + peakLists.length + " peak lists)";
+    return "Path aligner, " + peakListName + " (" + peakLists.length + " feature lists)";
   }
 
   /**
@@ -78,7 +78,7 @@ class PathAlignerTask extends AbstractTask {
 
     aligner = (Aligner) new ScoreAligner(this.peakLists, parameters);
     alignedPeakList = aligner.align();
-    // Add new aligned peak list to the project
+    // Add new aligned feature list to the project
     project.addPeakList(alignedPeakList);
 
     // Add task description to peakList

@@ -39,7 +39,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Online database search";
   private static final String MODULE_DESCRIPTION =
-      "This module attepts to find those peaks in a peak list, which form an isotope pattern.";
+      "This module attepts to find those peaks in a feature list, which form an isotope pattern.";
 
   @Override
   public @Nonnull String getName() {
@@ -69,7 +69,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
   /**
    * Show dialog for identifying a single peak-list row.
    * 
-   * @param row the peak list row.
+   * @param row the feature list row.
    */
   public static void showSingleRowIdentificationDialog(final PeakListRow row) {
 

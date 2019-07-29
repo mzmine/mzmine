@@ -34,12 +34,12 @@ public class SQLExportParameters extends SimpleParameterSet {
       50);
 
   public static final StringParameter tableName = new StringParameter("Database table",
-      "Name of the table into which the peak list is going to be exported", 50);
+      "Name of the table into which the feature list is going to be exported", 50);
 
   public static final SQLColumnSettingsParameter exportColumns = new SQLColumnSettingsParameter();
 
-  public static final BooleanParameter emptyExport = new BooleanParameter("Export empty peak list",
-      "If selected, an empty peak list will be exported with null values for all column other than the rawdatafile and any constant values.");
+  public static final BooleanParameter emptyExport = new BooleanParameter("Export empty feature list",
+      "If selected, an empty feature list will be exported with null values for all column other than the rawdatafile and any constant values.");
 
   public SQLExportParameters() {
     super(new Parameter[] {peakList, connectionString, tableName, exportColumns, emptyExport});

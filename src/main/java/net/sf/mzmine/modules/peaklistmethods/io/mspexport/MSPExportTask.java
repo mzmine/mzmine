@@ -63,7 +63,7 @@ public class MSPExportTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Exporting peak list(s) " + Arrays.toString(peakLists) + " to MSP file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MSP file(s)";
   }
 
   public void run() {
@@ -77,7 +77,7 @@ public class MSPExportTask extends AbstractTask {
      * peakList.getNumberOfRows(); }
      */
 
-    // Process peak lists
+    // Process feature lists
     for (PeakList peakList : peakLists) {
 
       // Filename
@@ -123,8 +123,8 @@ public class MSPExportTask extends AbstractTask {
         return;
       }
 
-      // If peak list substitution pattern wasn't found,
-      // treat one peak list only
+      // If feature list substitution pattern wasn't found,
+      // treat one feature list only
       if (!substitute)
         break;
     }

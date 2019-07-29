@@ -38,27 +38,27 @@ public interface PeakList {
   }
 
   /**
-   * @return Short descriptive name for the peak list
+   * @return Short descriptive name for the feature list
    */
   public String getName();
 
   /**
-   * Change the name of this peak list
+   * Change the name of this feature list
    */
   public void setName(String name);
 
   /**
-   * Returns number of raw data files participating in the peak list
+   * Returns number of raw data files participating in the feature list
    */
   public int getNumberOfRawDataFiles();
 
   /**
-   * Returns all raw data files participating in the peak list
+   * Returns all raw data files participating in the feature list
    */
   public RawDataFile[] getRawDataFiles();
 
   /**
-   * Returns true if this peak list contains given file
+   * Returns true if this feature list contains given file
    */
   public boolean hasRawDataFile(RawDataFile file);
 
@@ -76,9 +76,9 @@ public interface PeakList {
   public int getNumberOfRows();
 
   /**
-   * Returns the peak of a given raw data file on a give row of the peak list
+   * Returns the peak of a given raw data file on a give row of the feature list
    * 
-   * @param row Row of the peak list
+   * @param row Row of the feature list
    * @param rawDataFile Raw data file where the peak is detected/estimated
    */
   public Feature getPeak(int row, RawDataFile rawDataFile);
@@ -94,7 +94,7 @@ public interface PeakList {
   public PeakListRow getRow(int row);
 
   /**
-   * Returns all peak list rows
+   * Returns all feature list rows
    */
   public PeakListRow[] getRows();
 
@@ -166,25 +166,25 @@ public interface PeakList {
       Range<Double> mzRange);
 
   /**
-   * Returns maximum raw data point intensity among all peaks in this peak list
+   * Returns maximum raw data point intensity among all peaks in this feature list
    * 
    * @return Maximum intensity
    */
   public double getDataPointMaxIntensity();
 
   /**
-   * Add a new row to the peak list
+   * Add a new row to the feature list
    */
   public void addRow(PeakListRow row);
 
   /**
-   * Removes a row from this peak list
+   * Removes a row from this feature list
    * 
    */
   public void removeRow(int row);
 
   /**
-   * Removes a row from this peak list
+   * Removes a row from this feature list
    * 
    */
   public void removeRow(PeakListRow row);
@@ -202,17 +202,17 @@ public interface PeakList {
   public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod);
 
   /**
-   * Returns all tasks (descriptions) applied to this peak list
+   * Returns all tasks (descriptions) applied to this feature list
    */
   public PeakListAppliedMethod[] getAppliedMethods();
 
   /**
-   * Returns the whole m/z range of the peak list
+   * Returns the whole m/z range of the feature list
    */
   public Range<Double> getRowsMZRange();
 
   /**
-   * Returns the whole retention time range of the peak list
+   * Returns the whole retention time range of the feature list
    */
   public Range<Double> getRowsRTRange();
 

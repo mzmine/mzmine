@@ -36,9 +36,9 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class RowsFilterModule implements MZmineProcessingModule {
 
-  private static final String MODULE_NAME = "Peak list rows filter";
+  private static final String MODULE_NAME = "Feature list rows filter";
   private static final String MODULE_DESCRIPTION =
-      "This method removes certain rows from a peak list based on given restrictions.";
+      "This method removes certain rows from a feature list based on given restrictions.";
 
   @Override
   public @Nonnull String getName() {

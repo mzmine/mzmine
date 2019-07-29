@@ -36,7 +36,7 @@ public class IsotopePeakScannerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Isotope peak scanner";
   private static final String MODULE_DESCRIPTION =
-      "Searches for m/z and intensity distribution of a calculated isotope pattern within a peak list.";
+      "Searches for m/z and intensity distribution of a calculated isotope pattern within a feature list.";
 
   @Override
   public @Nonnull String getName() {

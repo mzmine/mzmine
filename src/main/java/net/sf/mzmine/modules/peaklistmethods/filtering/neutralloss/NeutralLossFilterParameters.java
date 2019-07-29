@@ -55,7 +55,7 @@ public class NeutralLossFilterParameters extends SimpleParameterSet {
       "");
 
   public static final StringParameter suffix = new StringParameter("Name suffix",
-      "Suffix to be added to peak list name. If \"auto\" then this module will create a suffix.",
+      "Suffix to be added to feature list name. If \"auto\" then this module will create a suffix.",
       "auto");
 
   public NeutralLossFilterParameters() {

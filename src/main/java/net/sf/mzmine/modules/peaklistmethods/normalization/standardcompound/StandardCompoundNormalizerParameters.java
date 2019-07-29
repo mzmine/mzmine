@@ -33,7 +33,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
 
   public static final StringParameter suffix =
-      new StringParameter("Name suffix", "Suffix to be added to peak list name", "normalized");
+      new StringParameter("Name suffix", "Suffix to be added to feature list name", "normalized");
 
   public static final ComboParameter<StandardUsageType> standardUsageType =
       new ComboParameter<StandardUsageType>("Normalization type", "Normalize intensities using ",
@@ -47,7 +47,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
       "Used in distance measuring as multiplier of m/z difference");
 
   public static final BooleanParameter autoRemove = new BooleanParameter(
-      "Remove original peak list", "If checked, the original peak list will be removed");
+      "Remove original feature list", "If checked, the original feature list will be removed");
 
   public static final PeakSelectionParameter standardCompounds = new PeakSelectionParameter(
       "Standard compounds", "List of peaks for choosing the normalization standards", null);

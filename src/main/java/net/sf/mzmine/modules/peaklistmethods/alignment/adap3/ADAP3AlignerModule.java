@@ -32,7 +32,7 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class ADAP3AlignerModule implements MZmineProcessingModule {
     
-    private static final String MODULE_NAME = "ADAP Aligner";
+    private static final String MODULE_NAME = "ADAP Aligner (GC)";
     private static final String MODULE_DESCRIPTION = "This module calculates "
             + "pairwise convolution integral for each pair of unaligned peaks "
             + "in order to find the best alignment";

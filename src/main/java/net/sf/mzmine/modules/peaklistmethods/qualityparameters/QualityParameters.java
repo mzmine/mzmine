@@ -23,7 +23,7 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 
 /**
- * Calculates quality parameters for each peak in a peak list: - Full width at half maximum (FWHM) -
+ * Calculates quality parameters for each peak in a feature list: - Full width at half maximum (FWHM) -
  * Tailing Factor - Asymmetry factor
  */
 public class QualityParameters {

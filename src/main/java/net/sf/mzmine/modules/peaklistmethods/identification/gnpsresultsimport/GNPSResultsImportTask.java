@@ -139,7 +139,7 @@ public class GNPSResultsImportTask extends AbstractTask {
       ((SimplePeakList) peakList).addDescriptionOfAppliedTask(
           new SimplePeakListAppliedMethod("Identification of complexes", parameters));
 
-      // Repaint the window to reflect the change in the peak list
+      // Repaint the window to reflect the change in the feature list
       Desktop desktop = MZmineCore.getDesktop();
       if (!(desktop instanceof HeadLessDesktop))
         desktop.getMainWindow().repaint();
@@ -208,7 +208,7 @@ public class GNPSResultsImportTask extends AbstractTask {
 
     if (missingRows.get() > 0)
       logger.info(missingRows.get()
-          + " rows (features) that were present in the GNPS results were not found in the peakList. Check if you selected the correct peak list, did some filtering or applied renumbering (IDs have to match).");
+          + " rows (features) that were present in the GNPS results were not found in the peakList. Check if you selected the correct feature list, did some filtering or applied renumbering (IDs have to match).");
 
     logger.info(libraryMatches.get() + " rows found with library matches");
   }

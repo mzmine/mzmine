@@ -20,9 +20,7 @@ package net.sf.mzmine.modules.visualization.vankrevelendiagram;
 
 import java.util.ArrayList;
 import org.jfree.data.xy.AbstractXYDataset;
-import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.parameters.ParameterSet;
 
 /*
  * XYDataset for Van Krevelen diagram
@@ -33,28 +31,25 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
 
   private static final long serialVersionUID = 1L;
 
-  private PeakListRow selectedRows[];
+  private PeakListRow filteredRows[];
   private int numberOfDatapoints = 0;
   private double[] xValues;
   private double[] yValues;
 
-  public VanKrevelenDiagramXYDataset(ParameterSet parameters) {
+  public VanKrevelenDiagramXYDataset(PeakListRow[] filteredRows) {
 
-    PeakList peakList = parameters.getParameter(VanKrevelenDiagramParameters.peakList).getValue()
-        .getMatchingPeakLists()[0];
+    this.filteredRows = filteredRows;
 
-    this.selectedRows = parameters.getParameter(VanKrevelenDiagramParameters.selectedRows)
-        .getMatchingRows(peakList);
     ArrayList<Integer> numberOfCAtoms = new ArrayList<Integer>();
     ArrayList<Integer> numberOfOAtoms = new ArrayList<Integer>();
     ArrayList<Integer> numberOfHAtoms = new ArrayList<Integer>();
     // get number of atoms
-    for (int i = 0; i < selectedRows.length; i++) {
-      if (getNumberOfCAtoms(selectedRows[i]) != 0 && getNumberOfOAtoms(selectedRows[i]) != 0
-          && getNumberOfHAtoms(selectedRows[i]) != 0) {
-        numberOfCAtoms.add(getNumberOfCAtoms(selectedRows[i]));
-        numberOfOAtoms.add(getNumberOfOAtoms(selectedRows[i]));
-        numberOfHAtoms.add(getNumberOfHAtoms(selectedRows[i]));
+    for (int i = 0; i < filteredRows.length; i++) {
+      if (getNumberOfCAtoms(filteredRows[i]) != 0 && getNumberOfOAtoms(filteredRows[i]) != 0
+          && getNumberOfHAtoms(filteredRows[i]) != 0) {
+        numberOfCAtoms.add(getNumberOfCAtoms(filteredRows[i]));
+        numberOfOAtoms.add(getNumberOfOAtoms(filteredRows[i]));
+        numberOfHAtoms.add(getNumberOfHAtoms(filteredRows[i]));
       }
     }
     numberOfDatapoints = numberOfCAtoms.size();
@@ -230,7 +225,7 @@ class VanKrevelenDiagramXYDataset extends AbstractXYDataset {
   }
 
   public Comparable<?> getRowKey(int row) {
-    return selectedRows[row].toString();
+    return filteredRows[row].toString();
   }
 
   @Override

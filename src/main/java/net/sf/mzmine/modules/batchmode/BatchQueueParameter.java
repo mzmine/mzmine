@@ -105,7 +105,7 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetup
 
         for (final Parameter<?> parameter : params.getParameters()) {
 
-          // Ignore the raw data files and peak lists parameters
+          // Ignore the raw data files and feature lists parameters
           if (!(parameter instanceof RawDataFilesParameter)
               && !(parameter instanceof PeakListsParameter)
               && !parameter.checkValue(errorMessages)) {

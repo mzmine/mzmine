@@ -44,14 +44,14 @@ import org.jfree.chart.ui.TextAnchor;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
+import net.sf.mzmine.chartbasics.chartutils.NameItemLabelGenerator;
+import net.sf.mzmine.chartbasics.chartutils.ScatterPlotToolTipGenerator;
+import net.sf.mzmine.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import net.sf.mzmine.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.KendrickMassPlotToolTipGenerator;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.NameItemLabelGenerator;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizePaintScales;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -213,8 +213,8 @@ public class KendrickMassPlotTask extends AbstractTask {
       XYBlockPixelSizeRenderer renderer = new XYBlockPixelSizeRenderer();
 
       // set tooltip generator
-      KendrickMassPlotToolTipGenerator tooltipGenerator =
-          new KendrickMassPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
+      ScatterPlotToolTipGenerator tooltipGenerator =
+          new ScatterPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
       renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
       plot.setRenderer(renderer);
 
@@ -302,8 +302,8 @@ public class KendrickMassPlotTask extends AbstractTask {
     // Set paint scale
     renderer.setPaintScale(scale);
 
-    KendrickMassPlotToolTipGenerator tooltipGenerator =
-        new KendrickMassPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
+    ScatterPlotToolTipGenerator tooltipGenerator =
+        new ScatterPlotToolTipGenerator(xAxisLabel, yAxisLabel, zAxisLabel, rows);
     renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
 
     // set item label generator

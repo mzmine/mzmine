@@ -94,7 +94,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
     // Calculate total number of scans in all files
     totalScans = dataFile.getNumOfScans(1);
 
-    // Create new peak list
+    // Create new feature list
     processedPeakList = new SimplePeakList(dataFile.getName() + " " + suffix, dataFile);
 
     List<PeakInformation> peaks = this.readFile();
@@ -104,7 +104,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       setErrorMessage("Could not read file or the file is empty ");
       return;
     }
-    // Fill new peak list with empty rows
+    // Fill new feature list with empty rows
     for (int row = 0; row < peaks.size(); row++) {
       PeakListRow newRow = new SimplePeakListRow(ID++);
       processedPeakList.addRow(newRow);
@@ -171,7 +171,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
       gap.noMoreOffers();
     }
 
-    // Append processed peak list to the project
+    // Append processed feature list to the project
     project.addPeakList(processedPeakList);
 
     // Add quality parameters to peaks
@@ -179,9 +179,9 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
     // Add task description to peakList
     processedPeakList.addDescriptionOfAppliedTask(
-        new SimplePeakListAppliedMethod("Targeted peak detection ", parameters));
+        new SimplePeakListAppliedMethod("Targeted feature detection ", parameters));
 
-    logger.log(Level.INFO, "Finished targeted peak detection on {0}", this.dataFile);
+    logger.log(Level.INFO, "Finished targeted feature detection on {0}", this.dataFile);
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -231,6 +231,6 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Targeted peak detection " + this.dataFile;
+    return "Targeted feature detection " + this.dataFile;
   }
 }

@@ -98,7 +98,7 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
    */
   PeakListTableWindow(PeakList peakList, ParameterSet parameters) {
 
-    super("Peak list: " + peakList.getName());
+    super("Feature list: " + peakList.getName());
 
     this.parameters = parameters;
 

@@ -133,7 +133,7 @@ class ManualPickerTask extends AbstractTask {
 
     // Notify the GUI that peaklist contents have changed
     if (peakList != null) {
-      // Check if the peak list row has been added to the peak list, and
+      // Check if the feature list row has been added to the feature list, and
       // if it has not, add it
       List<PeakListRow> rows = Arrays.asList(peakList.getRows());
       if (!rows.contains(peakListRow)) {

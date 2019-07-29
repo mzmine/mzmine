@@ -33,7 +33,7 @@ import com.google.common.base.Strings;
 
 public class PeakListsParameter implements UserParameter<PeakListsSelection, PeakListsComponent> {
 
-  private String name = "Peak lists";
+  private String name = "Feature lists";
   private int minCount, maxCount;
 
   private PeakListsSelection value;
@@ -95,7 +95,7 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
 
   @Override
   public String getDescription() {
-    return "Peak lists that this module will take as its input.";
+    return "Feature lists that this module will take as its input.";
   }
 
   @Override
@@ -107,11 +107,11 @@ public class PeakListsParameter implements UserParameter<PeakListsSelection, Pea
       matchingPeakLists = value.getMatchingPeakLists();
 
     if (matchingPeakLists.length < minCount) {
-      errorMessages.add("At least " + minCount + " peak lists  must be selected");
+      errorMessages.add("At least " + minCount + " feature lists  must be selected");
       return false;
     }
     if (matchingPeakLists.length > maxCount) {
-      errorMessages.add("Maximum " + maxCount + " peak lists may be selected");
+      errorMessages.add("Maximum " + maxCount + " feature lists may be selected");
       return false;
     }
     return true;

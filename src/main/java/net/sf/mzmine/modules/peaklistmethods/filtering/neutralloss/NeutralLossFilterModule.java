@@ -32,7 +32,7 @@ public class NeutralLossFilterModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Neutral loss filter";
   private static final String MODULE_DESCRIPTION =
-      "Searches for neutral losses within a peak list.";
+      "Searches for neutral losses within a feature list.";
 
   @Override
   public @Nonnull String getName() {

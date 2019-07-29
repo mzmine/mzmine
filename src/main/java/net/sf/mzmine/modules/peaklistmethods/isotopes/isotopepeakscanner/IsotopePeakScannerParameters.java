@@ -90,7 +90,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
       ratingTypeChoices, "Highest intensity");
 
   public static final StringParameter suffix = new StringParameter("Name suffix",
-      "Suffix to be added to peak list name. If \"auto\" then this module will create a suffix.",
+      "Suffix to be added to feature list name. If \"auto\" then this module will create a suffix.",
       "auto");
 
   public static final IntegerParameter charge =
@@ -101,7 +101,7 @@ public class IsotopePeakScannerParameters extends SimpleParameterSet {
           "Please select a mass list.\nThis method will use averaged intensitys over all mass lists in "
               + "which ALL relevant masses were detected in.\nThis will only be done for peaks that match the "
               + "defined rating-calculation with the given rating.\nMake sure the mass list is contained in the"
-              + " peak list.\nIf there are no Scans that match all criteria avg rating will be -1.0."));
+              + " feature list.\nIf there are no Scans that match all criteria avg rating will be -1.0."));
 
   public static final OptionalModuleParameter autoCarbonOpt = new OptionalModuleParameter(
       "Auto carbon",

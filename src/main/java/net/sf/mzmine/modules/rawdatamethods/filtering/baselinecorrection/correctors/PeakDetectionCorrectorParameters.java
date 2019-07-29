@@ -29,7 +29,7 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.util.ExitCode;
 
 /**
- * @description Peak Detection baseline corrector parameters.
+ * @description Feature Detection baseline corrector parameters.
  * 
  */
 public class PeakDetectionCorrectorParameters extends SimpleParameterSet {

@@ -32,7 +32,7 @@ public class GNPSResultsImportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Import GNPS results";
   private static final String MODULE_DESCRIPTION =
-      "Imports GNPS feature based molecular networking results into the selected peak list (library matches)";
+      "Imports GNPS feature based molecular networking results into the selected feature list (library matches)";
 
   @Override
   public @Nonnull String getName() {

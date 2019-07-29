@@ -99,7 +99,7 @@ public class CameraSearchTask extends AbstractTask {
   private static final DataPointSorter ASCENDING_MASS_SORTER =
       new DataPointSorter(SortingProperty.MZ, SortingDirection.Ascending);
 
-  // Peak list to process.
+  // Feature list to process.
   private final PeakList peakList;
 
   // Task progress.
@@ -183,7 +183,7 @@ public class CameraSearchTask extends AbstractTask {
       if (peakList.getNumberOfRawDataFiles() != 1) {
 
         throw new IllegalStateException(
-            "CAMERA can only process peak lists for a single raw data file, i.e. non-aligned peak lists.");
+            "CAMERA can only process feature lists for a single raw data file, i.e. non-aligned feature lists.");
       }
 
       // Run the search.
@@ -217,7 +217,7 @@ public class CameraSearchTask extends AbstractTask {
         LOG.info("CAMERA Search completed");
       }
 
-      // Repaint the window to reflect the change in the peak list
+      // Repaint the window to reflect the change in the feature list
       Desktop desktop = MZmineCore.getDesktop();
       if (!(desktop instanceof HeadLessDesktop))
         desktop.getMainWindow().repaint();
@@ -233,7 +233,7 @@ public class CameraSearchTask extends AbstractTask {
   /**
    * Perform CAMERA search.
    *
-   * @param rawFile raw data file of peak list to process.
+   * @param rawFile raw data file of feature list to process.
    */
   private void cameraSearch(final RawDataFile rawFile) {
 
@@ -293,7 +293,7 @@ public class CameraSearchTask extends AbstractTask {
           if (scan.getMSLevel() != MS_LEVEL) {
 
             throw new IllegalStateException(
-                "CAMERA can only process peak lists from MS-level " + MS_LEVEL);
+                "CAMERA can only process feature lists from MS-level " + MS_LEVEL);
           }
 
           // Copy the data point.
@@ -441,7 +441,7 @@ public class CameraSearchTask extends AbstractTask {
 
       this.rSession.eval("an <- findAdducts(an, polarity='" + polarity + "')");
 
-      // Get the peak list.
+      // Get the feature list.
       this.rSession.eval("peakList <- getPeaklist(an)");
 
       // Extract the pseudo-spectra and isotope annotations from the peak
@@ -581,7 +581,7 @@ public class CameraSearchTask extends AbstractTask {
    */
 
   private PeakList groupPeaksByIsotope(PeakList peakList) {
-    // Create new peak list.
+    // Create new feature list.
     final PeakList combinedPeakList = new SimplePeakList(
         peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(),
         peakList.getRawDataFiles());
@@ -591,7 +591,7 @@ public class CameraSearchTask extends AbstractTask {
       combinedPeakList.addDescriptionOfAppliedTask(method);
     }
 
-    // Add task description to peak list.
+    // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
         new SimplePeakListAppliedMethod("Bioconductor CAMERA", parameters));
 
@@ -741,7 +741,7 @@ public class CameraSearchTask extends AbstractTask {
    */
 
   private PeakList groupPeaksByPCGroup(PeakList peakList) {
-    // Create new peak list.
+    // Create new feature list.
     final PeakList combinedPeakList = new SimplePeakList(
         peakList + " " + parameters.getParameter(CameraSearchParameters.SUFFIX).getValue(),
         peakList.getRawDataFiles());
@@ -751,7 +751,7 @@ public class CameraSearchTask extends AbstractTask {
       combinedPeakList.addDescriptionOfAppliedTask(method);
     }
 
-    // Add task description to peak list.
+    // Add task description to feature list.
     combinedPeakList.addDescriptionOfAppliedTask(
         new SimplePeakListAppliedMethod("Bioconductor CAMERA", parameters));
 

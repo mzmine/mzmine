@@ -226,7 +226,7 @@ public class BatchSetupComponent extends JPanel
         final ParameterSet stepParams = methodParams.cloneParameterSet();
 
         // If this is not the first batch step, set the default for raw
-        // data file and peak list selection
+        // data file and feature list selection
         if (!batchQueue.isEmpty()) {
           for (Parameter<?> param : stepParams.getParameters()) {
             if (param instanceof RawDataFilesParameter) {

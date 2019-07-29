@@ -27,7 +27,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public class PeakListTableModule implements MZmineModule {
 
-  private static final String MODULE_NAME = "Peak list table";
+  private static final String MODULE_NAME = "Feature list table";
 
   @Override
   public @Nonnull String getName() {

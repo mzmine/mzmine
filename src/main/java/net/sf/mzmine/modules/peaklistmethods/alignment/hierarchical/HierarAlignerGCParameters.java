@@ -52,7 +52,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
   public static final StringParameter peakListName =
-      new StringParameter("Peak list name", "Peak list name", "Aligned peak list");
+      new StringParameter("Feature list name", "Feature list name", "Aligned feature list");
 
   // Clusterer choice
   public static final ComboParameter<ClustererType> clusterer_type =
@@ -75,7 +75,7 @@ public class HierarAlignerGCParameters extends SimpleParameterSet {
   public static final BooleanParameter useOldestRDFAncestor = new BooleanParameter(
       "Use original raw data file",
       "Chemical similarity is computed using unaltered m/z profile at given scan from the very oldest Raw Data File ancestor (if it has not been removed). "
-          + "Unchecked: information are grabbed as usual (from the data file the peak list to be merged was built from).",
+          + "Unchecked: information are grabbed as usual (from the data file the feature list to be merged was built from).",
       false);
   // --
 

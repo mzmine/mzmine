@@ -116,7 +116,7 @@ public class GNPSmgfExportTask extends AbstractTask {
     // Shall export several files?
     boolean substitute = fileName.getPath().contains(plNamePattern);
 
-    // Process peak lists
+    // Process feature lists
     for (PeakList peakList : peakLists) {
       currentIndex++;
 
@@ -164,8 +164,8 @@ public class GNPSmgfExportTask extends AbstractTask {
         return;
       }
 
-      // If peak list substitution pattern wasn't found,
-      // treat one peak list only
+      // If feature list substitution pattern wasn't found,
+      // treat one feature list only
       if (!substitute)
         break;
     }
@@ -195,7 +195,7 @@ public class GNPSmgfExportTask extends AbstractTask {
       int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
       if (rowID != null) {
         PeakListRow copyRow = copyPeakRow(row);
-        // Best peak always exists, because peak list row has at least one peak
+        // Best peak always exists, because feature list row has at least one peak
         bestPeak = copyRow.getBestPeak();
 
         // Get the heighest peak with a MS/MS scan number (with mass list)
@@ -298,14 +298,14 @@ public class GNPSmgfExportTask extends AbstractTask {
 
   @Override
   public String getTaskDescription() {
-    return "Exporting GNPS of peak list(s) " + Arrays.toString(peakLists) + " to MGF file(s)";
+    return "Exporting GNPS of feature list(s) " + Arrays.toString(peakLists) + " to MGF file(s)";
   }
 
   /**
-   * Create a copy of a peak list row.
+   * Create a copy of a feature list row.
    */
   private static PeakListRow copyPeakRow(final PeakListRow row) {
-    // Copy the peak list row.
+    // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
     PeakUtils.copyPeakListRowProperties(row, newRow);
 

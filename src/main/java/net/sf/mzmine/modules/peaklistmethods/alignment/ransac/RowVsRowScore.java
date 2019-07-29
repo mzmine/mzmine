@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 import net.sf.mzmine.datamodel.PeakListRow;
 
 /**
- * This class represents a score between peak list row and aligned peak list row
+ * This class represents a score between feature list row and aligned feature list row
  */
 public class RowVsRowScore implements Comparable<RowVsRowScore> {
 
@@ -43,14 +43,14 @@ public class RowVsRowScore implements Comparable<RowVsRowScore> {
   }
 
   /**
-   * This method returns the peak list row which is being aligned
+   * This method returns the feature list row which is being aligned
    */
   public PeakListRow getPeakListRow() {
     return peakListRow;
   }
 
   /**
-   * This method returns the row of aligned peak list
+   * This method returns the row of aligned feature list
    */
   public PeakListRow getAlignedRow() {
     return alignedRow;

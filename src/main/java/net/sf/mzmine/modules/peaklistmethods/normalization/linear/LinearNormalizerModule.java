@@ -34,7 +34,7 @@ public class LinearNormalizerModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Linear normalizer";
   private static final String MODULE_DESCRIPTION =
-      "Linear normalizer divides the height (or area) of each peak in the peak list by a normalization factor, determined according to the given normalization type.";
+      "Linear normalizer divides the height (or area) of each peak in the feature list by a normalization factor, determined according to the given normalization type.";
 
   @Override
   public @Nonnull String getName() {

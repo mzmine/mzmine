@@ -128,7 +128,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements Ac
     mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2, 3, 1, 0, 0,
         GridBagConstraints.HORIZONTAL);
 
-    // Panel for the combo boxes with the peak lists
+    // Panel for the combo boxes with the feature lists
     JPanel comboPanel = new JPanel(new GridLayout(3, 1));
 
     peakListsComboX = new JComboBox<PeakList>(peakLists);

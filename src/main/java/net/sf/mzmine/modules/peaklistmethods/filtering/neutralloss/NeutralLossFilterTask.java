@@ -361,13 +361,13 @@ public class NeutralLossFilterTask extends AbstractTask {
   }
 
   /**
-   * Create a copy of a peak list row.
+   * Create a copy of a feature list row.
    *
    * @param row the row to copy.
    * @return the newly created copy.
    */
   private static PeakListRow copyPeakRow(final PeakListRow row) {
-    // Copy the peak list row.
+    // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
     PeakUtils.copyPeakListRowProperties(row, newRow);
 
@@ -408,7 +408,7 @@ public class NeutralLossFilterTask extends AbstractTask {
   }
 
   /**
-   * Add peak list to project, delete old if requested, add description to result
+   * Add feature list to project, delete old if requested, add description to result
    */
   public void addResultToProject() {
     // Add new peakList to the project
@@ -425,12 +425,12 @@ public class NeutralLossFilterTask extends AbstractTask {
   }
 
   /**
-   * Extracts a peak list row from a Candidates array.
+   * Extracts a feature list row from a Candidates array.
    * 
    * @param candidates
-   * @param peakIndex the index of the candidate peak, the peak list row should be extracted for.
+   * @param peakIndex the index of the candidate peak, the feature list row should be extracted for.
    * @param plh
-   * @return null if no peak with the given parameters exists, the specified peak list row
+   * @return null if no peak with the given parameters exists, the specified feature list row
    *         otherwise.
    */
   private @Nullable PeakListRow getRowFromCandidate(@Nonnull Candidates candidates, int peakIndex,

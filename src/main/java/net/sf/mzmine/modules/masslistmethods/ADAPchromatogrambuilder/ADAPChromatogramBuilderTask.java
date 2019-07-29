@@ -34,6 +34,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
@@ -178,8 +179,26 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
       prevRT = s.getRetentionTime();
     }
 
+    // Check if the scans are MS1-only or MS2-only.
+    int minMsLevel = Arrays.stream(scans)
+            .mapToInt(Scan::getMSLevel)
+            .min()
+            .orElseThrow(() -> new IllegalStateException("Cannot find the minimum MS level"));
 
-    // Create new peak list
+    int maxMsLevel = Arrays.stream(scans)
+            .mapToInt(Scan::getMSLevel)
+            .max()
+            .orElseThrow(() -> new IllegalStateException("Cannot find the maximum MS level"));
+
+    if (minMsLevel != maxMsLevel) {
+      MZmineCore.getDesktop().displayMessage(null,
+              "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. " +
+                      "This will likely produce wrong results. " +
+                      "Please, set the scan filter parameter to a specific MS level");
+    }
+
+
+    // Create new feature list
     newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
     // make a list of all the data points
@@ -387,7 +406,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
     Arrays.sort(chromatograms, new PeakSorter(SortingProperty.MZ, SortingDirection.Ascending));
 
 
-    // Add the chromatograms to the new peak list
+    // Add the chromatograms to the new feature list
     for (Feature finishedPeak : chromatograms) {
       SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
       newPeakID++;

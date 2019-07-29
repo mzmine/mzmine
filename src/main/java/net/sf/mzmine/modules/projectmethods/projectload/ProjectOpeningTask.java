@@ -127,7 +127,7 @@ public class ProjectOpeningTask extends AbstractTask {
       ProjectManager projectManager = MZmineCore.getProjectManager();
       if (projectManager.getCurrentProject().getDataFiles().length > 0) {
         int dialogResult = JOptionPane.showConfirmDialog(null,
-            "Loading the project will replace the existing raw data files and peak lists. Do you want to proceed?",
+            "Loading the project will replace the existing raw data files and feature lists. Do you want to proceed?",
             "Warning", JOptionPane.YES_NO_OPTION);
 
         if (dialogResult != JOptionPane.YES_OPTION) {
@@ -209,7 +209,7 @@ public class ProjectOpeningTask extends AbstractTask {
           loadScansFile(cis, fileID, fileName);
         }
 
-        // Load a peak list
+        // Load a feature list
         final Matcher peakListMatcher = peakListPattern.matcher(entryName);
         if (peakListMatcher.matches()) {
           final String peakListName = peakListMatcher.group(2);
@@ -413,7 +413,7 @@ public class ProjectOpeningTask extends AbstractTask {
   private void loadPeakList(InputStream is, String peakListName) throws IOException,
       ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException {
 
-    logger.info("Loading peak list " + peakListName);
+    logger.info("Loading feature list " + peakListName);
 
     currentLoadedObjectName = peakListName;
 

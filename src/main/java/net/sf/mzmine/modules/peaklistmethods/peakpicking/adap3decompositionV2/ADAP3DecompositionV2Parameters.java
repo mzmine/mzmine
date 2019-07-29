@@ -73,11 +73,11 @@ public class ADAP3DecompositionV2Parameters extends SimpleParameterSet {
     // ------------------------------------------------------------------------
 
     public static final StringParameter SUFFIX = new StringParameter("Suffix",
-            "This string is added to peak list name as suffix", "Spectral Deconvolution");
+            "This string is added to feature list name as suffix", "Spectral Deconvolution");
 
     public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-            "Remove original peak lists",
-            "If checked, original chromomatogram and peak lists will be removed");
+            "Remove original feature lists",
+            "If checked, original chromomatogram and feature lists will be removed");
 
     public ADAP3DecompositionV2Parameters() {
         super(new Parameter[]{CHROMATOGRAM_LISTS, PEAK_LISTS, PREF_WINDOW_WIDTH,

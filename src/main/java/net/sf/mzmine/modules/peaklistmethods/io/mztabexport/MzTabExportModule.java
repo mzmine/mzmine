@@ -33,7 +33,7 @@ public class MzTabExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to mzTab file";
   private static final String MODULE_DESCRIPTION =
-      "This method exports the peak list contents into a mzTab file.";
+      "This method exports the feature list contents into a mzTab file.";
 
   @Override
   public @Nonnull String getName() {

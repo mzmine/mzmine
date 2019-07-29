@@ -71,11 +71,11 @@ class ProjectTreeDnDHandler extends TransferHandler {
     if ((droppedLocationNode == treeModel.getRoot()) && (dl.getChildIndex() == 1))
       return true;
 
-    // If the target is "Peak lists" item, accept the drop
+    // If the target is "Feature lists" item, accept the drop
     if (dropTargetObject == PeakListTreeModel.peakListsNodeName)
       return true;
 
-    // If the target is last item AFTER "Peak lists" item, accept the
+    // If the target is last item AFTER "Feature lists" item, accept the
     // drop
     if ((droppedLocationNode == treeModel.getRoot()) && (dl.getChildIndex() == 2))
       return true;
@@ -141,7 +141,7 @@ class ProjectTreeDnDHandler extends TransferHandler {
 
     }
 
-    // Check if the drop target is among the project peak lists
+    // Check if the drop target is among the project feature lists
     if (droppedLocationObject == PeakListTreeModel.peakListsNodeName) {
       for (TreePath path : transferedPaths) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
@@ -157,7 +157,7 @@ class ProjectTreeDnDHandler extends TransferHandler {
       }
     }
 
-    // Check if the drop target is AFTER the peak lists (last position)
+    // Check if the drop target is AFTER the feature lists (last position)
     if ((droppedLocationObject == project) && (childIndex == 2)) {
       DefaultMutableTreeNode peakListsNode =
           (DefaultMutableTreeNode) droppedLocationNode.getChildAt(1);

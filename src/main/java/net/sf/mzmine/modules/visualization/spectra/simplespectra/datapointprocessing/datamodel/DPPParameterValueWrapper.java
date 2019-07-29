@@ -177,7 +177,7 @@ public class DPPParameterValueWrapper {
     return getQueue(mslevel.ordinal());
   }
 
-  public @Nonnull void setQueue(int ordinal, DataPointProcessingQueue queue) {
+  public void setQueue(int ordinal, DataPointProcessingQueue queue) {
     checkValues();
     queues[ordinal] = queue;
   }

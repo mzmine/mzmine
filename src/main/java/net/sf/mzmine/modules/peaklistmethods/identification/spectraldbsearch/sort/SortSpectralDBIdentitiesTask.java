@@ -97,7 +97,7 @@ public class SortSpectralDBIdentitiesTask extends AbstractTask {
     peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
         "Sorted spectral database identities of DB search ", parameters));
 
-    // Repaint the window to reflect the change in the peak list
+    // Repaint the window to reflect the change in the feature list
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
       desktop.getMainWindow().repaint();

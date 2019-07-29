@@ -111,6 +111,18 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       return;
     }
 
+    if (!FormulaUtils.checkMolecularFormula(element)) {
+      setStatus(TaskStatus.ERROR);
+      logger.warning("Data point/Spectra processing: Invalid element parameter in " + getTaskDescription());
+    }
+
+    if (getDataPoints().length == 0) {
+      logger.info("Data point/Spectra processing: 0 data points were passed to " + getTaskDescription()
+          + " Please check the parameters.");
+      setStatus(TaskStatus.CANCELED);
+      return;
+    }
+
     if (!(getDataPoints() instanceof ProcessedDataPoint[])) {
       logger.warning(
           "Data point/Spectra processing: The data points passed to Isotope Grouper were not an instance of processed data points."
@@ -118,6 +130,8 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       setStatus(TaskStatus.CANCELED);
       return;
     }
+    
+    setStatus(TaskStatus.PROCESSING);
 
     ExtendedIsotopePattern[] elementPattern =
         getIsotopePatterns(elements, mergeWidth, minAbundance);

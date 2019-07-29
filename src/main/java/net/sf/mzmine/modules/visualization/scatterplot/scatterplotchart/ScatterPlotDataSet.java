@@ -29,8 +29,8 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * 
- * This data set contains 2 series: first series (index 0) contains all peak list rows. Second
- * series (index 1) contains those peak list rows which conform to current search definition
+ * This data set contains 2 series: first series (index 0) contains all feature list rows. Second
+ * series (index 1) contains those feature list rows which conform to current search definition
  * (currentSearch).
  * 
  */
@@ -139,7 +139,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
   }
 
   /**
-   * Returns the peak list row which exactly matches given X and Y values
+   * Returns the feature list row which exactly matches given X and Y values
    */
   public PeakListRow getRow(double valueX, double valueY) {
 

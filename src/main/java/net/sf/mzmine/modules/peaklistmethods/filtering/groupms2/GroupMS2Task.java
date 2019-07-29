@@ -35,13 +35,13 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
- * Filters out peak list rows.
+ * Filters out feature list rows.
  */
 public class GroupMS2Task extends AbstractTask {
 
   // Logger.
   private static final Logger LOG = Logger.getLogger(GroupMS2Task.class.getName());
-  // Peak lists.
+  // Feature lists.
   private final MZmineProject project;
   // Processed rows counter
   private int processedRows, totalRows;
@@ -55,7 +55,7 @@ public class GroupMS2Task extends AbstractTask {
   /**
    * Create the task.
    *
-   * @param list peak list to process.
+   * @param list feature list to process.
    * @param parameterSet task parameters.
    */
   public GroupMS2Task(final MZmineProject project, final PeakList list,

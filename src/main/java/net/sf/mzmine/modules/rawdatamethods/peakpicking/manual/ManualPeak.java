@@ -71,7 +71,7 @@ class ManualPeak implements Feature {
   }
 
   /**
-   * This peak is always a result of manual peak detection, therefore MANUAL
+   * This peak is always a result of manual feature detection, therefore MANUAL
    */
   @Override
   public @Nonnull FeatureStatus getFeatureStatus() {

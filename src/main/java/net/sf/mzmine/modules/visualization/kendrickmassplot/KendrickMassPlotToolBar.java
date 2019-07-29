@@ -47,8 +47,12 @@ public class KendrickMassPlotToolBar extends JToolBar {
   static final Icon arrowDownIcon = new ImageIcon("icons/arrowdownicon.png");
   static final Icon kmdIcon = new ImageIcon("icons/KMDIcon.png");
   static final Icon rkmIcon = new ImageIcon("icons/RKMIcon.png");
-  // To Do add icon for RKM and KMD
-  DecimalFormat shiftFormat = new DecimalFormat("0.##;-0.##");
+
+  public JLabel yAxisDivisorLabel;
+  public JLabel xAxisDivisorLabel;
+  public JLabel zAxisDivisorLabel;
+
+  DecimalFormat shiftFormat = new DecimalFormat("0.##");
 
   public KendrickMassPlotToolBar(ActionListener masterFrame, // listener
       double xAxisShift, double yAxisShift, double zAxisShift, // shifts
@@ -125,8 +129,9 @@ public class KendrickMassPlotToolBar extends JToolBar {
         String.valueOf(shiftFormat.format(yAxisShift)), null, JLabel.CENTER, null));
     componentsList.add(GUIUtils.addLabel(this, //
         String.valueOf(shiftFormat.format(yAxisCharge)), null, JLabel.CENTER, null));
-    componentsList.add(GUIUtils.addLabel(this, //
-        String.valueOf(shiftFormat.format(yAxisDivisor)), null, JLabel.CENTER, null));
+    yAxisDivisorLabel = GUIUtils.addLabel(this, //
+        String.valueOf(shiftFormat.format(yAxisDivisor)), null, JLabel.CENTER, null);
+    componentsList.add(yAxisDivisorLabel);
 
     // use remainders instead of defects check box
     if (useYAxisRKM == false) {
@@ -175,8 +180,9 @@ public class KendrickMassPlotToolBar extends JToolBar {
           String.valueOf(shiftFormat.format(xAxisShift)), null, JLabel.CENTER, null));
       componentsList.add(GUIUtils.addLabel(this, //
           String.valueOf(shiftFormat.format(xAxisCharge)), null, JLabel.CENTER, null));
-      componentsList.add(GUIUtils.addLabel(this, //
-          String.valueOf(shiftFormat.format(xAxisDivisor)), null, JLabel.CENTER, null));
+      xAxisDivisorLabel = GUIUtils.addLabel(this, //
+          String.valueOf(shiftFormat.format(xAxisDivisor)), null, JLabel.CENTER, null);
+      componentsList.add(xAxisDivisorLabel);
 
       // use remainders instead of defects check box
       if (useXAxisRKM == false) {
@@ -227,8 +233,9 @@ public class KendrickMassPlotToolBar extends JToolBar {
           String.valueOf(shiftFormat.format(zAxisShift)), null, JLabel.CENTER, null));
       componentsList.add(GUIUtils.addLabel(this, //
           String.valueOf(shiftFormat.format(zAxisCharge)), null, JLabel.CENTER, null));
-      componentsList.add(GUIUtils.addLabel(this, //
-          String.valueOf(shiftFormat.format(zAxisDivisor)), null, JLabel.CENTER, null));
+      zAxisDivisorLabel = GUIUtils.addLabel(this, //
+          String.valueOf(shiftFormat.format(zAxisDivisor)), null, JLabel.CENTER, null);
+      componentsList.add(zAxisDivisorLabel);
 
       // use remainders instead of defects check box
       if (useZAxisRKM == false) {
@@ -254,4 +261,29 @@ public class KendrickMassPlotToolBar extends JToolBar {
     componentsList.add(GUIUtils.addLabel(this, ""));
     componentsList.add(GUIUtils.addLabel(this, ""));
   }
+
+  public JLabel getyAxisDivisorLabel() {
+    return yAxisDivisorLabel;
+  }
+
+  public void setyAxisDivisorLabel(JLabel yAxisDivisorLabel) {
+    this.yAxisDivisorLabel = yAxisDivisorLabel;
+  }
+
+  public JLabel getxAxisDivisorLabel() {
+    return xAxisDivisorLabel;
+  }
+
+  public void setxAxisDivisorLabel(JLabel xAxisDivisorLabel) {
+    this.xAxisDivisorLabel = xAxisDivisorLabel;
+  }
+
+  public JLabel getzAxisDivisorLabel() {
+    return zAxisDivisorLabel;
+  }
+
+  public void setzAxisDivisorLabel(JLabel zAxisDivisorLabel) {
+    this.zAxisDivisorLabel = zAxisDivisorLabel;
+  }
+
 }

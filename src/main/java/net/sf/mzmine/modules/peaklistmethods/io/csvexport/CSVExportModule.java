@@ -33,7 +33,7 @@ public class CSVExportModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Export to CSV file";
   private static final String MODULE_DESCRIPTION =
-      "This method exports the peak list contents into a CSV (comma-separated values) file.";
+      "This method exports the feature list contents into a CSV (comma-separated values) file.";
 
   @Override
   public @Nonnull String getName() {

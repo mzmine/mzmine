@@ -22,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -30,6 +31,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.labels.ItemLabelAnchor;
+import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.LookupPaintScale;
@@ -38,13 +41,16 @@ import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.ui.TextAnchor;
 import com.google.common.collect.Range;
+import net.sf.mzmine.chartbasics.chartutils.NameItemLabelGenerator;
+import net.sf.mzmine.chartbasics.chartutils.ScatterPlotToolTipGenerator;
+import net.sf.mzmine.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import net.sf.mzmine.chartbasics.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
+import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.NameItemLabelGenerator;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizePaintScales;
-import net.sf.mzmine.modules.visualization.kendrickmassplot.chartutils.XYBlockPixelSizeRenderer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -68,8 +74,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private Range<Double> zScaleRange;
   private String paintScaleStyle;
   private PeakListRow rows[];
+  private PeakListRow filteredRows[];
   private String title;
-  private ParameterSet parameterSet;
   private int totalSteps = 3, appliedSteps = 0;
 
   public VanKrevelenDiagramTask(ParameterSet parameters) {
@@ -83,9 +89,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     rows = parameters.getParameter(VanKrevelenDiagramParameters.selectedRows)
         .getMatchingRows(peakList);
 
+    filteredRows = filterSelectedRows(rows);
+
     title = "Van Krevelen Diagram [" + peakList + "]";
 
-    parameterSet = parameters;
   }
 
   @Override
@@ -118,10 +125,14 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
       chart.setBackgroundPaint(Color.white);
 
-      // Create Van Krevelen Diagram window
-      VanKrevelenDiagramWindow frame = new VanKrevelenDiagramWindow(chart);
       // create chart JPanel
       EChartPanel chartPanel = new EChartPanel(chart, true, true, true, true, false);
+
+      // Create Van Krevelen Diagram window
+      VanKrevelenDiagramWindow frame =
+          new VanKrevelenDiagramWindow(chart, chartPanel, filteredRows);
+
+      // create chart JPanel
       frame.add(chartPanel, BorderLayout.CENTER);
 
       // set title properties
@@ -142,7 +153,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       setErrorMessage(
           "Nothing to plot here or some peaks have other identities than sum formulas.\n"
               + "Have you annotated your features with sum formulas?\n"
-              + "You can use the peak list method \"Formula prediction\" to handle the task.");
+              + "You can use the feature list method \"Formula prediction\" to handle the task.");
       setStatus(TaskStatus.ERROR);
     }
   }
@@ -155,7 +166,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     appliedSteps++;
 
     // load dataset
-    VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(parameterSet);
+    VanKrevelenDiagramXYDataset dataset2D = new VanKrevelenDiagramXYDataset(filteredRows);
 
     // create chart
     chart = ChartFactory.createScatterPlot(title, "O/C", "H/C", dataset2D, PlotOrientation.VERTICAL,
@@ -163,6 +174,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
 
     XYPlot plot = (XYPlot) chart.getPlot();
     plot.setBackgroundPaint(Color.WHITE);
+    plot.setDomainCrosshairPaint(Color.GRAY);
+    plot.setRangeCrosshairPaint(Color.GRAY);
+    plot.setDomainCrosshairVisible(true);
+    plot.setRangeCrosshairVisible(true);
     appliedSteps++;
 
     // set renderer
@@ -176,16 +191,18 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
 
     // set tooltip generator
-    VanKrevelenDiagramToolTipGenerator tooltipGenerator =
-        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, rows);
+    ScatterPlotToolTipGenerator tooltipGenerator =
+        new ScatterPlotToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
     renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
     plot.setRenderer(renderer);
 
     // set item label generator
-    NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
+    NameItemLabelGenerator generator = new NameItemLabelGenerator(filteredRows);
     renderer.setDefaultItemLabelGenerator(generator);
     renderer.setDefaultItemLabelsVisible(false);
     renderer.setDefaultItemLabelFont(legendFont);
+    renderer.setDefaultPositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.CENTER,
+        TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);
 
     return chart;
   }
@@ -196,8 +213,9 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private JFreeChart create3DVanKrevelenDiagram() {
     logger.info("Creating new 3D chart instance");
     appliedSteps++;
-    // load dataseta
-    VanKrevelenDiagramXYZDataset dataset3D = new VanKrevelenDiagramXYZDataset(parameterSet);
+    // load data set
+    VanKrevelenDiagramXYZDataset dataset3D =
+        new VanKrevelenDiagramXYZDataset(zAxisLabel, filteredRows);
 
     // copy and sort z-Values for min and max of the paint scale
     double[] copyZValues = new double[dataset3D.getItemCount(0)];
@@ -260,12 +278,14 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     renderer.setBlockHeight(renderer.getBlockWidth() / (maxX / maxY));
 
     // set tooltip generator
-    VanKrevelenDiagramToolTipGenerator tooltipGenerator =
-        new VanKrevelenDiagramToolTipGenerator("O/C", "H/C", zAxisLabel, rows);
+    ScatterPlotToolTipGenerator tooltipGenerator =
+        new ScatterPlotToolTipGenerator("O/C", "H/C", zAxisLabel, filteredRows);
     renderer.setSeriesToolTipGenerator(0, tooltipGenerator);
+    renderer.setDefaultPositiveItemLabelPosition(new ItemLabelPosition(ItemLabelAnchor.CENTER,
+        TextAnchor.TOP_RIGHT, TextAnchor.TOP_RIGHT, -45), true);
 
     // set item label generator
-    NameItemLabelGenerator generator = new NameItemLabelGenerator(rows);
+    NameItemLabelGenerator generator = new NameItemLabelGenerator(filteredRows);
     renderer.setDefaultItemLabelGenerator(generator);
     renderer.setDefaultItemLabelsVisible(false);
     renderer.setDefaultItemLabelFont(legendFont);
@@ -276,6 +296,10 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     plot.setAxisOffset(new RectangleInsets(5, 5, 5, 5));
     plot.setOutlinePaint(Color.black);
     plot.setBackgroundPaint(Color.white);
+    plot.setDomainCrosshairPaint(Color.GRAY);
+    plot.setRangeCrosshairPaint(Color.GRAY);
+    plot.setDomainCrosshairVisible(true);
+    plot.setRangeCrosshairVisible(true);
 
     // Legend
     NumberAxis scaleAxis = new NumberAxis(zAxisLabel);
@@ -298,6 +322,24 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     appliedSteps++;
 
     return chart;
+  }
+
+
+  private PeakListRow[] filterSelectedRows(PeakListRow[] selectedRows) {
+    ArrayList<PeakListRow> rows = new ArrayList<PeakListRow>();
+    for (PeakListRow peakListRow : selectedRows) {
+      boolean hasIdentity = false;
+      if (peakListRow.getPreferredPeakIdentity() != null)
+        hasIdentity = true;
+      if (hasIdentity && peakListRow.getPreferredPeakIdentity()
+          .getPropertyValue(PeakIdentity.PROPERTY_FORMULA) != null) {
+        rows.add(peakListRow);
+      }
+    }
+    if (rows.size() > 0) {
+      return rows.stream().toArray(PeakListRow[]::new);
+    } else
+      return null;
   }
 
 }

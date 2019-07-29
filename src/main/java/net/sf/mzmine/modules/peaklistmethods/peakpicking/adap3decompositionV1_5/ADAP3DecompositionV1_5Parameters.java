@@ -89,8 +89,11 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   public static final ComboParameter<String> MODEL_PEAK_CHOICE = new ComboParameter<>(
       "Choice of Model Peak based on",
       "Criterion to choose a model peak in a cluster: either peak with the highest m/z-value or with the highest sharpness",
-      new String[] {TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_MZ,
-          TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_SHARPNESS},
+      new String[] {
+              TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_SHARPNESS,
+              TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_MZ,
+              TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_INTENSITY
+      },
       TwoStepDecompositionParameters.MODEL_PEAK_CHOICE_SHARPNESS);
 
   public static final ListDoubleRangeParameter MZ_VALUES = new ListDoubleRangeParameter(
@@ -101,10 +104,10 @@ public class ADAP3DecompositionV1_5Parameters extends SimpleParameterSet {
   // ------------------------------------------------------------------------
 
   public static final StringParameter SUFFIX = new StringParameter("Suffix",
-      "This string is added to peak list name as suffix", "ADAP-GC 3 Peak Decomposition");
+      "This string is added to feature list name as suffix", "ADAP-GC 3 Peak Decomposition");
 
   public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
-      "Remove original peak list",
+      "Remove original feature list",
       "If checked, original chromatogram will be removed and only the deconvolved version remains");
 
   public ADAP3DecompositionV1_5Parameters() {

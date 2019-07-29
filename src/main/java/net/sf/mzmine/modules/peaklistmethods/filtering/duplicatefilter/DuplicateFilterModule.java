@@ -33,19 +33,19 @@ import net.sf.mzmine.util.ExitCode;
 /**
  * Duplicate peak filter
  * 
- * This filter cleans up a peak list by keeping only the row with the strongest median peak area of
+ * This filter cleans up a feature list by keeping only the row with the strongest median peak area of
  * all rows having same (optionally) identification and similar m/z and rt values (within
  * tolerances)
  * 
- * Idea is to run this filter before alignment on peak lists with peaks from a single raw data file
- * in each list, but it will work on aligned peak lists too.
+ * Idea is to run this filter before alignment on feature lists with peaks from a single raw data file
+ * in each list, but it will work on aligned feature lists too.
  * 
  */
 public class DuplicateFilterModule implements MZmineProcessingModule {
 
   private static final String MODULE_NAME = "Duplicate peak filter";
   private static final String MODULE_DESCRIPTION =
-      "This method removes duplicate peaks (peaks with same retention times and m/z) from the peak list.";
+      "This method removes duplicate peaks (peaks with same retention times and m/z) from the feature list.";
 
   @Override
   public @Nonnull String getName() {

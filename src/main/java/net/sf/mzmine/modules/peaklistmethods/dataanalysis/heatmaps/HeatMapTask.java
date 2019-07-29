@@ -334,7 +334,7 @@ public class HeatMapTask extends AbstractTask {
       }
     }
 
-    // Create a new aligned peak list with all the samples if the reference
+    // Create a new aligned feature list with all the samples if the reference
     // group has to be shown or with only
     // the non reference group if not.
     double[][] dataMatrix;
@@ -494,7 +494,7 @@ public class HeatMapTask extends AbstractTask {
       }
     }
 
-    // Create a new aligned peak list with all the samples if the reference
+    // Create a new aligned feature list with all the samples if the reference
     // group has to be shown or with only
     // the non reference group if not.
     double[][] dataMatrix = new double[groups.size() - 1][numRows];

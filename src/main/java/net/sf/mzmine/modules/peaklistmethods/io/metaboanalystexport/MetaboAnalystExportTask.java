@@ -69,7 +69,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   }
 
   public String getTaskDescription() {
-    return "Exporting peak list(s) " + Arrays.toString(peakLists) + " to MetaboAnalyst CSV file(s)";
+    return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MetaboAnalyst CSV file(s)";
   }
 
   public void run() {
@@ -84,7 +84,7 @@ class MetaboAnalystExportTask extends AbstractTask {
       totalRows += peakList.getNumberOfRows();
     }
 
-    // Process peak lists
+    // Process feature lists
     for (PeakList peakList : peakLists) {
 
       // Filename
@@ -98,10 +98,10 @@ class MetaboAnalystExportTask extends AbstractTask {
         curFile = new File(newFilename);
       }
 
-      // Check the peak list for MetaboAnalyst requirements
+      // Check the feature list for MetaboAnalyst requirements
       boolean checkResult = checkPeakList(peakList);
       if (checkResult == false) {
-        MZmineCore.getDesktop().displayErrorMessage(null, "Peak list " + peakList.getName()
+        MZmineCore.getDesktop().displayErrorMessage(null, "Feature list " + peakList.getName()
             + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group");
       }
 
@@ -121,7 +121,7 @@ class MetaboAnalystExportTask extends AbstractTask {
       } catch (Exception e) {
         e.printStackTrace();
         setStatus(TaskStatus.ERROR);
-        setErrorMessage("Could not export peak list to file " + curFile + ": " + e.getMessage());
+        setErrorMessage("Could not export feature list to file " + curFile + ": " + e.getMessage());
         return;
       }
     }
@@ -231,7 +231,7 @@ class MetaboAnalystExportTask extends AbstractTask {
   }
 
   /**
-   * Generates a unique name for each peak list row
+   * Generates a unique name for each feature list row
    */
   private String generateUniquePeakListRowName(PeakListRow row) {
 
