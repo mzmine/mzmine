@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
@@ -70,7 +72,7 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * 
    * @param result
    */
-  public synchronized void addResult(@Nonnull PPResult<?> result) {
+  public synchronized void addResult(@Nonnull DPPResult<?> result) {
     if (result == null)
       return;
 

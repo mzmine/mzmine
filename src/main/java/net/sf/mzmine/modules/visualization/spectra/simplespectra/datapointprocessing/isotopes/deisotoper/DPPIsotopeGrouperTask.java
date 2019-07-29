@@ -111,7 +111,7 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       return;
     }
 
-    if (!FormulaUtils.checkMolecularFormula(element)) {
+    if (!FormulaUtils.checkMolecularFormula(elements)) {
       setStatus(TaskStatus.ERROR);
       logger.warning("Data point/Spectra processing: Invalid element parameter in " + getTaskDescription());
     }

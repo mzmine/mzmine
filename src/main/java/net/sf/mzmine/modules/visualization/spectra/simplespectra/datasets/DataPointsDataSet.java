@@ -40,6 +40,7 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
     this.label = label;
     this.mzPeaks = mzPeaks;
     // remove all extra zeros
+    // TODO: this breaks ProcessedDataPoints
     List<DataPoint> dp = new ArrayList<>();
     dp.add(mzPeaks[0]);
     for (int i = 1; i < mzPeaks.length - 1; i++) {
