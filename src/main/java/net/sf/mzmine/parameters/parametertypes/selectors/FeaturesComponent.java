@@ -18,27 +18,31 @@
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
 
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.util.GUIUtils;
 
 public class FeaturesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
     public List<Feature> featuresList;
-    private JList<Object> jlist = new JList<Object>();
+    final DefaultListModel<String> model = new DefaultListModel<>();
+    private JList<String> jlist = new JList<String>(model);
     private final JButton addButton;
     private final JButton removeButton;
+    private JPanel buttonPane;
 
     private Logger LOG = Logger.getLogger(this.getClass().getName());
 
@@ -50,17 +54,13 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         scrollPane.setSize(30, 10);
         add(scrollPane, BorderLayout.CENTER);
 
-        JToolBar toolBar = new JToolBar();
-        add(toolBar, BorderLayout.SOUTH);
-        addButton = new JButton("Add");
-        addButton.setEnabled(true);
-        addButton.addActionListener(this);
+        buttonPane = new JPanel();
+        buttonPane.setLayout(new FlowLayout());
+        this.add(buttonPane, BorderLayout.SOUTH);
 
-        removeButton = new JButton("Remove");
-        removeButton.setEnabled(true);
-        removeButton.addActionListener(this);
-        toolBar.add(addButton);
-        toolBar.add(removeButton);
+        addButton = GUIUtils.addButton(buttonPane, "Add", null, this);
+        removeButton = GUIUtils.addButton(buttonPane, "Remove", null, this);
+
     }
 
     public void setValue(List<Feature> newValue) {
@@ -81,14 +81,19 @@ public class FeaturesComponent extends JPanel implements ActionListener {
             featuresSelectionDialog.setVisible(true);
             if (featuresSelectionDialog.getReturnState() == true) {
                 jlist.setVisible(true);
-                jlist.setListData(
-                        (featuresSelectionDialog.getMultipleSelectionComponent()
-                                .getSelectedValues().toArray()));
+                for (Object str : featuresSelectionDialog
+                        .getMultipleSelectionComponent().getSelectedValues()
+                        .toArray()) {
+                    model.addElement((String) (str));
+                }
             }
         }
         if (src == removeButton) {
             LOG.finest("Remove Button Clicked!");
-            jlist.setListData(new Object[1]);
+            int[] indices = jlist.getSelectedIndices();
+            for (int i : indices) {
+                model.remove(i);
+            }
         }
     }
 
