@@ -24,11 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.PeakIdentity;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakListRow;
+
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -158,6 +155,13 @@ public class MSPExportTask extends AbstractTask {
         String id = identity.getPropertyValue(PeakIdentity.PROPERTY_ID);
         if (id != null)
           writer.write("Comments: " + id + newLine);
+      }
+
+      PeakInformation peakInformation = row.getPeakInformation();
+      if (peakInformation != null) {
+        for (Map.Entry<String, String> e : peakInformation.getAllProperties().entrySet())
+          if (e.getValue() != null && e.getValue().trim().length() > 0)
+            writer.write(e.getKey() + ": " + e.getValue() + newLine);
       }
 
       String rowID = Integer.toString(row.getID());
