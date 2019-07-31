@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sf.mzmine.datamodel.*;
@@ -38,11 +39,17 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 
 
 public class MSPExportTask extends AbstractTask {
+
+  private static final Pattern ATTRIBUTE_NAME_PATTERN = Pattern.compile("^[\\w]+$");
+
+
   private final PeakList[] peakLists;
   private final File fileName;
   private final String plNamePattern = "{}";
   private final boolean addRetTime;
+  private final String retTimeAttributeName;
   private final boolean addAnovaPValue;
+  private final String anovaAttributeName;
   private final boolean fractionalMZ;
   private final String roundMode;
 
@@ -53,8 +60,12 @@ public class MSPExportTask extends AbstractTask {
     this.fileName = parameters.getParameter(MSPExportParameters.FILENAME).getValue();
 
     this.addRetTime = parameters.getParameter(MSPExportParameters.ADD_RET_TIME).getValue();
+    this.retTimeAttributeName =
+            parameters.getParameter(MSPExportParameters.ADD_RET_TIME).getEmbeddedParameter().getValue();
 
     this.addAnovaPValue = parameters.getParameter(MSPExportParameters.ADD_ANOVA_P_VALUE).getValue();
+    this.anovaAttributeName =
+            parameters.getParameter(MSPExportParameters.ADD_ANOVA_P_VALUE).getEmbeddedParameter().getValue();
 
     this.fractionalMZ = parameters.getParameter(MSPExportParameters.FRACTIONAL_MZ).getValue();
 
@@ -106,7 +117,7 @@ public class MSPExportTask extends AbstractTask {
 
       try {
         exportPeakList(peakList, writer, curFile);
-      } catch (IOException e) {
+      } catch (IOException | IllegalArgumentException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Error while writing into file " + curFile + ": " + e.getMessage());
         return;
@@ -163,19 +174,22 @@ public class MSPExportTask extends AbstractTask {
           writer.write("Comments: " + id + newLine);
       }
 
-      PeakInformation peakInformation = row.getPeakInformation();
-      if (addAnovaPValue && peakInformation != null) {
-        for (Map.Entry<String, String> e : peakInformation.getAllProperties().entrySet())
-          if (e.getValue() != null && e.getValue().trim().length() > 0)
-            writer.write(e.getKey() + ": " + e.getValue() + newLine);
-      }
-
       String rowID = Integer.toString(row.getID());
       if (rowID != null)
         writer.write("DB#: " + rowID + newLine);
 
-      if (addRetTime)
-        writer.write("RT: " + row.getAverageRT() + newLine);
+      if (addRetTime) {
+        String attributeName = checkAttributeName(retTimeAttributeName);
+        writer.write(attributeName + ": " + row.getAverageRT() + newLine);
+      }
+
+      PeakInformation peakInformation = row.getPeakInformation();
+      if (addAnovaPValue && peakInformation != null && peakInformation.getAllProperties().containsKey("ANOVA_P_VALUE")) {
+        String attributeName = checkAttributeName(anovaAttributeName);
+        String value = peakInformation.getPropertyValue("ANOVA_P_VALUE");
+        if (value.trim().length() > 0)
+          writer.write(attributeName + ": " + value + newLine);
+      }
 
       DataPoint[] dataPoints = ip.getDataPoints();
 
@@ -224,5 +238,14 @@ public class MSPExportTask extends AbstractTask {
       result[count++] = new SimpleDataPoint(e.getKey(), e.getValue());
 
     return result;
+  }
+
+  private String checkAttributeName(String name) {
+    Matcher matcher = ATTRIBUTE_NAME_PATTERN.matcher(name);
+    if (matcher.find())
+      return name;
+    throw new IllegalArgumentException(String.format(
+            "Incorrect attribute name \"%s\". Attribute name may contain only latin letters, digits, and underscore '_'",
+            name));
   }
 }

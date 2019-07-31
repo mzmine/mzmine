@@ -20,6 +20,8 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
@@ -42,11 +44,21 @@ public class MSPExportParameters extends SimpleParameterSet {
           + "If the file already exists, it will be overwritten.",
       "msp");
 
-  public static final BooleanParameter ADD_RET_TIME = new BooleanParameter("Add retention time",
-          "If checked, each MSP record will contain line 'RT: retention time'", true);
+  public static final OptionalParameter<StringParameter> ADD_RET_TIME = new OptionalParameter<>(
+          new StringParameter("Add retention time",
+                  "If selected, each MSP record will contain the feature's retention time",
+                  "RT"), true);
 
-  public static final BooleanParameter ADD_ANOVA_P_VALUE = new BooleanParameter("Add ANOVA p-value (if present)",
-          "If checked, each MSP record will contain line 'ANOVA_P_VALUE: p-value' (if calculated)", true);
+//  public static final BooleanParameter ADD_RET_TIME = new BooleanParameter("Add retention time",
+//          "If checked, each MSP record will contain line 'RT: retention time'", true);
+
+  public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE = new OptionalParameter<>(
+          new StringParameter("Add ANOVA p-value (if calculated)",
+                  "If selected, each MSP record will contain the One-way ANOVA p-value (if calculated)",
+                  "ANOVA_P_VALUE"), true);
+
+//  public static final BooleanParameter ADD_ANOVA_P_VALUE = new BooleanParameter("Add ANOVA p-value (if present)",
+//          "If checked, each MSP record will contain line 'ANOVA_P_VALUE: p-value' (if calculated)", true);
 
   public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter("Fractional m/z values",
       "If checked, write fractional m/z values", false);
