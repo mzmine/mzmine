@@ -41,6 +41,8 @@ public class MSPExportTask extends AbstractTask {
   private final PeakList[] peakLists;
   private final File fileName;
   private final String plNamePattern = "{}";
+  private final boolean addRetTime;
+  private final boolean addAnovaPValue;
   private final boolean fractionalMZ;
   private final String roundMode;
 
@@ -49,6 +51,10 @@ public class MSPExportTask extends AbstractTask {
         parameters.getParameter(MSPExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
 
     this.fileName = parameters.getParameter(MSPExportParameters.FILENAME).getValue();
+
+    this.addRetTime = parameters.getParameter(MSPExportParameters.ADD_RET_TIME).getValue();
+
+    this.addAnovaPValue = parameters.getParameter(MSPExportParameters.ADD_ANOVA_P_VALUE).getValue();
 
     this.fractionalMZ = parameters.getParameter(MSPExportParameters.FRACTIONAL_MZ).getValue();
 
@@ -158,7 +164,7 @@ public class MSPExportTask extends AbstractTask {
       }
 
       PeakInformation peakInformation = row.getPeakInformation();
-      if (peakInformation != null) {
+      if (addAnovaPValue && peakInformation != null) {
         for (Map.Entry<String, String> e : peakInformation.getAllProperties().entrySet())
           if (e.getValue() != null && e.getValue().trim().length() > 0)
             writer.write(e.getKey() + ": " + e.getValue() + newLine);
@@ -168,7 +174,8 @@ public class MSPExportTask extends AbstractTask {
       if (rowID != null)
         writer.write("DB#: " + rowID + newLine);
 
-      writer.write("RT: " + row.getAverageRT() + newLine);
+      if (addRetTime)
+        writer.write("RT: " + row.getAverageRT() + newLine);
 
       DataPoint[] dataPoints = ip.getDataPoints();
 
