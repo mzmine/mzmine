@@ -262,7 +262,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
 
 
     progress = 0.0;
-    double progressStep = 0.5 / simpleAllMzVals.length;
+    double progressStep = (simpleAllMzVals.length > 0) ? 0.5 / simpleAllMzVals.length : 0.0;
 
     for (ExpandedDataPoint mzPeak : simpleAllMzVals) {
 
@@ -369,7 +369,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
 
     List<ADAPChromatogram> buildingChromatograms = new ArrayList<ADAPChromatogram>();
 
-    progressStep = 0.5 / ranges.size();
+    progressStep = (ranges.size() > 0) ? 0.5 / ranges.size() : 0.0;
     while (RangeIterator.hasNext()) {
       if (isCanceled()) {
         return;
