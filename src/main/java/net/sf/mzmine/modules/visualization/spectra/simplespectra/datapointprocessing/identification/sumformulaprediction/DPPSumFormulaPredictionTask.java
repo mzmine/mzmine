@@ -47,6 +47,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule.DPPLearnerModuleParameters;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.utility.DynamicParameterUtils;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPSumFormulaResult;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -171,8 +172,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
 
       massRange =
           mzTolerance.getToleranceRange((dataPoints[i].getMZ() - ionType.getAddedMass()) / charge);
+      
+      MolecularFormulaRange elCounts = DynamicParameterUtils.buildFormulaRangeOnIsotopePatternResults((ProcessedDataPoint)dataPoints[i], elementCounts);
+      
       generator = new MolecularFormulaGenerator(builder, massRange.lowerEndpoint(),
-          massRange.upperEndpoint(), elementCounts);
+          massRange.upperEndpoint(), elCounts);
+      
 
       List<PredResult> formulas =
           generateFormulas((ProcessedDataPoint) dataPoints[i], massRange, charge, generator);

@@ -253,7 +253,7 @@ public class IsotopePatternUtils2 {
   }
 
 
-  public static ExtendedIsotopePattern makePatternSuggestion(String[] composition) {
+  public static String makePatternSuggestion(String[] composition) {
 
     String[] isotopes = getIsotopesFromComposition(composition);
 
@@ -261,9 +261,9 @@ public class IsotopePatternUtils2 {
 
     int[] maxNumIsos = getIsotopeOccurrence(composition, isotopes);
 
-    System.out.println(Arrays.toString(isotopes));
-    System.out.println(Arrays.toString(maxNumIsos));
-    System.out.println(Arrays.toString(elements));
+//    System.out.println(Arrays.toString(isotopes));
+//    System.out.println(Arrays.toString(maxNumIsos));
+//    System.out.println(Arrays.toString(elements));
     
     // match elements and isotope count
 
@@ -274,25 +274,19 @@ public class IsotopePatternUtils2 {
         String isotope = isotopes[j];
         if (isotope.endsWith(element)) {
           if (elementCount[i] < maxNumIsos[j]) {
-            System.out.println("Isotope count of " + isotope + "(" + maxNumIsos[j] + ")"
-                + " is bigger than element count of" + element + "(" + elementCount[i] + ")");
+//            System.out.println("Isotope count of " + isotope + "(" + maxNumIsos[j] + ")"
+//                + " is bigger than element count of" + element + "(" + elementCount[i] + ")");
             elementCount[i] = maxNumIsos[j];
           }
         }
       }
     }
     
-    for(int k = 0; k < elements.length; k++) {
-      System.out.println(elements[k] + elementCount[k] + " ");
-    }
-    
     String formula = "";
     for(int i = 0; i < elements.length; i++)
       formula += elements[i] + elementCount[i];
     
-    System.out.println(formula);
-
-    return null;
+    return formula;
   }
   
   /**

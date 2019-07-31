@@ -39,7 +39,7 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
   public DataPointsDataSet(String label, DataPoint mzPeaks[]) {
     this.label = label;
     this.mzPeaks = mzPeaks;
-    // remove all extra zeros
+   /* // remove all extra zeros
     // TODO: this breaks ProcessedDataPoints
     List<DataPoint> dp = new ArrayList<>();
     dp.add(mzPeaks[0]);
@@ -52,7 +52,7 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
       }
     }
     dp.add(mzPeaks[mzPeaks.length - 1]);
-    this.mzPeaks = dp.toArray(new DataPoint[0]);
+    this.mzPeaks = dp.toArray(new DataPoint[0]);*/
   }
 
   @Override
