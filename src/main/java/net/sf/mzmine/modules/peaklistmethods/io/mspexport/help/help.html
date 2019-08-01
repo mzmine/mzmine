@@ -22,6 +22,12 @@
     <dt>DB#</dt>
     <dd>Row number in the peak list</dd>
 
+    <dt>RT (optional)</dt>
+    <dd>Retention time of a feature</dd>
+
+    <dt>ANOVA_P_VALUE (optional)</dt>
+    <dd>P-value calculated by the module Data analysis -> One-way ANOVA Test</dd>
+
     <dt>Num Peaks</dt>
     <dd>Number of peaks in the spectrum</dd>
 </dl>
@@ -29,6 +35,12 @@
 <h4>Method Parameters</h4>
 
 <dl>
+    <dt>Add retention time</dt>
+    <dd>If selected, each MSP record will contain a line 'RT: retention time'</dd>
+
+    <dt>Add ANOVA p-value (if present)</dt>
+    <dd>If selected, each MSP record will contain a line 'ANOVA_P_VALUE: p-value' if such p-value is present</dd>
+
     <dt>Fractional m/z values</dt>
     <dd>If not selected, all fractional m/z values are rounded to the closest integer and the corresponding peaks are merged</dd>
 
