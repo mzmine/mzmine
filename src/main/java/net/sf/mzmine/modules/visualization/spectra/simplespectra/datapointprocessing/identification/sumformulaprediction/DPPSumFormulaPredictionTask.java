@@ -45,7 +45,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule.DPPLearnerModuleParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.utility.DynamicParameterUtils;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPSumFormulaResult;
@@ -253,6 +252,18 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       }
     }
 
+    evaluateAndSortFormulas(dp, possibleFormulas);
+
+    return possibleFormulas;
+  }
+  
+  /**
+   * Put additional evaluations here. E.g. adduct checks or so
+   * @param dp
+   * @param possibleFormulas
+   */
+  private void evaluateAndSortFormulas(ProcessedDataPoint dp, List<PredResult> possibleFormulas) {
+
     // sort by score or ppm
     if (checkIsotopes && dp.resultTypeExists(ResultType.ISOTOPEPATTERN)) {
       possibleFormulas.sort((Comparator<PredResult>) (PredResult o1, PredResult o2) -> {
@@ -264,8 +275,6 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
         return Double.compare(Math.abs(o1.ppm), Math.abs(o2.ppm));
       });
     }
-
-    return possibleFormulas;
   }
 
   private DPPSumFormulaResult[] genereateResults(List<PredResult> formulas, int n) {

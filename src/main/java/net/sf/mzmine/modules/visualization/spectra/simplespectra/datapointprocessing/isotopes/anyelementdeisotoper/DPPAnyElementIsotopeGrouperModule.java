@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.anyelementdeisotoper;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
@@ -28,7 +28,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 
-public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
+public class DPPAnyElementIsotopeGrouperModule implements DataPointProcessingModule {
 
   @Override
   public String getName() {
@@ -37,7 +37,7 @@ public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
 
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return DPPIsotopeGrouperParameters.class;
+    return DPPAnyElementIsotopeGrouperParameters.class;
   }
 
   @Override
@@ -48,7 +48,7 @@ public class DPPIsotopeGrouperModule implements DataPointProcessingModule {
   @Override
   public DataPointProcessingTask createTask(DataPoint[] dataPoints, ParameterSet parameterSet,
       SpectraPlot plot, DataPointProcessingController controller, TaskStatusListener listener) {
-    return new DPPIsotopeGrouperTask(dataPoints, plot, parameterSet, controller, listener);
+    return new DPPAnyElementIsotopeGrouperTask(dataPoints, plot, parameterSet, controller, listener);
   }
   
   @Override

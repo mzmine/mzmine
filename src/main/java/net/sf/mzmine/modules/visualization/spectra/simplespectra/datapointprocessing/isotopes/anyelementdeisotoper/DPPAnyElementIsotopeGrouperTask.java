@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.anyelementdeisotoper;
 
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -60,9 +60,9 @@ import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.IsotopePatternUtils;
 import net.sf.mzmine.util.IsotopePatternUtils2;
 
-public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
+public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
 
-  private static Logger logger = Logger.getLogger(DPPIsotopeGrouperTask.class.getName());
+  private static Logger logger = Logger.getLogger(DPPAnyElementIsotopeGrouperTask.class.getName());
 
   // peaks counter
   private int processedSteps = 0, totalSteps = 1;
@@ -78,19 +78,19 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
   private Range<Double> mzrange;
   private int maxCharge;
 
-  public DPPIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
+  public DPPAnyElementIsotopeGrouperTask(DataPoint[] dataPoints, SpectraPlot plot, ParameterSet parameterSet,
       DataPointProcessingController controller, TaskStatusListener listener) {
     super(dataPoints, plot, parameterSet, controller, listener);
 
     // Get parameter values for easier use
-    mzTolerance = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzTolerance).getValue();
-    elements = parameterSet.getParameter(DPPIsotopeGrouperParameters.element).getValue();
-    autoRemove = parameterSet.getParameter(DPPIsotopeGrouperParameters.autoRemove).getValue();
-    mzrange = parameterSet.getParameter(DPPIsotopeGrouperParameters.mzRange).getValue();
-    maxCharge = parameterSet.getParameter(DPPIsotopeGrouperParameters.maximumCharge).getValue();
+    mzTolerance = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.mzTolerance).getValue();
+    elements = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.element).getValue();
+    autoRemove = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.autoRemove).getValue();
+    mzrange = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.mzRange).getValue();
+    maxCharge = parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.maximumCharge).getValue();
     setDisplayResults(
-        parameterSet.getParameter(DPPIsotopeGrouperParameters.displayResults).getValue());
-    setColor(parameterSet.getParameter(DPPIsotopeGrouperParameters.datasetColor).getValue());
+        parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.displayResults).getValue());
+    setColor(parameterSet.getParameter(DPPAnyElementIsotopeGrouperParameters.datasetColor).getValue());
 
     format = MZmineCore.getConfiguration().getMZFormat();
   }
@@ -166,9 +166,6 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
         return;
     }
 
-
-    // List<ProcessedDataPoint> results =
-    // IsotopePatternUtils.mergeDetectedPatterns(originalDataPoints, maxCharge);
     for (int x = 0; x < originalDataPoints.length; x++) {
       ProcessedDataPoint dp = originalDataPoints[x];
       if (!mzrange.contains(dp.getMZ()))
@@ -187,17 +184,17 @@ public class DPPIsotopeGrouperTask extends DataPointProcessingTask {
       IsotopePatternUtils2.convertIsotopicPeakResultsToPattern(dp, false);
     }
 
-
     List<ProcessedDataPoint> results = new ArrayList<>();
 
     for (ProcessedDataPoint dp : originalDataPoints) {
-      if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+      if(autoRemove) {
+        if (dp.resultTypeExists(ResultType.ISOTOPEPATTERN))
+          results.add(dp);
+      }
+      else
         results.add(dp);
     }
 
-    // now we looped through all dataPoints and link the found isotope patterns together
-    // we start from the back so we can just accumulate them by merging the linked the
-    // peaks/patterns
     setResults(results.toArray(new ProcessedDataPoint[0]));
     setStatus(TaskStatus.FINISHED);
 

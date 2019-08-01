@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.anyelementdeisotoper;
 
 import java.awt.Color;
 import net.sf.mzmine.main.MZmineCore;
@@ -30,7 +30,7 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
+public class DPPAnyElementIsotopeGrouperParameters extends SimpleParameterSet {
 
   public static final String ChooseTopIntensity = "Most intense";
   public static final String ChooseLowestMZ = "Lowest m/z";
@@ -55,7 +55,7 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
   public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
       "Set the color you want the detected isotope patterns to be displayed with.", Color.GREEN);
 
-  public DPPIsotopeGrouperParameters() {
+  public DPPAnyElementIsotopeGrouperParameters() {
     super(new Parameter[] {element, mzTolerance, mzRange, maximumCharge,
         autoRemove, displayResults, datasetColor});
    }
