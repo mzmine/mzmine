@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
+import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 
@@ -33,10 +34,6 @@ public class DPPIsotopePatternResult extends DPPResult<IsotopePattern> {
   private ProcessedDataPoint[] linkedDataPoints;
   private final int charge;
 
-//  public DPPIsotopePatternResult(IsotopePattern value) {
-//    super(value);
-//  }
-
   public DPPIsotopePatternResult(IsotopePattern value, ProcessedDataPoint[] linkedDataPoints, int charge) {
     super(value);
 
@@ -45,12 +42,18 @@ public class DPPIsotopePatternResult extends DPPResult<IsotopePattern> {
     }
     this.charge = charge;
   }
+  
+  public DPPIsotopePatternResult(IsotopePattern value, int charge) {
+    super(value);
 
-  public ProcessedDataPoint[] getLinkedDataPoints() {
+    this.charge = charge;
+  }
+
+  public @Nullable ProcessedDataPoint[] getLinkedDataPoints() {
     return linkedDataPoints;
   }
 
-  public void setLinkedDataPoints(ProcessedDataPoint[] linkedDataPoints) {
+  public void setLinkedDataPoints(@Nullable ProcessedDataPoint[] linkedDataPoints) {
     this.linkedDataPoints = linkedDataPoints;
   }
 
@@ -59,12 +62,6 @@ public class DPPIsotopePatternResult extends DPPResult<IsotopePattern> {
       if (i < linkedDataPoints.length)
         return linkedDataPoints[i];
     return null;
-  }
-
-  public void linkDataPoint(int i, ProcessedDataPoint dp) {
-    if (linkedDataPoints != null)
-      if (i < linkedDataPoints.length)
-        linkedDataPoints[i] = dp;
   }
   
   public int getCharge() {

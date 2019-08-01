@@ -53,6 +53,9 @@ public class DynamicParameterUtils {
     if (result == null)
       return def;
 
+    if(!(result.getValue() instanceof ExtendedIsotopePattern))
+      return def;
+    
     ExtendedIsotopePattern pattern = (ExtendedIsotopePattern) result.getValue();
     String form = IsotopePatternUtils2.makePatternSuggestion(pattern.getIsotopeCompositions());
     
