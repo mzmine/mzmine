@@ -21,6 +21,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -37,7 +38,7 @@ import net.sf.mzmine.util.GUIUtils;
 public class FeaturesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
-    public List<Feature> featuresList;
+    public List<Feature> currentValue = new ArrayList<Feature>();
     final DefaultListModel<String> model = new DefaultListModel<>();
     private JList<String> jlist = new JList<String>(model);
     private final JButton addButton;
@@ -64,11 +65,11 @@ public class FeaturesComponent extends JPanel implements ActionListener {
     }
 
     public void setValue(List<Feature> newValue) {
-        featuresList = newValue;
+        currentValue = newValue;
     }
 
     public List<Feature> getValue() {
-        return featuresList;
+        return currentValue;
     }
 
     @Override
@@ -81,9 +82,9 @@ public class FeaturesComponent extends JPanel implements ActionListener {
             featuresSelectionDialog.setVisible(true);
             if (featuresSelectionDialog.getReturnState() == true) {
                 jlist.setVisible(true);
-                for (Object str : featuresSelectionDialog
-                        .getMultipleSelectionComponent().getSelectedValues()
-                        .toArray()) {
+                currentValue = featuresSelectionDialog
+                        .getMultipleSelectionComponent().getSelectedValues();
+                for (Object str : currentValue.toArray()) {
                     model.addElement((String) (str));
                 }
             }
@@ -93,6 +94,7 @@ public class FeaturesComponent extends JPanel implements ActionListener {
             int[] indices = jlist.getSelectedIndices();
             for (int i : indices) {
                 model.remove(i);
+                currentValue.remove(i);
             }
         }
     }

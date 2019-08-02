@@ -21,11 +21,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 
@@ -33,7 +34,7 @@ public class FeaturesParameter
         implements UserParameter<List<Feature>, FeaturesComponent> {
 
     private String name = "Features";
-    private List<Feature> featuresList;
+    private List<Feature> value;
 
     @Override
     public String getName() {
@@ -42,42 +43,63 @@ public class FeaturesParameter
 
     @Override
     public List<Feature> getValue() {
-        featuresList = new ArrayList<Feature>();
-        PeakList allPeakLists[] = MZmineCore.getProjectManager()
-                .getCurrentProject().getPeakLists();
-        for (int i = 0; i < allPeakLists.length; i++) {
-            int files = allPeakLists[i].getNumberOfRawDataFiles();
-            for (int j = 0; j < files; j++) {
-                RawDataFile dataFile = allPeakLists[i].getRawDataFile(j);
-                int rows = allPeakLists[i].getNumberOfRows();
-                for (int k = 0; k < rows; k++) {
-                    featuresList.add(allPeakLists[i].getPeak(k, dataFile));
-                }
-            }
-        }
-        return featuresList;
+        return value;
     }
 
     @Override
     public void setValue(List<Feature> newValue) {
-        this.featuresList = newValue;
+        this.value = newValue;
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-        // TODO Auto-generated method stub
-        return false;
+        if ((value == null) || (value.size() == 0)) {
+            errorMessages.add("No features selected");
+            return false;
+        }
+        return true;
     }
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
-        // TODO Auto-generated method stub
+        PeakList[] allPeakLists = MZmineCore.getProjectManager()
+                .getCurrentProject().getPeakLists();
+
+        ArrayList<Object> newValues = new ArrayList<Object>();
+
+        NodeList items = xmlElement.getElementsByTagName("feature");
+        for (int i = 0; i < items.getLength(); i++) {
+            NodeList children = items.item(i).getChildNodes();
+            for (int j = 0; j < children.getLength(); j++) {
+                String str = children.item(j).getNodeValue();
+            }
+        }
 
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
-        // TODO Auto-generated method stub
+        if (value == null)
+            return;
+        Document parentDocument = xmlElement.getOwnerDocument();
+
+        for (Feature item : value) {
+            Element featureElement = parentDocument.createElement("feature");
+            Document newDocument = featureElement.getOwnerDocument();
+            Element peakListElement = newDocument
+                    .createElement("peaklist_name");
+            // item.?togetthepeaklistname
+            Element peakListRowElement = newDocument
+                    .createElement("peaklist_row_id");
+            peakListRowElement.setNodeValue(item.toString());
+            Element rawDataFileElement = newDocument
+                    .createElement("rawdatafile_name");
+            rawDataFileElement.setNodeValue(item.getDataFile().toString());
+            featureElement.appendChild(peakListElement);
+            featureElement.appendChild(peakListRowElement);
+            featureElement.appendChild(rawDataFileElement);
+            xmlElement.appendChild(featureElement);
+        }
 
     }
 
@@ -94,7 +116,7 @@ public class FeaturesParameter
 
     @Override
     public void setValueFromComponent(FeaturesComponent component) {
-        featuresList = component.getValue();
+        value = component.getValue();
     }
 
     @Override

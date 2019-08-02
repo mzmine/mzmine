@@ -81,7 +81,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         int rtLength = rtResolution;
         int mzLength = mzResolution;
         float rtTotal = rtLength;
-        float mzTotal = mzResolution;
+        float mzTotal = mzLength;
 
         for (float x = 0; x < rtLength - 1; x++) {
             for (float y = 0; y < mzLength - 1; y++) {

@@ -1,9 +1,7 @@
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -27,131 +25,69 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
 
     private static final long serialVersionUID = 1L;
     private Logger LOG = Logger.getLogger(this.getClass().getName());
-    public List<Feature> selectedFeatures;
-    public MultipleSelectionComponent<Feature> peakListRowSelectionBox;
-    public JComboBox<Object> rawDataFileSelectionBox;
+    private List<Feature> selectedFeatures;
+    private MultipleSelectionComponent<Feature> peakListRowSelectionBox;
+    private JComboBox<Object> rawDataFileComboBox;
+    private JComboBox<Object> peakListsComboBox;
     private JPanel buttonPane;
     private JButton btnOk;
     private JButton btnCancel;
     private boolean returnState = true;
+    private PeakList[] allPeakLists;
+    private String[] allPeakListStrings;
     private GridBagPanel mainPanel;
+    private int selectedIndex = 0;
+    private JPanel panel0;
+    private JPanel panel1;
+    private JPanel panel2;
 
     public FeaturesSelectionDialog() {
-        PeakList allPeakLists[] = MZmineCore.getProjectManager()
-                .getCurrentProject().getPeakLists();
-        String[] allPeakListStrings = new String[allPeakLists.length];
+        allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
+                .getPeakLists();
+        allPeakListStrings = new String[allPeakLists.length];
         for (int i = 0; i < allPeakLists.length; i++) {
             allPeakListStrings[i] = allPeakLists[i].toString();
         }
 
         mainPanel = new GridBagPanel();
-        JPanel panel1 = new JPanel(new BorderLayout());
-        JPanel panel2 = new JPanel(new BorderLayout());
-        JPanel panel3 = new JPanel(new BorderLayout());
+        panel0 = new JPanel(new BorderLayout());
+        panel1 = new JPanel(new BorderLayout());
+        panel2 = new JPanel(new BorderLayout());
         this.add(mainPanel);
-        JComboBox<Object> peakListsComboBox = new JComboBox<Object>(
-                allPeakListStrings);
+        peakListsComboBox = new JComboBox<Object>(allPeakListStrings);
         peakListsComboBox.setToolTipText("Peak Lists Selection Box");
+        peakListsComboBox.addActionListener(this);
         JLabel peakListsLabel = new JLabel("Peak Lists");
-        mainPanel.add(panel1, 0, 0);
-        mainPanel.add(panel2, 0, 1);
-        mainPanel.add(panel3, 0, 2);
-        this.setSize(620, 350);
-        panel1.add(peakListsLabel, BorderLayout.WEST);
-        panel1.add(peakListsComboBox, BorderLayout.CENTER);
+
+        mainPanel.add(panel0, 0, 0);
+        mainPanel.add(panel1, 0, 1);
+        mainPanel.add(panel2, 0, 2);
+
+        panel0.add(peakListsLabel, BorderLayout.WEST);
+        panel0.add(peakListsComboBox, BorderLayout.CENTER);
+
+        RawDataFile datafile = allPeakLists[0].getRawDataFile(0);
+        Feature[] peakListRows = allPeakLists[0].getPeaks(datafile);
+        RawDataFile[] rawDataFiles = allPeakLists[0].getRawDataFiles();
+
+        String[] featuresList = new String[peakListRows.length];
+
+        for (int k = 0; k < peakListRows.length; k++) {
+            featuresList[k] = peakListRows[k].toString();
+        }
+        peakListRowSelectionBox = new MultipleSelectionComponent<Feature>(
+                featuresList);
+        peakListRowSelectionBox.setToolTipText("Features Selection Box");
+
+        rawDataFileComboBox = new JComboBox<Object>(rawDataFiles);
+        rawDataFileComboBox.setToolTipText("Raw data files Selection Box");
+        rawDataFileComboBox.addActionListener(this);
         JLabel peakListRowsLabel = new JLabel("Peak List Rows");
         JLabel rawDataFilesLabel = new JLabel("Raw data files");
-        // RawDataFile datafile = allPeakLists[0].getRawDataFile(0);
-        // Feature[] peakListRows = allPeakLists[0].getPeaks(datafile);
-        // RawDataFile[] rawDataFiles = allPeakLists[0].getRawDataFiles();
-        //
-        // String[] featuresList = new String[peakListRows.length];
-        //
-        // for (int k = 0; k < peakListRows.length; k++) {
-        // featuresList[k] = peakListRows[k].toString();
-        // }
-        // peakListRowSelectionBox = new MultipleSelectionComponent<Feature>(
-        // featuresList);
-        // peakListRowSelectionBox.setToolTipText("Features Selection Box");
-        //
-        // rawDataFileSelectionBox = new JComboBox<Object>(rawDataFiles);
-        // panel2.add(peakListRowsLabel, BorderLayout.WEST);
-        // panel2.add(peakListRowSelectionBox, BorderLayout.CENTER);
-        // panel3.add(rawDataFileSelectionBox, BorderLayout.CENTER);
-        // panel3.add(rawDataFilesLabel, BorderLayout.WEST);
-        final FeaturesSelectionDialog dialog = this;
-        // panel2.add(peakListRowsLabel, BorderLayout.WEST);
-        // panel2.add(peakListRowSelectionBox, BorderLayout.CENTER);
-        // panel3.add(rawDataFileSelectionBox, BorderLayout.CENTER);
-        // panel3.add(rawDataFilesLabel, BorderLayout.WEST);
-
-        peakListsComboBox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                LOG.finest("Peak List Selected!");
-                String str = (String) peakListsComboBox.getSelectedItem();
-                panel2.removeAll();
-                panel3.removeAll();
-                for (int j = 0; j < allPeakLists.length; j++) {
-                    if (str == allPeakLists[j].toString()) {
-                        RawDataFile datafile = allPeakLists[j]
-                                .getRawDataFile(0);
-                        Feature[] peakListRows = allPeakLists[j]
-                                .getPeaks(datafile);
-                        RawDataFile[] rawDataFiles = allPeakLists[j]
-                                .getRawDataFiles();
-
-                        String[] featuresList = new String[peakListRows.length];
-
-                        for (int k = 0; k < peakListRows.length; k++) {
-                            featuresList[k] = peakListRows[k].toString();
-                        }
-                        peakListRowSelectionBox = new MultipleSelectionComponent<Feature>(
-                                featuresList);
-                        peakListRowSelectionBox
-                                .setToolTipText("Features Selection Box");
-
-                        rawDataFileSelectionBox = new JComboBox<Object>(
-                                rawDataFiles);
-
-                        panel2.add(peakListRowsLabel, BorderLayout.WEST);
-                        panel2.add(peakListRowSelectionBox,
-                                BorderLayout.CENTER);
-                        panel3.add(rawDataFileSelectionBox,
-                                BorderLayout.CENTER);
-                        panel3.add(rawDataFilesLabel, BorderLayout.WEST);
-                        final int index = j;
-                        rawDataFileSelectionBox
-                                .addActionListener(new ActionListener() {
-                                    public void actionPerformed(ActionEvent e) {
-                                        panel2.removeAll();
-                                        RawDataFile dataFile = (RawDataFile) rawDataFileSelectionBox
-                                                .getSelectedItem();
-                                        Feature[] peakListRows = allPeakLists[index]
-                                                .getPeaks(dataFile);
-                                        for (int k = 0; k < peakListRows.length; k++) {
-                                            featuresList[k] = peakListRows[k]
-                                                    .toString();
-                                        }
-                                        peakListRowSelectionBox = new MultipleSelectionComponent<Feature>(
-                                                featuresList);
-                                        peakListRowSelectionBox.setToolTipText(
-                                                "Features Selection Box");
-                                        panel2.add(peakListRowsLabel,
-                                                BorderLayout.WEST);
-                                        panel2.add(peakListRowSelectionBox,
-                                                BorderLayout.CENTER);
-
-                                        panel2.revalidate();
-                                    }
-                                });
-                        dialog.setSize(620, 350);
-                        LOG.finest("PeakListRowComboBox is Added");
-                    }
-                    panel2.revalidate();
-                    panel3.revalidate();
-                }
-            }
-        });
+        panel1.add(peakListRowsLabel, BorderLayout.WEST);
+        panel1.add(peakListRowSelectionBox, BorderLayout.CENTER);
+        panel2.add(rawDataFileComboBox, BorderLayout.CENTER);
+        panel2.add(rawDataFilesLabel, BorderLayout.WEST);
 
         buttonPane = new JPanel();
         buttonPane.setLayout(new FlowLayout());
@@ -160,9 +96,7 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
 
         btnCancel = GUIUtils.addButton(buttonPane, "Cancel", null, this);
         this.pack();
-        Insets insets = this.getInsets();
-        this.setSize(new Dimension(insets.left + insets.right + 600,
-                insets.top + insets.bottom + 100));
+        this.setSize(620, 350);
         this.setLocationRelativeTo(null);
     }
 
@@ -189,7 +123,64 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
             returnState = false;
             this.dispose();
         }
+        if (src == rawDataFileComboBox) {
+            panel1.removeAll();
+            RawDataFile dataFile = (RawDataFile) rawDataFileComboBox
+                    .getSelectedItem();
+            Feature[] peakListRows = allPeakLists[selectedIndex]
+                    .getPeaks(dataFile);
+            String[] featuresList = new String[peakListRows.length];
+            for (int k = 0; k < peakListRows.length; k++) {
+                featuresList[k] = peakListRows[k].toString();
+            }
+            JLabel peakListRowsLabel = new JLabel("Peak List Rows");
+            peakListRowSelectionBox = new MultipleSelectionComponent<Feature>(
+                    featuresList);
+            peakListRowSelectionBox.setToolTipText("Features Selection Box");
+            panel1.add(peakListRowsLabel, BorderLayout.WEST);
+            panel1.add(peakListRowSelectionBox, BorderLayout.CENTER);
 
+            panel1.revalidate();
+        }
+        if (src == peakListsComboBox) {
+            LOG.finest("Peak List Selected!");
+            String str = (String) peakListsComboBox.getSelectedItem();
+            panel1.removeAll();
+            panel2.removeAll();
+            for (int j = 0; j < allPeakLists.length; j++) {
+                if (str == allPeakLists[j].toString()) {
+                    selectedIndex = j;
+                    RawDataFile datafile = allPeakLists[j].getRawDataFile(0);
+                    Feature[] peakListRows = allPeakLists[j].getPeaks(datafile);
+                    RawDataFile[] rawDataFiles = allPeakLists[j]
+                            .getRawDataFiles();
+
+                    String[] featuresList = new String[peakListRows.length];
+
+                    for (int k = 0; k < peakListRows.length; k++) {
+                        featuresList[k] = peakListRows[k].toString();
+                    }
+                    peakListRowSelectionBox = new MultipleSelectionComponent<Feature>(
+                            featuresList);
+                    peakListRowSelectionBox.setSize(600, 200);
+                    peakListRowSelectionBox
+                            .setToolTipText("Features Selection Box");
+
+                    rawDataFileComboBox = new JComboBox<Object>(rawDataFiles);
+                    rawDataFileComboBox.addActionListener(this);
+                    JLabel peakListRowsLabel = new JLabel("Peak List Rows");
+                    JLabel rawDataFilesLabel = new JLabel("Raw data files");
+                    panel1.add(peakListRowsLabel, BorderLayout.WEST);
+                    panel1.add(peakListRowSelectionBox, BorderLayout.CENTER);
+                    panel2.add(rawDataFileComboBox, BorderLayout.CENTER);
+                    panel2.add(rawDataFilesLabel, BorderLayout.WEST);
+                    this.setSize(620, 350);
+                    LOG.finest("PeakListRowComboBox is Added");
+                }
+                panel1.revalidate();
+                panel2.revalidate();
+            }
+
+        }
     }
-
 }
