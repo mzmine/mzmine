@@ -63,6 +63,14 @@ public class Fx3DFeatureDataset {
         int maxFeatureMzPoint = (int) (featureMzRange.upperEndpoint()
                 * mzSlope);
 
+        mesh.getPoints().addAll((float) minFeatureRtPoint - 1 * factorX, -0.1f,
+                (float) minFeatureMzPoint - 1 * factorZ);
+        mesh.getPoints().addAll((float) minFeatureRtPoint - 1 * factorX, -0.1f,
+                (float) maxFeatureMzPoint - 1 * factorZ);
+        mesh.getPoints().addAll((float) maxFeatureRtPoint - 1 * factorX, -0.1f,
+                (float) minFeatureMzPoint * factorZ);
+        mesh.getPoints().addAll((float) maxFeatureRtPoint - 1 * factorX, -0.1f,
+                (float) maxFeatureMzPoint - 1 * factorZ);
         for (int x = minFeatureRtPoint; x < maxFeatureRtPoint; x++) {
             for (int z = minFeatureMzPoint; z < maxFeatureMzPoint; z++) {
                 mesh.getPoints().addAll((float) x * factorX,
@@ -70,8 +78,8 @@ public class Fx3DFeatureDataset {
             }
         }
 
-        int rtLength = maxFeatureRtPoint - minFeatureRtPoint;
-        int mzLength = maxFeatureMzPoint - minFeatureMzPoint;
+        int rtLength = maxFeatureRtPoint - minFeatureRtPoint + 2;
+        int mzLength = maxFeatureMzPoint - minFeatureMzPoint + 2;
         float rtTotal = rtLength;
         float mzTotal = mzLength;
 
