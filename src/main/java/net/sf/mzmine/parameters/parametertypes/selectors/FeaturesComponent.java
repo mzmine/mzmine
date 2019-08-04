@@ -108,9 +108,11 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         if (src == removeButton) {
             LOG.finest("Remove Button Clicked!");
             int[] indices = jlist.getSelectedIndices();
+            int k = 0;
             for (int i : indices) {
-                model.remove(i);
-                currentValue.remove(i);
+                model.remove(i - k);
+                currentValue.remove(i - k);
+                k++;
             }
         }
     }
