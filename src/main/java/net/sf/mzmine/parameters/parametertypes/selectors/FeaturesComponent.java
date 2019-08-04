@@ -33,12 +33,15 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.util.GUIUtils;
 
 public class FeaturesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
-    public List<Feature> currentValue = new ArrayList<Feature>();
+    public List<FeatureSelection> currentValue = new ArrayList<FeatureSelection>();
     final DefaultListModel<String> model = new DefaultListModel<>();
     private JList<String> jlist = new JList<String>(model);
     private final JButton addButton;
@@ -64,11 +67,11 @@ public class FeaturesComponent extends JPanel implements ActionListener {
 
     }
 
-    public void setValue(List<Feature> newValue) {
+    public void setValue(List<FeatureSelection> newValue) {
         currentValue = newValue;
     }
 
-    public List<Feature> getValue() {
+    public List<FeatureSelection> getValue() {
         return currentValue;
     }
 
@@ -82,10 +85,23 @@ public class FeaturesComponent extends JPanel implements ActionListener {
             featuresSelectionDialog.setVisible(true);
             if (featuresSelectionDialog.getReturnState() == true) {
                 jlist.setVisible(true);
-                currentValue = featuresSelectionDialog
-                        .getMultipleSelectionComponent().getSelectedValues();
-                for (Object str : currentValue.toArray()) {
-                    model.addElement((String) (str));
+                PeakList selectedPeakList = featuresSelectionDialog
+                        .getSelectedPeakList();
+                RawDataFile selectedRawDataFile = featuresSelectionDialog
+                        .getSelectedRawDataFile();
+                LOG.finest(
+                        "Selected PeakList is:" + selectedPeakList.getName());
+                LOG.finest("Selected RawDataFile is:"
+                        + selectedRawDataFile.getName());
+                for (Feature feature : featuresSelectionDialog
+                        .getSelectedFeatures()) {
+                    PeakListRow selectedRow = selectedPeakList
+                            .getPeakRow(feature);
+                    FeatureSelection featureSelection = new FeatureSelection(
+                            selectedPeakList, feature, selectedRow,
+                            selectedRawDataFile);
+                    currentValue.add(featureSelection);
+                    model.addElement(feature.toString());
                 }
             }
         }

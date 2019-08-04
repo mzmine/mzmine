@@ -23,18 +23,21 @@ import java.util.List;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 
 public class FeaturesParameter
-        implements UserParameter<List<Feature>, FeaturesComponent> {
+        implements UserParameter<List<FeatureSelection>, FeaturesComponent> {
 
     private String name = "Features";
-    private List<Feature> value;
+    private List<FeatureSelection> value = new ArrayList<FeatureSelection>();
 
     @Override
     public String getName() {
@@ -42,12 +45,12 @@ public class FeaturesParameter
     }
 
     @Override
-    public List<Feature> getValue() {
+    public List<FeatureSelection> getValue() {
         return value;
     }
 
     @Override
-    public void setValue(List<Feature> newValue) {
+    public void setValue(List<FeatureSelection> newValue) {
         this.value = newValue;
     }
 
@@ -65,16 +68,46 @@ public class FeaturesParameter
         PeakList[] allPeakLists = MZmineCore.getProjectManager()
                 .getCurrentProject().getPeakLists();
 
-        ArrayList<Object> newValues = new ArrayList<Object>();
+        List<FeatureSelection> newValues = new ArrayList<FeatureSelection>();
 
         NodeList items = xmlElement.getElementsByTagName("feature");
         for (int i = 0; i < items.getLength(); i++) {
-            NodeList children = items.item(i).getChildNodes();
-            for (int j = 0; j < children.getLength(); j++) {
-                String str = children.item(j).getNodeValue();
+            Node doc = items.item(i);
+            if (doc instanceof Element) {
+                Element docElement = (Element) doc;
+                for (PeakList peakList : allPeakLists) {
+                    PeakListRow[] rows = peakList.getRows();
+                    RawDataFile[] dataFiles = peakList.getRawDataFiles();
+                    if (peakList.getName()
+                            .equals(docElement
+                                    .getElementsByTagName("peaklist_name")
+                                    .item(0).getNodeValue())) {
+                        for (PeakListRow row : rows) {
+                            int rownum = 0;
+                            if (row.toString().equals(docElement
+                                    .getElementsByTagName("peaklist_row_id")
+                                    .item(0).getNodeValue())) {
+                                for (RawDataFile dataFile : dataFiles) {
+                                    if (dataFile.getName()
+                                            .equals(docElement
+                                                    .getElementsByTagName(
+                                                            "rawdatafile_name")
+                                                    .item(0).getNodeValue())) {
+                                        Feature feature = peakList
+                                                .getPeak(rownum, dataFile);
+                                        newValues.add(new FeatureSelection(
+                                                peakList, feature, row,
+                                                dataFile));
+                                    }
+                                }
+                            }
+                            rownum++;
+                        }
+                    }
+                }
             }
         }
-
+        this.value = newValues;
     }
 
     @Override
@@ -83,18 +116,18 @@ public class FeaturesParameter
             return;
         Document parentDocument = xmlElement.getOwnerDocument();
 
-        for (Feature item : value) {
+        for (FeatureSelection item : value) {
             Element featureElement = parentDocument.createElement("feature");
             Document newDocument = featureElement.getOwnerDocument();
             Element peakListElement = newDocument
                     .createElement("peaklist_name");
-            // item.?togetthepeaklistname
+            peakListElement.setNodeValue(item.getPeakList().getName());
             Element peakListRowElement = newDocument
                     .createElement("peaklist_row_id");
-            peakListRowElement.setNodeValue(item.toString());
+            peakListRowElement.setNodeValue(item.getPeakListRow().toString());
             Element rawDataFileElement = newDocument
                     .createElement("rawdatafile_name");
-            rawDataFileElement.setNodeValue(item.getDataFile().toString());
+            rawDataFileElement.setNodeValue(item.getRawDataFile().getName());
             featureElement.appendChild(peakListElement);
             featureElement.appendChild(peakListRowElement);
             featureElement.appendChild(rawDataFileElement);
@@ -121,12 +154,12 @@ public class FeaturesParameter
 
     @Override
     public void setValueToComponent(FeaturesComponent component,
-            List<Feature> newValue) {
+            List<FeatureSelection> newValue) {
         component.setValue(newValue);
     }
 
     @Override
-    public UserParameter<List<Feature>, FeaturesComponent> cloneParameter() {
+    public UserParameter<List<FeatureSelection>, FeaturesComponent> cloneParameter() {
         return null;
     }
 
