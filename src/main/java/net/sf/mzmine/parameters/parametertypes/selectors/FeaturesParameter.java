@@ -37,7 +37,7 @@ public class FeaturesParameter
         implements UserParameter<List<FeatureSelection>, FeaturesComponent> {
 
     private String name = "Features";
-    private List<FeatureSelection> value = new ArrayList<FeatureSelection>();
+    private List<FeatureSelection> value;
 
     @Override
     public String getName() {
@@ -107,6 +107,7 @@ public class FeaturesParameter
                 }
             }
         }
+        this.value = new ArrayList<FeatureSelection>();
         this.value = newValues;
     }
 
@@ -159,8 +160,15 @@ public class FeaturesParameter
     }
 
     @Override
-    public UserParameter<List<FeatureSelection>, FeaturesComponent> cloneParameter() {
-        return null;
+    public FeaturesParameter cloneParameter() {
+        FeaturesParameter copy = new FeaturesParameter();
+        for (FeatureSelection featureSelection : value) {
+            FeatureSelection selection = featureSelection.clone();
+            if (copy.value != null) {
+                copy.value.add(selection);
+            }
+        }
+        return copy;
     }
 
 }

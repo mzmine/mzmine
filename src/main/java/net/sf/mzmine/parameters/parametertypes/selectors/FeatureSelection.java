@@ -5,14 +5,18 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 
-public class FeatureSelection {
+public class FeatureSelection implements Cloneable {
 
     private Feature feature;
     private PeakListRow peakListRow;
     private PeakList peakList;
     private RawDataFile rawDataFile;
 
-    FeatureSelection(PeakList peakList, Feature feature,
+    public FeatureSelection() {
+        this(null, null, null, null);
+    }
+
+    public FeatureSelection(PeakList peakList, Feature feature,
             PeakListRow peakListRow, RawDataFile rawDataFile) {
         this.peakList = peakList;
         this.feature = feature;
@@ -34,6 +38,15 @@ public class FeatureSelection {
 
     public RawDataFile getRawDataFile() {
         return rawDataFile;
+    }
+
+    public FeatureSelection clone() {
+        FeatureSelection newSelection = new FeatureSelection();
+        newSelection.feature = feature;
+        newSelection.peakListRow = peakListRow;
+        newSelection.peakList = peakList;
+        newSelection.rawDataFile = rawDataFile;
+        return newSelection;
     }
 
 }

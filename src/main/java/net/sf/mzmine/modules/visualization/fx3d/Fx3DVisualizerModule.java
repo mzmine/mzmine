@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.fx3d;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -38,6 +39,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
@@ -75,6 +77,12 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         final ScanSelection scanSel = parameters
                 .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
+        final List<FeatureSelection> featureSel = parameters
+                .getParameter(Fx3DVisualizerParameters.features).getValue();
+        for (FeatureSelection selection : featureSel) {
+            LOG.finest("Selected features are:"
+                    + selection.getFeature().toString());
+        }
 
         Range<Double> rtRange = ScanUtils.findRtRange(
                 scanSel.getMatchingScans(MZmineCore.getProjectManager()
