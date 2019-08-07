@@ -64,6 +64,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.components.ButtonCell;
@@ -137,10 +138,13 @@ public class Fx3DStageController {
             .observableArrayList();
     private ObservableList<MeshView> meshViewList = FXCollections
             .observableArrayList();
+    private ObservableList<Fx3DFeatureDataset> features = FXCollections
+            .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
     private ScanSelection scanSel;
     private List<RawDataFile> allDataFiles;
     private List<RawDataFile> visualizedFiles = new ArrayList<RawDataFile>();
+    private List<FeatureSelection> featureSelections;
     private Timeline rotateAnimationTimeline;
     boolean animationRunning = false;
     private Range<Double> rtRange;
@@ -244,6 +248,9 @@ public class Fx3DStageController {
         for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
             mesh.normalize(maxOfAllBinnedIntensity);
             meshViewList.add(mesh.getMeshView());
+        }
+        for (Fx3DFeatureDataset featureBox : features) {
+            featureBox.normalizeHeight(maxOfAllBinnedIntensity);
         }
         meshViews.getChildren().clear();
         meshViews.getChildren().addAll(meshViewList);
@@ -680,6 +687,36 @@ public class Fx3DStageController {
             return max;
 
         return value;
+    }
+
+    public void addFeatureSelections(List<FeatureSelection> selections) {
+        this.featureSelections = selections;
+        addFeatures();
+    }
+
+    public void addFeatures() {
+        for (FeatureSelection featureSelection : featureSelections) {
+            LOG.finest("Rt range of the selected feature is:"
+                    + featureSelection.getFeature().getRawDataPointsRTRange()
+                            .lowerEndpoint()
+                    + "-" + featureSelection.getFeature()
+                            .getRawDataPointsRTRange().upperEndpoint());
+            LOG.finest("Mz range of the selected feature is:"
+                    + featureSelection.getFeature().getRawDataPointsMZRange()
+                            .lowerEndpoint()
+                    + "-" + featureSelection.getFeature()
+                            .getRawDataPointsMZRange().upperEndpoint());
+            LOG.finest("Intensity range of the selected feature is:"
+                    + featureSelection.getFeature()
+                            .getRawDataPointsIntensityRange().lowerEndpoint()
+                    + "-" + featureSelection.getFeature()
+                            .getRawDataPointsIntensityRange().upperEndpoint());
+            Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
+                    featureSelection, rtResolution, mzResolution, rtRange,
+                    mzRange, maxOfAllBinnedIntensity);
+            features.add(featureDataset);
+            plot.getChildren().add(featureDataset.getFeatureBox());
+        }
     }
 
     public void setRtAndMzResolutions(int rtRes, int mzRes) {

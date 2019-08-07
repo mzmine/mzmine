@@ -12,10 +12,6 @@ public class FeatureSelection implements Cloneable {
     private PeakList peakList;
     private RawDataFile rawDataFile;
 
-    public FeatureSelection() {
-        this(null, null, null, null);
-    }
-
     public FeatureSelection(PeakList peakList, Feature feature,
             PeakListRow peakListRow, RawDataFile rawDataFile) {
         this.peakList = peakList;
@@ -41,11 +37,8 @@ public class FeatureSelection implements Cloneable {
     }
 
     public FeatureSelection clone() {
-        FeatureSelection newSelection = new FeatureSelection();
-        newSelection.feature = feature;
-        newSelection.peakListRow = peakListRow;
-        newSelection.peakList = peakList;
-        newSelection.rawDataFile = rawDataFile;
+        FeatureSelection newSelection = new FeatureSelection(peakList, feature,
+                peakListRow, rawDataFile);
         return newSelection;
     }
 

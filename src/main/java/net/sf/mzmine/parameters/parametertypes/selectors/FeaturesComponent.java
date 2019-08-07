@@ -79,6 +79,7 @@ public class FeaturesComponent extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent event) {
         Object src = event.getSource();
         if (src == addButton) {
+            currentValue.clear();
             LOG.finest("Add Button Clicked!");
             FeaturesSelectionDialog featuresSelectionDialog = new FeaturesSelectionDialog();
             featuresSelectionDialog.setModal(true);

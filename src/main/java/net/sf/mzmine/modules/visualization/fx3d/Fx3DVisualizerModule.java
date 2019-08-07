@@ -77,9 +77,10 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
         final ScanSelection scanSel = parameters
                 .getParameter(Fx3DVisualizerParameters.scanSelection)
                 .getValue();
-        final List<FeatureSelection> featureSel = parameters
+        final List<FeatureSelection> featureSelList = parameters
                 .getParameter(Fx3DVisualizerParameters.features).getValue();
-        for (FeatureSelection selection : featureSel) {
+        LOG.finest("Feature selection is:" + featureSelList.toString());
+        for (FeatureSelection selection : featureSelList) {
             LOG.finest("Selected features are:"
                     + selection.getFeature().toString());
         }
@@ -129,6 +130,8 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
                                 TaskPriority.HIGH);
 
             }
+            controller.addFeatureSelections(featureSelList);
+            // controller.addFeatures();
             for (int i = 0; i < currentDataFiles.length; i++) {
                 title = title + currentDataFiles[i].toString() + " ";
             }

@@ -20,6 +20,7 @@ package net.sf.mzmine.parameters.parametertypes.selectors;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -38,6 +39,7 @@ public class FeaturesParameter
 
     private String name = "Features";
     private List<FeatureSelection> value;
+    private Logger LOG = Logger.getLogger(this.getClass().getName());
 
     @Override
     public String getName() {
@@ -65,6 +67,7 @@ public class FeaturesParameter
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
+
         PeakList[] allPeakLists = MZmineCore.getProjectManager()
                 .getCurrentProject().getPeakLists();
 
@@ -109,6 +112,7 @@ public class FeaturesParameter
         }
         this.value = new ArrayList<FeatureSelection>();
         this.value = newValues;
+        LOG.finest("Values have been loaded from XML");
     }
 
     @Override
@@ -134,7 +138,7 @@ public class FeaturesParameter
             featureElement.appendChild(rawDataFileElement);
             xmlElement.appendChild(featureElement);
         }
-
+        LOG.finest("Values are saved to XML");
     }
 
     @Override
@@ -162,11 +166,13 @@ public class FeaturesParameter
     @Override
     public FeaturesParameter cloneParameter() {
         FeaturesParameter copy = new FeaturesParameter();
+        if (copy.value == null) {
+            copy.value = new ArrayList<FeatureSelection>();
+        }
         for (FeatureSelection featureSelection : value) {
             FeatureSelection selection = featureSelection.clone();
-            if (copy.value != null) {
-                copy.value.add(selection);
-            }
+            LOG.finest("Feature Selection cloned" + selection);
+            copy.value.add(selection);
         }
         return copy;
     }
