@@ -16,7 +16,7 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,8 +29,6 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchParameters;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.RowsSpectralMatchTask;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.parameters.ParameterSet;

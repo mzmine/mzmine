@@ -16,9 +16,8 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchParameters;
 import net.sf.mzmine.parameters.Parameter;
 
 public class SelectedRowsLocalSpectralDBSearchParameters extends LocalSpectralDBSearchParameters {
