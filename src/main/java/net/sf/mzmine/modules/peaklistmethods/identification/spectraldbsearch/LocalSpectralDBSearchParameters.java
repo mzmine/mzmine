@@ -89,6 +89,14 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
           "Algorithm to calculate similarity and filter matches",
           SpectralSimilarityFunction.FUNCTIONS);
 
+  /**
+   * for SelectedRowsParameters
+   * 
+   * @param parameters
+   */
+  protected LocalSpectralDBSearchParameters(Parameter[] parameters) {
+    super(parameters);
+  }
 
   public LocalSpectralDBSearchParameters() {
     super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, mzTolerancePrecursor,
