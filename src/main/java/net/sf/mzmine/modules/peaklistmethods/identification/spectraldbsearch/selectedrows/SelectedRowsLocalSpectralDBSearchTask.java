@@ -30,6 +30,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.RowsSpectralMatchTask;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -50,7 +51,7 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-  private List<SelectedRowsSpectralMatchTask> tasks;
+  private List<RowsSpectralMatchTask> tasks;
 
   private SpectraIdentificationResultsWindow resultWindow;
 
@@ -159,16 +160,23 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
    * @param dataBaseFile
    * @return
    */
-  private List<SelectedRowsSpectralMatchTask> parseFile(File dataBaseFile)
+  private List<RowsSpectralMatchTask> parseFile(File dataBaseFile)
       throws UnsupportedFormatException, IOException {
     //
-    List<SelectedRowsSpectralMatchTask> tasks = new ArrayList<>();
+    List<RowsSpectralMatchTask> tasks = new ArrayList<>();
     AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
-        SelectedRowsSpectralMatchTask task = new SelectedRowsSpectralMatchTask(peakListRows,
-            parameters, alreadyProcessed + 1, list, resultWindow);
+        RowsSpectralMatchTask task = new RowsSpectralMatchTask(peakListRows.length + " rows",
+            peakListRows, parameters, alreadyProcessed + 1, list, (match) -> {
+              // one selected row -> show in dialog
+              if (resultWindow != null) {
+                resultWindow.addMatches(match);
+                resultWindow.revalidate();
+                resultWindow.repaint();
+              }
+            });
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }

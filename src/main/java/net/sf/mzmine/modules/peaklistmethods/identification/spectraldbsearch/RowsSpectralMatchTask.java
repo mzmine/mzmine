@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2019 The MZmine 2 Development Team
+ * Copyright 2006-2018 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -16,12 +16,12 @@
  * USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows;
+package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.io.File;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -33,12 +33,9 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchParameters;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesTask;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
-import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -54,14 +51,15 @@ import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
-public class SelectedRowsSpectralMatchTask extends AbstractTask {
+public class RowsSpectralMatchTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final String METHOD = "Spectral DB search";
   private static final int MAX_ERROR = 3;
   private int errorCounter = 0;
-  private final PeakListRow[] peakListRows;
+  private String description;
+  private PeakListRow[] rows;
   private final @Nonnull String massListName;
   private final File dataBaseFile;
   private final MZTolerance mzToleranceSpectra;
@@ -71,12 +69,12 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
   private int finishedRows = 0;
   private final int totalRows;
 
+  private ParameterSet parameters;
+
   private final int msLevel;
   private final double noiseLevel;
   private final int minMatch;
   private List<SpectralDBEntry> list;
-  private List<SpectralDBPeakIdentity> matches;
-  private SpectraIdentificationResultsWindow resultWindow;
 
   private int count = 0;
 
@@ -90,14 +88,23 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
   private MassListDeisotoperParameters deisotopeParam;
 
   private final boolean cropSpectraToOverlap;
+  // listen for matches
+  private Consumer<SpectralDBPeakIdentity> matchListener;
 
-  public SelectedRowsSpectralMatchTask(PeakListRow[] peakListRows, ParameterSet parameters,
-      int startEntry, List<SpectralDBEntry> list, SpectraIdentificationResultsWindow resultWindow) {
-    this.peakListRows = peakListRows;
+  public RowsSpectralMatchTask(String description, @Nonnull PeakListRow[] rows,
+      ParameterSet parameters, int startEntry, List<SpectralDBEntry> list) {
+    this(description, rows, parameters, startEntry, list, null);
+  }
+
+  public RowsSpectralMatchTask(String description, @Nonnull PeakListRow[] rows,
+      ParameterSet parameters, int startEntry, List<SpectralDBEntry> list,
+      Consumer<SpectralDBPeakIdentity> matchListener) {
+    this.description = description;
+    this.rows = rows;
+    this.parameters = parameters;
     this.startEntry = startEntry;
     this.list = list;
-    this.resultWindow = resultWindow;
-
+    this.matchListener = matchListener;
     listsize = list.size();
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
@@ -125,7 +132,7 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
     else
       mzTolerancePrecursor = null;
 
-    totalRows = 1;
+    totalRows = rows.length;
   }
 
   /**
@@ -144,7 +151,7 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
   @Override
   public String getTaskDescription() {
     return MessageFormat.format(
-        "(entry {2}-{3}) spectral database identification in {0} using database {1}", peakListRows,
+        "(entry {2}-{3}) spectral database identification in {0} using database {1}", description,
         dataBaseFile.getName(), startEntry, startEntry + listsize - 1);
   }
 
@@ -154,20 +161,19 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
   @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
-    if (isCanceled()) {
-      logger.info("Added " + count + " spectral library matches (before being cancelled)");
-      repaintWindow();
-      return;
-    }
-
-    for (PeakListRow peakListRow : peakListRows) {
+    for (PeakListRow row : rows) {
+      if (isCanceled()) {
+        logger.info("Added " + count + " spectral library matches (before being cancelled)");
+        repaintWindow();
+        return;
+      }
 
       // check for MS1 or MSMS scan
       Scan scan;
       if (msLevel == 1) {
-        scan = peakListRow.getBestPeak().getRepresentativeScan();
+        scan = row.getBestPeak().getRepresentativeScan();
       } else if (msLevel >= 2) {
-        scan = peakListRow.getBestFragmentation();
+        scan = row.getBestFragmentation();
       } else {
         logger.log(Level.WARNING, "Data base matching failed. MS level is not set correctly");
         setStatus(TaskStatus.ERROR);
@@ -177,30 +183,22 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
       if (scan != null) {
         try {
           // get mass list and perform deisotoping if active
-          DataPoint[] peakListRowMassList = getDataPoints(peakListRow, true);
+          DataPoint[] rowMassList = getDataPoints(row, true);
           if (removeIsotopes)
-            peakListRowMassList = removeIsotopes(peakListRowMassList);
+            rowMassList = removeIsotopes(rowMassList);
 
           // match against all library entries
-          if (resultWindow != null) {
-            matches = new ArrayList<>();
-          }
           for (SpectralDBEntry ident : list) {
-            SpectralSimilarity sim = spectraDBMatch(peakListRow, peakListRowMassList, ident);
+            SpectralSimilarity sim = spectraDBMatch(row, rowMassList, ident);
             if (sim != null) {
               count++;
-              if (resultWindow != null) {
-                matches.add(new SpectralDBPeakIdentity(scan, massListName, ident, sim,
-                    SpectraIdentificationSpectralDatabaseModule.MODULE_NAME));
-              }
-              addIdentity(peakListRow, ident, sim);
+              addIdentity(row, ident, sim);
             }
           }
           // sort identities based on similarity score
-          SortSpectralDBIdentitiesTask.sortIdentities(peakListRow);
+          SortSpectralDBIdentitiesTask.sortIdentities(row);
         } catch (MissingMassListException e) {
-          logger.log(Level.WARNING,
-              "No mass list in spectrum for peakListRowID=" + peakListRow.getID(), e);
+          logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
           errorCounter++;
         }
         // check for max error (missing masslist)
@@ -212,9 +210,9 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
           return;
         }
       }
+      // next row
+      finishedRows++;
     }
-    // next peakListRow
-    finishedRows++;
     if (count > 0)
       logger.info("Added " + count + " spectral library matches");
 
@@ -339,14 +337,12 @@ public class SelectedRowsSpectralMatchTask extends AbstractTask {
   private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectralSimilarity sim)
       throws MissingMassListException {
     // add new identity to the row
-    row.addPeakIdentity(new SpectralDBPeakIdentity(getScan(row), massListName, ident, sim, METHOD),
-        false);
-    if (resultWindow != null) {
-      resultWindow.addMatches(matches);
-      resultWindow.revalidate();
-      resultWindow.repaint();
-    }
-    setStatus(TaskStatus.FINISHED);
+    SpectralDBPeakIdentity pid =
+        new SpectralDBPeakIdentity(getScan(row), massListName, ident, sim, METHOD);
+    row.addPeakIdentity(pid, false);
+
+    if (matchListener != null)
+      matchListener.accept(pid);
   }
 
   public int getCount() {
