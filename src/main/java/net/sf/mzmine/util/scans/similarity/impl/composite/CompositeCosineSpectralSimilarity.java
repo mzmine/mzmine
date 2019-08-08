@@ -52,9 +52,15 @@ public class CompositeCosineSpectralSimilarity extends SpectralSimilarityFunctio
         parameters.getParameter(CompositeCosineSpectralSimilarityParameters.weight).getValue();
     double minCos =
         parameters.getParameter(CompositeCosineSpectralSimilarityParameters.minCosine).getValue();
+    boolean removeUnmatched = parameters
+        .getParameter(CompositeCosineSpectralSimilarityParameters.removeUnmatched).getValue();
 
     // align
     List<DataPoint[]> aligned = alignDataPoints(mzTol, library, query);
+    // removes all signals which were not found in both masslists
+    if (removeUnmatched)
+      aligned = removeUnaligned(aligned);
+
     int queryN = query.length;
     int overlap = calcOverlap(aligned);
 
