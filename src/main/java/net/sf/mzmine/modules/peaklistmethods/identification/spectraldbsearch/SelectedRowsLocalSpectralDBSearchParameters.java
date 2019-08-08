@@ -24,8 +24,8 @@ public class SelectedRowsLocalSpectralDBSearchParameters extends LocalSpectralDB
 
   public SelectedRowsLocalSpectralDBSearchParameters() {
     super(new Parameter[] {massList, dataBaseFile, msLevel, allMS2Spectra, mzTolerancePrecursor,
-        noiseLevel, deisotoping, cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch,
-        similarityFunction});
+        noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance,
+        rtTolerance, minMatch, similarityFunction});
   }
 
 }

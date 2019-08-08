@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.awt.Window;
+import java.util.Collection;
 import javax.swing.JComponent;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
@@ -65,6 +66,9 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       "Check all scans (only for MS2)",
       "Check all (or only most intense) MS2 scan. This option does not apply to MS1 scans.", false);
 
+  public static final BooleanParameter needsIsotopePattern = new BooleanParameter(
+      "Needs isotope pattern match", "Can not be applied with deisotoping", false);
+
   public static final MZToleranceParameter mzTolerancePrecursor =
       new MZToleranceParameter("Precursor m/z tolerance",
           "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
@@ -104,8 +108,23 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
 
   public LocalSpectralDBSearchParameters() {
     super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, allMS2Spectra,
-        mzTolerancePrecursor, noiseLevel, deisotoping, cropSpectraToOverlap, mzTolerance,
-        rtTolerance, minMatch, similarityFunction});
+        mzTolerancePrecursor, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
+        mzTolerance, rtTolerance, minMatch, similarityFunction});
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    boolean check = super.checkParameterValues(errorMessages);
+
+    // not both isotope and deisotope
+    boolean isotope =
+        !getParameter(deisotoping).getValue() || !getParameter(needsIsotopePattern).getValue();
+    if (!isotope) {
+      errorMessages
+          .add("Choose only one of \"deisotoping\" and \"need isotope pattern\" at the same time");
+      return false;
+    }
+    return check;
   }
 
   @Override
