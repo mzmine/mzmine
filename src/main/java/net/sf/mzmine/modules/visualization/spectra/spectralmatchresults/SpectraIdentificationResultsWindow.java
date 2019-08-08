@@ -56,6 +56,8 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   // couple y zoom (if one is changed - change the other in a mirror plot)
   private boolean isCouplingZoomY;
 
+  private JLabel noMatchesFound;
+
   public SpectraIdentificationResultsWindow() {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setSize(new Dimension(1400, 900));
@@ -69,10 +71,10 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     pnGrid.setBackground(Color.WHITE);
     pnGrid.setAutoscrolls(false);
 
-    // add label (is replaced later
-    JLabel noMatchesFound = new JLabel("Sorry, no matches found!", SwingConstants.CENTER);
+    noMatchesFound = new JLabel("I'm working on it", SwingConstants.CENTER);
     noMatchesFound.setFont(headerFont);
-    noMatchesFound.setForeground(Color.RED);
+    // yellow
+    noMatchesFound.setForeground(new Color(0xFFCC00));
     pnGrid.add(noMatchesFound, BorderLayout.CENTER);
 
     // Add the Windows menu
@@ -165,6 +167,13 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     }
     // renew layout and show
     renewLayout();
+  }
+
+  public void setMatchingFinished() {
+    if (totalMatches.isEmpty()) {
+      noMatchesFound.setText("Sorry no matches found");
+      noMatchesFound.setForeground(Color.RED);
+    }
   }
 
   /**

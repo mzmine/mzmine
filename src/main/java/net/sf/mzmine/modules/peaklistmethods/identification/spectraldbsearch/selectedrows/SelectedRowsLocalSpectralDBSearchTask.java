@@ -140,6 +140,7 @@ public class SelectedRowsLocalSpectralDBSearchTask extends AbstractTask {
     if (resultWindow != null) {
       resultWindow
           .setTitle("Matched " + count + " compounds for feature list row: " + peakListRows[0]);
+      resultWindow.setMatchingFinished();
       resultWindow.revalidate();
       resultWindow.repaint();
     }
