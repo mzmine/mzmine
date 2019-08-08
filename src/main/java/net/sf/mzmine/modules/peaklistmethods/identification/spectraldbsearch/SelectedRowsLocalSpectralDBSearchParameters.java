@@ -23,8 +23,9 @@ import net.sf.mzmine.parameters.Parameter;
 public class SelectedRowsLocalSpectralDBSearchParameters extends LocalSpectralDBSearchParameters {
 
   public SelectedRowsLocalSpectralDBSearchParameters() {
-    super(new Parameter[] {massList, dataBaseFile, msLevel, mzTolerancePrecursor, noiseLevel,
-        deisotoping, cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch, similarityFunction});
+    super(new Parameter[] {massList, dataBaseFile, msLevel, allMS2Spectra, mzTolerancePrecursor,
+        noiseLevel, deisotoping, cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch,
+        similarityFunction});
   }
 
 }

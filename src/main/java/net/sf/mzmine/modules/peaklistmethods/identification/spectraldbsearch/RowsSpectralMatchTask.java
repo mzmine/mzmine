@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -91,6 +92,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
   // listen for matches
   private Consumer<SpectralDBPeakIdentity> matchListener;
 
+  private boolean allMS2Scans;
+
   public RowsSpectralMatchTask(String description, @Nonnull PeakListRow[] rows,
       ParameterSet parameters, int startEntry, List<SpectralDBEntry> list) {
     this(description, rows, parameters, startEntry, list, null);
@@ -132,6 +135,8 @@ public class RowsSpectralMatchTask extends AbstractTask {
     else
       mzTolerancePrecursor = null;
 
+    allMS2Scans = parameters.getParameter(LocalSpectralDBSearchParameters.allMS2Spectra).getValue();
+
     totalRows = rows.length;
   }
 
@@ -168,47 +173,49 @@ public class RowsSpectralMatchTask extends AbstractTask {
         return;
       }
 
-      // check for MS1 or MSMS scan
-      Scan scan;
-      if (msLevel == 1) {
-        scan = row.getBestPeak().getRepresentativeScan();
-      } else if (msLevel >= 2) {
-        scan = row.getBestFragmentation();
-      } else {
-        logger.log(Level.WARNING, "Data base matching failed. MS level is not set correctly");
-        setStatus(TaskStatus.ERROR);
-        setErrorMessage("Data base matching failed. MS level is not set correctly");
-        return;
-      }
-      if (scan != null) {
-        try {
+      try {
+        // All MS2 or only best MS2 scan
+        // best MS1 scan
+        // check for MS1 or MSMS scan
+        List<Scan> scans = getScans(row);
+        List<DataPoint[]> rowMassLists = new ArrayList<>();
+        for (Scan scan : scans) {
           // get mass list and perform deisotoping if active
-          DataPoint[] rowMassList = getDataPoints(row, true);
+          DataPoint[] rowMassList = getDataPoints(scan, true);
           if (removeIsotopes)
             rowMassList = removeIsotopes(rowMassList);
+          rowMassLists.add(rowMassList);
+        }
 
-          // match against all library entries
-          for (SpectralDBEntry ident : list) {
-            SpectralSimilarity sim = spectraDBMatch(row, rowMassList, ident);
-            if (sim != null) {
-              count++;
-              addIdentity(row, ident, sim);
+        // match against all library entries
+        for (SpectralDBEntry ident : list) {
+          SpectralDBPeakIdentity best = null;
+          // match all scans against this ident to find best match
+          for (int i = 0; i < scans.size(); i++) {
+            SpectralSimilarity sim = spectraDBMatch(row, rowMassLists.get(i), ident);
+            if (sim != null && (best == null || best.getSimilarity().getScore() < sim.getScore())) {
+              best = new SpectralDBPeakIdentity(scans.get(i), massListName, ident, sim, METHOD);
             }
           }
-          // sort identities based on similarity score
-          SortSpectralDBIdentitiesTask.sortIdentities(row);
-        } catch (MissingMassListException e) {
-          logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
-          errorCounter++;
+          // has match?
+          if (best != null) {
+            addIdentity(row, best);
+            count++;
+          }
         }
-        // check for max error (missing masslist)
-        if (errorCounter > MAX_ERROR) {
-          logger.log(Level.WARNING, "Data base matching failed. To many missing mass lists ");
-          setStatus(TaskStatus.ERROR);
-          setErrorMessage("Data base matching failed. To many missing mass lists ");
-          list = null;
-          return;
-        }
+        // sort identities based on similarity score
+        SortSpectralDBIdentitiesTask.sortIdentities(row);
+      } catch (MissingMassListException e) {
+        logger.log(Level.WARNING, "No mass list in spectrum for rowID=" + row.getID(), e);
+        errorCounter++;
+      }
+      // check for max error (missing masslist)
+      if (errorCounter > MAX_ERROR) {
+        logger.log(Level.WARNING, "Data base matching failed. To many missing mass lists ");
+        setStatus(TaskStatus.ERROR);
+        setErrorMessage("Data base matching failed. To many missing mass lists ");
+        list = null;
+        return;
       }
       // next row
       finishedRows++;
@@ -220,6 +227,7 @@ public class RowsSpectralMatchTask extends AbstractTask {
     repaintWindow();
 
     list = null;
+
     setStatus(TaskStatus.FINISHED);
   }
 
@@ -302,43 +310,40 @@ public class RowsSpectralMatchTask extends AbstractTask {
    * @return
    * @throws MissingMassListException
    */
-  private DataPoint[] getDataPoints(PeakListRow row, boolean noiseFilter)
+  private DataPoint[] getDataPoints(Scan scan, boolean noiseFilter)
       throws MissingMassListException {
-    Scan scan = getScan(row);
-    if (scan == null || scan.getMassList(massListName) == null)
+    if (scan == null || scan.getMassList(massListName) == null) {
       return new DataPoint[0];
+    }
 
     MassList masses = scan.getMassList(massListName);
     DataPoint[] dps = masses.getDataPoints();
-    if (noiseFilter)
-      return ScanUtils.getFiltered(dps, noiseLevel);
-    else
-      return dps;
+    return noiseFilter ? ScanUtils.getFiltered(dps, noiseLevel) : dps;
   }
 
-  public Scan getScan(PeakListRow row) throws MissingMassListException {
-    final Scan scan;
+  public List<Scan> getScans(PeakListRow row) throws MissingMassListException {
     if (msLevel == 1) {
-      scan = row.getBestPeak().getRepresentativeScan();
-    } else if (msLevel >= 2) {
+      List<Scan> scans = new ArrayList<>();
+      scans.add(row.getBestPeak().getRepresentativeScan());
+      return scans;
+    } else {
       // first entry is the best scan
       List<Scan> scans = ScanUtils.listAllFragmentScans(row, massListName, noiseLevel, minMatch,
           ScanSortMode.MAX_TIC);
-      if (scans.isEmpty())
-        return null;
-      else
-        scan = scans.get(0);
-    } else
-      scan = null;
-
-    return scan;
+      if (allMS2Scans)
+        return scans;
+      else {
+        // only keep first (with highest TIC)
+        while (scans.size() > 1) {
+          scans.remove(1);
+        }
+        return scans;
+      }
+    }
   }
 
-  private void addIdentity(PeakListRow row, SpectralDBEntry ident, SpectralSimilarity sim)
-      throws MissingMassListException {
+  private void addIdentity(PeakListRow row, SpectralDBPeakIdentity pid) {
     // add new identity to the row
-    SpectralDBPeakIdentity pid =
-        new SpectralDBPeakIdentity(getScan(row), massListName, ident, sim, METHOD);
     row.addPeakIdentity(pid, false);
 
     if (matchListener != null)

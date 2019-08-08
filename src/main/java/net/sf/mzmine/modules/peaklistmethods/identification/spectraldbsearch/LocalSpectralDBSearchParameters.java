@@ -61,6 +61,10 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       "Choose the MS level of the scans that should be compared with the database. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
       2, 1, 1000);
 
+  public static final BooleanParameter allMS2Spectra = new BooleanParameter(
+      "Check all scans (only for MS2)",
+      "Check all (or only most intense) MS2 scan. This option does not apply to MS1 scans.", false);
+
   public static final MZToleranceParameter mzTolerancePrecursor =
       new MZToleranceParameter("Precursor m/z tolerance",
           "Precursor m/z tolerance is used to filter library entries", 0.001, 5);
@@ -99,9 +103,9 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   }
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, mzTolerancePrecursor,
-        noiseLevel, deisotoping, cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch,
-        similarityFunction});
+    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, allMS2Spectra,
+        mzTolerancePrecursor, noiseLevel, deisotoping, cropSpectraToOverlap, mzTolerance,
+        rtTolerance, minMatch, similarityFunction});
   }
 
   @Override
