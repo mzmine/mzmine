@@ -33,10 +33,13 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import org.drjekyll.fontchooser.FontDialog;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
@@ -55,6 +58,8 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   private Map<SpectralDBPeakIdentity, SpectralMatchPanel> matchPanels;
   // couple y zoom (if one is changed - change the other in a mirror plot)
   private boolean isCouplingZoomY;
+
+  private Font chartFont = new Font("Verdana", Font.PLAIN, 11);
 
   public SpectraIdentificationResultsWindow() {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -82,6 +87,12 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     cbCoupleZoomY.setSelected(true);
     cbCoupleZoomY.addItemListener(e -> setCoupleZoomY(cbCoupleZoomY.isSelected()));
     menuBar.add(cbCoupleZoomY);
+
+    // set font size of chart
+    JMenuItem btnSetFont = new JMenuItem("Set chart font");
+    btnSetFont.addActionListener(e -> setChartFont());
+    menuBar.add(btnSetFont);
+
     setJMenuBar(menuBar);
 
     scrollPane = new JScrollPane(pnGrid);
@@ -98,6 +109,15 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     validate();
     repaint();
+  }
+
+  private void setChartFont() {
+    FontDialog dialog = new FontDialog(this, "Font Dialog Example", true);
+    dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    dialog.setVisible(true);
+    if (!dialog.isCancelSelected()) {
+      setChartFont(dialog.getSelectedFont());
+    }
   }
 
   public void setCoupleZoomY(boolean selected) {
@@ -196,4 +216,16 @@ public class SpectraIdentificationResultsWindow extends JFrame {
       this.pnGrid = pnGrid;
     });
   }
+
+  public Font getChartFont() {
+    return chartFont;
+  }
+
+  public void setChartFont(Font chartFont) {
+    this.chartFont = chartFont;
+    matchPanels.values().stream().forEach(pn -> {
+      pn.setChartFont(chartFont);
+    });
+  }
+
 }
