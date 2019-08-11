@@ -66,8 +66,10 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
       "Check all scans (only for MS2)",
       "Check all (or only most intense) MS2 scan. This option does not apply to MS1 scans.", false);
 
-  public static final BooleanParameter needsIsotopePattern = new BooleanParameter(
-      "Needs isotope pattern match", "Can not be applied with deisotoping", false);
+  public static final OptionalParameter<IntegerParameter> needsIsotopePattern =
+      new OptionalParameter<>(new IntegerParameter("Min matched isotope signals",
+          "Useful for scans and libraries with isotope pattern. Minimum matched signals of 13C isotopes, distance of H and 2H or Cl isotopes. Can not be applied with deisotoping",
+          3, 0, 1000), false);
 
   public static final MZToleranceParameter mzTolerancePrecursor =
       new MZToleranceParameter("Precursor m/z tolerance",

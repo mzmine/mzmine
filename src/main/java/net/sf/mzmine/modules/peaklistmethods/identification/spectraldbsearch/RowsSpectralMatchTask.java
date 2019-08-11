@@ -37,6 +37,7 @@ import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesTask;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoper;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectralMatchTask;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
@@ -94,6 +95,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
   private boolean allMS2Scans;
 
+  // needs any signals within mzToleranceSpectra for
+  // 13C, H, 2H or Cl
+  private boolean needsIsotopePattern;
+  private int minMatchedIsoSignals;
+
   public RowsSpectralMatchTask(String description, @Nonnull PeakListRow[] rows,
       ParameterSet parameters, int startEntry, List<SpectralDBEntry> list) {
     this(description, rows, parameters, startEntry, list, null);
@@ -123,6 +129,11 @@ public class RowsSpectralMatchTask extends AbstractTask {
     minMatch = parameters.getParameter(LocalSpectralDBSearchParameters.minMatch).getValue();
     simFunction =
         parameters.getParameter(LocalSpectralDBSearchParameters.similarityFunction).getValue();
+    needsIsotopePattern =
+        parameters.getParameter(LocalSpectralDBSearchParameters.needsIsotopePattern).getValue();
+    minMatchedIsoSignals = !needsIsotopePattern ? 0
+        : parameters.getParameter(LocalSpectralDBSearchParameters.needsIsotopePattern)
+            .getEmbeddedParameter().getValue();
     removeIsotopes =
         parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping).getValue();
     deisotopeParam = parameters.getParameter(LocalSpectralDBSearchParameters.deisotoping)
@@ -193,7 +204,10 @@ public class RowsSpectralMatchTask extends AbstractTask {
           // match all scans against this ident to find best match
           for (int i = 0; i < scans.size(); i++) {
             SpectralSimilarity sim = spectraDBMatch(row, rowMassLists.get(i), ident);
-            if (sim != null && (best == null || best.getSimilarity().getScore() < sim.getScore())) {
+            if (sim != null
+                && (!needsIsotopePattern || SpectralMatchTask.checkForIsotopePattern(sim,
+                    mzToleranceSpectra, minMatchedIsoSignals))
+                && (best == null || best.getSimilarity().getScore() < sim.getScore())) {
               best = new SpectralDBPeakIdentity(scans.get(i), massListName, ident, sim, METHOD);
             }
           }
@@ -273,8 +287,9 @@ public class RowsSpectralMatchTask extends AbstractTask {
 
       // check spectra similarity
       SpectralSimilarity sim = createSimilarity(library, query);
-      if (sim != null)
+      if (sim != null) {
         return sim;
+      }
     }
     return null;
   }
