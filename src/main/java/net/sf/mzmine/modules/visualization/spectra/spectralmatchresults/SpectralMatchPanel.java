@@ -60,6 +60,7 @@ import net.sf.mzmine.framework.ScrollablePanel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.util.ColorScaleUtil;
 import net.sf.mzmine.util.components.MultiLineLabel;
@@ -173,35 +174,8 @@ public class SpectralMatchPanel extends JPanel {
     preview2DPanel.add(pn, BorderLayout.EAST);
     pn.add(pnExport, BorderLayout.CENTER);
 
-    JButton btnExport = new JButton(IconUtil.scaled(iconAll, ICON_WIDTH));
-    btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
-        btnExport.getIcon().getIconHeight() + 6));
-    btnExport.addActionListener(e -> exportToGraphics("all"));
-    pnExport.add(btnExport, "cell 0 0, growx, center");
-
-    btnExport = new JButton(IconUtil.scaled(iconPdf, ICON_WIDTH));
-    btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
-        btnExport.getIcon().getIconHeight() + 6));
-    btnExport.addActionListener(e -> exportToGraphics("pdf"));
-    pnExport.add(btnExport, "cell 0 1, growx, center");
-
-    btnExport = new JButton(IconUtil.scaled(iconEmf, ICON_WIDTH));
-    btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
-        btnExport.getIcon().getIconHeight() + 6));
-    btnExport.addActionListener(e -> exportToGraphics("emf"));
-    pnExport.add(btnExport, "cell 0 2, growx, center");
-
-    btnExport = new JButton(IconUtil.scaled(iconEps, ICON_WIDTH));
-    btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
-        btnExport.getIcon().getIconHeight() + 6));
-    btnExport.addActionListener(e -> exportToGraphics("eps"));
-    pnExport.add(btnExport, "cell 0 3, growx, center");
-
-    btnExport = new JButton(IconUtil.scaled(iconSvg, ICON_WIDTH));
-    btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
-        btnExport.getIcon().getIconHeight() + 6));
-    btnExport.addActionListener(e -> exportToGraphics("svg"));
-    pnExport.add(btnExport, "cell 0 4, growx, center");
+    addExportButtons(MZmineCore.getConfiguration()
+        .getModuleParameters(SpectraIdentificationResultsModule.class));
 
     JComponent newComponent = null;
 
@@ -294,6 +268,55 @@ public class SpectralMatchPanel extends JPanel {
     metaDataPanelScrollPane.revalidate();
     scrollpn.revalidate();
     panel.revalidate();
+  }
+
+
+  /**
+   * 
+   * @param param {@link SpectraIdentificationResultsParameters}
+   */
+  private void addExportButtons(ParameterSet param) {
+    JButton btnExport = null;
+
+    if (param.getParameter(SpectraIdentificationResultsParameters.all).getValue()) {
+      btnExport = new JButton(IconUtil.scaled(iconAll, ICON_WIDTH));
+      btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
+          btnExport.getIcon().getIconHeight() + 6));
+      btnExport.addActionListener(e -> exportToGraphics("all"));
+      pnExport.add(btnExport, "cell 0 0, growx, center");
+    }
+
+    if (param.getParameter(SpectraIdentificationResultsParameters.pdf).getValue()) {
+      btnExport = new JButton(IconUtil.scaled(iconPdf, ICON_WIDTH));
+      btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
+          btnExport.getIcon().getIconHeight() + 6));
+      btnExport.addActionListener(e -> exportToGraphics("pdf"));
+      pnExport.add(btnExport, "cell 0 1, growx, center");
+    }
+
+    if (param.getParameter(SpectraIdentificationResultsParameters.emf).getValue()) {
+      btnExport = new JButton(IconUtil.scaled(iconEmf, ICON_WIDTH));
+      btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
+          btnExport.getIcon().getIconHeight() + 6));
+      btnExport.addActionListener(e -> exportToGraphics("emf"));
+      pnExport.add(btnExport, "cell 0 2, growx, center");
+    }
+
+    if (param.getParameter(SpectraIdentificationResultsParameters.eps).getValue()) {
+      btnExport = new JButton(IconUtil.scaled(iconEps, ICON_WIDTH));
+      btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
+          btnExport.getIcon().getIconHeight() + 6));
+      btnExport.addActionListener(e -> exportToGraphics("eps"));
+      pnExport.add(btnExport, "cell 0 3, growx, center");
+    }
+
+    if (param.getParameter(SpectraIdentificationResultsParameters.svg).getValue()) {
+      btnExport = new JButton(IconUtil.scaled(iconSvg, ICON_WIDTH));
+      btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
+          btnExport.getIcon().getIconHeight() + 6));
+      btnExport.addActionListener(e -> exportToGraphics("svg"));
+      pnExport.add(btnExport, "cell 0 4, growx, center");
+    }
   }
 
 
@@ -481,6 +504,14 @@ public class SpectralMatchPanel extends JPanel {
       libraryPlot.getRangeAxis().setLabelFont(chartFont);
       libraryPlot.getRangeAxis().setTickLabelFont(chartFont);
     }
+  }
+
+
+  public void applySettings(ParameterSet param) {
+    pnExport.removeAll();
+    addExportButtons(param);
+    pnExport.revalidate();
+    pnExport.repaint();
   }
 
 }

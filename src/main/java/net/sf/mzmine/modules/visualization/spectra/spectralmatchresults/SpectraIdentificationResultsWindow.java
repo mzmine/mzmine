@@ -41,6 +41,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import org.drjekyll.fontchooser.FontDialog;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
@@ -62,6 +64,7 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   private JLabel noMatchesFound;
 
   private Font chartFont = new Font("Verdana", Font.PLAIN, 11);
+
 
   public SpectraIdentificationResultsWindow() {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -85,12 +88,23 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     // Add the Windows menu
     JMenuBar menuBar = new JMenuBar();
     menuBar.add(new WindowsMenu());
+
+    // set font size of chart
+    JMenuItem btnSetup = new JMenuItem("Setup dialog");
+    btnSetup.addActionListener(e -> {
+      if (MZmineCore.getConfiguration()
+          .getModuleParameters(SpectraIdentificationResultsModule.class)
+          .showSetupDialog(this, true) == ExitCode.OK) {
+        showExportButtonsChanged();
+      }
+    });
+    menuBar.add(btnSetup);
+
     JCheckBoxMenuItem cbCoupleZoomY = new JCheckBoxMenuItem("Couple y-zoom");
     cbCoupleZoomY.setSelected(true);
     cbCoupleZoomY.addItemListener(e -> setCoupleZoomY(cbCoupleZoomY.isSelected()));
     menuBar.add(cbCoupleZoomY);
 
-    // set font size of chart
     JMenuItem btnSetFont = new JMenuItem("Set chart font");
     btnSetFont.addActionListener(e -> setChartFont());
     menuBar.add(btnSetFont);
@@ -232,9 +246,20 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   public void setChartFont(Font chartFont) {
     this.chartFont = chartFont;
+    if (matchPanels == null)
+      return;
     matchPanels.values().stream().forEach(pn -> {
       pn.setChartFont(chartFont);
     });
   }
 
+
+  private void showExportButtonsChanged() {
+    if (matchPanels == null)
+      return;
+    matchPanels.values().stream().forEach(pn -> {
+      pn.applySettings(MZmineCore.getConfiguration()
+          .getModuleParameters(SpectraIdentificationResultsModule.class));
+    });
+  }
 }
