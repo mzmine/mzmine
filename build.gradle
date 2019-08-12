@@ -1,11 +1,17 @@
 plugins {
     id "java"
     id "application"
-    id "org.openjfx.javafxplugin" version "0.0.7"
-    id "org.beryx.runtime" version "1.2.0"
+    id "org.openjfx.javafxplugin" version "0.0.8"
+    id "org.beryx.runtime" version "1.3.0"
 }
 
+group = "io.github.mzmine"
+version = "2.50"
+description = "MZmine"
+sourceCompatibility = "12"
+targetCompatibility = "12"
 defaultTasks "clean", "runtimeZip"
+
 
 repositories {
     mavenLocal()
@@ -36,7 +42,11 @@ ext {
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
     guavaVersion = "28.0-jre"
+    slf4jVersion = "1.7.28"
     poiVersion = "4.1.0"
+    batikVersion = "1.11"
+    javafxVersion = "12.0.2"
+    controlsfxVersion = "11.0.0"
 }
 
 dependencies {
@@ -48,14 +58,13 @@ dependencies {
     compile "com.orsonpdf:orsonpdf:1.9"
     compile "com.google.guava:guava:$guavaVersion"
     compile "org.apache.commons:commons-math:2.2"
-    compile "javax.help:javahelp:2.0.05"
     compile "edu.ucar:netcdf4:4.5.5"
     compile "org.ostermiller:utils:1.07.00"
     compile "com.google.code.findbugs:jsr305:3.0.2"
     compile "nz.ac.waikato.cms.weka:weka-stable:3.8.3"
     compile "net.sourceforge.jmol:jmol:14.29.27"
-    compile "org.slf4j:slf4j-api:1.7.25"
-    compile "org.slf4j:slf4j-jdk14:1.7.25"
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    compile "org.slf4j:slf4j-jdk14:$slf4jVersion"
     compile "org.apache.poi:poi:$poiVersion"
     compile "org.apache.poi:poi-ooxml:$poiVersion"
     compile "org.openscience.cdk:cdk-core:$cdkVersion"
@@ -78,12 +87,8 @@ dependencies {
     compile "com.github.jbytecode:RCaller:3.0"
     compile "mzmine:jmprojection:1.0"
     compile "mzmine:gslibml:0.0.1"
-    compile "mzmine:visad:20131024"
     compile "org.jogamp.jogl:jogl-all-main:2.3.2"
     compile "org.jogamp.gluegen:gluegen-rt-main:2.3.2"
-    compile "java3d:j3dcore:1.6.0"
-    compile "java3d:j3dutils:1.6.0"
-    compile "java3d:vecmath:1.6.0"
     compile "uk.ac.ebi.pride:jmztab-modular-model:$jmztabVersion"
     compile "uk.ac.ebi.pride:jmztab-modular-util:$jmztabVersion"
     compile "org.apache.xmlgraphics:fop:1.0"
@@ -97,19 +102,21 @@ dependencies {
     compile "gnf:clustering:20130919"
     compile "it.unimi.dsi:fastutil:8.2.2"
     compile "com.itextpdf:itextpdf:5.5.13"
-    compile "org.apache.xmlgraphics:batik-util:1.8"
-    compile "org.apache.xmlgraphics:xmlgraphics-commons:2.0"
-    compile "org.apache.xmlgraphics:batik-transcoder:1.8"
-    compile "org.apache.xmlgraphics:batik-awt-util:1.8"
-    compile "org.apache.xmlgraphics:batik-dom:1.8"
-    compile "org.apache.xmlgraphics:batik-svggen:1.8"
-    compile "org.apache.xmlgraphics:batik-svg-dom:1.8"
-    compile "org.apache.xmlgraphics:batik-anim:1.8"
-    compile "org.apache.xmlgraphics:batik-rasterizer:1.8"
-    compile "org.apache.xmlgraphics:batik-swing:1.8"
-    compile "org.apache.xmlgraphics:batik-gui-util:1.8"
-    compile "org.apache.xmlgraphics:batik-ttf2svg:1.8"
-    compile "org.apache.xmlgraphics:batik-parser:1.8"
+    compile "org.apache.xmlgraphics:xmlgraphics-commons:2.3"
+    compile "org.apache.xmlgraphics:batik-util:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-transcoder:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-codec:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-ext:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-awt-util:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-dom:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-svggen:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-svg-dom:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-anim:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-rasterizer:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-swing:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-gui-util:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-ttf2svg:$batikVersion"
+    compile "org.apache.xmlgraphics:batik-parser:$batikVersion"
     compile "net.sf.epsgraphics:epsgraphics:1.2"
     compile "com.miglayout:miglayout:3.7.4"
     compile "javax.xml.bind:jaxb-api:2.3.1"
@@ -117,35 +124,36 @@ dependencies {
     compile "com.sun.xml.bind:jaxb-impl:2.3.2"
     compile "javax.activation:javax.activation-api:1.2.0"
     compile "javax.mail:javax.mail-api:1.6.2"
-    compile "org.openjfx:javafx-controls:12.0.1"
-    compile "org.openjfx:javafx-swing:12.0.1"
-    compile "org.openjfx:javafx-fxml:12.0.1"
+    compile "org.openjfx:javafx-controls:$javafxVersion"
+    compile "org.openjfx:javafx-swing:$javafxVersion"
+    compile "org.openjfx:javafx-fxml:$javafxVersion"
     compile "io.swagger:swagger-annotations:$swaggerVersion"
     compile "com.squareup.okhttp:okhttp:$okhttpVersion"
     compile "com.squareup.okhttp:logging-interceptor:$okhttpVersion"
     compile "com.google.code.gson:gson:2.8.5"
     compile "io.gsonfire:gson-fire:1.8.0"
     compile "org.threeten:threetenbp:1.3.8"
-    compile "org.controlsfx:controlsfx:11.0.0"
+    compile "org.controlsfx:controlsfx:$controlsfxVersion"
     compile "org.drjekyll:fontchooser:2.4"
     testCompile "junit:junit:4.12"
+ 
+    // To be removed
+    compile "mzmine:visad:20131024"
+    compile "java3d:j3dcore:1.6.0"
+    compile "java3d:j3dutils:1.6.0"
+    compile "java3d:vecmath:1.6.0"
+    compile "javax.help:javahelp:2.0.05"
 }
-
-group = "io.github.mzmine"
-version = "2.90"
-description = "MZmine"
-sourceCompatibility = "12"
-targetCompatibility = "12"
-
-tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
-}
-
 
 javafx {
     version = "12"
     modules = ["javafx.controls", "javafx.swing", "javafx.fxml"]
 }
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
 
 application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
