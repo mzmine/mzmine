@@ -13,7 +13,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>2.2</cdk.version>
+		<cdk.version>2.3</cdk.version>
 		<jmztab.version>3.0.8</jmztab.version>
 		<msdk.version>0.0.27</msdk.version>
 		<swagger-core.version>1.5.22</swagger-core.version>
