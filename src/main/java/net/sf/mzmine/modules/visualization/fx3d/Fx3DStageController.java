@@ -114,6 +114,8 @@ public class Fx3DStageController {
     @FXML
     private Group finalNode;
     private Group plot = new Group();
+    private Group lights1 = new Group();
+    private Group lights2 = new Group();
     private Group meshViews = new Group();
     private static final int SIZE = 500;
     private final Rotate rotateX = new Rotate(30, Rotate.X_AXIS);
@@ -137,8 +139,6 @@ public class Fx3DStageController {
             .observableArrayList();
     private ObservableList<Node> meshViewList = FXCollections
             .observableArrayList();
-    private ObservableList<Fx3DFeatureDataset> features = FXCollections
-            .observableArrayList();
     private PerspectiveCamera camera = new PerspectiveCamera();
     private ScanSelection scanSel;
     private List<RawDataFile> allDataFiles;
@@ -156,6 +156,8 @@ public class Fx3DStageController {
     private PointLight bottom;
     private PointLight left;
     private PointLight right;
+    private PointLight front;
+    private PointLight back;
     private int axesPosition = 0;
 
     public void initialize() {
@@ -194,6 +196,8 @@ public class Fx3DStageController {
 
         tableView.setItems(visualizedMeshPlots);
         plot.getChildren().add(meshViews);
+        plot.getChildren().add(lights1);
+        plot.getChildren().add(lights2);
         allDataFiles = Arrays.asList(MZmineCore.getProjectManager()
                 .getCurrentProject().getDataFiles());
 
@@ -209,6 +213,11 @@ public class Fx3DStageController {
         top.setTranslateZ(SIZE / 2);
         top.setTranslateY(-1000);
 
+        bottom = new PointLight(Color.WHITE);
+        bottom.setTranslateX(SIZE / 2);
+        bottom.setTranslateZ(SIZE / 2);
+        bottom.setTranslateY(1000);
+
         left = new PointLight(Color.WHITE);
         left.setTranslateX(-1000);
         left.setTranslateZ(SIZE / 2);
@@ -219,15 +228,22 @@ public class Fx3DStageController {
         right.setTranslateZ(SIZE / 2);
         right.setTranslateY(-10);
 
-        bottom = new PointLight(Color.WHITE);
-        bottom.setTranslateX(SIZE / 2);
-        bottom.setTranslateZ(SIZE / 2);
-        bottom.setTranslateY(1000);
+        front = new PointLight(Color.WHITE);
+        front.setTranslateX(SIZE / 2);
+        front.setTranslateZ(-1000);
+        front.setTranslateY(10);
 
-        plot.getChildren().add(left);
-        plot.getChildren().add(right);
-        plot.getChildren().add(top);
-        plot.getChildren().add(bottom);
+        back = new PointLight(Color.WHITE);
+        back.setTranslateX(SIZE / 2);
+        back.setTranslateZ(1000);
+        back.setTranslateY(-10);
+
+        lights1.getChildren().add(front);
+        lights1.getChildren().add(left);
+        lights1.getChildren().add(top);
+        lights1.getChildren().add(bottom);
+        lights2.getChildren().add(right);
+        lights2.getChildren().add(back);
     }
 
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
@@ -319,7 +335,7 @@ public class Fx3DStageController {
             Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
                     featureSelection, rtResolution, mzResolution, rtRange,
                     mzRange, maxOfAllBinnedIntensity,
-                    Color.rgb(165, 42, 42, 0.5));
+                    Color.rgb(165, 42, 42, 0.9));
             addDataset(featureDataset);
         }
     }
@@ -327,21 +343,24 @@ public class Fx3DStageController {
     private void addMenuItems() {
         removeDatafileMenu.getItems().clear();
         for (Fx3DAbstractDataset dataset : visualizedMeshPlots) {
-            MenuItem menuItem = new MenuItem(dataset.getFileName());
-            removeDatafileMenu.getItems().add(menuItem);
-            menuItem.setOnAction(new EventHandler<ActionEvent>() {
-                public void handle(ActionEvent e) {
-                    LOG.finest(
-                            "Context menu invoked. Remove button clicked. Removing dataset "
-                                    + dataset.getFileName()
-                                    + " from the plot.");
-                    remainingMeshPlots.add((Fx3DRawDataFileDataset) dataset);
-                    visualizedFiles.remove(dataset.getDataFile());
-                    visualizedMeshPlots.remove(dataset);
-                    updateGraph();
-                    addMenuItems();
-                }
-            });
+            if (dataset instanceof Fx3DRawDataFileDataset) {
+                MenuItem menuItem = new MenuItem(dataset.getFileName());
+                removeDatafileMenu.getItems().add(menuItem);
+                menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                    public void handle(ActionEvent e) {
+                        LOG.finest(
+                                "Context menu invoked. Remove button clicked. Removing dataset "
+                                        + dataset.getFileName()
+                                        + " from the plot.");
+                        remainingMeshPlots
+                                .add((Fx3DRawDataFileDataset) dataset);
+                        visualizedFiles.remove(dataset.getDataFile());
+                        visualizedMeshPlots.remove(dataset);
+                        updateGraph();
+                        addMenuItems();
+                    }
+                });
+            }
         }
         addDatafileMenu.getItems().clear();
         for (RawDataFile file : allDataFiles) {
