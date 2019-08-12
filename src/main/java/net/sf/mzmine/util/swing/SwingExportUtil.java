@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.text.MessageFormat;
+import java.util.logging.Logger;
 import javax.swing.JComponent;
 import org.apache.batik.anim.dom.SVGDOMImplementation;
 import org.apache.batik.svggen.SVGGraphics2D;
@@ -51,13 +53,14 @@ import net.sf.mzmine.util.spectraldb.parser.UnsupportedFormatException;
  *
  */
 public class SwingExportUtil {
+  private static final Logger logger = Logger.getLogger(SwingExportUtil.class.getName());
 
   /**
    * 
    * @param panel
    * @param path
    * @param fileName
-   * @param format without . (ALL, PDF, EMF, EPS). ALL = export all at once
+   * @param format without . (ALL, PDF, EMF, EPS, SVG). ALL = export all at once
    */
   public static void writeToGraphics(JComponent panel, File file, String format)
       throws IOException, DocumentException, UnsupportedFormatException {
@@ -104,6 +107,9 @@ public class SwingExportUtil {
     // print the panel to pdf
     int width = panel.getWidth();
     int height = panel.getHeight();
+    logger.info(
+        () -> MessageFormat.format("Exporting panel to PDF file (width x height; {0} x {1}): {2}",
+            width, height, fileName.getAbsolutePath()));
     Document document = new Document(new Rectangle(width, height));
     PdfWriter writer = null;
     try {
@@ -135,6 +141,9 @@ public class SwingExportUtil {
     // print the panel to pdf
     int width = panel.getWidth();
     int height = panel.getWidth();
+    logger.info(
+        () -> MessageFormat.format("Exporting panel to EPS file (width x height; {0} x {1}): {2}",
+            width, height, fileName.getAbsolutePath()));
     EpsGraphics g;
     g = new EpsGraphics("EpsTools Drawable Export", new FileOutputStream(fileName), 0, 0, width,
         height, ColorMode.COLOR_RGB);
@@ -153,6 +162,9 @@ public class SwingExportUtil {
     // print the panel to pdf
     int width = panel.getWidth();
     int height = panel.getWidth();
+    logger.info(
+        () -> MessageFormat.format("Exporting panel to EMF file (width x height; {0} x {1}): {2}",
+            width, height, fileName.getAbsolutePath()));
 
     VectorGraphics g = new EMFGraphics2D(fileName, new Dimension(width, height));
     g.startExport();
@@ -164,6 +176,9 @@ public class SwingExportUtil {
     // print the panel to pdf
     int width = panel.getWidth();
     int height = panel.getWidth();
+    logger.info(
+        () -> MessageFormat.format("Exporting panel to SVG file (width x height; {0} x {1}): {2}",
+            width, height, fileName.getAbsolutePath()));
 
     // Get a DOMImplementation
     DOMImplementation domImpl = SVGDOMImplementation.getDOMImplementation();
