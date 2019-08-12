@@ -22,6 +22,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import net.sf.mzmine.datamodel.RawDataFile;
 
@@ -85,4 +86,12 @@ abstract class Fx3DAbstractDataset {
     public SimpleBooleanProperty visibilityProperty() {
         return visibility;
     }
+
+    public abstract Node getNode();
+
+    public abstract void normalize(double maxOfAllBinnedIntensities);
+
+    public abstract void setNodeColor(Color nodeColor);
+
+    public abstract double getMaxBinnedIntensity();
 }

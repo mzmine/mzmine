@@ -131,7 +131,6 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
             }
             controller.addFeatureSelections(featureSelList);
-            // controller.addFeatures();
             for (int i = 0; i < currentDataFiles.length; i++) {
                 title = title + currentDataFiles[i].toString() + " ";
             }

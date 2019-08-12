@@ -35,19 +35,27 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
     private PeakList[] allPeakLists;
     private GridBagPanel mainPanel;
     private int selectedIndex = 0;
-    private JPanel panel0;
-    private JPanel panel1;
-    private JPanel panel2;
+    private JPanel panel00;
+    private JPanel panel01;
+    private JPanel panel02;
+    private JPanel panel10;
+    private JPanel panel11;
+    private JPanel panel12;
 
     public FeaturesSelectionDialog() {
-
         mainPanel = new GridBagPanel();
-        panel0 = new JPanel(new BorderLayout());
-        panel1 = new JPanel(new BorderLayout());
-        panel2 = new JPanel(new BorderLayout());
-        mainPanel.add(panel0, 0, 0);
-        mainPanel.add(panel1, 0, 1);
-        mainPanel.add(panel2, 0, 2);
+        panel00 = new JPanel(new BorderLayout());
+        panel01 = new JPanel(new BorderLayout());
+        panel02 = new JPanel(new BorderLayout());
+        panel10 = new JPanel(new BorderLayout());
+        panel11 = new JPanel(new BorderLayout());
+        panel12 = new JPanel(new BorderLayout());
+        mainPanel.add(panel00, 0, 0);
+        mainPanel.add(panel01, 0, 1);
+        mainPanel.add(panel02, 0, 2);
+        mainPanel.add(panel10, 1, 0);
+        mainPanel.add(panel11, 1, 1);
+        mainPanel.add(panel12, 1, 2);
         this.add(mainPanel);
 
         allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
@@ -55,10 +63,18 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
         peakListComboBox = new JComboBox<PeakList>(allPeakLists);
         peakListComboBox.setToolTipText("Peak Lists Selection Box");
         peakListComboBox.addActionListener(this);
-        JLabel peakListsLabel = new JLabel("Peak Lists");
+        JLabel peakListsLabel = new JLabel("Peak list");
 
-        panel0.add(peakListsLabel, BorderLayout.WEST);
-        panel0.add(peakListComboBox, BorderLayout.CENTER);
+        panel00.add(peakListsLabel, BorderLayout.CENTER);
+        panel10.add(peakListComboBox, BorderLayout.CENTER);
+
+        RawDataFile[] rawDataFiles = allPeakLists[0].getRawDataFiles();
+        rawDataFileComboBox = new JComboBox<RawDataFile>(rawDataFiles);
+        rawDataFileComboBox.setToolTipText("Raw data file Selection Box");
+        rawDataFileComboBox.addActionListener(this);
+        JLabel rawDataFilesLabel = new JLabel("Raw data file");
+        panel01.add(rawDataFilesLabel, BorderLayout.CENTER);
+        panel11.add(rawDataFileComboBox, BorderLayout.CENTER);
 
         RawDataFile datafile = allPeakLists[0].getRawDataFile(0);
         Feature[] features = allPeakLists[0].getPeaks(datafile);
@@ -66,16 +82,9 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
                 features);
         featuresSelectionBox.setToolTipText("Features Selection Box");
         JLabel featuresLabel = new JLabel("Features");
-        panel1.add(featuresSelectionBox, BorderLayout.CENTER);
-        panel1.add(featuresLabel, BorderLayout.WEST);
-
-        RawDataFile[] rawDataFiles = allPeakLists[0].getRawDataFiles();
-        rawDataFileComboBox = new JComboBox<RawDataFile>(rawDataFiles);
-        rawDataFileComboBox.setToolTipText("Raw data files Selection Box");
-        rawDataFileComboBox.addActionListener(this);
-        JLabel rawDataFilesLabel = new JLabel("Raw data files");
-        panel2.add(rawDataFileComboBox, BorderLayout.CENTER);
-        panel2.add(rawDataFilesLabel, BorderLayout.WEST);
+        featuresSelectionBox.setSize(50, 30);
+        panel02.add(featuresLabel, BorderLayout.WEST);
+        panel12.add(featuresSelectionBox, BorderLayout.CENTER);
 
         buttonPane = new JPanel();
         buttonPane.setLayout(new FlowLayout());
@@ -83,7 +92,7 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
         btnCancel = GUIUtils.addButton(buttonPane, "Cancel", null, this);
         this.add(buttonPane, BorderLayout.SOUTH);
         this.pack();
-        this.setSize(620, 400);
+        this.setSize(670, 400);
         this.setLocationRelativeTo(null);
     }
 
@@ -115,37 +124,24 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
             this.dispose();
         }
         if (src == rawDataFileComboBox) {
-            panel1.removeAll();
+            panel12.removeAll();
             RawDataFile dataFile = (RawDataFile) rawDataFileComboBox
                     .getSelectedItem();
             Feature[] features = allPeakLists[selectedIndex].getPeaks(dataFile);
-            JLabel featuresLabel = new JLabel("Features");
             featuresSelectionBox = new MultipleSelectionComponent<Feature>(
                     features);
             featuresSelectionBox.setToolTipText("Features Selection Box");
-            panel1.add(featuresLabel, BorderLayout.WEST);
-            panel1.add(featuresSelectionBox, BorderLayout.CENTER);
-            panel1.revalidate();
+            panel12.add(featuresSelectionBox, BorderLayout.CENTER);
+            panel12.revalidate();
         }
         if (src == peakListComboBox) {
             LOG.finest("Peak List Selected!");
             PeakList peakList = (PeakList) peakListComboBox.getSelectedItem();
-            panel1.removeAll();
-            panel2.removeAll();
+            panel11.removeAll();
+            panel12.removeAll();
 
             for (int j = 0; j < allPeakLists.length; j++) {
                 if (peakList.equals(allPeakLists[j])) {
-                    selectedIndex = j;
-                    RawDataFile datafile = allPeakLists[j].getRawDataFile(0);
-                    Feature[] features = allPeakLists[j].getPeaks(datafile);
-                    featuresSelectionBox = new MultipleSelectionComponent<Feature>(
-                            features);
-                    featuresSelectionBox
-                            .setToolTipText("Features Selection Box");
-                    JLabel featuresLabel = new JLabel("Features");
-                    panel1.add(featuresLabel, BorderLayout.WEST);
-                    panel1.add(featuresSelectionBox, BorderLayout.CENTER);
-
                     RawDataFile[] rawDataFiles = allPeakLists[j]
                             .getRawDataFiles();
                     rawDataFileComboBox = new JComboBox<RawDataFile>(
@@ -153,14 +149,24 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
                     rawDataFileComboBox
                             .setToolTipText("Raw data files Selection Box");
                     rawDataFileComboBox.addActionListener(this);
-                    JLabel rawDataFilesLabel = new JLabel("Raw data files");
-                    panel2.add(rawDataFileComboBox, BorderLayout.CENTER);
-                    panel2.add(rawDataFilesLabel, BorderLayout.WEST);
-                    this.setSize(620, 400);
+                    panel11.add(rawDataFileComboBox, BorderLayout.CENTER);
+
+                    this.setSize(670, 400);
                     LOG.finest("PeakListRowComboBox is Added");
+
+                    selectedIndex = j;
+                    RawDataFile datafile = allPeakLists[j].getRawDataFile(0);
+                    Feature[] features = allPeakLists[j].getPeaks(datafile);
+                    featuresSelectionBox = new MultipleSelectionComponent<Feature>(
+                            features);
+                    featuresSelectionBox
+                            .setToolTipText("Features Selection Box");
+                    // featuresSelectionBox.setSize(50, 30);
+                    // panel12.setSize(200, 80);
+                    panel12.add(featuresSelectionBox, BorderLayout.CENTER);
                 }
-                panel1.revalidate();
-                panel2.revalidate();
+                panel11.revalidate();
+                panel12.revalidate();
             }
         }
     }

@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.fx3d;
 import java.util.logging.Logger;
 
 import javafx.scene.DepthTest;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
@@ -121,7 +122,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
 
             }
         }
-        setPeakColor(peakColor);
+        setNodeColor(peakColor);
         meshView.setMesh(mesh);
         meshView.setCullFace(CullFace.NONE);
         meshView.setDrawMode(DrawMode.FILL);
@@ -129,7 +130,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         LOG.finest("Plot mesh is ready.");
     }
 
-    public void setPeakColor(Color peakColor) {
+    public void setNodeColor(Color peakColor) {
         int width = rtResolution;
         int height = mzResolution;
         WritableImage wr = new WritableImage(width, height);
@@ -180,7 +181,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         return maxBinnedIntensity;
     }
 
-    public MeshView getMeshView() {
+    public Node getNode() {
         return meshView;
     }
 

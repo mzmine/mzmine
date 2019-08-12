@@ -40,12 +40,22 @@
 										     	<contextMenu>
 											      <ContextMenu>
 														<items>
-															<Menu text="Add" fx:id="addMenu">
+															<Menu text="Add datafile" fx:id="addDatafileMenu">
 																<graphic>
 																	<Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
 																</graphic>
 															</Menu>
-															<Menu text="Remove" fx:id="removeMenu">
+															<Menu text="Remove datafile" fx:id="removeDatafileMenu">
+																<graphic>
+																	<Glyph fontFamily="FontAwesome" icon="MINUS_SQUARE_ALT" />
+																</graphic>
+															</Menu>
+															<Menu text="Add Feature" fx:id="addFeatureMenu">
+																<graphic>
+																	<Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
+																</graphic>
+															</Menu>
+															<Menu text="Remove Feature" fx:id="removeFeatureMenu">
 																<graphic>
 																	<Glyph fontFamily="FontAwesome" icon="MINUS_SQUARE_ALT" />
 																</graphic>
@@ -88,12 +98,12 @@
 				   <right>
 				   	<ToolBar orientation="VERTICAL"  style="-fx-background-color:transparent" minWidth="0">
 				          <items>
-				              <Button onAction="#handleZoomOut" minWidth="35">
+				              <Button onAction="#handleRotateAxes" minWidth="35">
 				                  <graphic>
-				                  	<Glyph fontFamily="FontAwesome" icon="ARROWS_ALT" />
+				                  	<Glyph fontFamily="FontAwesome" icon="ANGLE_DOUBLE_RIGHT" />
 				                  </graphic>
 				                  <tooltip>
-				                      <Tooltip text="Zoom out" />
+				                      <Tooltip text="Rotate Axes" />
 				                  </tooltip>
 				              </Button>
 				              <ToggleButton fx:id="animateBtn" onAction="#handleAnimate" minWidth="35">
@@ -120,14 +130,7 @@
 				                   <Tooltip text="Lights ON/OFF" />
 				               </tooltip>
 				            </ToggleButton>
-				            <Button onAction="#handleToggleAxes" minWidth="35">
-				                  <graphic>
-				                  	<Glyph fontFamily="FontAwesome" icon="ANGLE_DOUBLE_RIGHT" />
-				                  </graphic>
-				                  <tooltip>
-				                      <Tooltip text="Toggle Axes" />
-				                  </tooltip>
-				              </Button>
+				            
 				          </items>
 				      </ToolBar>
 				   </right>

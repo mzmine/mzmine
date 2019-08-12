@@ -56,7 +56,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.MeshView;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
@@ -88,9 +87,9 @@ public class Fx3DStageController {
     @FXML
     private SubScene scene3D;
     @FXML
-    private Menu addMenu;
+    private Menu addDatafileMenu;
     @FXML
-    private Menu removeMenu;
+    private Menu removeDatafileMenu;
     @FXML
     private BorderPane root;
     @FXML
@@ -103,15 +102,15 @@ public class Fx3DStageController {
     @FXML
     private ToggleButton lightsBtn;
     @FXML
-    private TableView<Fx3DRawDataFileDataset> tableView;
+    private TableView<Fx3DAbstractDataset> tableView;
     @FXML
-    private TableColumn<Fx3DRawDataFileDataset, String> fileNameCol;
+    private TableColumn<Fx3DAbstractDataset, String> fileNameCol;
     @FXML
-    private TableColumn<Fx3DRawDataFileDataset, Color> colorCol;
+    private TableColumn<Fx3DAbstractDataset, Color> colorCol;
     @FXML
-    private TableColumn<Fx3DRawDataFileDataset, Double> opacityCol;
+    private TableColumn<Fx3DAbstractDataset, Double> opacityCol;
     @FXML
-    private TableColumn<Fx3DRawDataFileDataset, Boolean> visibilityCol;
+    private TableColumn<Fx3DAbstractDataset, Boolean> visibilityCol;
     @FXML
     private Group finalNode;
     private Group plot = new Group();
@@ -132,11 +131,11 @@ public class Fx3DStageController {
 
     private double maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
 
-    private ObservableList<Fx3DRawDataFileDataset> visualizedMeshPlots = FXCollections
+    private ObservableList<Fx3DAbstractDataset> visualizedMeshPlots = FXCollections
             .observableArrayList();
     private ObservableList<Fx3DRawDataFileDataset> remainingMeshPlots = FXCollections
             .observableArrayList();
-    private ObservableList<MeshView> meshViewList = FXCollections
+    private ObservableList<Node> meshViewList = FXCollections
             .observableArrayList();
     private ObservableList<Fx3DFeatureDataset> features = FXCollections
             .observableArrayList();
@@ -173,15 +172,14 @@ public class Fx3DStageController {
         HBox.setHgrow(rightRegion, Priority.ALWAYS);
         plot.getChildren().add(axes);
         colorCol.setCellFactory(
-                column -> new ColorTableCell<Fx3DRawDataFileDataset>(column));
+                column -> new ColorTableCell<Fx3DAbstractDataset>(column));
         double minValue = 0;
         double maxValue = 1;
-        opacityCol.setCellFactory(
-                column -> new SliderCell<Fx3DRawDataFileDataset>(column,
-                        minValue, maxValue));
+        opacityCol.setCellFactory(column -> new SliderCell<Fx3DAbstractDataset>(
+                column, minValue, maxValue));
 
         visibilityCol.setCellFactory(
-                column -> new ButtonCell<Fx3DRawDataFileDataset>(column,
+                column -> new ButtonCell<Fx3DAbstractDataset>(column,
                         new Glyph("FontAwesome", "EYE"),
                         new Glyph("FontAwesome", "EYE_SLASH")));
         axesBtn.setSelected(true);
@@ -233,50 +231,42 @@ public class Fx3DStageController {
     }
 
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
-        visualizedMeshPlots.add((Fx3DRawDataFileDataset) dataset);
+        visualizedMeshPlots.add(dataset);
         visualizedFiles.add(dataset.getDataFile());
         maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
-        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
-            if (maxOfAllBinnedIntensity < ((Fx3DRawDataFileDataset) mesh)
-                    .getMaxBinnedIntensity()) {
-                maxOfAllBinnedIntensity = ((Fx3DRawDataFileDataset) mesh)
-                        .getMaxBinnedIntensity();
+        for (Fx3DAbstractDataset mesh : visualizedMeshPlots) {
+            if (maxOfAllBinnedIntensity < mesh.getMaxBinnedIntensity()) {
+                maxOfAllBinnedIntensity = mesh.getMaxBinnedIntensity();
             }
         }
         axes.updateAxisParameters(rtRange, mzRange, maxOfAllBinnedIntensity);
         meshViewList.clear();
-        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
+        for (Fx3DAbstractDataset mesh : visualizedMeshPlots) {
             mesh.normalize(maxOfAllBinnedIntensity);
-            meshViewList.add(mesh.getMeshView());
-        }
-        for (Fx3DFeatureDataset featureBox : features) {
-            featureBox.normalizeHeight(maxOfAllBinnedIntensity);
+            meshViewList.add(mesh.getNode());
         }
         meshViews.getChildren().clear();
         meshViews.getChildren().addAll(meshViewList);
         addMenuItems();
-        addColorListener((Fx3DRawDataFileDataset) dataset);
-        addOpacityListener((Fx3DRawDataFileDataset) dataset);
+        addColorListener(dataset);
+        addOpacityListener(dataset);
         dataset.visibilityProperty()
-                .bindBidirectional(((Fx3DRawDataFileDataset) dataset)
-                        .getMeshView().visibleProperty());
+                .bindBidirectional(dataset.getNode().visibleProperty());
         updateLabel();
     }
 
     private void updateGraph() {
         maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
-        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
-            if (maxOfAllBinnedIntensity < ((Fx3DRawDataFileDataset) mesh)
-                    .getMaxBinnedIntensity()) {
-                maxOfAllBinnedIntensity = ((Fx3DRawDataFileDataset) mesh)
-                        .getMaxBinnedIntensity();
+        for (Fx3DAbstractDataset mesh : visualizedMeshPlots) {
+            if (maxOfAllBinnedIntensity < mesh.getMaxBinnedIntensity()) {
+                maxOfAllBinnedIntensity = mesh.getMaxBinnedIntensity();
             }
         }
         axes.updateAxisParameters(rtRange, mzRange, maxOfAllBinnedIntensity);
         meshViewList.clear();
-        for (Fx3DRawDataFileDataset mesh : visualizedMeshPlots) {
+        for (Fx3DAbstractDataset mesh : visualizedMeshPlots) {
             mesh.normalize(maxOfAllBinnedIntensity);
-            meshViewList.add(mesh.getMeshView());
+            meshViewList.add(mesh.getNode());
         }
         meshViews.getChildren().clear();
         meshViews.getChildren().addAll(meshViewList);
@@ -284,21 +274,21 @@ public class Fx3DStageController {
         updateLabel();
     }
 
-    private void addColorListener(Fx3DRawDataFileDataset dataset) {
+    private void addColorListener(Fx3DAbstractDataset dataset) {
         dataset.colorProperty().addListener((e, oldValue, newValue) -> {
             int red = (int) (newValue.getRed() * 255);
             int green = (int) (newValue.getGreen() * 255);
             int blue = (int) (newValue.getBlue() * 255);
-            dataset.setPeakColor(Color.rgb(red, green, blue,
+            dataset.setNodeColor(Color.rgb(red, green, blue,
                     (double) dataset.opacityProperty().get()));
-            dataset.getMeshView()
+            dataset.getNode()
                     .setOpacity((double) dataset.opacityProperty().get());
             LOG.finest("Color is changed from " + oldValue + " to " + newValue
                     + " for the dataset " + dataset.getFileName());
         });
     }
 
-    private void addOpacityListener(Fx3DRawDataFileDataset dataset) {
+    private void addOpacityListener(Fx3DAbstractDataset dataset) {
         dataset.opacityProperty().addListener((e, oldValue, newValue) -> {
             Color color = dataset.getColor();
             int red = (int) (color.getRed() * 255);
@@ -308,7 +298,6 @@ public class Fx3DStageController {
             dataset.setColor(Color.rgb(red, green, blue, (double) newValue));
             FXCollections.sort(meshViews.getChildren(), new SortByOpacity());
         });
-
     }
 
     class SortByOpacity implements Comparator<Node> {
@@ -320,18 +309,33 @@ public class Fx3DStageController {
         }
     }
 
+    public void addFeatureSelections(List<FeatureSelection> selections) {
+        this.featureSelections = selections;
+        addFeatures();
+    }
+
+    public void addFeatures() {
+        for (FeatureSelection featureSelection : featureSelections) {
+            Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
+                    featureSelection, rtResolution, mzResolution, rtRange,
+                    mzRange, maxOfAllBinnedIntensity,
+                    Color.rgb(165, 42, 42, 0.5));
+            addDataset(featureDataset);
+        }
+    }
+
     private void addMenuItems() {
-        removeMenu.getItems().clear();
-        for (Fx3DRawDataFileDataset dataset : visualizedMeshPlots) {
+        removeDatafileMenu.getItems().clear();
+        for (Fx3DAbstractDataset dataset : visualizedMeshPlots) {
             MenuItem menuItem = new MenuItem(dataset.getFileName());
-            removeMenu.getItems().add(menuItem);
+            removeDatafileMenu.getItems().add(menuItem);
             menuItem.setOnAction(new EventHandler<ActionEvent>() {
                 public void handle(ActionEvent e) {
                     LOG.finest(
                             "Context menu invoked. Remove button clicked. Removing dataset "
                                     + dataset.getFileName()
                                     + " from the plot.");
-                    remainingMeshPlots.add(dataset);
+                    remainingMeshPlots.add((Fx3DRawDataFileDataset) dataset);
                     visualizedFiles.remove(dataset.getDataFile());
                     visualizedMeshPlots.remove(dataset);
                     updateGraph();
@@ -339,11 +343,11 @@ public class Fx3DStageController {
                 }
             });
         }
-        addMenu.getItems().clear();
+        addDatafileMenu.getItems().clear();
         for (RawDataFile file : allDataFiles) {
             if (!visualizedFiles.contains(file)) {
                 MenuItem menuItem = new MenuItem(file.getName());
-                addMenu.getItems().add(menuItem);
+                addDatafileMenu.getItems().add(menuItem);
                 final Fx3DStageController controller = this;
                 menuItem.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -357,7 +361,6 @@ public class Fx3DStageController {
                                 TaskPriority.HIGH);
                         addMenuItems();
                     }
-
                 });
             }
         }
@@ -365,7 +368,7 @@ public class Fx3DStageController {
 
     private void updateLabel() {
         String title = "";
-        for (Fx3DRawDataFileDataset dataset : visualizedMeshPlots) {
+        for (Fx3DAbstractDataset dataset : visualizedMeshPlots) {
             title = title + dataset.getFileName() + " ";
         }
         stage.setTitle(title);
@@ -487,7 +490,7 @@ public class Fx3DStageController {
         plot.setScaleY(DEFAULT_SCALE);
     }
 
-    public void handleToggleAxes(Event event) {
+    public void handleRotateAxes(Event event) {
         if (animationRunning) {
             animateBtn.setSelected(false);
             rotateAnimationTimeline.stop();
@@ -568,76 +571,6 @@ public class Fx3DStageController {
         }
     }
 
-    public void handleZoomOut(Event event) {
-        if (animationRunning) {
-            rotateY.setAngle(rotateY.getAngle() + yRotate.getAngle());
-        }
-        animateBtn.setSelected(false);
-        rotateAnimationTimeline.stop();
-        deltaAngle = 0;
-        animationRunning = false;
-
-        plot.getTransforms().clear();
-        plot.getTransforms().addAll(rotateX, rotateY);
-
-        Timeline resetTranslateXTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(translateX.xProperty(),
-                                translateX.getX())),
-                new KeyFrame(Duration.seconds(1.5), new KeyValue(
-                        translateX.xProperty(),
-                        (root.getWidth() * 3 / 4) - root.getHeight() * 3 / 4)));
-        resetTranslateXTimeline.play();
-
-        Timeline resetTranslateYTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(translateY.yProperty(),
-                                translateY.getY())),
-                new KeyFrame(Duration.seconds(1.5), new KeyValue(
-                        translateY.yProperty(), root.getHeight() / 3)));
-        resetTranslateYTimeline.play();
-
-        Timeline resetRotateXTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(rotateX.angleProperty(),
-                                rotateX.getAngle())),
-                new KeyFrame(Duration.seconds(1.5),
-                        new KeyValue(rotateX.angleProperty(), 30)));
-        resetRotateXTimeline.play();
-
-        double angle = rotateY.getAngle();
-        if ((angle > 180 && angle < 360)) {
-            angle = -(360 - (rotateY.getAngle() % 360));
-        } else if ((angle > -360 && angle < -180)) {
-            angle = Math.abs(angle);
-        } else {
-            angle = rotateY.getAngle() % 360;
-        }
-        LOG.finest("Zoom out button clicked. Current rotation angles X="
-                + rotateX.getAngle() + " Y=" + rotateY.getAngle()
-                + "Starting 1.5s animation to angle X=0 Y=0");
-        Timeline resetRotateYTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(rotateY.angleProperty(), angle)),
-                new KeyFrame(Duration.seconds(1.5),
-                        new KeyValue(rotateY.angleProperty(), 0)));
-        resetRotateYTimeline.play();
-
-        Timeline resetScaleXTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(plot.scaleXProperty(), plot.getScaleX())),
-                new KeyFrame(Duration.seconds(1.5),
-                        new KeyValue(plot.scaleXProperty(), DEFAULT_SCALE)));
-        resetScaleXTimeline.play();
-
-        Timeline resetScaleYTimeline = new Timeline(
-                new KeyFrame(Duration.seconds(0),
-                        new KeyValue(plot.scaleYProperty(), plot.getScaleY())),
-                new KeyFrame(Duration.seconds(1.5),
-                        new KeyValue(plot.scaleYProperty(), DEFAULT_SCALE)));
-        resetScaleYTimeline.play();
-    }
-
     public void handleAxis(Event event) {
         if (axes.isVisible()) {
             axes.setVisible(false);
@@ -687,36 +620,6 @@ public class Fx3DStageController {
             return max;
 
         return value;
-    }
-
-    public void addFeatureSelections(List<FeatureSelection> selections) {
-        this.featureSelections = selections;
-        addFeatures();
-    }
-
-    public void addFeatures() {
-        for (FeatureSelection featureSelection : featureSelections) {
-            LOG.finest("Rt range of the selected feature is:"
-                    + featureSelection.getFeature().getRawDataPointsRTRange()
-                            .lowerEndpoint()
-                    + "-" + featureSelection.getFeature()
-                            .getRawDataPointsRTRange().upperEndpoint());
-            LOG.finest("Mz range of the selected feature is:"
-                    + featureSelection.getFeature().getRawDataPointsMZRange()
-                            .lowerEndpoint()
-                    + "-" + featureSelection.getFeature()
-                            .getRawDataPointsMZRange().upperEndpoint());
-            LOG.finest("Intensity range of the selected feature is:"
-                    + featureSelection.getFeature()
-                            .getRawDataPointsIntensityRange().lowerEndpoint()
-                    + "-" + featureSelection.getFeature()
-                            .getRawDataPointsIntensityRange().upperEndpoint());
-            Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
-                    featureSelection, rtResolution, mzResolution, rtRange,
-                    mzRange, maxOfAllBinnedIntensity);
-            features.add(featureDataset);
-            plot.getChildren().add(featureDataset.getFeatureBox());
-        }
     }
 
     public void setRtAndMzResolutions(int rtRes, int mzRes) {

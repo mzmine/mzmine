@@ -4,12 +4,13 @@ import java.util.logging.Logger;
 
 import com.google.common.collect.Range;
 
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import net.sf.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 
-public class Fx3DFeatureDataset {
+public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
 
     private static final int SIZE = 500;
     private static float AMPLIFI = 130;
@@ -23,9 +24,11 @@ public class Fx3DFeatureDataset {
     private static final Logger LOG = Logger
             .getLogger(Fx3DFeatureDataset.class.getName());
 
-    Fx3DFeatureDataset(FeatureSelection featureSel, int rtResolution,
+    public Fx3DFeatureDataset(FeatureSelection featureSel, int rtResolution,
             int mzResolution, Range<Double> rtRange, Range<Double> mzRange,
-            double maxOfAllBinnedIntensity) {
+            double maxOfAllBinnedIntensity, Color featureColor) {
+        super(featureSel.getRawDataFile(), featureSel.getFeature().toString(),
+                featureColor);
         this.featureSelection = featureSel;
         this.featureRtRange = featureSel.getFeature().getRawDataPointsRTRange();
         this.featureMzRange = featureSel.getFeature().getRawDataPointsMZRange();
@@ -33,7 +36,6 @@ public class Fx3DFeatureDataset {
         this.plotMzRange = mzRange;
         this.maxIntensityValue = featureSel.getFeature()
                 .getRawDataPointsIntensityRange().upperEndpoint();
-        // mesh = new TriangleMesh();
 
         float factorX = (float) SIZE / rtResolution;
         float factorZ = (float) SIZE / mzResolution;
@@ -63,31 +65,41 @@ public class Fx3DFeatureDataset {
         double depth = maxFeatureMzPoint - minFeatureMzPoint;
         LOG.finest("width is: " + width);
         LOG.finest("depth is:" + depth);
-        featureBox = new Box(width * factorX, 20, depth * factorZ);
+        featureBox = new Box(width * factorX, maxIntensityValue * AMPLIFI,
+                depth * factorZ);
         featureBox.setTranslateX((minFeatureRtPoint + width / 2) * factorX);
-        // featureBox.setTranslateY(-maxIntensityValue * AMPLIFI / 2);
+        featureBox.setTranslateY(-maxIntensityValue * AMPLIFI / 2);
         featureBox.setTranslateZ((minFeatureMzPoint + depth / 2) * factorZ);
-        PhongMaterial material = new PhongMaterial();
-        material.setDiffuseColor(Color.rgb(165, 42, 42, 0.5));
-
-        featureBox.setMaterial(material);
-    }
-
-    public Box getFeatureBox() {
-        return featureBox;
-    }
-
-    public void normalizeHeight(double maxOfAllBinnedIntensity) {
-        featureBox.setHeight(
-                (maxIntensityValue / maxOfAllBinnedIntensity) * AMPLIFI);
-        LOG.finest("Final height is:"
-                + (maxIntensityValue / maxOfAllBinnedIntensity) * AMPLIFI);
-        featureBox.setTranslateY(
-                -(maxIntensityValue / maxOfAllBinnedIntensity) * AMPLIFI / 2);
+        setNodeColor(featureColor);
     }
 
     public FeatureSelection getFeatureSelection() {
         return featureSelection;
+    }
+
+    @Override
+    public Node getNode() {
+        return featureBox;
+    }
+
+    public void normalize(double maxOfAllBinnedIntensities) {
+        featureBox.setHeight(
+                (maxIntensityValue / maxOfAllBinnedIntensities) * AMPLIFI);
+        LOG.finest("Final height is:"
+                + (maxIntensityValue / maxOfAllBinnedIntensities) * AMPLIFI);
+        featureBox.setTranslateY(
+                -(maxIntensityValue / maxOfAllBinnedIntensities) * AMPLIFI / 2);
+    }
+
+    public void setNodeColor(Color featureColor) {
+        PhongMaterial material = new PhongMaterial();
+        material.setDiffuseColor(featureColor);
+        featureBox.setMaterial(material);
+    }
+
+    @Override
+    public double getMaxBinnedIntensity() {
+        return 0;
     }
 
 }

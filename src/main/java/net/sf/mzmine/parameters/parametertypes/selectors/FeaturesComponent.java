@@ -52,18 +52,21 @@ public class FeaturesComponent extends JPanel implements ActionListener {
 
     public FeaturesComponent() {
         super(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
         JScrollPane scrollPane = new JScrollPane(jlist);
-        scrollPane.setSize(30, 10);
+        scrollPane.setSize(30, 60);
         add(scrollPane, BorderLayout.CENTER);
 
         buttonPane = new JPanel();
         buttonPane.setLayout(new FlowLayout());
-        this.add(buttonPane, BorderLayout.SOUTH);
+        this.add(buttonPane, BorderLayout.EAST);
 
         addButton = GUIUtils.addButton(buttonPane, "Add", null, this);
         removeButton = GUIUtils.addButton(buttonPane, "Remove", null, this);
+        for (FeatureSelection features : currentValue) {
+            model.addElement(features.getFeature().toString());
+        }
 
     }
 
