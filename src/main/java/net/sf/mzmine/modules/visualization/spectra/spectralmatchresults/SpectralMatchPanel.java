@@ -168,7 +168,7 @@ public class SpectralMatchPanel extends JPanel {
 
     JPanel pn = new JPanel(new BorderLayout());
     pn.setBackground(Color.WHITE);
-    pnExport = new JPanel(new MigLayout("gapy 0 ", "[]", "[][][][]"));
+    pnExport = new JPanel(new MigLayout("gapy 0 ", "[]", "[][][][][]"));
     pnExport.setBackground(Color.WHITE);
     preview2DPanel.add(pn, BorderLayout.EAST);
     pn.add(pnExport, BorderLayout.CENTER);
@@ -196,6 +196,12 @@ public class SpectralMatchPanel extends JPanel {
         btnExport.getIcon().getIconHeight() + 6));
     btnExport.addActionListener(e -> exportToGraphics("eps"));
     pnExport.add(btnExport, "cell 0 3, growx, center");
+
+    btnExport = new JButton(IconUtil.scaled(iconSvg, ICON_WIDTH));
+    btnExport.setMaximumSize(new Dimension(btnExport.getIcon().getIconWidth() + 6,
+        btnExport.getIcon().getIconHeight() + 6));
+    btnExport.addActionListener(e -> exportToGraphics("svg"));
+    pnExport.add(btnExport, "cell 0 4, growx, center");
 
     JComponent newComponent = null;
 
