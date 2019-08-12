@@ -27,6 +27,7 @@ import javax.swing.JComponent;
 import org.freehep.graphics2d.VectorGraphics;
 import org.freehep.graphicsio.emf.EMFGraphics2D;
 import com.itextpdf.awt.DefaultFontMapper;
+import com.itextpdf.awt.PdfGraphics2D;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Rectangle;
@@ -92,15 +93,18 @@ public class SwingExportUtil {
     int width = panel.getWidth();
     int height = panel.getHeight();
     Document document = new Document(new Rectangle(width, height));
+    PdfWriter writer = null;
     try {
-      PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(fileName));
+      writer = PdfWriter.getInstance(document, new FileOutputStream(fileName));
       document.open();
       PdfContentByte contentByte = writer.getDirectContent();
       PdfTemplate template = contentByte.createTemplate(width, height);
-      Graphics2D g2 = template.createGraphics(width, height, new DefaultFontMapper());
+      Graphics2D g2 = new PdfGraphics2D(contentByte, width, height, new DefaultFontMapper());
       panel.print(g2);
       g2.dispose();
       contentByte.addTemplate(template, 0, 0);
+      document.close();
+      writer.close();
     } finally {
       if (document.isOpen()) {
         document.close();
