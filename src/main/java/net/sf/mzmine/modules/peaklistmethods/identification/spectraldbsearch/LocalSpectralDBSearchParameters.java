@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch;
 
 import java.awt.Window;
+import java.util.Collection;
 import javax.swing.JComponent;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
@@ -41,9 +42,6 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 
-/**
- * 
- */
 public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter();
@@ -63,6 +61,15 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
   public static final IntegerParameter msLevel = new IntegerParameter("MS level",
       "Choose the MS level of the scans that should be compared with the database. Enter \"1\" for MS1 scans or \"2\" for MS/MS scans on MS level 2",
       2, 1, 1000);
+
+  public static final BooleanParameter allMS2Spectra = new BooleanParameter(
+      "Check all scans (only for MS2)",
+      "Check all (or only most intense) MS2 scan. This option does not apply to MS1 scans.", false);
+
+  public static final OptionalParameter<IntegerParameter> needsIsotopePattern =
+      new OptionalParameter<>(new IntegerParameter("Min matched isotope signals",
+          "Useful for scans and libraries with isotope pattern. Minimum matched signals of 13C isotopes, distance of H and 2H or Cl isotopes. Can not be applied with deisotoping",
+          3, 0, 1000), false);
 
   public static final MZToleranceParameter mzTolerancePrecursor =
       new MZToleranceParameter("Precursor m/z tolerance",
@@ -92,11 +99,34 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
           "Algorithm to calculate similarity and filter matches",
           SpectralSimilarityFunction.FUNCTIONS);
 
+  /**
+   * for SelectedRowsParameters
+   * 
+   * @param parameters
+   */
+  protected LocalSpectralDBSearchParameters(Parameter[] parameters) {
+    super(parameters);
+  }
 
   public LocalSpectralDBSearchParameters() {
-    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, mzTolerancePrecursor,
-        noiseLevel, deisotoping, cropSpectraToOverlap, mzTolerance, rtTolerance, minMatch,
-        similarityFunction});
+    super(new Parameter[] {peakLists, massList, dataBaseFile, msLevel, allMS2Spectra,
+        mzTolerancePrecursor, noiseLevel, deisotoping, needsIsotopePattern, cropSpectraToOverlap,
+        mzTolerance, rtTolerance, minMatch, similarityFunction});
+  }
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    boolean check = super.checkParameterValues(errorMessages);
+
+    // not both isotope and deisotope
+    boolean isotope =
+        !getParameter(deisotoping).getValue() || !getParameter(needsIsotopePattern).getValue();
+    if (!isotope) {
+      errorMessages
+          .add("Choose only one of \"deisotoping\" and \"need isotope pattern\" at the same time");
+      return false;
+    }
+    return check;
   }
 
   @Override

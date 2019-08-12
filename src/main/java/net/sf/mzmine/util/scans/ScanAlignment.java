@@ -174,6 +174,33 @@ public class ScanAlignment {
   }
 
   /**
+   * Only keep entries with a data point for all aligned scans
+   * 
+   * @param list
+   * @return
+   */
+  public static DataPoint[][] removeUnaligned(DataPoint[][] list) {
+    List<DataPoint[]> aligned = new ArrayList<>();
+
+    for (int d = 0; d < list[0].length; d++) {
+      final int dd = d;
+      boolean noneNull = true;
+      for (int i = 0; i < list.length && noneNull; i++) {
+        if (list[i][d] == null)
+          noneNull = false;
+      }
+      if (noneNull)
+        aligned.add(Arrays.stream(list).map(dp -> dp[dd]).toArray(DataPoint[]::new));
+    }
+    // to array
+    DataPoint[][] array = new DataPoint[list.length][aligned.size()];
+    for (int l = 0; l < list.length; l++)
+      for (int dp = 0; dp < aligned.size(); dp++)
+        array[l][dp] = aligned.get(dp)[l];
+    return array;
+  }
+
+  /**
    * Remove unaligned before. Missing data points are replaced by 0
    * 
    * @param diffAligned

@@ -41,6 +41,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import org.drjekyll.fontchooser.FontDialog;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
@@ -59,7 +61,10 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   // couple y zoom (if one is changed - change the other in a mirror plot)
   private boolean isCouplingZoomY;
 
+  private JLabel noMatchesFound;
+
   private Font chartFont = new Font("Verdana", Font.PLAIN, 11);
+
 
   public SpectraIdentificationResultsWindow() {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -74,21 +79,32 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     pnGrid.setBackground(Color.WHITE);
     pnGrid.setAutoscrolls(false);
 
-    // add label (is replaced later
-    JLabel noMatchesFound = new JLabel("Sorry, no matches found!", SwingConstants.CENTER);
+    noMatchesFound = new JLabel("I'm working on it", SwingConstants.CENTER);
     noMatchesFound.setFont(headerFont);
-    noMatchesFound.setForeground(Color.RED);
+    // yellow
+    noMatchesFound.setForeground(new Color(0xFFCC00));
     pnGrid.add(noMatchesFound, BorderLayout.CENTER);
 
     // Add the Windows menu
     JMenuBar menuBar = new JMenuBar();
     menuBar.add(new WindowsMenu());
+
+    // set font size of chart
+    JMenuItem btnSetup = new JMenuItem("Setup dialog");
+    btnSetup.addActionListener(e -> {
+      if (MZmineCore.getConfiguration()
+          .getModuleParameters(SpectraIdentificationResultsModule.class)
+          .showSetupDialog(this, true) == ExitCode.OK) {
+        showExportButtonsChanged();
+      }
+    });
+    menuBar.add(btnSetup);
+
     JCheckBoxMenuItem cbCoupleZoomY = new JCheckBoxMenuItem("Couple y-zoom");
     cbCoupleZoomY.setSelected(true);
     cbCoupleZoomY.addItemListener(e -> setCoupleZoomY(cbCoupleZoomY.isSelected()));
     menuBar.add(cbCoupleZoomY);
 
-    // set font size of chart
     JMenuItem btnSetFont = new JMenuItem("Set chart font");
     btnSetFont.addActionListener(e -> setChartFont());
     menuBar.add(btnSetFont);
@@ -187,6 +203,13 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     renewLayout();
   }
 
+  public void setMatchingFinished() {
+    if (totalMatches.isEmpty()) {
+      noMatchesFound.setText("Sorry no matches found");
+      noMatchesFound.setForeground(Color.RED);
+    }
+  }
+
   /**
    * Add a spectral library hit
    * 
@@ -223,9 +246,20 @@ public class SpectraIdentificationResultsWindow extends JFrame {
 
   public void setChartFont(Font chartFont) {
     this.chartFont = chartFont;
+    if (matchPanels == null)
+      return;
     matchPanels.values().stream().forEach(pn -> {
       pn.setChartFont(chartFont);
     });
   }
 
+
+  private void showExportButtonsChanged() {
+    if (matchPanels == null)
+      return;
+    matchPanels.values().stream().forEach(pn -> {
+      pn.applySettings(MZmineCore.getConfiguration()
+          .getModuleParameters(SpectraIdentificationResultsModule.class));
+    });
+  }
 }

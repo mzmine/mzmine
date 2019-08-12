@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.spectra.spectralmatchresults;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
 /**
@@ -33,8 +34,19 @@ public class SpectraIdentificationResultsParameters extends SimpleParameterSet {
   public static final FileNameParameter file =
       new FileNameParameter("file", "file without extension");
 
+  public static final BooleanParameter all =
+      new BooleanParameter("Show export all", "Show button in panel", true);
+  public static final BooleanParameter pdf =
+      new BooleanParameter("Show export pdf", "Show button in panel", true);
+  public static final BooleanParameter emf =
+      new BooleanParameter("Show export emf", "Show button in panel", true);
+  public static final BooleanParameter eps =
+      new BooleanParameter("Show export eps", "Show button in panel", true);
+  public static final BooleanParameter svg =
+      new BooleanParameter("Show export svg", "Show button in panel", true);
+
   public SpectraIdentificationResultsParameters() {
-    super(new Parameter[] {file});
+    super(new Parameter[] {file, all, pdf, emf, eps, svg});
   }
 
 }

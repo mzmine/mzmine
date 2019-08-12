@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase;
 
 import java.awt.Window;
+import java.util.Collection;
 import javax.swing.JComponent;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
@@ -72,6 +73,11 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
       "Minimum number of matched signals in spectra and spectral library entry (within mz tolerance)",
       20);
 
+  public static final OptionalParameter<IntegerParameter> needsIsotopePattern =
+      new OptionalParameter<>(new IntegerParameter("Min matched isotope signals",
+          "Useful for scans and libraries with isotope pattern. Minimum matched signals of 13C isotopes, distance of H and 2H or Cl isotopes. Can not be applied with deisotoping",
+          3, 0, 1000), false);
+
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
       new OptionalModuleParameter<>("13C deisotoping",
           "Removes 13C isotope signals from mass lists", new MassListDeisotoperParameters(), true);
@@ -88,9 +94,25 @@ public class SpectraIdentificationSpectralDatabaseParameters extends SimpleParam
 
   public SpectraIdentificationSpectralDatabaseParameters() {
     super(new Parameter[] {massList, dataBaseFile, usePrecursorMZ, mzTolerancePrecursor, noiseLevel,
-        deisotoping, cropSpectraToOverlap, mzTolerance, minMatch, similarityFunction});
+        deisotoping, needsIsotopePattern, cropSpectraToOverlap, mzTolerance, minMatch,
+        similarityFunction});
   }
 
+
+  @Override
+  public boolean checkParameterValues(Collection<String> errorMessages) {
+    boolean check = super.checkParameterValues(errorMessages);
+
+    // not both isotope and deisotope
+    boolean isotope =
+        !getParameter(deisotoping).getValue() || !getParameter(needsIsotopePattern).getValue();
+    if (!isotope) {
+      errorMessages
+          .add("Choose only one of \"deisotoping\" and \"need isotope pattern\" at the same time");
+      return false;
+    }
+    return check;
+  }
 
 
   @Override

@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
@@ -48,12 +49,14 @@ class LocalSpectralDBSearchTask extends AbstractTask {
 
   private ParameterSet parameters;
 
-  private List<PeakListSpectralMatchTask> tasks;
+  private List<RowsSpectralMatchTask> tasks;
 
   private int totalTasks;
+  private PeakListRow[] rows;
 
-  LocalSpectralDBSearchTask(PeakList peakList, ParameterSet parameters) {
+  public LocalSpectralDBSearchTask(PeakList peakList, ParameterSet parameters) {
     this.peakList = peakList;
+    this.rows = peakList.getRows();
     this.parameters = parameters;
     dataBaseFile = parameters.getParameter(LocalSpectralDBSearchParameters.dataBaseFile).getValue();
     massListName = parameters.getParameter(LocalSpectralDBSearchParameters.massList).getValue();
@@ -138,16 +141,16 @@ class LocalSpectralDBSearchTask extends AbstractTask {
    * @param dataBaseFile
    * @return
    */
-  private List<PeakListSpectralMatchTask> parseFile(File dataBaseFile)
+  private List<RowsSpectralMatchTask> parseFile(File dataBaseFile)
       throws UnsupportedFormatException, IOException {
     //
-    List<PeakListSpectralMatchTask> tasks = new ArrayList<>();
+    List<RowsSpectralMatchTask> tasks = new ArrayList<>();
     AutoLibraryParser parser = new AutoLibraryParser(100, new LibraryEntryProcessor() {
       @Override
       public void processNextEntries(List<SpectralDBEntry> list, int alreadyProcessed) {
         // start last task
-        PeakListSpectralMatchTask task =
-            new PeakListSpectralMatchTask(peakList, parameters, alreadyProcessed + 1, list);
+        RowsSpectralMatchTask task =
+            new RowsSpectralMatchTask(peakList.getName(), rows, parameters, alreadyProcessed + 1, list);
         MZmineCore.getTaskController().addTask(task);
         tasks.add(task);
       }
