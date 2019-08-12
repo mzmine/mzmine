@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.mzmine</groupId>
 	<artifactId>mzmine2</artifactId>
-	<version>2.41.2</version>
+	<version>2.42</version>
 	<name>MZmine</name>
 	<description>MZmine is an open-source project delivering a software for mass spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>https://mzmine.github.io</url>
@@ -13,7 +13,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>2.2</cdk.version>
+		<cdk.version>2.3</cdk.version>
 		<jmztab.version>3.0.8</jmztab.version>
 		<msdk.version>0.0.27</msdk.version>
 		<swagger-core.version>1.5.22</swagger-core.version>
@@ -193,6 +193,13 @@
 			<artifactId>utils</artifactId>
 			<version>1.07.00</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.drjekyll/fontchooser -->
+<dependency>
+    <groupId>org.drjekyll</groupId>
+    <artifactId>fontchooser</artifactId>
+    <version>2.4</version>
+</dependency>
+		
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
