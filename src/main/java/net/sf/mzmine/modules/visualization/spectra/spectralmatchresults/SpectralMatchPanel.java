@@ -24,13 +24,16 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -53,13 +56,17 @@ import net.sf.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 import net.sf.mzmine.chartbasics.listener.AxisRangeChangedListener;
 import net.sf.mzmine.framework.CustomTextPane;
 import net.sf.mzmine.framework.ScrollablePanel;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.util.ColorScaleUtil;
 import net.sf.mzmine.util.components.MultiLineLabel;
+import net.sf.mzmine.util.files.FileAndPathUtil;
 import net.sf.mzmine.util.spectraldb.entry.DBEntryField;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBEntry;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
+import net.sf.mzmine.util.swing.SwingExportUtil;
 
 public class SpectralMatchPanel extends JPanel {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -89,6 +96,8 @@ public class SpectralMatchPanel extends JPanel {
   private XYPlot queryPlot;
 
   private XYPlot libraryPlot;
+  private Font chartFont;
+  private JPanel pnExport;
 
   public SpectralMatchPanel(SpectralDBPeakIdentity hit) {
     JPanel panel = this;
@@ -146,6 +155,27 @@ public class SpectralMatchPanel extends JPanel {
     preview2DPanel.setPreferredSize(new Dimension(META_WIDTH, 150));
     preview2DPanel.setMinimumSize(new Dimension(META_WIDTH, 150));
     preview2DPanel.setMaximumSize(new Dimension(META_WIDTH, 150));
+    pnExport = new JPanel(new MigLayout("", "[]", "[][][][]"));
+    pnExport.setBackground(Color.WHITE);
+    preview2DPanel.add(pnExport, BorderLayout.EAST);
+
+    JButton btnExport = new JButton("ALL");
+    btnExport.addActionListener(e -> exportToGraphics("all"));
+    pnExport.add(btnExport, "cell 0 0, growx, center");
+
+    btnExport = new JButton("PDF");
+    btnExport.addActionListener(e -> exportToGraphics("pdf"));
+    pnExport.add(btnExport, "cell 0 1, growx, center");
+
+    btnExport = new JButton("EMF");
+    btnExport.addActionListener(e -> exportToGraphics("emf"));
+    pnExport.add(btnExport, "cell 0 2, growx, center");
+
+    btnExport = new JButton("EPS");
+    btnExport.addActionListener(e -> exportToGraphics("eps"));
+    pnExport.add(btnExport, "cell 0 3, growx, center");
+
+
     JComponent newComponent = null;
 
     String inchiString = hit.getEntry().getField(DBEntryField.INCHI).orElse("N/A").toString();
@@ -220,6 +250,8 @@ public class SpectralMatchPanel extends JPanel {
             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
     mirrorChart = mirrorWindow.getMirrorSpecrumPlot();
+    // use no buffer for later pdf export
+    mirrorChart = new EChartPanel(mirrorChart.getChart(), false);
     spectrumPanel.add(mirrorChart);
 
     coupleZoomYListener();
@@ -235,6 +267,40 @@ public class SpectralMatchPanel extends JPanel {
     metaDataPanelScrollPane.revalidate();
     pn.revalidate();
     panel.revalidate();
+  }
+
+
+  public void exportToAllGraphics() {
+    exportToGraphics("all");
+  }
+
+  /**
+   * Export the whole panel to pdf, emf, eps or all
+   * 
+   * @param format
+   */
+  public void exportToGraphics(String format) {
+    // old path
+    FileNameParameter param =
+        MZmineCore.getConfiguration().getModuleParameters(SpectraIdentificationResultsModule.class)
+            .getParameter(SpectraIdentificationResultsParameters.file);
+    final JFileChooser chooser;
+    if (param.getValue() != null) {
+      chooser = new JFileChooser();
+      chooser.setSelectedFile(param.getValue());
+    } else
+      chooser = new JFileChooser();
+    // get file
+    if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+      try {
+        File f = chooser.getSelectedFile();
+        SwingExportUtil.writeToGraphics(this, f.getParentFile(), f.getName(), format);
+        // save path
+        param.setValue(FileAndPathUtil.eraseFormat(f));
+      } catch (Exception ex) {
+        logger.log(Level.WARNING, "Cannot export graphics of spectra match panel", ex);
+      }
+    }
   }
 
   private void coupleZoomYListener() {
@@ -358,6 +424,27 @@ public class SpectralMatchPanel extends JPanel {
    */
   public void setCoupleZoomY(boolean selected) {
     setCoupleZoomY = selected;
+  }
+
+
+  public void setChartFont(Font chartFont) {
+    this.chartFont = chartFont;
+    if (mirrorChart != null) {
+
+      // add datasets and renderer
+      // set up renderer
+      CombinedDomainXYPlot domainPlot = (CombinedDomainXYPlot) mirrorChart.getChart().getXYPlot();
+      NumberAxis axis = (NumberAxis) domainPlot.getDomainAxis();
+      axis.setLabel("m/z");
+      XYPlot queryPlot = (XYPlot) domainPlot.getSubplots().get(0);
+      XYPlot libraryPlot = (XYPlot) domainPlot.getSubplots().get(1);
+      domainPlot.getDomainAxis().setLabelFont(chartFont);
+      domainPlot.getDomainAxis().setTickLabelFont(chartFont);
+      queryPlot.getRangeAxis().setLabelFont(chartFont);
+      queryPlot.getRangeAxis().setTickLabelFont(chartFont);
+      libraryPlot.getRangeAxis().setLabelFont(chartFont);
+      libraryPlot.getRangeAxis().setTickLabelFont(chartFont);
+    }
   }
 
 }
