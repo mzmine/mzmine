@@ -101,7 +101,7 @@ dependencies {
     compile "org.du-lab.adap:adap:4.0.5"
     compile "gnf:clustering:20130919"
     compile "it.unimi.dsi:fastutil:8.2.2"
-    compile "com.itextpdf:itextpdf:5.5.13"
+    compile "com.itextpdf:itextpdf:5.5.13.1"
     compile "org.apache.xmlgraphics:xmlgraphics-commons:2.3"
     compile "org.apache.xmlgraphics:batik-util:$batikVersion"
     compile "org.apache.xmlgraphics:batik-transcoder:$batikVersion"
