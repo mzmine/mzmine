@@ -46,7 +46,8 @@ public class LocalSpectralDBSearchParameters extends SimpleParameterSet {
 
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-  public static final FileNameParameter dataBaseFile = new FileNameParameter("Database file",
+  public static final FileNameParameter dataBaseFile = new FileNameParameter(
+      "Spectral database file",
       "(GNPS json, MONA json, NIST msp, JCAMP-DX jdx) Name of file that contains information for peak identification");
 
   public static final OptionalModuleParameter<MassListDeisotoperParameters> deisotoping =
