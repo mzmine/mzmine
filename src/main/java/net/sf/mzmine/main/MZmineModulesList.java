@@ -56,6 +56,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.
 import net.sf.mzmine.modules.peaklistmethods.identification.ms2search.Ms2SearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.precursordbsearch.PrecursorDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
@@ -199,12 +200,12 @@ public class MZmineModulesList {
       SignificanceModule.class,
 
       // Identification
-      LocalSpectralDBSearchModule.class, SortSpectralDBIdentitiesModule.class,
-      CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
-      AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
-      LipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
-      FormulaPredictionPeakListModule.class, Ms2SearchModule.class, SiriusProcessingModule.class,
-      GNPSResultsImportModule.class,
+      LocalSpectralDBSearchModule.class, PrecursorDBSearchModule.class,
+      SortSpectralDBIdentitiesModule.class, CustomDBSearchModule.class,
+      FormulaPredictionModule.class, FragmentSearchModule.class, AdductSearchModule.class,
+      ComplexSearchModule.class, OnlineDBSearchModule.class, LipidSearchModule.class,
+      CameraSearchModule.class, NistMsSearchModule.class, FormulaPredictionPeakListModule.class,
+      Ms2SearchModule.class, SiriusProcessingModule.class, GNPSResultsImportModule.class,
 
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
