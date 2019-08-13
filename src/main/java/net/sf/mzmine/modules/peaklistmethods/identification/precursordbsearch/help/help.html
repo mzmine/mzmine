@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>Identification - Precursor search in local spectral DB</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Precursor search in local spectral DB</h1>
+
+<h2>Description</h2>
+<p>
+Run on any feature list to find putative precursor ions (feature list rows) in a local spectral MS/MS library (formats: MoNA json, NIST msp, GNPS json (internal library submission format), JCAMP-DX jdx).
+</p>
+
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Peaklist</dt>
+	<dd>Select any peaklist</dd>
+<dt>Spectral database file</dt>
+	<dd>json/msp from MoNA (MassBank of North America)</dd>
+	<dd>msp NIST format</dd>
+	<dd>JCAMP-DX jdx</dd>
+	<dd>mgf format from GNPS</dd>
+	<dd>json GNPS (format from the spectral DB submission module)</dd>
+<dt>Precursor m/z tolerance </dt>
+	<dd>Matches the average row m/z against the precursor m/z of the spectral library entry</dd>	
+<dt>Retention time tolerance</dt>
+	<dd>Optional: Only used if the DB entry has a retention time</dd>
+</dl>
+
+</body>
+</html>
