@@ -154,7 +154,6 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-
 application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
     applicationName = "MZmine"
@@ -162,16 +161,8 @@ application {
     executableDir = ""
 }
 
-// Temporary start script fix until gradle 5.6 comes out
 startScripts {
     applicationName = "startMZmine"
-    doLast {
-        unixScript.text = unixScript.text
-                .replace("cd \"`dirname \\\"\$PRG\\\"`/..\" >/dev/null", "cd \"`dirname \\\"\$PRG\\\"`\" >/dev/null")
-        
-        windowsScript.text = windowsScript.text
-                .replace("set APP_HOME=%DIRNAME%..", "set APP_HOME=%DIRNAME%")
-    }
 }
 
 runtime {
@@ -188,7 +179,7 @@ tasks.runtime.doLast {
         copy {
             from("src/main/log")
             into("${buildDir}/${applicationName}-${version}/log")
-        }    
+        }
     
 }
 
