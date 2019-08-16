@@ -50,7 +50,7 @@
 																	<Glyph fontFamily="FontAwesome" icon="MINUS_SQUARE_ALT" />
 																</graphic>
 															</Menu>
-															<!-- <Menu text="Add Feature" fx:id="addFeatureMenu">
+															<Menu text="Add Feature" fx:id="addFeatureMenu">
 																<graphic>
 																	<Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
 																</graphic>
@@ -59,7 +59,7 @@
 																<graphic>
 																	<Glyph fontFamily="FontAwesome" icon="MINUS_SQUARE_ALT" />
 																</graphic>
-															</Menu> -->
+															</Menu>
 														</items>
 													</ContextMenu>     
 												</contextMenu>

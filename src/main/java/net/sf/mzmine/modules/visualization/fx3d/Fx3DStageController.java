@@ -61,6 +61,9 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.parametertypes.selectors.FeatureSelection;
@@ -90,6 +93,10 @@ public class Fx3DStageController {
     private Menu addDatafileMenu;
     @FXML
     private Menu removeDatafileMenu;
+    @FXML
+    private Menu addFeatureMenu;
+    @FXML
+    private Menu removeFeatureMenu;
     @FXML
     private BorderPane root;
     @FXML
@@ -135,14 +142,13 @@ public class Fx3DStageController {
 
     private ObservableList<Fx3DAbstractDataset> visualizedMeshPlots = FXCollections
             .observableArrayList();
-    private ObservableList<Fx3DRawDataFileDataset> remainingMeshPlots = FXCollections
-            .observableArrayList();
+    private List<Object> visualizedFiles = new ArrayList<Object>();
     private ObservableList<Node> meshViewList = FXCollections
             .observableArrayList();
+    private PeakList[] allPeakLists;
     private PerspectiveCamera camera = new PerspectiveCamera();
     private ScanSelection scanSel;
     private List<RawDataFile> allDataFiles;
-    private List<RawDataFile> visualizedFiles = new ArrayList<RawDataFile>();
     private List<FeatureSelection> featureSelections;
     private Timeline rotateAnimationTimeline;
     boolean animationRunning = false;
@@ -200,7 +206,8 @@ public class Fx3DStageController {
         plot.getChildren().add(lights2);
         allDataFiles = Arrays.asList(MZmineCore.getProjectManager()
                 .getCurrentProject().getDataFiles());
-
+        allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
+                .getPeakLists();
         scene3D.widthProperty().bind(root.widthProperty());
         scene3D.heightProperty().bind(root.heightProperty());
         scene3D.setCamera(camera);
@@ -248,7 +255,7 @@ public class Fx3DStageController {
 
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
         visualizedMeshPlots.add(dataset);
-        visualizedFiles.add(dataset.getDataFile());
+        visualizedFiles.add(dataset.getFile());
         maxOfAllBinnedIntensity = Double.NEGATIVE_INFINITY;
         for (Fx3DAbstractDataset mesh : visualizedMeshPlots) {
             if (maxOfAllBinnedIntensity < mesh.getMaxBinnedIntensity()) {
@@ -349,12 +356,10 @@ public class Fx3DStageController {
                 menuItem.setOnAction(new EventHandler<ActionEvent>() {
                     public void handle(ActionEvent e) {
                         LOG.finest(
-                                "Context menu invoked. Remove button clicked. Removing dataset "
+                                "Context menu invoked. Remove Data file button clicked. Removing dataset "
                                         + dataset.getFileName()
                                         + " from the plot.");
-                        remainingMeshPlots
-                                .add((Fx3DRawDataFileDataset) dataset);
-                        visualizedFiles.remove(dataset.getDataFile());
+                        visualizedFiles.remove(dataset.getFile());
                         visualizedMeshPlots.remove(dataset);
                         updateGraph();
                         addMenuItems();
@@ -369,10 +374,9 @@ public class Fx3DStageController {
                 addDatafileMenu.getItems().add(menuItem);
                 final Fx3DStageController controller = this;
                 menuItem.setOnAction(new EventHandler<ActionEvent>() {
-
                     public void handle(ActionEvent e) {
                         LOG.finest(
-                                "Context menu invoked. Add button clicked. Adding dataset "
+                                "Context menu invoked. Add Data file button clicked. Adding dataset "
                                         + file.getName() + " to the plot.");
                         MZmineCore.getTaskController().addTask(
                                 new Fx3DSamplingTask(file, scanSel, mzRange,
@@ -383,6 +387,67 @@ public class Fx3DStageController {
                 });
             }
         }
+
+        removeFeatureMenu.getItems().clear();
+        for (Fx3DAbstractDataset dataset : visualizedMeshPlots) {
+            if (dataset instanceof Fx3DFeatureDataset) {
+                MenuItem menuItem = new MenuItem(dataset.getFileName());
+                removeFeatureMenu.getItems().add(menuItem);
+                menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                    public void handle(ActionEvent e) {
+                        LOG.finest(
+                                "Context menu invoked. Remove Feature button clicked. Removing dataset "
+                                        + dataset.getFileName()
+                                        + " from the plot.");
+                        visualizedFiles.remove(dataset.getFile());
+                        visualizedMeshPlots.remove(dataset);
+                        updateGraph();
+                        addMenuItems();
+                    }
+                });
+            }
+        }
+
+        addFeatureMenu.getItems().clear();
+        for (PeakList peakList : allPeakLists) {
+            Menu peakListMenu = new Menu(peakList.getName());
+            addFeatureMenu.getItems().add(peakListMenu);
+            RawDataFile[] dataFiles = peakList.getRawDataFiles();
+            for (RawDataFile dataFile : dataFiles) {
+                Menu dataFileMenu = new Menu(dataFile.getName());
+                peakListMenu.getItems().add(dataFileMenu);
+                PeakListRow[] rows = peakList.getRows();
+                for (PeakListRow row : rows) {
+                    int rownum = 0;
+                    Feature feature = peakList.getPeak(rownum, dataFile);
+                    if (!visualizedFiles.contains(feature)) {
+                        MenuItem menuItem = new MenuItem(feature.toString());
+                        dataFileMenu.getItems().add(menuItem);
+                        menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                            public void handle(ActionEvent e) {
+                                LOG.finest(
+                                        "Context menu invoked. Add Feature button clicked. Adding dataset "
+                                                + feature.toString()
+                                                + " to the plot.");
+                                FeatureSelection featureSelection = new FeatureSelection(
+                                        peakList, feature, row, dataFile);
+                                Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
+                                        featureSelection, rtResolution,
+                                        mzResolution, rtRange, mzRange,
+                                        maxOfAllBinnedIntensity,
+                                        Color.rgb(165, 42, 42, 0.9));
+                                addDataset(featureDataset);
+                                addMenuItems();
+                            }
+                        });
+                    }
+                    rownum++;
+                }
+
+            }
+
+        }
+
     }
 
     private void updateLabel() {

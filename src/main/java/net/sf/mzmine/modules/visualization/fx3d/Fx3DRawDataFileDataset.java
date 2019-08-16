@@ -185,4 +185,9 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         return meshView;
     }
 
+    @Override
+    public RawDataFile getFile() {
+        return getDataFile();
+    }
+
 }

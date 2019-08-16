@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.parameters.parametertypes.selectors.FeatureSelection;
 
 public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
@@ -100,6 +101,11 @@ public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
     @Override
     public double getMaxBinnedIntensity() {
         return 0;
+    }
+
+    @Override
+    public Feature getFile() {
+        return this.featureSelection.getFeature();
     }
 
 }

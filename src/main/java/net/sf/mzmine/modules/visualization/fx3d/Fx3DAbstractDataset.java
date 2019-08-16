@@ -94,4 +94,6 @@ abstract class Fx3DAbstractDataset {
     public abstract void setNodeColor(Color nodeColor);
 
     public abstract double getMaxBinnedIntensity();
+
+    public abstract Object getFile();
 }
