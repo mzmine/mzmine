@@ -416,34 +416,48 @@ public class Fx3DStageController {
             for (RawDataFile dataFile : dataFiles) {
                 Menu dataFileMenu = new Menu(dataFile.getName());
                 peakListMenu.getItems().add(dataFileMenu);
-                PeakListRow[] rows = peakList.getRows();
-                for (PeakListRow row : rows) {
-                    Feature feature = row.getPeak(dataFile);
-                    // LOG.finest("Feature got is:" + feature.toString());
-                    // if (!visualizedFiles.contains(feature)) {
-                    // LOG.finest("Feature got is:" + feature.toString());
-                    // MenuItem menuItem = new MenuItem(feature.toString());
-                    // dataFileMenu.getItems().add(menuItem);
-                    // menuItem.setOnAction(new EventHandler<ActionEvent>() {
-                    // public void handle(ActionEvent e) {
-                    // LOG.finest(
-                    // "Context menu invoked. Add Feature button clicked. Adding
-                    // dataset "
-                    // + feature.toString()
-                    // + " to the plot.");
-                    // FeatureSelection featureSelection = new FeatureSelection(
-                    // peakList, feature, row, dataFile);
-                    // Fx3DFeatureDataset featureDataset = new
-                    // Fx3DFeatureDataset(
-                    // featureSelection, rtResolution,
-                    // mzResolution, rtRange, mzRange,
-                    // maxOfAllBinnedIntensity,
-                    // Color.rgb(165, 42, 42, 0.9));
-                    // addDataset(featureDataset);
-                    // addMenuItems();
-                    // }
-                    // });
-                    // }
+                Feature[] features = peakList.getPeaks(dataFile);
+                for (Feature feature : features) {
+                    LOG.finest("Feature got is:" + feature.toString());
+                    if (feature.getRawDataPointsRTRange()
+                            .lowerEndpoint() >= rtRange.lowerEndpoint()
+                            && feature.getRawDataPointsRTRange()
+                                    .upperEndpoint() <= mzRange.upperEndpoint()
+                            && feature.getRawDataPointsMZRange()
+                                    .lowerEndpoint() >= mzRange.lowerEndpoint()
+                            && feature.getRawDataPointsMZRange()
+                                    .upperEndpoint() <= mzRange
+                                            .upperEndpoint()) {
+                        if (!visualizedFiles.contains(feature)) {
+                            LOG.finest("Feature got is:" + feature.toString());
+                            MenuItem menuItem = new MenuItem(
+                                    feature.toString());
+                            dataFileMenu.getItems().add(menuItem);
+                            menuItem.setOnAction(
+                                    new EventHandler<ActionEvent>() {
+                                        public void handle(ActionEvent e) {
+                                            LOG.finest(
+                                                    "Context menu invoked. Add Feature button clicked. Adding dataset "
+                                                            + feature.toString()
+                                                            + " to the plot.");
+                                            PeakListRow row = peakList
+                                                    .getPeakRow(feature);
+                                            FeatureSelection featureSelection = new FeatureSelection(
+                                                    peakList, feature, row,
+                                                    dataFile);
+                                            Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
+                                                    featureSelection,
+                                                    rtResolution, mzResolution,
+                                                    rtRange, mzRange,
+                                                    maxOfAllBinnedIntensity,
+                                                    Color.rgb(165, 42, 42,
+                                                            0.9));
+                                            addDataset(featureDataset);
+                                            addMenuItems();
+                                        }
+                                    });
+                        }
+                    }
                 }
 
             }
