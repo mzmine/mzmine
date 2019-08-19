@@ -58,10 +58,6 @@ public class FeaturesParameter
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-        if ((value == null) || (value.size() == 0)) {
-            errorMessages.add("No features selected");
-            return false;
-        }
         return true;
     }
 
@@ -85,8 +81,8 @@ public class FeaturesParameter
                             .equals(docElement
                                     .getElementsByTagName("peaklist_name")
                                     .item(0).getNodeValue())) {
+                        int rownum = 0;
                         for (PeakListRow row : rows) {
-                            int rownum = 0;
                             if (row.toString().equals(docElement
                                     .getElementsByTagName("peaklist_row_id")
                                     .item(0).getNodeValue())) {

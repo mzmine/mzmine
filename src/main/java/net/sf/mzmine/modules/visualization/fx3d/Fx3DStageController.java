@@ -418,30 +418,32 @@ public class Fx3DStageController {
                 peakListMenu.getItems().add(dataFileMenu);
                 PeakListRow[] rows = peakList.getRows();
                 for (PeakListRow row : rows) {
-                    int rownum = 0;
-                    Feature feature = peakList.getPeak(rownum, dataFile);
-                    if (!visualizedFiles.contains(feature)) {
-                        MenuItem menuItem = new MenuItem(feature.toString());
-                        dataFileMenu.getItems().add(menuItem);
-                        menuItem.setOnAction(new EventHandler<ActionEvent>() {
-                            public void handle(ActionEvent e) {
-                                LOG.finest(
-                                        "Context menu invoked. Add Feature button clicked. Adding dataset "
-                                                + feature.toString()
-                                                + " to the plot.");
-                                FeatureSelection featureSelection = new FeatureSelection(
-                                        peakList, feature, row, dataFile);
-                                Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
-                                        featureSelection, rtResolution,
-                                        mzResolution, rtRange, mzRange,
-                                        maxOfAllBinnedIntensity,
-                                        Color.rgb(165, 42, 42, 0.9));
-                                addDataset(featureDataset);
-                                addMenuItems();
-                            }
-                        });
-                    }
-                    rownum++;
+                    Feature feature = row.getPeak(dataFile);
+                    // LOG.finest("Feature got is:" + feature.toString());
+                    // if (!visualizedFiles.contains(feature)) {
+                    // LOG.finest("Feature got is:" + feature.toString());
+                    // MenuItem menuItem = new MenuItem(feature.toString());
+                    // dataFileMenu.getItems().add(menuItem);
+                    // menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                    // public void handle(ActionEvent e) {
+                    // LOG.finest(
+                    // "Context menu invoked. Add Feature button clicked. Adding
+                    // dataset "
+                    // + feature.toString()
+                    // + " to the plot.");
+                    // FeatureSelection featureSelection = new FeatureSelection(
+                    // peakList, feature, row, dataFile);
+                    // Fx3DFeatureDataset featureDataset = new
+                    // Fx3DFeatureDataset(
+                    // featureSelection, rtResolution,
+                    // mzResolution, rtRange, mzRange,
+                    // maxOfAllBinnedIntensity,
+                    // Color.rgb(165, 42, 42, 0.9));
+                    // addDataset(featureDataset);
+                    // addMenuItems();
+                    // }
+                    // });
+                    // }
                 }
 
             }

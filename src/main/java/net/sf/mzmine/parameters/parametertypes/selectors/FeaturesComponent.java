@@ -55,7 +55,7 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
         JScrollPane scrollPane = new JScrollPane(jlist);
-        scrollPane.setSize(30, 60);
+        scrollPane.setSize(60, 30);
         add(scrollPane, BorderLayout.CENTER);
 
         buttonPane = new JPanel();
@@ -72,6 +72,9 @@ public class FeaturesComponent extends JPanel implements ActionListener {
 
     public void setValue(List<FeatureSelection> newValue) {
         currentValue = newValue;
+        for (FeatureSelection featureSelection : newValue) {
+            model.addElement(featureSelection.getFeature().toString());
+        }
     }
 
     public List<FeatureSelection> getValue() {
