@@ -139,24 +139,51 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
 
-                if (peakListIndices[x][y] == 1) {
-                    Color color = peakColor;
-                    pw.setColor(x, y, color);
-                    if (x - 1 >= 0 && y - 1 >= 0) {
-                        pw.setColor(x - 1, y - 1, color);
-                        pw.setColor(x, y - 1, color);
-                        pw.setColor(x - 1, y, color);
-                    }
-                } else {
-                    Color color = Color.rgb(169, 169, 169, opacity);
-                    pw.setColor(x, y, color);
-                }
+                float value = intensityValues[x][y];
+                double gray = normalizeValue(value, 0, maxIntensityValue, 0.,
+                        1.);
+                gray = clamp(gray, 0, 1);
+
+                Color color = Color.GREY.interpolate(peakColor, gray);
+
+                pw.setColor(x, y, color);
+                // if (peakListIndices[x][y] == 1) {
+                // Color color = peakColor;
+                // pw.setColor(x, y, color);
+                // if (x - 1 >= 0 && y - 1 >= 0) {
+                // pw.setColor(x - 1, y - 1, color);
+                // pw.setColor(x, y - 1, color);
+                // pw.setColor(x - 1, y, color);
+                // }
+                // } else {
+                // Color color = Color.rgb(169, 169, 169, opacity);
+                // pw.setColor(x, y, color);
+                // }
+
             }
         }
         Image diffuseMap = wr;
         PhongMaterial material = new PhongMaterial();
         material.setDiffuseMap(diffuseMap);
         meshView.setMaterial(material);
+    }
+
+    public static double normalizeValue(double value, double min, double max,
+            double newMin, double newMax) {
+
+        return (value - min) * (newMax - newMin) / (max - min) + newMin;
+
+    }
+
+    public static double clamp(double value, double min, double max) {
+
+        if (Double.compare(value, min) < 0)
+            return min;
+
+        if (Double.compare(value, max) > 0)
+            return max;
+
+        return value;
     }
 
     public void normalize(double maxOfAllBinnedIntensities) {

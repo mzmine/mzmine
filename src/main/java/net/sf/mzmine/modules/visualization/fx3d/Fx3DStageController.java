@@ -92,11 +92,9 @@ public class Fx3DStageController {
     @FXML
     private Menu addDatafileMenu;
     @FXML
-    private Menu removeDatafileMenu;
-    @FXML
     private Menu addFeatureMenu;
     @FXML
-    private Menu removeFeatureMenu;
+    private Menu removeMenu;
     @FXML
     private BorderPane root;
     @FXML
@@ -228,12 +226,12 @@ public class Fx3DStageController {
         left = new PointLight(Color.WHITE);
         left.setTranslateX(-1000);
         left.setTranslateZ(SIZE / 2);
-        left.setTranslateY(10);
+        left.setTranslateY(0);
 
         right = new PointLight(Color.WHITE);
         right.setTranslateX(1500);
         right.setTranslateZ(SIZE / 2);
-        right.setTranslateY(-10);
+        right.setTranslateY(0);
 
         front = new PointLight(Color.WHITE);
         front.setTranslateX(SIZE / 2);
@@ -245,12 +243,13 @@ public class Fx3DStageController {
         back.setTranslateZ(1000);
         back.setTranslateY(-10);
 
-        lights1.getChildren().add(front);
         lights1.getChildren().add(left);
         lights1.getChildren().add(top);
         lights1.getChildren().add(bottom);
-        lights2.getChildren().add(right);
-        lights2.getChildren().add(back);
+        // lights1.getChildren().add(front);
+        lights1.getChildren().add(right);
+
+        // lights2.getChildren().add(back);
     }
 
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
@@ -348,24 +347,22 @@ public class Fx3DStageController {
     }
 
     private void addMenuItems() {
-        removeDatafileMenu.getItems().clear();
+        removeMenu.getItems().clear();
         for (Fx3DAbstractDataset dataset : visualizedMeshPlots) {
-            if (dataset instanceof Fx3DRawDataFileDataset) {
-                MenuItem menuItem = new MenuItem(dataset.getFileName());
-                removeDatafileMenu.getItems().add(menuItem);
-                menuItem.setOnAction(new EventHandler<ActionEvent>() {
-                    public void handle(ActionEvent e) {
-                        LOG.finest(
-                                "Context menu invoked. Remove Data file button clicked. Removing dataset "
-                                        + dataset.getFileName()
-                                        + " from the plot.");
-                        visualizedFiles.remove(dataset.getFile());
-                        visualizedMeshPlots.remove(dataset);
-                        updateGraph();
-                        addMenuItems();
-                    }
-                });
-            }
+            MenuItem menuItem = new MenuItem(dataset.getFileName());
+            removeMenu.getItems().add(menuItem);
+            menuItem.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent e) {
+                    LOG.finest(
+                            "Context menu invoked. Remove Data file button clicked. Removing dataset "
+                                    + dataset.getFileName()
+                                    + " from the plot.");
+                    visualizedFiles.remove(dataset.getFile());
+                    visualizedMeshPlots.remove(dataset);
+                    updateGraph();
+                    addMenuItems();
+                }
+            });
         }
         addDatafileMenu.getItems().clear();
         for (RawDataFile file : allDataFiles) {
@@ -382,26 +379,6 @@ public class Fx3DStageController {
                                 new Fx3DSamplingTask(file, scanSel, mzRange,
                                         rtResolution, mzResolution, controller),
                                 TaskPriority.HIGH);
-                        addMenuItems();
-                    }
-                });
-            }
-        }
-
-        removeFeatureMenu.getItems().clear();
-        for (Fx3DAbstractDataset dataset : visualizedMeshPlots) {
-            if (dataset instanceof Fx3DFeatureDataset) {
-                MenuItem menuItem = new MenuItem(dataset.getFileName());
-                removeFeatureMenu.getItems().add(menuItem);
-                menuItem.setOnAction(new EventHandler<ActionEvent>() {
-                    public void handle(ActionEvent e) {
-                        LOG.finest(
-                                "Context menu invoked. Remove Feature button clicked. Removing dataset "
-                                        + dataset.getFileName()
-                                        + " from the plot.");
-                        visualizedFiles.remove(dataset.getFile());
-                        visualizedMeshPlots.remove(dataset);
-                        updateGraph();
                         addMenuItems();
                     }
                 });

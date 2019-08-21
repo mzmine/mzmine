@@ -45,17 +45,12 @@
 																	<Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
 																</graphic>
 															</Menu>
-															<Menu text="Remove datafile" fx:id="removeDatafileMenu">
-																<graphic>
-																	<Glyph fontFamily="FontAwesome" icon="MINUS_SQUARE_ALT" />
-																</graphic>
-															</Menu>
 															<Menu text="Add Feature" fx:id="addFeatureMenu">
 																<graphic>
 																	<Glyph fontFamily="FontAwesome" icon="PLUS_SQUARE_ALT" />
 																</graphic>
 															</Menu>
-															<Menu text="Remove Feature" fx:id="removeFeatureMenu">
+															<Menu text="Remove" fx:id="removeMenu">
 																<graphic>
 																	<Glyph fontFamily="FontAwesome" icon="MINUS_SQUARE_ALT" />
 																</graphic>
