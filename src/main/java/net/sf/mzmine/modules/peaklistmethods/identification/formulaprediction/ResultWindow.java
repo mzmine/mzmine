@@ -30,6 +30,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -53,20 +54,22 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.PercentageCellRenderer;
 
 public class ResultWindow extends JFrame implements ActionListener {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 1L;
+
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+
   private final JTable resultsTable;
   private final ResultTableModel resultsTableModel;
   private final TableRowSorter<ResultTableModel> resultsTableSorter;
@@ -226,6 +229,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
     if (command.equals("SHOW_ISOTOPES")) {
 
+      logger.finest("Showing isotope pattern for formula " + formula.getFormulaAsString());
       IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
       if (predictedPattern == null)
