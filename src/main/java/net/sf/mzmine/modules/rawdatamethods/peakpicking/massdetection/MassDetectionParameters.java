@@ -112,10 +112,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
       return exitCode;
 
     // Do we have mostly centroided scans?
-    final double proportionCentroided = (numCentroided / (numCentroided + numProfile));
+    final double proportionCentroided = (double) numCentroided / (numCentroided + numProfile);
     final boolean mostlyCentroided = proportionCentroided > 0.5;
-    logger.finest("Proportion of scans estimated to be centroided: "
-        + NumberFormat.getNumberInstance().format(proportionCentroided));
+    logger.finest("Proportion of scans estimated to be centroided: " + proportionCentroided);
 
     // Check the selected mass detector
     String massDetectorName = getParameter(massDetector).getValue().toString();
