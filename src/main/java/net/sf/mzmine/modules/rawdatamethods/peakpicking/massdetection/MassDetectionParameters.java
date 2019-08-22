@@ -19,7 +19,6 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import java.awt.Window;
-import java.text.NumberFormat;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.MassSpectrumType;
