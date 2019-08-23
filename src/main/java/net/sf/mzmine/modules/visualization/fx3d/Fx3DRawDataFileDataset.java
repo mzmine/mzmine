@@ -144,9 +144,20 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
                         1.);
                 gray = clamp(gray, 0, 1);
 
-                Color color = Color.GREY.interpolate(peakColor, gray);
-
-                pw.setColor(x, y, color);
+                if (0 <= gray && gray <= 0.1) {
+                    Color color = Color.GREY.interpolate(peakColor, gray);
+                    pw.setColor(x, y, color);
+                } else {
+                    if (peakListIndices[x][y] == 1) {
+                        Color color = peakColor;
+                        pw.setColor(x, y, color);
+                        if (x - 1 >= 0 && y - 1 >= 0) {
+                            pw.setColor(x - 1, y - 1, color);
+                            pw.setColor(x, y - 1, color);
+                            pw.setColor(x - 1, y, color);
+                        }
+                    }
+                }
                 // if (peakListIndices[x][y] == 1) {
                 // Color color = peakColor;
                 // pw.setColor(x, y, color);

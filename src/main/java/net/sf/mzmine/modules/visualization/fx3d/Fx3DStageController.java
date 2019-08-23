@@ -119,8 +119,7 @@ public class Fx3DStageController {
     @FXML
     private Group finalNode;
     private Group plot = new Group();
-    private Group lights1 = new Group();
-    private Group lights2 = new Group();
+    private Group lights = new Group();
     private Group meshViews = new Group();
     private static final int SIZE = 500;
     private final Rotate rotateX = new Rotate(30, Rotate.X_AXIS);
@@ -200,8 +199,7 @@ public class Fx3DStageController {
 
         tableView.setItems(visualizedMeshPlots);
         plot.getChildren().add(meshViews);
-        plot.getChildren().add(lights1);
-        plot.getChildren().add(lights2);
+        plot.getChildren().add(lights);
         allDataFiles = Arrays.asList(MZmineCore.getProjectManager()
                 .getCurrentProject().getDataFiles());
         allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
@@ -225,31 +223,30 @@ public class Fx3DStageController {
 
         left = new PointLight(Color.WHITE);
         left.setTranslateX(-1000);
-        left.setTranslateZ(SIZE / 2);
-        left.setTranslateY(0);
+        left.setTranslateZ(-SIZE);
+        left.setTranslateY(-500);
 
         right = new PointLight(Color.WHITE);
         right.setTranslateX(1500);
-        right.setTranslateZ(SIZE / 2);
-        right.setTranslateY(0);
+        right.setTranslateZ(-SIZE);
+        right.setTranslateY(-500);
 
         front = new PointLight(Color.WHITE);
         front.setTranslateX(SIZE / 2);
         front.setTranslateZ(-1000);
-        front.setTranslateY(10);
+        front.setTranslateY(-500);
 
         back = new PointLight(Color.WHITE);
         back.setTranslateX(SIZE / 2);
         back.setTranslateZ(1000);
-        back.setTranslateY(-10);
+        back.setTranslateY(-500);
 
-        lights1.getChildren().add(left);
-        lights1.getChildren().add(top);
-        lights1.getChildren().add(bottom);
-        // lights1.getChildren().add(front);
-        lights1.getChildren().add(right);
-
-        // lights2.getChildren().add(back);
+        lights.getChildren().add(front);
+        lights.getChildren().add(back);
+        lights.getChildren().add(top);
+        lights.getChildren().add(bottom);
+        // lights.getChildren().add(right);
+        // lights.getChildren().add(back);
     }
 
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
@@ -395,7 +392,6 @@ public class Fx3DStageController {
                 peakListMenu.getItems().add(dataFileMenu);
                 Feature[] features = peakList.getPeaks(dataFile);
                 for (Feature feature : features) {
-                    LOG.finest("Feature got is:" + feature.toString());
                     if (feature.getRawDataPointsRTRange()
                             .lowerEndpoint() >= rtRange.lowerEndpoint()
                             && feature.getRawDataPointsRTRange()
@@ -406,7 +402,6 @@ public class Fx3DStageController {
                                     .upperEndpoint() <= mzRange
                                             .upperEndpoint()) {
                         if (!visualizedFiles.contains(feature)) {
-                            LOG.finest("Feature got is:" + feature.toString());
                             MenuItem menuItem = new MenuItem(
                                     feature.toString());
                             dataFileMenu.getItems().add(menuItem);
