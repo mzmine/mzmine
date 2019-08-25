@@ -245,8 +245,6 @@ public class Fx3DStageController {
         lights.getChildren().add(back);
         lights.getChildren().add(top);
         lights.getChildren().add(bottom);
-        // lights.getChildren().add(right);
-        // lights.getChildren().add(back);
     }
 
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
@@ -338,7 +336,7 @@ public class Fx3DStageController {
             Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
                     featureSelection, rtResolution, mzResolution, rtRange,
                     mzRange, maxOfAllBinnedIntensity,
-                    Color.rgb(165, 42, 42, 0.9));
+                    Color.rgb(255, 255, 0, 0.35));
             addDataset(featureDataset);
         }
     }
@@ -655,12 +653,10 @@ public class Fx3DStageController {
 
     public void handleLights() {
         if (lightsBtn.isSelected()) {
-            left.setLightOn(true);
-            right.setLightOn(true);
+            top.setLightOn(true);
             LOG.finest("Lights ON/OFF button clicked.Switching lights ON.");
         } else {
-            left.setLightOn(false);
-            right.setLightOn(false);
+            top.setLightOn(false);
             LOG.finest("Lights ON/OFF button clicked.Switching lights OFF.");
         }
     }
