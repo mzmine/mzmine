@@ -1,3 +1,20 @@
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.awt.BorderLayout;
@@ -21,6 +38,10 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.GridBagPanel;
 import net.sf.mzmine.util.components.MultipleSelectionComponent;
 
+/**
+ * @author akshaj Shows the dialog to select the features and add them to the
+ *         parameter setup dialog of the Fx3DVisualizer.
+ */
 public class FeaturesSelectionDialog extends JDialog implements ActionListener {
 
     private static final long serialVersionUID = 1L;
@@ -112,6 +133,12 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
         return returnState;
     }
 
+    /*
+     *
+     * 
+     * @see
+     * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
     @Override
     public void actionPerformed(ActionEvent event) {
         Object src = event.getSource();
@@ -161,8 +188,6 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
                             features);
                     featuresSelectionBox
                             .setToolTipText("Features Selection Box");
-                    // featuresSelectionBox.setSize(50, 30);
-                    // panel12.setSize(200, 80);
                     panel12.add(featuresSelectionBox, BorderLayout.CENTER);
                 }
                 panel11.revalidate();

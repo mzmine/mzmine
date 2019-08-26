@@ -23,6 +23,11 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
+/**
+ * @author akshaj This class represents the slider in the table of
+ *         Fx3DVisualizer.
+ * @param <T>
+ */
 public class SliderCell<T> extends TableCell<T, Double> {
 
     private final Slider slider;

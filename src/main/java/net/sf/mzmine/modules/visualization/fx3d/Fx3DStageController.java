@@ -73,6 +73,10 @@ import net.sf.mzmine.util.components.ButtonCell;
 import net.sf.mzmine.util.components.ColorTableCell;
 import net.sf.mzmine.util.components.SliderCell;
 
+/**
+ * @author akshaj The controller class of the Fx3DVisualizer which handles all
+ *         user actions and shows the plot along with the table.
+ */
 public class Fx3DStageController {
 
     @FXML
@@ -247,6 +251,10 @@ public class Fx3DStageController {
         lights.getChildren().add(bottom);
     }
 
+    /**
+     * @param dataset
+     *            This method adds the dataset to the 3D plot.
+     */
     public synchronized void addDataset(Fx3DAbstractDataset dataset) {
         visualizedMeshPlots.add(dataset);
         visualizedFiles.add(dataset.getFile());
@@ -326,12 +334,16 @@ public class Fx3DStageController {
         }
     }
 
+    /**
+     * @param selections
+     *            Adds the list of FeatureSelection from the module class.
+     */
     public void addFeatureSelections(List<FeatureSelection> selections) {
         this.featureSelections = selections;
         addFeatures();
     }
 
-    public void addFeatures() {
+    private void addFeatures() {
         for (FeatureSelection featureSelection : featureSelections) {
             Fx3DFeatureDataset featureDataset = new Fx3DFeatureDataset(
                     featureSelection, rtResolution, mzResolution, rtRange,
@@ -560,6 +572,11 @@ public class Fx3DStageController {
         plot.setScaleY(DEFAULT_SCALE);
     }
 
+    /**
+     * @param event
+     *            Rotates the plot to show all the axes in the direction of the
+     *            camera.
+     */
     public void handleRotateAxes(Event event) {
         if (animationRunning) {
             animateBtn.setSelected(false);
@@ -623,6 +640,9 @@ public class Fx3DStageController {
 
     }
 
+    /**
+     * Starts the rotation of the plot.
+     */
     public void handleAnimate() {
         if (!animationRunning) {
             yRotate.setAngle(rotateY.getAngle() + deltaAngle);
@@ -661,6 +681,10 @@ public class Fx3DStageController {
         }
     }
 
+    /**
+     * @param event
+     *            Zooms in and out when the mouse is scrolled.
+     */
     public void onScrollHandler(ScrollEvent event) {
         double delta = 1.2;
         double scale = (plot.getScaleX());

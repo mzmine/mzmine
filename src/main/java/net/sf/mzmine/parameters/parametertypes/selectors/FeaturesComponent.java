@@ -38,6 +38,10 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.util.GUIUtils;
 
+/**
+ * @author akshaj This class represents the component which shows Features in
+ *         the parameter setup dialog of Fx3DVisualizer.
+ */
 public class FeaturesComponent extends JPanel implements ActionListener {
 
     private static final long serialVersionUID = 1L;
@@ -81,6 +85,10 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         return currentValue;
     }
 
+    /*
+     * @see
+     * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
     @Override
     public void actionPerformed(ActionEvent event) {
         Object src = event.getSource();

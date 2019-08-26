@@ -32,6 +32,9 @@ import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 import net.sf.mzmine.datamodel.RawDataFile;
 
+/**
+ * @author akshaj This class represents the dataset of a Raw data file.
+ */
 public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
 
     private static final int SIZE = 500;
@@ -130,12 +133,18 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         LOG.finest("Plot mesh is ready.");
     }
 
+    /*
+     * Sets the peak color
+     * 
+     * @see
+     * net.sf.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#setNodeColor
+     * (javafx.scene.paint.Color)
+     */
     public void setNodeColor(Color peakColor) {
         int width = rtResolution;
         int height = mzResolution;
         WritableImage wr = new WritableImage(width, height);
         PixelWriter pw = wr.getPixelWriter();
-        double opacity = peakColor.getOpacity();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
 
@@ -158,19 +167,6 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
                         }
                     }
                 }
-                // if (peakListIndices[x][y] == 1) {
-                // Color color = peakColor;
-                // pw.setColor(x, y, color);
-                // if (x - 1 >= 0 && y - 1 >= 0) {
-                // pw.setColor(x - 1, y - 1, color);
-                // pw.setColor(x, y - 1, color);
-                // pw.setColor(x - 1, y, color);
-                // }
-                // } else {
-                // Color color = Color.rgb(169, 169, 169, opacity);
-                // pw.setColor(x, y, color);
-                // }
-
             }
         }
         Image diffuseMap = wr;
@@ -179,14 +175,14 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         meshView.setMaterial(material);
     }
 
-    public static double normalizeValue(double value, double min, double max,
+    private static double normalizeValue(double value, double min, double max,
             double newMin, double newMax) {
 
         return (value - min) * (newMax - newMin) / (max - min) + newMin;
 
     }
 
-    public static double clamp(double value, double min, double max) {
+    private static double clamp(double value, double min, double max) {
 
         if (Double.compare(value, min) < 0)
             return min;
@@ -197,6 +193,13 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
         return value;
     }
 
+    /*
+     * Normalizes each data plot when the maxIntensity of the 3D plot changes.
+     * 
+     * @see
+     * net.sf.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#normalize(
+     * double)
+     */
     public void normalize(double maxOfAllBinnedIntensities) {
         float factorX = (float) SIZE / rtResolution;
         float factorZ = (float) SIZE / mzResolution;

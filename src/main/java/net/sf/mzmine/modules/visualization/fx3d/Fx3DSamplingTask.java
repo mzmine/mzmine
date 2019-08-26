@@ -39,7 +39,7 @@ import net.sf.mzmine.util.scans.ScanUtils;
 import net.sf.mzmine.util.scans.ScanUtils.BinningType;
 
 /**
- * Sampling task which loads the raw data and feeds them to ThreeDDisplay
+ * Sampling task which loads the raw data and feeds them to Fx3DDisplay
  */
 class Fx3DSamplingTask extends AbstractTask {
 

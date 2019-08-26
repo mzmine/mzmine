@@ -46,6 +46,9 @@ import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.scans.ScanUtils;
 
+/**
+ * @author akshaj This class represents the module class of the Fx3DVisualizer.
+ */
 public class Fx3DVisualizerModule implements MZmineRunnableModule {
 
     private static final Logger LOG = Logger

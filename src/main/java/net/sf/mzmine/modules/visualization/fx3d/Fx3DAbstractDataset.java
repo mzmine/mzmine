@@ -26,6 +26,10 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import net.sf.mzmine.datamodel.RawDataFile;
 
+/**
+ * @author akshaj Abstract class to represent a data that can be plotted in the
+ *         visualizer.
+ */
 abstract class Fx3DAbstractDataset {
 
     private RawDataFile dataFile;
@@ -89,6 +93,11 @@ abstract class Fx3DAbstractDataset {
 
     public abstract Node getNode();
 
+    /**
+     * @param maxOfAllBinnedIntensities
+     *            Normalizes the dataset according to the max Intensity so that
+     *            the graph remains always within the axes.
+     */
     public abstract void normalize(double maxOfAllBinnedIntensities);
 
     public abstract void setNodeColor(Color nodeColor);

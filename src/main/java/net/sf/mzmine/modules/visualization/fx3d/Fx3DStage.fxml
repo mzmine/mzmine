@@ -30,12 +30,12 @@
 				                  </SubScene>
 				               </children>
 				            </AnchorPane>
-				          <!-- <AnchorPane minHeight="0.0" minWidth="0.0">
-				               <children> -->
+				          <AnchorPane minHeight="0.0" minWidth="0.0">
+				               <children>
 				                  <ScrollPane prefHeight="200.0" fitToWidth="true" fitToHeight="true" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 				                    <content>
-				                      <!-- <AnchorPane minHeight="0.0" minWidth="0.0">
-				                           <children> -->
+				                      <AnchorPane minHeight="0.0" minWidth="0.0">
+				                           <children>
 				                              <TableView fx:id="tableView" prefHeight="600" editable="true" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 										     	<contextMenu>
 											      <ContextMenu>
@@ -81,12 +81,12 @@
 										             </TableColumn>
 										         </columns>
 										      </TableView>
-				                          <!--  </children>
-				                        </AnchorPane> -->
+				                           </children>
+				                        </AnchorPane>
 				                    </content>
 				                  </ScrollPane>
-				            <!--    </children>
-				            </AnchorPane> -->
+				               </children>
+				            </AnchorPane>
 				        </items>
 				      </SplitPane>
 				   </center>

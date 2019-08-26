@@ -34,6 +34,10 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 
+/**
+ * @author akshaj This class represents the parameter Features in the parameter
+ *         setup dialog of the Fx3DVisualizer.
+ */
 public class FeaturesParameter
         implements UserParameter<List<FeatureSelection>, FeaturesComponent> {
 
@@ -61,6 +65,10 @@ public class FeaturesParameter
         return true;
     }
 
+    /*
+     * @see
+     * net.sf.mzmine.parameters.Parameter#loadValueFromXML(org.w3c.dom.Element)
+     */
     @Override
     public void loadValueFromXML(Element xmlElement) {
 
@@ -111,6 +119,10 @@ public class FeaturesParameter
         LOG.finest("Values have been loaded from XML");
     }
 
+    /*
+     * @see
+     * net.sf.mzmine.parameters.Parameter#saveValueToXML(org.w3c.dom.Element)
+     */
     @Override
     public void saveValueToXML(Element xmlElement) {
         if (value == null)
@@ -159,6 +171,9 @@ public class FeaturesParameter
         component.setValue(newValue);
     }
 
+    /*
+     * @see net.sf.mzmine.parameters.UserParameter#cloneParameter()
+     */
     @Override
     public FeaturesParameter cloneParameter() {
         FeaturesParameter copy = new FeaturesParameter();

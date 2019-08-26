@@ -25,6 +25,11 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
 
+/**
+ * @author akshaj This class represents the eye button in the table of
+ *         Fx3DVisualizer.
+ * @param <T>
+ */
 public class ButtonCell<T> extends TableCell<T, Boolean> {
     ToggleButton button;
 

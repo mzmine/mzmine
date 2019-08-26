@@ -26,15 +26,16 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import net.sf.mzmine.main.MZmineCore;
 
+/**
+ * @author akshaj This class represents the axes of the 3D plot.
+ */
 public class Fx3DAxes extends Group {
 
     private static final int SIZE = 500;
     private static float AMPLIFI = 130;
 
     private Group rtAxis = new Group();
-    // private Group rtLabels = new Group();
     private Group mzAxis = new Group();
-    // private Group mzLabels = new Group();
     private Group intensityAxis = new Group();
 
     private Group mzAxisTicks = new Group();
@@ -56,6 +57,13 @@ public class Fx3DAxes extends Group {
                 intensityTranslate);
     }
 
+    /**
+     * @param rtRange
+     * @param mzRange
+     * @param maxBinnedIntensity
+     *            Sets the values to the axes according to the range of RT, MZ
+     *            and maxIntensity.
+     */
     public void setValues(Range<Double> rtRange, Range<Double> mzRange,
             double maxBinnedIntensity) {
         // rtAxis
@@ -213,6 +221,13 @@ public class Fx3DAxes extends Group {
         return mzAxisTicks;
     }
 
+    /**
+     * @param rtRange
+     * @param mzRange
+     * @param maxBinnedIntensity
+     *            Updates the axes values according to the new ranges of RT,MZ
+     *            and maximum intensity.
+     */
     public void updateAxisParameters(Range<Double> rtRange,
             Range<Double> mzRange, double maxBinnedIntensity) {
         this.getChildren().clear();
