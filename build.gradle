@@ -12,7 +12,6 @@ sourceCompatibility = "12"
 targetCompatibility = "12"
 defaultTasks "clean", "runtimeZip"
 
-
 repositories {
     mavenLocal()
     maven {
@@ -87,8 +86,6 @@ dependencies {
     compile "com.github.jbytecode:RCaller:3.0"
     compile "mzmine:jmprojection:1.0"
     compile "mzmine:gslibml:0.0.1"
-    compile "org.jogamp.jogl:jogl-all-main:2.3.2"
-    compile "org.jogamp.gluegen:gluegen-rt-main:2.3.2"
     compile "uk.ac.ebi.pride:jmztab-modular-model:$jmztabVersion"
     compile "uk.ac.ebi.pride:jmztab-modular-util:$jmztabVersion"
     compile "org.apache.xmlgraphics:fop:1.0"
@@ -135,14 +132,20 @@ dependencies {
     compile "org.threeten:threetenbp:1.3.8"
     compile "org.controlsfx:controlsfx:$controlsfxVersion"
     compile "org.drjekyll:fontchooser:2.4"
-    testCompile "junit:junit:4.12"
  
-    // To be removed
-    compile "mzmine:visad:20131024"
-    compile "java3d:j3dcore:1.6.0"
-    compile "java3d:j3dutils:1.6.0"
-    compile "java3d:vecmath:1.6.0"
+    // To be removed after converting help to JavaFX
     compile "javax.help:javahelp:2.0.05"
+}
+
+/* 
+ * This avoids a compilation error in Eclipse, because the org.w3c.dom package
+ * is present in the java.xml module as well as in these dependencies. 
+ * That is illegal (https://bugs.eclipse.org/bugs/show_bug.cgi?id=536928).
+ */
+configurations.all {
+  exclude group: "xml-apis", module: "xml-apis"
+  exclude group: "xml-apis", module: "xml-apis-ext"
+  exclude group: "xom", module: "xom"
 }
 
 javafx {
@@ -167,19 +170,26 @@ startScripts {
 
 runtime {
     options = ["--compress=2", "--vm=server", "--no-header-files", "--no-man-pages"]
+    modules = ["java.desktop",
+               "java.logging",
+               "java.xml",
+               "java.sql",
+               "java.datatransfer",
+               "java.security.sasl"
+              ]
     imageDir = file("${buildDir}/${applicationName}-${version}")
     imageZip = file("${buildDir}/${applicationName}-${version}.zip")
 }
 
 tasks.runtime.doLast {
-        copy {
-            from("src/main/icons")
-            into("${buildDir}/${applicationName}-${version}/icons")
-        }
-        copy {
-            from("src/main/log")
-            into("${buildDir}/${applicationName}-${version}/log")
-        }
+    copy {
+        from("src/main/icons")
+        into("${buildDir}/${applicationName}-${version}/icons")
+    }
+    copy {
+        from("src/main/log")
+        into("${buildDir}/${applicationName}-${version}/log")
+    }
     
 }
 
