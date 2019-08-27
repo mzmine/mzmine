@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd https://mvnrepository.com/artifact/org.jzy3d">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.mzmine</groupId>
 	<artifactId>mzmine2</artifactId>
@@ -119,6 +119,16 @@
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
+		</repository>
+		<repository>
+			 <id>jzy3d-snapshots</id>
+			 <name>Jzy3d Snapshots</name>
+			 <url>http://maven.jzy3d.org/snapshots </url>
+		</repository>
+		<repository>
+			 <id>jzy3d-releases</id>
+			 <name>Jzy3d Releases</name>
+			 <url>http://maven.jzy3d.org/releases </url>
 		</repository>
 	</repositories>
 
@@ -723,7 +733,13 @@
 			<version>${threetenbp.version}</version>
 		</dependency>
 		<!-- End of swagger dependencies -->
-
+		<!-- Controlsfx dependency -->
+		<dependency>
+    		<groupId>org.controlsfx</groupId>
+    		<artifactId>controlsfx</artifactId>
+    		<version>8.40.15</version>	
+		</dependency>
+		<!-- End of Controlsfx dependency -->
 	</dependencies>
 
 </project>

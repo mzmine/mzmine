@@ -110,6 +110,7 @@ import net.sf.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewMo
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
+import net.sf.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
@@ -209,7 +210,7 @@ public class MZmineModulesList {
 
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
-      ThreeDVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
+      ThreeDVisualizerModule.class, Fx3DVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
       MZDistributionHistoModule.class, PeakListTableModule.class, IsotopePatternExportModule.class,
       MSMSExportModule.class, ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
       InfoVisualizerModule.class, IntensityPlotModule.class, KendrickMassPlotModule.class,
