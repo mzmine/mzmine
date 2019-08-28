@@ -171,7 +171,7 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
 
     // when still outside of screen
     // e.g. changing from 2 screens to one
-    if (!isOnScreen(frame)) {
+    if (frame.isVisible() && !isOnScreen(frame)) {
       // Maximise on screen 1
       logger.finest("Window " + frame.getName() + " is not on screen, setting to maximized on screen 1");
       frame.setLocation(0, 0);
