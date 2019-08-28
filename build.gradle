@@ -187,6 +187,7 @@ application {
 
 startScripts {
     applicationName = "startMZmine-" + osSuffix
+    classpath = files("lib/*")
     doLast {
         if (OperatingSystem.current().isWindows()) {
             delete unixScript
