@@ -1,23 +1,11 @@
-### Setup
+### Basic information
 
-I am reporting a problem with MZmine 2 version (*Please fill this in*). 
-My operating system is (*Please fill this in, including version number and 32-bit or 64-bit *).
+* My operating system:
+* My MZmine version: 
 
-Below I pasted the exact output of the following commands:
-```
-java -version
-R --version
-(*Please copy-and-paste the output here*)
-```
+### What happened
 
-### Expected behavior
-
-(*Please fill this in*)
-
-### Actual behavior
-
-(*Please fill this in, and paste any relevant exceptions, log messages, and screenshots*)
-
-### Steps to reproduce the problem
-
-(*Please fill this in *)
+* Please describe what happened and how it differs from what you expected to happen.
+* Please include all parameter values for the MZmine modules you used. 
+* Please upload screenshots of any errors and your log/mzmine.log file.
+* Please upload an MZmine project file that demonstrates the problem you are reporting.
