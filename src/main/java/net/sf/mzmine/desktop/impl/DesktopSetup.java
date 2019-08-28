@@ -119,11 +119,18 @@ public class DesktopSetup {
 
       // Add a task controller listener to show number of running tasks
       if (taskBar.isSupported(Taskbar.Feature.ICON_BADGE_NUMBER)) {
-        MZmineCore.getTaskController().addTaskControlListener(numOfTasks -> {
-          String badge = null;
-          if (numOfTasks > 0)
-            badge = String.valueOf(numOfTasks);
-          taskBar.setIconBadge(badge);
+        MZmineCore.getTaskController().addTaskControlListener((numOfWaitingTasks, percentDone) -> {
+          if (numOfWaitingTasks > 0) {
+            String badge = String.valueOf(numOfWaitingTasks);
+            taskBar.setIconBadge(badge);
+            if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
+              taskBar.setProgressValue(percentDone);
+          } else {
+            taskBar.setIconBadge(null);
+            if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
+              taskBar.setProgressValue(-1);
+          }
+
         });
       }
     }
