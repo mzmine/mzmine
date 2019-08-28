@@ -188,11 +188,13 @@ application {
 startScripts {
     applicationName = "startMZmine-" + osSuffix
     doLast {
-        if (OperatingSystem.current().isWindows())
+        if (OperatingSystem.current().isWindows()) {
             delete unixScript
-        else
+            // Temporary fix for https://github.com/gradle/gradle/issues/10387
+            windowsScript.text = windowsScript.text.replace('set JAVA_HOME=\"%~dp0.."', 'set JAVA_HOME="%~dp0"')
+        } else {
             delete windowsScript
-        
+        }
     }
 }
 
