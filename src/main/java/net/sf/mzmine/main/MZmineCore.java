@@ -79,17 +79,6 @@ public final class MZmineCore {
     // be . or , depending on the locale)
     Locale.setDefault(new Locale("en", "US"));
 
-    // Configure the logging properties before we start logging
-    try {
-      ClassLoader cl = MZmineCore.class.getClassLoader();
-      InputStream loggingProperties = cl.getResourceAsStream("logging.properties");
-      LogManager logMan = LogManager.getLogManager();
-      logMan.readConfiguration(loggingProperties);
-      loggingProperties.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
     logger.info("Starting MZmine " + getMZmineVersion());
 
     // Remove old temporary files, if we find any
