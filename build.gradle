@@ -164,7 +164,7 @@ application {
                                  "-XX:InitialRAMPercentage=20", 
                                  "-XX:MaxRAMPercentage=80", 
                                  "-Djava.library.path=lib", 
-                                 "-Xdock:name='MZmine 2'", 
+                                 "-Xdock:name=MZmine ${version}", 
                                  "-Xdock:icon=icons/MZmineIcon.png",
                                  "-Dapple.laf.useScreenMenuBar=true"
                                 ]
