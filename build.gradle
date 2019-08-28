@@ -175,14 +175,16 @@ tasks.withType(JavaCompile) {
 application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
     applicationName = "MZmine"
+    executableDir = ""
     applicationDefaultJvmArgs = ["-showversion", 
-                                 "-XX:InitialRAMPercentage=20", 
-                                 "-XX:MaxRAMPercentage=80", 
-                                 "-Djava.library.path=lib", 
-                                 "-Dcom.apple.mrj.application.apple.menu.about.name=MZmine ${version}", 
+                                 "-XX:MaxHeapFreeRatio=100", 
+                                 "-XX:InitialRAMPercentage=30", 
+                                 "-XX:MinRAMPercentage=80",
+                                 "-XX:MaxRAMPercentage=80",
+                                 "-Djava.library.path=lib",
+                                 "-Dapple.awt.application.name=MZmine ${version}", 
                                  "-Dapple.laf.useScreenMenuBar=true"
                                 ]
-    executableDir = ""
 }
 
 startScripts {
