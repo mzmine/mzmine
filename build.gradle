@@ -179,6 +179,7 @@ startScripts {
 
 runtime {
     options = ["--compress=2", "--vm=server", "--no-header-files", "--no-man-pages"]
+/*
     modules = ["java.desktop",
                "java.logging",
                "java.xml",
@@ -186,6 +187,7 @@ runtime {
                "java.datatransfer",
                "java.security.sasl"
               ]
+*/
     imageDir = file("${buildDir}/${applicationName}-${version}")
     imageZip = file("${buildDir}/${applicationName}-${version}.zip")
 }
@@ -198,6 +200,10 @@ tasks.runtime.doLast {
     copy {
         from("src/main/log")
         into("${buildDir}/${applicationName}-${version}/log")
+    }
+    copy {
+        from("src/main/conf/logging.properties")
+        into("${buildDir}/${applicationName}-${version}/conf")
     } 
 }
 
