@@ -160,7 +160,14 @@ tasks.withType(JavaCompile) {
 application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
     applicationName = "MZmine"
-    applicationDefaultJvmArgs = ["-showversion", "-XX:InitialRAMPercentage=20", "-XX:MaxRAMPercentage=80"]
+    applicationDefaultJvmArgs = ["-showversion", 
+                                 "-XX:InitialRAMPercentage=20", 
+                                 "-XX:MaxRAMPercentage=80", 
+                                 "-Djava.library.path=lib", 
+                                 "-Xdock:name='MZmine 2'", 
+                                 "-Xdock:icon=icons/MZmineIcon.png",
+                                 "-Dapple.laf.useScreenMenuBar=true"
+                                ]
     executableDir = ""
 }
 
