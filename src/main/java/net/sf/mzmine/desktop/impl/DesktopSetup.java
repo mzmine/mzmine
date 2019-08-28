@@ -83,27 +83,37 @@ public class DesktopSetup {
     // Set basic desktop handlers
     final java.awt.Desktop awtDesktop = java.awt.Desktop.getDesktop();
     if (awtDesktop != null) {
-      awtDesktop.setAboutHandler(e -> {
-        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-        mainWindow.showAboutDialog();
-      });
 
-      awtDesktop.setQuitHandler((e, response) -> {
-        ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
-        if (exitCode == ExitCode.OK)
-          response.performQuit();
-        else
-          response.cancelQuit();
-      });
+      // Setup About handler
+      if (awtDesktop.isSupported(java.awt.Desktop.Action.APP_ABOUT)) {
+        awtDesktop.setAboutHandler(e -> {
+          MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+          mainWindow.showAboutDialog();
+        });
+      }
+
+
+      // Setup Quithandler
+      if (awtDesktop.isSupported(java.awt.Desktop.Action.APP_QUIT_HANDLER)) {
+        awtDesktop.setQuitHandler((e, response) -> {
+          ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
+          if (exitCode == ExitCode.OK)
+            response.performQuit();
+          else
+            response.cancelQuit();
+        });
+      }
     }
 
     MZmineCore.getTaskController().addTaskControlListener(numOfTasks -> {
       String badge = null;
       if (numOfTasks > 0)
         badge = String.valueOf(numOfTasks);
-      final Taskbar taskBar = Taskbar.getTaskbar();
-      if (taskBar != null)
-        taskBar.setIconBadge(badge);
+      if (Taskbar.isTaskbarSupported()) {
+        final Taskbar taskBar = Taskbar.getTaskbar();
+        if (taskBar != null)
+          taskBar.setIconBadge(badge);
+      }
     });
 
     // Let the OS decide the location of new windows. Otherwise, all windows
