@@ -20,10 +20,13 @@ package net.sf.mzmine.desktop.impl;
 
 import java.awt.Font;
 import java.awt.Taskbar;
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.imageio.ImageIO;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
@@ -73,6 +76,7 @@ public class DesktopSetup {
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     } catch (Exception e) {
+      e.printStackTrace();
       // ignore
     }
 
@@ -92,8 +96,7 @@ public class DesktopSetup {
         });
       }
 
-
-      // Setup Quithandler
+      // Setup Quit handler
       if (awtDesktop.isSupported(java.awt.Desktop.Action.APP_QUIT_HANDLER)) {
         awtDesktop.setQuitHandler((e, response) -> {
           ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
@@ -105,16 +108,29 @@ public class DesktopSetup {
       }
     }
 
-    MZmineCore.getTaskController().addTaskControlListener(numOfTasks -> {
-      String badge = null;
-      if (numOfTasks > 0)
-        badge = String.valueOf(numOfTasks);
-      if (Taskbar.isTaskbarSupported()) {
-        final Taskbar taskBar = Taskbar.getTaskbar();
-        if (taskBar != null)
-          taskBar.setIconBadge(badge);
+    if (Taskbar.isTaskbarSupported()) {
+
+      final Taskbar taskBar = Taskbar.getTaskbar();
+
+      // Set the app icon
+      try {
+        final InputStream mzmineIconStream =
+            DesktopSetup.class.getResourceAsStream("MZmineIcon.png");
+        final BufferedImage mzmineIcon = ImageIO.read(mzmineIconStream);
+        mzmineIconStream.close();
+        taskBar.setIconImage(mzmineIcon);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    });
+
+      // Add a task controller listener to show number of running tasks
+      MZmineCore.getTaskController().addTaskControlListener(numOfTasks -> {
+        String badge = null;
+        if (numOfTasks > 0)
+          badge = String.valueOf(numOfTasks);
+        taskBar.setIconBadge(badge);
+      });
+    }
 
     // Let the OS decide the location of new windows. Otherwise, all windows
     // would appear at the top left corner by default.

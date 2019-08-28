@@ -10,7 +10,7 @@ version = "2.50"
 description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
-defaultTasks "clean", "runtimeZip"
+defaultTasks "runtimeZip"
 
 repositories {
     mavenLocal()
@@ -166,8 +166,7 @@ application {
                                  "-XX:InitialRAMPercentage=20", 
                                  "-XX:MaxRAMPercentage=80", 
                                  "-Djava.library.path=lib", 
-                                 "-Xdock:name=MZmine ${version}", 
-                                 "-Xdock:icon=icons/MZmineIcon.png",
+                                 "-Dcom.apple.mrj.application.apple.menu.about.name=MZmine ${version}", 
                                  "-Dapple.laf.useScreenMenuBar=true"
                                 ]
     executableDir = ""
