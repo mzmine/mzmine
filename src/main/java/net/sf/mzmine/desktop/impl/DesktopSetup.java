@@ -79,29 +79,33 @@ public class DesktopSetup {
     // Set tooltip UI to support multi-line tooltips
     UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
     UIManager.put(MultiLineToolTipUI.class.getName(), MultiLineToolTipUI.class);
-    
+
     // Set basic desktop handlers
     final java.awt.Desktop awtDesktop = java.awt.Desktop.getDesktop();
-    awtDesktop.setAboutHandler(e -> {
-      MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-      mainWindow.showAboutDialog();
-    });
-    
-    awtDesktop.setQuitHandler((e,response) -> {
-      ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
-      if (exitCode == ExitCode.OK)
+    if (awtDesktop != null) {
+      awtDesktop.setAboutHandler(e -> {
+        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+        mainWindow.showAboutDialog();
+      });
+
+      awtDesktop.setQuitHandler((e, response) -> {
+        ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
+        if (exitCode == ExitCode.OK)
           response.performQuit();
-      else
+        else
           response.cancelQuit();
-    });
-    
+      });
+    }
+
     MZmineCore.getTaskController().addTaskControlListener(numOfTasks -> {
       String badge = null;
       if (numOfTasks > 0)
-          badge = String.valueOf(numOfTasks);
-      Taskbar.getTaskbar().setIconBadge(badge);
+        badge = String.valueOf(numOfTasks);
+      final Taskbar taskBar = Taskbar.getTaskbar();
+      if (taskBar != null)
+        taskBar.setIconBadge(badge);
     });
-    
+
     // Let the OS decide the location of new windows. Otherwise, all windows
     // would appear at the top left corner by default.
     System.setProperty("java.awt.Window.locationByPlatform", "true");
