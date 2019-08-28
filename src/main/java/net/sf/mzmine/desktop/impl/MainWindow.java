@@ -203,7 +203,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
       this.mzmineIcon = ImageIO.read(mzmineIconStream);
       mzmineIconStream.close();
       setIconImage(mzmineIcon);
-    } catch (IOException e) {
+    } catch (Throwable e) {
       e.printStackTrace();
       logger.log(Level.WARNING, "Could not set application icon", e);
     }
