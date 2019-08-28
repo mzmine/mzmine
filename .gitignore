@@ -2,11 +2,11 @@
 .project
 .classpath
 .gradle
-.settings/
-/target/
-/build/
-/bin/
-/src/main/conf
+.settings
+/target
+/build
+/bin
+/src/main/conf/config.xml
 /src/main/log/mzmine.log
 /src/main/log/mzmine.log.lck
 
