@@ -229,7 +229,7 @@ tasks.runtime.doLast {
 
 // Add MZmine version number to version.properties
 processResources {
-    filesMatching("version.properties") { 
+    filesMatching("mzmineversion.properties") { 
         expand(project.properties) 
     }
 }

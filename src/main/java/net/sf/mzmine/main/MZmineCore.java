@@ -292,7 +292,7 @@ public final class MZmineCore {
   public static String getMZmineVersion() {
     try {
       ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
-      InputStream inStream = myClassLoader.getResourceAsStream("version.properties");
+      InputStream inStream = myClassLoader.getResourceAsStream("mzmineversion.properties");
       if (inStream == null)
         return "0.0";
       Properties properties = new Properties();
