@@ -432,12 +432,6 @@ public class GUIUtils {
     return compoundBorder;
   }
 
-  public static String generateHelpID(Object obj) {
-    Class<?> myClass = obj.getClass();
-    String helpID = myClass.getPackage().getName().replace('.', '/') + "/help/help.html";
-    return helpID;
-  }
-
   /**
    * This method creates a JPanel which layouts given components in a table of given rows/columns.
    * Last column is considered main, so its components will be expanded to fill extra space.

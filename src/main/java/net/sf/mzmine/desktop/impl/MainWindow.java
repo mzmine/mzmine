@@ -29,13 +29,13 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.help.HelpBroker;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
@@ -44,11 +44,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 
+import javafx.application.Platform;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
-import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
+import net.sf.mzmine.desktop.impl.helpwindow.HelpWindow;
 import net.sf.mzmine.desktop.preferences.ErrorMail;
 import net.sf.mzmine.desktop.preferences.ErrorMailSettings;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
@@ -84,16 +84,10 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
 
   private MainMenu menuBar;
 
-  private HelpImpl help;
-
   private int mailCounter;
 
   public MainMenu getMainMenu() {
     return menuBar;
-  }
-
-  public HelpImpl getHelpImpl() {
-    return help;
   }
 
   /**
@@ -217,8 +211,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
     DesktopSetup desktopSetup = new DesktopSetup();
     desktopSetup.init();
 
-    help = new HelpImpl();
-
     setLayout(new BorderLayout());
 
     mainPanel = new MainPanel();
@@ -297,15 +289,12 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
   }
 
   public void showAboutDialog() {
+    Platform.runLater(() -> {
+      final URL aboutPage = getClass().getClassLoader().getResource("aboutpage/AboutMZmine.html");
+      HelpWindow aboutWindow = new HelpWindow(aboutPage.toString());
+      aboutWindow.show();
+    });
 
-    MZmineHelpSet hs = help.getHelpSet();
-    if (hs == null)
-      return;
-
-    HelpBroker hb = hs.createHelpBroker();
-    hs.setHomeID(aboutHelpID);
-
-    hb.setDisplayed(true);
   }
 
   @Override

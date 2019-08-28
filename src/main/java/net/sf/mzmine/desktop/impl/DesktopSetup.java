@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
+import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.ExitCode;
@@ -144,6 +145,7 @@ public class DesktopSetup {
       logger.finest("Initializing the JavaFX subsystem by creating a JFXPanel instance");
       @SuppressWarnings("unused")
       JFXPanel dummyPanel = new JFXPanel();
+      Platform.setImplicitExit(false);
     } catch (Throwable e) {
       logger.log(Level.WARNING, "Failed to initialize JavaFX", e);
       e.printStackTrace();

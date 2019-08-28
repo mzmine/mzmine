@@ -23,7 +23,10 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +39,7 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -50,8 +54,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
+
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
+
+import javafx.application.Platform;
 import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.chartbasics.chartgroups.ChartGroup;
 import net.sf.mzmine.chartbasics.gui.swing.EChartPanel;
@@ -60,6 +67,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
+import net.sf.mzmine.desktop.impl.helpwindow.HelpWindow;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.LibrarySubmitModule;
@@ -83,7 +91,6 @@ import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.components.GridBagPanel;
-import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.scans.sorting.ScanSortMode;
 
 /**
@@ -92,12 +99,16 @@ import net.sf.mzmine.util.scans.sorting.ScanSortMode;
  * @author Robin Schmid
  *
  */
-public class MSMSLibrarySubmissionWindow extends JFrame {
+public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListener {
 
   private Logger log = Logger.getLogger(this.getClass().getName());
   protected Map<String, JComponent> parametersAndComponents;
   protected final LibrarySubmitParameters paramSubmit;
   protected final LibraryMetaDataParameters paramMeta = new LibraryMetaDataParameters();
+
+  protected final URL helpURL;
+  protected HelpWindow helpWindow = null;
+  private JButton helpButton;
 
   // annotations for MSMS
   private List<AbstractMSMSIdentity> msmsAnnotations;
@@ -184,11 +195,10 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
     pnButtons = new JPanel();
     pnSideMenu.add(pnButtons, BorderLayout.SOUTH);
 
+    this.helpURL = paramSubmit.getClass().getResource("help/help.html");
 
-    this.helpID = GUIUtils.generateHelpID(paramSubmit);
-    if (helpID != null) {
-      HelpButton btnHelp = new HelpButton(helpID);
-      pnButtons.add(btnHelp);
+    if (helpURL != null) {
+      helpButton = GUIUtils.addButton(pnButtons, "Help", null, this);
     }
 
     JButton btnCheck = new JButton("Check");
@@ -907,4 +917,24 @@ public class MSMSLibrarySubmissionWindow extends JFrame {
   public ResultsTextPane getTxtResults() {
     return txtResults;
   }
+
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    
+    Object src = e.getSource();
+    
+    if (src == helpButton) {
+      Platform.runLater(() -> {
+        if (helpWindow != null) {
+          helpWindow.show();
+          helpWindow.toFront();
+        } else {
+          helpWindow = new HelpWindow(helpURL.toString());
+          helpWindow.show();
+        }
+      });
+    }
+
+  }
+
 }

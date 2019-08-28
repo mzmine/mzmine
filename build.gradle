@@ -134,9 +134,6 @@ dependencies {
     compile "com.sun.xml.bind:jaxb-impl:2.3.2"
     compile "javax.activation:javax.activation-api:1.2.0"
     compile "javax.mail:javax.mail-api:1.6.2"
-    compile "org.openjfx:javafx-controls:$javafxVersion"
-    compile "org.openjfx:javafx-swing:$javafxVersion"
-    compile "org.openjfx:javafx-fxml:$javafxVersion"
     compile "io.swagger:swagger-annotations:$swaggerVersion"
     compile "com.squareup.okhttp:okhttp:$okhttpVersion"
     compile "com.squareup.okhttp:logging-interceptor:$okhttpVersion"
@@ -145,9 +142,6 @@ dependencies {
     compile "org.threeten:threetenbp:1.3.8"
     compile "org.controlsfx:controlsfx:$controlsfxVersion"
     compile "org.drjekyll:fontchooser:2.4"
- 
-    // To be removed after converting help to JavaFX
-    compile "javax.help:javahelp:2.0.05"
 }
 
 /* 
@@ -168,12 +162,22 @@ javafx {
     modules = ["javafx.controls", 
                "javafx.swing", 
                "javafx.fxml",
-               "javafx.web"
+               "javafx.web",
+               "javafx.graphics"
               ]
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
+}
+
+/*
+ * This is important in order to copy all .java and .fxml files into the final MZmine jar. 
+ * The .java files are only for reference, for people who want to check the source codes.
+ * But the .fxml files are required for the GUI.
+ */
+jar {
+  from sourceSets.main.allSource
 }
 
 application {
@@ -212,7 +216,9 @@ runtime {
                "java.xml",
                "java.sql",
                "java.datatransfer",
-               "java.security.sasl"
+               "java.security.sasl",
+               "java.scripting",
+               "jdk.unsupported"
               ]
     imageDir = file("${buildDir}/${applicationName}-${version}-${osSuffix}")
     imageZip = file("${buildDir}/${applicationName}-${version}-${osSuffix}.zip")

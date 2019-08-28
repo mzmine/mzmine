@@ -18,7 +18,6 @@
 
 package net.sf.mzmine.parameters.dialogs;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dialog;
@@ -27,9 +26,11 @@ import java.awt.GridBagConstraints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
+
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -39,12 +40,14 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
+
+import javafx.application.Platform;
+import net.sf.mzmine.desktop.impl.helpwindow.HelpWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -53,7 +56,6 @@ import net.sf.mzmine.parameters.parametertypes.HiddenParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.GridBagPanel;
-import net.sf.mzmine.util.components.HelpButton;
 
 /**
  * This class represents the parameter setup dialog to set the values of SimpleParameterSet. Each
@@ -69,7 +71,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
 
   private ExitCode exitCode = ExitCode.UNKNOWN;
 
-  protected String helpID;
+  protected final URL helpURL;
+
+  /**
+   * Help window for this setup dialog. Initially null, until the user clicks the Help button.
+   */
+  protected HelpWindow helpWindow = null;
 
   // Parameters and their representation in the dialog
   protected ParameterSet parameterSet;
@@ -126,7 +133,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
 
     this.valueCheckRequired = valueCheckRequired;
     this.parameterSet = parameters;
-    this.helpID = GUIUtils.generateHelpID(parameters);
+    this.helpURL = parameters.getClass().getResource("help/help.html");
 
     parametersAndComponents = new Hashtable<String, JComponent>();
 
@@ -220,9 +227,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
     btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
     btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
 
-    if (helpID != null) {
-      btnHelp = new HelpButton(helpID);
-      pnlButtons.add(btnHelp);
+    if (helpURL != null) {
+      btnHelp = GUIUtils.addButton(pnlButtons, "Help", null, this);
     }
 
     /*
@@ -280,6 +286,18 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
 
     if (src == btnCancel) {
       closeDialog(ExitCode.CANCEL);
+    }
+
+    if (src == btnHelp) {
+      Platform.runLater(() -> {
+        if (helpWindow != null) {
+          helpWindow.show();
+          helpWindow.toFront();
+        } else {
+          helpWindow = new HelpWindow(helpURL.toString());
+          helpWindow.show();
+        }
+      });
     }
 
     if ((src instanceof JCheckBox) || (src instanceof JComboBox)) {
