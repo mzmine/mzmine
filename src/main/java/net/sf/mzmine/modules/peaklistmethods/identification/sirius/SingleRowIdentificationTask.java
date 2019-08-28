@@ -203,7 +203,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
               parentMass) + "Reinitialize the task with larger Sirius Timer value.");
       return;
     } catch (ExecutionException ce) {
-      logger.error("Concurrency error during Sirius method.");
+      ce.printStackTrace();
+      logger.error("Concurrency error during Sirius method: " + ce.getMessage());
       showError(window, String.format("Sirius failed to predict compounds from row with id = %d",
           peakListRow.getID()));
       return;
