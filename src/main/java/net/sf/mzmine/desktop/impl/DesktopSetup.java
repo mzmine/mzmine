@@ -119,22 +119,34 @@ public class DesktopSetup {
           taskBar.setIconImage(mzmineIcon);
       }
 
-      // Add a task controller listener to show number of running tasks
-      if (taskBar.isSupported(Taskbar.Feature.ICON_BADGE_NUMBER)) {
-        MZmineCore.getTaskController().addTaskControlListener((numOfWaitingTasks, percentDone) -> {
-          if (numOfWaitingTasks > 0) {
+      // Add a task controller listener to show task progress
+      MZmineCore.getTaskController().addTaskControlListener((numOfWaitingTasks, percentDone) -> {
+        if (numOfWaitingTasks > 0) {
+          if (taskBar.isSupported(Taskbar.Feature.ICON_BADGE_NUMBER)) {
             String badge = String.valueOf(numOfWaitingTasks);
             taskBar.setIconBadge(badge);
-            if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
-              taskBar.setProgressValue(percentDone);
-          } else {
-            taskBar.setIconBadge(null);
-            if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
-              taskBar.setProgressValue(-1);
           }
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW))
+            taskBar.setWindowProgressState(MZmineCore.getDesktop().getMainWindow(),
+                Taskbar.State.NORMAL);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
+            taskBar.setProgressValue(percentDone);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE_WINDOW))
+            taskBar.setWindowProgressValue(MZmineCore.getDesktop().getMainWindow(), percentDone);
 
-        });
-      }
+        } else {
+          if (taskBar.isSupported(Taskbar.Feature.ICON_BADGE_NUMBER))
+            taskBar.setIconBadge(null);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW))
+            taskBar.setWindowProgressState(MZmineCore.getDesktop().getMainWindow(),
+                Taskbar.State.OFF);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
+            taskBar.setProgressValue(-1);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE_WINDOW))
+            taskBar.setWindowProgressValue(MZmineCore.getDesktop().getMainWindow(), -1);
+        }
+      });
+
     }
 
     // Let the OS decide the location of new windows. Otherwise, all windows
