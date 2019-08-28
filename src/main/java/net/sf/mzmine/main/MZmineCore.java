@@ -29,8 +29,10 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
+
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
@@ -301,13 +303,15 @@ public final class MZmineCore {
   public static String getMZmineVersion() {
     try {
       ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
-      InputStream inStream = myClassLoader
-          .getResourceAsStream("META-INF/maven/io.github.mzmine/mzmine2/pom.properties");
+      InputStream inStream = myClassLoader.getResourceAsStream("version.properties");
       if (inStream == null)
         return "0.0";
       Properties properties = new Properties();
       properties.load(inStream);
-      return properties.getProperty("version");
+      String version = properties.getProperty("mzmine.version");
+      if ((version == null) || (version.startsWith("$")))
+        return "0.0";
+      return version;
     } catch (Exception e) {
       e.printStackTrace();
       return "0.0";

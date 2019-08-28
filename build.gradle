@@ -196,7 +196,12 @@ tasks.runtime.doLast {
     copy {
         from("src/main/log")
         into("${buildDir}/${applicationName}-${version}/log")
-    }
-    
+    } 
 }
 
+// Add MZmine version number to version.properties
+processResources {
+    filesMatching("version.properties") { 
+        expand(project.properties) 
+    }
+}
