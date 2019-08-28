@@ -18,7 +18,7 @@
 package net.sf.mzmine.parameters.parametertypes.selectors;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
@@ -59,19 +60,19 @@ public class FeaturesComponent extends JPanel implements ActionListener {
         setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
         JScrollPane scrollPane = new JScrollPane(jlist);
-        scrollPane.setSize(60, 30);
+        scrollPane.setPreferredSize(new Dimension(300,60));
         add(scrollPane, BorderLayout.CENTER);
 
         buttonPane = new JPanel();
-        buttonPane.setLayout(new FlowLayout());
-        this.add(buttonPane, BorderLayout.EAST);
-
+        buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.Y_AXIS));
         addButton = GUIUtils.addButton(buttonPane, "Add", null, this);
         removeButton = GUIUtils.addButton(buttonPane, "Remove", null, this);
-        for (FeatureSelection features : currentValue) {
-            model.addElement(features.getFeature().toString());
-        }
+        this.add(buttonPane, BorderLayout.EAST);
 
+        for (FeatureSelection features : currentValue) {
+          model.addElement(features.getFeature().toString());
+        }
+        
     }
 
     public void setValue(List<FeatureSelection> newValue) {
