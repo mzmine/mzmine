@@ -19,16 +19,17 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Font;
-import java.lang.reflect.Method;
+import java.awt.Taskbar;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 import javafx.embed.swing.JFXPanel;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.components.MultiLineToolTipUI;
 
 /**
@@ -78,24 +79,29 @@ public class DesktopSetup {
     // Set tooltip UI to support multi-line tooltips
     UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
     UIManager.put(MultiLineToolTipUI.class.getName(), MultiLineToolTipUI.class);
-
-    // If we are running on Mac OS X, we can setup some Mac-specific
-    // features. The MacSpecificSetup class is located in
-    // lib/macspecificsetup.jar, including source code. Using reflection we
-    // prevent the MacSpecificSetup class to be loaded on other platforms
-    // than Mac
-    if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-      try {
-        String className = "MacSpecificSetup";
-        Class<?> macSetupClass = Class.forName(className);
-        Object macSetup = macSetupClass.newInstance();
-        Method setupMethod = macSetupClass.getMethod("init");
-        setupMethod.invoke(macSetup, new Object[0]);
-      } catch (Throwable e) {
-        logger.log(Level.WARNING, "Error setting mac-specific properties", e);
-      }
-    }
-
+    
+    // Set basic desktop handlers
+    final java.awt.Desktop awtDesktop = java.awt.Desktop.getDesktop();
+    awtDesktop.setAboutHandler(e -> {
+      MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+      mainWindow.showAboutDialog();
+    });
+    
+    awtDesktop.setQuitHandler((e,response) -> {
+      ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
+      if (exitCode == ExitCode.OK)
+          response.performQuit();
+      else
+          response.cancelQuit();
+    });
+    
+    MZmineCore.getTaskController().addTaskControlListener(numOfTasks -> {
+      String badge = null;
+      if (numOfTasks > 0)
+          badge = String.valueOf(numOfTasks);
+      Taskbar.getTaskbar().setIconBadge(badge);
+    });
+    
     // Let the OS decide the location of new windows. Otherwise, all windows
     // would appear at the top left corner by default.
     System.setProperty("java.awt.Window.locationByPlatform", "true");
