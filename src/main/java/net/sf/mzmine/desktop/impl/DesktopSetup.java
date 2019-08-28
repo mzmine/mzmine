@@ -115,7 +115,8 @@ public class DesktopSetup {
       // Set the app icon
       if (taskBar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
         final Image mzmineIcon = MZmineCore.getDesktop().getMZmineIcon();
-        taskBar.setIconImage(mzmineIcon);
+        if (mzmineIcon != null)
+          taskBar.setIconImage(mzmineIcon);
       }
 
       // Add a task controller listener to show number of running tasks
