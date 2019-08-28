@@ -1,6 +1,6 @@
 language: java
 
-script: gradle runtime 
+script: ./gradlew runtime 
 
 jdk:
   - openjdk12
