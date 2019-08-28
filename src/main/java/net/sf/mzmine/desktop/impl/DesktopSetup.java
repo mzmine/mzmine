@@ -115,7 +115,7 @@ public class DesktopSetup {
       // Set the app icon
       try {
         final InputStream mzmineIconStream =
-            DesktopSetup.class.getResourceAsStream("MZmineIcon.png");
+            DesktopSetup.class.getClassLoader().getResourceAsStream("MZmineIcon.png");
         final BufferedImage mzmineIcon = ImageIO.read(mzmineIconStream);
         mzmineIconStream.close();
         taskBar.setIconImage(mzmineIcon);
