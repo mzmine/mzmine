@@ -82,16 +82,16 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
         allPeakLists = MZmineCore.getProjectManager().getCurrentProject()
                 .getPeakLists();
         peakListComboBox = new JComboBox<PeakList>(allPeakLists);
-        peakListComboBox.setToolTipText("Peak Lists Selection Box");
+        peakListComboBox.setToolTipText("Feature list selection");
         peakListComboBox.addActionListener(this);
-        JLabel peakListsLabel = new JLabel("Peak list");
+        JLabel peakListsLabel = new JLabel("Feature list");
 
         panel00.add(peakListsLabel, BorderLayout.CENTER);
         panel10.add(peakListComboBox, BorderLayout.CENTER);
 
         RawDataFile[] rawDataFiles = allPeakLists[0].getRawDataFiles();
         rawDataFileComboBox = new JComboBox<RawDataFile>(rawDataFiles);
-        rawDataFileComboBox.setToolTipText("Raw data file Selection Box");
+        rawDataFileComboBox.setToolTipText("Raw data file selection");
         rawDataFileComboBox.addActionListener(this);
         JLabel rawDataFilesLabel = new JLabel("Raw data file");
         panel01.add(rawDataFilesLabel, BorderLayout.CENTER);
@@ -101,7 +101,7 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
         Feature[] features = allPeakLists[0].getPeaks(datafile);
         featuresSelectionBox = new MultipleSelectionComponent<Feature>(
                 features);
-        featuresSelectionBox.setToolTipText("Features Selection Box");
+        featuresSelectionBox.setToolTipText("Features selection");
         JLabel featuresLabel = new JLabel("Features");
         featuresSelectionBox.setSize(50, 30);
         panel02.add(featuresLabel, BorderLayout.WEST);
@@ -162,7 +162,6 @@ public class FeaturesSelectionDialog extends JDialog implements ActionListener {
             panel12.revalidate();
         }
         if (src == peakListComboBox) {
-            LOG.finest("Peak List Selected!");
             PeakList peakList = (PeakList) peakListComboBox.getSelectedItem();
             panel11.removeAll();
             panel12.removeAll();
