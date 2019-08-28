@@ -138,14 +138,16 @@ dependencies {
 }
 
 /* 
- * This avoids a compilation error in Eclipse, because the org.w3c.dom package
- * is present in the java.xml module as well as in these dependencies. 
+ * Remove the xml-apis dependencies to avoid a compilation error in Eclipse. 
+ * The org.w3c.dom package is present in the java.xml module as well as in these dependencies. 
  * That is illegal (https://bugs.eclipse.org/bugs/show_bug.cgi?id=536928).
  */
 configurations.all {
   exclude group: "xml-apis", module: "xml-apis"
   exclude group: "xml-apis", module: "xml-apis-ext"
   exclude group: "xom", module: "xom"
+  exclude group: "ch.qos.logback", module: "logback-core"
+  exclude group: "ch.qos.logback", module: "logback-classic"
 }
 
 javafx {
