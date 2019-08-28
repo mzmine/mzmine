@@ -171,15 +171,6 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-/*
- * This is important in order to copy all .java and .fxml files into the final MZmine jar. 
- * The .java files are only for reference, for people who want to check the source codes.
- * But the .fxml files are required for the GUI.
- */
-jar {
-  from sourceSets.main.allSource
-}
-
 application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
     applicationName = "MZmine"
@@ -239,9 +230,20 @@ tasks.runtime.doLast {
     } 
 }
 
-// Add MZmine version number to version.properties
+/*
+ * This is important in order to copy all .java, .fxml, and help files into the final MZmine jar. 
+ * The .java files are only for people who want to check the source codes.
+ * But the .fxml and help files are required for the GUI.
+ */
+jar {
+  sourceSets.main.resources.srcDirs += ["src/main/java"]
+}
+
+/*
+ * Add MZmine version number to mzmineversion.properties
+ */
 processResources {
-    filesMatching("mzmineversion.properties") { 
+    filesMatching("mzmineversion.properties") {
         expand(project.properties) 
     }
 }
