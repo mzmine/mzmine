@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
+
 plugins {
     id "java"
     id "application"
@@ -11,6 +13,13 @@ description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
 defaultTasks "runtimeZip"
+
+if (OperatingSystem.current().isMacOsX())
+    project.ext.osSuffix = "mac"
+if (OperatingSystem.current().isLinux())
+    project.ext.osSuffix = "linux"
+if (OperatingSystem.current().isWindows())
+    project.ext.osSuffix = "win"
 
 repositories {
     mavenLocal()
@@ -173,12 +182,18 @@ application {
 }
 
 startScripts {
-    applicationName = "startMZmine"
+    applicationName = "startMZmine-" + osSuffix
+    doLast {
+        if (OperatingSystem.current().isWindows())
+            delete unixScript
+        else
+            delete windowsScript
+        
+    }
 }
 
 runtime {
     options = ["--compress=2", "--vm=server", "--no-header-files", "--no-man-pages"]
-/*
     modules = ["java.desktop",
                "java.logging",
                "java.xml",
@@ -186,23 +201,22 @@ runtime {
                "java.datatransfer",
                "java.security.sasl"
               ]
-*/
-    imageDir = file("${buildDir}/${applicationName}-${version}")
-    imageZip = file("${buildDir}/${applicationName}-${version}.zip")
+    imageDir = file("${buildDir}/${applicationName}-${version}-${osSuffix}")
+    imageZip = file("${buildDir}/${applicationName}-${version}-${osSuffix}.zip")
 }
 
 tasks.runtime.doLast {
     copy {
         from("src/main/icons")
-        into("${buildDir}/${applicationName}-${version}/icons")
+        into("${runtime.imageDir}/icons")
     }
     copy {
         from("src/main/log")
-        into("${buildDir}/${applicationName}-${version}/log")
+        into("${runtime.imageDir}/log")
     }
     copy {
         from("src/main/conf/logging.properties")
-        into("${buildDir}/${applicationName}-${version}/conf")
+        into("${runtime.imageDir}/conf")
     } 
 }
 
