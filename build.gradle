@@ -212,15 +212,15 @@ runtime {
 tasks.runtime.doLast {
     copy {
         from("src/main/icons")
-        into("${runtime.imageDir}/icons")
+        into("${buildDir}/${applicationName}-${version}-${osSuffix}/icons")
     }
     copy {
         from("src/main/log")
-        into("${runtime.imageDir}/log")
+        into("${buildDir}/${applicationName}-${version}-${osSuffix}/log")
     }
     copy {
         from("src/main/conf/logging.properties")
-        into("${runtime.imageDir}/conf")
+        into("${buildDir}/${applicationName}-${version}-${osSuffix}/conf")
     } 
 }
 
