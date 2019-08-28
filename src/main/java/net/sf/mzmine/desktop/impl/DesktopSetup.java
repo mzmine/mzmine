@@ -19,14 +19,12 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.Taskbar;
-import java.awt.image.BufferedImage;
-import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.imageio.ImageIO;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
@@ -112,24 +110,22 @@ public class DesktopSetup {
 
       final Taskbar taskBar = Taskbar.getTaskbar();
 
+
       // Set the app icon
-      try {
-        final InputStream mzmineIconStream =
-            DesktopSetup.class.getClassLoader().getResourceAsStream("MZmineIcon.png");
-        final BufferedImage mzmineIcon = ImageIO.read(mzmineIconStream);
-        mzmineIconStream.close();
+      if (taskBar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+        final Image mzmineIcon = MZmineCore.getDesktop().getMZmineIcon();
         taskBar.setIconImage(mzmineIcon);
-      } catch (Exception e) {
-        e.printStackTrace();
       }
 
       // Add a task controller listener to show number of running tasks
-      MZmineCore.getTaskController().addTaskControlListener(numOfTasks -> {
-        String badge = null;
-        if (numOfTasks > 0)
-          badge = String.valueOf(numOfTasks);
-        taskBar.setIconBadge(badge);
-      });
+      if (taskBar.isSupported(Taskbar.Feature.ICON_BADGE_NUMBER)) {
+        MZmineCore.getTaskController().addTaskControlListener(numOfTasks -> {
+          String badge = null;
+          if (numOfTasks > 0)
+            badge = String.valueOf(numOfTasks);
+          taskBar.setIconBadge(badge);
+        });
+      }
     }
 
     // Let the OS decide the location of new windows. Otherwise, all windows

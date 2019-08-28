@@ -21,17 +21,20 @@ package net.sf.mzmine.desktop.impl;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.help.HelpBroker;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -40,6 +43,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
+
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
@@ -75,6 +79,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
 
   private MainPanel mainPanel;
   private StatusBar statusBar;
+
+  private Image mzmineIcon;
 
   private MainMenu menuBar;
 
@@ -197,17 +203,21 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
 
     assert SwingUtilities.isEventDispatchThread();
 
+    try {
+      final InputStream mzmineIconStream =
+          DesktopSetup.class.getClassLoader().getResourceAsStream("MZmineIcon.png");
+      this.mzmineIcon = ImageIO.read(mzmineIconStream);
+      mzmineIconStream.close();
+      setIconImage(mzmineIcon);
+    } catch (IOException e) {
+      e.printStackTrace();
+      logger.log(Level.WARNING, "Could not set application icon", e);
+    }
+
     DesktopSetup desktopSetup = new DesktopSetup();
     desktopSetup.init();
 
     help = new HelpImpl();
-
-    try {
-      BufferedImage MZmineIcon = ImageIO.read(new File("icons/MZmineIcon.png"));
-      setIconImage(MZmineIcon);
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Could not set application icon", e);
-    }
 
     setLayout(new BorderLayout());
 
@@ -358,6 +368,11 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop, WindowL
    */
   public void createLastUsedProjectsMenu(List<File> list) {
     getMainMenu().setLastProjects(list);
+  }
+
+  @Override
+  public @Nullable Image getMZmineIcon() {
+    return mzmineIcon;
   }
 
 }
