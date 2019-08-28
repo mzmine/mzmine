@@ -14,12 +14,16 @@ sourceCompatibility = "12"
 targetCompatibility = "12"
 defaultTasks "runtimeZip"
 
+// Check the OS
+project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
 if (OperatingSystem.current().isMacOsX())
     project.ext.osSuffix = "mac"
 if (OperatingSystem.current().isLinux())
     project.ext.osSuffix = "linux"
 if (OperatingSystem.current().isWindows())
     project.ext.osSuffix = "win"
+println "OS detected as " + project.ext.osSuffix
+
 
 repositories {
     mavenLocal()
