@@ -26,9 +26,9 @@ MZmine development requires Java Development Kit (JDK) version 12 or newer (http
 
 To build the MZmine package from the sources, run the following command:
 
-gradlew
+    gradlew
 
-The final MZmine distribution will be placed in build/MZmine-2.**.zip
+The final MZmine distribution will be placed in build/MZmine-version-platform.zip
 
 If you encounter any problems, please contact the developers:
 https://groups.google.com/forum/#!forum/mzmine-devel
