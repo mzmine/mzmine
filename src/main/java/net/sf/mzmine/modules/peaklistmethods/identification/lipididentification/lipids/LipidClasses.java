@@ -51,6 +51,9 @@ public enum LipidClasses {
       LipidMainClasses.RHAMNOLIPIDS, "C14H20O13", 2, 0, new String[] {""},
       new String[] {"M-FA+H2", "FA+H2", "fragment M-C12H22O9", "fragment M-C6H12O6",
           "fragment C12H21O9", "fragment C6H11O5"}), //
+  HYDROXYALKANOYLOXYALKANOIC("Hydroxyalkanoyloxyalkanoic", "HAA", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.RHAMNOLIPIDS, "C2O5", 2, 0, new String[] {""},
+      new String[] {"M-FA+H2", "fragment C2H4O2"}), //
   SOPHOROLIPIDACID("Sophorolipid acid form", "SLP acid", LipidCoreClasses.FATTYACYLS,
       LipidMainClasses.SOPHOROLIPIDS, "C13H21O13", 1, 0, new String[] {""}, new String[] {""}), //
   SOPHOROLIPIDLACTON("Sophorolipid lacton form", "SLP lacton", LipidCoreClasses.FATTYACYLS,
