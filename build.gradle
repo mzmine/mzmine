@@ -26,7 +26,6 @@ println "OS detected as " + project.ext.osSuffix
 
 
 repositories {
-    mavenLocal()
     maven {
         url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/"
     }
