@@ -57,7 +57,6 @@ ext {
     slf4jVersion = "1.7.28"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
-    javafxVersion = "12.0.2"
     controlsfxVersion = "11.0.0"
 }
 
@@ -163,7 +162,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "12"
+    version = "12.0.2"
     modules = ["javafx.controls", 
                "javafx.swing", 
                "javafx.fxml",
