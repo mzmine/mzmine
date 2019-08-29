@@ -26,15 +26,20 @@ MZmine development requires Java Development Kit (JDK) version 12 or newer (http
 
 To build the MZmine package from the sources, run the following command:
 
-    gradlew
+    ./gradlew
+
+or
+
+    gradlew.bat
 
 The final MZmine distribution will be placed in build/MZmine-version-platform.zip
 
 If you encounter any problems, please contact the developers:
-https://groups.google.com/forum/#!forum/mzmine-devel
+https://github.com/mzmine/mzmine2/issues
 
 ### Code style
 
 Since this is a collaborative project, please adhere to the following code formatting conventions:
 * We use the Google Java Style Guide (https://github.com/google/styleguide)
 * Please write JavaDoc comments as full sentences, starting with a capital letter and ending with a period. Brevity is preferred (e.g., "Calculates standard deviation" is preferred over "This method calculates and returns a standard deviation of given set of numbers").
+
