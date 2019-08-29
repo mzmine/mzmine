@@ -66,6 +66,7 @@ dependencies {
     compile "com.github.graphstream:gs-ui-swing:2.0-alpha"
     compile "org.jfree:jfreechart:1.5.0"
     compile "org.jfree:jfreechart-fx:1.0.1"
+    compile "org.jfree:fxgraphics2d:1.8"
     compile "org.jfree:jfreesvg:3.3"
     compile "com.orsonpdf:orsonpdf:1.9"
     compile "com.google.guava:guava:$guavaVersion"
