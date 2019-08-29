@@ -157,6 +157,10 @@ configurations.all {
   exclude group: "ch.qos.logback", module: "logback-classic"
 }
 
+
+/*
+ * Include JavaFX modules
+ */
 javafx {
     version = "12"
     modules = ["javafx.controls", 
@@ -171,6 +175,10 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
+
+/*
+ * Set the basic Java runtime parameters (heap size etc.)
+ */
 application {
     mainClassName = "net.sf.mzmine.main.MZmineCore"
     applicationName = "MZmine"
@@ -186,6 +194,10 @@ application {
                                 ]
 }
 
+
+/*
+ * Provide a default start script for this platform
+ */
 startScripts {
     applicationName = "startMZmine-" + osSuffix
     classpath = files("lib/*")
@@ -200,6 +212,9 @@ startScripts {
     }
 }
 
+/*
+ * Build the JVM runtime using jlink
+ */
 runtime {
     options = ["--compress=2", "--vm=server", "--no-header-files", "--no-man-pages"]
     modules = ["java.desktop",
@@ -215,6 +230,9 @@ runtime {
     imageZip = file("${buildDir}/${applicationName}-${version}-${osSuffix}.zip")
 }
 
+/*
+ * Copy the resources like icons and logging properties
+ */
 tasks.runtime.doLast {
     copy {
         from("src/main/icons")
