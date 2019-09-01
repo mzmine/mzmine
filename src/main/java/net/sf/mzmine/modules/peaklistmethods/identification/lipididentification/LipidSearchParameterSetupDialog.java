@@ -22,16 +22,15 @@ import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
 import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidDatabaseTableDialog;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -44,6 +43,8 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
   private final JPanel buttonsPanel;
   private final JButton showDatabaseTable;
   private Object[] selectedObjects;
+
+  private static Logger logger = Logger.getLogger(LipidSearchParameterSetupDialog.class.getName());
 
   private static final long serialVersionUID = 1L;
 
@@ -65,6 +66,8 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
 
   @Override
   public void actionPerformed(final ActionEvent e) {
+    super.actionPerformed(e);
+
     updateParameterSetFromComponents();
 
     final Object src = e.getSource();
@@ -81,19 +84,8 @@ public class LipidSearchParameterSetupDialog extends ParameterSetupDialog {
         LipidDatabaseTableDialog databaseTable = new LipidDatabaseTableDialog(selectedLipids);
         databaseTable.setVisible(true);
       } catch (Exception t) {
+        logger.log(Level.WARNING, "Cannot show database table", t);
       }
-    }
-
-    if (btnOK.equals(src)) {
-      closeDialog(ExitCode.OK);
-    }
-
-    if (btnCancel.equals(src)) {
-      closeDialog(ExitCode.CANCEL);
-    }
-
-    if ((src instanceof JCheckBox) || (src instanceof JComboBox)) {
-      parametersChanged();
     }
   }
 }
