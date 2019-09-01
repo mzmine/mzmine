@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.config.Isotopes;
-import org.openscience.cdk.formula.rules.ElementRule;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
