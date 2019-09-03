@@ -176,14 +176,6 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-/*
- * Remove the "release" file produced by jlink
- */
-jre {
-    doLast {
-        delete file("${buildDir}/jre/release")
-    }
-}
 
 /*
  * Set the basic Java runtime parameters (heap size etc.)
@@ -254,6 +246,10 @@ runtime {
  * Copy the resources like icons and logging properties
  */
 tasks.runtime.doLast {
+    
+    // Remove the "release" file produced by jlink
+    delete file("${buildDir}/${applicationName}-${version}-${osSuffix}/release")
+
     copy {
         from("src/main/icons")
         into("${buildDir}/${applicationName}-${version}-${osSuffix}/icons")
@@ -264,8 +260,16 @@ tasks.runtime.doLast {
     }
     copy {
         from("src/main/conf/logging.properties")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/conf")
-    } 
+        into("${buildDir}/${applicationName}-${version}-${osSuffix}/conf/")
+    }
+    copy {
+        from("manual.pdf")
+        into("${buildDir}/${applicationName}-${version}-${osSuffix}/")
+    }
+    copy {
+        from("LICENSE.txt")
+        into("${buildDir}/${applicationName}-${version}-${osSuffix}/legal/MZmine/")
+    }
 }
 
 /*
