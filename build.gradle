@@ -239,36 +239,36 @@ runtime {
                "jdk.unsupported.desktop"]
     
     imageDir = file("${buildDir}/${applicationName}-${version}-${osSuffix}")
-    imageZip = file("${buildDir}/${applicationName}-${version}-${osSuffix}.zip")
+    imageZip = file(relativePath(imageDir) + ".zip")
 }
 
 /*
  * Copy the resources like icons and logging properties
  */
 tasks.runtime.doLast {
-    
+
     // Remove the "release" file produced by jlink
-    delete file("${buildDir}/${applicationName}-${version}-${osSuffix}/release")
+    delete file(relativePath(imageDir) + "/release")
 
     copy {
         from("src/main/icons")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/icons")
+        into(relativePath(imageDir) + "/icons")
     }
     copy {
         from("src/main/log")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/log")
+        into(relativePath(imageDir) + "/log")
     }
     copy {
         from("src/main/conf/logging.properties")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/conf/")
+        into(relativePath(imageDir) + "/conf/")
     }
     copy {
         from("manual.pdf")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/")
+        into(relativePath(imageDir))
     }
     copy {
         from("LICENSE.txt")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/legal/MZmine/")
+        into(relativePath(imageDir) + "/legal/MZmine/")
     }
 }
 
