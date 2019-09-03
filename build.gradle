@@ -270,6 +270,10 @@ tasks.runtime.doLast {
         from("LICENSE.txt")
         into(relativePath(imageDir) + "/legal/MZmine/")
     }
+    copy {        
+        from("src/main/lib/vendor_lib")
+        into(relativePath(imageDir) + "/lib/vendor_lib")
+    }
 }
 
 /*
