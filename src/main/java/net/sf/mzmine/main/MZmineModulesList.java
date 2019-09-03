@@ -56,6 +56,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.
 import net.sf.mzmine.modules.peaklistmethods.identification.ms2search.Ms2SearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDBSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.precursordbsearch.PrecursorDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
@@ -109,6 +110,7 @@ import net.sf.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewMo
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
+import net.sf.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
@@ -132,7 +134,7 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentifi
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase.OnlineDBSpectraSearchModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.spectraldatabase.SpectraIdentificationSpectralDatabaseModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.sumformula.SumFormulaSpectraSearchModule;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.modules.visualization.vankrevelendiagram.VanKrevelenDiagramModule;
@@ -199,16 +201,16 @@ public class MZmineModulesList {
       SignificanceModule.class,
 
       // Identification
-      LocalSpectralDBSearchModule.class, SortSpectralDBIdentitiesModule.class,
-      CustomDBSearchModule.class, FormulaPredictionModule.class, FragmentSearchModule.class,
-      AdductSearchModule.class, ComplexSearchModule.class, OnlineDBSearchModule.class,
-      LipidSearchModule.class, CameraSearchModule.class, NistMsSearchModule.class,
-      FormulaPredictionPeakListModule.class, Ms2SearchModule.class, SiriusProcessingModule.class,
-      GNPSResultsImportModule.class,
+      LocalSpectralDBSearchModule.class, PrecursorDBSearchModule.class,
+      SortSpectralDBIdentitiesModule.class, CustomDBSearchModule.class,
+      FormulaPredictionModule.class, FragmentSearchModule.class, AdductSearchModule.class,
+      ComplexSearchModule.class, OnlineDBSearchModule.class, LipidSearchModule.class,
+      CameraSearchModule.class, NistMsSearchModule.class, FormulaPredictionPeakListModule.class,
+      Ms2SearchModule.class, SiriusProcessingModule.class, GNPSResultsImportModule.class,
 
       // Visualizers
       TICVisualizerModule.class, SpectraVisualizerModule.class, TwoDVisualizerModule.class,
-      ThreeDVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
+      Fx3DVisualizerModule.class, MsMsVisualizerModule.class, NeutralLossVisualizerModule.class,
       MZDistributionHistoModule.class, PeakListTableModule.class, IsotopePatternExportModule.class,
       MSMSExportModule.class, ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
       InfoVisualizerModule.class, IntensityPlotModule.class, KendrickMassPlotModule.class,
@@ -222,7 +224,7 @@ public class MZmineModulesList {
       SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class,
       CustomDBSpectraSearchModule.class, LipidSpectraSearchModule.class,
       OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
-      ExportScansModule.class,
+      ExportScansModule.class, SpectraIdentificationResultsModule.class,
 
       // Data point processing, implement DataPointProcessingModule
       DataPointProcessingManager.class, DPPMassDetectionModule.class,

@@ -19,16 +19,19 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Font;
-import java.lang.reflect.Method;
+import java.awt.Image;
+import java.awt.Taskbar;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
+import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.components.MultiLineToolTipUI;
 
 /**
@@ -72,6 +75,7 @@ public class DesktopSetup {
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     } catch (Exception e) {
+      e.printStackTrace();
       // ignore
     }
 
@@ -79,21 +83,70 @@ public class DesktopSetup {
     UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
     UIManager.put(MultiLineToolTipUI.class.getName(), MultiLineToolTipUI.class);
 
-    // If we are running on Mac OS X, we can setup some Mac-specific
-    // features. The MacSpecificSetup class is located in
-    // lib/macspecificsetup.jar, including source code. Using reflection we
-    // prevent the MacSpecificSetup class to be loaded on other platforms
-    // than Mac
-    if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-      try {
-        String className = "MacSpecificSetup";
-        Class<?> macSetupClass = Class.forName(className);
-        Object macSetup = macSetupClass.newInstance();
-        Method setupMethod = macSetupClass.getMethod("init");
-        setupMethod.invoke(macSetup, new Object[0]);
-      } catch (Throwable e) {
-        logger.log(Level.WARNING, "Error setting mac-specific properties", e);
+    // Set basic desktop handlers
+    final java.awt.Desktop awtDesktop = java.awt.Desktop.getDesktop();
+    if (awtDesktop != null) {
+
+      // Setup About handler
+      if (awtDesktop.isSupported(java.awt.Desktop.Action.APP_ABOUT)) {
+        awtDesktop.setAboutHandler(e -> {
+          MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+          mainWindow.showAboutDialog();
+        });
       }
+
+      // Setup Quit handler
+      if (awtDesktop.isSupported(java.awt.Desktop.Action.APP_QUIT_HANDLER)) {
+        awtDesktop.setQuitHandler((e, response) -> {
+          ExitCode exitCode = MZmineCore.getDesktop().exitMZmine();
+          if (exitCode == ExitCode.OK)
+            response.performQuit();
+          else
+            response.cancelQuit();
+        });
+      }
+    }
+
+    if (Taskbar.isTaskbarSupported()) {
+
+      final Taskbar taskBar = Taskbar.getTaskbar();
+
+
+      // Set the app icon
+      if (taskBar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+        final Image mzmineIcon = MZmineCore.getDesktop().getMZmineIcon();
+        if (mzmineIcon != null)
+          taskBar.setIconImage(mzmineIcon);
+      }
+
+      // Add a task controller listener to show task progress
+      MZmineCore.getTaskController().addTaskControlListener((numOfWaitingTasks, percentDone) -> {
+        if (numOfWaitingTasks > 0) {
+          if (taskBar.isSupported(Taskbar.Feature.ICON_BADGE_NUMBER)) {
+            String badge = String.valueOf(numOfWaitingTasks);
+            taskBar.setIconBadge(badge);
+          }
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW))
+            taskBar.setWindowProgressState(MZmineCore.getDesktop().getMainWindow(),
+                Taskbar.State.NORMAL);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
+            taskBar.setProgressValue(percentDone);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE_WINDOW))
+            taskBar.setWindowProgressValue(MZmineCore.getDesktop().getMainWindow(), percentDone);
+
+        } else {
+          if (taskBar.isSupported(Taskbar.Feature.ICON_BADGE_NUMBER))
+            taskBar.setIconBadge(null);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_STATE_WINDOW))
+            taskBar.setWindowProgressState(MZmineCore.getDesktop().getMainWindow(),
+                Taskbar.State.OFF);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE))
+            taskBar.setProgressValue(-1);
+          if (taskBar.isSupported(Taskbar.Feature.PROGRESS_VALUE_WINDOW))
+            taskBar.setWindowProgressValue(MZmineCore.getDesktop().getMainWindow(), -1);
+        }
+      });
+
     }
 
     // Let the OS decide the location of new windows. Otherwise, all windows
@@ -105,6 +158,7 @@ public class DesktopSetup {
       logger.finest("Initializing the JavaFX subsystem by creating a JFXPanel instance");
       @SuppressWarnings("unused")
       JFXPanel dummyPanel = new JFXPanel();
+      Platform.setImplicitExit(false);
     } catch (Throwable e) {
       logger.log(Level.WARNING, "Failed to initialize JavaFX", e);
       e.printStackTrace();

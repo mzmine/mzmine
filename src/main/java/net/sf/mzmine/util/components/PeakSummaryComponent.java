@@ -27,7 +27,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.text.Format;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -47,25 +51,25 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
+import com.google.common.collect.Range;
+
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
+import net.sf.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.parametertypes.selectors.ScanSelection;
-
-import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 
 public class PeakSummaryComponent extends JPanel implements ActionListener {
 
@@ -476,7 +480,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
           Range<Double> localMZRange =
               Range.closed(Math.max(0, peakMZRange.lowerEndpoint() - mzLen),
                   peakMZRange.upperEndpoint() + mzLen);
-          ThreeDVisualizerModule.setupNew3DVisualizer(dataFiles[i], localMZRange, localRTRange);
+          Fx3DVisualizerModule.setupNew3DVisualizer(dataFiles[i], localMZRange, localRTRange);
         }
       } else if (visualizerType.equals("MS/MS")) {
         for (int i = 0; i < selectedPeaks.length; i++) {

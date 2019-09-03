@@ -26,8 +26,6 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.SelectedRowsLocalSpectralDBSearchParameters;
-import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.selectedrows.SelectedRowsLocalSpectralDBSearchTask;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;

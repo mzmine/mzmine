@@ -28,6 +28,8 @@ import java.awt.Toolkit;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.Collection;
+import java.util.logging.Logger;
+
 import javax.swing.JFrame;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,6 +37,8 @@ import org.w3c.dom.NodeList;
 import net.sf.mzmine.parameters.Parameter;
 
 public class WindowSettingsParameter implements Parameter<Object>, ComponentListener {
+
+  private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final String SIZE_ELEMENT = "size";
   private static final String POSITION_ELEMENT = "position";
@@ -150,6 +154,7 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
         // Keep translating otherwise
         position.translate(offset.x, offset.y);
       }
+      logger.finest("Setting window " + frame.getName() + " position to " + position);
       frame.setLocation(position);
 
       if (startPosition == null)
@@ -157,15 +162,18 @@ public class WindowSettingsParameter implements Parameter<Object>, ComponentList
     }
     if (dimension != null) {
       frame.setSize(dimension);
+      logger.finest("Setting window " + frame.getName() + " size to " + dimension);
     }
     if (isMaximized) {
+      logger.finest("Setting window " + frame.getName() + " to maximized");
       frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
     }
 
     // when still outside of screen
     // e.g. changing from 2 screens to one
-    if (!isOnScreen(frame)) {
+    if (frame.isVisible() && !isOnScreen(frame)) {
       // Maximise on screen 1
+      logger.finest("Window " + frame.getName() + " is not on screen, setting to maximized on screen 1");
       frame.setLocation(0, 0);
       frame.setSize(1024, 800);
       frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);

@@ -19,10 +19,12 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.Window;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.event.TreeModelListener;
 
@@ -125,6 +127,12 @@ public class HeadLessDesktop implements Desktop {
   public void removePeakListTreeListener(TreeModelListener listener) {
     // TODO Auto-generated method stub
 
+  }
+
+  @Override
+  @Nullable
+  public Image getMZmineIcon() {
+    return null;
   }
 
 }

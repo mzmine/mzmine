@@ -204,24 +204,23 @@ public class SingleRowPredictionTask extends AbstractTask {
     }
 
     // Calculate isotope similarity score
-    IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
-    IsotopePattern predictedIsotopePattern = null;
+    final IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
+
+    final String stringFormula = MolecularFormulaManipulator.getString(cdkFormula);
+
+    final String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula, ionType, charge);
+
+    final double isotopeNoiseLevel =
+        isotopeParameters.getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
+
+    // Fixed min abundance
+    final double minPredictedAbundance = 0.00001;
+
+    final IsotopePattern predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(
+        adjustedFormula, minPredictedAbundance, charge, ionType.getPolarity());
+
     Double isotopeScore = null;
     if ((checkIsotopes) && (detectedPattern != null)) {
-
-      String stringFormula = MolecularFormulaManipulator.getString(cdkFormula);
-
-      String adjustedFormula = FormulaUtils.ionizeFormula(stringFormula, ionType, charge);
-
-      final double isotopeNoiseLevel = isotopeParameters
-          .getParameter(IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
-
-      final double detectedPatternHeight = detectedPattern.getHighestDataPoint().getIntensity();
-
-      final double minPredictedAbundance = isotopeNoiseLevel / detectedPatternHeight;
-
-      predictedIsotopePattern = IsotopePatternCalculator.calculateIsotopePattern(adjustedFormula,
-          minPredictedAbundance, charge, ionType.getPolarity());
 
       isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(detectedPattern,
           predictedIsotopePattern, isotopeParameters);

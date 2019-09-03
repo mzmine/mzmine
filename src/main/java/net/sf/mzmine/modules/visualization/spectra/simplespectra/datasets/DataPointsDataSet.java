@@ -39,6 +39,7 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
   public DataPointsDataSet(String label, DataPoint mzPeaks[]) {
     this.label = label;
     this.mzPeaks = mzPeaks;
+<<<<<<< HEAD
    /* // remove all extra zeros
     // TODO: this breaks ProcessedDataPoints
     List<DataPoint> dp = new ArrayList<>();
@@ -49,10 +50,29 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
           || Double.compare(mzPeaks[i].getIntensity(), 0d) != 0
           || Double.compare(mzPeaks[i + 1].getIntensity(), 0d) != 0) {
         dp.add(mzPeaks[i]);
+=======
+
+    // if we have some data points, remove extra zeros
+    if (mzPeaks.length > 0) {
+      List<DataPoint> dp = new ArrayList<>();
+      dp.add(mzPeaks[0]);
+      for (int i = 1; i < mzPeaks.length - 1; i++) {
+        // previous , this and next are zero --> do not add this data point
+        if (Double.compare(mzPeaks[i - 1].getIntensity(), 0d) != 0
+            || Double.compare(mzPeaks[i].getIntensity(), 0d) != 0
+            || Double.compare(mzPeaks[i + 1].getIntensity(), 0d) != 0) {
+          dp.add(mzPeaks[i]);
+        }
+>>>>>>> refs/heads/masterplus
       }
+      dp.add(mzPeaks[mzPeaks.length - 1]);
+      this.mzPeaks = dp.toArray(new DataPoint[0]);
     }
+<<<<<<< HEAD
     dp.add(mzPeaks[mzPeaks.length - 1]);
     this.mzPeaks = dp.toArray(new DataPoint[0]);*/
+=======
+>>>>>>> refs/heads/masterplus
   }
 
   @Override

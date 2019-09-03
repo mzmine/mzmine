@@ -19,9 +19,11 @@
 package net.sf.mzmine.desktop;
 
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.Window;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.event.TreeModelListener;
 
@@ -119,5 +121,8 @@ public interface Desktop extends MZmineModule {
 
   @Nonnull
   public ExitCode exitMZmine();
+  
+  @Nullable
+  public Image getMZmineIcon();
 
 }

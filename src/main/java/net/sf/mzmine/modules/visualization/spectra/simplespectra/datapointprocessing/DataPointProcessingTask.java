@@ -21,9 +21,9 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproce
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Nonnull;
-import org.jfree.data.xy.XYDataset;
-import com.jogamp.newt.event.GestureHandler.GestureListener;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
@@ -31,7 +31,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
-import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * 

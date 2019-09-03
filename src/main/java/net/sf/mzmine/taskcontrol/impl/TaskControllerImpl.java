@@ -147,14 +147,17 @@ public class TaskControllerImpl implements TaskController, Runnable {
   public void run() {
 
     int previousQueueSize = -1;
+    int previousPercentDone = -1; 
 
     while (true) {
 
-      int currentQueueSize = taskQueue.getNumOfWaitingTasks();
-      if (currentQueueSize != previousQueueSize) {
-        previousQueueSize = currentQueueSize;
+      final int waitingTasks = taskQueue.getNumOfWaitingTasks();
+      final int percentDone = taskQueue.getTotalPercentComplete();
+      if ((waitingTasks != previousQueueSize) || (percentDone != previousPercentDone)) {
+        previousQueueSize = waitingTasks;
+        previousPercentDone = percentDone;
         for (TaskControlListener listener : listeners)
-          listener.numberOfWaitingTasksChanged(currentQueueSize);
+          listener.numberOfWaitingTasksChanged(waitingTasks, percentDone);
       }
 
       // If the queue is empty, we can sleep. When new task is added into

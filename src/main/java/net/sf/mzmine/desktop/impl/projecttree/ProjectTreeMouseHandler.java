@@ -24,10 +24,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+
 import org.apache.commons.io.FilenameUtils;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
@@ -41,6 +44,7 @@ import net.sf.mzmine.modules.rawdatamethods.exportscans.ExportScansModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
 import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesModule;
 import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesParameters;
+import net.sf.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.PeakListTableModule;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
@@ -50,7 +54,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualiz
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.MassListDataSet;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -162,7 +165,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements ActionListe
       RawDataFile[] selectedFiles = tree.getSelectedObjects(RawDataFile.class);
       if (selectedFiles.length == 0)
         return;
-      ThreeDVisualizerModule.setupNew3DVisualizer(selectedFiles[0]);
+      Fx3DVisualizerModule.setupNew3DVisualizer(selectedFiles[0]);
     }
 
     if (command.equals("SORT_FILES")) {

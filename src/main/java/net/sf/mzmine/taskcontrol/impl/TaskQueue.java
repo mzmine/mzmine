@@ -72,6 +72,16 @@ public class TaskQueue extends AbstractTableModel {
     return numOfWaitingTasks;
   }
 
+  public synchronized int getTotalPercentComplete() {
+    double totalFinished = 0.0;
+    for (int i = 0; i < size; i++) {
+      totalFinished += queue[i].getActualTask().getFinishedPercentage();
+    }
+    final int totalPercentFinished = (int) Math.floor(totalFinished / (double) size * 100);    
+    return totalPercentFinished;
+  }
+
+  
   synchronized void addWrappedTask(WrappedTask task) {
 
     logger.finest("Adding task \"" + task + "\" to the task controller queue");

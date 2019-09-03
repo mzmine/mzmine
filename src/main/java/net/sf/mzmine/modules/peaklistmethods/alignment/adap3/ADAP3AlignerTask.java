@@ -219,7 +219,12 @@ public class ADAP3AlignerTask extends AbstractTask {
                 newRow.addPeak(file, feature);
             }
 
-            newRow.setComment("Alignment Score = " + referenceComponent.getScore());
+            // Save alignment score
+            SimplePeakInformation peakInformation = (SimplePeakInformation) newRow.getPeakInformation();
+            if (peakInformation == null)
+                peakInformation = new SimplePeakInformation();
+            peakInformation.addProperty("Alignment score", Double.toString(referenceComponent.getScore()));
+            newRow.setPeakInformation(peakInformation);
 
             alignedPeakList.addRow(newRow);
         }

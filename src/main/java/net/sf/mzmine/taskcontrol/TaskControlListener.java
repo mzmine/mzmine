@@ -20,6 +20,6 @@ package net.sf.mzmine.taskcontrol;
 
 public interface TaskControlListener {
 
-  public void numberOfWaitingTasksChanged(int numOfTasks);
+  public void numberOfWaitingTasksChanged(int waitingTasks, int percentDone);
 
 }

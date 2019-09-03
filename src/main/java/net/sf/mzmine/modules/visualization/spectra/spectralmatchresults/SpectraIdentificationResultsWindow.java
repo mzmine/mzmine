@@ -33,11 +33,16 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import org.drjekyll.fontchooser.FontDialog;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;
 
 /**
@@ -56,6 +61,11 @@ public class SpectraIdentificationResultsWindow extends JFrame {
   // couple y zoom (if one is changed - change the other in a mirror plot)
   private boolean isCouplingZoomY;
 
+  private JLabel noMatchesFound;
+
+  private Font chartFont = new Font("Verdana", Font.PLAIN, 11);
+
+
   public SpectraIdentificationResultsWindow() {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setSize(new Dimension(1400, 900));
@@ -69,19 +79,36 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     pnGrid.setBackground(Color.WHITE);
     pnGrid.setAutoscrolls(false);
 
-    // add label (is replaced later
-    JLabel noMatchesFound = new JLabel("Sorry, no matches found!", SwingConstants.CENTER);
+    noMatchesFound = new JLabel("I'm working on it", SwingConstants.CENTER);
     noMatchesFound.setFont(headerFont);
-    noMatchesFound.setForeground(Color.RED);
+    // yellow
+    noMatchesFound.setForeground(new Color(0xFFCC00));
     pnGrid.add(noMatchesFound, BorderLayout.CENTER);
 
     // Add the Windows menu
     JMenuBar menuBar = new JMenuBar();
     menuBar.add(new WindowsMenu());
+
+    // set font size of chart
+    JMenuItem btnSetup = new JMenuItem("Setup dialog");
+    btnSetup.addActionListener(e -> {
+      if (MZmineCore.getConfiguration()
+          .getModuleParameters(SpectraIdentificationResultsModule.class)
+          .showSetupDialog(this, true) == ExitCode.OK) {
+        showExportButtonsChanged();
+      }
+    });
+    menuBar.add(btnSetup);
+
     JCheckBoxMenuItem cbCoupleZoomY = new JCheckBoxMenuItem("Couple y-zoom");
     cbCoupleZoomY.setSelected(true);
     cbCoupleZoomY.addItemListener(e -> setCoupleZoomY(cbCoupleZoomY.isSelected()));
     menuBar.add(cbCoupleZoomY);
+
+    JMenuItem btnSetFont = new JMenuItem("Set chart font");
+    btnSetFont.addActionListener(e -> setChartFont());
+    menuBar.add(btnSetFont);
+
     setJMenuBar(menuBar);
 
     scrollPane = new JScrollPane(pnGrid);
@@ -98,6 +125,15 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     validate();
     repaint();
+  }
+
+  private void setChartFont() {
+    FontDialog dialog = new FontDialog(this, "Font Dialog Example", true);
+    dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    dialog.setVisible(true);
+    if (!dialog.isCancelSelected()) {
+      setChartFont(dialog.getSelectedFont());
+    }
   }
 
   public void setCoupleZoomY(boolean selected) {
@@ -167,6 +203,13 @@ public class SpectraIdentificationResultsWindow extends JFrame {
     renewLayout();
   }
 
+  public void setMatchingFinished() {
+    if (totalMatches.isEmpty()) {
+      noMatchesFound.setText("Sorry no matches found");
+      noMatchesFound.setForeground(Color.RED);
+    }
+  }
+
   /**
    * Add a spectral library hit
    * 
@@ -194,6 +237,29 @@ public class SpectraIdentificationResultsWindow extends JFrame {
       scrollPane.revalidate();
       scrollPane.repaint();
       this.pnGrid = pnGrid;
+    });
+  }
+
+  public Font getChartFont() {
+    return chartFont;
+  }
+
+  public void setChartFont(Font chartFont) {
+    this.chartFont = chartFont;
+    if (matchPanels == null)
+      return;
+    matchPanels.values().stream().forEach(pn -> {
+      pn.setChartFont(chartFont);
+    });
+  }
+
+
+  private void showExportButtonsChanged() {
+    if (matchPanels == null)
+      return;
+    matchPanels.values().stream().forEach(pn -> {
+      pn.applySettings(MZmineCore.getConfiguration()
+          .getModuleParameters(SpectraIdentificationResultsModule.class));
     });
   }
 }
