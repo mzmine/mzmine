@@ -19,10 +19,7 @@
 package net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats;
 
 import java.io.File;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,6 +56,8 @@ import uk.ac.ebi.jmzml.xml.io.MzMLUnmarshaller;
 public class MzMLReadTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private static final Pattern SCAN_PATTERN = Pattern.compile("scan=([0-9]+)");
 
   private File file;
   private MZmineProject project;
@@ -105,6 +104,10 @@ public class MzMLReadTask extends AbstractTask {
 
     totalScans = unmarshaller.getObjectCountForXpath("/run/spectrumList/spectrum");
 
+    fillScanIdTable(
+            unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class),
+            totalScans);
+
     MzMLObjectIterator<Spectrum> spectrumIterator =
         unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", Spectrum.class);
     try {
@@ -123,7 +126,9 @@ public class MzMLReadTask extends AbstractTask {
         }
 
         String scanId = spectrum.getId();
-        int scanNumber = convertScanIdToScanNumber(scanId);
+        Integer scanNumber = scanIdTable.get(scanId);
+        if (scanNumber == null)
+          throw new IllegalStateException("Cannot determine scan number: " + scanId);
 
         // Extract scan data
         int msLevel = extractMSLevel(spectrum);
@@ -190,13 +195,35 @@ public class MzMLReadTask extends AbstractTask {
 
   }
 
-  private int convertScanIdToScanNumber(String scanId) {
+  /**
+   * Retrieves scan numbers from scan IDs and stores them in scanIdTable.
+   *
+   * If retrieved scan numbers are not unique, we replace them with new scan numbers.
+   *
+   * @param iterator iterator from MzMLUnmarshaller
+   */
+  private void fillScanIdTable(MzMLObjectIterator<Spectrum> iterator, int totalScans) {
+
+    Map<String, Integer> alternativeScanIdTable = new HashMap<>();
+    for (int i = 1; iterator.hasNext(); ++i) {
+      String id = iterator.next().getId();
+      saveScanNumberToTable(id);
+      alternativeScanIdTable.put(id, i);
+    }
+
+    Set<Integer> scanNumberSet = new HashSet<>(scanIdTable.values());
+
+    if (scanNumberSet.size() != totalScans)
+      // Scan Numbers are not unique! We replace them with numbers 1, 2, 3, ...
+      scanIdTable = alternativeScanIdTable;
+  }
+
+  private void saveScanNumberToTable(String scanId) {
 
     if (scanIdTable.containsKey(scanId))
-      return scanIdTable.get(scanId);
+      return;
 
-    final Pattern pattern = Pattern.compile("scan=([0-9]+)");
-    final Matcher matcher = pattern.matcher(scanId);
+    final Matcher matcher = SCAN_PATTERN.matcher(scanId);
     boolean scanNumberFound = matcher.find();
 
     // Some vendors include scan=XX in the ID, some don't, such as
@@ -205,13 +232,12 @@ public class MzMLReadTask extends AbstractTask {
     if (scanNumberFound) {
       int scanNumber = Integer.parseInt(matcher.group(1));
       scanIdTable.put(scanId, scanNumber);
-      return scanNumber;
+      return;
     }
 
     int scanNumber = lastScanNumber + 1;
     lastScanNumber++;
     scanIdTable.put(scanId, scanNumber);
-    return scanNumber;
   }
 
   private int extractMSLevel(Spectrum spectrum) {
@@ -307,7 +333,10 @@ public class MzMLReadTask extends AbstractTask {
       if (precursorScanId == null) {
         return -1;
       }
-      int parentScan = convertScanIdToScanNumber(precursorScanId);
+      Integer parentScan = scanIdTable.get(precursorScanId);
+      if (parentScan == null)
+        return -1;
+
       return parentScan;
     }
     return -1;
