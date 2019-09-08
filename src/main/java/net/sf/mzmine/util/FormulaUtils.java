@@ -239,29 +239,18 @@ public class FormulaUtils {
 
     molFormula = MolecularFormulaManipulator.getMajorIsotopeMolecularFormula(formula, builder);
 
-    String simple = MolecularFormulaManipulator.simplifyMolecularFormula(formula);
-    String elements[] = simple.split("0");
-    String invalid = "";
+    boolean valid = true;
 
-    boolean found = false;
-    for (String element : elements) {
-      found = false;
-      for (IIsotope iso : molFormula.isotopes()) {
-        if (element.equals(iso.getSymbol()) && (iso.getAtomicNumber() != null)
-            && (iso.getAtomicNumber() != 0)) {
-          // iso.getAtomicNumber() != null has to be checked, e.g. for some reason an element with
-          // Symbol "R" and number 0 exists in the CDK
-          found = true;
-        }
-      }
-      if (found == false) {
-        invalid += element + ", ";
+    for (IIsotope iso : molFormula.isotopes()) {
+      if ((iso.getAtomicNumber() == null) || (iso.getAtomicNumber() == 0)) {
+        // iso.getAtomicNumber() != null has to be checked, e.g. for some reason an element with
+        // Symbol "R" and number 0 exists in the CDK
+        valid = false;
       }
     }
 
-    if (invalid.length() != 0) {
-      invalid = invalid.substring(0, invalid.length() - 2);
-      logger.warning("Formula invalid! Element(s) " + invalid + " do not exist.");
+    if (!valid) {
+      logger.warning("Formula invalid! Formula contains element symbols that do not exist.");
       return false;
     }
     return true;

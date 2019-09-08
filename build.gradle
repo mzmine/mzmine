@@ -8,20 +8,20 @@ plugins {
 }
 
 group = "io.github.mzmine"
-version = "2.50"
+version = "2.51"
 description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
-defaultTasks "runtimeZip"
+defaultTasks "runtime"
 
 // Check the OS
 project.ext.osSuffix = OperatingSystem.current().getName().replaceAll(" ", "_")
 if (OperatingSystem.current().isMacOsX())
-    project.ext.osSuffix = "Mac"
+    project.ext.osSuffix = "macOS"
 if (OperatingSystem.current().isLinux())
     project.ext.osSuffix = "Linux"
 if (OperatingSystem.current().isWindows())
-    project.ext.osSuffix = "Win"
+    project.ext.osSuffix = "Windows"
 println "OS detected as " + project.ext.osSuffix
 
 
@@ -154,6 +154,8 @@ configurations.all {
   exclude group: "xom", module: "xom"
   exclude group: "ch.qos.logback", module: "logback-core"
   exclude group: "ch.qos.logback", module: "logback-classic"
+  exclude group: "gurobi", module: "gurobi-linux64"
+  exclude group: "cplex", module: "cplex"
 }
 
 
@@ -215,36 +217,63 @@ startScripts {
  * Build the JVM runtime using jlink
  */
 runtime {
-    options = ["--compress=2", "--vm=server", "--no-header-files", "--no-man-pages"]
+    options = ["--compress=2", "--vm=server", "--no-header-files", "--no-man-pages", "--output", "jre/jre"]
     modules = ["java.desktop",
                "java.logging",
-               "java.xml",
+               "java.rmi",
                "java.sql",
                "java.datatransfer",
-               "java.security.sasl",
+               "java.management",
+               "java.xml",
+               "java.xml.crypto",
+               "jdk.xml.dom",
+               "java.naming",
+               "java.transaction.xa",
                "java.scripting",
-               "jdk.unsupported"
-              ]
+               "java.compiler",
+               "jdk.jsobject",
+               "jdk.jfr",
+               "java.security.sasl",
+               "java.security.jgss",
+               "jdk.unsupported",
+               "jdk.unsupported.desktop"]
+    
     imageDir = file("${buildDir}/${applicationName}-${version}-${osSuffix}")
-    imageZip = file("${buildDir}/${applicationName}-${version}-${osSuffix}.zip")
+    imageZip = file(relativePath(imageDir) + ".zip")
 }
 
 /*
  * Copy the resources like icons and logging properties
  */
 tasks.runtime.doLast {
+
+    // Remove the "release" file produced by jlink
+    delete file(relativePath(imageDir) + "/release")
+
     copy {
         from("src/main/icons")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/icons")
+        into(relativePath(imageDir) + "/icons")
     }
     copy {
         from("src/main/log")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/log")
+        into(relativePath(imageDir) + "/log")
     }
     copy {
         from("src/main/conf/logging.properties")
-        into("${buildDir}/${applicationName}-${version}-${osSuffix}/conf")
-    } 
+        into(relativePath(imageDir) + "/conf/")
+    }
+    copy {
+        from("manual.pdf")
+        into(relativePath(imageDir))
+    }
+    copy {
+        from("LICENSE.txt")
+        into(relativePath(imageDir) + "/legal/MZmine/")
+    }
+    copy {        
+        from("src/main/lib/vendor_lib")
+        into(relativePath(imageDir) + "/lib/vendor_lib")
+    }
 }
 
 /*
