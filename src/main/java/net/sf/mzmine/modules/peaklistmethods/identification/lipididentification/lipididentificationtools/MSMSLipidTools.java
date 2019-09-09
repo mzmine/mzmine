@@ -118,7 +118,7 @@ public class MSMSLipidTools {
             if (mzTolRangeMSMS
                 .contains(lipidIonMass - FormulaUtils.calculateExactMass(fattyAcidFormulas.get(j))
                     - massOfSumFormulasToSubstract)) {
-              annotatedFragment = "M-FA-"
+              annotatedFragment = "M-FA" + fattyAcidNames.get(j) + "-"
                   + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]);
             }
           }
@@ -178,7 +178,7 @@ public class MSMSLipidTools {
 
 
       // check for fragments with M-FA and + sum formula
-      else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
+      if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
           && classSpecificFragments[i].contains("+")) {
         if (classSpecificFragments[i].contains("FA")) {
           for (int j = 0; j < fattyAcidFormulas.size(); j++) {
@@ -204,11 +204,10 @@ public class MSMSLipidTools {
           for (int j = 0; j < fattyAcidFormulas.size(); j++) {
             double massOfSumFormulasToSubstract = FormulaUtils.calculateExactMass(
                 lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]));
-
             if (mzTolRangeMSMS
                 .contains(lipidIonMass - FormulaUtils.calculateExactMass(fattyAcidFormulas.get(j))
                     - massOfSumFormulasToSubstract)) {
-              annotatedFragment = "M-FA-"
+              annotatedFragment = "M-FA" + fattyAcidNames.get(j) + "-"
                   + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]);
             }
           }
