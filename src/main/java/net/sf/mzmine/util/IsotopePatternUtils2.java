@@ -3,18 +3,14 @@ package net.sf.mzmine.util;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.math3.optim.nonlinear.scalar.gradient.NonLinearConjugateGradientOptimizer.Formula;
 import org.openscience.cdk.interfaces.IIsotope;
 import com.google.common.collect.Range;
-import com.sun.tools.xjc.model.SymbolSpace;
-import cern.colt.Arrays;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
@@ -29,7 +25,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import visad.formula.FormulaUtil;
 
 public class IsotopePatternUtils2 {
 
