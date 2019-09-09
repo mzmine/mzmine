@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -176,7 +176,7 @@ public class LipidSearchTask extends AbstractTask {
     ((SimplePeakList) peakList)
         .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Lipid search", parameters));
 
-    // Repaint the window to reflect the change in the feature list
+    // Repaint the window to reflect the change in the peak list
     Desktop desktop = MZmineCore.getDesktop();
     if (!(desktop instanceof HeadLessDesktop))
       desktop.getMainWindow().repaint();
@@ -251,12 +251,12 @@ public class LipidSearchTask extends AbstractTask {
             massDetector = new CentroidMassDetector();
             CentroidMassDetectorParameters parametersMSMS = new CentroidMassDetectorParameters();
             CentroidMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
-            massList = massDetector.getMassValues(msmsScan.getDataPoints(), parametersMSMS);
+            massList = massDetector.getMassValues(msmsScan, parametersMSMS);
           } else {
             massDetector = new ExactMassDetector();
             ExactMassDetectorParameters parametersMSMS = new ExactMassDetectorParameters();
             ExactMassDetectorParameters.noiseLevel.setValue(noiseLevelMSMS);
-            massList = massDetector.getMassValues(msmsScan.getDataPoints(), parametersMSMS);
+            massList = massDetector.getMassValues(msmsScan, parametersMSMS);
           }
         }
         MSMSLipidTools msmsLipidTools = new MSMSLipidTools();
@@ -284,7 +284,8 @@ public class LipidSearchTask extends AbstractTask {
               // predict lipid fatty acid composition if possible
               ArrayList<String> listOfPossibleFattyAcidCompositions =
                   msmsLipidTools.predictFattyAcidComposition(listOfAnnotatedNegativeFragments,
-                      row.getPreferredPeakIdentity());
+                      row.getPreferredPeakIdentity(),
+                      lipid.getLipidClass().getNumberOfAcylChains());
               for (int i = 0; i < listOfPossibleFattyAcidCompositions.size(); i++) {
                 // Add possible composition to comment
                 if (row.getComment().equals(null)) {
@@ -342,7 +343,7 @@ public class LipidSearchTask extends AbstractTask {
             // predict lipid fatty acid composition if possible
             ArrayList<String> listOfPossibleFattyAcidCompositions =
                 msmsLipidTools.predictFattyAcidComposition(listOfAnnotatedPositiveFragments,
-                    row.getPreferredPeakIdentity());
+                    row.getPreferredPeakIdentity(), lipid.getLipidClass().getNumberOfAcylChains());
             for (int i = 0; i < listOfPossibleFattyAcidCompositions.size(); i++) {
               // Add possible composition to comment
               if (row.getComment().equals(null)) {
