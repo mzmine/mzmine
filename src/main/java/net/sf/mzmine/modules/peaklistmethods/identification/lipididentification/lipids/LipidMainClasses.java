@@ -55,6 +55,8 @@ public enum LipidMainClasses {
   GLYCEROPHOSPHOGLYCEROPHOSPHATES("Glycerophosphoglycerophosphates",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHOINOSITOLS("Glycerophosphoinositols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
+  GLYCEROPHOSPHOINOSITOLGLYCANS("Glycerophosphoinositolglycans",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
   GLYCEROPHOSPHATES("Glycerophosphates", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
   CARDIOLIPIN("Cardiolipin", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //
   CDPGLYCEROLS("CDP-Glycerols", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS), //

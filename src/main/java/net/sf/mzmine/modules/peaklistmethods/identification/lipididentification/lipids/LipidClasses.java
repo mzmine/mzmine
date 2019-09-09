@@ -194,6 +194,21 @@ public enum LipidClasses {
   MONOALKYLGLYCEROPHOSPHOINOSITOLS("Monoalkylglycerophosphoinositols", "PI",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLS, "C9H18O10P",
       0, 1, new String[] {""}, new String[] {""}), //
+  DIACYLGLYCEROPHOSPHOINOSITOLMONOMANNOSIDE("Diacylglycerophosphoinositolmonomannoside", "AC2PIM1",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLGLYCANS,
+      "C17H27O18P", 2, 0, new String[] {""},
+      new String[] {"FA", "M-FA", "M-C6H10O5", "M-FA-C12H20O10"}), //
+  DIACYLGLYCEROPHOSPHOINOSITOLDIMANNOSIDE("Diacylglycerophosphoinositoldimannoside", "AC2PIM2",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLGLYCANS,
+      "C23H37O23P", 2, 0, new String[] {""}, new String[] {"FA", "M-FA", "M-C6H10O5"}), //
+  TRIACYLPHOSPHATIDYLINOSITOLDIMANNOSIDE("Triacylglycerophosphoinositoldimannoside", "AC3PIM2",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLGLYCANS,
+      "C24H36O24P", 3, 0, new String[] {""},
+      new String[] {"FA", "M-FA", "M-FA+H2O", "M-FA-FA", "M-FA-FA-C3H5O", "M-C6H10O5"}), //
+  TETRAACYLPHOSPHATIDYLINOSITOLDIMANNOSIDE("Tetraacylglycerophosphoinositoldimannoside", "AC3PIM2",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLGLYCANS,
+      "C25H35O25P", 4, 0, new String[] {""},
+      new String[] {"FA", "M-FA", "M-FA-FA", "M-FA-FA-C3H5O"}), //
   DIACYLGLYCEROPHOSPHATES("Diacylglycerophosphates", "PA", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS,
       LipidMainClasses.GLYCEROPHOSPHATES, "C5H7O8P", 2, 0, new String[] {""},
       new String[] {"FA", "M-FA", "M-FA-H2O"}), //
