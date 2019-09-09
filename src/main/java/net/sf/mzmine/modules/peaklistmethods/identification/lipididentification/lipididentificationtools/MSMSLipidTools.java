@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.lipididentification.lipididentificationtools;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakIdentity;
@@ -117,7 +118,7 @@ public class MSMSLipidTools {
             if (mzTolRangeMSMS
                 .contains(lipidIonMass - FormulaUtils.calculateExactMass(fattyAcidFormulas.get(j))
                     - massOfSumFormulasToSubstract)) {
-              annotatedFragment = "M-FA-"
+              annotatedFragment = "M-FA" + fattyAcidNames.get(j) + "-"
                   + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]);
             }
           }
@@ -177,7 +178,7 @@ public class MSMSLipidTools {
 
 
       // check for fragments with M-FA and + sum formula
-      else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
+      if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
           && classSpecificFragments[i].contains("+")) {
         if (classSpecificFragments[i].contains("FA")) {
           for (int j = 0; j < fattyAcidFormulas.size(); j++) {
@@ -203,11 +204,10 @@ public class MSMSLipidTools {
           for (int j = 0; j < fattyAcidFormulas.size(); j++) {
             double massOfSumFormulasToSubstract = FormulaUtils.calculateExactMass(
                 lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]));
-
             if (mzTolRangeMSMS
                 .contains(lipidIonMass - FormulaUtils.calculateExactMass(fattyAcidFormulas.get(j))
                     - massOfSumFormulasToSubstract)) {
-              annotatedFragment = "M-FA-"
+              annotatedFragment = "M-FA" + fattyAcidNames.get(j) + "-"
                   + lipidTools.getSumFormulasToSubstractOfFragment(classSpecificFragments[i]);
             }
           }
@@ -234,13 +234,12 @@ public class MSMSLipidTools {
     return annotatedFragment;
   }
 
-
   /**
    * This methods tries to reconstruct a possible fatty acid composition of the annotated lipid
    * using the annotated MS/MS fragments
    */
   public ArrayList<String> predictFattyAcidComposition(ArrayList<String> listOfDetectedFragments,
-      PeakIdentity peakIdentity) {
+      PeakIdentity peakIdentity, int numberOfAcylChains) {
     ArrayList<String> fattyAcidComposition = new ArrayList<String>();
     // get number of total C atoms, double bonds and number of chains
     LipidTools lipidTools = new LipidTools();
@@ -249,29 +248,97 @@ public class MSMSLipidTools {
 
     int testNumberOfCAtoms = 0;
     int testNumberOfDoubleBonds = 0;
+
     // combine all fragments with each other to check for a matching composition
     for (int i = 0; i < listOfDetectedFragments.size(); i++) {
       if (listOfDetectedFragments.get(i).contains("FA(")) {
         int numberOfCAtomsInFragment = lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i));
         int numberOfDBInFragment = lipidTools.getNumberOfDB(listOfDetectedFragments.get(i));
 
-        for (int j = 0; j < listOfDetectedFragments.size(); j++) {
 
-          // only check for annotated fragments with information on FA composition
-          if (listOfDetectedFragments.get(j).contains("FA(")) {
-            // check if number of C atoms is equal
-            testNumberOfCAtoms = numberOfCAtomsInFragment
-                + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j));
-            if (testNumberOfCAtoms == totalNumberOfCAtoms) {
-              // check number of double bonds
-              testNumberOfDoubleBonds =
-                  numberOfDBInFragment + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j));
-              if (testNumberOfDoubleBonds == totalNumberOfDB) {
-                fattyAcidComposition
-                    .add("FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
-                        + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
-                        + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j)) + ":"
-                        + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")");
+        // two chains
+        if (numberOfAcylChains >= 2) {
+          for (int j = 0; j < listOfDetectedFragments.size(); j++) {
+
+            // only check for annotated fragments with information on FA composition
+            if (listOfDetectedFragments.get(j).contains("FA(")) {
+              // check if number of C atoms is equal
+              testNumberOfCAtoms = numberOfCAtomsInFragment
+                  + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j));
+              if (testNumberOfCAtoms == totalNumberOfCAtoms) {
+                // check number of double bonds
+                testNumberOfDoubleBonds =
+                    numberOfDBInFragment + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j));
+                if (testNumberOfDoubleBonds == totalNumberOfDB) {
+                  fattyAcidComposition.add(
+                      "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
+                          + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
+                          + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                          + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")");
+                }
+              }
+            }
+            // three chains
+            if (numberOfAcylChains >= 3) {
+              for (int k = 0; k < listOfDetectedFragments.size(); k++) {
+
+                // only check for annotated fragments with information on FA composition
+                if (listOfDetectedFragments.get(k).contains("FA(")) {
+                  // check if number of C atoms is equal
+                  testNumberOfCAtoms = numberOfCAtomsInFragment
+                      + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                      + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k));
+                  if (testNumberOfCAtoms == totalNumberOfCAtoms) {
+                    // check number of double bonds
+                    testNumberOfDoubleBonds = numberOfDBInFragment
+                        + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j))
+                        + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k));
+                    if (testNumberOfDoubleBonds == totalNumberOfDB) {
+                      fattyAcidComposition.add(
+                          "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
+                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
+                              + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                              + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")"
+                              + "_" + "FA("
+                              + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k)) + ":"
+                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k)) + ")");
+                    }
+                  }
+                }
+                // four chains
+                if (numberOfAcylChains >= 4) {
+                  for (int l = 0; l < listOfDetectedFragments.size(); l++) {
+
+                    // only check for annotated fragments with information on FA composition
+                    if (listOfDetectedFragments.get(k).contains("FA(")) {
+                      // check if number of C atoms is equal
+                      testNumberOfCAtoms = numberOfCAtomsInFragment
+                          + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                          + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k))
+                          + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(l));
+                      if (testNumberOfCAtoms == totalNumberOfCAtoms) {
+                        // check number of double bonds
+                        testNumberOfDoubleBonds = numberOfDBInFragment
+                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j))
+                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k))
+                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(l));
+                        if (testNumberOfDoubleBonds == totalNumberOfDB) {
+                          fattyAcidComposition.add("FA("
+                              + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
+                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
+                              + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                              + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")"
+                              + "_" + "FA("
+                              + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k)) + ":"
+                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k)) + ")" + "_"
+                              + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(l))
+                              + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(l))
+                              + ")");
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -282,17 +349,18 @@ public class MSMSLipidTools {
     return fattyAcidComposition;
   }
 
+
   private ArrayList<String> removeDoubleEntries(ArrayList<String> fattyAcidComposition) {
     for (int i = 0; i < fattyAcidComposition.size(); i++) {
       String[] oneFattyAcidComposition = fattyAcidComposition.get(i).split("_");
-      // only remove ones
-      int ctr = 0;
+      // sort array
+      Arrays.sort(oneFattyAcidComposition);
       for (int j = 0; j < fattyAcidComposition.size(); j++) {
         String[] compareFattyAcidComposition = fattyAcidComposition.get(j).split("_");
-        if (oneFattyAcidComposition[0].equals(compareFattyAcidComposition[1])
-            && oneFattyAcidComposition[1].equals(compareFattyAcidComposition[0]) && ctr == 0) {
+        // sort compare array
+        Arrays.sort(compareFattyAcidComposition);
+        if (Arrays.equals(oneFattyAcidComposition, compareFattyAcidComposition)) {
           fattyAcidComposition.remove(j);
-          ctr++;
         }
       }
     }
