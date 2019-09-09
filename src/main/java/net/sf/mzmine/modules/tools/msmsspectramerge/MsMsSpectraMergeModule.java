@@ -42,6 +42,7 @@ import com.google.common.collect.Range;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -340,7 +341,10 @@ public class MsMsSpectraMergeModule implements MZmineModule {
       return MergedSpectrum.empty(totalNumberOfScans);
     final List<Scan> scansToMerge = new ArrayList<>();
     scansToMerge.add(scans.origin.getScan(scans.ms2ScanNumbers[best]));
-    if (scansToMerge.get(0).getMassList(massList).getDataPoints().length <= 1)
+    final Scan firstScan = scansToMerge.get(0);
+    final MassList firstML = firstScan.getMassList(massList);
+    if (firstML == null) throw new RuntimeException("Scan " + firstScan.getDataFile().getName() + "#" + firstScan.getScanNumber() + " does not have a mass list " + massList);
+    if (firstML.getDataPoints().length <= 1)
       return MergedSpectrum.empty(totalNumberOfScans);
     /*
      * remove scans which are considerably worse than the best scan
