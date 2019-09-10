@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -55,9 +55,35 @@ public enum LipidClasses {
       LipidMainClasses.RHAMNOLIPIDS, "C2O5", 2, 0, new String[] {""},
       new String[] {"M-FA+H2", "fragment C2H4O2"}), //
   SOPHOROLIPIDACID("Sophorolipid acid form", "SLP acid", LipidCoreClasses.FATTYACYLS,
-      LipidMainClasses.SOPHOROLIPIDS, "C13H21O13", 1, 0, new String[] {""}, new String[] {""}), //
+      LipidMainClasses.SOPHOROLIPIDS, "C13H21O13", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDACIDAC1("Sophorolipid acid form Ac1", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C15H23O14", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDACIDAC2("Sophorolipid acid form Ac2", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C17H25O15", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDACIDAC3("Sophorolipid acid form Ac3", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C19H27O16", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDACIDAC4("Sophorolipid acid form Ac3", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C21H29O17", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
   SOPHOROLIPIDLACTON("Sophorolipid lacton form", "SLP lacton", LipidCoreClasses.FATTYACYLS,
-      LipidMainClasses.SOPHOROLIPIDS, "C13H19O12", 1, 0, new String[] {""}, new String[] {""}), //
+      LipidMainClasses.SOPHOROLIPIDS, "C13H19O12", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDLACTONAC1("Sophorolipid lacton form Ac1", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C15H21O13", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDLACTONAC2("Sophorolipid lacton form Ac2", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C17H23O14", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDLACTONAC3("Sophorolipid lacton form Ac3", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C19H25O15", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDLACTONAC4("Sophorolipid lacton form Ac4", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C21H27O16", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
   MANNOSYLERYTHRITOLA("Mannosylerythritol A", "MEL A", LipidCoreClasses.FATTYACYLS,
       LipidMainClasses.MANNOSYLERYTHRITOL, "C16H22O13", 2, 0,
       new String[] {"M-C4H13O4N", "M-FA-C4H13O4N", "M-C4H13O5N"}, new String[] {""}), //
