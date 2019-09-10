@@ -115,6 +115,9 @@ public enum LipidClasses {
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.OTHERGLYCEROLIPIDS, "C12H19O7N", 2, 0,
       new String[] {"fragment C7H14NO2 ", "fragment C10H22NO5", "M-FA", "M-FA-H2O"},
       new String[] {"FA"}), //
+  MONOACYLGLYCEROLTRIMETHYLHOMOSERIN("Monoacylglyceroltrimethylhomoserin", "LysoDGTS",
+      LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.OTHERGLYCEROLIPIDS, "C11H21O6N", 1, 0,
+      new String[] {"fragment C7H14NO2 ", "M-FA", "M-FA-H2O"}, new String[] {"FA"}), //
   SULFOQUINOVOSYLMONOACYLGLYCEROLS("Sulfoquinovosylmonoacylglycerols", "SQMG",
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.GLYCOSYLMONOACYLGLYCEROLS, "C10H17O11S", 1,
       0, new String[] {""}, new String[] {""}), //
