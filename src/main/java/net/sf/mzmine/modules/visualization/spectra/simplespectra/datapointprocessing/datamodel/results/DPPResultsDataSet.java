@@ -18,19 +18,24 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 
 public class DPPResultsDataSet extends DataPointsDataSet {
 
   private static final long serialVersionUID = 1L;
-  
+
   public DPPResultsDataSet(String label, ProcessedDataPoint[] mzPeaks) {
     super(label, mzPeaks);
   }
 
-  public ProcessedDataPoint[] getDataPoints() {
-    return (ProcessedDataPoint[]) mzPeaks;
+  /**
+   * This type has to be DataPoint, else you will get class cast exceptions. Casting it later on is
+   * still possible.
+   */
+  public DataPoint[] getDataPoints() {
+    return mzPeaks;
   }
-  
+
 }
