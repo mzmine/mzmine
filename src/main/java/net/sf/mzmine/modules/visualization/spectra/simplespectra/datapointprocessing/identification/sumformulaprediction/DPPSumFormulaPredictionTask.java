@@ -45,7 +45,6 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.learnermodule.DPPLearnerModuleParameters;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPSumFormulaResult;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -158,6 +157,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     }
 
     setStatus(TaskStatus.PROCESSING);
+    
+    List<ProcessedDataPoint> resultList = new ArrayList<>();
 
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
@@ -180,10 +181,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       DPPSumFormulaResult[] results = genereateResults(formulas, numResults);
 
       ((ProcessedDataPoint) dataPoints[i]).addAllResults(results);
+      resultList.add((ProcessedDataPoint) dataPoints[i]);
       currentIndex++;
     }
 
-    setResults((ProcessedDataPoint[]) dataPoints);
+//    setResults((ProcessedDataPoint[]) dataPoints);
+    setResults(resultList.toArray(new ProcessedDataPoint[0]));
     setStatus(TaskStatus.FINISHED);
   }
 

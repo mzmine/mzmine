@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproce
 
 import java.text.NumberFormat;
 import org.jfree.data.xy.XYDataset;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
@@ -81,7 +82,11 @@ public class DPPResultsLabelGenerator extends SpectraItemLabelGenerator {
     if (dataset instanceof ScanDataSet) {
       label = ((ScanDataSet) dataset).getAnnotation(item);
     } else if (dataset instanceof DPPResultsDataSet) {
-      label = createLabel(((DPPResultsDataSet) dataset).getDataPoints()[item]);
+      DataPoint[] dps = ((DPPResultsDataSet) dataset).getDataPoints();
+      if(dps[item] instanceof ProcessedDataPoint) {
+        ProcessedDataPoint p = (ProcessedDataPoint) dps[item];
+        label = createLabel(p);
+      }
     }
 
     if (label == null || label.equals("")) {
