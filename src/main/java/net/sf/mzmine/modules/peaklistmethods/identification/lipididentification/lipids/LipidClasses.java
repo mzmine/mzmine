@@ -143,7 +143,7 @@ public enum LipidClasses {
       1, new String[] {""}, new String[] {""}), //
   MONOACYLGLYCEROPHOSPHOCHOLINES("Monoacylglycerophosphocholines", "PC",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C9H19O7PN", 1,
-      0, new String[] {""}, new String[] {""}), //
+      0, new String[] {"M-FA", "M-FA-H2O", "fragment C5H15NO4P"}, new String[] {""}), //
   MONOALKYLGLYCEROPHOSPHOCHOLINES("Monoalkylglycerophosphocholines", "PC",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C8H19O6PN", 0,
       1, new String[] {""}, new String[] {""}), //
