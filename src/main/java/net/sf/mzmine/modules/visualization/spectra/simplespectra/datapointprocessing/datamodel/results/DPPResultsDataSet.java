@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 
@@ -29,8 +30,8 @@ public class DPPResultsDataSet extends DataPointsDataSet {
     super(label, mzPeaks);
   }
 
-  public ProcessedDataPoint[] getDataPoints() {
-    return (ProcessedDataPoint[]) mzPeaks;
+  public DataPoint[] getDataPoints() {
+    return mzPeaks;
   }
   
 }

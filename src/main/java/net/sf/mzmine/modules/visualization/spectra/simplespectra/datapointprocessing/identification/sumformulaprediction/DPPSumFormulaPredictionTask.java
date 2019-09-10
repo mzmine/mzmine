@@ -158,6 +158,8 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
     }
 
     setStatus(TaskStatus.PROCESSING);
+    
+    List<ProcessedDataPoint> resultList = new ArrayList<>();
 
     IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
 
@@ -184,10 +186,12 @@ public class DPPSumFormulaPredictionTask extends DataPointProcessingTask {
       DPPSumFormulaResult[] results = genereateResults(formulas, numResults);
 
       ((ProcessedDataPoint) dataPoints[i]).addAllResults(results);
+      resultList.add((ProcessedDataPoint) dataPoints[i]);
       currentIndex++;
     }
 
-    setResults((ProcessedDataPoint[]) dataPoints);
+//    setResults((ProcessedDataPoint[]) dataPoints);
+    setResults(resultList.toArray(new ProcessedDataPoint[0]));
     setStatus(TaskStatus.FINISHED);
   }
 

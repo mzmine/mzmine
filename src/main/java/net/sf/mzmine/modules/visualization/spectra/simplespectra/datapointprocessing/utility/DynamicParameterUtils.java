@@ -85,7 +85,7 @@ public class DynamicParameterUtils {
     for(IIsotope isotope : range.isotopes()) {
       int min = range.getIsotopeCountMin(isotope);
       int max = range.getIsotopeCountMax(isotope);
-      logger.info("m/z = " + dp.getMZ() + " " + isotope.getSymbol() + " " + min + " - " + max);
+//      logger.info("m/z = " + dp.getMZ() + " " + isotope.getSymbol() + " " + min + " - " + max);
     }
 
     return range;
