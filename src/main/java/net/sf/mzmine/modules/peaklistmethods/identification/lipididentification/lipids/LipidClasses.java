@@ -239,7 +239,7 @@ public enum LipidClasses {
       "C25H35O25P", 4, 0, new String[] {""},
       new String[] {"FA", "M-FA", "M-FA-FA", "M-FA-FA-C3H5O"}), //
   DIACYLGLYCEROPHOSPHATES("Diacylglycerophosphates", "PA", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS,
-      LipidMainClasses.GLYCEROPHOSPHATES, "C5H7O8P", 2, 0, new String[] {""},
+      LipidMainClasses.GLYCEROPHOSPHATES, "C5H7O8P", 2, 0, new String[] {"M-PO4H3", "M-FA"},
       new String[] {"FA", "M-FA", "M-FA-H2O"}), //
   DIALKYLGLYCEROPHOSPHATES("Dialkylglycerophosphates", "PA", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS,
       LipidMainClasses.GLYCEROPHOSPHATES, "C3H6O6P", 0, 2, new String[] {""}, new String[] {""}), //
@@ -248,7 +248,7 @@ public enum LipidClasses {
       new String[] {""}, new String[] {""}), //
   MONOACYLGLYCEROPHOSPHATES("Monoacylglycerophosphates", "PA",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHATES, "C4H8O7P", 1, 0,
-      new String[] {""}, new String[] {""}), //
+      new String[] {""}, new String[] {"FA"}), //
   MONOALKYLGLYCEROPHOSPHATES("Monoalkylglycerophosphates", "PA",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHATES, "C3H8O6P", 0, 1,
       new String[] {""}, new String[] {""}), //
