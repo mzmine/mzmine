@@ -129,8 +129,8 @@ public enum LipidClasses {
       new String[] {"FA"}), //
   SULFOQUINOVOSYLDIACYLGLYCEROLS("Sulfoquinovosyldiacylglycerols", "SQDG",
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.GLYCOSYLDIACYLGLYCEROLS, "C11H16O12S", 2, 0,
-      new String[] {""}, new String[] {"FA", "M-FA", "fragment C6H9O7S"}), //
-
+      new String[] {"M-FA", "M-C6H9O7S", "M-FA-C6H9O7S"},
+      new String[] {"FA", "M-FA", "fragment C6H9O7S"}), //
   // Glycerophospholipids
   DIACYLGLYCEROPHOSPHOCHOLINES("Diacylglycerophosphocholines", "PC",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C10H18O8PN", 2,
@@ -164,8 +164,6 @@ public enum LipidClasses {
   MONOALKYLGLYCEROPHOSPHOETHANOLAMINES("Monoalkylglycerophosphoethanolamines", "PE",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
       "C5H13O6PN", 0, 1, new String[] {""}, new String[] {""}), //
-
-
   DIACYLGLYCEROPHOSPHOSERINES("Diacylglycerophosphoserines", "PS",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C8H12O10PN",
       2, 0, new String[] {""}, new String[] {"FA", "fragment M-C3H5NO2", "fragment M-C3H5NO2-FA"}), //
@@ -181,8 +179,6 @@ public enum LipidClasses {
   MONOALKYLGLYCEROPHOSPHOSERINES("Monoalkylglycerophosphoserines", "PS",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H13O8PN", 0,
       1, new String[] {""}, new String[] {""}), //
-
-
   DIACYLGLYCEROPHOSPHOGLYCEROLS("Diacylglycerophosphoglycerols", "PG",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOGLYCEROLS, "C8H13O10P",
       2, 0, new String[] {""}, new String[] {"FA", "M-FA", "M-FA-H2O"}), //
