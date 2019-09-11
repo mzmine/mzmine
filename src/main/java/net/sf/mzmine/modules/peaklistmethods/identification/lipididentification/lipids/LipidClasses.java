@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -55,9 +55,35 @@ public enum LipidClasses {
       LipidMainClasses.RHAMNOLIPIDS, "C2O5", 2, 0, new String[] {""},
       new String[] {"M-FA+H2", "fragment C2H4O2"}), //
   SOPHOROLIPIDACID("Sophorolipid acid form", "SLP acid", LipidCoreClasses.FATTYACYLS,
-      LipidMainClasses.SOPHOROLIPIDS, "C13H21O13", 1, 0, new String[] {""}, new String[] {""}), //
+      LipidMainClasses.SOPHOROLIPIDS, "C13H21O13", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDACIDAC1("Sophorolipid acid form Ac1", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C15H23O14", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDACIDAC2("Sophorolipid acid form Ac2", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C17H25O15", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDACIDAC3("Sophorolipid acid form Ac3", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C19H27O16", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDACIDAC4("Sophorolipid acid form Ac3", "SLP acid", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C21H29O17", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
   SOPHOROLIPIDLACTON("Sophorolipid lacton form", "SLP lacton", LipidCoreClasses.FATTYACYLS,
-      LipidMainClasses.SOPHOROLIPIDS, "C13H19O12", 1, 0, new String[] {""}, new String[] {""}), //
+      LipidMainClasses.SOPHOROLIPIDS, "C13H19O12", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDLACTONAC1("Sophorolipid lacton form Ac1", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C15H21O13", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDLACTONAC2("Sophorolipid lacton form Ac2", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C17H23O14", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDLACTONAC3("Sophorolipid lacton form Ac3", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C19H25O15", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
+  SOPHOROLIPIDLACTONAC4("Sophorolipid lacton form Ac4", "SLP lacton", LipidCoreClasses.FATTYACYLS,
+      LipidMainClasses.SOPHOROLIPIDS, "C21H27O16", 1, 0, new String[] {""},
+      new String[] {"FA-H+O", "FA-H2"}), //
   MANNOSYLERYTHRITOLA("Mannosylerythritol A", "MEL A", LipidCoreClasses.FATTYACYLS,
       LipidMainClasses.MANNOSYLERYTHRITOL, "C16H22O13", 2, 0,
       new String[] {"M-C4H13O4N", "M-FA-C4H13O4N", "M-C4H13O5N"}, new String[] {""}), //
@@ -89,6 +115,9 @@ public enum LipidClasses {
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.OTHERGLYCEROLIPIDS, "C12H19O7N", 2, 0,
       new String[] {"fragment C7H14NO2 ", "fragment C10H22NO5", "M-FA", "M-FA-H2O"},
       new String[] {"FA"}), //
+  MONOACYLGLYCEROLTRIMETHYLHOMOSERIN("Monoacylglyceroltrimethylhomoserin", "LysoDGTS",
+      LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.OTHERGLYCEROLIPIDS, "C11H21O6N", 1, 0,
+      new String[] {"fragment C7H14NO2 ", "M-FA", "M-FA-H2O"}, new String[] {"FA"}), //
   SULFOQUINOVOSYLMONOACYLGLYCEROLS("Sulfoquinovosylmonoacylglycerols", "SQMG",
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.GLYCOSYLMONOACYLGLYCEROLS, "C10H17O11S", 1,
       0, new String[] {""}, new String[] {""}), //
@@ -96,12 +125,12 @@ public enum LipidClasses {
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.GLYCOSYLDIACYLGLYCEROLS, "C11H16O10", 2, 0,
       new String[] {"M-FA", "M-FA-H20", "M-FA-C6H11O6"}, new String[] {"FA"}), //
   DIGALACTOSYLDIACYLGLYCEROL("Digalactosyldiacylglycerol", "DGDG", LipidCoreClasses.GLYCEROLIPIDS,
-      LipidMainClasses.GLYCOSYLDIACYLGLYCEROLS, "C17H26O15", 2, 0, new String[] {""},
+      LipidMainClasses.GLYCOSYLDIACYLGLYCEROLS, "C17H26O15", 2, 0, new String[] {"M-FA"},
       new String[] {"FA"}), //
   SULFOQUINOVOSYLDIACYLGLYCEROLS("Sulfoquinovosyldiacylglycerols", "SQDG",
       LipidCoreClasses.GLYCEROLIPIDS, LipidMainClasses.GLYCOSYLDIACYLGLYCEROLS, "C11H16O12S", 2, 0,
-      new String[] {""}, new String[] {"FA", "M-FA", "fragment C6H9O7S"}), //
-
+      new String[] {"M-FA", "M-C6H9O7S", "M-FA-C6H9O7S"},
+      new String[] {"FA", "M-FA", "fragment C6H9O7S"}), //
   // Glycerophospholipids
   DIACYLGLYCEROPHOSPHOCHOLINES("Diacylglycerophosphocholines", "PC",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C10H18O8PN", 2,
@@ -114,13 +143,13 @@ public enum LipidClasses {
       1, new String[] {""}, new String[] {""}), //
   MONOACYLGLYCEROPHOSPHOCHOLINES("Monoacylglycerophosphocholines", "PC",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C9H19O7PN", 1,
-      0, new String[] {""}, new String[] {""}), //
+      0, new String[] {"M-FA", "M-FA-H2O", "fragment C5H15NO4P"}, new String[] {""}), //
   MONOALKYLGLYCEROPHOSPHOCHOLINES("Monoalkylglycerophosphocholines", "PC",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.PHOSPHATIDYLCHOLINE, "C8H19O6PN", 0,
       1, new String[] {""}, new String[] {""}), //
   DIACYLGLYCEROPHOSPHOETHANOLAMINES("Diacylglycerophosphoethanolamines", "PE",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
-      "C7H12O8PN", 2, 0, new String[] {""},
+      "C7H12O8PN", 2, 0, new String[] {"M-FA", "M-FA-H2O", "M-C2H8NO4P"},
       new String[] {"FA", "M-FA", "M-FA-H2O", "fragment C5H11NO5P"}), //
   DIALKYLGLYCEROPHOSPHOETHANOLAMINES("Dialkylglycerophosphoethanolamines", "PE",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
@@ -130,7 +159,8 @@ public enum LipidClasses {
       "C6H12O7PN", 1, 1, new String[] {""}, new String[] {""}), //
   MONOACYLGLYCEROPHOSPHOETHANOLAMINES("Monoacylglycerophosphoethanolamines", "PE",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
-      "C6H13O7PN", 1, 0, new String[] {""}, new String[] {"FA", "M-FA", "M-FA-H2O", "M-C2H7NO"}), //
+      "C6H13O7PN", 1, 0, new String[] {"M-C2H8NO4P"},
+      new String[] {"FA", "M-FA", "M-FA-H2O", "M-C2H7NO"}), //
   MONOALKYLGLYCEROPHOSPHOETHANOLAMINES("Monoalkylglycerophosphoethanolamines", "PE",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
       "C5H13O6PN", 0, 1, new String[] {""}, new String[] {""}), //
@@ -145,7 +175,7 @@ public enum LipidClasses {
       1, new String[] {""}, new String[] {""}), //
   MONOACYLGLYCEROPHOSPHOSERINES("Monoacylglycerophosphoserines", "PS",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C7H13O9PN", 1,
-      0, new String[] {""}, new String[] {""}), //
+      0, new String[] {""}, new String[] {"fragment M-C3H5NO2"}), //
   MONOALKYLGLYCEROPHOSPHOSERINES("Monoalkylglycerophosphoserines", "PS",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H13O8PN", 0,
       1, new String[] {""}, new String[] {""}), //
@@ -194,8 +224,23 @@ public enum LipidClasses {
   MONOALKYLGLYCEROPHOSPHOINOSITOLS("Monoalkylglycerophosphoinositols", "PI",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLS, "C9H18O10P",
       0, 1, new String[] {""}, new String[] {""}), //
+  DIACYLGLYCEROPHOSPHOINOSITOLMONOMANNOSIDE("Diacylglycerophosphoinositolmonomannoside", "AC2PIM1",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLGLYCANS,
+      "C17H27O18P", 2, 0, new String[] {""},
+      new String[] {"FA", "M-FA", "M-C6H10O5", "M-FA-C12H20O10"}), //
+  DIACYLGLYCEROPHOSPHOINOSITOLDIMANNOSIDE("Diacylglycerophosphoinositoldimannoside", "AC2PIM2",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLGLYCANS,
+      "C23H37O23P", 2, 0, new String[] {""}, new String[] {"FA", "M-FA", "M-C6H10O5"}), //
+  TRIACYLPHOSPHATIDYLINOSITOLDIMANNOSIDE("Triacylglycerophosphoinositoldimannoside", "AC3PIM2",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLGLYCANS,
+      "C24H36O24P", 3, 0, new String[] {""},
+      new String[] {"FA", "M-FA", "M-FA+H2O", "M-FA-FA", "M-FA-FA-C3H5O", "M-C6H10O5"}), //
+  TETRAACYLPHOSPHATIDYLINOSITOLDIMANNOSIDE("Tetraacylglycerophosphoinositoldimannoside", "AC3PIM2",
+      LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOINOSITOLGLYCANS,
+      "C25H35O25P", 4, 0, new String[] {""},
+      new String[] {"FA", "M-FA", "M-FA-FA", "M-FA-FA-C3H5O"}), //
   DIACYLGLYCEROPHOSPHATES("Diacylglycerophosphates", "PA", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS,
-      LipidMainClasses.GLYCEROPHOSPHATES, "C5H7O8P", 2, 0, new String[] {""},
+      LipidMainClasses.GLYCEROPHOSPHATES, "C5H7O8P", 2, 0, new String[] {"M-PO4H3", "M-FA"},
       new String[] {"FA", "M-FA", "M-FA-H2O"}), //
   DIALKYLGLYCEROPHOSPHATES("Dialkylglycerophosphates", "PA", LipidCoreClasses.GLYCEROPHOSPHOLIPIDS,
       LipidMainClasses.GLYCEROPHOSPHATES, "C3H6O6P", 0, 2, new String[] {""}, new String[] {""}), //
@@ -204,7 +249,7 @@ public enum LipidClasses {
       new String[] {""}, new String[] {""}), //
   MONOACYLGLYCEROPHOSPHATES("Monoacylglycerophosphates", "PA",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHATES, "C4H8O7P", 1, 0,
-      new String[] {""}, new String[] {""}), //
+      new String[] {""}, new String[] {"FA"}), //
   MONOALKYLGLYCEROPHOSPHATES("Monoalkylglycerophosphates", "PA",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHATES, "C3H8O6P", 0, 1,
       new String[] {""}, new String[] {""}), //
