@@ -30,8 +30,12 @@ public class DPPResultsDataSet extends DataPointsDataSet {
     super(label, mzPeaks);
   }
 
+  /**
+   * This type has to be DataPoint, else you will get class cast exceptions. Casting it later on is
+   * still possible.
+   */
   public DataPoint[] getDataPoints() {
     return mzPeaks;
   }
-  
+
 }
