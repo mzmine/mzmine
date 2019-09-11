@@ -164,6 +164,8 @@ public enum LipidClasses {
   MONOALKYLGLYCEROPHOSPHOETHANOLAMINES("Monoalkylglycerophosphoethanolamines", "PE",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOETHANOLAMINES,
       "C5H13O6PN", 0, 1, new String[] {""}, new String[] {""}), //
+
+
   DIACYLGLYCEROPHOSPHOSERINES("Diacylglycerophosphoserines", "PS",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C8H12O10PN",
       2, 0, new String[] {""}, new String[] {"FA", "fragment M-C3H5NO2", "fragment M-C3H5NO2-FA"}), //
@@ -175,10 +177,12 @@ public enum LipidClasses {
       1, new String[] {""}, new String[] {""}), //
   MONOACYLGLYCEROPHOSPHOSERINES("Monoacylglycerophosphoserines", "PS",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C7H13O9PN", 1,
-      0, new String[] {""}, new String[] {""}), //
+      0, new String[] {""}, new String[] {"fragment M-C3H5NO2"}), //
   MONOALKYLGLYCEROPHOSPHOSERINES("Monoalkylglycerophosphoserines", "PS",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOSERINES, "C6H13O8PN", 0,
       1, new String[] {""}, new String[] {""}), //
+
+
   DIACYLGLYCEROPHOSPHOGLYCEROLS("Diacylglycerophosphoglycerols", "PG",
       LipidCoreClasses.GLYCEROPHOSPHOLIPIDS, LipidMainClasses.GLYCEROPHOSPHOGLYCEROLS, "C8H13O10P",
       2, 0, new String[] {""}, new String[] {"FA", "M-FA", "M-FA-H2O"}), //
