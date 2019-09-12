@@ -163,7 +163,7 @@ configurations.all {
  * Include JavaFX modules
  */
 javafx {
-    version = "12.0.2"
+    version = "13"
     modules = ["javafx.controls", 
                "javafx.swing", 
                "javafx.fxml",
