@@ -81,11 +81,11 @@ public class CsvReadTask extends AbstractTask {
 
       logger.info("Date of acquisition " + acquisitionDate);
 
-//      scanner.useDelimiter(",");
+      // scanner.useDelimiter(",");
 
       List<String> mzsList = new ArrayList<String>();
       String mstype = "";
-
+      String ions = "";
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine();
         logger.fine("checking line: " + line + " for 'Time [sec]'...");
@@ -94,6 +94,7 @@ public class CsvReadTask extends AbstractTask {
           logger.fine("Found axes" + Arrays.toString(axes));
           for (int i = 1; i < axes.length; i++) {
             String axis = axes[i];
+            ions += axis + ", ";
             if (axis.contains("->")) {
               mstype = "MS/MS";
               logger.fine("axis " + axis + " is an ms^2 scan");
@@ -112,38 +113,33 @@ public class CsvReadTask extends AbstractTask {
       int[] mzs = new int[mzsList.size()];
       for (int i = 0; i < mzsList.size(); i++)
         mzs[i] = Integer.valueOf(mzsList.get(i));
-      
-      Range<Double> mzRange = Range.closed((double)mzs[0]-10, (double)mzs[1]+10);
+
+      Range<Double> mzRange = Range.closed((double) mzs[0] - 10, (double) mzs[1] + 10);
 
       int scanNumber = 1;
 
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine();
-        if(line == null || line.trim().equals(""))
+        if (line == null || line.trim().equals(""))
           continue;
         String[] columns = line.split(",");
-        if(columns == null || columns.length != mzs.length + 1)
+        if (columns == null || columns.length != mzs.length + 1)
           continue;
-//        if(columns.length != mzs.length) {
-//          logger.info("ended with " + scanNumber + " scans.");
-//          continue;
-//        }
-        
+
         double rt = Double.valueOf(columns[0]);
 
         DataPoint dataPoints[] = new SimpleDataPoint[mzs.length];
         for (int i = 0; i < dataPoints.length; i++) {
-          String intensity = columns[i+1];
+          String intensity = columns[i + 1];
           dataPoints[i] = new SimpleDataPoint(mzs[i], Double.valueOf(intensity));
-          // logger.info("added data point dp " + dataPoints[i]);
         }
 
         Scan scan = new SimpleScan(null, scanNumber, 1, rt, 0.0, 1, null, dataPoints,
-            MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "ICP-" + mstype, mzRange);
+            MassSpectrumType.CENTROIDED, PolarityType.POSITIVE,
+            "ICP-" + mstype + " " + ions.substring(0, ions.length() - 2), mzRange);
 
         newMZmineFile.addScan(scan);
         scanNumber++;
-        logger.info("scan #" + scanNumber + " with " + scan.getDataPoints().length);
       }
 
       finalRawDataFile = newMZmineFile.finishWriting();
