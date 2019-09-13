@@ -191,6 +191,9 @@ public class RawDataImportModule implements MZmineProcessingModule {
       File fileName, RawDataFileWriter newMZmineFile) {
     Task newTask = null;
     switch (fileType) {
+      case ICPMSMS_CSV:
+        newTask = new CsvReadTask(project, fileName, newMZmineFile);
+        break;
       case MZDATA:
         newTask = new MzDataReadTask(project, fileName, newMZmineFile);
         break;
@@ -214,9 +217,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
       case GZIP:
         newTask = new ZipReadTask(project, fileName, fileType);
         break;
-      case ICPMSMS_CSV:
-        newTask = new CsvReadTask(project, fileName, newMZmineFile);
-        break;
+      
 
     }
     return newTask;

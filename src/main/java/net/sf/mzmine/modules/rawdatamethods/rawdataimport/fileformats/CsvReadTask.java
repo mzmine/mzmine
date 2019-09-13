@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.google.common.collect.Range;
 import de.unijena.bioinf.ChemistryBase.ms.SpectrumProperty;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -57,7 +58,7 @@ public class CsvReadTask extends AbstractTask {
   public void run() {
     setStatus(TaskStatus.PROCESSING);
     Scanner scanner;
-    
+
     logger.setLevel(Level.ALL);
 
     try {
@@ -69,6 +70,7 @@ public class CsvReadTask extends AbstractTask {
         setStatus(TaskStatus.ERROR);
         return;
       }
+      logger.info("opening raw file " + dataSource);
 
       String acquisitionDate = getAcqusitionDate(scanner);
       if (acquisitionDate == null) {
@@ -77,7 +79,9 @@ public class CsvReadTask extends AbstractTask {
         return;
       }
 
-      scanner.useDelimiter(",");
+      logger.info("Date of acquisition " + acquisitionDate);
+
+//      scanner.useDelimiter(",");
 
       List<String> mzsList = new ArrayList<String>();
       String mstype = "";
@@ -97,42 +101,53 @@ public class CsvReadTask extends AbstractTask {
               mz.trim();
               logger.fine("Axis " + axis + " was scanned at m/z = '" + mz + "'");
               mzsList.add(mz);
-            }
-            else {
+            } else {
               logger.severe("Invalid axis labelling, please contact the developers.");
             }
           }
+          break;
         }
       }
 
       int[] mzs = new int[mzsList.size()];
       for (int i = 0; i < mzsList.size(); i++)
         mzs[i] = Integer.valueOf(mzsList.get(i));
+      
+      Range<Double> mzRange = Range.closed((double)mzs[0]-10, (double)mzs[1]+10);
 
       int scanNumber = 1;
 
       while (scanner.hasNextLine()) {
-        double rt = scanner.nextDouble();
+        String line = scanner.nextLine();
+        if(line == null || line.trim().equals(""))
+          continue;
+        String[] columns = line.split(",");
+        if(columns == null || columns.length != mzs.length + 1)
+          continue;
+//        if(columns.length != mzs.length) {
+//          logger.info("ended with " + scanNumber + " scans.");
+//          continue;
+//        }
+        
+        double rt = Double.valueOf(columns[0]);
 
         DataPoint dataPoints[] = new SimpleDataPoint[mzs.length];
         for (int i = 0; i < dataPoints.length; i++) {
-          dataPoints[i] = new SimpleDataPoint(mzs[i], scanner.nextDouble());
-          logger.info("added data point dp " + dataPoints[i]);
+          String intensity = columns[i+1];
+          dataPoints[i] = new SimpleDataPoint(mzs[i], Double.valueOf(intensity));
+          // logger.info("added data point dp " + dataPoints[i]);
         }
 
         Scan scan = new SimpleScan(null, scanNumber, 1, rt, 0.0, 1, null, dataPoints,
-            MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "ICP-" + mstype, null);
-       
+            MassSpectrumType.CENTROIDED, PolarityType.POSITIVE, "ICP-" + mstype, mzRange);
+
         newMZmineFile.addScan(scan);
         scanNumber++;
-        
-        if(!scanner.hasNext())
-          break;
-//        scanner.hasNextLine();
+        logger.info("scan #" + scanNumber + " with " + scan.getDataPoints().length);
       }
-      
+
       finalRawDataFile = newMZmineFile.finishWriting();
-      
+
       project.addFile(finalRawDataFile);
 
     } catch (Exception e) {
@@ -167,7 +182,7 @@ public class CsvReadTask extends AbstractTask {
         return line;
       }
     }
-    return line;
+    return acquisitionDate;
   }
 
 }
