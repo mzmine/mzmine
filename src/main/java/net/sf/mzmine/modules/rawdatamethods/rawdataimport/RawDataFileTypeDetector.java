@@ -21,12 +21,16 @@ package net.sf.mzmine.modules.rawdatamethods.rawdataimport;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Detector of raw data file format
  */
 public class RawDataFileTypeDetector {
 
+  private static Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
+  
   /*
    * See "http://www.unidata.ucar.edu/software/netcdf/docs/netcdf/File-Format-Specification.html"
    */
@@ -62,28 +66,29 @@ public class RawDataFileTypeDetector {
    */
   public static RawDataFileType detectDataFileType(File fileName) {
 
-    if (fileName.isDirectory()) {
-      // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
-      for (File f : fileName.listFiles()) {
-        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT"))
-          return RawDataFileType.WATERS_RAW;
-      }
-      // We don't recognize any other directory type than Waters
-      return null;
-    }
-
-    if (fileName.getName().toLowerCase().endsWith(".csv")) {
-      return RawDataFileType.AGILENT_CSV;
-    }
-
+    logger.setLevel(Level.ALL);
+    
     try {
 
+      logger.info("trying to determine file type");
       // Read the first 1kB of the file into a String
       InputStreamReader reader = new InputStreamReader(new FileInputStream(fileName), "ISO-8859-1");
       char buffer[] = new char[1024];
       reader.read(buffer);
       reader.close();
       String fileHeader = new String(buffer);
+
+      if (fileName.getName().toLowerCase().endsWith(".csv")) {
+        logger.info("File type .csv detected");
+        logger.info("File header\n" + fileHeader);
+        if (fileHeader.contains(":") && fileHeader.contains("\\")
+            && !fileHeader.contains("file name")) {
+          logger.info("ICP raw file detected");
+          return RawDataFileType.ICPMSMS_CSV;
+        }
+        logger.info("Agilent raw detected");
+        return RawDataFileType.AGILENT_CSV;
+      }
 
       if (fileHeader.startsWith(THERMO_HEADER)) {
         return RawDataFileType.THERMO_RAW;
@@ -112,6 +117,16 @@ public class RawDataFileTypeDetector {
 
     } catch (Exception e) {
       e.printStackTrace();
+    }
+    
+    if (fileName.isDirectory()) {
+      // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
+      for (File f : fileName.listFiles()) {
+        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT"))
+          return RawDataFileType.WATERS_RAW;
+      }
+      // We don't recognize any other directory type than Waters
+      return null;
     }
 
     return null;
