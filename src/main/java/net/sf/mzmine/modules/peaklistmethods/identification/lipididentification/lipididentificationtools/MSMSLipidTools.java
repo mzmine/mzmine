@@ -76,7 +76,8 @@ public class MSMSLipidTools {
 
       // check for FA + sum formula fragments
       else if (classSpecificFragments[i].contains("FA") && classSpecificFragments[i].contains("C")
-          && classSpecificFragments[i].contains("\\+")) {
+          || classSpecificFragments[i].contains("O")
+          || classSpecificFragments[i].contains("H") && classSpecificFragments[i].contains("+")) {
         for (int j = 0; j < fattyAcidFormulas.size(); j++) {
           double massOfFragment = FormulaUtils.calculateExactMass(
               lipidTools.getSumFormulasToAddOfFragmentContainingFA(classSpecificFragments[i]));
@@ -88,6 +89,8 @@ public class MSMSLipidTools {
           }
         }
       }
+
+
 
       // check for fragments with M-FA and + sum formula
       else if (classSpecificFragments[i].contains("M") && classSpecificFragments[i].contains("-")
@@ -255,85 +258,100 @@ public class MSMSLipidTools {
         int numberOfCAtomsInFragment = lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i));
         int numberOfDBInFragment = lipidTools.getNumberOfDB(listOfDetectedFragments.get(i));
 
-
-        // two chains
-        if (numberOfAcylChains >= 2) {
-          for (int j = 0; j < listOfDetectedFragments.size(); j++) {
-
-            // only check for annotated fragments with information on FA composition
-            if (listOfDetectedFragments.get(j).contains("FA(")) {
-              // check if number of C atoms is equal
-              testNumberOfCAtoms = numberOfCAtomsInFragment
-                  + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j));
-              if (testNumberOfCAtoms == totalNumberOfCAtoms) {
-                // check number of double bonds
-                testNumberOfDoubleBonds =
-                    numberOfDBInFragment + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j));
-                if (testNumberOfDoubleBonds == totalNumberOfDB) {
-                  fattyAcidComposition.add(
-                      "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
-                          + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
-                          + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
-                          + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")");
-                }
-              }
+        // one chain
+        if (numberOfAcylChains >= 1) {
+          // check if number of C atoms is equal
+          testNumberOfCAtoms = numberOfCAtomsInFragment;
+          if (testNumberOfCAtoms == totalNumberOfCAtoms) {
+            // check number of double bonds
+            testNumberOfDoubleBonds = numberOfDBInFragment;
+            if (testNumberOfDoubleBonds == totalNumberOfDB) {
+              fattyAcidComposition
+                  .add("FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
+                      + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")");
             }
-            // three chains
-            if (numberOfAcylChains >= 3) {
-              for (int k = 0; k < listOfDetectedFragments.size(); k++) {
+          }
 
-                // only check for annotated fragments with information on FA composition
-                if (listOfDetectedFragments.get(k).contains("FA(")) {
-                  // check if number of C atoms is equal
-                  testNumberOfCAtoms = numberOfCAtomsInFragment
-                      + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
-                      + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k));
-                  if (testNumberOfCAtoms == totalNumberOfCAtoms) {
-                    // check number of double bonds
-                    testNumberOfDoubleBonds = numberOfDBInFragment
-                        + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j))
-                        + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k));
-                    if (testNumberOfDoubleBonds == totalNumberOfDB) {
-                      fattyAcidComposition.add(
-                          "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
-                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
-                              + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
-                              + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")"
-                              + "_" + "FA("
-                              + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k)) + ":"
-                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k)) + ")");
-                    }
+          // two chains
+          if (numberOfAcylChains >= 2) {
+            for (int j = 0; j < listOfDetectedFragments.size(); j++) {
+
+              // only check for annotated fragments with information on FA composition
+              if (listOfDetectedFragments.get(j).contains("FA(")) {
+                // check if number of C atoms is equal
+                testNumberOfCAtoms = numberOfCAtomsInFragment
+                    + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j));
+                if (testNumberOfCAtoms == totalNumberOfCAtoms) {
+                  // check number of double bonds
+                  testNumberOfDoubleBonds = numberOfDBInFragment
+                      + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j));
+                  if (testNumberOfDoubleBonds == totalNumberOfDB) {
+                    fattyAcidComposition.add(
+                        "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
+                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
+                            + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                            + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")");
                   }
                 }
-                // four chains
-                if (numberOfAcylChains >= 4) {
-                  for (int l = 0; l < listOfDetectedFragments.size(); l++) {
+              }
+              // three chains
+              if (numberOfAcylChains >= 3) {
+                for (int k = 0; k < listOfDetectedFragments.size(); k++) {
 
-                    // only check for annotated fragments with information on FA composition
-                    if (listOfDetectedFragments.get(k).contains("FA(")) {
-                      // check if number of C atoms is equal
-                      testNumberOfCAtoms = numberOfCAtomsInFragment
-                          + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
-                          + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k))
-                          + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(l));
-                      if (testNumberOfCAtoms == totalNumberOfCAtoms) {
-                        // check number of double bonds
-                        testNumberOfDoubleBonds = numberOfDBInFragment
-                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j))
-                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k))
-                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(l));
-                        if (testNumberOfDoubleBonds == totalNumberOfDB) {
-                          fattyAcidComposition.add("FA("
-                              + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
-                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
-                              + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
-                              + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")"
-                              + "_" + "FA("
-                              + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k)) + ":"
-                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k)) + ")" + "_"
-                              + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(l))
-                              + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(l))
-                              + ")");
+                  // only check for annotated fragments with information on FA composition
+                  if (listOfDetectedFragments.get(k).contains("FA(")) {
+                    // check if number of C atoms is equal
+                    testNumberOfCAtoms = numberOfCAtomsInFragment
+                        + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                        + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k));
+                    if (testNumberOfCAtoms == totalNumberOfCAtoms) {
+                      // check number of double bonds
+                      testNumberOfDoubleBonds = numberOfDBInFragment
+                          + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j))
+                          + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k));
+                      if (testNumberOfDoubleBonds == totalNumberOfDB) {
+                        fattyAcidComposition.add("FA("
+                            + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
+                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")" + "_"
+                            + "FA(" + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                            + ":" + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")"
+                            + "_" + "FA("
+                            + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k)) + ":"
+                            + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k)) + ")");
+                      }
+                    }
+                  }
+                  // four chains
+                  if (numberOfAcylChains >= 4) {
+                    for (int l = 0; l < listOfDetectedFragments.size(); l++) {
+
+                      // only check for annotated fragments with information on FA composition
+                      if (listOfDetectedFragments.get(k).contains("FA(")) {
+                        // check if number of C atoms is equal
+                        testNumberOfCAtoms = numberOfCAtomsInFragment
+                            + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j))
+                            + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k))
+                            + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(l));
+                        if (testNumberOfCAtoms == totalNumberOfCAtoms) {
+                          // check number of double bonds
+                          testNumberOfDoubleBonds = numberOfDBInFragment
+                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j))
+                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k))
+                              + lipidTools.getNumberOfDB(listOfDetectedFragments.get(l));
+                          if (testNumberOfDoubleBonds == totalNumberOfDB) {
+                            fattyAcidComposition.add("FA("
+                                + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(i)) + ":"
+                                + lipidTools.getNumberOfDB(listOfDetectedFragments.get(i)) + ")"
+                                + "_" + "FA("
+                                + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(j)) + ":"
+                                + lipidTools.getNumberOfDB(listOfDetectedFragments.get(j)) + ")"
+                                + "_" + "FA("
+                                + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(k)) + ":"
+                                + lipidTools.getNumberOfDB(listOfDetectedFragments.get(k)) + ")"
+                                + "_" + "FA("
+                                + lipidTools.getNumberOfCAtoms(listOfDetectedFragments.get(l)) + ":"
+                                + lipidTools.getNumberOfDB(listOfDetectedFragments.get(l)) + ")");
+                          }
                         }
                       }
                     }
@@ -345,7 +363,10 @@ public class MSMSLipidTools {
         }
       }
     }
-    fattyAcidComposition = removeDoubleEntries(fattyAcidComposition);
+
+    // remove double entries for lipids with more than one chain
+    if (numberOfAcylChains > 1)
+      fattyAcidComposition = removeDoubleEntries(fattyAcidComposition);
     return fattyAcidComposition;
   }
 
