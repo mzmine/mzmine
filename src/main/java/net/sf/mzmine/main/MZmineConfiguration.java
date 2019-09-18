@@ -28,6 +28,7 @@ import net.sf.mzmine.util.StringCrypter;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.List;
 
@@ -36,7 +37,7 @@ import java.util.List;
  */
 public interface MZmineConfiguration {
 
-  public static final File CONFIG_FILE = new File("conf/config.xml");
+  public static final File CONFIG_FILE = new File(System.getProperty("user.home"),".mzmine.conf");
 
   public ParameterSet getModuleParameters(Class<? extends MZmineModule> module);
 

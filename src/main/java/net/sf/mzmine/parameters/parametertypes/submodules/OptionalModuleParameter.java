@@ -18,17 +18,19 @@
 
 package net.sf.mzmine.parameters.parametertypes.submodules;
 
-import java.util.Collection;
-import org.w3c.dom.Element;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.ParameterContainer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import org.w3c.dom.Element;
+
+import java.util.Collection;
 
 /**
  * Parameter represented by check box with additional sub-module
  */
 public class OptionalModuleParameter<T extends ParameterSet>
-    implements UserParameter<Boolean, OptionalModuleComponent> {
+        implements UserParameter<Boolean, OptionalModuleComponent>, ParameterContainer {
 
   private String name, description;
   private T embeddedParameters;
@@ -136,5 +138,11 @@ public class OptionalModuleParameter<T extends ParameterSet>
       return embeddedParameters.checkParameterValues(errorMessages);
     }
     return true;
+  }
+
+  @Override
+  public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
+    //delegate skipSensitiveParameters to embedded ParameterSet
+    embeddedParameters.setSkipSensitiveParameters(skipSensitiveParameters);
   }
 }

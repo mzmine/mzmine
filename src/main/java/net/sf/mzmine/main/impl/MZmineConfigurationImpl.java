@@ -48,6 +48,8 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.List;
@@ -205,6 +207,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   @Override
   public void saveConfiguration(File file) throws IOException {
     try {
+      // write sensitive parameters only to the local config file
+      final boolean skipSensitive = !file.equals(MZmineConfiguration.CONFIG_FILE);
+
       DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
@@ -214,6 +219,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
       Element prefElement = configuration.createElement("preferences");
       configRoot.appendChild(prefElement);
+      preferences.setSkipSensitiveParameters(skipSensitive);
       preferences.saveValuesToXML(prefElement);
 
       Element lastFilesElement = configuration.createElement("lastprojects");
@@ -236,15 +242,15 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         moduleElement.appendChild(paramElement);
 
         ParameterSet moduleParameters = getModuleParameters(module.getClass());
-        // write sensitive parameters only to the local config file
-        moduleParameters.setSkipSensitiveParameters(!file.equals(MZmineConfiguration.CONFIG_FILE));
+        moduleParameters.setSkipSensitiveParameters(skipSensitive);
         moduleParameters.saveValuesToXML(paramElement);
       }
 
-      // save encryption information to local config only
+      // save encryption key to local config only
       // ATTENTION: this should to be written after all other configs
-      if (file.equals(MZmineConfiguration.CONFIG_FILE))
-        new SimpleParameterSet(new Parameter[]{globalEncrypter}).saveValuesToXML(prefElement);
+      final SimpleParameterSet encSet = new SimpleParameterSet(new Parameter[]{globalEncrypter});
+      encSet.setSkipSensitiveParameters(skipSensitive);
+      encSet.saveValuesToXML(prefElement);
 
       TransformerFactory transfac = TransformerFactory.newInstance();
       Transformer transformer = transfac.newTransformer();
@@ -262,6 +268,10 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       StreamResult result = new StreamResult(new FileOutputStream(file));
       DOMSource source = new DOMSource(configuration);
       transformer.transform(source, result);
+
+      // make user home config file invisible on windows
+      if (!skipSensitive)
+        Files.setAttribute(file.toPath(), "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
 
       logger.info("Saved configuration to file " + file);
     } catch (Exception e) {

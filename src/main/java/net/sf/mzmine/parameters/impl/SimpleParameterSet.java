@@ -20,6 +20,7 @@ package net.sf.mzmine.parameters.impl;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.ParameterContainer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.ExitCode;
@@ -61,6 +62,10 @@ public class SimpleParameterSet implements ParameterSet {
 
   public void setSkipSensitiveParameters(boolean skipSensitiveParameters) {
     this.skipSensitiveParameters = skipSensitiveParameters;
+    for (Parameter<?> parameter : parameters) {
+      if (parameter instanceof ParameterContainer)
+        ((ParameterContainer) parameter).setSkipSensitiveParameters(skipSensitiveParameters);
+    }
   }
 
   public void loadValuesFromXML(Element xmlElement) {
@@ -90,6 +95,7 @@ public class SimpleParameterSet implements ParameterSet {
       paramElement.setAttribute(nameAttribute, param.getName());
       xmlElement.appendChild(paramElement);
       param.saveValueToXML(paramElement);
+
     }
   }
 

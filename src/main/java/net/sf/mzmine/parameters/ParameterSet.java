@@ -30,16 +30,11 @@ import java.util.Collection;
  * 
  * @param <T>
  */
-public interface ParameterSet {
+public interface ParameterSet extends ParameterContainer{
 
   public Parameter<?>[] getParameters();
 
   public <T extends Parameter<?>> T getParameter(T parameter);
-
-  /**
-   * Specify whether sensitive parameters should be skipped during saveValuesToXML().
-   */
-  public void setSkipSensitiveParameters(boolean skipSensitiveParameters);
 
   public void loadValuesFromXML(Element element);
 

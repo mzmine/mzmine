@@ -57,4 +57,9 @@ public class EncryptionKeyParameter implements Parameter<StringCrypter> {
         newP.setValue(new StringCrypter(value.toBytes()));
         return newP;
     }
+
+    @Override
+    public boolean isSensitive() {
+        return true;
+    }
 }
