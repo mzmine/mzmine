@@ -67,9 +67,9 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
    * Email to be notified on job status
    */
   public static final StringParameter EMAIL =
-      new StringParameter("Email", "Email address for notifications about the job", "", false);
+      new StringParameter("Email", "Email address for notifications about the job", "", false, true);
   public static final StringParameter USER =
-      new StringParameter("Username", "Username for login", "", false);
+      new StringParameter("Username", "Username for login", "", false,true);
   public static final PasswordParameter PASSWORD = new PasswordParameter("Password",
       "The password is sent without encryption, until the server has has moved to its final destination.",
       "", false);
