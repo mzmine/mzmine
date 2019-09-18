@@ -18,12 +18,11 @@
 
 package net.sf.mzmine.parameters;
 
-import java.awt.Window;
-import java.util.Collection;
-
 import net.sf.mzmine.util.ExitCode;
-
 import org.w3c.dom.Element;
+
+import java.awt.*;
+import java.util.Collection;
 
 /**
  * This class represents a general parameter set of a module. Typical module will use a
@@ -36,6 +35,11 @@ public interface ParameterSet {
   public Parameter<?>[] getParameters();
 
   public <T extends Parameter<?>> T getParameter(T parameter);
+
+  /**
+   * Specify whether sensitive parameters should be skipped during saveValuesToXML().
+   */
+  public void setSkipSensitiveParameters(boolean skipSensitiveParameters);
 
   public void loadValuesFromXML(Element element);
 

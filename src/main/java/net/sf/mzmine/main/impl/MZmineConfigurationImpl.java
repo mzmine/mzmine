@@ -18,14 +18,21 @@
 
 package net.sf.mzmine.main.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.NumberFormat;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
+import net.sf.mzmine.desktop.preferences.MZminePreferences;
+import net.sf.mzmine.main.MZmineConfiguration;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.EncryptionKeyParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
+import net.sf.mzmine.util.ColorPalettes;
+import net.sf.mzmine.util.StringCrypter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,16 +45,14 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import net.sf.mzmine.desktop.preferences.MZminePreferences;
-import net.sf.mzmine.main.MZmineConfiguration;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
-import net.sf.mzmine.util.ColorPalettes;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * MZmine configuration class
@@ -61,12 +66,22 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
   // list of last used projects
   private final @Nonnull FileNameListSilentParameter lastProjects;
 
+  private final EncryptionKeyParameter globalEncrypter;
+
   private final Map<Class<? extends MZmineModule>, ParameterSet> moduleParameters;
 
   public MZmineConfigurationImpl() {
     moduleParameters = new Hashtable<Class<? extends MZmineModule>, ParameterSet>();
     preferences = new MZminePreferences();
     lastProjects = new FileNameListSilentParameter("Last projets");
+    globalEncrypter = new EncryptionKeyParameter();
+  }
+
+  @Override
+  public StringCrypter getEncrypter() {
+    if (globalEncrypter.getValue() == null)
+      globalEncrypter.setValue(new StringCrypter());
+    return globalEncrypter.getValue();
   }
 
   @Override
@@ -148,6 +163,11 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       NodeList nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
       if (nodes.getLength() == 1) {
         Element preferencesElement = (Element) nodes.item(0);
+        //loading encryption key
+        //this has to be read first because following parameters may already contain encrypted data
+        //that needs this key for encryption
+        if (file.equals(MZmineConfiguration.CONFIG_FILE))
+          new SimpleParameterSet(new Parameter[]{globalEncrypter}).loadValuesFromXML(preferencesElement);
         preferences.loadValuesFromXML(preferencesElement);
       }
 
@@ -216,9 +236,15 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
         moduleElement.appendChild(paramElement);
 
         ParameterSet moduleParameters = getModuleParameters(module.getClass());
+        // write sensitive parameters only to the local config file
+        moduleParameters.setSkipSensitiveParameters(!file.equals(MZmineConfiguration.CONFIG_FILE));
         moduleParameters.saveValuesToXML(paramElement);
-
       }
+
+      // save encryption information to local config only
+      // ATTENTION: this should to be written after all other configs
+      if (file.equals(MZmineConfiguration.CONFIG_FILE))
+        new SimpleParameterSet(new Parameter[]{globalEncrypter}).saveValuesToXML(prefElement);
 
       TransformerFactory transfac = TransformerFactory.newInstance();
       Transformer transformer = transfac.newTransformer();

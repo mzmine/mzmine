@@ -18,9 +18,9 @@
 
 package net.sf.mzmine.parameters;
 
-import java.util.Collection;
-
 import org.w3c.dom.Element;
+
+import java.util.Collection;
 
 /**
  * Parameter interface, represents parameters or variables used in the project
@@ -43,6 +43,14 @@ public interface Parameter<ValueType> {
   public void loadValueFromXML(Element xmlElement);
 
   public void saveValueToXML(Element xmlElement);
+
+  /**
+   * We use isSensitive() to decide whether a parameter has to be encrypted (e.g. passwords).
+   * Further, sensitive parameters are not written to project level configs
+   */
+  public default boolean isSensitive() {
+    return false;
+  }
 
   /**
    * We use cloneParameter() instead of clone() to force the implementing classes to implement this

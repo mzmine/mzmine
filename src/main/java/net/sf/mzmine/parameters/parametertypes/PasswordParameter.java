@@ -18,10 +18,14 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.util.Collection;
-import javax.swing.BorderFactory;
-import org.w3c.dom.Element;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.util.exceptions.DecryptionException;
+import net.sf.mzmine.util.exceptions.EncryptionException;
+import org.w3c.dom.Element;
+
+import javax.swing.*;
+import java.util.Collection;
 
 /**
  * Password parameter
@@ -83,7 +87,7 @@ public class PasswordParameter implements UserParameter<String, PasswordComponen
   public boolean checkValue(Collection<String> errorMessages) {
     if (!valueRequired)
       return true;
-    if ((value == null) || (value.trim().length() == 0)) {
+    if ((value == null) || (value.isEmpty())) { //white spaces can be valid in pw. So no trim
       errorMessages.add(name + " is not set properly");
       return false;
     }
@@ -92,14 +96,31 @@ public class PasswordParameter implements UserParameter<String, PasswordComponen
 
   @Override
   public void loadValueFromXML(Element xmlElement) {
-    value = xmlElement.getTextContent();
+    try {
+      final String nuValue = xmlElement.getTextContent();
+      if (nuValue == null || nuValue.isEmpty())
+        return;
+
+      value = MZmineCore.getConfiguration().getEncrypter().decrypt(nuValue);
+    } catch (DecryptionException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
   public void saveValueToXML(Element xmlElement) {
-    if (value == null)
+    if (value == null || value.isEmpty())
       return;
-    xmlElement.setTextContent(value);
+    try {
+      xmlElement.setTextContent(MZmineCore.getConfiguration().getEncrypter().encrypt(value));
+    } catch (EncryptionException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public boolean isSensitive() {
+    return true;
   }
 
   @Override

@@ -18,16 +18,18 @@
 
 package net.sf.mzmine.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.NumberFormat;
-import java.util.List;
-import javax.annotation.Nonnull;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import net.sf.mzmine.util.ColorPalettes.Vision;
+import net.sf.mzmine.util.StringCrypter;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.List;
 
 /**
  * MZmine configuration interface
@@ -79,4 +81,5 @@ public interface MZmineConfiguration {
    */
   public Vision getColorVision();
 
+  public StringCrypter getEncrypter();
 }
