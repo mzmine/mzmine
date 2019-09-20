@@ -18,12 +18,11 @@
 
 package net.sf.mzmine.parameters;
 
-import java.awt.Window;
-import java.util.Collection;
-
 import net.sf.mzmine.util.ExitCode;
-
 import org.w3c.dom.Element;
+
+import java.awt.*;
+import java.util.Collection;
 
 /**
  * This class represents a general parameter set of a module. Typical module will use a
@@ -31,7 +30,7 @@ import org.w3c.dom.Element;
  * 
  * @param <T>
  */
-public interface ParameterSet {
+public interface ParameterSet extends ParameterContainer{
 
   public Parameter<?>[] getParameters();
 
