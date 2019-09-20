@@ -87,7 +87,7 @@ public class PasswordParameter implements UserParameter<String, PasswordComponen
   public boolean checkValue(Collection<String> errorMessages) {
     if (!valueRequired)
       return true;
-    if ((value == null) || (value.isEmpty())) { //white spaces can be valid in pw. So no trim
+    if ((value == null) || (value.trim().isEmpty())) {
       errorMessages.add(name + " is not set properly");
       return false;
     }
@@ -98,7 +98,7 @@ public class PasswordParameter implements UserParameter<String, PasswordComponen
   public void loadValueFromXML(Element xmlElement) {
     try {
       final String nuValue = xmlElement.getTextContent();
-      if (nuValue == null || nuValue.isEmpty())
+      if (nuValue == null || nuValue.trim().isEmpty())
         return;
 
       value = MZmineCore.getConfiguration().getEncrypter().decrypt(nuValue);
