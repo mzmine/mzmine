@@ -18,7 +18,6 @@ package net.sf.mzmine.modules.peaklistmethods.io.mspexport;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
@@ -32,8 +31,8 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 
 public class MSPExportParameters extends SimpleParameterSet {
-  public static final String ROUND_MODE_MAX = "Maximum";
-  public static final String ROUND_MODE_SUM = "Sum";
+  public static final String ROUND_MODE_MAX = "Merging mode: Maximum";
+  public static final String ROUND_MODE_SUM = "Merging mode: Sum";
 
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
@@ -49,25 +48,19 @@ public class MSPExportParameters extends SimpleParameterSet {
                   "If selected, each MSP record will contain the feature's retention time",
                   "RT"), true);
 
-//  public static final BooleanParameter ADD_RET_TIME = new BooleanParameter("Add retention time",
-//          "If checked, each MSP record will contain line 'RT: retention time'", true);
-
   public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE = new OptionalParameter<>(
           new StringParameter("Add ANOVA p-value (if calculated)",
                   "If selected, each MSP record will contain the One-way ANOVA p-value (if calculated)",
                   "ANOVA_P_VALUE"), true);
 
-//  public static final BooleanParameter ADD_ANOVA_P_VALUE = new BooleanParameter("Add ANOVA p-value (if present)",
-//          "If checked, each MSP record will contain line 'ANOVA_P_VALUE: p-value' (if calculated)", true);
-
-  public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter("Fractional m/z values",
-      "If checked, write fractional m/z values", false);
-
-  public static final ComboParameter<String> ROUND_MODE = new ComboParameter<>("Merging Mode",
-      "Determines how to merge intensities with the same m/z values",
-      new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX);
+  public static final OptionalParameter<ComboParameter<String>> INTEGER_MZ = new OptionalParameter<>(
+          new ComboParameter<>("Integer m/z",
+          "If selected, fractional m/z values will be merged into integer values, based on the selected " +
+                  "merging mode",
+              new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX),
+          false);
 
   public MSPExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, FRACTIONAL_MZ, ROUND_MODE});
+    super(new Parameter[] {PEAK_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ});
   }
 }

@@ -41,20 +41,14 @@
     <dt>Add ANOVA p-value (if present)</dt>
     <dd>If selected, each MSP record will contain a line 'ANOVA_P_VALUE: p-value' if such p-value is present</dd>
 
-    <dt>Fractional m/z values</dt>
-    <dd>If not selected, all fractional m/z values are rounded to the closest integer and the corresponding peaks are merged</dd>
-
-    <dt>Merging Mode</dt>
-    <dd>
-        When peaks are merged, the resulting elution profile is calculated by one of the following rules:
-        <ol>
-            <li><b>Maximum.</b> In the resulting elution profile, the intensity at retention time <i>t</i> is the maximum
-                of the intensities at <i>t</i> across the merging elution profiles</li>
-            <li><b>Sum.</b> In the resulting elution profile, the intensity at retention time <i>t</i> is the sum of the
-            intensities at <i>t</i> for all merging elution profiles</li>
-        </ol>
+    <dt>Integer m/z</dt>
+    <dd>If selected, fractional m/z values will be rounded to the closest integer and a new intensity is calculated
+        based on the merging mode:
+        <ul>
+            <li><em>Maximum:</em> new intensity is the maximum of merged intensities</li>
+            <li><em>Sum:</em> new intensity is the sum of merged intensities</li>
+        </ul>
     </dd>
-
 
 </dl>
 
