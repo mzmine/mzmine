@@ -17,8 +17,6 @@
  */
 package net.sf.mzmine.util;
 
-
-import de.unijena.bioinf.babelms.utils.Base64;
 import net.sf.mzmine.util.exceptions.DecryptionException;
 import net.sf.mzmine.util.exceptions.EncryptionException;
 
@@ -33,6 +31,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.logging.Logger;
 
 /**
@@ -71,8 +70,6 @@ public class StringCrypter {
 
     private static SecretKeySpec makeKey() {
         try {
-            //todo enter random key here
-//            byte[] randomBytes = HARDCODED_KEY_SOURCE;
             byte[] randomBytes = new byte[40];
             SecureRandom.getInstanceStrong().nextBytes(randomBytes);
             byte[] hashed = Arrays.copyOf(MessageDigest.getInstance(HASH_METHOD).digest(randomBytes), 16);
@@ -80,17 +77,6 @@ public class StringCrypter {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        StringCrypter e = new StringCrypter("JtJagVMd9fkvXdnmMCcfWkZT".getBytes());
-
-        String originalPassword = "secret";
-        System.out.println("Original password: " + originalPassword);
-        String encryptedPassword = e.encrypt(originalPassword);
-        System.out.println("Encrypted password: " + encryptedPassword);
-        String decryptedPassword = e.decrypt(encryptedPassword);
-        System.out.println("Decrypted password: " + decryptedPassword);
     }
 
     public String encrypt(String toEncrypt) throws EncryptionException {
@@ -112,7 +98,7 @@ public class StringCrypter {
     }
 
     public static String base64Encode(byte[] bytes) {
-        return Base64.encodeBytes(bytes);
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
     public String decrypt(String encrypted) throws DecryptionException {
@@ -134,7 +120,7 @@ public class StringCrypter {
     }
 
     public static byte[] base64Decode(String property) throws IOException {
-        return Base64.decode(property);
+        return Base64.getDecoder().decode(property);
     }
 }
 
