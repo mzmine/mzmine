@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MZmineProjectListener;
 import net.sf.mzmine.datamodel.PeakList;
@@ -32,7 +33,9 @@ import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
@@ -133,7 +136,14 @@ public class BatchTask extends AbstractTask {
       if (p instanceof RawDataFilesParameter) {
         RawDataFilesParameter rdp = (RawDataFilesParameter) p;
         RawDataFile createdFiles[] = createdDataFiles.toArray(new RawDataFile[0]);
-        rdp.getValue().setBatchLastFiles(createdFiles);
+        final RawDataFilesSelection selectedFiles = rdp.getValue();
+        if (selectedFiles == null) {
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
+              + "Missing parameter value for " + p.getName());
+          return;
+        }
+        selectedFiles.setBatchLastFiles(createdFiles);
       }
     }
 
@@ -143,7 +153,14 @@ public class BatchTask extends AbstractTask {
       if (p instanceof PeakListsParameter) {
         PeakListsParameter rdp = (PeakListsParameter) p;
         PeakList createdPls[] = createdPeakLists.toArray(new PeakList[0]);
-        rdp.getValue().setBatchLastPeakLists(createdPls);
+        final PeakListsSelection selectedPeakLists = rdp.getValue();
+        if (selectedPeakLists == null) {
+          setStatus(TaskStatus.ERROR);
+          setErrorMessage("Invalid parameter settings for module " + method.getName() + ": "
+              + "Missing parameter value for " + p.getName());
+          return;
+        }
+        selectedPeakLists.setBatchLastPeakLists(createdPls);
       }
     }
 
