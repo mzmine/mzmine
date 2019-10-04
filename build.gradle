@@ -33,23 +33,26 @@ repositories {
         url = "file://" + projectDir + "/src/main/lib"
     }
     maven {
-        url = "https://jitpack.io"
-    }
-    maven {
         url = "http://repo.maven.apache.org/maven2"
     }
-    maven {
+    maven { // For SIRIUS ID modules
         url = "https://bio.informatik.uni-jena.de/repository/libs-release-oss/"
     }
     maven {
+        url = "https://jitpack.io"
+    }
+    maven {
         url = "https://www.xypron.de/repository"
+    }
+    maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab
+        url = "https://apps.lifs.isas.de/artifactory/ebi-tools"
     }
 }
 
 ext {
     msdkVersion = "0.0.27"
     cdkVersion = "2.3"
-    jmztabVersion = "3.0.8"
+    jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
     guavaVersion = "28.0-jre"
