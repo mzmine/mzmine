@@ -26,6 +26,9 @@ println "OS detected as " + project.ext.osSuffix
 
 
 repositories {
+    maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab
+        url = "https://apps.lifs.isas.de/artifactory/ebi-tools"
+    }
     maven {
         url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/"
     }
@@ -44,9 +47,6 @@ repositories {
     maven {
         url = "https://www.xypron.de/repository"
     }
-    maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab
-        url = "https://apps.lifs.isas.de/artifactory/ebi-tools"
-    }
 }
 
 ext {
@@ -55,7 +55,7 @@ ext {
     jmztabVersion = "3.0.9"
     swaggerVersion = "1.5.22"
     okhttpVersion = "2.7.5"
-    guavaVersion = "28.0-jre"
+    guavaVersion = "28.1-jre"
     slf4jVersion = "1.7.28"
     poiVersion = "4.1.0"
     batikVersion = "1.11"
