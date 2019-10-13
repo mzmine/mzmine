@@ -149,7 +149,7 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       frame.setVisible(true);
       frame.pack();
       logger.info("Finished creating van Krevelen diagram of " + peakList);
-      JOptionPane.showMessageDialog(frame, displayedFeatures
+      JOptionPane.showMessageDialog(frame, "Results summary:\n" + displayedFeatures
           + " feature list rows are displayed in the Van Krevelen diagram.\n"
           + featuresWithFormulasWithoutCHO
           + " feature list rows are not displayed, because the annotated molecular formula does not contain the elements C, H, and O.\n"
