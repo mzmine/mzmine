@@ -23,7 +23,8 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
-
+import com.google.common.collect.Range;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
@@ -32,6 +33,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
@@ -40,8 +42,8 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.RangeUtils;
-
-import com.google.common.collect.Range;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarity;
+import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 
 class JoinAlignerTask extends AbstractTask {
 
@@ -57,11 +59,18 @@ class JoinAlignerTask extends AbstractTask {
   private MZTolerance mzTolerance;
   private RTTolerance rtTolerance;
   private double mzWeight, rtWeight;
-  private boolean sameIDRequired, sameChargeRequired, compareIsotopePattern;
+  private boolean sameIDRequired, sameChargeRequired, compareIsotopePattern,
+      compareSpectraSimilarity;
   private ParameterSet parameters;
 
   // ID counter for the new peaklist
   private int newRowID = 1;
+
+  // fields for spectra similarity
+  private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
+  private int msLevel;
+  private String massList;
+  private MZTolerance mzToleranceSpectraMatching;
 
   JoinAlignerTask(MZmineProject project, ParameterSet parameters) {
 
@@ -88,6 +97,26 @@ class JoinAlignerTask extends AbstractTask {
     compareIsotopePattern =
         parameters.getParameter(JoinAlignerParameters.compareIsotopePattern).getValue();
 
+    compareSpectraSimilarity =
+        parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity).getValue();
+
+    if (compareSpectraSimilarity) {
+      simFunction = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
+          .getEmbeddedParameters()
+          .getParameter(JoinAlignerSpectraSimilarityScoreParameters.similarityFunction).getValue();
+
+      msLevel = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
+          .getEmbeddedParameters().getParameter(JoinAlignerSpectraSimilarityScoreParameters.msLevel)
+          .getValue();
+
+      massList = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
+          .getEmbeddedParameters()
+          .getParameter(JoinAlignerSpectraSimilarityScoreParameters.massList).getValue();
+
+      mzToleranceSpectraMatching = parameters
+          .getParameter(JoinAlignerParameters.compareSpectraSimilarity).getEmbeddedParameters()
+          .getParameter(JoinAlignerSpectraSimilarityScoreParameters.mzTolerance).getValue();
+    }
   }
 
   /**
@@ -196,16 +225,47 @@ class JoinAlignerTask extends AbstractTask {
             }
           }
 
+          // compare the similarity of spectra mass lists on MS1 or MS2 level
+          if (compareSpectraSimilarity) {
+            DataPoint[] rowDPs = null;
+            DataPoint[] candidateDPs = null;
+            SpectralSimilarity sim = null;
+
+            // get data points of mass list of the representative scans
+            if (msLevel == 1) {
+              rowDPs =
+                  row.getBestPeak().getRepresentativeScan().getMassList(massList).getDataPoints();
+              candidateDPs = candidate.getBestPeak().getRepresentativeScan().getMassList(massList)
+                  .getDataPoints();
+            }
+
+            // get data points of mass list of the best fragmentation scans
+            if (msLevel == 2) {
+              if (row.getBestFragmentation() != null && candidate.getBestFragmentation() != null) {
+                rowDPs = row.getBestFragmentation().getMassList(massList).getDataPoints();
+                candidateDPs =
+                    candidate.getBestFragmentation().getMassList(massList).getDataPoints();
+              } else
+                continue;
+            }
+
+            // compare mass list data points of selected scans
+            if (rowDPs != null && candidateDPs != null) {
+              sim = createSimilarity(rowDPs, candidateDPs);
+              if (sim != null) {
+                row.setComment(Double.toString(sim.getScore()));
+              } else
+                continue;
+            }
+          }
+
           RowVsRowScore score =
               new RowVsRowScore(row, candidate, RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
                   RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
 
           scoreSet.add(score);
-
         }
-
         processedRows++;
-
       }
 
       // Create a table of mappings for best scores
@@ -265,8 +325,21 @@ class JoinAlignerTask extends AbstractTask {
         .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Join aligner", parameters));
 
     logger.info("Finished join aligner");
+
     setStatus(TaskStatus.FINISHED);
 
+  }
+
+  /**
+   * Uses the similarity function and filter to create similarity.
+   * 
+   * @param a
+   * @param b
+   * @return positive match with similarity or null if criteria was not met
+   */
+  private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
+    return simFunction.getModule().getSimilarity(simFunction.getParameterSet(), mzTolerance, 0,
+        library, query);
   }
 
 }
