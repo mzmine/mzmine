@@ -26,14 +26,14 @@ println "OS detected as " + project.ext.osSuffix
 
 
 repositories {
-    maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab
-        url = "https://apps.lifs.isas.de/artifactory/ebi-tools"
+    maven {
+        url = "file://" + projectDir + "/src/main/lib"
+    }
+    maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
+        url = "https://bintray.com/lifs/maven"
     }
     maven {
         url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/"
-    }
-    maven {
-        url = "file://" + projectDir + "/src/main/lib"
     }
     maven {
         url = "http://repo.maven.apache.org/maven2"
