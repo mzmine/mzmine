@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -70,7 +70,6 @@ class JoinAlignerTask extends AbstractTask {
   private MZmineProcessingStep<SpectralSimilarityFunction> simFunction;
   private int msLevel;
   private String massList;
-  private MZTolerance mzToleranceSpectraMatching;
 
   JoinAlignerTask(MZmineProject project, ParameterSet parameters) {
 
@@ -112,16 +111,13 @@ class JoinAlignerTask extends AbstractTask {
       massList = parameters.getParameter(JoinAlignerParameters.compareSpectraSimilarity)
           .getEmbeddedParameters()
           .getParameter(JoinAlignerSpectraSimilarityScoreParameters.massList).getValue();
-
-      mzToleranceSpectraMatching = parameters
-          .getParameter(JoinAlignerParameters.compareSpectraSimilarity).getEmbeddedParameters()
-          .getParameter(JoinAlignerSpectraSimilarityScoreParameters.mzTolerance).getValue();
     }
   }
 
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Join aligner, " + peakListName + " (" + peakLists.length + " feature lists)";
   }
@@ -129,6 +125,7 @@ class JoinAlignerTask extends AbstractTask {
   /**
    * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     if (totalRows == 0)
       return 0f;
@@ -138,6 +135,7 @@ class JoinAlignerTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
 
     if ((mzWeight == 0) && (rtWeight == 0)) {
@@ -252,10 +250,9 @@ class JoinAlignerTask extends AbstractTask {
             // compare mass list data points of selected scans
             if (rowDPs != null && candidateDPs != null) {
               sim = createSimilarity(rowDPs, candidateDPs);
-              if (sim != null) {
-                row.setComment(Double.toString(sim.getScore()));
-              } else
+              if (sim == null) {
                 continue;
+              }
             }
           }
 
