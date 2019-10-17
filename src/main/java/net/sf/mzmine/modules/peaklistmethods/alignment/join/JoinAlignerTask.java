@@ -249,7 +249,12 @@ class JoinAlignerTask extends AbstractTask {
 
             // compare mass list data points of selected scans
             if (rowDPs != null && candidateDPs != null) {
+
+              // calculate similarity using SimilarityFunction
               sim = createSimilarity(rowDPs, candidateDPs);
+
+              // check if similarity is null. Similarity is not null if similarity score is >= the
+              // user set threshold
               if (sim == null) {
                 continue;
               }
@@ -330,8 +335,6 @@ class JoinAlignerTask extends AbstractTask {
   /**
    * Uses the similarity function and filter to create similarity.
    * 
-   * @param a
-   * @param b
    * @return positive match with similarity or null if criteria was not met
    */
   private SpectralSimilarity createSimilarity(DataPoint[] library, DataPoint[] query) {
