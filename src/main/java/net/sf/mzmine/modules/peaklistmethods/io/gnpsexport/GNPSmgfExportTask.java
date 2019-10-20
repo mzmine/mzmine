@@ -36,10 +36,9 @@ import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MassList;
@@ -88,14 +87,15 @@ public class GNPSmgfExportTask extends AbstractTask {
   private RowFilter filter;
 
   GNPSmgfExportTask(ParameterSet parameters) {
-    this.peakLists =
-            parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+    this.peakLists = parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue()
+        .getMatchingPeakLists();
 
     this.fileName = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
     this.massListName = parameters.getParameter(GNPSExportAndSubmitParameters.MASS_LIST).getValue();
     this.filter = parameters.getParameter(GNPSExportAndSubmitParameters.FILTER).getValue();
     if (parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
-      mergeParameters = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getEmbeddedParameters();
+      mergeParameters = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER)
+          .getEmbeddedParameters();
     } else {
       mergeParameters = null;
     }
@@ -127,7 +127,7 @@ public class GNPSmgfExportTask extends AbstractTask {
         String cleanPlName = peakList.getName().replaceAll("[^a-zA-Z0-9.-]", "_");
         // Substitute
         String newFilename =
-                fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
+            fileName.getPath().replaceAll(Pattern.quote(plNamePattern), cleanPlName);
         curFile = new File(newFilename);
       }
       curFile = FileAndPathUtil.getRealFilePath(curFile, "mgf");
@@ -202,7 +202,7 @@ public class GNPSmgfExportTask extends AbstractTask {
         boolean missingMassList = false;
         msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
         while (msmsScanNumber < 1
-                || getScan(bestPeak, msmsScanNumber).getMassList(massListName) == null) {
+            || getScan(bestPeak, msmsScanNumber).getMassList(massListName) == null) {
           // missing masslist
           if (msmsScanNumber > 0)
             missingMassList = true;
@@ -256,9 +256,11 @@ public class GNPSmgfExportTask extends AbstractTask {
 
         DataPoint[] dataPoints = massList.getDataPoints();
         if (mergeParameters != null) {
-          MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
-          MergedSpectrum spectrum = merger.getBestMergedSpectrum(mergeParameters, row, massListName);
-          if (spectrum!=null) {
+          MsMsSpectraMergeModule merger =
+              MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
+          MergedSpectrum spectrum =
+              merger.getBestMergedSpectrum(mergeParameters, row, massListName);
+          if (spectrum != null) {
             dataPoints = spectrum.data;
             writer.write("MERGED_STATS=");
             writer.write(spectrum.getMergeStatsDescription());
@@ -267,27 +269,25 @@ public class GNPSmgfExportTask extends AbstractTask {
         }
         for (DataPoint peak : dataPoints) {
           writer.write(mzForm.format(peak.getMZ()) + " " + intensityForm.format(peak.getIntensity())
-                  + newLine);
+              + newLine);
         }
         writer.write("END IONS" + newLine);
         writer.write(newLine);
         count++;
       }
     }
-    if (count == 0)
-      if (countMissingMassList > 0)
-        throw new MSDKRuntimeException("No MS/MS scans exported: " + countMissingMassList
-                + " scans have no mass list " + massListName);
-      else
-        throw new MSDKRuntimeException("No MS/MS scans exported.");
 
-    LOG.info(
-            MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
-                    count, peakList.getName()));
+    if (count == 0)
+      LOG.log(Level.WARNING, "No MS/MS scans exported.");
+    else
+      LOG.info(
+          MessageFormat.format("Total of {0} feature rows (MS/MS mass lists) were exported ({1})",
+              count, peakList.getName()));
+
     if (countMissingMassList > 0)
       LOG.warning(MessageFormat.format(
-              "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
-              countMissingMassList, peakList.getName()));
+          "WARNING: Total of {0} feature rows have an MS/MS scan but NO mass list (this shouldn't be a problem if a scan filter was applied in the mass detection step) ({1})",
+          countMissingMassList, peakList.getName()));
 
     return count;
   }
