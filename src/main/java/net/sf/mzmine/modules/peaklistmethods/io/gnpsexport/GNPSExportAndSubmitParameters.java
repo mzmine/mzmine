@@ -81,7 +81,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MGF file. "
+      "Base name of the output files (.MGF and .CSV). "
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
           + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.",
@@ -119,12 +119,11 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
 
   @Override
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-    String message = "<html>GNPS Module Disclaimer:<br>"
-        + "<ul><li>If you use the GNPS export module for <a href=\"http://gnps.ucsd.edu/\">GNPS web-platform</a>, cite <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">MZmine2 paper</a> and the following article:"
-        + "<br><a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">Wang et al., Nature Biotechnology 34.8 (2016): 828-837</a>."
-        + "<li><a href=\"https://bix-lab.ucsd.edu/display/Public/GNPS+data+analysis+workflow+2.0\">See the documentation</a> about MZmine 2 data pre-processing for <a href=\"http://gnps.ucsd.edu/\">GNPS</a> molecular "
-        + "networking and MS/MS spectral library search." + "</ul>";
-
+    String message = "<html><strong>About the GNPS Export/Submit Module:</strong>"
+        + "<p>The GNPS Export module was designed for <strong>eature-Based Molecular Networking</strong> (FBMN) workflow on GNPS <a href=\"http://gnps.ucsd.edu\">http://gnps.ucsd.edu </a>. See the <a href=\"https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/\"><strong>FBMN documentation here</strong></a> and <strong>please cite</strong>:</p>"
+        + "<div><ul>our preprint on <strong>FBMN</strong>: Nothias et al <a href=\"https://www.biorxiv.org/content/biorxiv/early/2019/10/20/812404.full.pdf\"> bioRxiv 812404 (2019)</a>.</li>"
+        + "<li>the <strong>GNPS</strong> article Wang et al.:<a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">, Nature Biotechnology 34.8 (2016): 828-837</a></li>"
+        + "<li>and the <strong>MZmine</strong> paper: Pluskal et al. <a href=\"https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395\">BMC Bioinformatics, 11, 395 (2010)</a>&nbsp;</li>";
     ParameterSetupDialog dialog =
         new ParameterSetupDialog(parent, valueCheckRequired, this, message);
     dialog.setVisible(true);
