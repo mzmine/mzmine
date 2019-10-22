@@ -18,6 +18,9 @@
 
 package net.sf.mzmine.desktop.impl.helpwindow;
 
+import java.awt.Desktop;
+import java.net.URI;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +40,30 @@ public class HelpWindowController {
   private WebView helpWebView;
 
   @FXML
+  public void initialize() {
+
+    helpWebView.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
+
+      // Open external links in system web browser
+      if (newValue.startsWith("http://") || newValue.startsWith("https://")) {
+        try {
+
+          // Open system browser
+          Desktop.getDesktop().browse(new URI(newValue));
+
+          // Stay on the page that is already open
+          helpWebView.getEngine().load(oldValue);
+
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+
+    });
+
+  }
+
+  @FXML
   protected void handleClose(ActionEvent event) {
     logger.debug("Closing help window");
     helpWebView.getScene().getWindow().hide();
@@ -45,5 +72,6 @@ public class HelpWindowController {
   WebEngine getEngine() {
     return helpWebView.getEngine();
   }
+
 
 }
