@@ -29,6 +29,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
 
+import java.awt.Window;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
 import net.sf.mzmine.parameters.Parameter;
@@ -42,8 +43,6 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.util.ExitCode;
 
-import java.awt.*;
-
 
 public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
 
@@ -54,7 +53,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
    *
    */
   public enum RowFilter {
-  ALL, ONLY_WITH_MS2;
+    ALL, ONLY_WITH_MS2;
 
     @Override
     public String toString() {
@@ -121,7 +120,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
     String message = "<html><strong>About the GNPS Export/Submit Module:</strong>"
         + "<p>The GNPS Export module was designed for <strong>Feature-Based Molecular Networking</strong> (FBMN) workflow on GNPS <a href=\"http://gnps.ucsd.edu\">http://gnps.ucsd.edu</a>.<br>"
-        + "See the <a href=\"https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/\"><strong>FBMN documentation here</strong></a> and <strong>please cite</strong>:</p>"
+        + "See the <a href=\"https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/\"><strong>FBMN documentation here</strong></a> (<a href=\"https://www.youtube.com/watch?v=vFcGG7T_44E&list=PL4L2Xw5k8ITzd9hx5XIP94vFPxj1sSafB&index=4&t=146s\">or youtube playlist</a>) and <strong>please cite</strong>:</p>"
         + "<p><ul>"
         + "<li>our preprint on <strong>FBMN</strong>: Nothias et al.: <a href=\"https://www.biorxiv.org/content/biorxiv/early/2019/10/20/812404.full.pdf\"> bioRxiv 812404 (2019)</a>.</li>"
         + "<li>the <strong>GNPS</strong> article Wang et al.:<a href=\"https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html\">, Nature Biotechnology 34.8 (2016): 828-837</a></li>"
