@@ -270,8 +270,9 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       transformer.transform(source, result);
 
       // make user home config file invisible on windows
-      if (!skipSensitive)
+      if ((!skipSensitive) && (System.getProperty("os.name").toLowerCase().contains("windows"))) {
         Files.setAttribute(file.toPath(), "dos:hidden", Boolean.TRUE, LinkOption.NOFOLLOW_LINKS);
+      }
 
       logger.info("Saved configuration to file " + file);
     } catch (Exception e) {
