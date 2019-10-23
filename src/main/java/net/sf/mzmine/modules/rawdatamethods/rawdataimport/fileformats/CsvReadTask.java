@@ -88,8 +88,8 @@ public class CsvReadTask extends AbstractTask {
       String ions = "";
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine();
-        logger.fine("checking line: " + line + " for 'Time [sec]'...");
-        if (line.startsWith("Time [Sec]")) {
+        logger.fine("checking line: " + line + " for 'Time'...");
+        if (line.startsWith("Time")) {
           String[] axes = line.split(",");
           logger.fine("Found axes" + Arrays.toString(axes));
           for (int i = 1; i < axes.length; i++) {
@@ -103,7 +103,11 @@ public class CsvReadTask extends AbstractTask {
               logger.fine("Axis " + axis + " was scanned at m/z = '" + mz + "'");
               mzsList.add(mz);
             } else {
-              logger.severe("Invalid axis labelling, please contact the developers.");
+//              logger.severe("Invalid axis labelling, please contact the developers.");
+//              return;
+              String mz = axis.replaceAll("[^0-9]","");
+              logger.fine("axis " + axis + " was scanned at " + mz);
+              mzsList.add(mz);
             }
           }
           break;
@@ -126,7 +130,7 @@ public class CsvReadTask extends AbstractTask {
         if (columns == null || columns.length != mzs.length + 1)
           continue;
 
-        double rt = Double.valueOf(columns[0]);
+        double rt = Double.valueOf(columns[0]) / 60;
 
         DataPoint dataPoints[] = new SimpleDataPoint[mzs.length];
         for (int i = 0; i < dataPoints.length; i++) {

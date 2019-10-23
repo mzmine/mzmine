@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -50,9 +49,7 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -208,7 +205,10 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
     listElementModel = new PeakSummaryTableModel();
     peaksInfoList = new JTable();
     peaksInfoList.setModel(listElementModel);
-    peaksInfoList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    // commenting this out did not break anything for my. Why does every actionCommand work with
+    // multiple row selection, but the table itself disallows it?
+    // ~ SteffenHeu
+    // peaksInfoList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     peaksInfoList.setDefaultRenderer(Object.class, new PeakSummaryTableCellRenderer());
 
     int colorIndex = 0;
