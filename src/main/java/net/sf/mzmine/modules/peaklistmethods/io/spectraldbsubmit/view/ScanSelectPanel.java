@@ -554,7 +554,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     }
     // set next and prev button enabled
     btnPrev.setEnabled(selectedScanI - 1 >= 0);
-    btnNext.setEnabled(selectedScanI + 1 < scans.size());
+    btnNext.setEnabled(scans != null && selectedScanI + 1 < scans.size());
 
     revalidate();
     repaint();
