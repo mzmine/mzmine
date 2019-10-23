@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -54,10 +53,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
-
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
-
 import javafx.application.Platform;
 import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.chartbasics.chartgroups.ChartGroup;
@@ -751,7 +748,11 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
           }
         }
       }
-      streamSelection().forEach(pn -> pn.setFragmentScan(isFragmentScan));
+      streamSelection().forEach(pn -> {
+        pn.setFragmentScan(isFragmentScan);
+        // only show exclude/check button if more than 1 entry
+        pn.setShowExcludeButton(pnScanSelect.length > 1);
+      });
     }
 
     pnCharts.revalidate();
@@ -920,9 +921,9 @@ public class MSMSLibrarySubmissionWindow extends JFrame implements ActionListene
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    
+
     Object src = e.getSource();
-    
+
     if (src == helpButton) {
       Platform.runLater(() -> {
         if (helpWindow != null) {
