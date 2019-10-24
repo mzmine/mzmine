@@ -66,11 +66,18 @@ public class RawDataFileTypeDetector {
    */
   public static RawDataFileType detectDataFileType(File fileName) {
 
-    logger.setLevel(Level.ALL);
+    if (fileName.isDirectory()) {
+      // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
+      for (File f : fileName.listFiles()) {
+        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT"))
+          return RawDataFileType.WATERS_RAW;
+      }
+      // We don't recognize any other directory type than Waters
+      return null;
+    }
     
     try {
 
-      logger.info("trying to determine file type");
       // Read the first 1kB of the file into a String
       InputStreamReader reader = new InputStreamReader(new FileInputStream(fileName), "ISO-8859-1");
       char buffer[] = new char[1024];
@@ -79,14 +86,12 @@ public class RawDataFileTypeDetector {
       String fileHeader = new String(buffer);
 
       if (fileName.getName().toLowerCase().endsWith(".csv")) {
-        logger.info("File type .csv detected");
-        logger.info("File header\n" + fileHeader);
         if (fileHeader.contains(":") && fileHeader.contains("\\")
             && !fileHeader.contains("file name")) {
-          logger.info("ICP raw file detected");
+          logger.fine("ICP raw file detected");
           return RawDataFileType.ICPMSMS_CSV;
         }
-        logger.info("Agilent raw detected");
+        logger.fine("Agilent raw detected");
         return RawDataFileType.AGILENT_CSV;
       }
 
@@ -119,16 +124,6 @@ public class RawDataFileTypeDetector {
       e.printStackTrace();
     }
     
-    if (fileName.isDirectory()) {
-      // To check for Waters .raw directory, we look for _FUNC[0-9]{3}.DAT
-      for (File f : fileName.listFiles()) {
-        if (f.isFile() && f.getName().toUpperCase().matches("_FUNC[0-9]{3}.DAT"))
-          return RawDataFileType.WATERS_RAW;
-      }
-      // We don't recognize any other directory type than Waters
-      return null;
-    }
-
     return null;
 
   }

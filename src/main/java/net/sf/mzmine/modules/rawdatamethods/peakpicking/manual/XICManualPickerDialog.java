@@ -1,3 +1,22 @@
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
+
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 
 import java.awt.BasicStroke;
@@ -66,7 +85,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
   protected RawDataFile rawDataFile;
   protected ParameterSet parameters;
   protected DoubleRangeComponent rtRangeComp;
-//  protected JComponent origRangeComp;
+  // protected JComponent origRangeComp;
 
   protected double lower, upper;
 
@@ -119,7 +138,7 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-    
+
     rtRangeComp.setValue(rtRange);
     setButtonBackground();
     calcArea();
@@ -132,26 +151,17 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     Color l = new Color(50, 255, 50, 150), u = new Color(255, 50, 50, 150);
     Stroke stroke = new BasicStroke(1.0f);
 
-    ticPlot = new TICPlot(this);
-
-    ticPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-    ticPlot.setMinimumSize(new Dimension(400, 200));
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    ticPlot.setPreferredSize(
-        new Dimension((int) (screenSize.getWidth() / 1.3d), (int) (screenSize.getHeight() / 1.8d)));
-
     // make new panel, put tic into the middle of a border layout.
     remove(this.mainPanel);
 
     rtRangeComp = new DoubleRangeComponent(MZmineCore.getConfiguration().getRTFormat());
     addListenertoRTComp(rtRangeComp);
-    JLabel rtLabel = new JLabel("Rt range");
+    JLabel rtLabel = new JLabel("Retention time range");
     mainPanel.add(rtLabel, 0, getNumberOfParameters() + 1);
     mainPanel.add(rtRangeComp, 1, getNumberOfParameters() + 1);
 
     BorderLayout borderLayout = new BorderLayout();
     Panel pnlNewMain = new Panel(borderLayout);
-    pnlNewMain.add(ticPlot, BorderLayout.CENTER);
 
     // put another border layout for south of the new main panel, so we can place controls and
     // integration specific stuff there
@@ -162,17 +172,10 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     // now make another panel to put the integration specific stuff, like the buttons and the
     // current area
     Panel pnlIntegration = new Panel(new FlowLayout());
-    // add buttons for integration
-    setLower = new JButton(icoLower);
-    setLower.addActionListener(this);
-    setLower.setActionCommand("SETLOWER");
-    setLower.setToolTipText("Set the lower integration boundary.");
-    setUpper = new JButton(icoUpper);
-    setUpper.addActionListener(this);
-    setUpper.setActionCommand("SETUPPER");
-    setUpper.setToolTipText("Set the upper integration boundary.");
-    pnlIntegration.add(setLower);
-    pnlIntegration.add(setUpper);
+    setLower = GUIUtils.addButton(pnlIntegration, null, icoLower, this, "SETLOWER",
+        "Set the lower integration boundary.");
+    setUpper = GUIUtils.addButton(pnlIntegration, null, icoUpper, this, "SETUPPER",
+        "Set the upper integration boundary.");
     GUIUtils.addSeparator(pnlIntegration);
     pnlIntegration.add(new Label("Area: "));
     txtArea = new JTextField(10);
@@ -180,6 +183,14 @@ public class XICManualPickerDialog extends ParameterSetupDialog {
     pnlIntegration.add(txtArea);
 
     pnlControlsAndParameters.add(pnlIntegration, BorderLayout.NORTH);
+
+    ticPlot = new TICPlot(this);
+    ticPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+    ticPlot.setMinimumSize(new Dimension(400, 200));
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    ticPlot.setPreferredSize(
+        new Dimension((int) (screenSize.getWidth() / 1.3d), (int) (screenSize.getHeight() / 1.8d)));
+    pnlNewMain.add(ticPlot, BorderLayout.CENTER);
 
 
     // add a mouse listener to place the boundaries
