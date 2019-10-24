@@ -26,7 +26,8 @@ package net.sf.mzmine.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 
 public class RangeUtils {
@@ -80,5 +81,23 @@ public class RangeUtils {
         min = d;
     }
     return Range.closed(min, max);
+  }
+  
+  /**
+   * Returns a range that is contained in between the both ranges.
+   * 
+   * @param r1
+   * @param r2
+   * @return The connected range. Null if there is no connected range.
+   */
+  public static @Nullable Range<Double> getConnected(@Nonnull Range<Double> r1, @Nonnull Range<Double> r2){
+    
+    if(!r1.isConnected(r2))
+      return null;
+    
+    double lower = (r1.lowerEndpoint() > r2.lowerEndpoint()) ? r1.lowerEndpoint() : r2.lowerEndpoint();
+    double upper = (r1.upperEndpoint() > r2.upperEndpoint()) ? r2.upperEndpoint() : r1.upperEndpoint();
+    
+    return Range.closed(lower, upper);
   }
 }

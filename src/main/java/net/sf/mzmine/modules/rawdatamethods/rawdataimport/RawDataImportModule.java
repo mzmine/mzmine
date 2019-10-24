@@ -40,6 +40,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.AgilentCsvReadTask;
+import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.CsvReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzDataReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzMLReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzXMLReadTask;
@@ -190,6 +191,9 @@ public class RawDataImportModule implements MZmineProcessingModule {
       File fileName, RawDataFileWriter newMZmineFile) {
     Task newTask = null;
     switch (fileType) {
+      case ICPMSMS_CSV:
+        newTask = new CsvReadTask(project, fileName, newMZmineFile);
+        break;
       case MZDATA:
         newTask = new MzDataReadTask(project, fileName, newMZmineFile);
         break;
@@ -213,6 +217,7 @@ public class RawDataImportModule implements MZmineProcessingModule {
       case GZIP:
         newTask = new ZipReadTask(project, fileName, fileType);
         break;
+      
 
     }
     return newTask;

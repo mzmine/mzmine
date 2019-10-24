@@ -273,4 +273,12 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends Parame
     pack();
   }
 
+  public TICPlot getTicPlot() {
+    return ticPlot;
+  }
+
+  public void setTicPlot(TICPlot ticPlot) {
+    this.ticPlot = ticPlot;
+  }
+
 }

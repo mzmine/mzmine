@@ -32,16 +32,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
@@ -58,6 +55,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.Loc
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.XICManualPickerModule;
 import net.sf.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
@@ -511,14 +509,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       final Feature showPeak = getSelectedPeak();
       if (showPeak != null) {
 
-        Fx3DVisualizerModule.setupNew3DVisualizer(showPeak.getDataFile(),
-            getPeakMZRange(showPeak), getPeakRTRange(showPeak));
+        Fx3DVisualizerModule.setupNew3DVisualizer(showPeak.getDataFile(), getPeakMZRange(showPeak),
+            getPeakRTRange(showPeak));
       }
     }
 
     if (manuallyDefineItem.equals(src)) {
 
-      ManualPeakPickerModule.runManualDetection(clickedDataFile, clickedPeakListRow, peakList,
+      // ManualPeakPickerModule.runManualDetection(clickedDataFile, clickedPeakListRow, peakList,
+      // table);
+      XICManualPickerModule.runManualDetection(clickedDataFile, clickedPeakListRow, peakList,
           table);
     }
 

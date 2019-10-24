@@ -31,6 +31,7 @@ public enum RawDataFileType {
   THERMO_RAW, //
   WATERS_RAW, //
   ZIP, //
-  GZIP
+  GZIP, //
+  ICPMSMS_CSV
 
 }
