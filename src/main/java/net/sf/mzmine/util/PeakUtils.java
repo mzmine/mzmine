@@ -199,6 +199,13 @@ public class PeakUtils {
 
   }
 
+  /**
+   * Integrates over a given m/z and rt range within a raw data file.
+   * @param dataFile
+   * @param rtRange
+   * @param mzRange
+   * @return The result of the integration.
+   */
   public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Double> rtRange,
       Range<Double> mzRange) {
 

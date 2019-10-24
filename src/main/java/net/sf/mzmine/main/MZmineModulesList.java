@@ -24,7 +24,6 @@ import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBui
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.adap3.ADAP3AlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.hierarchical.HierarAlignerGcModule;
-import net.sf.mzmine.modules.peaklistmethods.alignment.icpspeciation.IcpSpeciationAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringModule;
@@ -165,7 +164,6 @@ public class MZmineModulesList {
 
       // Alignment
       SortPeakListsModule.class, JoinAlignerModule.class, HierarAlignerGcModule.class,
-      IcpSpeciationAlignerModule.class,
 
       RansacAlignerModule.class, ADAP3AlignerModule.class,
       // PathAlignerModule.class,
