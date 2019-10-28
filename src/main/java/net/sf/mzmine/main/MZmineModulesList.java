@@ -100,6 +100,7 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.scansmoothing.ScanSmoothin
 import net.sf.mzmine.modules.rawdatamethods.merge.RawFileMergeModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass.GridMassModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.XICManualPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectionModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.msms.MsMsPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection.TargetedPeakDetectionModule;
@@ -161,6 +162,7 @@ public class MZmineModulesList {
       GridMassModule.class, ManualPeakPickerModule.class, MsMsPeakPickerModule.class,
       ScanFiltersModule.class, CropFilterModule.class, BaselineCorrectionModule.class,
       AlignScansModule.class, ScanSmoothingModule.class, SortDataFilesModule.class,
+      XICManualPickerModule.class,
 
       // Alignment
       SortPeakListsModule.class, JoinAlignerModule.class, HierarAlignerGcModule.class,

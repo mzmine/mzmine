@@ -20,13 +20,9 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 
 import java.awt.Window;
 import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithChromatogramPreview;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.HiddenParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;

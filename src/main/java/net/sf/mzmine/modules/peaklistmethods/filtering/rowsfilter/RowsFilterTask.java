@@ -33,6 +33,7 @@ import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
@@ -454,6 +455,13 @@ public class RowsFilterTask extends AbstractTask {
       final Feature newPeak = new SimpleFeature(peak);
       PeakUtils.copyPeakProperties(peak, newPeak);
       newRow.addPeak(peak.getDataFile(), newPeak);
+    }
+
+    // Add PeakInformation
+    if (row.getPeakInformation() != null) {
+      SimplePeakInformation information =
+          new SimplePeakInformation(new HashMap<>(row.getPeakInformation().getAllProperties()));
+      newRow.setPeakInformation(information);
     }
 
     return newRow;
