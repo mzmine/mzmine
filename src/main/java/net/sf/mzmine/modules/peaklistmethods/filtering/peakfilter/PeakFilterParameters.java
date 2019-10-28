@@ -19,7 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter;
 
 import java.awt.Window;
-
+import com.google.common.collect.Range;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
@@ -28,12 +28,10 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.IntRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import com.google.common.collect.Range;
 
 public class PeakFilterParameters extends SimpleParameterSet {
 
@@ -75,18 +73,21 @@ public class PeakFilterParameters extends SimpleParameterSet {
           "Permissible range of the asymmetry factor for a peak",
           MZmineCore.getConfiguration().getRTFormat(), Range.closed(0.5, 2.0)));
 
-  public static final BooleanParameter AUTO_REMOVE =
-      new BooleanParameter("Remove source feature list after filtering",
-          "If checked, the original feature list will be removed leaving only the filtered version");
+  public static final BooleanParameter REMOVE_EMPTY_ROWS = new BooleanParameter("Remove empty rows",
+      "Remove empty rows with 0 features after the filtering process");
+
+  public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
+      "Remove source feature list after filtering",
+      "If checked, the original feature list will be removed leaving only the filtered version");
 
   public static final BooleanParameter MS2_Filter =
       new BooleanParameter("Keep only features with MS/MS scan",
           "If checked, the feature that don't contain MS2 scan will be removed.");
 
   public PeakFilterParameters() {
-    super(
-        new Parameter[] {PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT, PEAK_DATAPOINTS,
-            PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, MS2_Filter, AUTO_REMOVE});
+    super(new Parameter[] {PEAK_LISTS, SUFFIX, PEAK_DURATION, PEAK_AREA, PEAK_HEIGHT,
+        PEAK_DATAPOINTS, PEAK_FWHM, PEAK_TAILINGFACTOR, PEAK_ASYMMETRYFACTOR, REMOVE_EMPTY_ROWS,
+        MS2_Filter, AUTO_REMOVE});
   }
 
   @Override

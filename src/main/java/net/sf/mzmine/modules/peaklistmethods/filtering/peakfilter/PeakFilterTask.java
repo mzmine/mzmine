@@ -20,7 +20,8 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.peakfilter;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import com.google.common.collect.Range;
+import com.google.common.primitives.Booleans;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
@@ -34,8 +35,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
-
-import com.google.common.collect.Range;
 
 /**
  * Filters out peaks from feature list.
@@ -146,6 +145,8 @@ public class PeakFilterTask extends AbstractTask {
     final boolean filterByAsymmetryFactor =
         parameters.getParameter(PeakFilterParameters.PEAK_ASYMMETRYFACTOR).getValue();
     final boolean filterByMS2 = parameters.getParameter(PeakFilterParameters.MS2_Filter).getValue();
+    final boolean removeEmptyRows =
+        parameters.getParameter(PeakFilterParameters.REMOVE_EMPTY_ROWS).getValue();
 
     // Loop through all rows in feature list
     final PeakListRow[] rows = peakList.getRows();
@@ -259,7 +260,10 @@ public class PeakFilterTask extends AbstractTask {
             keepPeak[i] = false;
         }
       }
-      newPeakList.addRow(copyPeakRow(row, keepPeak));
+      // empty row?
+      boolean isEmpty = Booleans.asList(keepPeak).stream().allMatch(keep -> !keep);
+      if (!(removeEmptyRows && isEmpty))
+        newPeakList.addRow(copyPeakRow(row, keepPeak));
 
     }
 
