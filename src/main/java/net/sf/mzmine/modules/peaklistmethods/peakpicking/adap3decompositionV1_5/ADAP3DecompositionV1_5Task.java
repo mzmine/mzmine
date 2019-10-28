@@ -15,18 +15,24 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.adap3decompositionV1_5;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 import dulab.adap.common.algorithms.FeatureTools;
 import dulab.adap.datamodel.Component;
 import dulab.adap.datamodel.Peak;
 import dulab.adap.datamodel.PeakInfo;
 import dulab.adap.workflow.TwoStepDecomposition;
 import dulab.adap.workflow.TwoStepDecompositionParameters;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
@@ -34,14 +40,17 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.*;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimplePeakInformation;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.modules.peaklistmethods.qualityparameters.QualityParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.R.RSessionWrapper;
-
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -198,9 +207,11 @@ public class ADAP3DecompositionV1_5Task extends AbstractTask {
       row.addPeak(dataFile, refPeak);
 
       // Add PeakInformation
-      SimplePeakInformation information = new SimplePeakInformation(
-          new HashMap<>(refPeakRow.getPeakInformation().getAllProperties()));
-      row.setPeakInformation(information);
+      if (refPeakRow.getPeakInformation() == null) {
+        SimplePeakInformation information = new SimplePeakInformation(
+            new HashMap<>(refPeakRow.getPeakInformation().getAllProperties()));
+        row.setPeakInformation(information);
+      }
 
       // Set row properties
       row.setAverageMZ(refPeakRow.getAverageMZ());
