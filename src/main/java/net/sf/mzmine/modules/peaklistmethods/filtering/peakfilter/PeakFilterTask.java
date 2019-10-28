@@ -145,8 +145,6 @@ public class PeakFilterTask extends AbstractTask {
     final boolean filterByAsymmetryFactor =
         parameters.getParameter(PeakFilterParameters.PEAK_ASYMMETRYFACTOR).getValue();
     final boolean filterByMS2 = parameters.getParameter(PeakFilterParameters.MS2_Filter).getValue();
-    final boolean removeEmptyRows =
-        parameters.getParameter(PeakFilterParameters.REMOVE_EMPTY_ROWS).getValue();
 
     // Loop through all rows in feature list
     final PeakListRow[] rows = peakList.getRows();
@@ -262,7 +260,7 @@ public class PeakFilterTask extends AbstractTask {
       }
       // empty row?
       boolean isEmpty = Booleans.asList(keepPeak).stream().allMatch(keep -> !keep);
-      if (!(removeEmptyRows && isEmpty))
+      if (!isEmpty)
         newPeakList.addRow(copyPeakRow(row, keepPeak));
 
     }
