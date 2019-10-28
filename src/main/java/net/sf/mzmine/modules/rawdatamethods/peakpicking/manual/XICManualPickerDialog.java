@@ -34,7 +34,6 @@ import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
-import java.util.Collection;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
