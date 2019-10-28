@@ -21,12 +21,16 @@ package net.sf.mzmine.modules.rawdatamethods.rawdataimport;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Detector of raw data file format
  */
 public class RawDataFileTypeDetector {
 
+  private static Logger logger = Logger.getLogger(RawDataFileTypeDetector.class.getName());
+  
   /*
    * See "http://www.unidata.ucar.edu/software/netcdf/docs/netcdf/File-Format-Specification.html"
    */
@@ -71,11 +75,7 @@ public class RawDataFileTypeDetector {
       // We don't recognize any other directory type than Waters
       return null;
     }
-
-    if (fileName.getName().toLowerCase().endsWith(".csv")) {
-      return RawDataFileType.AGILENT_CSV;
-    }
-
+    
     try {
 
       // Read the first 1kB of the file into a String
@@ -84,6 +84,16 @@ public class RawDataFileTypeDetector {
       reader.read(buffer);
       reader.close();
       String fileHeader = new String(buffer);
+
+      if (fileName.getName().toLowerCase().endsWith(".csv")) {
+        if (fileHeader.contains(":") && fileHeader.contains("\\")
+            && !fileHeader.contains("file name")) {
+          logger.fine("ICP raw file detected");
+          return RawDataFileType.ICPMSMS_CSV;
+        }
+        logger.fine("Agilent raw detected");
+        return RawDataFileType.AGILENT_CSV;
+      }
 
       if (fileHeader.startsWith(THERMO_HEADER)) {
         return RawDataFileType.THERMO_RAW;
@@ -113,7 +123,7 @@ public class RawDataFileTypeDetector {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
+    
     return null;
 
   }

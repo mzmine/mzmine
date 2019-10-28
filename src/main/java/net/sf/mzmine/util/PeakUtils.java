@@ -19,14 +19,18 @@
 package net.sf.mzmine.util;
 
 import java.text.Format;
-
 import com.google.common.collect.Range;
-
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeak;
+import net.sf.mzmine.util.scans.ScanUtils;
 
 /**
  * Utilities for peaks and feature lists
@@ -52,9 +56,9 @@ public class PeakUtils {
   }
 
   /**
-   * Compares identities of two feature list rows. 1) if preferred identities are available, they must
-   * be same 2) if no identities are available on both rows, return true 3) otherwise all identities
-   * on both rows must be same
+   * Compares identities of two feature list rows. 1) if preferred identities are available, they
+   * must be same 2) if no identities are available on both rows, return true 3) otherwise all
+   * identities on both rows must be same
    * 
    * @return True if identities match between rows
    * 
@@ -195,4 +199,47 @@ public class PeakUtils {
 
   }
 
+  /**
+   * Integrates over a given m/z and rt range within a raw data file.
+   * @param dataFile
+   * @param rtRange
+   * @param mzRange
+   * @return The result of the integration.
+   */
+  public static double integrateOverMzRtRange(RawDataFile dataFile, Range<Double> rtRange,
+      Range<Double> mzRange) {
+
+    ManualPeak newPeak = new ManualPeak(dataFile);
+    boolean dataPointFound = false;
+
+    int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+
+    for (int scanNumber : scanNumbers) {
+
+      // Get next scan
+      Scan scan = dataFile.getScan(scanNumber);
+
+      // Find most intense m/z peak
+      DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+
+      if (basePeak != null) {
+        if (basePeak.getIntensity() > 0)
+          dataPointFound = true;
+        newPeak.addDatapoint(scan.getScanNumber(), basePeak);
+      } else {
+        final double mzCenter = (mzRange.lowerEndpoint() + mzRange.upperEndpoint()) / 2.0;
+        DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
+        newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+      }
+
+    }
+
+    if (dataPointFound) {
+      newPeak.finalizePeak();
+      return newPeak.getArea();
+    } else {
+      return 0.0;
+    }
+
+  }
 }
