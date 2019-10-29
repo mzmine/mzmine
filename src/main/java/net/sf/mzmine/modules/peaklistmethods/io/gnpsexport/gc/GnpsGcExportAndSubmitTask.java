@@ -55,6 +55,7 @@ import net.sf.mzmine.taskcontrol.AllTasksFinishedListener;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.PeakMeasurementType;
 import net.sf.mzmine.util.files.FileAndPathUtil;
 
 /**
@@ -72,14 +73,27 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
 
   private PeakList peakList;
   private MzMode representativeMZ;
+  private PeakMeasurementType peakMeasure;
+
+  private File file;
+  private boolean submit;
+  private boolean openFolder;
 
 
   GnpsGcExportAndSubmitTask(ParameterSet parameters) {
     this.parameters = parameters;
+
     this.peakList = parameters.getParameter(GnpsGcExportAndSubmitParameters.PEAK_LISTS).getValue()
         .getMatchingPeakLists()[1];
     this.representativeMZ =
         parameters.getParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ).getValue();
+    this.peakMeasure =
+        parameters.getParameter(GnpsGcExportAndSubmitParameters.PEAK_INTENSITY).getValue();
+    openFolder = parameters.getParameter(GnpsGcExportAndSubmitParameters.OPEN_FOLDER).getValue();
+    submit = parameters.getParameter(GnpsGcExportAndSubmitParameters.SUBMIT).getValue();
+    file = parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).getValue();
+    file = FileAndPathUtil.eraseFormat(file);
+    parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).setValue(file);
   }
 
   @Override
@@ -102,13 +116,6 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
   public void run() {
     final AbstractTask thistask = this;
     setStatus(TaskStatus.PROCESSING);
-
-    boolean openFolder =
-        parameters.getParameter(GnpsGcExportAndSubmitParameters.OPEN_FOLDER).getValue();
-    boolean submit = parameters.getParameter(GnpsGcExportAndSubmitParameters.SUBMIT).getValue();
-    File file = parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).getValue();
-    file = FileAndPathUtil.eraseFormat(file);
-    parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).setValue(file);
 
     List<AbstractTask> list = new ArrayList<>(3);
     // add mgf export task
@@ -220,8 +227,10 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     ExportRowCommonElement[] common = new ExportRowCommonElement[] {ExportRowCommonElement.ROW_ID,
         ExportRowCommonElement.ROW_MZ, ExportRowCommonElement.ROW_RT};
 
-    ExportRowDataFileElement[] rawdata =
-        new ExportRowDataFileElement[] {ExportRowDataFileElement.PEAK_AREA};
+    // height or area?
+    ExportRowDataFileElement[] rawdata = new ExportRowDataFileElement[] {
+        peakMeasure.equals(PeakMeasurementType.AREA) ? ExportRowDataFileElement.PEAK_AREA
+            : ExportRowDataFileElement.PEAK_HEIGHT};
 
     CSVExportTask quanExport = new CSVExportTask(new PeakList[] {peakList}, full, ",", common,
         rawdata, false, ";", RowFilter.ALL);

@@ -41,6 +41,7 @@ import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
 import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.util.PeakMeasurementType;
 
 
 public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
@@ -55,6 +56,10 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
           "Choose the representative m/z of a an ADAP spectral cluster. This m/z is used as the PEPMASS in the mgf file.",
           MzMode.values(), MzMode.AS_IN_FEATURE_TABLE);
 
+  public static final ComboParameter<PeakMeasurementType> PEAK_INTENSITY =
+      new ComboParameter<>("Feature intensity", "Intensity in the quantification table (csv).",
+          PeakMeasurementType.values(), PeakMeasurementType.AREA);
+
   public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT =
       new OptionalModuleParameter<>("Submit to GNPS GC-MS", "Directly submits a GNPS-GC job",
           new GnpsGcSubmitParameters());
@@ -64,7 +69,8 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
 
   public GnpsGcExportAndSubmitParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, SUBMIT, OPEN_FOLDER});
+    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, PEAK_INTENSITY, SUBMIT,
+        OPEN_FOLDER});
   }
 
   @Override
