@@ -67,8 +67,8 @@ public class KovatsValues {
      * @return
      */
     public static KovatsIndex[] getRange(int cFirst, int cLastInclusive) {
-      cFirst = Math.min(cFirst, 0);
-      cLastInclusive = Math.max(cLastInclusive, KovatsIndex.values().length);
+      cFirst = Math.max(cFirst, 1);
+      cLastInclusive = Math.min(cLastInclusive, KovatsIndex.values().length);
       if (cLastInclusive < cFirst)
         return new KovatsIndex[] {getByCarbon(cFirst)};
       else {

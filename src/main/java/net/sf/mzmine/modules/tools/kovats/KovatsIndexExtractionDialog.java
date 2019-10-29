@@ -61,6 +61,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   protected void addDialogComponents() {
     super.addDialogComponents();
     mainPanel.removeAll();
+    mainPanel.getParent().remove(mainPanel);
 
     DelayedDocumentListener ddlKovats = new DelayedDocumentListener(e -> updateKovatsList());
     DelayedDocumentListener ddlPeakPick = new DelayedDocumentListener(e -> updateChart());
@@ -120,17 +121,17 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     JButton btnUpdateChart = new JButton("Update chart");
     btnUpdateChart.addActionListener(e -> updateChart());
-    pnPeakPick.add(btnUpdateChart, "grid 0 0");
+    pnPeakPick.add(btnUpdateChart, "cell 0 0");
 
-    pnPeakPick.add(new JLabel("Raw data file"), "grid 0 1");
+    pnPeakPick.add(new JLabel("Raw data file"), "cell 0 1");
     pnPeakPick.add(rawc);
-    pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.massList.getName()), "grid 0 2");
+    pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.massList.getName()), "cell 0 2");
     pnPeakPick.add(massc);
-    pnPeakPick.add(new JLabel("m/z range"), "grid 0 3");
+    pnPeakPick.add(new JLabel("m/z range"), "cell 0 3");
     pnPeakPick.add(mzc);
-    pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.rtRange.getName()), "grid 0 4");
+    pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.rtRange.getName()), "cell 0 4");
     pnPeakPick.add(rtc);
-    pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.noiseLevel.getName()), "grid 0 5");
+    pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.noiseLevel.getName()), "cell 0 5");
     pnPeakPick.add(noisec);
 
     // add listeners
@@ -150,6 +151,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
 
     revalidate();
+    repaint();
   }
 
   @Override
@@ -162,7 +164,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     updateParameterSetFromComponents();
     try {
       int min = parameterSet.getParameter(KovatsIndexExtractionParameters.minKovats).getValue();
-      int max = parameterSet.getParameter(KovatsIndexExtractionParameters.minKovats).getValue();
+      int max = parameterSet.getParameter(KovatsIndexExtractionParameters.maxKovats).getValue();
       KovatsIndex[] newValues = KovatsIndex.getRange(min, max);
       KovatsIndex[] newSelected = Stream.of(newValues)
           .filter(k -> ArrayUtils.contains(selectedKovats, k)).toArray(KovatsIndex[]::new);
@@ -174,7 +176,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
           (MultiChoiceComponent) getComponentForParameter(KovatsIndexExtractionParameters.kovats);
       kovatsc.setChoices(newValues);
       kovatsc.setValue(newSelected);
-
+      revalidate();
+      repaint();
       // update parameters again
       updateParameterSetFromComponents();
     } catch (Exception e) {
