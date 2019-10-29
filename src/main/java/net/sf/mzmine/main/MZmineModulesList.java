@@ -61,7 +61,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcess
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitModule;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GNPSExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;

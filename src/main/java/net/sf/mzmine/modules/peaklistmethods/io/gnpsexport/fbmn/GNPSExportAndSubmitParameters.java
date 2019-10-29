@@ -27,7 +27,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
+package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn;
 
 import java.awt.Window;
 import net.sf.mzmine.datamodel.PeakListRow;

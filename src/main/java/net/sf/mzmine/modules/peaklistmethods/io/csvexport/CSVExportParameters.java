@@ -18,7 +18,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
-import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitParameters.RowFilter;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GNPSExportAndSubmitParameters.RowFilter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
