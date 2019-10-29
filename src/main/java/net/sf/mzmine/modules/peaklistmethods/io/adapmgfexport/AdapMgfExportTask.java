@@ -14,7 +14,7 @@
  * 02111-1307, USA.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.mgfexport;
+package net.sf.mzmine.modules.peaklistmethods.io.adapmgfexport;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -33,7 +33,7 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportParameters.MzMode;
+import net.sf.mzmine.modules.peaklistmethods.io.adapmgfexport.AdapMgfExportParameters.MzMode;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -43,7 +43,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
  * 
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
-public class MGFExportTask extends AbstractTask {
+public class AdapMgfExportTask extends AbstractTask {
   private final String newLine = System.lineSeparator();
   //
   private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
@@ -62,18 +62,18 @@ public class MGFExportTask extends AbstractTask {
   private int finishedRows = 0;
 
 
-  MGFExportTask(ParameterSet parameters) {
+  AdapMgfExportTask(ParameterSet parameters) {
     this.peakLists =
-        parameters.getParameter(MGFExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+        parameters.getParameter(AdapMgfExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
     totalRows = (int) Stream.of(peakLists).map(PeakList::getRows).count();
 
-    this.fileName = parameters.getParameter(MGFExportParameters.FILENAME).getValue();
+    this.fileName = parameters.getParameter(AdapMgfExportParameters.FILENAME).getValue();
 
-    this.fractionalMZ = parameters.getParameter(MGFExportParameters.FRACTIONAL_MZ).getValue();
+    this.fractionalMZ = parameters.getParameter(AdapMgfExportParameters.FRACTIONAL_MZ).getValue();
 
-    this.roundMode = parameters.getParameter(MGFExportParameters.ROUND_MODE).getValue();
+    this.roundMode = parameters.getParameter(AdapMgfExportParameters.ROUND_MODE).getValue();
     this.representativeMZ =
-        parameters.getParameter(MGFExportParameters.REPRESENTATIVE_MZ).getValue();
+        parameters.getParameter(AdapMgfExportParameters.REPRESENTATIVE_MZ).getValue();
   }
 
   @Override
@@ -241,11 +241,11 @@ public class MGFExportTask extends AbstractTask {
         prevIntensity = 0.0;
 
       switch (mode) {
-        case MGFExportParameters.ROUND_MODE_SUM:
+        case AdapMgfExportParameters.ROUND_MODE_SUM:
           integerDataPoints.put(mz, prevIntensity + intensity);
           break;
 
-        case MGFExportParameters.ROUND_MODE_MAX:
+        case AdapMgfExportParameters.ROUND_MODE_MAX:
           integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
           break;
       }

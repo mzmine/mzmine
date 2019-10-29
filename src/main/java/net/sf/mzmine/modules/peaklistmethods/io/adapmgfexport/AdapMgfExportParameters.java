@@ -14,7 +14,7 @@
  * 02111-1307, USA.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.mgfexport;
+package net.sf.mzmine.modules.peaklistmethods.io.adapmgfexport;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -28,7 +28,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
  * 
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
-public class MGFExportParameters extends SimpleParameterSet {
+public class AdapMgfExportParameters extends SimpleParameterSet {
   /**
    * Defines the representative m/z value for a cluster
    * 
@@ -71,11 +71,11 @@ public class MGFExportParameters extends SimpleParameterSet {
       new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX);
 
   public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
-      new ComboParameter<MGFExportParameters.MzMode>("Representative m/z",
+      new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",
           "Choose the representative m/z of a cluster.", MzMode.values(),
           MzMode.AS_IN_FEATURE_TABLE);
 
-  public MGFExportParameters() {
+  public AdapMgfExportParameters() {
     super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, FRACTIONAL_MZ, ROUND_MODE});
   }
 }
