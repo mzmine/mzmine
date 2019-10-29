@@ -54,9 +54,8 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
   /**
    * Optional: Select meta data file
    */
-  public static final OptionalParameter<FileNameParameter> META_FILE =
-      new OptionalParameter<FileNameParameter>(
-          new FileNameParameter("Meta data file", "Optional meta file for GNPS"), false);
+  public static final OptionalParameter<FileNameParameter> KOVATS_FILE = new OptionalParameter<>(
+      new FileNameParameter("Kovats RI file", "File with Kovats retention indexes"), false);
 
   public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
       "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
@@ -76,20 +75,12 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
       "", false);
 
   /**
-   * Export ion identity network edges (if available)
-   */
-  // public static final BooleanParameter ANN_EDGES =
-  // new BooleanParameter("Annotation edges", "Add annotation edges to GNPS job", true);
-  // public static final BooleanParameter CORR_EDGES =
-  // new BooleanParameter("Correlation edges", "Add correlation edges to GNPS job", false);
-
-  /**
    * Show GNPS job website
    */
   public static final BooleanParameter OPEN_WEBSITE =
       new BooleanParameter("Open website", "Website of GNPS job", true);
 
   public GnpsGcSubmitParameters() {
-    super(new Parameter[] {META_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
+    super(new Parameter[] {KOVATS_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
   }
 }

@@ -38,7 +38,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.google.common.util.concurrent.AtomicDouble;
 import io.github.msdk.MSDKRuntimeException;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportParameters.MzMode;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportTask;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportTask;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.ExportRowCommonElement;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.ExportRowDataFileElement;
@@ -65,9 +70,16 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
   private ParameterSet parameters;
   private AtomicDouble progress = new AtomicDouble(0);
 
+  private PeakList peakList;
+  private MzMode representativeMZ;
+
 
   GnpsGcExportAndSubmitTask(ParameterSet parameters) {
     this.parameters = parameters;
+    this.peakList = parameters.getParameter(GnpsGcExportAndSubmitParameters.PEAK_LISTS).getValue()
+        .getMatchingPeakLists()[1];
+    this.representativeMZ =
+        parameters.getParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ).getValue();
   }
 
   @Override
@@ -100,8 +112,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
 
     List<AbstractTask> list = new ArrayList<>(3);
     // add mgf export task
-    GnpsGcMgfExportTask task = new GnpsGcMgfExportTask(parameters);
-    list.add(task);
+    list.add(addAdapMgfTask(parameters));
 
     // add csv quant table
     list.add(addQuantTableTask(parameters, null));
@@ -160,6 +171,24 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     }
   }
 
+  /**
+   * Export mgf (adap mgf export) of clustered spectra
+   * 
+   * @param parameters
+   * @return
+   */
+  private AbstractTask addAdapMgfTask(ParameterSet parameters) {
+    File full = parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).getValue();
+    String name = FileAndPathUtil.eraseFormat(full.getName());
+    full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name, "mgf");
+
+    ParameterSet mgfParam =
+        MZmineCore.getConfiguration().getModuleParameters(AdapMgfExportModule.class);
+    mgfParam.getParameter(AdapMgfExportParameters.FILENAME).setValue(full);
+    mgfParam.getParameter(AdapMgfExportParameters.FRACTIONAL_MZ).setValue(false);
+    mgfParam.getParameter(AdapMgfExportParameters.REPRESENTATIVE_MZ).setValue(representativeMZ);
+    return new AdapMgfExportTask(mgfParam, new PeakList[] {peakList});
+  }
 
   /**
    * Submit GNPS job
@@ -194,10 +223,8 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     ExportRowDataFileElement[] rawdata =
         new ExportRowDataFileElement[] {ExportRowDataFileElement.PEAK_AREA};
 
-    CSVExportTask quanExport = new CSVExportTask(
-        parameters.getParameter(GnpsGcExportAndSubmitParameters.PEAK_LISTS).getValue()
-            .getMatchingPeakLists(), //
-        full, ",", common, rawdata, false, ";", RowFilter.ALL);
+    CSVExportTask quanExport = new CSVExportTask(new PeakList[] {peakList}, full, ",", common,
+        rawdata, false, ";", RowFilter.ALL);
     if (tasks != null)
       tasks.add(quanExport);
     return quanExport;

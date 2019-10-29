@@ -30,11 +30,13 @@
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc;
 
 import java.awt.Window;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportParameters.MzMode;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.MassListParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParameter;
@@ -43,23 +45,26 @@ import net.sf.mzmine.util.ExitCode;
 
 public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
+  public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter(1);
 
   public static final FileNameParameter FILENAME =
       new FileNameParameter("Filename", "Base name of the output files (.MGF and .CSV).", "mgf");
 
-  public static final MassListParameter MASS_LIST = new MassListParameter();
+  public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
+      new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",
+          "Choose the representative m/z of a an ADAP spectral cluster. This m/z is used as the PEPMASS in the mgf file.",
+          MzMode.values(), MzMode.AS_IN_FEATURE_TABLE);
 
   public static final OptionalModuleParameter<GnpsGcSubmitParameters> SUBMIT =
-      new OptionalModuleParameter<GnpsGcSubmitParameters>("Submit to GNPS",
-          "Directly submits a GNPS-GC job", new GnpsGcSubmitParameters());
+      new OptionalModuleParameter<>("Submit to GNPS GC-MS", "Directly submits a GNPS-GC job",
+          new GnpsGcSubmitParameters());
 
   public static final BooleanParameter OPEN_FOLDER =
       new BooleanParameter("Open folder", "Opens the export folder", false);
 
 
   public GnpsGcExportAndSubmitParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, MASS_LIST, SUBMIT, OPEN_FOLDER});
+    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, SUBMIT, OPEN_FOLDER});
   }
 
   @Override
