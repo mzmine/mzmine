@@ -48,7 +48,7 @@ import net.sf.mzmine.util.ExitCode;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class GNPSExportAndSubmitModule implements MZmineProcessingModule {
+public class GnpsFbmnExportAndSubmitModule implements MZmineProcessingModule {
   private final Logger LOG = Logger.getLogger(getClass().getName());
 
   private static final String MODULE_NAME = "Export for/Submit to GNPS";
@@ -65,7 +65,7 @@ public class GNPSExportAndSubmitModule implements MZmineProcessingModule {
   public ExitCode runModule(MZmineProject project, ParameterSet parameters,
       Collection<Task> tasks) {
     // add gnps export task
-    GNPSExportAndSubmitTask task = new GNPSExportAndSubmitTask(parameters);
+    GnpsFbmnExportAndSubmitTask task = new GnpsFbmnExportAndSubmitTask(parameters);
     /*
      * We do not add the task to the tasks collection, but instead directly submit to the task
      * controller, because we need to set the priority to HIGH. If the priority is not HIGH and the
@@ -89,7 +89,7 @@ public class GNPSExportAndSubmitModule implements MZmineProcessingModule {
 
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return GNPSExportAndSubmitParameters.class;
+    return GnpsFbmnExportAndSubmitParameters.class;
   }
 
 }

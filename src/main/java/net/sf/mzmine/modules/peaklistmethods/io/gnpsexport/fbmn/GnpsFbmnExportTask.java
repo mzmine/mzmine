@@ -58,7 +58,7 @@ import net.sf.mzmine.util.PeakUtils;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class GNPSExportTask extends AbstractTask {
+public class GnpsFbmnExportTask extends AbstractTask {
   private final PeakList[] peakLists;
   private final File fileName;
   private final String plNamePattern = "{}";
@@ -67,16 +67,16 @@ public class GNPSExportTask extends AbstractTask {
   
   private final String massListName;
 
-  GNPSExportTask(ParameterSet parameters) {
+  GnpsFbmnExportTask(ParameterSet parameters) {
     this.peakLists =
-        parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
 
-    this.fileName = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
+    this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
 
-    this.massListName = parameters.getParameter(GNPSExportAndSubmitParameters.MASS_LIST).getValue();
+    this.massListName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MASS_LIST).getValue();
 
-    if (parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
-      mergeParameters = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getEmbeddedParameters();
+    if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
+      mergeParameters = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getEmbeddedParameters();
     } else {
       mergeParameters = null;
     }

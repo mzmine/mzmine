@@ -61,7 +61,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcess
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GNPSExportAndSubmitModule;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
@@ -173,7 +173,7 @@ public class MZmineModulesList {
       // I/O
       CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
       SQLExportModule.class, XMLExportModule.class, MzTabImportModule.class, XMLImportModule.class,
-      MSPExportModule.class, MGFExportModule.class, GNPSExportAndSubmitModule.class,
+      MSPExportModule.class, MGFExportModule.class, GnpsFbmnExportAndSubmitModule.class,
       SiriusExportModule.class,
 
       // Gap filling
