@@ -30,7 +30,7 @@ import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
  */
 
 
-public class MSPExportParameters extends SimpleParameterSet {
+public class AdapMspExportParameters extends SimpleParameterSet {
   public static final String ROUND_MODE_MAX = "Merging mode: Maximum";
   public static final String ROUND_MODE_SUM = "Merging mode: Sum";
 
@@ -60,7 +60,7 @@ public class MSPExportParameters extends SimpleParameterSet {
               new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX),
           false);
 
-  public MSPExportParameters() {
+  public AdapMspExportParameters() {
     super(new Parameter[] {PEAK_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, INTEGER_MZ});
   }
 }

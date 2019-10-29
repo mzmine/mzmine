@@ -64,7 +64,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.adapmgfexport.AdapMgfExportModul
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.mspexport.AdapMspExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
@@ -173,7 +173,7 @@ public class MZmineModulesList {
       // I/O
       CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
       SQLExportModule.class, XMLExportModule.class, MzTabImportModule.class, XMLImportModule.class,
-      MSPExportModule.class, AdapMgfExportModule.class, GnpsFbmnExportAndSubmitModule.class,
+      AdapMspExportModule.class, AdapMgfExportModule.class, GnpsFbmnExportAndSubmitModule.class,
       SiriusExportModule.class,
 
       // Gap filling

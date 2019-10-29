@@ -31,7 +31,7 @@ import net.sf.mzmine.util.ExitCode;
  */
 
 
-public class MSPExportModule implements MZmineProcessingModule {
+public class AdapMspExportModule implements MZmineProcessingModule {
   private static final String MODULE_NAME = "Export to MSP file (ADAP)";
   private static final String MODULE_DESCRIPTION =
       "This method exports all ADAP clustered spectra in a feature lists to an MSP file.";
@@ -50,7 +50,7 @@ public class MSPExportModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    MSPExportTask task = new MSPExportTask(parameters);
+    AdapMspExportTask task = new AdapMspExportTask(parameters);
     tasks.add(task);
     return ExitCode.OK;
 
@@ -63,7 +63,7 @@ public class MSPExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MSPExportParameters.class;
+    return AdapMspExportParameters.class;
   }
 
 }
