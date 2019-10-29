@@ -14,7 +14,7 @@
  * 02111-1307, USA.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.mspexport;
+package net.sf.mzmine.modules.peaklistmethods.io.adap.mspexport;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
