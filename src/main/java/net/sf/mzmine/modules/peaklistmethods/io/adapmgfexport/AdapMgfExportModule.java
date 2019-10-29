@@ -30,9 +30,9 @@ import net.sf.mzmine.util.ExitCode;
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
 public class AdapMgfExportModule implements MZmineProcessingModule {
-  private static final String MODULE_NAME = "Export to MGF file (ADAP clusters)";
+  private static final String MODULE_NAME = "Export to MGF file (ADAP)";
   private static final String MODULE_DESCRIPTION =
-      "This method exports all ADAP clusters of feature lists as spectra into an MGF file. Used in the GNPS GC-MS workflow.";
+      "This method exports all ADAP clustered spectra in a feature lists to an MGF file. Used in the GNPS GC-MS workflow.";
 
   @Override
   public @Nonnull String getName() {
