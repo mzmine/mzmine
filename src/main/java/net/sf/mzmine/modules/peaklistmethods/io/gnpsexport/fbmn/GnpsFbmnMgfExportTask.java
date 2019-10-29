@@ -27,7 +27,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
+package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -48,7 +48,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitParameters.RowFilter;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MergedSpectrum;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeParameters;
@@ -64,7 +64,7 @@ import net.sf.mzmine.util.files.FileAndPathUtil;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class GNPSmgfExportTask extends AbstractTask {
+public class GnpsFbmnMgfExportTask extends AbstractTask {
   // Logger.
   private final Logger LOG = Logger.getLogger(getClass().getName());
 
@@ -86,15 +86,15 @@ public class GNPSmgfExportTask extends AbstractTask {
 
   private RowFilter filter;
 
-  GNPSmgfExportTask(ParameterSet parameters) {
-    this.peakLists = parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue()
+  GnpsFbmnMgfExportTask(ParameterSet parameters) {
+    this.peakLists = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.PEAK_LISTS).getValue()
         .getMatchingPeakLists();
 
-    this.fileName = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
-    this.massListName = parameters.getParameter(GNPSExportAndSubmitParameters.MASS_LIST).getValue();
-    this.filter = parameters.getParameter(GNPSExportAndSubmitParameters.FILTER).getValue();
-    if (parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
-      mergeParameters = parameters.getParameter(GNPSExportAndSubmitParameters.MERGE_PARAMETER)
+    this.fileName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
+    this.massListName = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MASS_LIST).getValue();
+    this.filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
+    if (parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER).getValue()) {
+      mergeParameters = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.MERGE_PARAMETER)
           .getEmbeddedParameters();
     } else {
       mergeParameters = null;
