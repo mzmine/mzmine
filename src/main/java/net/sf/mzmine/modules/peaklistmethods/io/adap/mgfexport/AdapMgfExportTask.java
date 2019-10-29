@@ -14,55 +14,79 @@
  * 02111-1307, USA.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.mgfexport;
+package net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-
-import net.sf.mzmine.datamodel.*;
+import java.util.stream.Stream;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportParameters.MzMode;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
- *
+ * Export of a feature cluster (ADAP) to mgf. Used in GC-GNPS
+ * 
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
+public class AdapMgfExportTask extends AbstractTask {
+  private final String newLine = System.lineSeparator();
+  //
+  private NumberFormat mzForm = MZmineCore.getConfiguration().getMZFormat();
+  private NumberFormat mzNominalForm = new DecimalFormat("0");
+  private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
+  // seconds
+  private NumberFormat rtsForm = new DecimalFormat("0.###");
 
-
-public class MGFExportTask extends AbstractTask {
   private final PeakList[] peakLists;
   private final File fileName;
   private final String plNamePattern = "{}";
   private final boolean fractionalMZ;
   private final String roundMode;
+  private MzMode representativeMZ;
+  private final int totalRows;
+  private int finishedRows = 0;
 
-  MGFExportTask(ParameterSet parameters) {
+
+  AdapMgfExportTask(ParameterSet parameters) {
     this.peakLists =
-        parameters.getParameter(MGFExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+        parameters.getParameter(AdapMgfExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+    totalRows = (int) Stream.of(peakLists).map(PeakList::getRows).count();
 
-    this.fileName = parameters.getParameter(MGFExportParameters.FILENAME).getValue();
+    this.fileName = parameters.getParameter(AdapMgfExportParameters.FILENAME).getValue();
 
-    this.fractionalMZ = parameters.getParameter(MGFExportParameters.FRACTIONAL_MZ).getValue();
+    this.fractionalMZ = parameters.getParameter(AdapMgfExportParameters.FRACTIONAL_MZ).getValue();
 
-    this.roundMode = parameters.getParameter(MGFExportParameters.ROUND_MODE).getValue();
+    this.roundMode = parameters.getParameter(AdapMgfExportParameters.ROUND_MODE).getValue();
+    this.representativeMZ =
+        parameters.getParameter(AdapMgfExportParameters.REPRESENTATIVE_MZ).getValue();
   }
 
+  @Override
   public double getFinishedPercentage() {
-    return 0.0;
+    return totalRows != 0 ? finishedRows / totalRows : 0;
   }
 
+  @Override
   public String getTaskDescription() {
     return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MGF file(s)";
   }
 
+  @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
@@ -94,7 +118,7 @@ public class MGFExportTask extends AbstractTask {
       }
 
       try {
-        exportPeakList(peakList, writer, curFile);
+        exportPeakList(peakList, writer);
       } catch (IOException e) {
         setStatus(TaskStatus.ERROR);
         setErrorMessage("Error while writing into file " + curFile + ": " + e.getMessage());
@@ -125,79 +149,103 @@ public class MGFExportTask extends AbstractTask {
       setStatus(TaskStatus.FINISHED);
   }
 
-  private void exportPeakList(PeakList peakList, FileWriter writer, File curFile)
-      throws IOException {
-    final String newLine = System.lineSeparator();
-
+  private void exportPeakList(PeakList peakList, FileWriter writer) throws IOException {
     for (PeakListRow row : peakList.getRows()) {
       IsotopePattern ip = row.getBestIsotopePattern();
       if (ip == null)
         continue;
 
-      writer.write("BEGIN IONS" + newLine);
+      exportRow(writer, row, ip);
 
-      String rowID = Integer.toString(row.getID());
-      if (rowID != null)
-        writer.write("FEATURE_ID=" + rowID + newLine);
-
-      // Find mass of the highest peak
-      double maxHeight = 0.0;
-      Double mass = null;
-      for (Feature peak : row.getPeaks()) {
-        double height = peak.getHeight();
-        if (height > maxHeight) {
-          maxHeight = height;
-          mass = peak.getMZ();
-        }
-      }
-
-      if (mass != null)
-        writer.write("PEPMASS=" + mass + newLine);
-
-      String retTimeInSeconds = Double.toString(row.getAverageRT() * 60);
-      if (retTimeInSeconds != null)
-        writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
-
-      if (rowID != null)
-        writer.write("SCANS=" + rowID + newLine);
-
-      writer.write("MSLEVEL=2" + newLine);
-      writer.write("CHARGE=1+" + newLine);
-
-      DataPoint[] dataPoints = ip.getDataPoints();
-
-      if (!fractionalMZ)
-        dataPoints = integerDataPoints(dataPoints, roundMode);
-
-      for (DataPoint point : dataPoints) {
-        String line = Double.toString(point.getMZ()) + " " + Double.toString(point.getIntensity());
-        writer.write(line + newLine);
-      }
-
-      writer.write("END IONS" + newLine);
-
-      writer.write(newLine);
+      finishedRows++;
     }
   }
 
+  private void exportRow(FileWriter writer, PeakListRow row, IsotopePattern ip) throws IOException {
+    // data points of this cluster
+    DataPoint[] dataPoints = ip.getDataPoints();
+    if (!fractionalMZ)
+      dataPoints = integerDataPoints(dataPoints, roundMode);
+    // get m/z and rt
+    double mz = getRepresentativeMZ(row, dataPoints);
+    String retTimeInSeconds = rtsForm.format(row.getAverageRT() * 60);
+    // write
+    writer.write("BEGIN IONS" + newLine);
+    writer.write("FEATURE_ID=" + row.getID() + newLine);
+    writer.write("PEPMASS=" + formatMZ(mz) + newLine);
+    writer.write("RTINSECONDS=" + retTimeInSeconds + newLine);
+    writer.write("SCANS=" + row.getID() + newLine);
+
+    // needs to be MSLEVEL=2 for GC-GNPS (even for GC-EI-MS data)
+    writer.write("MSLEVEL=2" + newLine);
+    writer.write("CHARGE=1+" + newLine);
+
+    for (DataPoint point : dataPoints) {
+      String line = formatMZ(point.getMZ()) + " " + intensityForm.format(point.getIntensity());
+      writer.write(line + newLine);
+    }
+
+    writer.write("END IONS" + newLine);
+    writer.write(newLine);
+  }
+
+  /**
+   * Format as nominal or fractional
+   * 
+   * @param mz
+   * @return
+   */
+  private String formatMZ(double mz) {
+    return fractionalMZ ? mzForm.format(mz) : mzNominalForm.format(mz);
+  }
+
+  private double getRepresentativeMZ(PeakListRow row, DataPoint[] data) {
+    final double mz;
+    switch (representativeMZ) {
+      case AS_IN_FEATURE_TABLE:
+        mz = row.getAverageMZ();
+        break;
+      case HIGHEST_MZ:
+        mz = Stream.of(data).max((a, b) -> Double.compare(a.getMZ(), b.getMZ()))
+            .map(DataPoint::getMZ).orElse(row.getAverageMZ());
+        break;
+      case MAX_INTENSITY:
+        mz = Stream.of(data).max((a, b) -> Double.compare(a.getIntensity(), b.getIntensity()))
+            .map(DataPoint::getMZ).orElse(row.getAverageMZ());
+        break;
+      default:
+        mz = row.getAverageMZ();
+        break;
+    }
+
+    return mz;
+  }
+
+  /**
+   * Round to nominal masses and select intensity
+   * 
+   * @param dataPoints
+   * @param mode
+   * @return
+   */
   private DataPoint[] integerDataPoints(final DataPoint[] dataPoints, final String mode) {
     int size = dataPoints.length;
 
     Map<Double, Double> integerDataPoints = new HashMap<>();
 
     for (int i = 0; i < size; ++i) {
-      double mz = (double) Math.round(dataPoints[i].getMZ());
+      double mz = Math.round(dataPoints[i].getMZ());
       double intensity = dataPoints[i].getIntensity();
       Double prevIntensity = integerDataPoints.get(mz);
       if (prevIntensity == null)
         prevIntensity = 0.0;
 
       switch (mode) {
-        case MGFExportParameters.ROUND_MODE_SUM:
+        case AdapMgfExportParameters.ROUND_MODE_SUM:
           integerDataPoints.put(mz, prevIntensity + intensity);
           break;
 
-        case MGFExportParameters.ROUND_MODE_MAX:
+        case AdapMgfExportParameters.ROUND_MODE_MAX:
           integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
           break;
       }

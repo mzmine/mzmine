@@ -60,11 +60,11 @@ import net.sf.mzmine.modules.peaklistmethods.identification.precursordbsearch.Pr
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mspexport.AdapMspExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
@@ -173,7 +173,7 @@ public class MZmineModulesList {
       // I/O
       CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
       SQLExportModule.class, XMLExportModule.class, MzTabImportModule.class, XMLImportModule.class,
-      MSPExportModule.class, MGFExportModule.class, GnpsFbmnExportAndSubmitModule.class,
+      AdapMspExportModule.class, AdapMgfExportModule.class, GnpsFbmnExportAndSubmitModule.class,
       SiriusExportModule.class,
 
       // Gap filling

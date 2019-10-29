@@ -14,7 +14,7 @@
  * 02111-1307, USA.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.mspexport;
+package net.sf.mzmine.modules.peaklistmethods.io.adap.mspexport;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
@@ -31,10 +31,10 @@ import net.sf.mzmine.util.ExitCode;
  */
 
 
-public class MSPExportModule implements MZmineProcessingModule {
-  private static final String MODULE_NAME = "Export to MSP file";
+public class AdapMspExportModule implements MZmineProcessingModule {
+  private static final String MODULE_NAME = "Export to MSP file (ADAP)";
   private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list spectra into a MSP file.";
+      "This method exports all ADAP clustered spectra in a feature lists to an MSP file.";
 
   @Override
   public @Nonnull String getName() {
@@ -50,7 +50,7 @@ public class MSPExportModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    MSPExportTask task = new MSPExportTask(parameters);
+    AdapMspExportTask task = new AdapMspExportTask(parameters);
     tasks.add(task);
     return ExitCode.OK;
 
@@ -63,7 +63,7 @@ public class MSPExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MSPExportParameters.class;
+    return AdapMspExportParameters.class;
   }
 
 }

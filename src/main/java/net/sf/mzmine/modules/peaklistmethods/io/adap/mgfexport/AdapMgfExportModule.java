@@ -14,7 +14,7 @@
  * 02111-1307, USA.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.mgfexport;
+package net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport;
 
 import java.util.Collection;
 import javax.annotation.Nonnull;
@@ -29,12 +29,10 @@ import net.sf.mzmine.util.ExitCode;
  *
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
-
-
-public class MGFExportModule implements MZmineProcessingModule {
-  private static final String MODULE_NAME = "Export to MGF file";
+public class AdapMgfExportModule implements MZmineProcessingModule {
+  private static final String MODULE_NAME = "Export to MGF file (ADAP)";
   private static final String MODULE_DESCRIPTION =
-      "This method exports the feature list spectra into a MGF file.";
+      "This method exports all ADAP clustered spectra in a feature lists to an MGF file. Used in the GNPS GC-MS workflow.";
 
   @Override
   public @Nonnull String getName() {
@@ -50,7 +48,7 @@ public class MGFExportModule implements MZmineProcessingModule {
   @Nonnull
   public ExitCode runModule(@Nonnull MZmineProject project, @Nonnull ParameterSet parameters,
       @Nonnull Collection<Task> tasks) {
-    MGFExportTask task = new MGFExportTask(parameters);
+    AdapMgfExportTask task = new AdapMgfExportTask(parameters);
     tasks.add(task);
     return ExitCode.OK;
 
@@ -63,7 +61,7 @@ public class MGFExportModule implements MZmineProcessingModule {
 
   @Override
   public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-    return MGFExportParameters.class;
+    return AdapMgfExportParameters.class;
   }
 
 }
