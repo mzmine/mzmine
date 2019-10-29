@@ -18,6 +18,8 @@
 
 package net.sf.mzmine.modules.tools.kovats;
 
+import java.util.stream.IntStream;
+
 public class KovatsValues {
   public enum KovatsIndex {
     C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12, C13, C14, C15, C16, C17, C18, C19, C20, C21, C22, C23, C24, C25, C26, C27, C28, C29, C30, C31, C32, C33, C34, C35, C36, C37, C38, C39, C40, C41, C42, C43, C44, C45, C46, C47, C48, C49, C50;
@@ -40,12 +42,39 @@ public class KovatsValues {
       return names[this.ordinal()];
     }
 
+    public String getShortName() {
+      return name();
+    }
+
     public String getCombinedName() {
-      return names[this.ordinal()] + " (" + toString() + ")";
+      return names[this.ordinal()] + " (" + name() + ")";
+    }
+
+    @Override
+    public String toString() {
+      return getCombinedName();
     }
 
     public int getNumCarbon() {
       return this.ordinal() + 1;
+    }
+
+    /**
+     * Kovats indexes from a carbons to b carbons (inclusive)
+     * 
+     * @param cFirst
+     * @param cLastInclusive
+     * @return
+     */
+    public static KovatsIndex[] getRange(int cFirst, int cLastInclusive) {
+      cFirst = Math.min(cFirst, 0);
+      cLastInclusive = Math.max(cLastInclusive, KovatsIndex.values().length);
+      if (cLastInclusive < cFirst)
+        return new KovatsIndex[] {getByCarbon(cFirst)};
+      else {
+        return IntStream.rangeClosed(cFirst, cLastInclusive).mapToObj(KovatsIndex::getByCarbon)
+            .toArray(KovatsIndex[]::new);
+      }
     }
   }
 

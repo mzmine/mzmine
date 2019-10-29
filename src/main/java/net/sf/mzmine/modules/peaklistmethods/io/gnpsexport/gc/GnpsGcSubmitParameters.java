@@ -30,14 +30,19 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc;
 
+import java.awt.Window;
+import javax.swing.JButton;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.PasswordParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * GC-GNPS
@@ -55,7 +60,7 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
    * Optional: Select meta data file
    */
   public static final OptionalParameter<FileNameParameter> KOVATS_FILE = new OptionalParameter<>(
-      new FileNameParameter("Kovats RI file", "File with Kovats retention indexes"), false);
+      new FileNameParameter("Kovats RI file", "File with Kovats retention indexes", "csv"), false);
 
   public static final ComboParameter<Preset> PRESETS = new ComboParameter<>("Presets",
       "GNPS parameter presets for high or low resolution mass spectrometry data", Preset.values(),
@@ -82,5 +87,26 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
 
   public GnpsGcSubmitParameters() {
     super(new Parameter[] {KOVATS_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
+  }
+
+  @Override
+  public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+    ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
+    // add button to create Kovats file
+    FileNameComponent pn = (FileNameComponent) dialog.getComponentForParameter(KOVATS_FILE);
+    JButton btn = new JButton("Create");
+    pn.add(btn);
+    btn.addActionListener(e -> openKovatsDialog());
+
+    dialog.setVisible(true);
+    return dialog.getExitCode();
+  }
+
+  /**
+   * OPen Kovats creation dialog, save file and retrieve file
+   */
+  private void openKovatsDialog() {
+    // todo open dialog
+
   }
 }

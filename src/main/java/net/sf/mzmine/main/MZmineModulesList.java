@@ -108,6 +108,7 @@ import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
 import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesModule;
 import net.sf.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
+import net.sf.mzmine.modules.tools.kovats.KovatsIndexExtractionModule;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
@@ -219,13 +220,14 @@ public class MZmineModulesList {
 
       // Tools
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class,
-      IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class,
+      IsotopePatternPreviewModule.class, KovatsIndexExtractionModule.class,
 
       // all other regular MZmineModule (not MZmineRunnableModule) NOT LISTED IN MENU
       SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class,
       CustomDBSpectraSearchModule.class, LipidSpectraSearchModule.class,
       OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
       ExportScansModule.class, SpectraIdentificationResultsModule.class,
+      MsMsSpectraMergeModule.class,
 
       // Data point processing, implement DataPointProcessingModule
       DataPointProcessingManager.class, DPPMassDetectionModule.class,
