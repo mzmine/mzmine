@@ -27,7 +27,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
+package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn;
 
 import java.awt.Window;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -44,7 +44,7 @@ import net.sf.mzmine.parameters.parametertypes.submodules.OptionalModuleParamete
 import net.sf.mzmine.util.ExitCode;
 
 
-public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
+public class GnpsFbmnExportAndSubmitParameters extends SimpleParameterSet {
 
   /**
    * Define which rows to export
@@ -88,9 +88,9 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
 
   public static final MassListParameter MASS_LIST = new MassListParameter();
 
-  public static final OptionalModuleParameter<GNPSSubmitParameters> SUBMIT =
-      new OptionalModuleParameter<GNPSSubmitParameters>("Submit to GNPS",
-          "Directly submits a GNPS job", new GNPSSubmitParameters());
+  public static final OptionalModuleParameter<GnpsFbmnSubmitParameters> SUBMIT =
+      new OptionalModuleParameter<GnpsFbmnSubmitParameters>("Submit to GNPS",
+          "Directly submits a GNPS job", new GnpsFbmnSubmitParameters());
 
   public static final ComboParameter<RowFilter> FILTER = new ComboParameter<RowFilter>(
       "Filter rows", "Limit the exported rows to those with MS/MS data or annotated rows",
@@ -111,7 +111,7 @@ public class GNPSExportAndSubmitParameters extends SimpleParameterSet {
           new MsMsSpectraMergeParameters(), true);
 
 
-  public GNPSExportAndSubmitParameters() {
+  public GnpsFbmnExportAndSubmitParameters() {
     super(new Parameter[] {PEAK_LISTS, FILENAME, MASS_LIST, MERGE_PARAMETER, FILTER, SUBMIT,
         OPEN_FOLDER});
   }

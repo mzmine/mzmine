@@ -38,6 +38,8 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import io.github.msdk.MSDKRuntimeException;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnSubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc.GnpsGcSubmitParameters;
 import net.sf.mzmine.util.files.FileAndPathUtil;
 
 /**
@@ -50,23 +52,28 @@ public class GNPSUtils {
   // Logger.
   private static final Logger LOG = Logger.getLogger(GNPSUtils.class.getName());
 
+  public static final String FBMN_SUBMIT_SITE =
+      "http://dorresteinappshub.ucsd.edu:5050/uploadanalyzefeaturenetworking";
+  public static final String GC_SUBMIT_SITE =
+      "http://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
+
   /**
-   * Submit job to GNPS
+   * Submit feature-based molecular networking (FBMN) job to GNPS
    * 
    * @param file
    * @param param
    * @return
    */
-  public static String submitJob(File file, GNPSSubmitParameters param)
+  public static String submitFbmnJob(File file, GnpsFbmnSubmitParameters param)
       throws MSDKRuntimeException {
     // optional
-    boolean useMeta = param.getParameter(GNPSSubmitParameters.META_FILE).getValue();
-    boolean openWebsite = param.getParameter(GNPSSubmitParameters.OPEN_WEBSITE).getValue();
-    String presets = param.getParameter(GNPSSubmitParameters.PRESETS).getValue().toString();
-    String title = param.getParameter(GNPSSubmitParameters.JOB_TITLE).getValue();
-    String email = param.getParameter(GNPSSubmitParameters.EMAIL).getValue();
-    String username = param.getParameter(GNPSSubmitParameters.USER).getValue();
-    String password = param.getParameter(GNPSSubmitParameters.PASSWORD).getValue();
+    boolean useMeta = param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getValue();
+    boolean openWebsite = param.getParameter(GnpsFbmnSubmitParameters.OPEN_WEBSITE).getValue();
+    String presets = param.getParameter(GnpsFbmnSubmitParameters.PRESETS).getValue().toString();
+    String title = param.getParameter(GnpsFbmnSubmitParameters.JOB_TITLE).getValue();
+    String email = param.getParameter(GnpsFbmnSubmitParameters.EMAIL).getValue();
+    String username = param.getParameter(GnpsFbmnSubmitParameters.USER).getValue();
+    String password = param.getParameter(GnpsFbmnSubmitParameters.PASSWORD).getValue();
     //
     File folder = file.getParentFile();
     String name = file.getName();
@@ -77,9 +84,10 @@ public class GNPSUtils {
     // NEEDED files
     if (mgf.exists() && quan.exists()) {
       File meta = !useMeta ? null
-          : param.getParameter(GNPSSubmitParameters.META_FILE).getEmbeddedParameter().getValue();
+          : param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getEmbeddedParameter()
+              .getValue();
 
-      return submitJob(mgf, quan, meta, null, title, email, username, password, presets,
+      return submitFbmnJob(mgf, quan, meta, null, title, email, username, password, presets,
           openWebsite);
     } else
       return "";
@@ -87,13 +95,13 @@ public class GNPSUtils {
 
 
   /**
-   * Submit job to GNPS
+   * Submit feature-based molecular networking (FBMN) job to GNPS
    * 
    * @param file
    * @param param
    * @return
    */
-  public static String submitJob(File mgf, File quan, File meta, File[] additionalEdges,
+  public static String submitFbmnJob(File mgf, File quan, File meta, File[] additionalEdges,
       String title, String email, String username, String password, String presets,
       boolean openWebsite) throws MSDKRuntimeException {
     try {
@@ -180,5 +188,18 @@ public class GNPSUtils {
         LOG.log(Level.SEVERE, "Error while submitting GNPS job", e);
       }
     }
+  }
+
+
+  /**
+   * GNPS-GC-MS workflow: Direct submission
+   * 
+   * @param fileName
+   * @param param
+   * @return
+   */
+  public static String submitGcJob(File fileName, GnpsGcSubmitParameters param) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
