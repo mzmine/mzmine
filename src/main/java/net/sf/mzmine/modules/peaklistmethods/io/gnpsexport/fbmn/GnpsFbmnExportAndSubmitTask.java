@@ -27,7 +27,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
+package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -42,7 +42,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportTask;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.ExportRowCommonElement;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.ExportRowDataFileElement;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitParameters.RowFilter;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSUtils;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitParameters.RowFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.AllTasksFinishedListener;
@@ -57,21 +58,15 @@ import net.sf.mzmine.util.files.FileAndPathUtil;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class GNPSExportAndSubmitTask extends AbstractTask {
+public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
   // Logger.
   private final Logger LOG = Logger.getLogger(getClass().getName());
-
-  /**
-   * This website is still the beta. TODO change later to the final
-   */
-  public static final String GNPS_WEBSITE =
-      "http://mingwangbeta.ucsd.edu:5050/featurebasednetworking";
 
   private ParameterSet parameters;
   private AtomicDouble progress = new AtomicDouble(0);
 
 
-  GNPSExportAndSubmitTask(ParameterSet parameters) {
+  GnpsFbmnExportAndSubmitTask(ParameterSet parameters) {
     this.parameters = parameters;
   }
 
@@ -97,14 +92,14 @@ public class GNPSExportAndSubmitTask extends AbstractTask {
     setStatus(TaskStatus.PROCESSING);
 
     boolean openFolder =
-        parameters.getParameter(GNPSExportAndSubmitParameters.OPEN_FOLDER).getValue();
-    boolean submit = parameters.getParameter(GNPSExportAndSubmitParameters.SUBMIT).getValue();
-    File file = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.OPEN_FOLDER).getValue();
+    boolean submit = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getValue();
+    File file = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     file = FileAndPathUtil.eraseFormat(file);
-    parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).setValue(file);
+    parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).setValue(file);
 
     List<AbstractTask> list = new ArrayList<>(3);
-    GNPSmgfExportTask task = new GNPSmgfExportTask(parameters);
+    GnpsFbmnMgfExportTask task = new GnpsFbmnMgfExportTask(parameters);
     list.add(task);
 
     // add csv quant table
@@ -119,8 +114,8 @@ public class GNPSExportAndSubmitTask extends AbstractTask {
           try {
             LOG.info("succeed" + thistask.getStatus().toString());
             if (submit) {
-              GNPSSubmitParameters param = parameters
-                  .getParameter(GNPSExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
+              GnpsFbmnSubmitParameters param = parameters
+                  .getParameter(GnpsFbmnExportAndSubmitParameters.SUBMIT).getEmbeddedParameters();
               submit(fileName, param);
             }
 
@@ -171,9 +166,9 @@ public class GNPSExportAndSubmitTask extends AbstractTask {
    * @param fileName
    * @param param
    */
-  private void submit(File fileName, GNPSSubmitParameters param) {
+  private void submit(File fileName, GnpsFbmnSubmitParameters param) {
     try {
-      String url = GNPSUtils.submitJob(fileName, param);
+      String url = GNPSUtils.submitFbmnJob(fileName, param);
       if (url == null || url.isEmpty())
         LOG.log(Level.WARNING, "GNPS submit failed (url empty)");
     } catch (Exception e) {
@@ -188,7 +183,7 @@ public class GNPSExportAndSubmitTask extends AbstractTask {
    * @param tasks
    */
   private AbstractTask addQuantTableTask(ParameterSet parameters, Collection<Task> tasks) {
-    File full = parameters.getParameter(GNPSExportAndSubmitParameters.FILENAME).getValue();
+    File full = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILENAME).getValue();
     String name = FileAndPathUtil.eraseFormat(full.getName());
     full = FileAndPathUtil.getRealFilePath(full.getParentFile(), name + "_quant", "csv");
 
@@ -198,10 +193,10 @@ public class GNPSExportAndSubmitTask extends AbstractTask {
     ExportRowDataFileElement[] rawdata =
         new ExportRowDataFileElement[] {ExportRowDataFileElement.PEAK_AREA};
 
-    RowFilter filter = parameters.getParameter(GNPSExportAndSubmitParameters.FILTER).getValue();
+    RowFilter filter = parameters.getParameter(GnpsFbmnExportAndSubmitParameters.FILTER).getValue();
 
     CSVExportTask quanExport = new CSVExportTask(
-        parameters.getParameter(GNPSExportAndSubmitParameters.PEAK_LISTS).getValue()
+        parameters.getParameter(GnpsFbmnExportAndSubmitParameters.PEAK_LISTS).getValue()
             .getMatchingPeakLists(), //
         full, ",", common, rawdata, false, ";", filter);
     if (tasks != null)
