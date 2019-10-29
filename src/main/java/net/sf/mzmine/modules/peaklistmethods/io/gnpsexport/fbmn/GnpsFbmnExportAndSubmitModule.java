@@ -51,9 +51,9 @@ import net.sf.mzmine.util.ExitCode;
 public class GnpsFbmnExportAndSubmitModule implements MZmineProcessingModule {
   private final Logger LOG = Logger.getLogger(getClass().getName());
 
-  private static final String MODULE_NAME = "Export for/Submit to GNPS";
+  private static final String MODULE_NAME = "Export/Submit to GNPS-FBMN";
   private static final String MODULE_DESCRIPTION =
-      "Exports the MGF file for GNPS (only for MS/MS), the quant table (CSV export) and additional edges (ion identity networks and correlation)";
+      "GNPS feature-based molecular networking export and submit module. Exports the MGF file for GNPS (only for MS/MS), the quant table (CSV export) and additional edges (ion identity networks and correlation)";
 
   @Override
   public String getDescription() {
@@ -95,13 +95,16 @@ public class GnpsFbmnExportAndSubmitModule implements MZmineProcessingModule {
 }
 
 /*
- * The GNPSExport module was designed for Feature-Based Molecular Networking on [GNPS](https://gnps.ucsd.edu/ProteoSAFe/static/gnps-splash2.jsp). 
- * Please cite our preprint [Nothias, L.F. et al bioRxiv 812404](https://www.biorxiv.org/content/10.1101/812404v1). 
- * [See the documentation here](https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/). 
- * [See the tutorial on MZmine2 processing for FBMN](https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-
- * mzmine2/). 
- * ==========================================================================================
- * If you use the GNPSExport module, please cite MZmine papers and the GNPS article: Wang et al.,
- * [Nature Biotechnology 34.8 (2016): 828-837](https://doi.org/10.1038/nbt.3597m).
+ * The GNPSExport module was designed for Feature-Based Molecular Networking on
+ * [GNPS](https://gnps.ucsd.edu/ProteoSAFe/static/gnps-splash2.jsp). Please cite our preprint
+ * [Nothias, L.F. et al bioRxiv 812404](https://www.biorxiv.org/content/10.1101/812404v1). [See the
+ * documentation
+ * here](https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/). [See the
+ * tutorial on MZmine2 processing for
+ * FBMN](https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-
+ * mzmine2/).
+ * ========================================================================================== If you
+ * use the GNPSExport module, please cite MZmine papers and the GNPS article: Wang et al., [Nature
+ * Biotechnology 34.8 (2016): 828-837](https://doi.org/10.1038/nbt.3597m).
  * ==========================================================================================
  */
