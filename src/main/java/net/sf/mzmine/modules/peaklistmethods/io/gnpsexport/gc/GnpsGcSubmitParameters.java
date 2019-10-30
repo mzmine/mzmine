@@ -32,12 +32,17 @@ package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc;
 
 import java.awt.Window;
 import javax.swing.JButton;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.tools.kovats.KovatsIndexExtractionDialog;
+import net.sf.mzmine.modules.tools.kovats.KovatsIndexExtractionModule;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameterComponent;
 import net.sf.mzmine.parameters.parametertypes.PasswordParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameComponent;
@@ -93,20 +98,29 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
     ParameterSetupDialog dialog = new ParameterSetupDialog(parent, valueCheckRequired, this);
     // add button to create Kovats file
-    FileNameComponent pn = (FileNameComponent) dialog.getComponentForParameter(KOVATS_FILE);
+    FileNameComponent pn = (FileNameComponent) ((OptionalParameterComponent) dialog
+        .getComponentForParameter(KOVATS_FILE)).getEmbeddedComponent();
     JButton btn = new JButton("Create");
     pn.add(btn);
-    btn.addActionListener(e -> openKovatsDialog());
+    btn.addActionListener(e -> openKovatsDialog(pn));
 
+    dialog.updateMinimumSize();
     dialog.setVisible(true);
     return dialog.getExitCode();
   }
 
   /**
    * OPen Kovats creation dialog, save file and retrieve file
+   * 
+   * @param pn
    */
-  private void openKovatsDialog() {
+  private void openKovatsDialog(FileNameComponent pn) {
     // todo open dialog
+    ParameterSet param =
+        MZmineCore.getConfiguration().getModuleParameters(KovatsIndexExtractionModule.class);
+    KovatsIndexExtractionDialog kd =
+        new KovatsIndexExtractionDialog(null, param, savedFile -> pn.setValue(savedFile));
 
+    kd.setVisible(true);
   }
 }

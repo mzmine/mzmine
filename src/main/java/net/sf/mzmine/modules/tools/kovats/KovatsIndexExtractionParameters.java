@@ -28,6 +28,8 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
@@ -41,6 +43,12 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class KovatsIndexExtractionParameters extends SimpleParameterSet {
 
+  // last saved file
+  public static final FileNameParameter lastSavedFile =
+      new FileNameParameter("Last file", "Last saved file", "csv");
+
+  public static final StringParameter pickedKovatsValues =
+      new StringParameter("Picked Kovats values", "The picked values as C10:time,C12:time ... ");
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
   public static final MassListParameter massList = new MassListParameter();
   public static final DoubleParameter noiseLevel =
@@ -60,7 +68,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
 
 
   public KovatsIndexExtractionParameters() {
-    super(new Parameter[] {
+    super(new Parameter[] {lastSavedFile, pickedKovatsValues,
         // picking of peaks
         massList, dataFiles, mzRange, rtRange, noiseLevel,
         // kovats selection

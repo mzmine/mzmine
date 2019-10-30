@@ -76,6 +76,10 @@ public class KovatsValues {
             .toArray(KovatsIndex[]::new);
       }
     }
+
+    public static KovatsIndex getByShortName(String c) throws NumberFormatException {
+      return getByCarbon(Integer.parseInt(c.substring(1)));
+    }
   }
 
   //
