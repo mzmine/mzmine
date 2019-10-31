@@ -18,9 +18,12 @@
 
 package net.sf.mzmine.modules.tools.kovats;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Stroke;
 import java.awt.Window;
 import java.io.File;
 import java.text.DecimalFormat;
@@ -34,7 +37,10 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -48,6 +54,7 @@ import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -61,13 +68,19 @@ import net.sf.mzmine.parameters.parametertypes.MultiChoiceComponent;
 import net.sf.mzmine.parameters.parametertypes.StringComponent;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
-import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
+import net.sf.mzmine.util.ColorPalettes;
+import net.sf.mzmine.util.files.FileAndPathUtil;
+import net.sf.mzmine.util.io.TxtWriter;
 
 public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   private static final long serialVersionUID = 1L;
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
   private NumberFormat rtFormat = new DecimalFormat("0.###");
+  private static final Stroke markerStroke = new BasicStroke(1.5f);
+  public static final int MIN_MARKERS = 3;
 
   private ParameterSet parameters;
   private Window parent;
@@ -84,7 +97,11 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   private String pickedValuesString;
   private TreeMap<KovatsIndex, Double> parsedValues = new TreeMap<>();
-  private Double noiseLevel;
+  private double noiseLevel = 0;
+  private double ratioEdge = 2;
+  private RawDataFile[] dataFiles;
+  private JComboBox<RawDataFile> comboDataFileName;
+  private RawDataFile selectedDataFile;
 
   /**
    * 
@@ -124,6 +141,11 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     pnChart = new JPanel(new BorderLayout());
     pnCenter.add(pnChart, BorderLayout.CENTER);
 
+    Box sizedummy = new Box(BoxLayout.X_AXIS);
+    sizedummy.setMinimumSize(new Dimension(200, 600));
+    sizedummy.setPreferredSize(new Dimension(200, 600));
+    pnChart.add(sizedummy, BorderLayout.CENTER);
+
     // left: Kovats: min max and list
     JPanel west = new JPanel(new BorderLayout());
     newMainPanel.add(west);
@@ -159,13 +181,11 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     JPanel pnSouth = new JPanel(new BorderLayout());
     center.add(pnSouth, BorderLayout.SOUTH);
 
-    JPanel pnPeakPick = new JPanel(new MigLayout("", "[right][][]", ""));
+    JPanel pnPeakPick = new JPanel(new MigLayout("", "[right][]", ""));
     pnSouth.add(pnPeakPick, BorderLayout.CENTER);
 
     valuesComponent = (StringComponent) getComponentForParameter(
         KovatsIndexExtractionParameters.pickedKovatsValues);
-    RawDataFilesComponent rawc =
-        (RawDataFilesComponent) getComponentForParameter(KovatsIndexExtractionParameters.dataFiles);
     MassListComponent massc =
         (MassListComponent) getComponentForParameter(KovatsIndexExtractionParameters.massList);
     MZRangeComponent mzc =
@@ -174,23 +194,41 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
         (RTRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.rtRange);
     DoubleComponent noisec =
         (DoubleComponent) getComponentForParameter(KovatsIndexExtractionParameters.noiseLevel);
+    DoubleComponent edgeRatioC =
+        (DoubleComponent) getComponentForParameter(KovatsIndexExtractionParameters.ratioTopEdge);
 
     valuesComponent.addDocumentListener(new DelayedDocumentListener(e -> kovatsValuesChanged()));
     valuesComponent.setLayout(new GridLayout(1, 1));
     pnCenter.add(valuesComponent, BorderLayout.SOUTH);
 
+    JPanel pnButtonFlow = new JPanel();
+    pnPeakPick.add(pnButtonFlow, "cell 0 0 1 2");
     JButton btnUpdateChart = new JButton("Update chart");
     btnUpdateChart.addActionListener(e -> updateChart());
-    pnPeakPick.add(btnUpdateChart, "cell 0 0");
+    pnButtonFlow.add(btnUpdateChart);
     JButton btnPickRT = new JButton("Pick peaks");
     btnPickRT.addActionListener(e -> pickRetentionTimes());
-    pnPeakPick.add(btnPickRT, "cell 1 0");
+    pnButtonFlow.add(btnPickRT);
     JButton btnSaveFile = new JButton("Save to file");
     btnSaveFile.addActionListener(e -> saveToFile());
-    pnPeakPick.add(btnSaveFile, "cell 2 0");
+    pnButtonFlow.add(btnSaveFile);
+
+    // add combo for raw data file
+    dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    RawDataFilesSelection raw =
+        parameterSet.getParameter(KovatsIndexExtractionParameters.dataFiles).getValue();
+    if (raw != null && raw.getMatchingRawDataFiles().length > 0)
+      selectedDataFile = raw.getMatchingRawDataFiles()[0];
+    else if (dataFiles != null && dataFiles.length > 0)
+      selectedDataFile = dataFiles[0];
+
+    comboDataFileName = new JComboBox<RawDataFile>(dataFiles);
+    if (selectedDataFile != null)
+      comboDataFileName.setSelectedItem(selectedDataFile);
+    comboDataFileName.addItemListener(e -> updateChart());
 
     pnPeakPick.add(new JLabel("Raw data file"), "cell 0 1");
-    pnPeakPick.add(rawc);
+    pnPeakPick.add(comboDataFileName);
     pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.massList.getName()), "cell 0 2");
     pnPeakPick.add(massc);
     pnPeakPick.add(new JLabel("m/z range"), "cell 0 3");
@@ -199,6 +237,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     pnPeakPick.add(rtc);
     pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.noiseLevel.getName()), "cell 0 5");
     pnPeakPick.add(noisec);
+    pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.ratioTopEdge.getName()), "cell 0 6");
+    pnPeakPick.add(edgeRatioC);
 
     // add listeners
 
@@ -219,7 +259,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       chart.getChart().getXYPlot().clearDomainMarkers();
 
       for (Entry<KovatsIndex, Double> e : parsedValues.entrySet()) {
-        ValueMarker marker = new ValueMarker(e.getValue());
+        ValueMarker marker = new ValueMarker(e.getValue(),
+            ColorPalettes.getPositiveColor(MZmineCore.getConfiguration().getColorVision()),
+            markerStroke);
         marker.setLabel(e.getKey().getShortName());
         chart.getChart().getXYPlot().addDomainMarker(marker);
       }
@@ -240,14 +282,23 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
         String[] e = s.split(":");
         parsedValues.put(KovatsIndex.getByShortName(e[0]), Double.parseDouble(e[1]));
       }
-      return true;
+      return parsedValues.size() >= MIN_MARKERS;
     } catch (Exception e) {
       logger.log(Level.WARNING, "Format of picked values is wrong");
       return false;
     }
   }
 
-  private void saveToFile() {
+  private synchronized void saveToFile() {
+    // need to parse
+    if (!parseValues()) {
+      logger.log(Level.WARNING,
+          "Parsing of Kovats values failed (text box). Maybe you have to select more markers: "
+              + MIN_MARKERS + " (at least)");
+      return;
+    }
+    final TreeMap<KovatsIndex, Double> values = parsedValues;
+
     File lastFile =
         parameters.getParameter(KovatsIndexExtractionParameters.lastSavedFile).getValue();
     JFileChooser chooser = new JFileChooser();
@@ -260,35 +311,69 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
       File f = chooser.getSelectedFile();
       parameters.getParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(f);
-
-      // save
+      f = FileAndPathUtil.getRealFilePath(f, "csv");
       try {
-        // TODO save data
-
-
-        saveFileListener.accept(f);
+        // save to file in GNPS GC format
+        String exp = getCsvTable(values);
+        if (TxtWriter.write(exp, f, false))
+          saveFileListener.accept(f);
       } catch (Exception e) {
         logger.log(Level.WARNING, "Error while saving Kovats file to " + f.getAbsolutePath(), e);
       }
     }
   }
 
+  /**
+   * GNPS GC MS formatted table (comma-separated)
+   * 
+   * @param values
+   * 
+   * @return
+   */
+  private String getCsvTable(TreeMap<KovatsIndex, Double> values) {
+    StringBuilder s = new StringBuilder();
+    String nl = "\n";
+    // header for GNPS
+    s.append("Compound_Name,RT_Query" + nl);
+
+    for (Entry<KovatsIndex, Double> e : values.entrySet()) {
+      s.append(e.getKey().getCombinedName());
+      s.append(",");
+      s.append(rtFormat.format(e.getValue()));
+      s.append(nl);
+    }
+    return s.toString();
+  }
+
   private void updateChart() {
     updateParameterSetFromComponents();
+    if (selectedDataFile == null)
+      return;
     try {
-      RawDataFile file = parameters.getParameter(KovatsIndexExtractionParameters.dataFiles)
-          .getValue().getMatchingRawDataFiles()[0];
       Range<Double> rangeMZ =
           parameters.getParameter(KovatsIndexExtractionParameters.mzRange).getValue();
       Range<Double> rangeRT =
           parameters.getParameter(KovatsIndexExtractionParameters.rtRange).getValue();
-      Scan[] scans = Arrays.stream(file.getScanNumbers(1, rangeRT))
-          .mapToObj(scani -> file.getScan(scani)).toArray(Scan[]::new);
+      if (rangeMZ == null) {
+        rangeMZ = selectedDataFile.getDataMZRange();
+        ((MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange))
+            .setValue(rangeMZ);
+      }
+      if (rangeRT == null) {
+        rangeRT = selectedDataFile.getDataRTRange();
+        ((RTRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.rtRange))
+            .setValue(rangeRT);
+      }
+
+      Scan[] scans = Arrays.stream(selectedDataFile.getScanNumbers(1, rangeRT))
+          .mapToObj(scani -> selectedDataFile.getScan(scani)).toArray(Scan[]::new);
 
       // create dataset
-      TICDataSet data = new TICDataSet(file, scans, rangeMZ, null, TICPlotType.BASEPEAK);
+      TICDataSet data =
+          new TICDataSet(selectedDataFile, scans, rangeMZ, null, TICPlotType.BASEPEAK);
       chart = new TICPlot(this);
       chart.addTICDataset(data);
+      chart.getGestureAdapter().addDebugHandler();
 
       kovatsValuesChanged();
       pnChart.removeAll();
@@ -306,8 +391,21 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     selectedKovats = parameterSet.getParameter(KovatsIndexExtractionParameters.kovats).getValue();
     pickedValuesString =
         parameterSet.getParameter(KovatsIndexExtractionParameters.pickedKovatsValues).getValue();
-    noiseLevel = parameterSet.getParameter(KovatsIndexExtractionParameters.noiseLevel).getValue();
+    noiseLevel =
+        parameterSet.getParameter(KovatsIndexExtractionParameters.noiseLevel).getValue() != null
+            ? parameterSet.getParameter(KovatsIndexExtractionParameters.noiseLevel).getValue()
+            : 0;
+    ratioEdge =
+        parameterSet.getParameter(KovatsIndexExtractionParameters.ratioTopEdge).getValue() != null
+            ? parameterSet.getParameter(KovatsIndexExtractionParameters.ratioTopEdge).getValue()
+            : 2;
+
+    selectedDataFile = (RawDataFile) comboDataFileName.getSelectedItem();
+    if (selectedDataFile != null)
+      parameterSet.getParameter(KovatsIndexExtractionParameters.dataFiles)
+          .setValue(RawDataFilesSelectionType.SPECIFIC_FILES, new RawDataFile[] {selectedDataFile});
   }
+
 
   private void updateKovatsList() {
     updateParameterSetFromComponents();
@@ -356,6 +454,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     kovatsValuesChanged();
   }
 
+  /**
+   * Peak picking to define Kovats index retention times
+   */
   private void pickRetentionTimes() {
     updateParameterSetFromComponents();
     XYDataset data = getData();
@@ -385,7 +486,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       }
 
       // is peak?
-      if (max / startI > 4 && max / intensity > 4) {
+      if (max / startI > ratioEdge && max / intensity > ratioEdge) {
         // add peak
         results.add(maxRT);
 

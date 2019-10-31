@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.tools.kovats;
 
 import java.awt.Window;
+import java.text.DecimalFormat;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import net.sf.mzmine.parameters.Parameter;
@@ -54,6 +55,8 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   public static final DoubleParameter noiseLevel =
       new DoubleParameter("Min intensity", "Minimum intensity to recognice a peak",
           MZmineCore.getConfiguration().getIntensityFormat(), 0d);
+  public static final DoubleParameter ratioTopEdge = new DoubleParameter("Ratio top/edge",
+      "Minimum ratio top/edge (left and right edge)", new DecimalFormat("0.0"), 3d);
   // limit ranges to show EIC
   public static final MZRangeParameter mzRange = new MZRangeParameter();
   public static final RTRangeParameter rtRange = new RTRangeParameter();
@@ -70,7 +73,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   public KovatsIndexExtractionParameters() {
     super(new Parameter[] {lastSavedFile, pickedKovatsValues,
         // picking of peaks
-        massList, dataFiles, mzRange, rtRange, noiseLevel,
+        massList, dataFiles, mzRange, rtRange, noiseLevel, ratioTopEdge,
         // kovats selection
         minKovats, maxKovats, kovats //
     });
