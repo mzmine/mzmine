@@ -20,8 +20,11 @@ package net.sf.mzmine.modules.tools.kovats;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.Window;
 import java.io.File;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,6 +66,9 @@ import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesComponent;
 public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   private static final long serialVersionUID = 1L;
   private Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private NumberFormat rtFormat = new DecimalFormat("0.###");
+
   private ParameterSet parameters;
   private Window parent;
   private JPanel newMainPanel;
@@ -109,8 +115,14 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     DelayedDocumentListener ddlKovats = new DelayedDocumentListener(e -> updateKovatsList());
     DelayedDocumentListener ddlPeakPick = new DelayedDocumentListener(e -> updateChart());
 
+
     newMainPanel = new JPanel(new MigLayout("fill", "[right][grow,fill]", ""));
-    getContentPane().add(newMainPanel, BorderLayout.CENTER);
+    getContentPane().add(newMainPanel, BorderLayout.SOUTH);
+
+    JPanel pnCenter = new JPanel(new BorderLayout());
+    getContentPane().add(pnCenter, BorderLayout.CENTER);
+    pnChart = new JPanel(new BorderLayout());
+    pnCenter.add(pnChart, BorderLayout.CENTER);
 
     // left: Kovats: min max and list
     JPanel west = new JPanel(new BorderLayout());
@@ -143,10 +155,6 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     JPanel center = new JPanel(new BorderLayout());
     newMainPanel.add(center);
 
-    pnChart = new JPanel(new BorderLayout());
-    center.add(pnChart, BorderLayout.CENTER);
-
-
     // all parameters on peak pick panel
     JPanel pnSouth = new JPanel(new BorderLayout());
     center.add(pnSouth, BorderLayout.SOUTH);
@@ -168,12 +176,13 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
         (DoubleComponent) getComponentForParameter(KovatsIndexExtractionParameters.noiseLevel);
 
     valuesComponent.addDocumentListener(new DelayedDocumentListener(e -> kovatsValuesChanged()));
-    pnSouth.add(valuesComponent, BorderLayout.NORTH);
+    valuesComponent.setLayout(new GridLayout(1, 1));
+    pnCenter.add(valuesComponent, BorderLayout.SOUTH);
 
     JButton btnUpdateChart = new JButton("Update chart");
     btnUpdateChart.addActionListener(e -> updateChart());
     pnPeakPick.add(btnUpdateChart, "cell 0 0");
-    JButton btnPickRT = new JButton("Update chart");
+    JButton btnPickRT = new JButton("Pick peaks");
     btnPickRT.addActionListener(e -> pickRetentionTimes());
     pnPeakPick.add(btnPickRT, "cell 1 0");
     JButton btnSaveFile = new JButton("Save to file");
@@ -339,7 +348,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       if (parsedValues != null)
         rt = parsedValues.getOrDefault(ki, rt);
 
-      s.append(ki.name() + ":" + rt + ",");
+      s.append(ki.name() + ":" + rtFormat.format(rt) + ",");
       i++;
       lastRT = rt;
     }
@@ -392,7 +401,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     double lastRT = 1;
     for (KovatsIndex ki : selectedKovats) {
       double rt = i < results.size() ? results.get(i) : lastRT + 1;
-      s.append(ki.name() + ":" + rt + ",");
+      s.append(ki.name() + ":" + rtFormat.format(rt) + ",");
       i++;
       lastRT = rt;
     }
