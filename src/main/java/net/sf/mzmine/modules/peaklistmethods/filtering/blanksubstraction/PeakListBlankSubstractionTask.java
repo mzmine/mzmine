@@ -182,8 +182,8 @@ public class PeakListBlankSubstractionTask extends AbstractTask {
   }
 
   /**
-   * Calculates a matching score for a peak list row, with a value between 0 and 1. TODO: more
-   * matching parameters
+   * Calculates a matching score for a peak list row, with a value between 0 and 1. 
+   * TODO: more matching parameters
    * 
    * @param target
    * @param list An array of peak list rows to match the target row with. Has to be sorted by
@@ -218,7 +218,7 @@ public class PeakListBlankSubstractionTask extends AbstractTask {
               PeakUtils.getPeakListRowAvgRtRange(aRow));
         }
       }
-      // logger.info("score: " + score);
+
       if (score > bestScore) {
         bestMatch = aRow;
         bestScore = score;
@@ -226,13 +226,13 @@ public class PeakListBlankSubstractionTask extends AbstractTask {
     }
 
     if (bestMatch == null) {
-      logger.info("No match for m/z " + mzFormat.format(target.getAverageMZ()));
+//      logger.info("No match for m/z " + mzFormat.format(target.getAverageMZ()));
       return null;
     }
-    logger.info("Best match for row " + target.getID() + " at m/z "
-        + mzFormat.format(target.getAverageMZ()) + " - " + " row " + bestMatch.getID() + " m/z "
-        + mzFormat.format(bestMatch.getAverageMZ()) + " rt "
-        + rtFormat.format(bestMatch.getAverageRT()) + " score " + rtFormat.format(bestScore));
+//    logger.info("Best match for row " + target.getID() + " at m/z "
+//        + mzFormat.format(target.getAverageMZ()) + " - " + " row " + bestMatch.getID() + " m/z "
+//        + mzFormat.format(bestMatch.getAverageMZ()) + " rt "
+//        + rtFormat.format(bestMatch.getAverageRT()) + " score " + rtFormat.format(bestScore));
 
     return new MatchResult(bestMatch, bestScore);
   }
@@ -248,7 +248,6 @@ public class PeakListBlankSubstractionTask extends AbstractTask {
     double d = (d1 / d2);
     if (d > 1)
       d = 1 / d;
-    // logger.info("score " + d);
     return d;
   }
 
@@ -316,13 +315,11 @@ public class PeakListBlankSubstractionTask extends AbstractTask {
 
     // check what kind of peak lists the user passed to this module
     BlankListType blankType;
-    if (blanks.length == 1) {
-      if (blanks[0].getNumberOfRawDataFiles() > 1)
+    if (blanks.length == 1 && blanks[0].getNumberOfRawDataFiles() > 1) {
         blankType = BlankListType.ALIGNED;
-      else
-        blankType = BlankListType.SELECTION;
     } else {
       blankType = BlankListType.SELECTION;
+      
       // did the user maybe select an aligned feature list on top of normal feature lists?
       for (PeakList b : blanks) {
         if (b.getNumberOfRawDataFiles() > 1) {
@@ -331,6 +328,7 @@ public class PeakListBlankSubstractionTask extends AbstractTask {
               + " unaligned feature lists.");
           return null;
         }
+        
       }
     }
 
@@ -374,7 +372,6 @@ public class PeakListBlankSubstractionTask extends AbstractTask {
         try {
           TimeUnit.MILLISECONDS.sleep(50);
         } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }
