@@ -28,8 +28,12 @@ public class PeakListBlankSubstractionModule implements MZmineRunnableModule {
   @Override
   public ExitCode runModule(MZmineProject project, ParameterSet parameters,
       Collection<Task> tasks) {
-    // TODO Auto-generated method stub
-    return null;
+    
+    Task task = new PeakListBlankSubstractionTask(project,  (PeakListBlankSubstractionParameters) parameters);
+    
+    tasks.add(task);
+    
+    return ExitCode.OK;
   }
 
   @Override
