@@ -34,6 +34,11 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
+/**
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
   private static final String ALIGNED_BLANK_NAME = "Aligned blank";
@@ -56,10 +61,6 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
   private List<AbstractTask> subTasks;
 
-  private int finishedRows, totalRows;
-
-  private String message;
-
   private enum BlankListType {
     ALIGNED, SELECTION
   };
@@ -76,8 +77,6 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
   public PeakListBlankSubtractionMasterTask(MZmineProject project,
       PeakListBlankSubtractionParameters parameters) {
-
-    message = "Initializing...";
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -102,14 +101,11 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
     this.minBlankDetections =
         parameters.getParameter(PeakListBlankSubtractionParameters.minBlanks).getValue();
 
-    for (PeakList peakList : target) {
-      totalRows += peakList.getNumberOfRows();
-    }
-
     subTasks = new ArrayList<>(target.length);
+    
+    setStatus(TaskStatus.WAITING);
 
-    finishedRows = 0;
-    logger.setLevel(Level.FINE);
+    logger.setLevel(Level.FINEST);
   }
 
   @Override
@@ -224,23 +220,19 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
         param = new JoinAlignerParameters();
         ExitCode code = param.showSetupDialog(null, true);
         if (code != ExitCode.OK) {
-          message = "Join aligner setup was not exited via OK. Canceling.";
+          logger.info("Join aligner setup was not exited via OK. Canceling.");
           setStatus(TaskStatus.CANCELED);
           return null;
         }
       } else if (answer == JOptionPane.NO_OPTION) {
         param = createDefaultSJoinAlignerParameters();
       } else {
-        message = "Multiple peak lists were selected, but join aligner was not set up.";
-        logger.warning(message);
+        logger.warning("Multiple peak lists were selected, but join aligner was not set up.");
         setStatus(TaskStatus.CANCELED);
         return null;
       }
 
       alignedPeakListName = param.getParameter(JoinAlignerParameters.peakListName).getValue();
-
-      message = "Waiting for Join Aligner.";
-      setStatus(TaskStatus.WAITING);
 
       runJoinAligner(param);
 

@@ -20,6 +20,11 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 
+/**
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class PeakListBlankSubtractionSingleTask extends AbstractTask {
 
   private static final String ALIGNED_BLANK_NAME = "Aligned blank";
@@ -165,6 +170,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
         bestMatch = blankRow;
         bestScore = score;
       }
+      
     }
 
     if (bestMatch == null)
