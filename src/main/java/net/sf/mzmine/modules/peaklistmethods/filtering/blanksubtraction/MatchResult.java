@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.filtering.blanksubstraction;
+package net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction;
 
 import net.sf.mzmine.datamodel.PeakListRow;
 

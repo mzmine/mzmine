@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.filtering.blanksubstraction;
+package net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction;
 
 import java.util.Collection;
 import net.sf.mzmine.datamodel.MZmineProject;
@@ -8,28 +8,28 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class PeakListBlankSubstractionModule implements MZmineRunnableModule {
+public class PeakListBlankSubtractionModule implements MZmineRunnableModule {
 
   @Override
   public String getName() {
-    return "Peak list blank substraction";
+    return "Peak list blank subtraction";
   }
 
   @Override
   public Class<? extends ParameterSet> getParameterSetClass() {
-    return PeakListBlankSubstractionParameters.class;
+    return PeakListBlankSubtractionParameters.class;
   }
 
   @Override
   public String getDescription() {
-    return "Substracts a blank measurements peak list from another peak list.";
+    return "Subtracts a blank measurements peak list from another peak list.";
   }
 
   @Override
   public ExitCode runModule(MZmineProject project, ParameterSet parameters,
       Collection<Task> tasks) {
     
-    Task task = new PeakListBlankSubstractionTask(project,  (PeakListBlankSubstractionParameters) parameters);
+    Task task = new PeakListBlankSubtractionMasterTask(project,  (PeakListBlankSubtractionParameters) parameters);
     
     tasks.add(task);
     
