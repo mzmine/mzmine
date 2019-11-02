@@ -26,6 +26,8 @@ import java.awt.GridLayout;
 import java.awt.Stroke;
 import java.awt.Window;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -50,6 +52,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.data.xy.XYDataset;
 import com.google.common.collect.Range;
+import com.google.common.io.Files;
 import net.miginfocom.swing.MigLayout;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -71,6 +74,7 @@ import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import net.sf.mzmine.util.ColorPalettes;
+import net.sf.mzmine.util.DialogLoggerUtil;
 import net.sf.mzmine.util.files.FileAndPathUtil;
 import net.sf.mzmine.util.io.TxtWriter;
 
@@ -210,8 +214,13 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     btnPickRT.addActionListener(e -> pickRetentionTimes());
     pnButtonFlow.add(btnPickRT);
     JButton btnSaveFile = new JButton("Save to file");
+    btnSaveFile.setToolTipText("Save Kovats index file");
     btnSaveFile.addActionListener(e -> saveToFile());
     pnButtonFlow.add(btnSaveFile);
+    JButton btnCombineFiles = new JButton("Combine files");
+    btnCombineFiles.setToolTipText("Select multiple Kovats index files to be combined into one");
+    btnCombineFiles.addActionListener(e -> combineFiles());
+    pnButtonFlow.add(btnCombineFiles);
 
     // add combo for raw data file
     dataFiles = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
@@ -248,6 +257,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     updateMinimumSize();
     pack();
   }
+
 
   /**
    * replace markers
@@ -321,6 +331,91 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
         logger.log(Level.WARNING, "Error while saving Kovats file to " + f.getAbsolutePath(), e);
       }
     }
+  }
+
+  /**
+   * 
+   */
+  private void combineFiles() {
+    File lastFile =
+        parameters.getParameter(KovatsIndexExtractionParameters.lastSavedFile).getValue();
+    JFileChooser chooser = new JFileChooser();
+    FileNameExtensionFilter ff = new FileNameExtensionFilter("Comma-separated values", "csv");
+    chooser.addChoosableFileFilter(ff);
+    chooser.setFileFilter(ff);
+    if (lastFile != null)
+      chooser.setSelectedFile(lastFile);
+
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    chooser.setMultiSelectionEnabled(true);
+
+    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+      File[] f = chooser.getSelectedFiles();
+      if (f == null || f.length < 2) {
+        DialogLoggerUtil.showMessageDialogForTime(MZmineCore.getDesktop().getMainWindow(),
+            "Select multiple files", "Please select multiple files for combination", 3500);
+
+        TreeMap<KovatsIndex, Double> values = new TreeMap<>();
+        // combine all
+        for (File cf : f) {
+          try {
+            List<String> lines = Files.readLines(cf, StandardCharsets.UTF_8);
+
+            for (String s : lines) {
+              String[] value = s.split(",");
+              try {
+                double time = Double.parseDouble(value[1]);
+                KovatsIndex ki = KovatsIndex.getByString(value[0]);
+                // average if already inserted
+                if (values.get(ki) != null) {
+                  time = (time + values.get(ki)) / 2.0;
+                  values.put(ki, time);
+                } else {
+                  values.put(ki, time);
+                }
+              } catch (Exception e) {
+                // this try catch only identifies value columns
+              }
+            }
+          } catch (IOException e) {
+            logger.log(Level.WARNING, "Cannot read lines of " + cf.getAbsolutePath(), e);
+          }
+        }
+        // all files are combined
+        // to values component
+        setValues(values);
+
+        // save file
+        saveToFile();
+      }
+    }
+  }
+
+  private void setValues(TreeMap<KovatsIndex, Double> values) {
+    if(values.size()<2)
+      return;
+    
+    parsedValues = values;
+    StringBuilder s = new StringBuilder();
+    int min = 100;
+    int max = 0;
+    for (Entry<KovatsIndex, Double> e : values.entrySet()) {
+      s.append(e.getKey().getShortName() + ":" + rtFormat.format(e.getValue()));
+      s.append(",");
+      
+      int c = e.getKey().getNumCarbon();
+      min = Math.min(c, min);
+      max = Math.max(c, min);
+    }
+    // set min max
+    TODO
+
+    // set selected
+    
+    
+    // set values
+    valuesComponent.setText(s.toString());
+    kovatsValuesChanged();
   }
 
   /**

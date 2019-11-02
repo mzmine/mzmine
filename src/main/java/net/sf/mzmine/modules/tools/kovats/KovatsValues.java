@@ -77,8 +77,22 @@ public class KovatsValues {
       }
     }
 
-    public static KovatsIndex getByShortName(String c) throws NumberFormatException {
+    public static KovatsIndex getByShortName(String c) {
       return getByCarbon(Integer.parseInt(c.substring(1)));
+    }
+
+    public static KovatsIndex getByString(String name) {
+      // short name?
+      if (name.length() <= 3 && name.toLowerCase().startsWith("c")) {
+        try {
+          return getByShortName(name);
+        } catch (Exception e) {
+        }
+      }
+      // else full name
+      // AlkaneName (C20)
+      String c = name.split("(")[1].split(")")[0];
+      return getByShortName(c);
     }
   }
 
