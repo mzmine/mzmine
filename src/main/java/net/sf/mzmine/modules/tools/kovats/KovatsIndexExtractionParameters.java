@@ -27,7 +27,6 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
@@ -51,7 +50,6 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   public static final StringParameter pickedKovatsValues =
       new StringParameter("Picked Kovats values", "The picked values as C10:time,C12:time ... ");
   public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
-  public static final MassListParameter massList = new MassListParameter();
   public static final DoubleParameter noiseLevel =
       new DoubleParameter("Min intensity", "Minimum intensity to recognice a peak",
           MZmineCore.getConfiguration().getIntensityFormat(), 0d);
@@ -73,7 +71,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   public KovatsIndexExtractionParameters() {
     super(new Parameter[] {lastSavedFile, pickedKovatsValues,
         // picking of peaks
-        massList, dataFiles, mzRange, rtRange, noiseLevel, ratioTopEdge,
+        dataFiles, mzRange, rtRange, noiseLevel, ratioTopEdge,
         // kovats selection
         minKovats, maxKovats, kovats //
     });

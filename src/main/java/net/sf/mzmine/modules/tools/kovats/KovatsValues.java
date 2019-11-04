@@ -91,7 +91,7 @@ public class KovatsValues {
       }
       // else full name
       // AlkaneName (C20)
-      String c = name.split("(")[1].split(")")[0];
+      String c = name.split("\\(|\\)")[1];
       return getByShortName(c);
     }
   }

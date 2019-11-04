@@ -20,8 +20,10 @@ package net.sf.mzmine.modules.tools.kovats;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Stroke;
 import java.awt.Window;
@@ -50,10 +52,19 @@ import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jfree.chart.plot.ValueMarker;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYDataset;
 import com.google.common.collect.Range;
 import com.google.common.io.Files;
 import net.miginfocom.swing.MigLayout;
+import net.sf.mzmine.chartbasics.gestures.ChartGesture;
+import net.sf.mzmine.chartbasics.gestures.ChartGesture.Button;
+import net.sf.mzmine.chartbasics.gestures.ChartGesture.Entity;
+import net.sf.mzmine.chartbasics.gestures.ChartGesture.Event;
+import net.sf.mzmine.chartbasics.gestures.ChartGesture.Key;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffEvent;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureDragDiffHandler;
+import net.sf.mzmine.chartbasics.gestures.ChartGestureHandler;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
@@ -66,7 +77,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.parametertypes.DoubleComponent;
 import net.sf.mzmine.parameters.parametertypes.IntegerComponent;
-import net.sf.mzmine.parameters.parametertypes.MassListComponent;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceComponent;
 import net.sf.mzmine.parameters.parametertypes.StringComponent;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
@@ -86,7 +96,6 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   private static final Stroke markerStroke = new BasicStroke(1.5f);
   public static final int MIN_MARKERS = 3;
 
-  private ParameterSet parameters;
   private Window parent;
   private JPanel newMainPanel;
   private JPanel pnChart;
@@ -100,12 +109,18 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
 
   private String pickedValuesString;
-  private TreeMap<KovatsIndex, Double> parsedValues = new TreeMap<>();
+  private TreeMap<KovatsIndex, Double> parsedValues;
   private double noiseLevel = 0;
   private double ratioEdge = 2;
   private RawDataFile[] dataFiles;
   private JComboBox<RawDataFile> comboDataFileName;
   private RawDataFile selectedDataFile;
+  private IntegerComponent minc;
+  private IntegerComponent maxc;
+  private DelayedDocumentListener ddlKovats;
+  private MultiChoiceComponent comboKovats;
+  private List<ValueMarker> markers;
+  private ValueMarker currentlyDraggedMarker;
 
   /**
    * 
@@ -122,7 +137,6 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   public KovatsIndexExtractionDialog(Window parent, ParameterSet parameters) {
     super(parent, false, parameters);
     this.parent = parent;
-    this.parameters = parameters;
   }
 
 
@@ -133,8 +147,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     mainPanel.removeAll();
     mainPanel.getParent().remove(mainPanel);
 
-    DelayedDocumentListener ddlKovats = new DelayedDocumentListener(e -> updateKovatsList());
-    DelayedDocumentListener ddlPeakPick = new DelayedDocumentListener(e -> updateChart());
+    ddlKovats = new DelayedDocumentListener(e -> updateKovatsList());
+    DelayedDocumentListener ddlUpdateChart = new DelayedDocumentListener(e -> updateChart());
 
 
     newMainPanel = new JPanel(new MigLayout("fill", "[right][grow,fill]", ""));
@@ -146,8 +160,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     pnCenter.add(pnChart, BorderLayout.CENTER);
 
     Box sizedummy = new Box(BoxLayout.X_AXIS);
-    sizedummy.setMinimumSize(new Dimension(200, 600));
-    sizedummy.setPreferredSize(new Dimension(200, 600));
+    sizedummy.setMinimumSize(new Dimension(200, 450));
+    sizedummy.setPreferredSize(new Dimension(200, 450));
     pnChart.add(sizedummy, BorderLayout.CENTER);
 
     // left: Kovats: min max and list
@@ -157,10 +171,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     // add min max
     JPanel pnKovatsParam = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
     west.add(pnKovatsParam, BorderLayout.NORTH);
-    IntegerComponent minc =
-        (IntegerComponent) getComponentForParameter(KovatsIndexExtractionParameters.minKovats);
-    IntegerComponent maxc =
-        (IntegerComponent) getComponentForParameter(KovatsIndexExtractionParameters.maxKovats);
+    minc = (IntegerComponent) getComponentForParameter(KovatsIndexExtractionParameters.minKovats);
+    maxc = (IntegerComponent) getComponentForParameter(KovatsIndexExtractionParameters.maxKovats);
     minc.addDocumentListener(ddlKovats);
     maxc.addDocumentListener(ddlKovats);
 
@@ -172,10 +184,10 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     // kovats list
     JPanel pnKovatsSelect = new JPanel(new BorderLayout());
     west.add(pnKovatsSelect, BorderLayout.CENTER);
-    MultiChoiceComponent kovatsc =
+    comboKovats =
         (MultiChoiceComponent) getComponentForParameter(KovatsIndexExtractionParameters.kovats);
-    kovatsc.addValueChangeListener(() -> handleKovatsSelectionChange());
-    pnKovatsSelect.add(kovatsc, BorderLayout.CENTER);
+    comboKovats.addValueChangeListener(() -> handleKovatsSelectionChange());
+    pnKovatsSelect.add(comboKovats, BorderLayout.CENTER);
 
     // center: Chart and parameters
     JPanel center = new JPanel(new BorderLayout());
@@ -190,8 +202,6 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     valuesComponent = (StringComponent) getComponentForParameter(
         KovatsIndexExtractionParameters.pickedKovatsValues);
-    MassListComponent massc =
-        (MassListComponent) getComponentForParameter(KovatsIndexExtractionParameters.massList);
     MZRangeComponent mzc =
         (MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange);
     RTRangeComponent rtc =
@@ -217,6 +227,10 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     btnSaveFile.setToolTipText("Save Kovats index file");
     btnSaveFile.addActionListener(e -> saveToFile());
     pnButtonFlow.add(btnSaveFile);
+    JButton btnLoad = new JButton("Load");
+    btnLoad.setToolTipText("Load Kovats index file");
+    btnLoad.addActionListener(e -> loadFile());
+    pnButtonFlow.add(btnLoad);
     JButton btnCombineFiles = new JButton("Combine files");
     btnCombineFiles.setToolTipText("Select multiple Kovats index files to be combined into one");
     btnCombineFiles.addActionListener(e -> combineFiles());
@@ -232,14 +246,12 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       selectedDataFile = dataFiles[0];
 
     comboDataFileName = new JComboBox<RawDataFile>(dataFiles);
-    if (selectedDataFile != null)
+    if (selectedDataFile != null) {
       comboDataFileName.setSelectedItem(selectedDataFile);
-    comboDataFileName.addItemListener(e -> updateChart());
+    }
 
     pnPeakPick.add(new JLabel("Raw data file"), "cell 0 1");
     pnPeakPick.add(comboDataFileName);
-    pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.massList.getName()), "cell 0 2");
-    pnPeakPick.add(massc);
     pnPeakPick.add(new JLabel("m/z range"), "cell 0 3");
     pnPeakPick.add(mzc);
     pnPeakPick.add(new JLabel(KovatsIndexExtractionParameters.rtRange.getName()), "cell 0 4");
@@ -250,14 +262,73 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     pnPeakPick.add(edgeRatioC);
 
     // add listeners
-
+    comboDataFileName.addItemListener(e -> updateChart());
+    mzc.addDocumentListener(ddlUpdateChart);
+    rtc.addDocumentListener(ddlUpdateChart);
 
     // show
     revalidate();
     updateMinimumSize();
     pack();
+    updateChart();
   }
 
+
+  /**
+   * 
+   * @return number of loaded files
+   */
+  private int loadFile() {
+    File lastFile =
+        parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).getValue();
+    JFileChooser chooser = new JFileChooser();
+    FileNameExtensionFilter ff = new FileNameExtensionFilter("Comma-separated values", "csv");
+    chooser.addChoosableFileFilter(ff);
+    chooser.setFileFilter(ff);
+    if (lastFile != null)
+      chooser.setSelectedFile(lastFile);
+
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    chooser.setMultiSelectionEnabled(true);
+
+    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+      File[] f = chooser.getSelectedFiles();
+
+      TreeMap<KovatsIndex, Double> values = new TreeMap<>();
+      // combine all
+      for (File cf : f) {
+        try {
+          List<String> lines = Files.readLines(cf, StandardCharsets.UTF_8);
+
+          for (String s : lines) {
+            String[] value = s.split(",");
+            try {
+              double time = Double.parseDouble(value[1]);
+              KovatsIndex ki = KovatsIndex.getByString(value[0]);
+              // average if already inserted
+              if (values.get(ki) != null) {
+                time = (time + values.get(ki)) / 2.0;
+                values.put(ki, time);
+              } else {
+                values.put(ki, time);
+              }
+            } catch (Exception e) {
+              // this try catch only identifies value columns
+            }
+          }
+          // set last file
+          parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(cf);
+        } catch (IOException e) {
+          logger.log(Level.WARNING, "Cannot read lines of " + cf.getAbsolutePath(), e);
+        }
+      }
+      // all files are combined
+      // to values component
+      setValues(values);
+      return f.length;
+    }
+    return 0;
+  }
 
   /**
    * replace markers
@@ -267,13 +338,21 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     if (parseValues() && chart != null) {
       //
       chart.getChart().getXYPlot().clearDomainMarkers();
+      if (markers == null)
+        markers = new ArrayList<>();
+      else
+        markers.clear();
 
       for (Entry<KovatsIndex, Double> e : parsedValues.entrySet()) {
         ValueMarker marker = new ValueMarker(e.getValue(),
             ColorPalettes.getPositiveColor(MZmineCore.getConfiguration().getColorVision()),
             markerStroke);
+        marker.setLabelOffset(new RectangleInsets(10, 0, 0, 0));
+        marker.setLabelFont(new Font("Arial", Font.PLAIN, 12));
+        marker.setLabelBackgroundColor(Color.WHITE);
         marker.setLabel(e.getKey().getShortName());
         chart.getChart().getXYPlot().addDomainMarker(marker);
+        markers.add(marker);
       }
 
       revalidate();
@@ -283,6 +362,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
   private boolean parseValues() {
     updateParameterSetFromComponents();
+    if (parsedValues == null)
+      parsedValues = new TreeMap<>();
     parsedValues.clear();
     try {
       String[] entries = pickedValuesString.split(",");
@@ -310,7 +391,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     final TreeMap<KovatsIndex, Double> values = parsedValues;
 
     File lastFile =
-        parameters.getParameter(KovatsIndexExtractionParameters.lastSavedFile).getValue();
+        parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).getValue();
     JFileChooser chooser = new JFileChooser();
     FileNameExtensionFilter ff = new FileNameExtensionFilter("Comma-separated values", "csv");
     chooser.addChoosableFileFilter(ff);
@@ -320,7 +401,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
       File f = chooser.getSelectedFile();
-      parameters.getParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(f);
+      parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(f);
       f = FileAndPathUtil.getRealFilePath(f, "csv");
       try {
         // save to file in GNPS GC format
@@ -337,64 +418,20 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
    * 
    */
   private void combineFiles() {
-    File lastFile =
-        parameters.getParameter(KovatsIndexExtractionParameters.lastSavedFile).getValue();
-    JFileChooser chooser = new JFileChooser();
-    FileNameExtensionFilter ff = new FileNameExtensionFilter("Comma-separated values", "csv");
-    chooser.addChoosableFileFilter(ff);
-    chooser.setFileFilter(ff);
-    if (lastFile != null)
-      chooser.setSelectedFile(lastFile);
-
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    chooser.setMultiSelectionEnabled(true);
-
-    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-      File[] f = chooser.getSelectedFiles();
-      if (f == null || f.length < 2) {
-        DialogLoggerUtil.showMessageDialogForTime(MZmineCore.getDesktop().getMainWindow(),
-            "Select multiple files", "Please select multiple files for combination", 3500);
-
-        TreeMap<KovatsIndex, Double> values = new TreeMap<>();
-        // combine all
-        for (File cf : f) {
-          try {
-            List<String> lines = Files.readLines(cf, StandardCharsets.UTF_8);
-
-            for (String s : lines) {
-              String[] value = s.split(",");
-              try {
-                double time = Double.parseDouble(value[1]);
-                KovatsIndex ki = KovatsIndex.getByString(value[0]);
-                // average if already inserted
-                if (values.get(ki) != null) {
-                  time = (time + values.get(ki)) / 2.0;
-                  values.put(ki, time);
-                } else {
-                  values.put(ki, time);
-                }
-              } catch (Exception e) {
-                // this try catch only identifies value columns
-              }
-            }
-          } catch (IOException e) {
-            logger.log(Level.WARNING, "Cannot read lines of " + cf.getAbsolutePath(), e);
-          }
-        }
-        // all files are combined
-        // to values component
-        setValues(values);
-
-        // save file
-        saveToFile();
-      }
+    // load success?
+    if (loadFile() > 1) {
+      // save file
+      saveToFile();
+    } else {
+      DialogLoggerUtil.showMessageDialogForTime(MZmineCore.getDesktop().getMainWindow(),
+          "Select multiple files", "Please select multiple files for combination", 3500);
     }
   }
 
   private void setValues(TreeMap<KovatsIndex, Double> values) {
-    if(values.size()<2)
+    if (values.size() < 2)
       return;
-    
+
     parsedValues = values;
     StringBuilder s = new StringBuilder();
     int min = 100;
@@ -402,17 +439,21 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     for (Entry<KovatsIndex, Double> e : values.entrySet()) {
       s.append(e.getKey().getShortName() + ":" + rtFormat.format(e.getValue()));
       s.append(",");
-      
+
       int c = e.getKey().getNumCarbon();
       min = Math.min(c, min);
       max = Math.max(c, min);
     }
     // set min max
-    TODO
+    ddlKovats.setActive(false);
+    minc.setText(String.valueOf(min));
+    maxc.setText(String.valueOf(max));
+    ddlKovats.setActive(true);
+    updateKovatsList();
 
     // set selected
-    
-    
+    comboKovats.setValue(values.keySet().toArray(KovatsIndex[]::new));
+
     // set values
     valuesComponent.setText(s.toString());
     kovatsValuesChanged();
@@ -446,9 +487,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       return;
     try {
       Range<Double> rangeMZ =
-          parameters.getParameter(KovatsIndexExtractionParameters.mzRange).getValue();
+          parameterSet.getParameter(KovatsIndexExtractionParameters.mzRange).getValue();
       Range<Double> rangeRT =
-          parameters.getParameter(KovatsIndexExtractionParameters.rtRange).getValue();
+          parameterSet.getParameter(KovatsIndexExtractionParameters.rtRange).getValue();
       if (rangeMZ == null) {
         rangeMZ = selectedDataFile.getDataMZRange();
         ((MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange))
@@ -468,7 +509,16 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
           new TICDataSet(selectedDataFile, scans, rangeMZ, null, TICPlotType.BASEPEAK);
       chart = new TICPlot(this);
       chart.addTICDataset(data);
-      chart.getGestureAdapter().addDebugHandler();
+
+      // add control for markers
+      chart.getGestureAdapter().addGestureHandler(new ChartGestureDragDiffHandler(Entity.PLOT,
+          Button.BUTTON1, new Key[] {Key.NONE}, e -> handleMarkerDrag(e)));
+      chart.getGestureAdapter().addGestureHandler(
+          new ChartGestureHandler(new ChartGesture(Entity.PLOT, Event.RELEASED), e -> {
+            if (chart != null)
+              chart.setMouseZoomable(true);
+            currentlyDraggedMarker = null;
+          }));
 
       kovatsValuesChanged();
       pnChart.removeAll();
@@ -477,6 +527,34 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       repaint();
     } catch (Exception e) {
       logger.log(Level.WARNING, "Peak picking parameters incorrect");
+    }
+  }
+
+  private void handleMarkerDrag(ChartGestureDragDiffEvent e) {
+    if (markers == null || markers.isEmpty())
+      return;
+
+    // dragged marker?
+    if (currentlyDraggedMarker == null) {
+      double start = e.getFirstEvent().getCoordinates().getX();
+      double minDist = Double.MAX_VALUE;
+      currentlyDraggedMarker = null;
+      for (ValueMarker m : markers) {
+        double d = Math.abs(m.getValue() - start);
+        if (d < minDist) {
+          minDist = d;
+          currentlyDraggedMarker = m;
+        }
+      }
+      if (minDist >= 0.03) {
+        currentlyDraggedMarker = null;
+        chart.setMouseZoomable(true);
+      }
+    }
+
+    if (currentlyDraggedMarker != null) {
+      chart.setMouseZoomable(false);
+      currentlyDraggedMarker.setValue(e.getLatestEvent().getCoordinates().getX());
     }
   }
 
@@ -502,6 +580,9 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
   }
 
 
+  /**
+   * Update kuvats list min max
+   */
   private void updateKovatsList() {
     updateParameterSetFromComponents();
     try {
@@ -520,6 +601,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       kovatsc.setValue(newSelected);
       revalidate();
       repaint();
+      handleKovatsSelectionChange();
       // update parameters again
       updateParameterSetFromComponents();
     } catch (Exception e) {
@@ -528,7 +610,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
 
   /**
-   * Kovats list has changed
+   * Kovats list selection has changed
    */
   private void handleKovatsSelectionChange() {
     updateParameterSetFromComponents();

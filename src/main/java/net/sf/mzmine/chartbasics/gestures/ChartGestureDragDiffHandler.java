@@ -53,8 +53,13 @@ public class ChartGestureDragDiffHandler extends ChartGestureHandler {
   protected Orientation orient = Orientation.HORIZONTAL;
 
   public ChartGestureDragDiffHandler(ChartGesture.Entity entity, Button button, Key[] key,
+      Consumer<ChartGestureDragDiffEvent> dragDiffHandler) {
+    this(entity, button, key, new Consumer[] {dragDiffHandler});
+  }
+
+  public ChartGestureDragDiffHandler(ChartGesture.Entity entity, Button button, Key[] key,
       Consumer<ChartGestureDragDiffEvent> dragDiffHandler[]) {
-    this(entity, button, key, dragDiffHandler, null);
+    this(entity, button, key, dragDiffHandler, Orientation.HORIZONTAL);
   }
 
   public ChartGestureDragDiffHandler(ChartGesture.Entity entity, Button button, Key[] key,
