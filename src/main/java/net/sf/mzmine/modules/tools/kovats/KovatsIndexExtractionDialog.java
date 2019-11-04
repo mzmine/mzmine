@@ -79,6 +79,7 @@ import net.sf.mzmine.parameters.parametertypes.DoubleComponent;
 import net.sf.mzmine.parameters.parametertypes.IntegerComponent;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceComponent;
 import net.sf.mzmine.parameters.parametertypes.StringComponent;
+import net.sf.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeComponent;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
@@ -216,7 +217,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     pnCenter.add(valuesComponent, BorderLayout.SOUTH);
 
     JPanel pnButtonFlow = new JPanel();
-    pnPeakPick.add(pnButtonFlow, "cell 0 0 1 2");
+    pnPeakPick.add(pnButtonFlow, "cell 0 0 2 1");
     JButton btnUpdateChart = new JButton("Update chart");
     btnUpdateChart.addActionListener(e -> updateChart());
     pnButtonFlow.add(btnUpdateChart);
@@ -317,7 +318,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
             }
           }
           // set last file
-          parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(cf);
+          setLastFile(cf);
         } catch (IOException e) {
           logger.log(Level.WARNING, "Cannot read lines of " + cf.getAbsolutePath(), e);
         }
@@ -328,6 +329,12 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       return f.length;
     }
     return 0;
+  }
+
+  private void setLastFile(File f) {
+    ((FileNameComponent) getComponentForParameter(KovatsIndexExtractionParameters.lastSavedFile))
+        .setValue(f);
+    parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(f);
   }
 
   /**
@@ -401,7 +408,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
     if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
       File f = chooser.getSelectedFile();
-      parameterSet.getParameter(KovatsIndexExtractionParameters.lastSavedFile).setValue(f);
+      // set last file
+      setLastFile(f);
       f = FileAndPathUtil.getRealFilePath(f, "csv");
       try {
         // save to file in GNPS GC format
@@ -491,7 +499,8 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
       Range<Double> rangeRT =
           parameterSet.getParameter(KovatsIndexExtractionParameters.rtRange).getValue();
       if (rangeMZ == null) {
-        rangeMZ = selectedDataFile.getDataMZRange();
+        // set range to specific alkane fragment
+        rangeMZ = Range.closed(56.6, 57.5);
         ((MZRangeComponent) getComponentForParameter(KovatsIndexExtractionParameters.mzRange))
             .setValue(rangeMZ);
       }
