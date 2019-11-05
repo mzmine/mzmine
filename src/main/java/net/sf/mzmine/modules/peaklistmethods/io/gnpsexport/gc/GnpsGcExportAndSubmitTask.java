@@ -192,7 +192,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     ParameterSet mgfParam =
         MZmineCore.getConfiguration().getModuleParameters(AdapMgfExportModule.class);
     mgfParam.getParameter(AdapMgfExportParameters.FILENAME).setValue(full);
-    mgfParam.getParameter(AdapMgfExportParameters.FRACTIONAL_MZ).setValue(false);
+    mgfParam.getParameter(AdapMgfExportParameters.FRACTIONAL_MZ).setValue(true);
     mgfParam.getParameter(AdapMgfExportParameters.REPRESENTATIVE_MZ).setValue(representativeMZ);
     return new AdapMgfExportTask(mgfParam, new PeakList[] {peakList});
   }
