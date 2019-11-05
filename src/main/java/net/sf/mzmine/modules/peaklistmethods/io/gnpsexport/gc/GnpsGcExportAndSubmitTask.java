@@ -84,7 +84,7 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     this.parameters = parameters;
 
     this.peakList = parameters.getParameter(GnpsGcExportAndSubmitParameters.PEAK_LISTS).getValue()
-        .getMatchingPeakLists()[1];
+        .getMatchingPeakLists()[0];
     this.representativeMZ =
         parameters.getParameter(GnpsGcExportAndSubmitParameters.REPRESENTATIVE_MZ).getValue();
     this.peakMeasure =
