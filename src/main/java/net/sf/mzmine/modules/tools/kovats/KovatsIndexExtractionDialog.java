@@ -509,11 +509,13 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     String nl = "\n";
     // header for GNPS
     s.append("Compound_Name,RT_Query" + nl);
+    DecimalFormat f = new DecimalFormat("0.##");
 
     for (Entry<KovatsIndex, Double> e : values.entrySet()) {
       s.append(e.getKey().getCombinedName());
       s.append(",");
-      s.append(rtFormat.format(e.getValue()));
+      // expor tin seconds for GNPS GC
+      s.append(f.format(e.getValue() * 60.0));
       s.append(nl);
     }
     return s.toString();
