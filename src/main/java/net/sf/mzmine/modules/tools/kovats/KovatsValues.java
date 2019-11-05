@@ -18,6 +18,7 @@
 
 package net.sf.mzmine.modules.tools.kovats;
 
+import java.text.MessageFormat;
 import java.util.stream.IntStream;
 
 public class KovatsValues {
@@ -93,6 +94,18 @@ public class KovatsValues {
       // AlkaneName (C20)
       String c = name.split("\\(|\\)")[1];
       return getByShortName(c);
+    }
+
+    /**
+     * Formula of this alkane or of fragment ion with -H
+     * 
+     * @param subtractH
+     * @return
+     */
+    public String getFormula(boolean subtractH) {
+      int c = getNumCarbon();
+      int h = c * 2 + 2 - (subtractH ? 1 : 0);
+      return MessageFormat.format("C{0}H{1}", c, h);
     }
   }
 

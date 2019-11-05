@@ -49,7 +49,7 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
 
   public static final StringParameter pickedKovatsValues =
       new StringParameter("Picked Kovats values", "The picked values as C10:time,C12:time ... ");
-  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
+  public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 2);
   public static final DoubleParameter noiseLevel =
       new DoubleParameter("Min intensity", "Minimum intensity to recognice a peak",
           MZmineCore.getConfiguration().getIntensityFormat(), 0d);
