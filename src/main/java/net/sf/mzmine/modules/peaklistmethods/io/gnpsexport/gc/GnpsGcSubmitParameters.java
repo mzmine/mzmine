@@ -32,6 +32,7 @@ package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc;
 
 import java.awt.Window;
 import javax.swing.JButton;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.kovats.KovatsIndexExtractionDialog;
 import net.sf.mzmine.modules.tools.kovats.KovatsIndexExtractionModule;
@@ -47,6 +48,7 @@ import net.sf.mzmine.parameters.parametertypes.PasswordParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameComponent;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
+import net.sf.mzmine.util.DialogLoggerUtil;
 import net.sf.mzmine.util.ExitCode;
 
 /**
@@ -115,12 +117,20 @@ public class GnpsGcSubmitParameters extends SimpleParameterSet {
    * @param pn
    */
   private void openKovatsDialog(FileNameComponent pn) {
+    // at least one raw data file in project
+    RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    if (raw == null || raw.length <= 0) {
+      DialogLoggerUtil.showMessageDialogForTime(MZmineCore.getDesktop().getMainWindow(),
+          "No RAW data files",
+          "Cannot use Kovats extraction without raw data files in this project", 3500);
+      return;
+    }
+
     // todo open dialog
     ParameterSet param =
         MZmineCore.getConfiguration().getModuleParameters(KovatsIndexExtractionModule.class);
     KovatsIndexExtractionDialog kd =
         new KovatsIndexExtractionDialog(null, param, savedFile -> pn.setValue(savedFile));
-
     kd.setVisible(true);
   }
 }

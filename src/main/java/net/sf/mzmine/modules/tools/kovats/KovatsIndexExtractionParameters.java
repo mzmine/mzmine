@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.tools.kovats;
 
 import java.awt.Window;
 import java.text.DecimalFormat;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import net.sf.mzmine.parameters.Parameter;
@@ -33,6 +34,7 @@ import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
+import net.sf.mzmine.util.DialogLoggerUtil;
 import net.sf.mzmine.util.ExitCode;
 
 /**
@@ -81,6 +83,16 @@ public class KovatsIndexExtractionParameters extends SimpleParameterSet {
   public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
     if ((getParameters() == null) || (getParameters().length == 0))
       return ExitCode.OK;
+
+
+    // at least one raw data file in project
+    RawDataFile[] raw = MZmineCore.getProjectManager().getCurrentProject().getDataFiles();
+    if (raw == null || raw.length <= 0) {
+      DialogLoggerUtil.showMessageDialogForTime(MZmineCore.getDesktop().getMainWindow(),
+          "No RAW data files",
+          "Cannot use Kovats extraction without raw data files in this project", 3500);
+      return ExitCode.ERROR;
+    }
 
     // set choices of kovats to min max
     int min = getParameter(minKovats).getValue();
