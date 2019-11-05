@@ -268,10 +268,15 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     pnPeakPick.add(comboDataFileName2);
     // direct alkane selection < CxH2x+1 >
     JPanel pnAlkaneSelect = new JPanel();
+    Dimension dim = new Dimension(SIZE, SIZE);
     JButton btnPrevAlkane = new JButton(iconPrev);
     btnPrevAlkane.addActionListener(e -> setMzRangeByAlkane(-1));
+    btnPrevAlkane.setPreferredSize(dim);
+    btnPrevAlkane.setMaximumSize(dim);
     JButton btnNextAlkane = new JButton(iconNext);
     btnNextAlkane.addActionListener(e -> setMzRangeByAlkane(1));
+    btnNextAlkane.setPreferredSize(dim);
+    btnNextAlkane.setMaximumSize(dim);
 
     lbCurrentAlkane = new JLabel("");
     cbCurrentAlkaneSubH = new JCheckBox("-H");
