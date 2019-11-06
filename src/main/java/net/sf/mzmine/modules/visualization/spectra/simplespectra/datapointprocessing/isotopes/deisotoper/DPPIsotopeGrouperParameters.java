@@ -40,10 +40,10 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
-      "If true, then monotonically decreasing height of isotope pattern is required");
+      "If true, then monotonically decreasing height of isotope pattern is required", false);
 
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
-      "Maximum charge to consider for detecting the isotope patterns");
+      "Maximum charge to consider for detecting the isotope patterns", 1);
 
   public static final ComboParameter<String> representativeIsotope = new ComboParameter<String>(
       "Representative isotope",
@@ -51,10 +51,10 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
           + "compounds with monotonically decreasing isotope pattern, the most intense isotope\n"
           + "should be representative. For high molecular weight peptides, the lowest m/z\n"
           + "peptides, the lowest m/z isotope may be the representative.",
-      representativeIsotopeValues);
+      representativeIsotopeValues, representativeIsotopeValues[0]);
 
   public static final BooleanParameter autoRemove = new BooleanParameter("Remove non-isotopes",
-      "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.");
+      "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.", false);
   
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
       "Check if you want to display the deisotoping results in the plot. Displaying too much datasets might decrease clarity.", false);

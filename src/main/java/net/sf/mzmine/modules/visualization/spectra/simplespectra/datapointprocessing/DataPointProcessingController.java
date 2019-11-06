@@ -18,26 +18,15 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.xalan.xsltc.compiler.util.ErrorMessages;
-import org.jfree.data.xy.XYDataset;
-import com.sun.xml.bind.v2.runtime.reflect.Accessor.SetterOnlyReflection;
+import cern.colt.Arrays;
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsLabelGenerator;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -192,6 +181,14 @@ public class DataPointProcessingController {
 
       DataPointProcessingModule inst = step.getModule();
       ParameterSet parameters = step.getParameterSet();
+      
+      List<String> err = new ArrayList<>();
+      if(!parameters.checkParameterValues(err)) {
+        setResults(ProcessedDataPoint.convert(dp));
+        setStatus(ControllerStatus.CANCELED);
+        logger.warning("Not all parameters set." + Arrays.toString(err.toArray(new String[0])));
+        return;
+      }
 
       Task t = ((DataPointProcessingModule) inst).createTask(dp, parameters, plot, this,
           new TaskStatusListener() {
