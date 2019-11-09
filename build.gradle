@@ -28,6 +28,9 @@ println "OS detected as " + project.ext.osSuffix
 repositories {
     maven {
         url = "file://" + projectDir + "/src/main/lib"
+        metadataSources {
+            artifact()
+        }
     }
     maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
         url = "https://dl.bintray.com/lifs/maven/"
@@ -45,7 +48,7 @@ repositories {
         url = "https://jitpack.io"
     }
     maven {
-        url = "https://www.xypron.de/repository"
+        url = "https://www.xypron.de/repository/"
     }
 }
 
@@ -159,6 +162,8 @@ configurations.all {
   exclude group: "ch.qos.logback", module: "logback-classic"
   exclude group: "gurobi", module: "gurobi-linux64"
   exclude group: "cplex", module: "cplex"
+  // cpdetector is required by jmzml, but it is not available from any https maven repo
+  exclude group: "net.sourceforge.cpdetector", module: "cpdetector"
 }
 
 
