@@ -10,8 +10,8 @@ plugins {
 group = "io.github.mzmine"
 version = "2.52"
 description = "MZmine"
-sourceCompatibility = "12"
-targetCompatibility = "12"
+sourceCompatibility = "13"
+targetCompatibility = "13"
 defaultTasks "runtimeZip"
 
 // Check the OS
