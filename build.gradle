@@ -36,7 +36,7 @@ repositories {
         url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/"
     }
     maven {
-        url = "http://repo.maven.apache.org/maven2"
+        url = "https://repo.maven.apache.org/maven2"
     }
     maven { // For SIRIUS ID modules
         url = "https://bio.informatik.uni-jena.de/repository/libs-release-oss/"
