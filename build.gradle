@@ -151,6 +151,7 @@ dependencies {
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
     implementation "org.drjekyll:fontchooser:2.4"
     implementation "org.json:json:20190722"
+    implementation "cpdetector:cpdetector:1.0.10"
 }
 
 /* 
