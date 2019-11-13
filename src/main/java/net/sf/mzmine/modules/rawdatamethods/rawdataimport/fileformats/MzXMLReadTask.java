@@ -188,7 +188,12 @@ public class MzXMLReadTask extends AbstractTask {
          * others are optional
          */
         int scanNumber = Integer.parseInt(attrs.getValue("num"));
-        int msLevel = Integer.parseInt(attrs.getValue("msLevel"));
+        
+        // mzXML files with empty msLevel attribute do exist, so we use 1 as default
+        int msLevel = 1;
+        if (! Strings.isNullOrEmpty(attrs.getValue("msLevel")))
+          msLevel = Integer.parseInt(attrs.getValue("msLevel"));
+        
         String scanType = attrs.getValue("scanType");
         String filterLine = attrs.getValue("filterLine");
         String scanId = filterLine;
