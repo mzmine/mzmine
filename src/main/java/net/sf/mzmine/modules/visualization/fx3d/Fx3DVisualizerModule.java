@@ -27,12 +27,15 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.swing.JOptionPane;
 
+import org.apache.commons.compress.utils.Lists;
+
 import com.google.common.collect.Range;
 
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -134,11 +137,17 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
   }
 
   public static void setupNew3DVisualizer(final RawDataFile dataFile) {
-    setupNew3DVisualizer(dataFile, null, null);
+    setupNew3DVisualizer(dataFile, null, null, null);
   }
 
   public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
       final Range<Double> rtRange) {
+    setupNew3DVisualizer(dataFile, null, null, null);
+  }
+
+
+  public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range<Double> mzRange,
+      final Range<Double> rtRange, final Feature featureToShow) {
 
     final ParameterSet myParameters =
         MZmineCore.getConfiguration().getModuleParameters(Fx3DVisualizerModule.class);
@@ -149,6 +158,14 @@ public class Fx3DVisualizerModule implements MZmineRunnableModule {
     myParameters.getParameter(Fx3DVisualizerParameters.scanSelection)
         .setValue(new ScanSelection(rtRange, 1));
     myParameters.getParameter(Fx3DVisualizerParameters.mzRange).setValue(mzRange);
+    
+    List<FeatureSelection> featuresList = Lists.newArrayList();
+    if (featureToShow != null) {
+      FeatureSelection selectedFeature = new FeatureSelection(null, featureToShow, null, null);
+      featuresList.add(selectedFeature);
+    }
+    
+    myParameters.getParameter(Fx3DVisualizerParameters.features).setValue(featuresList);
     if (myParameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
         true) == ExitCode.OK) {
       myInstance.runModule(MZmineCore.getProjectManager().getCurrentProject(),
