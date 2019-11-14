@@ -510,7 +510,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
       if (showPeak != null) {
 
         Fx3DVisualizerModule.setupNew3DVisualizer(showPeak.getDataFile(), getPeakMZRange(showPeak),
-            getPeakRTRange(showPeak));
+            getPeakRTRange(showPeak), showPeak);
       }
     }
 

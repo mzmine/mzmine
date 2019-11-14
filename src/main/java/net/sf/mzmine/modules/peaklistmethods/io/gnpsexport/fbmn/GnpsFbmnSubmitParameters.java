@@ -28,7 +28,7 @@
  * Credit to the Du-Lab development team for the initial commitment to the MGF export module.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport;
+package net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -44,7 +44,7 @@ import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class GNPSSubmitParameters extends SimpleParameterSet {
+public class GnpsFbmnSubmitParameters extends SimpleParameterSet {
 
   public enum Preset {
     HIGHRES, LOWRES;
@@ -88,7 +88,7 @@ public class GNPSSubmitParameters extends SimpleParameterSet {
   public static final BooleanParameter OPEN_WEBSITE =
       new BooleanParameter("Open website", "Website of GNPS job", true);
 
-  public GNPSSubmitParameters() {
+  public GnpsFbmnSubmitParameters() {
     super(new Parameter[] {META_FILE, PRESETS, JOB_TITLE, EMAIL, USER, PASSWORD, OPEN_WEBSITE});
   }
 }
