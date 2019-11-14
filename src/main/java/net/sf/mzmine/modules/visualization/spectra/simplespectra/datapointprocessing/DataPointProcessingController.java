@@ -169,11 +169,19 @@ public class DataPointProcessingController {
       return;
     }
 
-    if (getForcedStatus() == ForcedControllerStatus.CANCEL) {
+    if (getForcedStatus() == ForcedControllerStatus.CANCEL || getStatus() == ControllerStatus.CANCELED) {
       setResults(ProcessedDataPoint.convert(dp));
       logger
           .finest("Canceled controller, not starting new tasks. Results are set to latest array.");
       setStatus(ControllerStatus.CANCELED);
+      return;
+    }
+    
+    List<String> err = new ArrayList<>();
+    if(!step.getParameterSet().checkParameterValues(err)) {
+      setResults(ProcessedDataPoint.convert(dp));
+      setStatus(ControllerStatus.CANCELED);
+      logger.warning("Not all parameters set." + Arrays.toString(err.toArray(new String[0])));
       return;
     }
 
@@ -181,14 +189,6 @@ public class DataPointProcessingController {
 
       DataPointProcessingModule inst = step.getModule();
       ParameterSet parameters = step.getParameterSet();
-      
-      List<String> err = new ArrayList<>();
-      if(!parameters.checkParameterValues(err)) {
-        setResults(ProcessedDataPoint.convert(dp));
-        setStatus(ControllerStatus.CANCELED);
-        logger.warning("Not all parameters set." + Arrays.toString(err.toArray(new String[0])));
-        return;
-      }
 
       Task t = ((DataPointProcessingModule) inst).createTask(dp, parameters, plot, this,
           new TaskStatusListener() {
@@ -249,7 +249,6 @@ public class DataPointProcessingController {
       setCurrentStep(step);
     }
   }
-
 
   /**
    * Executes the modules in the PlotModuleCombo to the plot with the given DataPoints. This will be

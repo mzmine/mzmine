@@ -40,7 +40,7 @@ public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
   public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
-      "If true, then monotonically decreasing height of isotope pattern is required", false);
+      "If true, then monotonically decreasing height of isotope pattern is required", Boolean.FALSE);
 
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
       "Maximum charge to consider for detecting the isotope patterns", 1);
