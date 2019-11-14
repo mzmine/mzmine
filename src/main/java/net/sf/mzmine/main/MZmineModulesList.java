@@ -60,11 +60,11 @@ import net.sf.mzmine.modules.peaklistmethods.identification.precursordbsearch.Pr
 import net.sf.mzmine.modules.peaklistmethods.identification.sirius.SiriusProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.LocalSpectralDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.adap.mspexport.AdapMspExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.GNPSExportAndSubmitModule;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.mgfexport.MGFExportModule;
-import net.sf.mzmine.modules.peaklistmethods.io.mspexport.MSPExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.siriusexport.SiriusExportModule;
@@ -100,6 +100,7 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.scansmoothing.ScanSmoothin
 import net.sf.mzmine.modules.rawdatamethods.merge.RawFileMergeModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass.GridMassModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.XICManualPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectionModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.msms.MsMsPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection.TargetedPeakDetectionModule;
@@ -162,6 +163,7 @@ public class MZmineModulesList {
       GridMassModule.class, ManualPeakPickerModule.class, MsMsPeakPickerModule.class,
       ScanFiltersModule.class, CropFilterModule.class, BaselineCorrectionModule.class,
       AlignScansModule.class, ScanSmoothingModule.class, SortDataFilesModule.class,
+      XICManualPickerModule.class,
 
       // Alignment
       SortPeakListsModule.class, JoinAlignerModule.class, HierarAlignerGcModule.class,
@@ -172,7 +174,7 @@ public class MZmineModulesList {
       // I/O
       CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
       SQLExportModule.class, XMLExportModule.class, MzTabImportModule.class, XMLImportModule.class,
-      MSPExportModule.class, MGFExportModule.class, GNPSExportAndSubmitModule.class,
+      AdapMspExportModule.class, AdapMgfExportModule.class, GnpsFbmnExportAndSubmitModule.class,
       SiriusExportModule.class,
 
       // Gap filling

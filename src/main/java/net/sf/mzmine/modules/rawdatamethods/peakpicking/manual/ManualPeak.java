@@ -35,7 +35,7 @@ import net.sf.mzmine.util.scans.ScanUtils;
 /**
  * This class represents a manually picked chromatographic peak.
  */
-class ManualPeak implements Feature {
+public class ManualPeak implements Feature {
 
   private SimplePeakInformation peakInfo;
 
@@ -65,7 +65,7 @@ class ManualPeak implements Feature {
   /**
    * Initializes empty peak for adding data points
    */
-  ManualPeak(RawDataFile dataFile) {
+  public ManualPeak(RawDataFile dataFile) {
     this.dataFile = dataFile;
     dataPointMap = new TreeMap<Integer, DataPoint>();
   }
@@ -170,7 +170,7 @@ class ManualPeak implements Feature {
    * @param dataPoints
    * @param rawDataPoints
    */
-  void addDatapoint(int scanNumber, DataPoint dataPoint) {
+  public void addDatapoint(int scanNumber, DataPoint dataPoint) {
 
     double rt = dataFile.getScan(scanNumber).getRetentionTime();
 
@@ -188,7 +188,7 @@ class ManualPeak implements Feature {
 
   }
 
-  void finalizePeak() {
+  public void finalizePeak() {
 
     // Trim the zero-intensity data points from the beginning and end
     while (!dataPointMap.isEmpty()) {

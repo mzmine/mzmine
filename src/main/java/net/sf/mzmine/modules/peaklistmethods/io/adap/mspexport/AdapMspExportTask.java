@@ -14,7 +14,7 @@
  * 02111-1307, USA.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.mspexport;
+package net.sf.mzmine.modules.peaklistmethods.io.adap.mspexport;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -38,7 +38,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
  */
 
 
-public class MSPExportTask extends AbstractTask {
+public class AdapMspExportTask extends AbstractTask {
 
   private static final Pattern ATTRIBUTE_NAME_PATTERN = Pattern.compile("^[\\w]+$");
 
@@ -50,26 +50,26 @@ public class MSPExportTask extends AbstractTask {
   private final String retTimeAttributeName;
   private final boolean addAnovaPValue;
   private final String anovaAttributeName;
-  private final boolean fractionalMZ;
+  private final boolean integerMZ;
   private final String roundMode;
 
-  MSPExportTask(ParameterSet parameters) {
+  AdapMspExportTask(ParameterSet parameters) {
     this.peakLists =
-        parameters.getParameter(MSPExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+        parameters.getParameter(AdapMspExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
 
-    this.fileName = parameters.getParameter(MSPExportParameters.FILENAME).getValue();
+    this.fileName = parameters.getParameter(AdapMspExportParameters.FILENAME).getValue();
 
-    this.addRetTime = parameters.getParameter(MSPExportParameters.ADD_RET_TIME).getValue();
+    this.addRetTime = parameters.getParameter(AdapMspExportParameters.ADD_RET_TIME).getValue();
     this.retTimeAttributeName =
-            parameters.getParameter(MSPExportParameters.ADD_RET_TIME).getEmbeddedParameter().getValue();
+            parameters.getParameter(AdapMspExportParameters.ADD_RET_TIME).getEmbeddedParameter().getValue();
 
-    this.addAnovaPValue = parameters.getParameter(MSPExportParameters.ADD_ANOVA_P_VALUE).getValue();
+    this.addAnovaPValue = parameters.getParameter(AdapMspExportParameters.ADD_ANOVA_P_VALUE).getValue();
     this.anovaAttributeName =
-            parameters.getParameter(MSPExportParameters.ADD_ANOVA_P_VALUE).getEmbeddedParameter().getValue();
+            parameters.getParameter(AdapMspExportParameters.ADD_ANOVA_P_VALUE).getEmbeddedParameter().getValue();
 
-    this.fractionalMZ = parameters.getParameter(MSPExportParameters.FRACTIONAL_MZ).getValue();
+    this.integerMZ = parameters.getParameter(AdapMspExportParameters.INTEGER_MZ).getValue();
 
-    this.roundMode = parameters.getParameter(MSPExportParameters.ROUND_MODE).getValue();
+    this.roundMode = parameters.getParameter(AdapMspExportParameters.INTEGER_MZ).getEmbeddedParameter().getValue();
   }
 
   public double getFinishedPercentage() {
@@ -193,7 +193,7 @@ public class MSPExportTask extends AbstractTask {
 
       DataPoint[] dataPoints = ip.getDataPoints();
 
-      if (!fractionalMZ)
+      if (integerMZ)
         dataPoints = integerDataPoints(dataPoints, roundMode);
 
       String numPeaks = Integer.toString(dataPoints.length);
@@ -201,7 +201,7 @@ public class MSPExportTask extends AbstractTask {
         writer.write("Num Peaks: " + numPeaks + newLine);
 
       for (DataPoint point : dataPoints) {
-        String line = Double.toString(point.getMZ()) + " " + Double.toString(point.getIntensity());
+        String line = point.getMZ() + " " + point.getIntensity();
         writer.write(line + newLine);
       }
 
@@ -222,11 +222,11 @@ public class MSPExportTask extends AbstractTask {
         prevIntensity = 0.0;
 
       switch (mode) {
-        case MSPExportParameters.ROUND_MODE_SUM:
+        case AdapMspExportParameters.ROUND_MODE_SUM:
           integerDataPoints.put(mz, prevIntensity + intensity);
           break;
 
-        case MSPExportParameters.ROUND_MODE_MAX:
+        case AdapMspExportParameters.ROUND_MODE_MAX:
           integerDataPoints.put(mz, Math.max(prevIntensity, intensity));
           break;
       }

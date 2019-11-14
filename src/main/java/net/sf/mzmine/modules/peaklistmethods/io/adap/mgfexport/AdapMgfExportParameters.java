@@ -14,51 +14,54 @@
  * 02111-1307, USA.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.io.mspexport;
+package net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
 
 /**
- *
+ * Exports a feature cluster to mgf. Used for GC-GNPS
+ * 
  * @author Du-Lab Team <dulab.binf@gmail.com>
  */
+public class AdapMgfExportParameters extends SimpleParameterSet {
+  /**
+   * Defines the representative m/z value for a cluster
+   * 
+   * @author Robin Schmid (robinschmid@uni-muenster.de)
+   *
+   */
+  public static enum MzMode {
+    AS_IN_FEATURE_TABLE("As in feature table"), HIGHEST_MZ("Highest m/z"), MAX_INTENSITY(
+        "Max. intensity");
 
+    private final String name;
 
-public class MSPExportParameters extends SimpleParameterSet {
+    MzMode(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
+
   public static final String ROUND_MODE_MAX = "Maximum";
   public static final String ROUND_MODE_SUM = "Sum";
 
   public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
   public static final FileNameParameter FILENAME = new FileNameParameter("Filename",
-      "Name of the output MSP file. "
+      "Name of the output MGF file. "
           + "Use pattern \"{}\" in the file name to substitute with feature list name. "
-          + "(i.e. \"blah{}blah.msp\" would become \"blahSourcePeakListNameblah.msp\"). "
+          + "(i.e. \"blah{}blah.mgf\" would become \"blahSourcePeakListNameblah.mgf\"). "
           + "If the file already exists, it will be overwritten.",
-      "msp");
-
-  public static final OptionalParameter<StringParameter> ADD_RET_TIME = new OptionalParameter<>(
-          new StringParameter("Add retention time",
-                  "If selected, each MSP record will contain the feature's retention time",
-                  "RT"), true);
-
-//  public static final BooleanParameter ADD_RET_TIME = new BooleanParameter("Add retention time",
-//          "If checked, each MSP record will contain line 'RT: retention time'", true);
-
-  public static final OptionalParameter<StringParameter> ADD_ANOVA_P_VALUE = new OptionalParameter<>(
-          new StringParameter("Add ANOVA p-value (if calculated)",
-                  "If selected, each MSP record will contain the One-way ANOVA p-value (if calculated)",
-                  "ANOVA_P_VALUE"), true);
-
-//  public static final BooleanParameter ADD_ANOVA_P_VALUE = new BooleanParameter("Add ANOVA p-value (if present)",
-//          "If checked, each MSP record will contain line 'ANOVA_P_VALUE: p-value' (if calculated)", true);
+      "mgf");
 
   public static final BooleanParameter FRACTIONAL_MZ = new BooleanParameter("Fractional m/z values",
       "If checked, write fractional m/z values", false);
@@ -67,7 +70,12 @@ public class MSPExportParameters extends SimpleParameterSet {
       "Determines how to merge intensities with the same m/z values",
       new String[] {ROUND_MODE_MAX, ROUND_MODE_SUM}, ROUND_MODE_MAX);
 
-  public MSPExportParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, ADD_RET_TIME, ADD_ANOVA_P_VALUE, FRACTIONAL_MZ, ROUND_MODE});
+  public static final ComboParameter<MzMode> REPRESENTATIVE_MZ =
+      new ComboParameter<AdapMgfExportParameters.MzMode>("Representative m/z",
+          "Choose the representative m/z of a cluster.", MzMode.values(),
+          MzMode.AS_IN_FEATURE_TABLE);
+
+  public AdapMgfExportParameters() {
+    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, FRACTIONAL_MZ, ROUND_MODE});
   }
 }

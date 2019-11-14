@@ -80,6 +80,8 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   static final Icon iconCross = createIcon("icons/btnCross.png");
   static final Icon iconNext = createIcon("icons/btnNext.png");
   static final Icon iconPrev = createIcon("icons/btnPrev.png");
+  static final Icon iconNextGrey = createIcon("icons/btnNext_grey.png");
+  static final Icon iconPrevGrey = createIcon("icons/btnPrev_grey.png");
 
   private Logger log = Logger.getLogger(this.getClass().getName());
   private final Color errorColor = Color.decode("#ffb3b3");
@@ -127,6 +129,8 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
   private Scan[] scansEntry;
   private JLabel lblAdduct;
   private JPanel pnData;
+  private JButton btnPrev;
+  private JButton btnNext;
 
   /**
    * Create the panel.
@@ -179,25 +183,32 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
 
     btnToggleUse = new JToggleButton(iconCross);
     btnToggleUse.setSelectedIcon(iconAccept);
+    btnToggleUse.setToolTipText(
+        "Export this entry (checked) or exclude from export (X). Useful when multiple ions (adducts) of the same compound are exported at once.");
     btnToggleUse.setPreferredSize(new Dimension(SIZE, SIZE));
     btnToggleUse.setMaximumSize(new Dimension(SIZE, SIZE));
     pnButtons.add(btnToggleUse, "cell 0 1,grow");
     btnToggleUse.setSelected(true);
     btnToggleUse.addItemListener(il -> applySelectionState());
 
-    JButton btnNext = new JButton(iconNext);
+    btnNext = new JButton(iconNext);
+    btnNext.setDisabledIcon(iconNextGrey);
+    btnNext.setToolTipText("Next spectrum (in respect to sorting)");
     btnNext.setPreferredSize(new Dimension(SIZE, SIZE));
     btnNext.setMaximumSize(new Dimension(SIZE, SIZE));
     btnNext.addActionListener(a -> nextScan());
     pnButtons.add(btnNext, "cell 0 2,grow");
 
-    JButton btnPrev = new JButton(iconPrev);
+    btnPrev = new JButton(iconPrev);
+    btnPrev.setDisabledIcon(iconPrevGrey);
+    btnPrev.setToolTipText("Previous spectrum (in respect to sorting)");
     btnPrev.setPreferredSize(new Dimension(SIZE, SIZE));
     btnPrev.setMaximumSize(new Dimension(SIZE, SIZE));
     btnPrev.addActionListener(a -> prevScan());
     pnButtons.add(btnPrev, "cell 0 3,grow");
 
     btnMaxTic = new JToggleButton(iconTICFalse);
+    btnMaxTic.setToolTipText("Change sorting to max TIC");
     btnMaxTic.setSelectedIcon(iconTIC);
     btnMaxTic.setPreferredSize(new Dimension(SIZE, SIZE));
     btnMaxTic.setMaximumSize(new Dimension(SIZE, SIZE));
@@ -208,6 +219,7 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     pnButtons.add(btnMaxTic, "cell 0 4,grow");
 
     btnSignals = new JToggleButton(iconSignalsFalse);
+    btnSignals.setToolTipText("Change sorting to max number of signals");
     btnSignals.setSelectedIcon(iconSignals);
     btnSignals.setPreferredSize(new Dimension(SIZE, SIZE));
     btnSignals.setMaximumSize(new Dimension(SIZE, SIZE));
@@ -241,16 +253,18 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
     pnData.add(lblChargeMz, "cell 0 2");
 
     txtCharge = new JTextField();
-    txtCharge.setToolTipText("Charge");
+    txtCharge.setToolTipText("Charge (numeric, integer)");
     txtCharge.setText("1");
     pnData.add(txtCharge, "cell 0 3,growx,aligny top");
     txtCharge.setColumns(4);
 
     txtPrecursorMZ = new JTextField();
+    txtPrecursorMZ.setToolTipText("Exact (ideally calculated) precursor m/z of this ion");
     pnData.add(txtPrecursorMZ, "cell 0 4,growx,aligny top");
     txtPrecursorMZ.setColumns(9);
 
     btnFromScan = new JButton("From scan");
+    btnFromScan.setToolTipText("Precursor m/z and charge from scan or feature");
     btnFromScan.addActionListener(e -> setMZandChargeFromScan());
     pnData.add(btnFromScan, "cell 0 5,growx");
 
@@ -325,6 +339,16 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       txtCharge.setText(String.valueOf(charge));
       txtPrecursorMZ.setText(MZmineCore.getConfiguration().getMZFormat().format(mz));
     }
+  }
+
+  /**
+   * Show the exclude from export button (check button). This button is usually hidden when only one
+   * ScanSelectPanel is shown in the {@link MSMSLibrarySubmissionWindow}
+   * 
+   * @param state linked to the visibility of the exclude button
+   */
+  public void setShowExcludeButton(boolean state) {
+    btnToggleUse.setVisible(state);
   }
 
   public PeakListRow getRow() {
@@ -528,6 +552,9 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       pnChart.add(error, BorderLayout.CENTER);
       //
     }
+    // set next and prev button enabled
+    btnPrev.setEnabled(selectedScanI - 1 >= 0);
+    btnNext.setEnabled(scans != null && selectedScanI + 1 < scans.size());
 
     revalidate();
     repaint();

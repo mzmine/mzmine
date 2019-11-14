@@ -24,8 +24,10 @@ import java.awt.Font;
 import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.AxisLocation;
@@ -76,6 +78,9 @@ public class VanKrevelenDiagramTask extends AbstractTask {
   private PeakListRow rows[];
   private PeakListRow filteredRows[];
   private String title;
+  private int displayedFeatures;
+  private int featuresWithoutFormula;
+  private int featuresWithFormulasWithoutCHO;
   private int totalSteps = 3, appliedSteps = 0;
 
   public VanKrevelenDiagramTask(ParameterSet parameters) {
@@ -88,11 +93,8 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     paintScaleStyle = parameters.getParameter(VanKrevelenDiagramParameters.paintScale).getValue();
     rows = parameters.getParameter(VanKrevelenDiagramParameters.selectedRows)
         .getMatchingRows(peakList);
-
     filteredRows = filterSelectedRows(rows);
-
     title = "Van Krevelen Diagram [" + peakList + "]";
-
   }
 
   @Override
@@ -146,13 +148,18 @@ public class VanKrevelenDiagramTask extends AbstractTask {
       frame.setBackground(Color.white);
       frame.setVisible(true);
       frame.pack();
-      setStatus(TaskStatus.FINISHED);
       logger.info("Finished creating van Krevelen diagram of " + peakList);
-
+      JOptionPane.showMessageDialog(frame, "Results summary:\n" + displayedFeatures
+          + " feature list rows are displayed in the Van Krevelen diagram.\n"
+          + featuresWithFormulasWithoutCHO
+          + " feature list rows are not displayed, because the annotated molecular formula does not contain the elements C, H, and O.\n"
+          + featuresWithoutFormula
+          + " feature list rows are not displayed, because no molecular formula was assigned.");
+      setStatus(TaskStatus.FINISHED);
     } catch (Throwable t) {
       setErrorMessage(
-          "Nothing to plot here or some peaks have other identities than sum formulas.\n"
-              + "Have you annotated your features with sum formulas?\n"
+          "Nothing to plot here or some peaks have other identities than molecular formulas.\n"
+              + "Have you annotated your features with molecular formulas?\n"
               + "You can use the feature list method \"Formula prediction\" to handle the task.");
       setStatus(TaskStatus.ERROR);
     }
@@ -324,17 +331,46 @@ public class VanKrevelenDiagramTask extends AbstractTask {
     return chart;
   }
 
-
+  /*
+   * This method removes all feature list rows, that cannot be plot in a Van Krevelen diagram
+   */
   private PeakListRow[] filterSelectedRows(PeakListRow[] selectedRows) {
     ArrayList<PeakListRow> rows = new ArrayList<PeakListRow>();
     for (PeakListRow peakListRow : selectedRows) {
       boolean hasIdentity = false;
+      boolean isFormula = false;
+      boolean hasSuitableElements = false;
+
+      // check for identity
       if (peakListRow.getPreferredPeakIdentity() != null)
         hasIdentity = true;
+
+      // check for formula
       if (hasIdentity && peakListRow.getPreferredPeakIdentity()
           .getPropertyValue(PeakIdentity.PROPERTY_FORMULA) != null) {
-        rows.add(peakListRow);
+        isFormula = true;
+      } else {
+        featuresWithoutFormula++;
       }
+
+      // check if formula is suitable for Van Krevelen diagram (needs elements C, H, and O)
+      if (isFormula) {
+        String s =
+            peakListRow.getPreferredPeakIdentity().getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+        if (s.contains("C") && s.contains("H") && s.contains("O")) {
+        hasSuitableElements = true;
+        displayedFeatures++;
+        }
+        else {
+          logger.log(Level.WARNING,
+              "Warning, " + s + " cannot be plottet in a Van_Krevelen diagram");
+          featuresWithFormulasWithoutCHO++;
+        }
+      }
+
+      // add peakListRow
+      if (hasIdentity && isFormula && hasSuitableElements)
+        rows.add(peakListRow);
     }
     if (rows.size() > 0) {
       return rows.stream().toArray(PeakListRow[]::new);

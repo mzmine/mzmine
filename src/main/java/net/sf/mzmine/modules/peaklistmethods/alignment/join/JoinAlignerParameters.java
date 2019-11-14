@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2018 The MZmine 2 Development Team
+ * Copyright 2006-2019 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -57,9 +57,14 @@ public class JoinAlignerParameters extends SimpleParameterSet {
           "If both peaks represent an isotope pattern, add isotope pattern score to match score",
           new IsotopePatternScoreParameters());
 
+  public static final OptionalModuleParameter compareSpectraSimilarity =
+      new OptionalModuleParameter("Compare spectra similarity",
+          "Compare MS1 or MS2 spectra similarity",
+          new JoinAlignerSpectraSimilarityScoreParameters());
+
   public JoinAlignerParameters() {
     super(new Parameter[] {peakLists, peakListName, MZTolerance, MZWeight, RTTolerance, RTWeight,
-        SameChargeRequired, SameIDRequired, compareIsotopePattern});
+        SameChargeRequired, SameIDRequired, compareIsotopePattern, compareSpectraSimilarity});
   }
 
 }

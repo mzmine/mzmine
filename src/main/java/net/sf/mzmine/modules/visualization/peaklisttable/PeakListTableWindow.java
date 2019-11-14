@@ -20,15 +20,17 @@ package net.sf.mzmine.modules.visualization.peaklisttable;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.print.PrinterException;
-
+import javax.annotation.Nonnull;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -42,11 +44,17 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
-
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.XICManualPickerModule;
+import net.sf.mzmine.modules.visualization.peaklisttable.table.CommonColumnType;
+import net.sf.mzmine.modules.visualization.peaklisttable.table.DataFileColumnType;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.peaklisttable.table.PeakListTableColumnModel;
@@ -54,7 +62,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 
-public class PeakListTableWindow extends JFrame implements ActionListener {
+public class PeakListTableWindow extends JFrame implements ActionListener, MouseListener {
 
   /**
    * 
@@ -111,6 +119,7 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
 
     // Build table
     table = new PeakListTable(this, parameters, peakList);
+    table.addMouseListener(this);
 
     scrollPane = new JScrollPane(table);
 
@@ -260,6 +269,46 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
         table.print(PrintMode.FIT_WIDTH);
       } catch (PrinterException e) {
         MZmineCore.getDesktop().displayException(this, e);
+      }
+    }
+  }
+
+  @Override
+  public void mouseClicked(MouseEvent e) {
+    openManualIntegrationDialog(e);
+  }
+
+  @Override
+  public void mousePressed(MouseEvent e) {}
+
+  @Override
+  public void mouseReleased(MouseEvent e) {}
+
+  @Override
+  public void mouseEntered(MouseEvent e) {}
+
+  @Override
+  public void mouseExited(MouseEvent e) {}
+
+  private void openManualIntegrationDialog(@Nonnull MouseEvent e) {
+    PeakListTableColumnModel model = (PeakListTableColumnModel) table.getColumnModel();
+    final Point clickedPoint = e.getPoint();
+    if (e.getClickCount() >= 2 && model.getSelectedColumnCount() == 1) {
+
+      // int selectedColumn = table.columnAtPoint(clickedPoint);
+      final int selectedColumn = model.getColumn(table.columnAtPoint(clickedPoint)).getModelIndex();
+      if (selectedColumn > CommonColumnType.values().length) {
+        if (model.getColumnByModelIndex(selectedColumn).getIdentifier() == DataFileColumnType.AREA) {
+          final int clickedRow = table.rowAtPoint(clickedPoint);
+
+          final RawDataFile clickedDataFile =
+              table.getPeakList().getRawDataFile((selectedColumn - CommonColumnType.values().length)
+                  / DataFileColumnType.values().length);
+
+          XICManualPickerModule.runManualDetection(clickedDataFile,
+              table.getPeakList().getRow(table.convertRowIndexToModel(clickedRow)),
+              table.getPeakList(), table);
+        }
       }
     }
   }

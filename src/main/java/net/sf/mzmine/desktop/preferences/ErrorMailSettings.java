@@ -33,16 +33,16 @@ public class ErrorMailSettings extends SimpleParameterSet {
 
   // we use the same address to send and receive emails
   public static final StringParameter eMailAddress =
-      new StringParameter("E-mail address", "Enter your e-Mail address");
+      new StringParameter("E-mail address", "Enter your e-Mail address", true);
 
   public static final PasswordParameter eMailPassword =
       new PasswordParameter("E-mail password", "Enter your e-Mail password", true);
 
   public static final StringParameter smtpHost =
-      new StringParameter("Host server smtp", "Enter host server smtp, e.g. smtp.gmail.com");
+      new StringParameter("Host server smtp", "Enter host server smtp, e.g. smtp.gmail.com", true);
 
   public static final IntegerParameter smtpPort =
-      new IntegerParameter("smtp port", "Enter smtp port, for gmail 465");
+      new IntegerParameter("smtp port", "Enter smtp port, for gmail 465",true);
 
 
   public ErrorMailSettings() {

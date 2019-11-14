@@ -18,23 +18,26 @@
 
 package net.sf.mzmine.main;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.NumberFormat;
-import java.util.List;
-import javax.annotation.Nonnull;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import net.sf.mzmine.util.ColorPalettes.Vision;
+import net.sf.mzmine.util.StringCrypter;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.text.NumberFormat;
+import java.util.List;
 
 /**
  * MZmine configuration interface
  */
 public interface MZmineConfiguration {
 
-  public static final File CONFIG_FILE = new File("conf/config.xml");
+  public static final File CONFIG_FILE = new File(System.getProperty("user.home"),".mzmine.conf");
 
   public ParameterSet getModuleParameters(Class<? extends MZmineModule> module);
 
@@ -79,4 +82,5 @@ public interface MZmineConfiguration {
    */
   public Vision getColorVision();
 
+  public StringCrypter getEncrypter();
 }
