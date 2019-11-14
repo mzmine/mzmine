@@ -230,6 +230,8 @@ public class MZmineModulesList {
 
       // Data point processing, implement DataPointProcessingModule
       DataPointProcessingManager.class, DPPMassDetectionModule.class,
-      DPPSumFormulaPredictionModule.class, DPPAnyElementIsotopeGrouperModule.class, 
-      DPPIsotopeGrouperModule.class};
+      DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
+      
+      // not ready for prime time:
+  /*DPPAnyElementIsotopeGrouperModule.class // basically working, but only for specific elements at the moment*/};
 }
