@@ -18,24 +18,37 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
-import net.sf.mzmine.datamodel.DataPoint;
+import java.text.NumberFormat;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 
-public class DPPResultsDataSet extends DataPointsDataSet {
+public class DPPIsotopicPeakResult extends DPPResult<ProcessedDataPoint> {
 
-  private static final long serialVersionUID = 1L;
-  
-  public DPPResultsDataSet(String label, ProcessedDataPoint[] mzPeaks) {
-    super(label, mzPeaks);
+  private final int charge;
+  private final String isotope;
+  private static final NumberFormat format = MZmineCore.getConfiguration().getMZFormat();
+
+  public DPPIsotopicPeakResult(ProcessedDataPoint peak, String isotope, int charge) {
+    super(peak);
+    this.isotope = isotope;
+    this.charge = charge;
   }
 
-  /**
-   * This type has to be DataPoint, else you will get class cast exceptions. Casting it later on is
-   * still possible.
-   */
-  public DataPoint[] getDataPoints() {
-    return mzPeaks;
+  public int getCharge() {
+    return charge;
   }
 
+  public String getIsotope() {
+    return isotope;
+  }
+
+  @Override
+  public String toString() {
+    return format.format(value.getMZ()) + " (" + isotope + ")";
+  }
+
+  @Override
+  public ResultType getResultType() {
+    return ResultType.ISOTOPICPEAK;
+  }
 }

@@ -18,19 +18,56 @@
 
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results;
 
+import javax.annotation.Nullable;
 import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
+
 /**
- * Used to store a detected isotope pattern in a {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}.
+ * Used to store a detected isotope pattern in a
+ * {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
  */
-public class DPPIsotopePatternResult extends DPPResult<IsotopePattern>{
+public class DPPIsotopePatternResult extends DPPResult<IsotopePattern> {
 
-  public DPPIsotopePatternResult(IsotopePattern value) {
+  private ProcessedDataPoint[] linkedDataPoints;
+  private final int charge;
+
+  public DPPIsotopePatternResult(IsotopePattern value, ProcessedDataPoint[] linkedDataPoints, int charge) {
     super(value);
+
+    if (value.getNumberOfDataPoints() == linkedDataPoints.length) {
+      this.linkedDataPoints = linkedDataPoints;
+    }
+    this.charge = charge;
+  }
+  
+  public DPPIsotopePatternResult(IsotopePattern value, int charge) {
+    super(value);
+
+    this.charge = charge;
   }
 
+  public @Nullable ProcessedDataPoint[] getLinkedDataPoints() {
+    return linkedDataPoints;
+  }
+
+  public void setLinkedDataPoints(@Nullable ProcessedDataPoint[] linkedDataPoints) {
+    this.linkedDataPoints = linkedDataPoints;
+  }
+
+  public ProcessedDataPoint getLinkedDataPoint(int i) {
+    if (linkedDataPoints != null)
+      if (i < linkedDataPoints.length)
+        return linkedDataPoints[i];
+    return null;
+  }
+  
+  public int getCharge() {
+    return charge;
+  }
+  
   @Override
   public String toString() {
     return "Isotope pattern (" + getValue().getNumberOfDataPoints() + ")";

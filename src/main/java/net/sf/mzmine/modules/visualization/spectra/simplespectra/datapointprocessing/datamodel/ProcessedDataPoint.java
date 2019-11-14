@@ -72,7 +72,10 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * 
    * @param result
    */
-  public void addResult(@Nonnull DPPResult<?> result) {
+  public synchronized void addResult(@Nonnull DPPResult<?> result) {
+    if (result == null)
+      return;
+
     if (results == null)
       results = new Vector<DPPResult<?>>();
 
@@ -84,7 +87,10 @@ public class ProcessedDataPoint extends SimpleDataPoint {
    * 
    * @param results
    */
-  public void addAllResults(@Nonnull Collection<DPPResult<?>> results) {
+  public synchronized void addAllResults(@Nonnull Collection<DPPResult<?>> results) {
+    if (results == null)
+      return;
+
     if (this.results == null)
       this.results = new Vector<DPPResult<?>>();
 
@@ -93,7 +99,10 @@ public class ProcessedDataPoint extends SimpleDataPoint {
     }
   }
 
-  public void addAllResults(@Nonnull DPPResult<?>[] result) {
+  public synchronized void addAllResults(@Nonnull DPPResult<?>[] result) {
+    if (result == null)
+      return;
+
     if (results == null)
       results = new Vector<DPPResult<?>>();
 
@@ -183,15 +192,34 @@ public class ProcessedDataPoint extends SimpleDataPoint {
     return null;
   }
 
-  public void removeResult(int i) {
+  public synchronized void removeResult(int i) {
     if (results != null)
       results.remove(i);
   }
 
-  public void removeResult(DPPResult<?> result) {
+  public synchronized void removeResult(@Nonnull DPPResult<?> result) {
+    // System.out.println(results.toString());
     if (results != null)
       results.remove(result);
+    // System.out.println(results.toString());
   }
+
+  public synchronized void removeResults(@Nonnull List<DPPResult<?>> results) {
+    if (results != null)
+      for (DPPResult<?> result : results)
+        removeResult(result);
+  }
+
+  public synchronized void removeAllResultsByType(@Nonnull DPPResult.ResultType type) {
+    List<DPPResult<?>> remove = new ArrayList<>();
+    if (results != null) {
+      for (DPPResult<?> result : results)
+        if (result.getResultType() == type)
+          remove.add(result);
+      removeResults(remove);
+    }
+  }
+
   /*
    * public boolean equals(ProcessedDataPoint p) { //TODO }
    */

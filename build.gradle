@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.mzmine"
-version = "2.52"
+version = "2.51"
 description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
