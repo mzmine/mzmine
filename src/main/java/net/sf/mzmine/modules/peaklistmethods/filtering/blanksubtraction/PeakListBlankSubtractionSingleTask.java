@@ -146,7 +146,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
    * @param list An array of peak list rows to match the target row with. Has to be sorted by
    *        ascending m/z.
    * @param mp An array of the matching parameters to use.
-   * @return The best matching row or null.
+   * @return The best matching row and the score as a MatchResult or null.
    */
   private @Nullable MatchResult getBestMachtingRow(@Nonnull PeakListRow row,
       @Nonnull PeakListRow[] list, @Nonnull MatchingParameter[] mp) {
