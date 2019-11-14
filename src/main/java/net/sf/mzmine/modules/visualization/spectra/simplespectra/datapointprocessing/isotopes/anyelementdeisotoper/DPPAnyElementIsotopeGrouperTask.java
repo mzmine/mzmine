@@ -59,7 +59,16 @@ import net.sf.mzmine.taskcontrol.TaskStatusListener;
 import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.IsotopePatternUtils;
 import net.sf.mzmine.util.IsotopePatternUtils2;
-
+/**
+ * 
+ * Currently in development. 
+ * TODO: 
+ * - handle undetected, low abundant isotopic peaks 
+ * - selection to use lowest mass/most abundant peak as reference
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
 
   private static Logger logger = Logger.getLogger(DPPAnyElementIsotopeGrouperTask.class.getName());

@@ -181,7 +181,7 @@ public class DataPointProcessingController {
     if(!step.getParameterSet().checkParameterValues(err)) {
       setResults(ProcessedDataPoint.convert(dp));
       setStatus(ControllerStatus.CANCELED);
-      logger.warning(step.getModule().getName() + " Not all parameters set." + Arrays.toString(err.toArray(new String[0])));
+      logger.warning(step.getModule().getName() + " - Not all parameters set." + Arrays.toString(err.toArray(new String[0])));
       return;
     }
 

@@ -30,10 +30,12 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
+/**
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DPPAnyElementIsotopeGrouperParameters extends SimpleParameterSet {
-
-  public static final String ChooseTopIntensity = "Most intense";
-  public static final String ChooseLowestMZ = "Lowest m/z";
 
   public static final DoubleRangeParameter mzRange = new DoubleRangeParameter("m/z range",
       "The range of m/z to scan for isotope peaks", MZmineCore.getConfiguration().getMZFormat());
