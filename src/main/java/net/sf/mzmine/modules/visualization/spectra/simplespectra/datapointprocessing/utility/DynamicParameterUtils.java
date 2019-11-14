@@ -1,3 +1,22 @@
+/*
+ * Copyright 2006-2018 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with MZmine 2; if not,
+ * write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
+ * USA
+ */
+
+
 package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.utility;
 
 import java.util.logging.Logger;
@@ -9,8 +28,14 @@ import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproces
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
 import net.sf.mzmine.util.FormulaUtils;
-import net.sf.mzmine.util.IsotopePatternUtils2;
+import net.sf.mzmine.util.IsotopePatternUtils;
 
+/**
+ * Used to calculate parameter values based on the results of data point processing modules.
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
 public class DynamicParameterUtils {
 
   private static Logger logger = Logger.getLogger(DynamicParameterUtils.class.getName());
@@ -57,7 +82,7 @@ public class DynamicParameterUtils {
       return def;
     
     ExtendedIsotopePattern pattern = (ExtendedIsotopePattern) result.getValue();
-    String form = IsotopePatternUtils2.makePatternSuggestion(pattern.getIsotopeCompositions());
+    String form = IsotopePatternUtils.makePatternSuggestion(pattern.getIsotopeCompositions());
     
     MolecularFormulaRange range = new MolecularFormulaRange();
 

@@ -21,43 +21,32 @@ package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointproce
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 import com.google.common.collect.Range;
-import org.postgresql.translation.messages_bg;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.PolarityType;
 import net.sf.mzmine.datamodel.impl.ExtendedIsotopePattern;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingController;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingTask;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopeCompositionResult;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPIsotopePatternResult;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResult.ResultType;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.results.DPPResultsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 import net.sf.mzmine.util.FormulaUtils;
-import net.sf.mzmine.util.IsotopePatternUtils2;
+import net.sf.mzmine.util.IsotopePatternUtils;
 /**
  * 
  * Currently in development. 
@@ -164,7 +153,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
         if (!mzrange.contains(dp.getMZ()))
           continue;
 
-        IsotopePatternUtils2.findIsotopicPeaks(dp, originalDataPoints, mzTolerance, pattern,
+        IsotopePatternUtils.findIsotopicPeaks(dp, originalDataPoints, mzTolerance, pattern,
             mzrange, maxCharge);
 
         processedSteps++;
@@ -180,7 +169,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
         continue;
       if(isCanceled())
         return;
-      IsotopePatternUtils2.mergeIsotopicPeakResults(dp);
+      IsotopePatternUtils.mergeIsotopicPeakResults(dp);
     }
 
     for (int x = 0; x < originalDataPoints.length; x++) {
@@ -189,7 +178,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
         continue;
       if(isCanceled())
         return;
-      IsotopePatternUtils2.convertIsotopicPeakResultsToPattern(dp, false);
+      IsotopePatternUtils.convertIsotopicPeakResultsToPattern(dp, false);
     }
 
     List<ProcessedDataPoint> results = new ArrayList<>();
