@@ -16,55 +16,49 @@
  * USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper;
+package net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.anyelementdeisotoper;
 
 import java.awt.Color;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ColorParameter;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.ranges.DoubleRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
 
-public class DPPIsotopeGrouperParameters extends SimpleParameterSet {
-  
-  public static final String ChooseTopIntensity = "Most intense";
-  public static final String ChooseLowestMZ = "Lowest m/z";
+/**
+ * 
+ * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
+ *
+ */
+public class DPPAnyElementIsotopeGrouperParameters extends SimpleParameterSet {
 
-  public static final String[] representativeIsotopeValues = {ChooseTopIntensity, ChooseLowestMZ};
-  
-//  public static final StringParameter element = new StringParameter("Element", "Element symbol of the element to deisotope for.");
-  
+  public static final DoubleRangeParameter mzRange = new DoubleRangeParameter("m/z range",
+      "The range of m/z to scan for isotope peaks", MZmineCore.getConfiguration().getMZFormat());
+
+  public static final StringParameter element =
+      new StringParameter("Element", "Element symbol of the element to deisotope for.");
+
   public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-  public static final BooleanParameter monotonicShape = new BooleanParameter("Monotonic shape",
-      "If true, then monotonically decreasing height of isotope pattern is required", Boolean.FALSE);
-
   public static final IntegerParameter maximumCharge = new IntegerParameter("Maximum charge",
-      "Maximum charge to consider for detecting the isotope patterns", 1);
-
-  public static final ComboParameter<String> representativeIsotope = new ComboParameter<String>(
-      "Representative isotope",
-      "Which peak should represent the whole isotope pattern. For small molecular weight\n"
-          + "compounds with monotonically decreasing isotope pattern, the most intense isotope\n"
-          + "should be representative. For high molecular weight peptides, the lowest m/z\n"
-          + "peptides, the lowest m/z isotope may be the representative.",
-      representativeIsotopeValues, representativeIsotopeValues[0]);
+      "Maximum charge to consider for detecting the isotope patterns");
 
   public static final BooleanParameter autoRemove = new BooleanParameter("Remove non-isotopes",
-      "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.", false);
+      "If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.");
   
   public static final BooleanParameter displayResults = new BooleanParameter("Display results",
       "Check if you want to display the deisotoping results in the plot. Displaying too much datasets might decrease clarity.", false);
   
   public static final ColorParameter datasetColor = new ColorParameter("Dataset color",
       "Set the color you want the detected isotope patterns to be displayed with.", Color.GREEN);
-  
-  public DPPIsotopeGrouperParameters() {
-    super(new Parameter[] {/*element,*/ mzTolerance, monotonicShape,
-        maximumCharge, representativeIsotope, autoRemove, displayResults, datasetColor});
-  }
-  
+
+  public DPPAnyElementIsotopeGrouperParameters() {
+    super(new Parameter[] {element, mzTolerance, mzRange, maximumCharge,
+        autoRemove, displayResults, datasetColor});
+   }
+
 }

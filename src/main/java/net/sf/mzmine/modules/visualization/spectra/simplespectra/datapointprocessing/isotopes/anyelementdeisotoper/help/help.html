@@ -1,0 +1,69 @@
+<html>
+	<head>
+		<title>SP - Isotopes - Isotopic peaks grouper</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Isotopic peaks grouper</h1>
+
+<h2>Description</h2>
+
+<p>
+This module attempts to find those peaks in a scan, which form an isotope pattern. 
+When isotope pattern is found, the information about the charge and isotope ratios is saved, and additional isotopic peaks are removed from the peak list. 
+Only the highest/lightest isotopic peak is kept. 
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+
+<dt>m/z tolerance</dt>
+<dd>Maximum distance in m/z from the expected location of a peak</dd>
+
+<dt>Monotonic shape</dt>
+<dd>If true, then monotonically decreasing height of isotope pattern is required</dd>
+
+<dt>Maximum charge</dt>
+<dd>Maximum charge to consider for detecting the isotope patterns</dd>
+
+<dt>Representative isotope</dt>
+<dd>Which peak should represent the whole isotope pattern. For small molecular weight
+          compounds with monotonically decreasing isotope pattern, the most intense isotope
+          should be representative. For high molecular weight peptides, the lowest m/z
+          peptides, the lowest m/z isotope may be the representative.</dd>
+
+<dt>Remove non-isotopes</dt>
+<dd>If checked, all peaks without an isotope pattern will not be displayed and not passed to the next module.</dd>
+
+<dt>Display results</dt>
+<dd>If enabled, the result will be displayed in the spectrum plot. If this is the last module in the processing list, the results will be displayed in any way.</dd>
+						
+<dt>Dataset color</dt>
+<dd>Select the color, the results of this module shall be displayed in.</dd>
+
+<h2>Deisotoping algorithm</h2>
+
+<p>
+Peaks in the peak list are processed in the order of decreasing height.
+For each peak, MZmine tries to find the most appropriate charge state by comparing the number of identified isotopes for each possible charge. 
+For each charge state, peaks which fit the m/z and RT distance limits are considered as isotopes.
+The charge state with the highest number of identified isotopes is selected, and the isotope pattern is generated.
+</p>
+
+<h3>Mass difference between isotopes</h3>
+
+<p>
+The difference between neighboring isotopes is a single neutron.
+The exact mass of 1 neutron is 1.008665 Da, but part of this mass is
+consumed as a binding energy to other nucleons.
+This small difference may become significant with high-resolution MS data.
+The actual mass difference between isotopes depends on the chemical formula of the molecule. 
+Since MZmine does not know the formula at the time of deisotoping, it assumes the default distance
+of ~1.0033 Da, with user-defined tolerance (the m/z tolerance parameter).
+</p>
+
+</body>
+</html>

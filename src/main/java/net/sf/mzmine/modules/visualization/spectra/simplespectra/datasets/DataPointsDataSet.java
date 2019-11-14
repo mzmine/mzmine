@@ -23,6 +23,7 @@ import java.util.List;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.datamodel.ProcessedDataPoint;
 
 /**
  * Data set for MzPeaks, used in feature detection preview
@@ -39,7 +40,6 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
   public DataPointsDataSet(String label, DataPoint mzPeaks[]) {
     this.label = label;
     this.mzPeaks = mzPeaks;
-
     // if we have some data points, remove extra zeros
     if (mzPeaks.length > 0) {
       List<DataPoint> dp = new ArrayList<>();
@@ -51,10 +51,12 @@ public class DataPointsDataSet extends AbstractXYDataset implements IntervalXYDa
             || Double.compare(mzPeaks[i + 1].getIntensity(), 0d) != 0) {
           dp.add(mzPeaks[i]);
         }
+
+        dp.add(mzPeaks[mzPeaks.length - 1]);
+        this.mzPeaks = dp.toArray(new DataPoint[0]);
       }
-      dp.add(mzPeaks[mzPeaks.length - 1]);
-      this.mzPeaks = dp.toArray(new DataPoint[0]);
     }
+
   }
 
   @Override
