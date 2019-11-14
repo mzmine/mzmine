@@ -57,7 +57,6 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.TaskStatusListener;
 import net.sf.mzmine.util.FormulaUtils;
-import net.sf.mzmine.util.IsotopePatternUtils;
 import net.sf.mzmine.util.IsotopePatternUtils2;
 /**
  * 
@@ -76,7 +75,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
   // peaks counter
   private int processedSteps = 0, totalSteps = 1;
 
-  private static NumberFormat format;
+  private NumberFormat format;
 
   // parameter values
   private MZTolerance mzTolerance;
@@ -253,7 +252,7 @@ public class DPPAnyElementIsotopeGrouperTask extends DataPointProcessingTask {
     return cleanedPatterns;
   }
 
-  private static String dataPointsToString(DataPoint[] dp) {
+  private String dataPointsToString(DataPoint[] dp) {
     String str = "";
     for (DataPoint p : dp)
       str += "(m/z = " + format.format(p.getMZ()) + "), ";

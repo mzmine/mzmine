@@ -51,7 +51,7 @@ import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
  */
 public class IsotopePatternUtils2 {
 
-  private static final Logger logger = Logger.getLogger(IsotopePatternUtils.class.getName());
+  private static final Logger logger = Logger.getLogger(IsotopePatternUtils2.class.getName());
   private static final NumberFormat format = MZmineCore.getConfiguration().getMZFormat();;
 
   /**
