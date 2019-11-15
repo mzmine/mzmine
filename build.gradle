@@ -4,11 +4,11 @@ plugins {
     id "java"
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.8"
-    id "org.beryx.runtime" version "1.7.1"
+    id "org.beryx.runtime" version "1.8.0"
 }
 
 group = "io.github.mzmine"
-version = "2.51"
+version = "2.52"
 description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
