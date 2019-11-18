@@ -193,7 +193,7 @@ public class MZmineModulesList {
       GroupMS2Module.class, DuplicateFilterModule.class, RowsFilterModule.class,
       PeakComparisonRowFilterModule.class, PeakFilterModule.class,
       PeaklistClearAnnotationsModule.class, NeutralLossFilterModule.class,
-      PeakListBlankSubtractionModule.class,
+
 
       // Normalization
       RTCalibrationModule.class, LinearNormalizerModule.class,
@@ -233,7 +233,11 @@ public class MZmineModulesList {
       // Data point processing, implement DataPointProcessingModule
       DataPointProcessingManager.class, DPPMassDetectionModule.class,
       DPPSumFormulaPredictionModule.class, DPPIsotopeGrouperModule.class
-      
+
       // not ready for prime time:
-  /*DPPAnyElementIsotopeGrouperModule.class // basically working, but only for specific elements at the moment*/};
+      /*
+       * DPPAnyElementIsotopeGrouperModule.class // basically working, but only for specific
+       * elements at the moment
+       */};
+  // PeakListBlankSubtractionModule.class,
 }
