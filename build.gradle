@@ -4,11 +4,11 @@ plugins {
     id "java"
     id "application"
     id "org.openjfx.javafxplugin" version "0.0.8"
-    id "org.beryx.runtime" version "1.7.1"
+    id "org.beryx.runtime" version "1.8.0"
 }
 
 group = "io.github.mzmine"
-version = "2.51"
+version = "2.52"
 description = "MZmine"
 sourceCompatibility = "12"
 targetCompatibility = "12"
@@ -35,7 +35,7 @@ repositories {
     maven { // For jmztab 3.0.9+ (https://github.com/PRIDE-Utilities/jmzTab)
         url = "https://dl.bintray.com/lifs/maven/"
     }
-    maven {
+    maven { // For jmzml, etc.
         url = "https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/"
     }
     maven {
@@ -52,6 +52,9 @@ repositories {
     }
     maven {
         url = "https://www.xypron.de/repository/"
+    }
+    maven { // For cpdetector
+        url = "https://nexus.nuiton.org/nexus/content/groups/releases/"
     }
 }
 
@@ -151,7 +154,6 @@ dependencies {
     implementation "org.controlsfx:controlsfx:$controlsfxVersion"
     implementation "org.drjekyll:fontchooser:2.4"
     implementation "org.json:json:20190722"
-    implementation "cpdetector:cpdetector:1.0.10"
 }
 
 /* 
@@ -167,8 +169,6 @@ configurations.all {
   exclude group: "ch.qos.logback", module: "logback-classic"
   exclude group: "gurobi", module: "gurobi-linux64"
   exclude group: "cplex", module: "cplex"
-  // cpdetector is required by jmzml, but it is not available from any https maven repo
-  exclude group: "net.sourceforge.cpdetector", module: "cpdetector"
 }
 
 
