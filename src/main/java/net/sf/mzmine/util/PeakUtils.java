@@ -19,6 +19,8 @@
 package net.sf.mzmine.util;
 
 import java.text.Format;
+import java.util.Arrays;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
@@ -28,6 +30,8 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeak;
 import net.sf.mzmine.util.scans.ScanUtils;
@@ -37,6 +41,9 @@ import net.sf.mzmine.util.scans.ScanUtils;
  * 
  */
 public class PeakUtils {
+
+  private static final PeakListRowSorter ascMzRowSorter =
+      new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending);
 
   /**
    * Common utility method to be used as Peak.toString() method in various Peak implementations
@@ -201,6 +208,7 @@ public class PeakUtils {
 
   /**
    * Integrates over a given m/z and rt range within a raw data file.
+   * 
    * @param dataFile
    * @param rtRange
    * @param mzRange
@@ -241,5 +249,69 @@ public class PeakUtils {
       return 0.0;
     }
 
+  }
+
+  /**
+   * 
+   * @param row The row.
+   * @return The average retention time range of all features contained in this peak list row across
+   *         all raw data files. Empty range (0,0) if the row is null or has no feature assigned to
+   *         it.
+   */
+  public @Nonnull static Range<Double> getPeakListRowAvgRtRange(PeakListRow row) {
+
+    if (row == null || row.getBestPeak() == null)
+      return Range.closed(0.d, 0.d);
+
+    int size = row.getPeaks().length;
+    double[] lower = new double[size];
+    double[] upper = new double[size];
+
+    Feature[] f = row.getPeaks();
+
+    for (int i = 0; i < size; i++) {
+      if (f[i] == null)
+        continue;
+
+      Range<Double> r = f[i].getRawDataPointsRTRange();
+
+      lower[i] = r.lowerEndpoint();
+      upper[i] = r.upperEndpoint();
+    }
+
+    double avgL = 0, avgU = 0;
+    for (int i = 0; i < size; i++) {
+      avgL += lower[i];
+      avgU += upper[i];
+    }
+    avgL /= size;
+    avgU /= size;
+
+    return Range.closed(avgL, avgU);
+  }
+
+  public static PeakListRow copyPeakRow(final PeakListRow row) {
+    // Copy the feature list row.
+    final PeakListRow newRow = new SimplePeakListRow(row.getID());
+    PeakUtils.copyPeakListRowProperties(row, newRow);
+
+    // Copy the peaks.
+    for (final Feature peak : row.getPeaks()) {
+      final Feature newPeak = new SimpleFeature(peak);
+      PeakUtils.copyPeakProperties(peak, newPeak);
+      newRow.addPeak(peak.getDataFile(), newPeak);
+    }
+
+    return newRow;
+  }
+
+  /**
+   * Convenience method to sort an array of PeakListRows by ascending m/z
+   * @param rows
+   * @return Array sorted by ascending m/z.
+   */
+  public static PeakListRow[] sortRowsMzAsc(PeakListRow[] rows) {
+    Arrays.sort(rows, ascMzRowSorter);
+    return rows;
   }
 }

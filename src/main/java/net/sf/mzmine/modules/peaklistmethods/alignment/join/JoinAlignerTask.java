@@ -45,7 +45,7 @@ import net.sf.mzmine.util.RangeUtils;
 import net.sf.mzmine.util.scans.similarity.SpectralSimilarity;
 import net.sf.mzmine.util.scans.similarity.SpectralSimilarityFunction;
 
-class JoinAlignerTask extends AbstractTask {
+public class JoinAlignerTask extends AbstractTask {
 
   private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -71,7 +71,7 @@ class JoinAlignerTask extends AbstractTask {
   private int msLevel;
   private String massList;
 
-  JoinAlignerTask(MZmineProject project, ParameterSet parameters) {
+  public JoinAlignerTask(MZmineProject project, ParameterSet parameters) {
 
     this.project = project;
     this.parameters = parameters;
