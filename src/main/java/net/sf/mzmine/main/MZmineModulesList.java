@@ -34,7 +34,6 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.Sammon
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot.LogratioPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.significance.SignificanceModule;
-import net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction.PeakListBlankSubtractionModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.clearannotations.PeaklistClearAnnotationsModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.groupms2.GroupMS2Module;
@@ -128,7 +127,6 @@ import net.sf.mzmine.modules.visualization.spectra.msms.MsMsVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.DataPointProcessingManager;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.identification.sumformulaprediction.DPPSumFormulaPredictionModule;
-import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.anyelementdeisotoper.DPPAnyElementIsotopeGrouperModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.deisotoper.DPPIsotopeGrouperModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.massdetection.DPPMassDetectionModule;
 import net.sf.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.customdatabase.CustomDBSpectraSearchModule;
