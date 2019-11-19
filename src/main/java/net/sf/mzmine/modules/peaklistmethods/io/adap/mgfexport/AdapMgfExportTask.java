@@ -62,9 +62,13 @@ public class AdapMgfExportTask extends AbstractTask {
   private int finishedRows = 0;
 
 
-  AdapMgfExportTask(ParameterSet parameters) {
-    this.peakLists =
-        parameters.getParameter(AdapMgfExportParameters.PEAK_LISTS).getValue().getMatchingPeakLists();
+  public AdapMgfExportTask(ParameterSet parameters) {
+    this(parameters, parameters.getParameter(AdapMgfExportParameters.PEAK_LISTS).getValue()
+        .getMatchingPeakLists());
+  }
+
+  public AdapMgfExportTask(ParameterSet parameters, PeakList[] peakLists) {
+    this.peakLists = peakLists;
     totalRows = (int) Stream.of(peakLists).map(PeakList::getRows).count();
 
     this.fileName = parameters.getParameter(AdapMgfExportParameters.FILENAME).getValue();

@@ -21,6 +21,7 @@ package net.sf.mzmine.util;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
@@ -62,7 +63,7 @@ public class DialogLoggerUtil {
    * @param message
    * @param time
    */
-  public static void showMessageDialogForTime(JFrame parent, String title, String message,
+  public static void showMessageDialogForTime(Frame parent, String title, String message,
       long time) {
     TimeDialog dialog = new TimeDialog(parent, time);
     dialog.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -134,7 +135,7 @@ public class DialogLoggerUtil {
   private static class TimeDialog extends JDialog implements Runnable {
     long time;
 
-    public TimeDialog(JFrame parent, long time) {
+    public TimeDialog(Frame parent, long time) {
       super(parent);
       this.time = time;
     }

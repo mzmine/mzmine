@@ -30,7 +30,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
-
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -45,7 +44,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
-
 import javafx.application.Platform;
 import net.sf.mzmine.desktop.impl.helpwindow.HelpWindow;
 import net.sf.mzmine.main.MZmineCore;
@@ -153,7 +151,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
    * minimal size of the dialog is set to the minimum size of the mainPanel plus a little extra, so
    * user cannot resize the dialog window smaller.
    */
-  protected void updateMinimumSize() {
+  public void updateMinimumSize() {
     Dimension panelSize = mainPanel.getMinimumSize();
     Dimension minimumSize = new Dimension(panelSize.width + 50, panelSize.height + 50);
     setMinimumSize(minimumSize);
@@ -276,6 +274,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener, Doc
   /**
    * Implementation for ActionListener interface
    */
+  @Override
   public void actionPerformed(ActionEvent ae) {
 
     Object src = ae.getSource();

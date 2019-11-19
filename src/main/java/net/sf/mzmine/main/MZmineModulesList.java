@@ -64,6 +64,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportModu
 import net.sf.mzmine.modules.peaklistmethods.io.adap.mspexport.AdapMspExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc.GnpsGcExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
@@ -108,6 +109,7 @@ import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
 import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesModule;
 import net.sf.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
+import net.sf.mzmine.modules.tools.kovats.KovatsIndexExtractionModule;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
@@ -174,7 +176,7 @@ public class MZmineModulesList {
       CSVExportModule.class, MetaboAnalystExportModule.class, MzTabExportModule.class,
       SQLExportModule.class, XMLExportModule.class, MzTabImportModule.class, XMLImportModule.class,
       AdapMspExportModule.class, AdapMgfExportModule.class, GnpsFbmnExportAndSubmitModule.class,
-      SiriusExportModule.class,
+      GnpsGcExportAndSubmitModule.class, SiriusExportModule.class,
 
       // Gap filling
       PeakFinderModule.class, MultiThreadPeakFinderModule.class, SameRangeGapFillerModule.class,
@@ -220,13 +222,14 @@ public class MZmineModulesList {
 
       // Tools
       MzRangeMassCalculatorModule.class, MzRangeFormulaCalculatorModule.class,
-      IsotopePatternPreviewModule.class, MsMsSpectraMergeModule.class,
+      IsotopePatternPreviewModule.class, KovatsIndexExtractionModule.class,
 
       // all other regular MZmineModule (not MZmineRunnableModule) NOT LISTED IN MENU
       SpectraIdentificationSpectralDatabaseModule.class, LibrarySubmitModule.class,
       CustomDBSpectraSearchModule.class, LipidSpectraSearchModule.class,
       OnlineDBSpectraSearchModule.class, SumFormulaSpectraSearchModule.class,
       ExportScansModule.class, SpectraIdentificationResultsModule.class,
+      MsMsSpectraMergeModule.class,
 
       // Data point processing, implement DataPointProcessingModule
       DataPointProcessingManager.class, DPPMassDetectionModule.class,

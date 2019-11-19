@@ -55,6 +55,8 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
   private final JButton selectAllButton;
   private final JButton selectNoneButton;
   private final JPanel buttonsPanel;
+  private boolean listenToChanges;
+  private Runnable valueChangeListener;
 
   /**
    * Create the component.
@@ -96,10 +98,13 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
     final boolean selectAll = selectAllButton.equals(src);
     if (selectAll || selectNoneButton.equals(src)) {
 
+      setListenToChanges(false);
       for (final JCheckBox ecb : checkBoxes) {
 
         ecb.setSelected(selectAll);
       }
+      setListenToChanges(true);
+      handleItemChanged();
     }
   }
 
@@ -135,7 +140,7 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
 
       selections.add(v.toString());
     }
-
+    setListenToChanges(false);
     // Set check-boxes according to selections.
     for (int i = 0; i < checkBoxes.length; i++) {
 
@@ -144,6 +149,7 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
       // only the string representation is saved to the configuration file
       checkBoxes[i].setSelected(selections.contains(choices[i].toString()));
     }
+    setListenToChanges(true);
   }
 
   /**
@@ -185,6 +191,29 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
     buttonsPanel.add(button);
     buttonsPanel.add(Box.createVerticalStrut(3));
     button.addActionListener(this);
+  }
+
+  /**
+   * Adds a value change listener
+   * 
+   * @param
+   */
+  public void addValueChangeListener(Runnable r) {
+    valueChangeListener = r;
+  }
+
+  protected void handleItemChanged() {
+    if (listenToChanges) {
+      valueChangeListener.run();
+    }
+  }
+
+  public void setListenToChanges(boolean listenToChanges) {
+    this.listenToChanges = listenToChanges;
+  }
+
+  public boolean isListenToChanges() {
+    return listenToChanges;
   }
 
   // Font for check boxes.
@@ -236,6 +265,7 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
             return MultiChoiceComponent.this.getToolTipText();
           }
         };
+        checkBox.addItemListener(e -> handleItemChanged());
         checkBox.setFont(CHECKBOX_FONT);
         checkBox.setOpaque(false);
         add(checkBox);
@@ -282,4 +312,5 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
       return false;
     }
   }
+
 }

@@ -20,9 +20,7 @@ package net.sf.mzmine.modules.tools.mzrangecalculator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.google.common.collect.Range;
-
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
@@ -66,6 +64,11 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
     if (exitCode != ExitCode.OK)
       return null;
 
+    return getMzRangeFromFormula(myParameters);
+  }
+
+  @Nullable
+  public static Range<Double> getMzRangeFromFormula(ParameterSet myParameters) {
     String formula =
         myParameters.getParameter(MzRangeFormulaCalculatorParameters.formula).getValue().trim();
     IonizationType ionType =
@@ -75,15 +78,19 @@ public class MzRangeFormulaCalculatorModule implements MZmineModule {
     Integer charge =
         myParameters.getParameter(MzRangeFormulaCalculatorParameters.charge).getValue();
 
+    return getMzRangeFromFormula(formula, ionType, mzTolerance, charge);
+  }
+
+  @Nullable
+  public static Range<Double> getMzRangeFromFormula(String formula, IonizationType ionType,
+      MZTolerance mzTolerance, Integer charge) {
     if ((formula == null) || (ionType == null) || (mzTolerance == null) || (charge == null))
       return null;
 
     String ionizedFormula = FormulaUtils.ionizeFormula(formula, ionType, charge);
     double calculatedMZ = FormulaUtils.calculateExactMass(ionizedFormula, charge) / charge;
 
-    Range<Double> mzRange = mzTolerance.getToleranceRange(calculatedMZ);
-
-    return mzRange;
+    return mzTolerance.getToleranceRange(calculatedMZ);
   }
 
 }
