@@ -64,6 +64,7 @@ import net.sf.mzmine.modules.peaklistmethods.io.adap.mgfexport.AdapMgfExportModu
 import net.sf.mzmine.modules.peaklistmethods.io.adap.mspexport.AdapMspExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnExportAndSubmitModule;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc.GnpsGcExportAndSubmitModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.MzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.mztabimport.MzTabImportModule;
@@ -108,6 +109,7 @@ import net.sf.mzmine.modules.rawdatamethods.rawdataexport.RawDataExportModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
 import net.sf.mzmine.modules.rawdatamethods.sortdatafiles.SortDataFilesModule;
 import net.sf.mzmine.modules.tools.isotopepatternpreview.IsotopePatternPreviewModule;
+import net.sf.mzmine.modules.tools.kovats.KovatsIndexExtractionModule;
 import net.sf.mzmine.modules.tools.msmsspectramerge.MsMsSpectraMergeModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeMassCalculatorModule;
@@ -197,7 +199,7 @@ public class MZmineModulesList {
       AdapMspExportModule.class, //
       AdapMgfExportModule.class, //
       GnpsFbmnExportAndSubmitModule.class, //
-      // Not finished: GnpsGcExportAndSubmitModule.class, //
+      GnpsGcExportAndSubmitModule.class, //
       SiriusExportModule.class, //
 
       // Gap filling
@@ -286,7 +288,7 @@ public class MZmineModulesList {
       MzRangeMassCalculatorModule.class, //
       MzRangeFormulaCalculatorModule.class, //
       IsotopePatternPreviewModule.class, //
-      // Not finished: KovatsIndexExtractionModule.class,
+      KovatsIndexExtractionModule.class, //
 
       // all other regular MZmineModule (not MZmineRunnableModule) NOT LISTED IN MENU
       SpectraIdentificationSpectralDatabaseModule.class, //
