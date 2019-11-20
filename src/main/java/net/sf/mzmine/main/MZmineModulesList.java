@@ -34,7 +34,6 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.Sammon
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot.LogratioPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.significance.SignificanceModule;
-import net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction.PeakListBlankSubtractionModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.clearannotations.PeaklistClearAnnotationsModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.groupms2.GroupMS2Module;
@@ -309,6 +308,6 @@ public class MZmineModulesList {
       // not ready for prime time:
       // DPPAnyElementIsotopeGrouperModule.class basically working, but only for specific elements
       // at the moment
-       PeakListBlankSubtractionModule.class
+//       PeakListBlankSubtractionModule.class
   };
 }
