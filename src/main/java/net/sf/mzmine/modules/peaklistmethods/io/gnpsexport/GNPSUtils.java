@@ -39,6 +39,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnSubmitParameters;
+import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc.GnpsGcSubmitParameters;
 import net.sf.mzmine.util.files.FileAndPathUtil;
 
 /**
@@ -190,15 +191,15 @@ public class GNPSUtils {
   }
 
 
-  // /**
-  // * GNPS-GC-MS workflow: Direct submission
-  // *
-  // * @param fileName
-  // * @param param
-  // * @return
-  // */
-  // public static String submitGcJob(File fileName, GnpsGcSubmitParameters param) {
-  // // TODO Auto-generated method stub
-  // return null;
-  // }
+  /**
+   * GNPS-GC-MS workflow: Direct submission
+   *
+   * @param fileName
+   * @param param
+   * @return
+   */
+  public static String submitGcJob(File fileName, GnpsGcSubmitParameters param) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

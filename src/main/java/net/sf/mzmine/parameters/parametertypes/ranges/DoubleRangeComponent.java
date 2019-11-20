@@ -21,13 +21,11 @@ package net.sf.mzmine.parameters.parametertypes.ranges;
 import java.awt.GridBagConstraints;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
-
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-
-import net.sf.mzmine.util.components.GridBagPanel;
-
 import com.google.common.collect.Range;
+import net.sf.mzmine.framework.listener.DelayedDocumentListener;
+import net.sf.mzmine.util.components.GridBagPanel;
 
 public class DoubleRangeComponent extends GridBagPanel {
 
@@ -94,5 +92,15 @@ public class DoubleRangeComponent extends GridBagPanel {
     super.setEnabled(enabled);
     minTxtField.setEnabled(enabled);
     maxTxtField.setEnabled(enabled);
+  }
+
+  /**
+   * Listens to changes
+   * 
+   * @param list
+   */
+  public void addDocumentListener(DelayedDocumentListener list) {
+    minTxtField.getDocument().addDocumentListener(list);
+    maxTxtField.getDocument().addDocumentListener(list);
   }
 }
