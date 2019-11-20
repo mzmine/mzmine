@@ -33,9 +33,10 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class PeakListBlankSubtractionModule implements MZmineRunnableModule {
 
+  public static final String MODULE_NAME = "Peak list blank subtraction";
   @Override
   public String getName() {
-    return "Peak list blank subtraction";
+    return MODULE_NAME;
   }
 
   @Override

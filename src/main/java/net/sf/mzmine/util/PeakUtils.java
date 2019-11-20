@@ -290,6 +290,11 @@ public class PeakUtils {
     return Range.closed(avgL, avgU);
   }
 
+  /**
+   * Creates a copy of a PeakListRow.
+   * @param row A row.
+   * @return A copy of row.
+   */
   public static PeakListRow copyPeakRow(final PeakListRow row) {
     // Copy the feature list row.
     final PeakListRow newRow = new SimplePeakListRow(row.getID());
@@ -303,6 +308,21 @@ public class PeakUtils {
     }
 
     return newRow;
+  }
+  
+  /**
+   * Creates a copy of an array of PeakListRows.
+   * @param rows The rows to be copied.
+   * @return A copy of rows.
+   */
+  public static PeakListRow[] copyPeakRows(final PeakListRow[] rows) {
+    PeakListRow[] newRows = new PeakListRow[rows.length];
+    
+    for(int i = 0; i < newRows.length; i++) {
+      newRows[i] = copyPeakRow(rows[i]);
+    }
+    
+    return newRows;
   }
 
   /**
