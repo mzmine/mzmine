@@ -21,23 +21,18 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
-import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction.PeakListBlankSubtractionMasterTask.MatchingParameter;
-import net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction.PeakListBlankSubtractionMasterTask.SubtractionType;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.PeakUtils;
 
 /**
  * 
@@ -53,51 +48,49 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
   private static Logger logger =
       Logger.getLogger(PeakListBlankSubtractionSingleTask.class.getName());
 
-  private MZmineProject project;
   private PeakListBlankSubtractionParameters parameters;
 
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
+  private boolean checkFoldChange;
   private double foldChange;
+  private int minBlankDetections;
 
-  private PeakList peakList;
-  private PeakListRow[] alignedBlank;
+  private PeakList alignedFeatureList;
+  private PeakListRow[] alignedFeatureRows;
+  private RawDataFile[] blankRaws;
+  private RawDataFile thisRaw;
 
   private int finishedRows, totalRows;
 
-  public SubtractionType subtractionType;
-
-  public PeakListBlankSubtractionSingleTask(MZmineProject project,
-      PeakListBlankSubtractionParameters parameters, PeakList peakList,
-      PeakListRow[] alignedBlank) {
+  public PeakListBlankSubtractionSingleTask(PeakListBlankSubtractionParameters parameters,
+      RawDataFile thisRaw, PeakListRow[] rows) {
 
     mzFormat = MZmineCore.getConfiguration().getMZFormat();
     rtFormat = MZmineCore.getConfiguration().getRTFormat();
     percFormat = new DecimalFormat("0.0 %");
 
-    this.project = project;
     this.parameters = parameters;
 
-    this.mzTolerance =
-        parameters.getParameter(PeakListBlankSubtractionParameters.mzTolerance).getValue();
-    this.rtTolerance =
-        parameters.getParameter(PeakListBlankSubtractionParameters.rtTolerance).getValue();
-    this.subtractionType =
-        parameters.getParameter(PeakListBlankSubtractionParameters.subtractionType).getValue();
-    this.foldChange =
+    this.checkFoldChange =
         parameters.getParameter(PeakListBlankSubtractionParameters.foldChange).getValue();
-
-    this.alignedBlank = alignedBlank;
-    this.peakList = peakList;
+    this.foldChange = parameters.getParameter(PeakListBlankSubtractionParameters.foldChange)
+        .getEmbeddedParameter().getValue();
+    this.blankRaws = parameters.getParameter(PeakListBlankSubtractionParameters.blankRawDataFiles)
+        .getValue().getMatchingRawDataFiles();
+    this.alignedFeatureList =
+        parameters.getParameter(PeakListBlankSubtractionParameters.alignedPeakList).getValue()
+            .getMatchingPeakLists()[0];
+    this.minBlankDetections =
+        parameters.getParameter(PeakListBlankSubtractionParameters.minBlanks).getValue();
+    this.thisRaw = thisRaw;
+    this.alignedFeatureRows = rows;
 
     finishedRows = 0;
-    totalRows = peakList.getNumberOfRows();
-
+    totalRows = alignedFeatureList.getNumberOfRows();
   }
 
   @Override
   public String getTaskDescription() {
-    return "Blank subtraction for peak list " + peakList.getName();
+    return "Blank subtraction for features in " + thisRaw.getName();
   }
 
   @Override
@@ -107,125 +100,117 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
 
   @Override
   public void run() {
+    setStatus(TaskStatus.FINISHED);
+    ArrayList<PeakListRow> rows = new ArrayList<>();
 
-    MatchingParameter[] matchingParameters = new MatchingParameter[] {MatchingParameter.MZ,
-        MatchingParameter.RT, MatchingParameter.RTRANGE, MatchingParameter.FOLDCHANGE};
-
-    PeakListRow[] rows = PeakUtils.sortRowsMzAsc(peakList.getRows());
-
-    PeakList results =
-        new SimplePeakList(peakList.getName() + " sbtrctd", peakList.getRawDataFile(0));
-
-    for (PeakListRow targetRow : rows) {
-      finishedRows++;
-      if (targetRow == null)
-        continue;
-
-      MatchResult match = getBestMachtingRow(targetRow, alignedBlank, matchingParameters);
-      if (match == null || match.getScore() < 0.7) {
-        results.addRow(PeakUtils.copyPeakRow(targetRow));
+    // get the rows that contain peaks from the current raw data file
+    for (PeakListRow row : alignedFeatureRows) {
+      for (RawDataFile raw : row.getRawDataFiles()) {
+        if (raw.equals(thisRaw)) {
+          rows.add(row);
+          break;
+        }
       }
+    }
+
+    if (rows.isEmpty()) {
+      logger.info("Raw data file " + thisRaw.getName() + " did not have any features in "
+          + alignedFeatureList.getName());
+      finishedRows = 1;
+      totalRows = 1;
+      setStatus(TaskStatus.FINISHED);
+      return;
+    }
+
+    totalRows = rows.size();
+    int featuresRemoved = 0;
+
+    List<RawDataFile> blankRawsList = Arrays.asList(blankRaws);
+
+    for (PeakListRow row : rows) {
 
       if (getStatus() == TaskStatus.CANCELED)
-        break;
+        return;
+
+      if (checkFoldChange && (getIntensityIncrease(row, thisRaw, blankRaws) > foldChange)) {
+        finishedRows++;
+        continue;
+      }
+
+      int blankNum = 0;
+      for (RawDataFile raw : row.getRawDataFiles()) {
+        if (blankRawsList.contains(raw))
+          blankNum++;
+
+        if (blankNum >= minBlankDetections)
+          break;
+      }
+
+      if (blankNum >= minBlankDetections) {
+        // other threads are using the same array, so we have to do this synchronized.
+        synchronized (row) {
+          row.removePeak(thisRaw);
+          featuresRemoved++;
+        }
+      }
+
+      finishedRows++;
     }
 
-    if (results.getNumberOfRows() > 0) {
-      PeakListAppliedMethod[] methods = peakList.getAppliedMethods();
-      for (PeakListAppliedMethod m : methods)
-        results.addDescriptionOfAppliedTask(m);
-
-      results.addDescriptionOfAppliedTask(new PeakListAppliedMethod() {
-
-        @Override
-        public String getParameters() {
-          return parameters.toString();
-        }
-
-        @Override
-        public String getDescription() {
-          return "Subtracts a blank measurements peak list from another peak list.";
-        }
-      });
-      project.addPeakList(results);
-
-      logger.info("Processing of feature list " + peakList.getName() + " finished. "
-          + (peakList.getNumberOfRows() - results.getNumberOfRows()) + " features removed.");
-
-    }
-
+    logger.finest(thisRaw.getName() + " - Removed " + featuresRemoved + " features.");
     setStatus(TaskStatus.FINISHED);
   }
 
   /**
-   * Calculates a matching score for a peak list row, with a value between 0 and 1. TODO: more
-   * matching parameters
+   * Calculates the intensity increase of a sample feature compared to a blank/control sample in an
+   * aligned feature list row.
    * 
-   * @param target
-   * @param list An array of peak list rows to match the target row with. Has to be sorted by
-   *        ascending m/z.
-   * @param mp An array of the matching parameters to use.
-   * @return The best matching row and the score as a MatchResult or null.
+   * @param row The aligned feature list row.
+   * @param thisRaw The raw data file of the sample.
+   * @param blankRaws The raw data file of blanks/control samples.
+   * @return The intensity increase.
    */
-  private @Nullable MatchResult getBestMachtingRow(@Nonnull PeakListRow row,
-      @Nonnull PeakListRow[] list, @Nonnull MatchingParameter[] mp) {
-    double bestScore = 0.0;
-    PeakListRow bestMatch = null;
-    for (PeakListRow blankRow : list) {
+  private double getIntensityIncrease(PeakListRow row, RawDataFile thisRaw,
+      RawDataFile[] blankRaws) {
+    Feature thisFeature = row.getPeak(thisRaw);
+    Feature[] blankFeatures = new Feature[blankRaws.length];
 
-      // the rows are sorted by ascending mz, if the current mz of aRow is higher than the
-      // tolerance, we can stop here
-      if (mzTolerance.checkWithinTolerance(row.getAverageMZ(),
-          blankRow.getAverageMZ() - mzTolerance.getMzToleranceForMass(blankRow.getAverageMZ())))
-        break;
+    for (int i = 0; i < blankFeatures.length; i++) {
+      blankFeatures[i] = row.getPeak(blankRaws[i]);
+    }
 
-      if (!mzTolerance.checkWithinTolerance(row.getAverageMZ(), blankRow.getAverageMZ())
-          || !rtTolerance.checkWithinTolerance(row.getAverageRT(), blankRow.getAverageRT()))
+    double avgBlankIntensity = 0;
+    int validBlanks = 0;
+    for (Feature blankFeature : blankFeatures) {
+      // feature might not show up in all blanks
+      if (blankFeature == null)
         continue;
 
-      double score = getSimpleRowVsAlignedRowScores(row, blankRow, mp);
-
-      if (score > bestScore) {
-        bestMatch = blankRow;
-        bestScore = score;
-      }
-      
+      validBlanks++;
+      avgBlankIntensity += blankFeature.getHeight();
     }
+    // check for safety, but this should not happen
+    // if the feature did not exist in blanks then we return the height.
+    if (validBlanks == 0)
+      return thisFeature.getHeight();
 
-    if (bestMatch == null)
-      return null;
+    avgBlankIntensity /= validBlanks;
 
-    // we find the best match regarding all the other parameters first and then look at additional
-    // parameters like the fold change
-    for (MatchingParameter p : mp) {
-      if (p == MatchingParameter.FOLDCHANGE) {
-        if (row.getAverageArea() > (bestMatch.getAverageArea() * foldChange)) {
-          logger.info(peakList.getName() + " m/z " + row.getAverageMZ()
-              + " matches a blank row, but the intensity exceeds the fold change" 
-              + (row.getAverageArea()/bestMatch.getAverageArea()));
-          return null;
-        }
-      }
-    }
-
-    // logger.info("Best match for row " + target.getID() + " at m/z "
-    // + mzFormat.format(target.getAverageMZ()) + " - " + " row " + bestMatch.getID() + " m/z "
-    // + mzFormat.format(bestMatch.getAverageMZ()) + " rt "
-    // + rtFormat.format(bestMatch.getAverageRT()) + " score " + rtFormat.format(bestScore));
-
-    return new MatchResult(bestMatch, bestScore);
+    return (thisFeature.getHeight() / avgBlankIntensity);
   }
 
+  
   /**
    * Correlates the features by mz, rt and rt range.
+   * 
    * @param peak
    * @param aligned
    * @param mp Matching parameters to look at.
    * @return A score between 1 and 0. 1 = best, 0 = worst
    */
-  private double getSimpleRowVsAlignedRowScores(PeakListRow peak, PeakListRow aligned,
+  /*private double getSimpleRowVsAlignedRowScores(PeakListRow peak, PeakListRow aligned,
       MatchingParameter[] mp) {
-    
+
     double score = 1;
     for (MatchingParameter p : mp) {
       if (p == MatchingParameter.MZ) {
@@ -238,7 +223,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
       }
     }
     return score;
-  }
+  }*/
 
   /**
    * Returns a the deviation of mz1 from mz2.

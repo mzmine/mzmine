@@ -18,55 +18,33 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction;
 
-import net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction.PeakListBlankSubtractionMasterTask.SubtractionType;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.selectors.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.selectors.RawDataFilesParameter;
 
 public class PeakListBlankSubtractionParameters extends SimpleParameterSet {
 
-  public static final PeakListsParameter blankPeakLists =
-      new PeakListsParameter("Blank peak list(s)", 1, 100);
+  public static final PeakListsParameter alignedPeakList =
+      new PeakListsParameter("Aligned peak list", 1, 1);
 
-  public static final PeakListsParameter peakLists =
-      new PeakListsParameter("Target peak lists", 1, 1000);
-
-  public static final MZToleranceParameter mzTolerance = new MZToleranceParameter("m/z tolerance",
-      "m/z tolerance allowed to be considered the same peak.");
-
-  public static final RTToleranceParameter rtTolerance = new RTToleranceParameter("Rt tolerance",
-      "Rt tolerance allowed to be considered the same compound");
-
-  // public static final BooleanParameter createBlankList = new BooleanParameter("Show combined
-  // blank",
-  // "If checked, a new peak list, containing all peaks found within the blank measurements will be
-  // created");
-
-  public static final ComboParameter<SubtractionType> subtractionType =
-      new ComboParameter<SubtractionType>("Blank substraction type",
-          "Defines if all peaks detected in the combined blank should be sustracted, or if only peaks found"
-              + " in all blanks will be substracted.",
-          SubtractionType.values());
+  public static final RawDataFilesParameter blankRawDataFiles =
+      new RawDataFilesParameter("Blank/Control raw data files", 1, 100);
 
   public static final IntegerParameter minBlanks = new IntegerParameter(
       "Minimum # of detection in blanks",
-      "Specifies in how many of the blank files a peak has to be detected, if 'Combined' is selected "
-          + "in the 'Blank substraction type' parameter.");
+      "Specifies in how many of the blank files a peak has to be detected.");
 
-  public static final PercentParameter foldChange = new PercentParameter("Fold change increase",
+  public static final OptionalParameter<PercentParameter> foldChange = new OptionalParameter<>(new PercentParameter("Fold change increase",
       "Specifies a percentage of increase of the intensity of a feature. If the intensity in the list to be"
           + " filtered increases more than the given percentage to the blank, it will not be deleted from "
           + "the feature list.",
-      3.0, 1.0, 1E5);
+      3.0, 1.0, 1E5));
 
   public PeakListBlankSubtractionParameters() {
-    super(new Parameter[] {blankPeakLists, peakLists, mzTolerance, rtTolerance, 
-        subtractionType, minBlanks, foldChange});
+    super(new Parameter[] {alignedPeakList, blankRawDataFiles, minBlanks, foldChange});
   };
 }

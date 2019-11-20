@@ -305,10 +305,11 @@ public class MZmineModulesList {
       DataPointProcessingManager.class, //
       DPPMassDetectionModule.class, //
       DPPSumFormulaPredictionModule.class, //
-      DPPIsotopeGrouperModule.class//
+      DPPIsotopeGrouperModule.class,//
 
-      // not ready for prime time: DPPAnyElementIsotopeGrouperModule.class // basically working, but
-      // only for specific elements at the moment
-      // PeakListBlankSubtractionModule.class,
+      // not ready for prime time:
+      // DPPAnyElementIsotopeGrouperModule.class basically working, but only for specific elements
+      // at the moment
+//       PeakListBlankSubtractionModule.class
   };
 }
