@@ -90,10 +90,11 @@ public class GnpsGcExportAndSubmitTask extends AbstractTask {
     this.peakMeasure =
         parameters.getParameter(GnpsGcExportAndSubmitParameters.PEAK_INTENSITY).getValue();
     openFolder = parameters.getParameter(GnpsGcExportAndSubmitParameters.OPEN_FOLDER).getValue();
-    submit = parameters.getParameter(GnpsGcExportAndSubmitParameters.SUBMIT).getValue();
     file = parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).getValue();
     file = FileAndPathUtil.eraseFormat(file);
     parameters.getParameter(GnpsGcExportAndSubmitParameters.FILENAME).setValue(file);
+    // submit = parameters.getParameter(GnpsGcExportAndSubmitParameters.SUBMIT).getValue();
+    submit = false;
   }
 
   @Override
