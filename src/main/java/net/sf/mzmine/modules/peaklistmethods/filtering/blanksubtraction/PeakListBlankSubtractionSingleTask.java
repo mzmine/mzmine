@@ -25,24 +25,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction.PeakListBlankSubtractionMasterTask.MatchingParameter;
-import net.sf.mzmine.modules.peaklistmethods.filtering.blanksubtraction.PeakListBlankSubtractionMasterTask.SubtractionType;
-import net.sf.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import net.sf.mzmine.parameters.parametertypes.tolerances.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.PeakUtils;
 
 /**
  * 
@@ -70,8 +60,6 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
   private RawDataFile thisRaw;
 
   private int finishedRows, totalRows;
-
-  public SubtractionType subtractionType;
 
   public PeakListBlankSubtractionSingleTask(PeakListBlankSubtractionParameters parameters,
       RawDataFile thisRaw, PeakListRow[] rows) {
@@ -211,6 +199,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
     return (thisFeature.getHeight() / avgBlankIntensity);
   }
 
+  
   /**
    * Correlates the features by mz, rt and rt range.
    * 
@@ -219,7 +208,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
    * @param mp Matching parameters to look at.
    * @return A score between 1 and 0. 1 = best, 0 = worst
    */
-  private double getSimpleRowVsAlignedRowScores(PeakListRow peak, PeakListRow aligned,
+  /*private double getSimpleRowVsAlignedRowScores(PeakListRow peak, PeakListRow aligned,
       MatchingParameter[] mp) {
 
     double score = 1;
@@ -234,7 +223,7 @@ public class PeakListBlankSubtractionSingleTask extends AbstractTask {
       }
     }
     return score;
-  }
+  }*/
 
   /**
    * Returns a the deviation of mz1 from mz2.
