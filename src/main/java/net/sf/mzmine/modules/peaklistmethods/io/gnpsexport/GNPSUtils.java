@@ -37,7 +37,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-import io.github.msdk.MSDKRuntimeException;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.fbmn.GnpsFbmnSubmitParameters;
 import net.sf.mzmine.modules.peaklistmethods.io.gnpsexport.gc.GnpsGcSubmitParameters;
 import net.sf.mzmine.util.files.FileAndPathUtil;
@@ -53,9 +52,9 @@ public class GNPSUtils {
   private static final Logger LOG = Logger.getLogger(GNPSUtils.class.getName());
 
   public static final String FBMN_SUBMIT_SITE =
-      "http://dorresteinappshub.ucsd.edu:5050/uploadanalyzefeaturenetworking";
+      "https://gnps-quickstart.ucsd.edu/uploadanalyzefeaturenetworking";
   public static final String GC_SUBMIT_SITE =
-      "http://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
+      "https://gnps-quickstart.ucsd.edu/uploadanalyzegcnetworking";
 
   /**
    * Submit feature-based molecular networking (FBMN) job to GNPS
@@ -64,8 +63,7 @@ public class GNPSUtils {
    * @param param
    * @return
    */
-  public static String submitFbmnJob(File file, GnpsFbmnSubmitParameters param)
-      throws MSDKRuntimeException {
+  public static String submitFbmnJob(File file, GnpsFbmnSubmitParameters param) throws IOException {
     // optional
     boolean useMeta = param.getParameter(GnpsFbmnSubmitParameters.META_FILE).getValue();
     boolean openWebsite = param.getParameter(GnpsFbmnSubmitParameters.OPEN_WEBSITE).getValue();
@@ -103,68 +101,59 @@ public class GNPSUtils {
    */
   public static String submitFbmnJob(File mgf, File quan, File meta, File[] additionalEdges,
       String title, String email, String username, String password, String presets,
-      boolean openWebsite) throws MSDKRuntimeException {
-    try {
-      // NEEDED files
-      if (mgf.exists() && quan.exists() && !presets.isEmpty()) {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+      boolean openWebsite) throws IOException {
+    // NEEDED files
+    if (mgf.exists() && quan.exists() && !presets.isEmpty()) {
+      CloseableHttpClient httpclient = HttpClients.createDefault();
+      try {
+        MultipartEntity entity = new MultipartEntity();
+
+        // ######################################################
+        // NEEDED
+        // tool, presets, quant table, mgf
+        entity.addPart("featuretool", new StringBody("MZMINE2"));
+        entity.addPart("description", new StringBody(title == null ? "" : title));
+        entity.addPart("networkingpreset", new StringBody(presets));
+        entity.addPart("featurequantification", new FileBody(quan));
+        entity.addPart("featurems2", new FileBody(mgf));
+
+        // ######################################################
+        // OPTIONAL
+        // email, meta data, additional edges
+        entity.addPart("email", new StringBody(email));
+        entity.addPart("username", new StringBody(username));
+        entity.addPart("password", new StringBody(password));
+        if (meta != null && meta.exists())
+          entity.addPart("samplemetadata", new FileBody(meta));
+
+        // add additional edges
+        if (additionalEdges != null)
+          for (File edge : additionalEdges)
+            if (edge != null && edge.exists())
+              entity.addPart("additionalpairs", new FileBody(edge));
+
+        HttpPost httppost = new HttpPost(FBMN_SUBMIT_SITE);
+        httppost.setEntity(entity);
+
+        LOG.info("Submitting GNPS job " + httppost.getRequestLine());
+        CloseableHttpResponse response = httpclient.execute(httppost);
         try {
-          MultipartEntity entity = new MultipartEntity();
+          LOG.info("GNPS submit response status: " + response.getStatusLine());
+          HttpEntity resEntity = response.getEntity();
+          if (resEntity != null) {
+            LOG.info("GNPS submit response content length: " + resEntity.getContentLength());
 
-          // ######################################################
-          // NEEDED
-          // tool, presets, quant table, mgf
-          entity.addPart("featuretool", new StringBody("MZMINE2"));
-          entity.addPart("description", new StringBody(title == null ? "" : title));
-          entity.addPart("networkingpreset", new StringBody(presets));
-          entity.addPart("featurequantification", new FileBody(quan));
-          entity.addPart("featurems2", new FileBody(mgf));
-
-          // ######################################################
-          // OPTIONAL
-          // email, meta data, additional edges
-          entity.addPart("email", new StringBody(email));
-          entity.addPart("username", new StringBody(username));
-          entity.addPart("password", new StringBody(password));
-          if (meta != null && meta.exists())
-            entity.addPart("samplemetadata", new FileBody(meta));
-
-          // add additional edges
-          if (additionalEdges != null)
-            for (File edge : additionalEdges)
-              if (edge != null && edge.exists())
-                entity.addPart("additionalpairs", new FileBody(edge));
-
-          // old address
-          // HttpPost httppost =
-          // new HttpPost("http://mingwangbeta.ucsd.edu:5050/uploadanalyzefeaturenetworking");
-          HttpPost httppost =
-              new HttpPost("http://dorresteinappshub.ucsd.edu:5050/uploadanalyzefeaturenetworking");
-          httppost.setEntity(entity);
-
-          LOG.info("Submitting GNPS job " + httppost.getRequestLine());
-          CloseableHttpResponse response = httpclient.execute(httppost);
-          try {
-            LOG.info("GNPS submit response status: " + response.getStatusLine());
-            HttpEntity resEntity = response.getEntity();
-            if (resEntity != null) {
-              LOG.info("GNPS submit response content length: " + resEntity.getContentLength());
-
-              // open job website
-              if (openWebsite)
-                openWebsite(resEntity);
-              EntityUtils.consume(resEntity);
-            }
-          } finally {
-            response.close();
+            // open job website
+            if (openWebsite)
+              openWebsite(resEntity);
+            EntityUtils.consume(resEntity);
           }
         } finally {
-          httpclient.close();
+          response.close();
         }
+      } finally {
+        httpclient.close();
       }
-    } catch (IOException e) {
-      LOG.log(Level.SEVERE, "Error while submitting GNPS job", e);
-      throw new MSDKRuntimeException(e);
     }
     return "";
   }

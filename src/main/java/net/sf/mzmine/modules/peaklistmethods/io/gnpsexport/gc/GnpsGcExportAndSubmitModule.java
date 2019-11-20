@@ -42,8 +42,8 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
 /**
- * Exports all files needed for GNPS feature based molecular networking (quant table (csv export)),
- * MS2 mgf, additional edges (ion identity networks)
+ * Exports all files needed for GNPS GC-MS (quant table (csv export)), mgf (ADAP mgf export)
+ * 
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
@@ -51,9 +51,9 @@ import net.sf.mzmine.util.ExitCode;
 public class GnpsGcExportAndSubmitModule implements MZmineProcessingModule {
   private final Logger LOG = Logger.getLogger(getClass().getName());
 
-  private static final String MODULE_NAME = "Export/Submit to GNPS-GC-MS (with ADAP)";
+  private static final String MODULE_NAME = "Export to GNPS-GC-MS (with ADAP)";
   private static final String MODULE_DESCRIPTION =
-      "GNPS GC-EI-MS workflow. Export the mgf, quant table and Kovats reference file (optionally). Allows to directly submit to GNPS analysis.";
+      "GNPS GC-EI-MS workflow. Export the mgf, quant table and Kovats reference file (optionally).";
 
   @Override
   public String getDescription() {

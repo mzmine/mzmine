@@ -170,7 +170,7 @@ public class GnpsFbmnExportAndSubmitTask extends AbstractTask {
     try {
       String url = GNPSUtils.submitFbmnJob(fileName, param);
       if (url == null || url.isEmpty())
-        LOG.log(Level.WARNING, "GNPS submit failed (url empty)");
+        LOG.log(Level.WARNING, "GNPS submit failed (response url empty)");
     } catch (Exception e) {
       LOG.log(Level.WARNING, "GNPS submit failed", e);
     }

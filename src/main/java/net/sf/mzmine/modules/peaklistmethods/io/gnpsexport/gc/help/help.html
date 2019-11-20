@@ -1,0 +1,53 @@
+<html>
+<head>
+    <title>Export - Export GNPS GC-MS (with ADAP)</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+<body>
+
+<h1>Export to GNPS GC-MS (with ADAP)</h1>
+
+<h2>Description</h2>
+<p>
+    The GNPS GC-MS module exports all files needed for the <strong>GC-MS</strong> workflow on the <a href="http://gnps.ucsd.edu/">GNPS web-platform</a>. 
+    This includes the <strong>feature quantification table</strong> (CSV file) and the <strong>spectral summary</strong> (.MGF file) with representative clustered GC-EI-MS spectra for the row in an (aligned) feature list.
+</p>
+
+<h2>Instructions</h2>
+<p>
+    Run this method on any (aligned) feature List. One of the spectral deconvolution methods need to be run (refer to the ADAP manual).
+</p>
+
+
+<h2>Parameters</h2>
+<dl>
+    <dt>Filename</dt>
+    <dd>Base name for the output files</dd>
+    
+    <dt>Representative m/z</dt>
+    <dd>The m/z value that is exported to the mgf and used in GNPS GC-MS (Options: As in feature table, highest m/z, heighest intensity)</dd>
+    
+    <dt>Open folder</dt>
+    <dd>Opens the folder containing the output files</dd>
+</dl>
+
+<h2>Documentation</h2>
+<p>
+    Please refer to the following documentation for a detailed tutorial:
+    <ul>    
+        <li>If you use the <em>GNPS GC-MS</em> export please cite:
+            <ul>
+                <li>our upcoming paper on GC-MS within the GNPS environment: Aksenov et al.</li>
+                <li>the ADAP paper: Smirnov et al.: <a href="https://pubs.acs.org/doi/10.1021/acs.jproteome.7b00633">J. Proteome Res 2017, DOI: 10.1021/acs.jproteome.7b00633</a></li>
+                <li>the <a href="http://gnps.ucsd.edu/">GNPS</a> paper: Wang et al.: <a href="https://www.nature.com/nbt/journal/v34/n8/full/nbt.3597.html">Nature Biotechnology 34.8 (2016): 828-837</a><a href="http://gnps.ucsd.edu/">.</a></li>
+                <li>and the MZmine paper: Pluskal et al.: <a href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-395">BMC Bioinformatics, 11, 395 (2010)</a></li>
+            </ul>
+        </li>
+        <li><a href="https://ccms-ucsd.github.io/GNPSDocumentation/gc-ms-library-molecular-network/">See the documentation</a> about GC-MS within GNPS or <a href="https://ccms-ucsd.github.io/GNPSDocumentation">GNPS</a> on how to perform molecular networking, MS/MS spectral library search, and benefit from other tools available in GNPS environment.</li>
+        <li>Or check out the <a href="https://www.youtube.com/playlist?list=PL4L2Xw5k8ITwb4TzDKTAQ1UzrkVoBYkng">youtube playlist</a> on GNPS GC-MS (and MZmine) related videos</li>
+    </ul>
+</p>
+
+</body>
+</html>

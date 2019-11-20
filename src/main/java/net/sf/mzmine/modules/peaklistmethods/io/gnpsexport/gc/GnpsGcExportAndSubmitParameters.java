@@ -69,7 +69,8 @@ public class GnpsGcExportAndSubmitParameters extends SimpleParameterSet {
 
 
   public GnpsGcExportAndSubmitParameters() {
-    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, PEAK_INTENSITY, SUBMIT,
+    super(new Parameter[] {PEAK_LISTS, FILENAME, REPRESENTATIVE_MZ, PEAK_INTENSITY,
+        // SUBMIT,
         OPEN_FOLDER});
   }
 
