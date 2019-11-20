@@ -73,7 +73,6 @@ import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.framework.listener.DelayedDocumentListener;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.ScanSelectPanel;
 import net.sf.mzmine.modules.tools.kovats.KovatsValues.KovatsIndex;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeFormulaCalculatorModule;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -508,13 +507,16 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
     StringBuilder s = new StringBuilder();
     String nl = "\n";
     // header for GNPS
-    s.append("Compound_Name,RT_Query" + nl);
+    // alkane name, num carbon(int), rt (seconds)
+    s.append("Compound_Name,Carbon_Number,RT" + nl);
     DecimalFormat f = new DecimalFormat("0.##");
 
     for (Entry<KovatsIndex, Double> e : values.entrySet()) {
-      s.append(e.getKey().getCombinedName());
+      s.append(e.getKey().getAlkaneName());
       s.append(",");
-      // expor tin seconds for GNPS GC
+      s.append(String.valueOf(e.getKey().getNumCarbon()));
+      s.append(",");
+      // export rt in seconds for GNPS GC
       s.append(f.format(e.getValue() * 60.0));
       s.append(nl);
     }
@@ -877,7 +879,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
 
   private static Icon createIcon(String path) {
-    return new ImageIcon(new ImageIcon(ScanSelectPanel.class.getClassLoader().getResource(path))
-        .getImage().getScaledInstance(SIZE, SIZE, Image.SCALE_SMOOTH));
+    return new ImageIcon(
+        new ImageIcon(path).getImage().getScaledInstance(SIZE, SIZE, Image.SCALE_SMOOTH));
   }
 }
