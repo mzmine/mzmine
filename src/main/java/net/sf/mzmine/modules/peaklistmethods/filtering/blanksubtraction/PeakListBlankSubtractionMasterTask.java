@@ -52,8 +52,6 @@ import net.sf.mzmine.util.PeakUtils;
  */
 public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
-  private static final String ALIGNED_BLANK_NAME = "Aligned blank";
-
   private NumberFormat mzFormat, rtFormat;
 
   private static Logger logger = Logger.getLogger("PeakListBlankSubstractionTask");
@@ -61,31 +59,13 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
   private MZmineProject project;
   private PeakListBlankSubtractionParameters parameters;
 
-  private MZTolerance mzTolerance;
-  private RTTolerance rtTolerance;
-
   private int minBlankDetections;
 
   private RawDataFilesSelection blankSelection;
   private RawDataFile[] blankRaws;
-  private PeakList[] blankFeatureLists, targets;
   private PeakList alignedFeatureList;
 
   private List<AbstractTask> subTasks;
-
-  private enum BlankListType {
-    ALIGNED, SELECTION
-  };
-
-  public enum SubtractionType {
-    COMBINED, ALIGNED
-  };
-
-  public enum MatchingParameter {
-    MZ, RT, RTRANGE, FOLDCHANGE
-  };
-
-  public SubtractionType subtractionType;
 
   public PeakListBlankSubtractionMasterTask(MZmineProject project,
       PeakListBlankSubtractionParameters parameters) {
@@ -95,26 +75,16 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
 
     this.project = project;
     this.parameters = parameters;
-
-    // this.mzTolerance =
-    // parameters.getParameter(PeakListBlankSubtractionParameters.mzTolerance).getValue();
-    // this.rtTolerance =
-    // parameters.getParameter(PeakListBlankSubtractionParameters.rtTolerance).getValue();
-
     this.blankSelection =
         parameters.getParameter(PeakListBlankSubtractionParameters.blankRawDataFiles).getValue();
     this.blankRaws = blankSelection.getMatchingRawDataFiles();
     this.alignedFeatureList =
         parameters.getParameter(PeakListBlankSubtractionParameters.alignedPeakList).getValue()
             .getMatchingPeakLists()[0];
-
-    // this.subtractionType =
-    // parameters.getParameter(PeakListBlankSubtractionParameters.subtractionType).getValue();
-
     this.minBlankDetections =
         parameters.getParameter(PeakListBlankSubtractionParameters.minBlanks).getValue();
 
-    subTasks = new ArrayList<>(alignedFeatureList.getNumberOfRawDataFiles() - blankRaws.length);
+    subTasks = new ArrayList<>();
 
     setStatus(TaskStatus.WAITING);
 
@@ -205,7 +175,7 @@ public class PeakListBlankSubtractionMasterTask extends AbstractTask {
         return;
     }
     
-    logger.info("Removed " + onlyBlankRows + " rows that only existed in blankfiles.");
+    logger.finest("Removed " + onlyBlankRows + " rows that only existed in blankfiles.");
 
     PeakList result = new SimplePeakList(alignedFeatureList.getName() + " sbtrctd",
         alignedFeatureList.getRawDataFiles());
