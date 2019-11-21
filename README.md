@@ -1,4 +1,4 @@
-![# MZmine 3](logo/MZmine_logo_RGB.png | width=200))
+![# MZmine 3](logo/MZmine_logo_RGB.png | width=200px)
 
 [![Build Status](https://travis-ci.org/mzmine/mzmine3.svg?branch=master)](https://travis-ci.org/mzmine/mzmine3)
 
