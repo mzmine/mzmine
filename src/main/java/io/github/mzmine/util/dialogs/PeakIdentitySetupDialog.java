@@ -36,7 +36,7 @@ import javax.swing.JTextField;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.impl.SimplePeakIdentity;
-import io.github.mzmine.desktop.Desktop;
+import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 

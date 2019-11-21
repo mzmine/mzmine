@@ -29,7 +29,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
 
-import io.github.mzmine.chartbasics.ChartLogics;
+import io.github.mzmine.gui.chartbasics.ChartLogics;
 import io.github.mzmine.util.GUIUtils;
 
 /**

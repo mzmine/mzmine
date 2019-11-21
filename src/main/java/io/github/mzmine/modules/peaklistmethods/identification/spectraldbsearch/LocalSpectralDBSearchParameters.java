@@ -22,7 +22,7 @@ import java.awt.Window;
 import java.util.Collection;
 import javax.swing.JComponent;
 
-import io.github.mzmine.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointprocessing.isotopes.MassListDeisotoperParameters;
 import io.github.mzmine.parameters.Parameter;

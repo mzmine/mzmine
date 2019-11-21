@@ -42,7 +42,7 @@ import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import io.github.mzmine.desktop.impl.MainWindow;
+import io.github.mzmine.gui.impl.MainWindow;
 
 /**
  * GUI related utilities

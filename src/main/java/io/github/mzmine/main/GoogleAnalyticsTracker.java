@@ -29,8 +29,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
 
-import io.github.mzmine.desktop.Desktop;
-import io.github.mzmine.desktop.impl.HeadLessDesktop;
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.impl.HeadLessDesktop;
 
 import java.net.HttpURLConnection;
 

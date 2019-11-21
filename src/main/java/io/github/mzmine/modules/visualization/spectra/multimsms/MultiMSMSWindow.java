@@ -40,14 +40,14 @@ import javax.swing.border.EmptyBorder;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 
-import io.github.mzmine.chartbasics.chartgroups.ChartGroup;
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.identities.ms2.interf.AbstractMSMSIdentity;
+import io.github.mzmine.gui.chartbasics.chartgroups.ChartGroup;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrum;
 import io.github.mzmine.modules.visualization.spectra.multimsms.pseudospectra.PseudoSpectrumDataSet;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;

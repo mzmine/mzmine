@@ -25,7 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
-import io.github.mzmine.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 
 public class IntegerComponent extends JPanel {
 

@@ -25,7 +25,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
-import io.github.mzmine.desktop.Desktop;
+import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 
 /**

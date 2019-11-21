@@ -46,7 +46,7 @@ import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.desktop.impl.WindowsMenu;
+import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.peaklistmethods.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
 import io.github.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;

@@ -40,12 +40,12 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.ui.RectangleInsets;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import io.github.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;

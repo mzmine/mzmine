@@ -38,7 +38,7 @@ import org.jfree.data.general.DatasetChangeEvent;
 
 import com.google.common.collect.Range;
 
-import io.github.mzmine.desktop.Desktop;
+import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.GUIUtils;
 

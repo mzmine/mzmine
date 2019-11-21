@@ -41,10 +41,10 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import io.github.mzmine.chartbasics.chartthemes.EIsotopePatternChartTheme;
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
+import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.peaklistmethods.isotopes.isotopepeakscanner.autocarbon.AutoCarbonParameters;
 import io.github.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;

@@ -27,8 +27,8 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.desktop.Desktop;
-import io.github.mzmine.desktop.impl.HeadLessDesktop;
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.impl.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;

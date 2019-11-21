@@ -41,7 +41,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import org.drjekyll.fontchooser.FontDialog;
 
-import io.github.mzmine.desktop.impl.WindowsMenu;
+import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.ExitCode;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBPeakIdentity;

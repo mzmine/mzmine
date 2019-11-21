@@ -26,8 +26,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import io.github.mzmine.framework.fontspecs.FontSpecs;
-import io.github.mzmine.framework.fontspecs.JFontSpecs;
+import io.github.mzmine.gui.framework.fontspecs.FontSpecs;
+import io.github.mzmine.gui.framework.fontspecs.JFontSpecs;
 import io.github.mzmine.parameters.UserParameter;
 
 public class FontParameter implements UserParameter<FontSpecs, JFontSpecs> {

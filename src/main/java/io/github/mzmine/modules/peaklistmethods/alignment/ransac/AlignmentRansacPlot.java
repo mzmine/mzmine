@@ -46,8 +46,8 @@ import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 import io.github.mzmine.main.MZmineCore;
 
 public class AlignmentRansacPlot extends EChartPanel {

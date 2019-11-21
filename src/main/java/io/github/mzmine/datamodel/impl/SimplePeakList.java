@@ -32,7 +32,7 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.desktop.impl.projecttree.PeakListTreeModel;
+import io.github.mzmine.gui.impl.projecttree.PeakListTreeModel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.project.impl.MZmineProjectImpl;
 

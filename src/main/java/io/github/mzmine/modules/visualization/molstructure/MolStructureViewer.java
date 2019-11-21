@@ -35,7 +35,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
-import io.github.mzmine.desktop.impl.WindowsMenu;
+import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.util.ExceptionUtils;
 import io.github.mzmine.util.InetUtils;
 import io.github.mzmine.util.components.MultiLineLabel;

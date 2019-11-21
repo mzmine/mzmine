@@ -52,11 +52,11 @@ import org.openscience.cdk.inchi.InChIToStructure;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.smiles.SmilesParser;
 
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.chartbasics.gui.wrapper.ChartViewWrapper;
-import io.github.mzmine.chartbasics.listener.AxisRangeChangedListener;
-import io.github.mzmine.framework.CustomTextPane;
-import io.github.mzmine.framework.ScrollablePanel;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.gui.wrapper.ChartViewWrapper;
+import io.github.mzmine.gui.chartbasics.listener.AxisRangeChangedListener;
+import io.github.mzmine.gui.framework.CustomTextPane;
+import io.github.mzmine.gui.framework.ScrollablePanel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;

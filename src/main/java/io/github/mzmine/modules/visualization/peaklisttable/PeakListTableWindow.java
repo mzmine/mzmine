@@ -51,7 +51,7 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.desktop.impl.WindowsMenu;
+import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.rawdatamethods.peakpicking.manual.XICManualPickerModule;
 import io.github.mzmine.modules.visualization.peaklisttable.table.CommonColumnType;

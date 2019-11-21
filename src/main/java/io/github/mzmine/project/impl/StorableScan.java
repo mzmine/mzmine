@@ -35,7 +35,7 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.desktop.impl.projecttree.RawDataTreeModel;
+import io.github.mzmine.gui.impl.projecttree.RawDataTreeModel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.util.scans.ScanUtils;
 

@@ -34,10 +34,10 @@ import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
 
 import io.github.mzmine.datamodel.RawDataFileWriter;
-import io.github.mzmine.desktop.Desktop;
-import io.github.mzmine.desktop.impl.HeadLessDesktop;
-import io.github.mzmine.desktop.impl.MainWindow;
-import io.github.mzmine.desktop.preferences.MZminePreferences;
+import io.github.mzmine.gui.Desktop;
+import io.github.mzmine.gui.impl.HeadLessDesktop;
+import io.github.mzmine.gui.impl.MainWindow;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.main.NewVersionCheck.CheckType;
 import io.github.mzmine.main.impl.MZmineConfigurationImpl;
 import io.github.mzmine.modules.MZmineModule;

@@ -26,8 +26,8 @@ import java.util.List;
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.workflow.decomposition.RetTimeClusterer;
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.chartbasics.listener.ZoomHistory;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.chartbasics.listener.ZoomHistory;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;

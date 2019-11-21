@@ -30,10 +30,10 @@ import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
 
-import io.github.mzmine.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.desktop.impl.WindowsMenu;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.util.dialogs.FeatureOverviewWindow;
 
 /**

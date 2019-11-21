@@ -42,9 +42,9 @@ import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.desktop.impl.WindowsMenu;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.DoubleParameter;

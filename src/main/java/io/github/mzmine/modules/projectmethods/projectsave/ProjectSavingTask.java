@@ -32,7 +32,7 @@ import org.xml.sax.SAXException;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.desktop.impl.MainWindow;
+import io.github.mzmine.gui.impl.MainWindow;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;

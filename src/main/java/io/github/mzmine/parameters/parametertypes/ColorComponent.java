@@ -20,7 +20,7 @@ package io.github.mzmine.parameters.parametertypes;
 import java.awt.Color;
 import javax.swing.JPanel;
 
-import io.github.mzmine.framework.JColorPickerButton;
+import io.github.mzmine.gui.framework.JColorPickerButton;
 
 public class ColorComponent extends JPanel {
 

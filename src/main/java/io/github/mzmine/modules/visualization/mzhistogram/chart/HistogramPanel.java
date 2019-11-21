@@ -42,9 +42,9 @@ import org.jfree.data.xy.XYDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.github.mzmine.chartbasics.HistogramChartFactory;
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
-import io.github.mzmine.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.gui.chartbasics.HistogramChartFactory;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.util.maths.Precision;
 
 public class HistogramPanel extends JPanel {

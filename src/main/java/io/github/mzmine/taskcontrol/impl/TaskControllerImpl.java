@@ -26,8 +26,8 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import io.github.mzmine.desktop.preferences.MZminePreferences;
-import io.github.mzmine.desktop.preferences.NumOfThreadsParameter;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.NumOfThreadsParameter;
 import io.github.mzmine.main.GoogleAnalyticsTracker;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.taskcontrol.Task;

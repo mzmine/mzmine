@@ -22,7 +22,7 @@ import java.awt.Color;
 import java.net.URL;
 import java.util.logging.Logger;
 
-import io.github.mzmine.desktop.Desktop;
+import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.util.InetUtils;
 
 public class NewVersionCheck implements Runnable {

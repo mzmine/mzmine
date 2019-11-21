@@ -45,13 +45,13 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.chartbasics.chartutils.NameItemLabelGenerator;
-import io.github.mzmine.chartbasics.chartutils.ScatterPlotToolTipGenerator;
-import io.github.mzmine.chartbasics.chartutils.XYBlockPixelSizePaintScales;
-import io.github.mzmine.chartbasics.chartutils.XYBlockPixelSizeRenderer;
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
+import io.github.mzmine.gui.chartbasics.chartutils.NameItemLabelGenerator;
+import io.github.mzmine.gui.chartbasics.chartutils.ScatterPlotToolTipGenerator;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizePaintScales;
+import io.github.mzmine.gui.chartbasics.chartutils.XYBlockPixelSizeRenderer;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;

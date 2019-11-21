@@ -20,7 +20,7 @@ package io.github.mzmine.main;
 
 import javax.annotation.Nonnull;
 
-import io.github.mzmine.desktop.preferences.MZminePreferences;
+import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;

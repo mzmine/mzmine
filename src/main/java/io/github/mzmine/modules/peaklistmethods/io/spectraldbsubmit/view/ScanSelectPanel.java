@@ -48,12 +48,12 @@ import javax.swing.border.LineBorder;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.Document;
 
-import io.github.mzmine.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.framework.documentfilter.DocumentSizeFilter;
+import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
+import io.github.mzmine.gui.framework.documentfilter.DocumentSizeFilter;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.peaklistmethods.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;

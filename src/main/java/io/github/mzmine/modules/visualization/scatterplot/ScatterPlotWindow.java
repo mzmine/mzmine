@@ -31,7 +31,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import io.github.mzmine.datamodel.PeakList;
-import io.github.mzmine.desktop.impl.WindowsMenu;
+import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import io.github.mzmine.parameters.ParameterSet;

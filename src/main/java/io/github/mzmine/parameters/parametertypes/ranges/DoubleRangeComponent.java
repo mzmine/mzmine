@@ -25,7 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import com.google.common.collect.Range;
 
-import io.github.mzmine.framework.listener.DelayedDocumentListener;
+import io.github.mzmine.gui.framework.listener.DelayedDocumentListener;
 import io.github.mzmine.util.components.GridBagPanel;
 
 public class DoubleRangeComponent extends GridBagPanel {

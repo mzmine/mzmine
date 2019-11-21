@@ -31,10 +31,10 @@ import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.MZmineProjectListener;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.desktop.impl.MainWindow;
-import io.github.mzmine.desktop.impl.projecttree.PeakListTreeModel;
-import io.github.mzmine.desktop.impl.projecttree.ProjectTree;
-import io.github.mzmine.desktop.impl.projecttree.RawDataTreeModel;
+import io.github.mzmine.gui.impl.MainWindow;
+import io.github.mzmine.gui.impl.projecttree.PeakListTreeModel;
+import io.github.mzmine.gui.impl.projecttree.ProjectTree;
+import io.github.mzmine.gui.impl.projecttree.RawDataTreeModel;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.parameters.UserParameter;
 
