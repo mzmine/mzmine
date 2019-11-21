@@ -44,9 +44,9 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidClasses;
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidCoreClasses;
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.LipidMainClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidCoreClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.LipidMainClasses;
 
 /**
  * 

@@ -23,8 +23,8 @@ import java.io.File;
 import io.github.mzmine.datamodel.MZmineProject;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
-import io.github.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
+import io.github.mzmine.modules.io.projectload.ProjectLoadModule;
+import io.github.mzmine.modules.io.projectload.ProjectLoaderParameters;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.project.ProjectManager;
 

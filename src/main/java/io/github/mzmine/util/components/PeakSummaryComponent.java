@@ -61,7 +61,7 @@ import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
+import io.github.mzmine.modules.dataprocessing.featuredetection_manual.ManualPeakPickerModule;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraVisualizerModule;
 import io.github.mzmine.modules.visualization.tic.TICPlotType;

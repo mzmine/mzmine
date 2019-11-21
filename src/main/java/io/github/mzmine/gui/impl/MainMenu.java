@@ -43,7 +43,7 @@ import io.github.mzmine.main.NewVersionCheck;
 import io.github.mzmine.main.NewVersionCheck.CheckType;
 import io.github.mzmine.modules.MZmineModuleCategory;
 import io.github.mzmine.modules.MZmineRunnableModule;
-import io.github.mzmine.modules.projectmethods.projectload.ProjectOpeningTask;
+import io.github.mzmine.modules.io.projectload.ProjectOpeningTask;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.selectors.PeakListsParameter;

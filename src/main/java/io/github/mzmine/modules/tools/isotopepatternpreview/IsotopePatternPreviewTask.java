@@ -24,7 +24,7 @@ import javax.swing.SwingUtilities;
 
 import io.github.mzmine.datamodel.PolarityType;
 import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
-import io.github.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.taskcontrol.TaskStatus;
 

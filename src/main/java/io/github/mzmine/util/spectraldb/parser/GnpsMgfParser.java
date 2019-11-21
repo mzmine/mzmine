@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.peaklistmethods.io.spectraldbsubmit.AdductParser;
+import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.taskcontrol.AbstractTask;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;
 import io.github.mzmine.util.spectraldb.entry.SpectralDBEntry;

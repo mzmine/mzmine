@@ -20,9 +20,9 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
-import io.github.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicParameters;
-import io.github.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements.ElementsParameter;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;

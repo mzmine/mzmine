@@ -49,7 +49,7 @@ import io.github.mzmine.datamodel.impl.ExtendedIsotopePattern;
 import io.github.mzmine.gui.chartbasics.chartthemes.EIsotopePatternChartTheme;
 import io.github.mzmine.gui.chartbasics.gui.swing.EChartPanel;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import io.github.mzmine.modules.tools.isotopeprediction.IsotopePatternCalculator;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.ExtendedIsotopePatternDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.renderers.SpectraToolTipGenerator;
 import io.github.mzmine.parameters.ParameterSet;

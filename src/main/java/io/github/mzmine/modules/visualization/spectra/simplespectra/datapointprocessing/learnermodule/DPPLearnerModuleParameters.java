@@ -20,12 +20,12 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpr
 
 import java.awt.Color;
 
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima.LocalMaxMassDetector;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.recursive.RecursiveMassDetector;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet.WaveletMassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.centroid.CentroidMassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.exactmass.ExactMassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.localmaxima.LocalMaxMassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.recursive.RecursiveMassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.wavelet.WaveletMassDetector;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;

@@ -20,8 +20,8 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraiden
 
 import io.github.mzmine.datamodel.IonizationType;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.AllLipidClasses;
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.LipidModification;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.AllLipidClasses;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;

@@ -26,11 +26,11 @@ package io.github.mzmine.parameters.parametertypes;
 
 import javax.swing.JButton;
 
-import io.github.mzmine.modules.peaklistmethods.identification.adductsearch.AddAdductsAction;
-import io.github.mzmine.modules.peaklistmethods.identification.adductsearch.AdductType;
-import io.github.mzmine.modules.peaklistmethods.identification.adductsearch.DefaultAdductsAction;
-import io.github.mzmine.modules.peaklistmethods.identification.adductsearch.ExportAdductsAction;
-import io.github.mzmine.modules.peaklistmethods.identification.adductsearch.ImportAdductsAction;
+import io.github.mzmine.modules.dataprocessing.id_adductsearch.AddAdductsAction;
+import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductType;
+import io.github.mzmine.modules.dataprocessing.id_adductsearch.DefaultAdductsAction;
+import io.github.mzmine.modules.dataprocessing.id_adductsearch.ExportAdductsAction;
+import io.github.mzmine.modules.dataprocessing.id_adductsearch.ImportAdductsAction;
 
 /**
  * A component for selecting adducts.

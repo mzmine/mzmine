@@ -21,11 +21,11 @@ package io.github.mzmine.util;
 import java.text.Format;
 
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.FragmentIon;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.ModificationPeptide;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.Protein;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.ProteinSection;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.FragmentIon;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.ModificationPeptide;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.Peptide;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.Protein;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.ProteinSection;
 
 public class ProteomeUtils {
 

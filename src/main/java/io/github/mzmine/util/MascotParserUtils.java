@@ -27,16 +27,16 @@ import java.util.Vector;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.IonSignificance;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.ModificationPeptide;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideFragmentation;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideIdentityDataFile;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideIonSerie;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideScan;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.Protein;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.ProteinSection;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.SerieIonType;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.IonSignificance;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.ModificationPeptide;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.Peptide;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.PeptideFragmentation;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.PeptideIdentityDataFile;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.PeptideIonSerie;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.PeptideScan;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.Protein;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.ProteinSection;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.SerieIonType;
 
 public class MascotParserUtils {
 

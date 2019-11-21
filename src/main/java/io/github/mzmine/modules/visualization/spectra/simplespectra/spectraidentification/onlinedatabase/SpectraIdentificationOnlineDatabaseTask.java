@@ -18,7 +18,7 @@
 
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase;
 
-import static io.github.mzmine.modules.peaklistmethods.identification.onlinedbsearch.SingleRowIdentificationParameters.DATABASE;
+import static io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.SingleRowIdentificationParameters.DATABASE;
 
 import java.awt.Color;
 import java.text.NumberFormat;
@@ -35,14 +35,14 @@ import io.github.mzmine.datamodel.MassSpectrumType;
 import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineProcessingStep;
-import io.github.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBCompound;
-import io.github.mzmine.modules.peaklistmethods.identification.onlinedbsearch.DBGateway;
-import io.github.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetectorParameters;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
-import io.github.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.MassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.centroid.CentroidMassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.centroid.CentroidMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.exactmass.ExactMassDetector;
+import io.github.mzmine.modules.dataprocessing.featuredetection_massdetection.exactmass.ExactMassDetectorParameters;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBCompound;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.DBGateway;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.SpectraDatabaseSearchLabelGenerator;

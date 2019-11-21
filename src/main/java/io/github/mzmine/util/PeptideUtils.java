@@ -22,13 +22,13 @@ import java.util.HashMap;
 import java.util.Vector;
 
 import io.github.mzmine.datamodel.DataPoint;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.FragmentIon;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.FragmentIonType;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.ModificationPeptide;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideFragmentation;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideIdentityDataFile;
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.SerieIonType;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.FragmentIon;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.FragmentIonType;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.ModificationPeptide;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.Peptide;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.PeptideFragmentation;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.PeptideIdentityDataFile;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.SerieIonType;
 
 public class PeptideUtils {
 

@@ -21,10 +21,10 @@ package io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpr
 import java.awt.Color;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
-import io.github.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicParameters;
-import io.github.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
-import io.github.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.elements.ElementsParameter;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.elements.ElementalHeuristicParameters;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionParameters;
+import io.github.mzmine.modules.tools.isotopepatternscore.IsotopePatternScoreParameters;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.BooleanParameter;

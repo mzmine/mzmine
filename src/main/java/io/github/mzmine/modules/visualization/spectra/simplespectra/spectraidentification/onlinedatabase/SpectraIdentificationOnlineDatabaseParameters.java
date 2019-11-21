@@ -19,7 +19,7 @@
 package io.github.mzmine.modules.visualization.spectra.simplespectra.spectraidentification.onlinedatabase;
 
 import io.github.mzmine.datamodel.IonizationType;
-import io.github.mzmine.modules.peaklistmethods.identification.onlinedbsearch.OnlineDatabases;
+import io.github.mzmine.modules.dataprocessing.id_onlinecompounddb.OnlineDatabases;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;

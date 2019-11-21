@@ -20,7 +20,7 @@ package io.github.mzmine.util;
 
 import java.util.Comparator;
 
-import io.github.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
+import io.github.mzmine.modules.dataprocessing.id_mascot.data.Peptide;
 
 public class PeptideSorter implements Comparator<Peptide> {
 

@@ -2,11 +2,11 @@ package io.github.mzmine.parameters.parametertypes;
 
 import javax.swing.JButton;
 
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.AddLipidModificationAction;
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.ExportLipidModificationsAction;
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.ImportLipidModificationsAction;
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.LipidModification;
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.RemoveLipidModificationsAction;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.AddLipidModificationAction;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.ExportLipidModificationsAction;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.ImportLipidModificationsAction;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.RemoveLipidModificationsAction;
 
 public class LipidModificationChoiceComponent extends MultiChoiceComponent {
 

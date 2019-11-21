@@ -1,6 +1,6 @@
 package io.github.mzmine.parameters.parametertypes;
 
-import io.github.mzmine.modules.peaklistmethods.identification.lipididentification.lipids.lipidmodifications.LipidModification;
+import io.github.mzmine.modules.dataprocessing.id_lipididentification.lipids.lipidmodifications.LipidModification;
 
 public class LipidModificationChoiceParameter extends MultiChoiceParameter<LipidModification> {
   /**

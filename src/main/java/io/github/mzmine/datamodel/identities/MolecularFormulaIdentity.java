@@ -25,7 +25,7 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
+import io.github.mzmine.modules.dataprocessing.id_formulaprediction.restrictions.rdbe.RDBERestrictionChecker;
 import io.github.mzmine.util.FormulaUtils;
 
 public class MolecularFormulaIdentity {

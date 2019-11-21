@@ -35,7 +35,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import io.github.mzmine.modules.peaklistmethods.identification.adductsearch.AdductType;
+import io.github.mzmine.modules.dataprocessing.id_adductsearch.AdductType;
 
 /**
  * Adducts parameter.
