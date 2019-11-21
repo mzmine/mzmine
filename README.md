@@ -1,5 +1,6 @@
-# About MZmine 2
-[![Build Status](https://travis-ci.org/mzmine/mzmine2.svg?branch=master)](https://travis-ci.org/mzmine/mzmine2)
+![# MZmine 3](logo/MZmine_logo_RGB.png)
+
+[![Build Status](https://travis-ci.org/mzmine/mzmine3.svg?branch=master)](https://travis-ci.org/mzmine/mzmine3)
 
 MZmine 2 is an open-source software for mass-spectrometry data processing. The goals of the project is to provide a user-friendly, flexible and easily extendable software with a complete set of modules covering the entire MS data analysis workflow.
 
