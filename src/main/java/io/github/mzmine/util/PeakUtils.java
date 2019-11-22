@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimplePeakListRow;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.dataprocessing.featuredetection_manual.ManualPeak;
+import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeak;
 import io.github.mzmine.util.scans.ScanUtils;
 
 /**
