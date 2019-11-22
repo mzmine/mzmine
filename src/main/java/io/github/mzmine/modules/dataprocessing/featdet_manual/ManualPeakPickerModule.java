@@ -28,7 +28,7 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
+import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.ExitCode;
 

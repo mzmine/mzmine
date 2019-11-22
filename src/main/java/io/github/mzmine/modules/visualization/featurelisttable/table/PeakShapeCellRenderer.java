@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable.table;
+package io.github.mzmine.modules.visualization.featurelisttable.table;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -30,8 +30,8 @@ import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.modules.visualization.peaklisttable.PeakListTableParameters;
-import io.github.mzmine.modules.visualization.peaklisttable.PeakShapeNormalization;
+import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableParameters;
+import io.github.mzmine.modules.visualization.featurelisttable.PeakShapeNormalization;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.components.CombinedXICComponent;
 import io.github.mzmine.util.components.PeakXICComponent;

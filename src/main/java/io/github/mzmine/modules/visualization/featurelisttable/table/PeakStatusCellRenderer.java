@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable.table;
+package io.github.mzmine.modules.visualization.featurelisttable.table;
 
 import java.awt.Color;
 import java.awt.Component;

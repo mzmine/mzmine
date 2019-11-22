@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable;
+package io.github.mzmine.modules.visualization.featurelisttable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,11 +54,11 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.gui.impl.WindowsMenu;
 import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
-import io.github.mzmine.modules.visualization.peaklisttable.table.CommonColumnType;
-import io.github.mzmine.modules.visualization.peaklisttable.table.DataFileColumnType;
-import io.github.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
-import io.github.mzmine.modules.visualization.peaklisttable.table.PeakListTableColumnModel;
-import io.github.mzmine.modules.visualization.peaklisttable.table.PeakListTableModel;
+import io.github.mzmine.modules.visualization.featurelisttable.table.CommonColumnType;
+import io.github.mzmine.modules.visualization.featurelisttable.table.DataFileColumnType;
+import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
+import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTableColumnModel;
+import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTableModel;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import io.github.mzmine.util.ExitCode;

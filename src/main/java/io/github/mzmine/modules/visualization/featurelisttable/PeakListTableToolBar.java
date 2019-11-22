@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable;
+package io.github.mzmine.modules.visualization.featurelisttable;
 
 import java.awt.Insets;
 

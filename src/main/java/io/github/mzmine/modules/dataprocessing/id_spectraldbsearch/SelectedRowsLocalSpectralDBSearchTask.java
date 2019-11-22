@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.gui.Desktop;
 import io.github.mzmine.gui.impl.HeadLessDesktop;
 import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
+import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
 import io.github.mzmine.modules.visualization.spectra.spectralmatchresults.SpectraIdentificationResultsWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.taskcontrol.AbstractTask;

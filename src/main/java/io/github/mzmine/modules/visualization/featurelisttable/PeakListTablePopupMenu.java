@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable;
+package io.github.mzmine.modules.visualization.featurelisttable;
 
 import java.awt.Component;
 import java.awt.Desktop;
@@ -57,14 +57,14 @@ import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusProcessingModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
 import io.github.mzmine.modules.io.siriusexport.SiriusExportModule;
 import io.github.mzmine.modules.io.spectraldbsubmit.view.MSMSLibrarySubmissionWindow;
+import io.github.mzmine.modules.visualization.featurelisttable.export.IsotopePatternExportModule;
+import io.github.mzmine.modules.visualization.featurelisttable.export.MSMSExportModule;
+import io.github.mzmine.modules.visualization.featurelisttable.table.CommonColumnType;
+import io.github.mzmine.modules.visualization.featurelisttable.table.DataFileColumnType;
+import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTable;
+import io.github.mzmine.modules.visualization.featurelisttable.table.PeakListTableColumnModel;
 import io.github.mzmine.modules.visualization.fx3d.Fx3DVisualizerModule;
 import io.github.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
-import io.github.mzmine.modules.visualization.peaklisttable.export.IsotopePatternExportModule;
-import io.github.mzmine.modules.visualization.peaklisttable.export.MSMSExportModule;
-import io.github.mzmine.modules.visualization.peaklisttable.table.CommonColumnType;
-import io.github.mzmine.modules.visualization.peaklisttable.table.DataFileColumnType;
-import io.github.mzmine.modules.visualization.peaklisttable.table.PeakListTable;
-import io.github.mzmine.modules.visualization.peaklisttable.table.PeakListTableColumnModel;
 import io.github.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
 import io.github.mzmine.modules.visualization.spectra.multimsms.MultiMSMSWindow;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.MultiSpectraVisualizerWindow;

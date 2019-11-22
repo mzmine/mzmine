@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable.table;
+package io.github.mzmine.modules.visualization.featurelisttable.table;
 
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -39,9 +39,9 @@ import javax.swing.table.TableRowSorter;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
-import io.github.mzmine.modules.visualization.peaklisttable.PeakListTableParameters;
-import io.github.mzmine.modules.visualization.peaklisttable.PeakListTablePopupMenu;
-import io.github.mzmine.modules.visualization.peaklisttable.PeakListTableWindow;
+import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableParameters;
+import io.github.mzmine.modules.visualization.featurelisttable.PeakListTablePopupMenu;
+import io.github.mzmine.modules.visualization.featurelisttable.PeakListTableWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.util.components.ComponentToolTipManager;
 import io.github.mzmine.util.components.ComponentToolTipProvider;

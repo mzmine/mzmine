@@ -16,25 +16,24 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable.table;
+package io.github.mzmine.modules.visualization.featurelisttable.table;
 
-import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
+import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.PeakListRow;
 
-public enum DataFileColumnType {
+public enum CommonColumnType {
 
-  STATUS("Status", FeatureStatus.class), PEAKSHAPE("Peak shape", Feature.class), MZ("m/z",
-      Double.class), RT("RT", Double.class), RT_START("RT start", Double.class), RT_END("RT end",
-          Double.class), DURATION("Duration", Double.class), HEIGHT("Height", Double.class), AREA(
-              "Area", Double.class), CHARGE("Charge", Integer.class), DATAPOINTS("# Data points",
-                  Integer.class), FWHM("FWHM", Double.class), TF("Tailing factor",
-                      Double.class), AF("Asymmetry factor",
-                          Double.class), PARENT_ROW_ID("Parent Row ID", Integer.class);
+  ROWID("ID", Integer.class), //
+  AVERAGEMZ("m/z", Double.class), //
+  AVERAGERT("RT", Double.class), //
+  IDENTITY("Identity", PeakIdentity.class), //
+  COMMENT("Comment", String.class), //
+  PEAKSHAPE("Peak shape", PeakListRow.class);
 
   private final String columnName;
   private final Class<?> columnClass;
 
-  DataFileColumnType(String columnName, Class<?> columnClass) {
+  CommonColumnType(String columnName, Class<?> columnClass) {
     this.columnName = columnName;
     this.columnClass = columnClass;
   }
@@ -50,4 +49,5 @@ public enum DataFileColumnType {
   public String toString() {
     return columnName;
   }
+
 }

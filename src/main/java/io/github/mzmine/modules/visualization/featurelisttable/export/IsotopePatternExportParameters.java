@@ -16,23 +16,19 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable;
+package io.github.mzmine.modules.visualization.featurelisttable.export;
 
-/**
- *
- */
-public enum PeakShapeNormalization {
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
 
-  PEAKMAX("Peak maximum"), ROWMAX("Row maximum"), GLOBALMAX("Global maximum");
+public class IsotopePatternExportParameters extends SimpleParameterSet {
 
-  private final String displayName;
+  public static final FileNameParameter outputFile =
+      new FileNameParameter("Output file", "Please set the path and name of the output text file");
 
-  PeakShapeNormalization(final String displayName) {
-    this.displayName = displayName;
-  }
-
-  public String toString() {
-    return displayName;
+  public IsotopePatternExportParameters() {
+    super(new Parameter[] {outputFile});
   }
 
 }

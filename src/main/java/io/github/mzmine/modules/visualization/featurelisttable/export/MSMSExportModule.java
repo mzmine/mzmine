@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable.export;
+package io.github.mzmine.modules.visualization.featurelisttable.export;
 
 import java.io.BufferedWriter;
 import java.io.File;

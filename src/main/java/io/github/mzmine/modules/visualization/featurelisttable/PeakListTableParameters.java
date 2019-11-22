@@ -16,10 +16,10 @@
  * USA
  */
 
-package io.github.mzmine.modules.visualization.peaklisttable;
+package io.github.mzmine.modules.visualization.featurelisttable;
 
-import io.github.mzmine.modules.visualization.peaklisttable.table.CommonColumnType;
-import io.github.mzmine.modules.visualization.peaklisttable.table.DataFileColumnType;
+import io.github.mzmine.modules.visualization.featurelisttable.table.CommonColumnType;
+import io.github.mzmine.modules.visualization.featurelisttable.table.DataFileColumnType;
 import io.github.mzmine.parameters.Parameter;
 import io.github.mzmine.parameters.impl.SimpleParameterSet;
 import io.github.mzmine.parameters.parametertypes.ComboParameter;
