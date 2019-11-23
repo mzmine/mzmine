@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.modules.dataprocessing.featdet_deisotoper;
+package io.github.mzmine.modules.dataprocessing.filter_deisotoper;
 
 import java.util.Collection;
 

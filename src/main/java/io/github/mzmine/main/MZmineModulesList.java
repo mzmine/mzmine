@@ -36,7 +36,6 @@ import io.github.mzmine.modules.dataprocessing.featdet_adap3decompositionV1_5.AD
 import io.github.mzmine.modules.dataprocessing.featdet_adap3decompositionV2.ADAP3DecompositionV2Module;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogrambuilder.ChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.featdet_chromatogramdeconvolution.DeconvolutionModule;
-import io.github.mzmine.modules.dataprocessing.featdet_deisotoper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.featdet_gridmass.GridMassModule;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.ManualPeakPickerModule;
 import io.github.mzmine.modules.dataprocessing.featdet_manual.XICManualPickerModule;
@@ -51,6 +50,7 @@ import io.github.mzmine.modules.dataprocessing.filter_alignscans.AlignScansModul
 import io.github.mzmine.modules.dataprocessing.filter_baselinecorrection.BaselineCorrectionModule;
 import io.github.mzmine.modules.dataprocessing.filter_clearannotations.PeaklistClearAnnotationsModule;
 import io.github.mzmine.modules.dataprocessing.filter_cropfilter.CropFilterModule;
+import io.github.mzmine.modules.dataprocessing.filter_deisotoper.IsotopeGrouperModule;
 import io.github.mzmine.modules.dataprocessing.filter_duplicatefilter.DuplicateFilterModule;
 import io.github.mzmine.modules.dataprocessing.filter_extractscans.ExtractScansModule;
 import io.github.mzmine.modules.dataprocessing.filter_groupms2.GroupMS2Module;
