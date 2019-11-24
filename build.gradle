@@ -194,7 +194,7 @@ tasks.withType(JavaCompile) {
  * Set the basic Java runtime parameters (heap size etc.)
  */
 application {
-    mainClassName = "net.sf.mzmine.main.MZmineCore"
+    mainClassName = "io.github.mzmine.main.MZmineCore"
     applicationName = "MZmine"
     executableDir = ""
     applicationDefaultJvmArgs = ["-showversion", 
