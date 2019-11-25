@@ -29,7 +29,7 @@ import io.github.mzmine.datamodel.data.types.RTType;
 public class TestDatatypes {
 
   public static void main(String[] args) {
-    FeatureData data = new FeatureData();
+    RowData data = new RowData();
 
     System.out.println(data.getDetectionType().toString());
     System.out.println(data.get(RTType.class).map(DataType::getFormattedString).orElse("No RT"));

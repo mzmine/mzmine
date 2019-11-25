@@ -34,7 +34,7 @@ import io.github.mzmine.datamodel.data.types.RTType;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class FeatureData {
+public class RowData {
 
   @SuppressWarnings({"rawtypes"})
   private HashMap<Class<? extends DataType<?>>, DataType> map = new HashMap<>();
