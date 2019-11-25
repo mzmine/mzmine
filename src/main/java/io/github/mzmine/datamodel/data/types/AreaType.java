@@ -22,18 +22,18 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import io.github.mzmine.main.MZmineCore;
 
-public class RTType extends NumberType<Float> {
+public class AreaType extends NumberType<Float> {
   // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.00");
+  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0E00");
 
-  public RTType(Float value) {
+  public AreaType(Float value) {
     super(value);
   }
 
   @Override
   public NumberFormat getFormatter() {
     try {
-      return MZmineCore.getConfiguration().getRTFormat();
+      return MZmineCore.getConfiguration().getIntensityFormat();
     } catch (NullPointerException e) {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;
@@ -42,6 +42,7 @@ public class RTType extends NumberType<Float> {
 
   @Override
   public String getHeaderString() {
-    return "RT";
+    return "Area";
   }
+
 }

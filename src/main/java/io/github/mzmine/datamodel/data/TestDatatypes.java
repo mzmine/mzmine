@@ -18,8 +18,6 @@
 
 package io.github.mzmine.datamodel.data;
 
-import java.util.HashMap;
-import java.util.Optional;
 import io.github.mzmine.datamodel.Feature.FeatureStatus;
 import io.github.mzmine.datamodel.data.types.AreaType;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -28,48 +26,25 @@ import io.github.mzmine.datamodel.data.types.HeightType;
 import io.github.mzmine.datamodel.data.types.MZType;
 import io.github.mzmine.datamodel.data.types.RTType;
 
-/**
- * Map of all feature related data.
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
- */
-public class FeatureData {
+public class TestDatatypes {
 
-  @SuppressWarnings({"rawtypes"})
-  private HashMap<Class<? extends DataType<?>>, DataType> map = new HashMap<>();
+  public static void main(String[] args) {
+    FeatureData data = new FeatureData();
 
-  public <T extends DataType<?>> Optional<T> get(Class<T> type) {
-    return Optional.ofNullable(map.get(type));
-  }
+    System.out.println(data.getDetectionType().toString());
+    System.out.println(data.get(RTType.class).map(DataType::getFormattedString).orElse("No RT"));
 
-  public void set(Class<? extends DataType<?>> key, DataType<?> data) {
-    if (key.isInstance(data))
-      map.put(key, data);
-    // wrong data type. Check code that supplied this data
-    else
-      throw new WrongTypeException(key, data);
-  }
+    data.set(MZType.class, new MZType(50d));
+    data.set(RTType.class, new RTType(10f));
+    data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
+    data.set(AreaType.class, new AreaType(1.2E4f));
 
+    System.out.println(data.getDetectionType().toString());
+    System.out.println(data.get(RTType.class).map(DataType::getFormattedString).orElse("NONE"));
+    System.out.println(data.get(AreaType.class).map(DataType::getFormattedString).orElse("NONE"));
 
-  public FeatureStatus getDetectionType() {
-    return get(DetectionType.class).map(DataType::getValue).orElse(FeatureStatus.UNKNOWN);
-  }
-
-  public Double getMZ() {
-    return get(MZType.class).map(DataType::getValue).orElse(0d);
-  }
-
-  public Float getRT() {
-    return get(RTType.class).map(DataType::getValue).orElse(0f);
-  }
-
-  public double getHeight() {
-    return get(HeightType.class).map(DataType::getValue).orElse(0f);
-  }
-
-  public double getArea() {
-    return get(AreaType.class).map(DataType::getValue).orElse(0f);
+    System.out.println("Should throw an error");
+    data.set(HeightType.class, new MZType(50d));
   }
 
 }
