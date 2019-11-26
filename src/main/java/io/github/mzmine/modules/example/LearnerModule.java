@@ -36,7 +36,7 @@ public class LearnerModule implements MZmineProcessingModule {
   // #################################################################
   // IMPORTANT
   // do not forget to put your module in the MZmineModulesList
-  // in the package: net.sf.mzmine.main
+  // in the package: io.github.mzmine.main
   // #################################################################
 
   private static final String MODULE_NAME = "Learner module";

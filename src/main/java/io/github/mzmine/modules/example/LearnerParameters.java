@@ -29,7 +29,7 @@ import io.github.mzmine.parameters.parametertypes.tolerances.RTToleranceParamete
 
 public class LearnerParameters extends SimpleParameterSet {
   /*
-   * Define any parameters here (see net.sf.mzmine.parameters for parameter types)
+   * Define any parameters here (see io.github.mzmine.parameters for parameter types)
    */
   public static final PeakListsParameter peakLists = new PeakListsParameter();
 

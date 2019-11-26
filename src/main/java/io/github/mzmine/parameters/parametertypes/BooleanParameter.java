@@ -48,7 +48,7 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {
@@ -56,7 +56,7 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getDescription()
+   * @see io.github.mzmine.data.Parameter#getDescription()
    */
   @Override
   public String getDescription() {

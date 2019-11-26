@@ -48,7 +48,7 @@ public class FileNameListSilentParameter implements Parameter<List<File>> {
   }
 
   /**
-   * @see net.sf.mzmine.data.Parameter#getName()
+   * @see io.github.mzmine.data.Parameter#getName()
    */
   @Override
   public String getName() {

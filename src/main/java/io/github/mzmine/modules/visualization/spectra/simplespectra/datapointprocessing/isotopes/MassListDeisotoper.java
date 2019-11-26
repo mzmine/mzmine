@@ -33,7 +33,7 @@ import io.github.mzmine.util.SortingProperty;
 
 /**
  * Deisotope mass list This is basically copy-pasted from
- * net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperTask
+ * io.github.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperTask
  * 
  */
 public class MassListDeisotoper {

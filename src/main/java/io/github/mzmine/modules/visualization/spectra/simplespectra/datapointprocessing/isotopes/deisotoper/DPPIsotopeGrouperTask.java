@@ -47,7 +47,7 @@ import io.github.mzmine.util.FormulaUtils;
 /**
  * 
  * This is basically copy-pasted from
- * net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperTask
+ * io.github.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperTask
  * 
  */
 public class DPPIsotopeGrouperTask extends DataPointProcessingTask {

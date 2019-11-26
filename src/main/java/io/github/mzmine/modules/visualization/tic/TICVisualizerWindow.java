@@ -299,14 +299,14 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
   }
 
   /**
-   * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double, double)
+   * @see io.github.mzmine.modules.RawDataVisualizer#setIntensityRange(double, double)
    */
   public void setIntensityRange(double intensityMin, double intensityMax) {
     ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
   }
 
   /**
-   * @see net.sf.mzmine.modules.RawDataVisualizer#getRawDataFiles()
+   * @see io.github.mzmine.modules.RawDataVisualizer#getRawDataFiles()
    */
   public RawDataFile[] getRawDataFiles() {
     return ticDataSets.keySet().toArray(new RawDataFile[0]);

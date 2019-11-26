@@ -355,7 +355,7 @@ public class NetCDFReadTask extends AbstractTask {
   }
 
   /**
-   * @see net.sf.mzmine.io.RawDataFileReader#finishReading()
+   * @see io.github.mzmine.io.RawDataFileReader#finishReading()
    */
   public void finishReading() throws IOException {
     inputFile.close();

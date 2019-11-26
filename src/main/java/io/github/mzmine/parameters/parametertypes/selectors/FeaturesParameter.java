@@ -65,7 +65,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureSelection>, 
   }
 
   /*
-   * @see net.sf.mzmine.parameters.Parameter#loadValueFromXML(org.w3c.dom.Element)
+   * @see io.github.mzmine.parameters.Parameter#loadValueFromXML(org.w3c.dom.Element)
    */
   @Override
   public void loadValueFromXML(Element xmlElement) {
@@ -108,7 +108,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureSelection>, 
   }
 
   /*
-   * @see net.sf.mzmine.parameters.Parameter#saveValueToXML(org.w3c.dom.Element)
+   * @see io.github.mzmine.parameters.Parameter#saveValueToXML(org.w3c.dom.Element)
    */
   @Override
   public void saveValueToXML(Element xmlElement) {
@@ -164,7 +164,7 @@ public class FeaturesParameter implements UserParameter<List<FeatureSelection>, 
   }
 
   /*
-   * @see net.sf.mzmine.parameters.UserParameter#cloneParameter()
+   * @see io.github.mzmine.parameters.UserParameter#cloneParameter()
    */
   @Override
   public FeaturesParameter cloneParameter() {

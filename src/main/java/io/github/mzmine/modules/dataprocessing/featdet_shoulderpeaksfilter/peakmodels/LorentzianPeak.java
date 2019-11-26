@@ -40,7 +40,7 @@ public class LorentzianPeak implements PeakModel {
   private double mzMain, intensityMain, squareHWHM;
 
   /**
-   * @see net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
+   * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
    *      double, double)
    */
   public void setParameters(double mzMain, double intensityMain, double resolution) {
@@ -53,7 +53,7 @@ public class LorentzianPeak implements PeakModel {
   }
 
   /**
-   * @see net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
+   * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
    */
   public Range<Double> getWidth(double partialIntensity) {
 
@@ -73,7 +73,7 @@ public class LorentzianPeak implements PeakModel {
   }
 
   /**
-   * @see net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getIntensity(double)
+   * @see io.github.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getIntensity(double)
    */
   public double getIntensity(double mz) {
 

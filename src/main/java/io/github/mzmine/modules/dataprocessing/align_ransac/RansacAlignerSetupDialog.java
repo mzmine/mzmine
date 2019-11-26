@@ -69,7 +69,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements Ac
   }
 
   /**
-   * @see net.sf.mzmine.util.dialogs.ParameterSetupDialog#actionPerformed(java.awt.event.ActionEvent)
+   * @see io.github.mzmine.util.dialogs.ParameterSetupDialog#actionPerformed(java.awt.event.ActionEvent)
    */
   public void actionPerformed(ActionEvent event) {
 

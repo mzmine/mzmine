@@ -58,7 +58,7 @@ import io.github.mzmine.util.SpectraPlotUtils;
 
 /**
  * Predicts sum formulas just like
- * net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction
+ * io.github.mzmine.modules.peaklistmethods.identification.formulaprediction
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *
