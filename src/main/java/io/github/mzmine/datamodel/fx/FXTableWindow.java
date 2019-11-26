@@ -31,6 +31,9 @@ public class FXTableWindow extends Application {
 
     stage.setScene(scene);
     stage.show();
+
+    // test for change listener
+    table.getRoot().getChildren().get(0).getValue().set(MZType.class, new MZType(1234d));
   }
 
 
