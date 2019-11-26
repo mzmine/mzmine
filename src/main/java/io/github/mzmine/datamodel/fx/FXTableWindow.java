@@ -1,7 +1,7 @@
 package io.github.mzmine.datamodel.fx;
 
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.data.RowData;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.AreaType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.HeightType;
@@ -19,11 +19,11 @@ public class FXTableWindow extends Application {
     FeatureTableFX table = new FeatureTableFX();
 
     // example row to create all columns
-    RowData data = createRow(0);
+    ModularFeatureListRow data = createRow(0);
     table.addColumns(data);
 
     // Table tree root
-    final TreeItem<RowData> root = new TreeItem<>();
+    final TreeItem<ModularFeatureListRow> root = new TreeItem<>();
     root.setExpanded(true);
 
     addDummyData(table.getRoot());
@@ -37,7 +37,7 @@ public class FXTableWindow extends Application {
   }
 
 
-  public void addDummyData(TreeItem<RowData> root) {
+  public void addDummyData(TreeItem<ModularFeatureListRow> root) {
     int i = 0;
     for (i = 0; i < 10; i++)
       root.getChildren().add(new TreeItem<>(createRow(i)));
@@ -52,8 +52,8 @@ public class FXTableWindow extends Application {
       root.getChildren().get(5).getChildren().add(new TreeItem<>(createIncompleteRow(i)));
   }
 
-  public RowData createRow(int i) {
-    RowData data = new RowData();
+  public ModularFeatureListRow createRow(int i) {
+    ModularFeatureListRow data = new ModularFeatureListRow();
     data.set(MZType.class, new MZType(50d * i));
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
@@ -62,8 +62,8 @@ public class FXTableWindow extends Application {
     return data;
   }
 
-  public RowData createIncompleteRow(int i) {
-    RowData data = new RowData();
+  public ModularFeatureListRow createIncompleteRow(int i) {
+    ModularFeatureListRow data = new ModularFeatureListRow();
     data.set(MZType.class, new MZType(50d * i));
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));

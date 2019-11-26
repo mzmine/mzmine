@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel.fx;
 
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.data.RowData;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.AreaType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
@@ -30,7 +30,7 @@ import io.github.mzmine.datamodel.data.types.RTType;
 public class TestDatatypes {
 
   public static void main(String[] args) {
-    RowData data = new RowData();
+    ModularFeatureListRow data = new ModularFeatureListRow();
 
     System.out.println(data.getDetectionType().toString());
     System.out.println(data.get(RTType.class).map(DataType::getFormattedString).orElse("No RT"));

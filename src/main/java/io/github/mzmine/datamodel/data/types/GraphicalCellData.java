@@ -18,12 +18,12 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import io.github.mzmine.datamodel.data.RowData;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 
 public interface GraphicalCellData {
-  public Node getCellNode(TreeTableCell<RowData, DataType<?>> cell,
-      TreeTableColumn<RowData, ? extends DataType> coll);
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, DataType<?>> cell,
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll);
 }

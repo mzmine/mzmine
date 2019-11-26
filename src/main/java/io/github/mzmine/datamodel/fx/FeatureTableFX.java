@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import io.github.mzmine.datamodel.data.RowData;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.GraphicalCellData;
 import javafx.beans.property.SimpleObjectProperty;
@@ -41,17 +41,17 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
 /**
- * JavaFX FeatureTable based on {@link RowData} and {@link DataType}
+ * JavaFX FeatureTable based on {@link ModularFeatureListRow} and {@link DataType}
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class FeatureTableFX extends TreeTableView<RowData> {
+public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
   public FeatureTableFX() {
     FeatureTableFX table = this;
     // add dummy root
-    TreeItem<RowData> root = new TreeItem<>();
+    TreeItem<ModularFeatureListRow> root = new TreeItem<>();
     root.setExpanded(true);
     this.setRoot(root);
     this.setShowRoot(false);
@@ -75,9 +75,9 @@ public class FeatureTableFX extends TreeTableView<RowData> {
    * 
    * @param data
    */
-  public void addData(List<RowData> data) {
-    TreeItem<RowData> root = getRoot();
-    for (RowData row : data) {
+  public void addData(List<ModularFeatureListRow> data) {
+    TreeItem<ModularFeatureListRow> root = getRoot();
+    for (ModularFeatureListRow row : data) {
       root.getChildren().add(new TreeItem<>(row));
       row.getMap().addListener((
           MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
@@ -93,7 +93,7 @@ public class FeatureTableFX extends TreeTableView<RowData> {
    */
   public void addColumn(DataType dataType) {
     // value binding
-    TreeTableColumn<RowData, ? extends DataType> col =
+    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col =
         new TreeTableColumn<>(dataType.getHeaderString());
 
     col.setCellValueFactory(r -> {
@@ -110,7 +110,7 @@ public class FeatureTableFX extends TreeTableView<RowData> {
     });
 
     // value representation
-    col.setCellFactory(param -> new TreeTableCell<RowData, DataType<?>>() {
+    col.setCellFactory(param -> new TreeTableCell<ModularFeatureListRow, DataType<?>>() {
       @Override
       protected void updateItem(DataType<?> item, boolean empty) {
         super.updateItem(item, empty);
@@ -134,11 +134,11 @@ public class FeatureTableFX extends TreeTableView<RowData> {
   }
 
   /**
-   * Add all columns of {@link RowData} data
+   * Add all columns of {@link ModularFeatureListRow} data
    * 
    * @param data a summary RowData instance with all present {@link DataType}
    */
-  public void addColumns(RowData data) {
+  public void addColumns(ModularFeatureListRow data) {
     // for all data columns available in "data"
     for (DataType<?> dataType : data.getMap().values()) {
       addColumn(dataType);
@@ -152,7 +152,7 @@ public class FeatureTableFX extends TreeTableView<RowData> {
    * @param addHeader
    */
   @SuppressWarnings("rawtypes")
-  public void copySelectionToClipboard(final TreeTableView<RowData> table, boolean addHeader) {
+  public void copySelectionToClipboard(final TreeTableView<ModularFeatureListRow> table, boolean addHeader) {
     final Set<Integer> rows = new TreeSet<>();
     for (final TreeTablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
       rows.add(tablePosition.getRow());
@@ -163,13 +163,13 @@ public class FeatureTableFX extends TreeTableView<RowData> {
       if (!firstRow) {
         strb.append('\n');
       } else if (addHeader) {
-        for (final TreeTableColumn<RowData, ?> column : table.getColumns()) {
+        for (final TreeTableColumn<ModularFeatureListRow, ?> column : table.getColumns()) {
           strb.append(column.getText());
         }
         strb.append('\n');
       }
       boolean firstCol = true;
-      for (final TreeTableColumn<RowData, ?> column : table.getColumns()) {
+      for (final TreeTableColumn<ModularFeatureListRow, ?> column : table.getColumns()) {
         if (!firstCol) {
           strb.append('\t');
         }

@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel.data.types;
 
 import io.github.mzmine.datamodel.FeatureStatus;
-import io.github.mzmine.datamodel.data.RowData;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -42,8 +42,8 @@ public class DetectionType extends DataType<FeatureStatus> implements GraphicalC
   }
 
   @Override
-  public Node getCellNode(TreeTableCell<RowData, DataType<?>> cell,
-      TreeTableColumn<RowData, ? extends DataType> coll) {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, DataType<?>> cell,
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll) {
     Circle circle = new Circle();
     circle.setRadius(10);
     circle.setFill(value.getColorFX());
