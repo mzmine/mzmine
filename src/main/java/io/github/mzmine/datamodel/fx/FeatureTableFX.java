@@ -25,7 +25,8 @@ import java.util.TreeSet;
 import io.github.mzmine.datamodel.data.RowData;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.GraphicalCellData;
-import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.MapChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
@@ -76,8 +77,60 @@ public class FeatureTableFX extends TreeTableView<RowData> {
    */
   public void addData(List<RowData> data) {
     TreeItem<RowData> root = getRoot();
-    for (RowData row : data)
+    for (RowData row : data) {
       root.getChildren().add(new TreeItem<>(row));
+      row.getMap().addListener((
+          MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
+
+      });
+    }
+  }
+
+  /**
+   * Add a new column to the table
+   * 
+   * @param dataType
+   */
+  public void addColumn(DataType dataType) {
+    // value binding
+    TreeTableColumn<RowData, ? extends DataType> col =
+        new TreeTableColumn<>(dataType.getHeaderString());
+
+    col.setCellValueFactory(r -> {
+      Optional<? extends DataType> o = r.getValue().getValue().get(dataType.getClass());
+      final SimpleObjectProperty<DataType<?>> property = new SimpleObjectProperty<>(o.orElse(null));
+      // listen for changes in this rows DataTypeMap
+      r.getValue().getValue().getMap().addListener((
+          MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
+        if (dataType.getClass().equals(change.getKey())) {
+          property.set(r.getValue().getValue().get(dataType.getClass()).orElse(null));
+        }
+      });
+      return property;
+    });
+
+    // value representation
+    col.setCellFactory(param -> new TreeTableCell<RowData, DataType<?>>() {
+      @Override
+      protected void updateItem(DataType<?> item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          setGraphic(null);
+          setText(null);
+        } else {
+          if (item instanceof GraphicalCellData) {
+            Node node = ((GraphicalCellData) item).getCellNode(this, param);
+            setGraphic(node);
+            setText(null);
+          } else {
+            setText(item.getFormattedString());
+            setGraphic(null);
+          }
+        }
+      }
+    });
+    // add to table
+    this.getColumns().add(col);
   }
 
   /**
@@ -88,39 +141,7 @@ public class FeatureTableFX extends TreeTableView<RowData> {
   public void addColumns(RowData data) {
     // for all data columns available in "data"
     for (DataType<?> dataType : data.getMap().values()) {
-      // value binding
-      TreeTableColumn<RowData, ? extends DataType> col =
-          new TreeTableColumn<>(dataType.getHeaderString());
-      col.setCellValueFactory(r -> {
-        Optional<? extends DataType> o = r.getValue().getValue().get(dataType.getClass());
-        if (o.isPresent())
-          return new ReadOnlyObjectWrapper<>(o.get());
-        else
-          return null;
-      });
-
-      // value representation
-      col.setCellFactory(param -> new TreeTableCell<RowData, DataType<?>>() {
-        @Override
-        protected void updateItem(DataType<?> item, boolean empty) {
-          super.updateItem(item, empty);
-          if (empty) {
-            setGraphic(null);
-            setText(null);
-          } else {
-            if (item instanceof GraphicalCellData) {
-              Node node = ((GraphicalCellData) item).getCellNode(this, param);
-              setGraphic(node);
-              setText(null);
-            } else {
-              setText(item.getFormattedString());
-              setGraphic(null);
-            }
-          }
-        }
-      });
-      // add to table
-      this.getColumns().add(col);
+      addColumn(dataType);
     }
   }
 

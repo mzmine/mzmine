@@ -28,6 +28,8 @@ import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.HeightType;
 import io.github.mzmine.datamodel.data.types.MZType;
 import io.github.mzmine.datamodel.data.types.RTType;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 
 /**
  * Map of all feature related data.
@@ -38,7 +40,8 @@ import io.github.mzmine.datamodel.data.types.RTType;
 public class RowData {
 
   @SuppressWarnings({"rawtypes"})
-  private final HashMap<Class<? extends DataType<?>>, DataType> map = new HashMap<>();
+  private final ObservableMap<Class<? extends DataType<?>>, DataType> map =
+      FXCollections.observableMap(new HashMap<>());
 
   public <T extends DataType<?>> Optional<T> get(Class<T> type) {
     return Optional.ofNullable(map.get(type));
@@ -52,7 +55,7 @@ public class RowData {
       throw new WrongTypeException(key, data);
   }
 
-  public HashMap<Class<? extends DataType<?>>, DataType> getMap() {
+  public ObservableMap<Class<? extends DataType<?>>, DataType> getMap() {
     return map;
   }
 
