@@ -38,7 +38,7 @@ import io.github.mzmine.datamodel.data.types.RTType;
 public class RowData {
 
   @SuppressWarnings({"rawtypes"})
-  private HashMap<Class<? extends DataType<?>>, DataType> map = new HashMap<>();
+  private final HashMap<Class<? extends DataType<?>>, DataType> map = new HashMap<>();
 
   public <T extends DataType<?>> Optional<T> get(Class<T> type) {
     return Optional.ofNullable(map.get(type));
@@ -50,6 +50,10 @@ public class RowData {
     // wrong data type. Check code that supplied this data
     else
       throw new WrongTypeException(key, data);
+  }
+
+  public HashMap<Class<? extends DataType<?>>, DataType> getMap() {
+    return map;
   }
 
   public Stream<DataType> stream() {
