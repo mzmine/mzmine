@@ -42,17 +42,33 @@ public class FXTableWindow extends Application {
     for (i = 0; i < 10; i++)
       root.getChildren().add(new TreeItem<>(createRow(i)));
     i++;
+    for (; i < 15; i++)
+      root.getChildren().add(new TreeItem<>(createIncompleteRow(i)));
+    i++;
     // add one to the second item
     root.getChildren().get(1).getChildren().add(new TreeItem<>(createRow(i)));
+    i++;
+    for (; i < 20; i++)
+      root.getChildren().get(5).getChildren().add(new TreeItem<>(createIncompleteRow(i)));
   }
 
   public RowData createRow(int i) {
     RowData data = new RowData();
     data.set(MZType.class, new MZType(50d * i));
     data.set(RTType.class, new RTType(1f * i));
-    data.set(AreaType.class, new AreaType(1E4f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
+    data.set(AreaType.class, new AreaType(1E4f * i));
     data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
+    return data;
+  }
+
+  public RowData createIncompleteRow(int i) {
+    RowData data = new RowData();
+    data.set(MZType.class, new MZType(50d * i));
+    data.set(RTType.class, new RTType(1f * i));
+    data.set(HeightType.class, new HeightType(2E4f * i));
+    // data.set(AreaType.class, new AreaType(1E4f * i));
+    // data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
     return data;
   }
 
