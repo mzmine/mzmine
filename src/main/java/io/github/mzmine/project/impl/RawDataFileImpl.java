@@ -39,7 +39,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -561,4 +560,5 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     return dataFileName;
   }
 
+  // TODO make sure that equals and hashCode() works
 }
