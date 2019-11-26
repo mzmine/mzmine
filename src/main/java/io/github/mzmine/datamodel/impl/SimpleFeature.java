@@ -26,6 +26,7 @@ import com.google.common.primitives.Doubles;
 import io.github.msdk.datamodel.Chromatogram;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.util.PeakUtils;

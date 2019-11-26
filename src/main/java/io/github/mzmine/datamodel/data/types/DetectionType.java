@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.RowData;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;

@@ -18,7 +18,7 @@
 
 package io.github.mzmine.datamodel.fx;
 
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.RowData;
 import io.github.mzmine.datamodel.data.types.AreaType;
 import io.github.mzmine.datamodel.data.types.DataType;

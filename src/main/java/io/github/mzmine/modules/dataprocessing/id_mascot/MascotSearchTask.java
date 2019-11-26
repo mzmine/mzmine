@@ -101,7 +101,7 @@ public class MascotSearchTask extends AbstractTask {
   /*
    * (non-Javadoc)
    * 
-   * @see net.sf.mzmine.taskcontrol.Task#run()
+   * @see io.github.mzmine.taskcontrol.Task#run()
    */
   public void run() {
 

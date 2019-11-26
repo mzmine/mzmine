@@ -10,10 +10,10 @@
 <?import javafx.scene.control.cell.* ?>
 <?import javafx.scene.image.* ?>
 <?import javafx.scene.text.Text?>
-<?import net.sf.mzmine.modules.visualization.fx3d.* ?>
+<?import io.github.mzmine.modules.visualization.fx3d.* ?>
 <?import org.controlsfx.glyphfont.Glyph ?>
 
-<Stage fx:id="stage" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.sf.mzmine.modules.visualization.fx3d.Fx3DStageController">
+<Stage fx:id="stage" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.mzmine.modules.visualization.fx3d.Fx3DStageController">
    <scene>
        <Scene fx:id="scene">
            <root>

@@ -21,9 +21,9 @@ package io.github.mzmine.modules.dataprocessing.featdet_shapemodeler.peakmodels;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;

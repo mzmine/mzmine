@@ -20,15 +20,13 @@ package io.github.mzmine.modules.visualization.featurelisttable.table;
 
 import java.awt.Color;
 import java.awt.Component;
-
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.OverlayLayout;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
-
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.util.components.ColorCircle;
 
 /**
@@ -45,6 +43,7 @@ class PeakStatusCellRenderer implements TableCellRenderer {
    * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
    *      java.lang.Object, boolean, boolean, int, int)
    */
+  @Override
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
       boolean hasFocus, int row, int column) {
 

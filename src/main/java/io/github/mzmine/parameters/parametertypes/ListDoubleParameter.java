@@ -30,7 +30,7 @@ import io.github.mzmine.parameters.UserParameter;
 
 // import org.w3c.dom.Element;
 
-// import net.sf.mzmine.parameters.UserParameter;
+// import io.github.mzmine.parameters.UserParameter;
 
 
 public class ListDoubleParameter implements UserParameter<List<Double>, ListDoubleComponent>

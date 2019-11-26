@@ -21,7 +21,7 @@ package io.github.mzmine.datamodel.data;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Stream;
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.types.AreaType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;

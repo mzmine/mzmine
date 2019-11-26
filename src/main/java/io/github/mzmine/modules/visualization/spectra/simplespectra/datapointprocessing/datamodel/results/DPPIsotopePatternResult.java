@@ -25,7 +25,7 @@ import io.github.mzmine.modules.visualization.spectra.simplespectra.datapointpro
 
 /**
  * Used to store a detected isotope pattern in a
- * {@link net.sf.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}.
+ * {@link io.github.mzmine.modules.datapointprocessing.datamodel.ProcessedDataPoint}.
  * 
  * @author SteffenHeu steffen.heuckeroth@gmx.de / s_heuc03@uni-muenster.de
  *

@@ -38,7 +38,7 @@ public class ExactMassDetector implements MassDetector {
   }
   
   /**
-   * @see net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(io.github.mzmine.datamodel.Scan)
+   * @see io.github.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(io.github.mzmine.datamodel.Scan)
    */
   public DataPoint[] getMassValues(DataPoint dataPoints[], ParameterSet parameters) {
 

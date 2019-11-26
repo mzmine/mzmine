@@ -107,7 +107,7 @@ public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
      * Normalizes each feature when the maxIntensity of the 3D plot changes.
      * 
      * @see
-     * net.sf.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#normalize(
+     * io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#normalize(
      * double)
      */
     public void normalize(double maxOfAllBinnedIntensities) {
@@ -123,7 +123,7 @@ public class Fx3DFeatureDataset extends Fx3DAbstractDataset {
      * Sets the color of the containing box.
      * 
      * @see
-     * net.sf.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#setNodeColor
+     * io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#setNodeColor
      * (javafx.scene.paint.Color)
      */
     public void setNodeColor(Color featureColor) {

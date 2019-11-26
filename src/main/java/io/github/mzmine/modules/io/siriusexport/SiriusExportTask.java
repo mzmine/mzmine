@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -70,10 +70,12 @@ public class SiriusExportTask extends AbstractTask {
 
   private NumberFormat intensityForm = MZmineCore.getConfiguration().getIntensityFormat();
 
+  @Override
   public double getFinishedPercentage() {
     return (totalRows == 0 ? 0.0 : (double) finishedRows / (double) totalRows);
   }
 
+  @Override
   public String getTaskDescription() {
     return "Exporting feature list(s) " + Arrays.toString(peakLists) + " to MGF file(s)";
   }
@@ -88,6 +90,7 @@ public class SiriusExportTask extends AbstractTask {
         parameters.getParameter(SiriusExportParameters.MERGE_PARAMETER).getEmbeddedParameters();
   }
 
+  @Override
   public void run() {
     setStatus(TaskStatus.PROCESSING);
 
@@ -196,7 +199,7 @@ public class SiriusExportTask extends AbstractTask {
       MsMsSpectraMergeModule merger = MZmineCore.getModuleInstance(MsMsSpectraMergeModule.class);
       if (mergeMode != MergeMode.ACROSS_SAMPLES) {
         for (Feature f : row.getPeaks()) {
-          if (f.getFeatureStatus() == Feature.FeatureStatus.DETECTED
+          if (f.getFeatureStatus() == FeatureStatus.DETECTED
               && f.getMostIntenseFragmentScanNumber() >= 0) {
             // write correlation spectrum
             writeHeader(writer, row, f.getDataFile(), polarity, MsType.CORRELATED, -1);
@@ -263,7 +266,7 @@ public class SiriusExportTask extends AbstractTask {
   private boolean isSkipRow(PeakListRow row) {
     // skip rows which have no isotope pattern and no MS/MS spectrum
     for (Feature f : row.getPeaks()) {
-      if (f.getFeatureStatus() == Feature.FeatureStatus.DETECTED) {
+      if (f.getFeatureStatus() == FeatureStatus.DETECTED) {
         if ((f.getIsotopePattern() != null && f.getIsotopePattern().getDataPoints().length > 1)
             || f.getMostIntenseFragmentScanNumber() >= 0)
           return false;

@@ -19,13 +19,12 @@
 package io.github.mzmine.modules.visualization.featurelisttable.table;
 
 import javax.swing.table.AbstractTableModel;
-
 import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.PeakIdentity;
 import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
 
 public class PeakListTableModel extends AbstractTableModel {
 
@@ -43,19 +42,23 @@ public class PeakListTableModel extends AbstractTableModel {
 
   }
 
+  @Override
   public int getColumnCount() {
     return CommonColumnType.values().length
         + peakList.getNumberOfRawDataFiles() * DataFileColumnType.values().length;
   }
 
+  @Override
   public int getRowCount() {
     return peakList.getNumberOfRows();
   }
 
+  @Override
   public String getColumnName(int col) {
     return "column" + col;
   }
 
+  @Override
   public Class<?> getColumnClass(int col) {
 
     if (isCommonColumn(col)) {
@@ -73,6 +76,7 @@ public class PeakListTableModel extends AbstractTableModel {
    * value
    */
 
+  @Override
   public Object getValueAt(int row, int col) {
 
     PeakListRow peakListRow = peakList.getRow(row);
@@ -157,6 +161,7 @@ public class PeakListTableModel extends AbstractTableModel {
 
   }
 
+  @Override
   public boolean isCellEditable(int row, int col) {
 
     CommonColumnType columnType = getCommonColumn(col);
@@ -165,6 +170,7 @@ public class PeakListTableModel extends AbstractTableModel {
 
   }
 
+  @Override
   public void setValueAt(Object value, int row, int col) {
 
     CommonColumnType columnType = getCommonColumn(col);
