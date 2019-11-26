@@ -21,12 +21,11 @@ package io.github.mzmine.modules.dataprocessing.gapfill_peakfinder;
 import java.util.List;
 import java.util.Vector;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.util.RangeUtils;

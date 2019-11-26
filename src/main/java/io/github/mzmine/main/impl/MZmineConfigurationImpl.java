@@ -18,22 +18,16 @@
 
 package io.github.mzmine.main.impl;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import io.github.mzmine.gui.preferences.MZminePreferences;
-import io.github.mzmine.main.MZmineConfiguration;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.modules.MZmineModule;
-import io.github.mzmine.parameters.Parameter;
-import io.github.mzmine.parameters.ParameterSet;
-import io.github.mzmine.parameters.impl.SimpleParameterSet;
-import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
-import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
-import io.github.mzmine.util.ColorPalettes;
-import io.github.mzmine.util.StringCrypter;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.text.NumberFormat;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -46,16 +40,20 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.text.NumberFormat;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import io.github.mzmine.gui.preferences.MZminePreferences;
+import io.github.mzmine.main.MZmineConfiguration;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.modules.MZmineModule;
+import io.github.mzmine.parameters.Parameter;
+import io.github.mzmine.parameters.ParameterSet;
+import io.github.mzmine.parameters.impl.SimpleParameterSet;
+import io.github.mzmine.parameters.parametertypes.EncryptionKeyParameter;
+import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
+import io.github.mzmine.util.StringCrypter;
+import io.github.mzmine.util.color.Vision;
 
 /**
  * MZmine configuration class
@@ -114,7 +112,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
   // color palettes
   @Override
-  public ColorPalettes.Vision getColorVision() {
+  public Vision getColorVision() {
     return preferences.getParameter(MZminePreferences.colorPalettes).getValue();
   }
 
@@ -166,11 +164,12 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
       NodeList nodes = (NodeList) expr.evaluate(configuration, XPathConstants.NODESET);
       if (nodes.getLength() == 1) {
         Element preferencesElement = (Element) nodes.item(0);
-        //loading encryption key
-        //this has to be read first because following parameters may already contain encrypted data
-        //that needs this key for encryption
+        // loading encryption key
+        // this has to be read first because following parameters may already contain encrypted data
+        // that needs this key for encryption
         if (file.equals(MZmineConfiguration.CONFIG_FILE))
-          new SimpleParameterSet(new Parameter[]{globalEncrypter}).loadValuesFromXML(preferencesElement);
+          new SimpleParameterSet(new Parameter[] {globalEncrypter})
+              .loadValuesFromXML(preferencesElement);
         preferences.loadValuesFromXML(preferencesElement);
       }
 
@@ -249,7 +248,7 @@ public class MZmineConfigurationImpl implements MZmineConfiguration {
 
       // save encryption key to local config only
       // ATTENTION: this should to be written after all other configs
-      final SimpleParameterSet encSet = new SimpleParameterSet(new Parameter[]{globalEncrypter});
+      final SimpleParameterSet encSet = new SimpleParameterSet(new Parameter[] {globalEncrypter});
       encSet.setSkipSensitiveParameters(skipSensitive);
       encSet.saveValuesToXML(prefElement);
 

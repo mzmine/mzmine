@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.util;
+package io.github.mzmine.util.color;
 
 import java.awt.Color;
 
@@ -26,24 +26,9 @@ import java.awt.Color;
  * @author Robin Schmid
  *
  */
-public class ColorPalettes {
-  /**
-   * Color blindness or normal vision
-   * 
-   */
-  public enum Vision {
-    NORMAL_VISION, //
-    DEUTERANOPIA, // green blindness, 6% male population
-    PROTANOPIA, // red blindness, 1% male population
-    TRITANOPIA; // blue blindness, very rare
+public class Colors {
 
-    @Override
-    public String toString() {
-      return super.toString().replaceAll("_", " ");
-    }
-  }
-
-
+  private static final Color NEUTRAL_MARKER = new Color(0.5f, 0.5f, 0.5f, 1f); // grey
 
   // colors to mark positive or negative results (color blindness aware)
   private static final Color POSITIVE_MARKER_COLORBLIND = new Color(0.f, 0.447f, 0.698f, 1f); // blue
@@ -134,5 +119,9 @@ public class ColorPalettes {
       default:
         return NEGATIVE_MARKER;
     }
+  }
+
+  public static Color getNeutralColor() {
+    return NEUTRAL_MARKER;
   }
 }

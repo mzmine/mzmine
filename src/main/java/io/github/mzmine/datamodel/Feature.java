@@ -19,39 +19,13 @@ package io.github.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
 
 /**
  * This interface defines the properties of a detected peak
  */
 public interface Feature {
-
-  enum FeatureStatus {
-
-    /**
-     * Peak was not found
-     */
-    UNKNOWN,
-
-    /**
-     * Peak was found in primary peak picking
-     */
-    DETECTED,
-
-    /**
-     * Peak was estimated in secondary peak picking
-     */
-    ESTIMATED,
-
-    /**
-     * Peak was defined manually
-     */
-    MANUAL
-
-  }
 
   /**
    * This method returns the status of the peak

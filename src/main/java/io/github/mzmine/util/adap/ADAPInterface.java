@@ -15,6 +15,10 @@
  */
 package io.github.mzmine.util.adap;
 
+import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
 import dulab.adap.datamodel.BetterPeak;
 import dulab.adap.datamodel.Chromatogram;
@@ -23,24 +27,12 @@ import dulab.adap.datamodel.Peak;
 import dulab.adap.datamodel.PeakInfo;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
+import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.IsotopePattern;
-import io.github.mzmine.datamodel.PeakList;
 import io.github.mzmine.datamodel.PeakListRow;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.Scan;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.Set;
-import java.util.TreeMap;
-import javax.annotation.Nonnull;
 
 /**
  *
@@ -111,9 +103,8 @@ public class ADAPInterface {
       dataPoints[count++] = new SimpleDataPoint(peak.getMZ(), intensity);
 
     return new SimpleFeature(file, peak.getMZ(), peak.getRetTime(), peak.getIntensity(), area,
-        scanNumbers, dataPoints, Feature.FeatureStatus.ESTIMATED, representativeScan,
-        representativeScan, new int[]{},
-        Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
+        scanNumbers, dataPoints, FeatureStatus.ESTIMATED, representativeScan, representativeScan,
+        new int[] {}, Range.closed(peak.getFirstRetTime(), peak.getLastRetTime()),
         Range.closed(peak.getMZ() - 0.01, peak.getMZ() + 0.01),
         Range.closed(0.0, peak.getIntensity()));
   }
@@ -132,10 +123,8 @@ public class ADAPInterface {
       ++index;
     }
 
-    BetterPeak betterPeak = new BetterPeak(
-        peak.getInfo().peakID,
-        new Chromatogram(retTimes, intensities),
-        peak.getInfo());
+    BetterPeak betterPeak = new BetterPeak(peak.getInfo().peakID,
+        new Chromatogram(retTimes, intensities), peak.getInfo());
 
     return peakToFeature(file, betterPeak);
   }

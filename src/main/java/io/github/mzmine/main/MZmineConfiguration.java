@@ -18,27 +18,24 @@
 
 package io.github.mzmine.main;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.List;
 import javax.annotation.Nonnull;
-
 import io.github.mzmine.gui.preferences.MZminePreferences;
 import io.github.mzmine.modules.MZmineModule;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameListSilentParameter;
 import io.github.mzmine.util.StringCrypter;
-import io.github.mzmine.util.ColorPalettes.Vision;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.text.NumberFormat;
-import java.util.List;
+import io.github.mzmine.util.color.Vision;
 
 /**
  * MZmine configuration interface
  */
 public interface MZmineConfiguration {
 
-  public static final File CONFIG_FILE = new File(System.getProperty("user.home"),".mzmine.conf");
+  public static final File CONFIG_FILE = new File(System.getProperty("user.home"), ".mzmine.conf");
 
   public ParameterSet getModuleParameters(Class<? extends MZmineModule> module);
 
