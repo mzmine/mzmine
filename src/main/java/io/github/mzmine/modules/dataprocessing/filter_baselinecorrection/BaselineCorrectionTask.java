@@ -44,7 +44,7 @@ import io.github.mzmine.util.R.RSessionWrapperException;
  * methods by themselves). Those correctors all share a common behavior by inheriting from the base
  * class "BaselineCorrector", and apply there specific way of building the baselines via the various
  * algorithms implemented in the sub-package
- * "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors" .
+ * "io.github.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors" .
  */
 public class BaselineCorrectionTask extends AbstractTask {
 

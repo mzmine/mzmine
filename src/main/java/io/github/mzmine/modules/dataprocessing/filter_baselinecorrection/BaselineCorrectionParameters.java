@@ -47,7 +47,7 @@ import io.github.mzmine.util.R.REngineType;
 
 /**
  * Holds baseline correction module COMMON parameters. See
- * "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors" sub-package for
+ * "io.github.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors" sub-package for
  * method specific parameters.
  * 
  */

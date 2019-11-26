@@ -43,7 +43,7 @@ public class PeakSummaryVisualizerModule implements MZmineModule {
   }
 
   /**
-   * @see io.github.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+   * @see io.github.mzmine.modules.MZmineModule#setParameters(io.github.mzmine.data.ParameterSet)
    */
   public static void showNewPeakSummaryWindow(PeakListRow row) {
     final PeakSummaryWindow newWindow = new PeakSummaryWindow(row);

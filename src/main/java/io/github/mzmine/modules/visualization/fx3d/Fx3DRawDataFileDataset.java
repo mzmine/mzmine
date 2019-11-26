@@ -137,7 +137,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
      * Sets the peak color
      * 
      * @see
-     * net.sf.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#setNodeColor
+     * io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#setNodeColor
      * (javafx.scene.paint.Color)
      */
     public void setNodeColor(Color peakColor) {
@@ -197,7 +197,7 @@ public class Fx3DRawDataFileDataset extends Fx3DAbstractDataset {
      * Normalizes each data plot when the maxIntensity of the 3D plot changes.
      * 
      * @see
-     * net.sf.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#normalize(
+     * io.github.mzmine.modules.visualization.fx3d.Fx3DAbstractDataset#normalize(
      * double)
      */
     public void normalize(double maxOfAllBinnedIntensities) {
