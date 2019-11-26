@@ -16,7 +16,7 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.fx;
+package io.github.mzmine.datamodel.fx.test;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;

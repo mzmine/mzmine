@@ -19,18 +19,12 @@
 package io.github.mzmine.datamodel.fx;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
-import io.github.mzmine.datamodel.data.types.GraphicalCellData;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.MapChangeListener;
-import javafx.scene.Node;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTablePosition;
 import javafx.scene.control.TreeTableView;
@@ -79,10 +73,6 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     TreeItem<ModularFeatureListRow> root = getRoot();
     for (ModularFeatureListRow row : data) {
       root.getChildren().add(new TreeItem<>(row));
-      row.getMap().addListener((
-          MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
-
-      });
     }
   }
 
@@ -93,42 +83,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    */
   public void addColumn(DataType dataType) {
     // value binding
-    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col =
-        new TreeTableColumn<>(dataType.getHeaderString());
-
-    col.setCellValueFactory(r -> {
-      Optional<? extends DataType> o = r.getValue().getValue().get(dataType.getClass());
-      final SimpleObjectProperty<DataType<?>> property = new SimpleObjectProperty<>(o.orElse(null));
-      // listen for changes in this rows DataTypeMap
-      r.getValue().getValue().getMap().addListener((
-          MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
-        if (dataType.getClass().equals(change.getKey())) {
-          property.set(r.getValue().getValue().get(dataType.getClass()).orElse(null));
-        }
-      });
-      return property;
-    });
-
-    // value representation
-    col.setCellFactory(param -> new TreeTableCell<ModularFeatureListRow, DataType<?>>() {
-      @Override
-      protected void updateItem(DataType<?> item, boolean empty) {
-        super.updateItem(item, empty);
-        if (item == null || empty) {
-          setGraphic(null);
-          setText(null);
-        } else {
-          if (item instanceof GraphicalCellData) {
-            Node node = ((GraphicalCellData) item).getCellNode(this, param);
-            setGraphic(node);
-            setText(null);
-          } else {
-            setText(item.getFormattedString());
-            setGraphic(null);
-          }
-        }
-      }
-    });
+    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType.createColumn(null);
     // add to table
     this.getColumns().add(col);
   }
@@ -140,9 +95,9 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    */
   public void addColumns(ModularFeatureListRow data) {
     // for all data columns available in "data"
-    for (DataType<?> dataType : data.getMap().values()) {
+    data.stream().forEach(dataType -> {
       addColumn(dataType);
-    }
+    });
   }
 
   /**
@@ -152,7 +107,8 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
    * @param addHeader
    */
   @SuppressWarnings("rawtypes")
-  public void copySelectionToClipboard(final TreeTableView<ModularFeatureListRow> table, boolean addHeader) {
+  public void copySelectionToClipboard(final TreeTableView<ModularFeatureListRow> table,
+      boolean addHeader) {
     final Set<Integer> rows = new TreeSet<>();
     for (final TreeTablePosition tablePosition : table.getSelectionModel().getSelectedCells()) {
       rows.add(tablePosition.getRow());

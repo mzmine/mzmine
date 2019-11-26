@@ -16,21 +16,21 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data;
 
-import java.text.NumberFormat;
+/**
+ * Feature with modular DataTypes
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
+public class ModularFeature implements ModularDataModel {
 
-public abstract class NumberType<T extends Number> extends DataType<T> {
-
-  public NumberType(T value) {
-    super(value);
-  }
+  private final DataTypeMap map = new DataTypeMap();
 
   @Override
-  public String getFormattedString() {
-    return value == null ? "" : getFormatter().format(value);
+  public DataTypeMap getMap() {
+    return map;
   }
-
-  public abstract NumberFormat getFormatter();
 
 }

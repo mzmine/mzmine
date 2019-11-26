@@ -16,21 +16,16 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.modifiers;
 
-import java.text.NumberFormat;
+import javafx.scene.control.TreeTableColumn;
 
-public abstract class NumberType<T extends Number> extends DataType<T> {
-
-  public NumberType(T value) {
-    super(value);
-  }
-
-  @Override
-  public String getFormattedString() {
-    return value == null ? "" : getFormatter().format(value);
-  }
-
-  public abstract NumberFormat getFormatter();
-
+/**
+ * This data type contains sub columns. Master column is not visualized. Only sub columns
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
+public interface SubColumnsFactory {
+  public void addSubColumns(TreeTableColumn parent);
 }

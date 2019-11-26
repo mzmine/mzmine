@@ -16,21 +16,25 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data;
 
-import java.text.NumberFormat;
+import java.util.Optional;
+import java.util.stream.Stream;
+import io.github.mzmine.datamodel.data.types.DataType;
 
-public abstract class NumberType<T extends Number> extends DataType<T> {
+public interface ModularDataModel {
 
-  public NumberType(T value) {
-    super(value);
+  public DataTypeMap getMap();
+
+  public default void set(Class<? extends DataType<?>> key, DataType<?> data) {
+    getMap().set(key, data);
   }
 
-  @Override
-  public String getFormattedString() {
-    return value == null ? "" : getFormatter().format(value);
+  public default <T extends DataType<?>> Optional<T> get(Class<T> type) {
+    return getMap().get(type);
   }
 
-  public abstract NumberFormat getFormatter();
-
+  public default Stream<DataType> stream() {
+    return getMap().stream();
+  }
 }

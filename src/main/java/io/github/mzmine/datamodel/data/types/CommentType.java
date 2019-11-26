@@ -18,19 +18,15 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import java.text.NumberFormat;
+public class CommentType extends DataType<String> {
 
-public abstract class NumberType<T extends Number> extends DataType<T> {
-
-  public NumberType(T value) {
+  public CommentType(String value) {
     super(value);
   }
 
   @Override
-  public String getFormattedString() {
-    return value == null ? "" : getFormatter().format(value);
+  public String getHeaderString() {
+    return "Comment";
   }
-
-  public abstract NumberFormat getFormatter();
 
 }

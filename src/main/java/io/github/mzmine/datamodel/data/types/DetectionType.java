@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.data.types;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.modifiers.GraphicalCellData;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;

@@ -16,21 +16,15 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.modifiers;
 
-import java.text.NumberFormat;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.DataType;
+import javafx.scene.Node;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.TreeTableColumn;
 
-public abstract class NumberType<T extends Number> extends DataType<T> {
-
-  public NumberType(T value) {
-    super(value);
-  }
-
-  @Override
-  public String getFormattedString() {
-    return value == null ? "" : getFormatter().format(value);
-  }
-
-  public abstract NumberFormat getFormatter();
-
+public interface GraphicalCellData {
+  public Node getCellNode(TreeTableCell<ModularFeatureListRow, DataType<?>> cell,
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll);
 }

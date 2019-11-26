@@ -1,12 +1,18 @@
-package io.github.mzmine.datamodel.fx;
+package io.github.mzmine.datamodel.fx.test;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.AreaType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
+import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.HeightType;
 import io.github.mzmine.datamodel.data.types.MZType;
 import io.github.mzmine.datamodel.data.types.RTType;
+import io.github.mzmine.datamodel.fx.FeatureTableFX;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.TreeItem;
@@ -58,9 +64,35 @@ public class FXTableWindow extends Application {
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
     data.set(AreaType.class, new AreaType(1E4f * i));
-    data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
+
+    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, 2)));
     return data;
   }
+
+  private Map<RawDataFile, ModularFeature> createFeatures(int i, int j) {
+    Map<RawDataFile, ModularFeature> map = new ConcurrentHashMap<>(j * 2);
+    int a = 0;
+    for (a = 0; a < j; a++)
+      map.put(createRaw("Raw" + a), createFeature(i, j));
+
+    for (; a < j * 2; a++)
+      map.put(createRaw("Raw" + a), createIncompleteFeature(i, j));
+
+    return map;
+  }
+
+
+
+  private RawDataFile createRaw(String name) {
+    try {
+      return new TestRawDataFile(name);
+    } catch (Exception ex) {
+      System.out.println("ERROR in feature creation");
+      return null;
+    }
+  }
+
+
 
   public ModularFeatureListRow createIncompleteRow(int i) {
     ModularFeatureListRow data = new ModularFeatureListRow();
@@ -68,7 +100,25 @@ public class FXTableWindow extends Application {
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
     // data.set(AreaType.class, new AreaType(1E4f * i));
-    // data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
+
+    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, 2)));
+    return data;
+  }
+
+  public ModularFeature createFeature(int i, int j) {
+    ModularFeature data = new ModularFeature();
+    data.set(MZType.class, new MZType(300d * i + j));
+    data.set(RTType.class, new RTType(100f * i + j));
+    data.set(AreaType.class, new AreaType(1E1f * i));
+    data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
+    return data;
+  }
+
+  public ModularFeature createIncompleteFeature(int i, int j) {
+    ModularFeature data = new ModularFeature();
+
+    data.set(AreaType.class, new AreaType(null));
+    data.set(DetectionType.class, new DetectionType(FeatureStatus.UNKNOWN));
     return data;
   }
 
