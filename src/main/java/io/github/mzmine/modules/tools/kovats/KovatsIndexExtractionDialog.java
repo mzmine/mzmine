@@ -90,8 +90,8 @@ import io.github.mzmine.parameters.parametertypes.ranges.RTRangeComponent;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelection;
 import io.github.mzmine.parameters.parametertypes.selectors.RawDataFilesSelectionType;
 import io.github.mzmine.parameters.parametertypes.tolerances.MZTolerance;
-import io.github.mzmine.util.ColorPalettes;
 import io.github.mzmine.util.DialogLoggerUtil;
+import io.github.mzmine.util.color.Colors;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.io.TxtWriter;
 import net.miginfocom.swing.MigLayout;
@@ -400,7 +400,7 @@ public class KovatsIndexExtractionDialog extends ParameterSetupDialog {
 
       for (Entry<KovatsIndex, Double> e : parsedValues.entrySet()) {
         ValueMarker marker = new ValueMarker(e.getValue(),
-            ColorPalettes.getPositiveColor(MZmineCore.getConfiguration().getColorVision()),
+            Colors.getPositiveColor(MZmineCore.getConfiguration().getColorVision()),
             markerStroke);
         marker.setLabelOffset(new RectangleInsets(10, 0, 0, 0));
         marker.setLabelFont(new Font("Arial", Font.PLAIN, 12));
