@@ -47,7 +47,6 @@ import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.Document;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.MassList;
 import io.github.mzmine.datamodel.PeakListRow;
@@ -58,8 +57,8 @@ import io.github.mzmine.main.MZmineCore;
 import io.github.mzmine.modules.io.spectraldbsubmit.AdductParser;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.SpectraPlot;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.datasets.DataPointsDataSet;
-import io.github.mzmine.util.ColorPalettes;
-import io.github.mzmine.util.ColorPalettes.Vision;
+import io.github.mzmine.util.color.Colors;
+import io.github.mzmine.util.color.Vision;
 import io.github.mzmine.util.exceptions.MissingMassListException;
 import io.github.mzmine.util.scans.ScanUtils;
 import io.github.mzmine.util.scans.sorting.ScanSortMode;
@@ -160,8 +159,8 @@ public class ScanSelectPanel extends JPanel implements ActionListener {
       String massListName) {
     // get colors for vision
     Vision vision = MZmineCore.getConfiguration().getColorVision();
-    colorUsedData = ColorPalettes.getPositiveColor(vision);
-    colorRemovedData = ColorPalettes.getNegativeColor(vision);
+    colorUsedData = Colors.getPositiveColor(vision);
+    colorRemovedData = Colors.getNegativeColor(vision);
 
     setBorder(new LineBorder(UIManager.getColor("textHighlight")));
     this.massListName = massListName;

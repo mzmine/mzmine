@@ -62,7 +62,7 @@ import io.github.mzmine.modules.visualization.molstructure.Structure2DComponent;
 import io.github.mzmine.modules.visualization.spectra.simplespectra.mirrorspectra.MirrorScanWindow;
 import io.github.mzmine.parameters.ParameterSet;
 import io.github.mzmine.parameters.parametertypes.filenames.FileNameParameter;
-import io.github.mzmine.util.ColorScaleUtil;
+import io.github.mzmine.util.color.ColorScaleUtil;
 import io.github.mzmine.util.components.MultiLineLabel;
 import io.github.mzmine.util.files.FileAndPathUtil;
 import io.github.mzmine.util.spectraldb.entry.DBEntryField;

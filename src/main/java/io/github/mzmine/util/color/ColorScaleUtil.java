@@ -1,4 +1,4 @@
-package io.github.mzmine.util;
+package io.github.mzmine.util.color;
 
 import java.awt.Color;
 
