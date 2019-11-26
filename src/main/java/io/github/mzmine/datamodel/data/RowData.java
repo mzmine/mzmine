@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.data;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.stream.Stream;
 import io.github.mzmine.datamodel.Feature.FeatureStatus;
 import io.github.mzmine.datamodel.data.types.AreaType;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -51,6 +52,9 @@ public class RowData {
       throw new WrongTypeException(key, data);
   }
 
+  public Stream<DataType> stream() {
+    return map.values().stream();
+  }
 
   public FeatureStatus getDetectionType() {
     return get(DetectionType.class).map(DataType::getValue).orElse(FeatureStatus.UNKNOWN);

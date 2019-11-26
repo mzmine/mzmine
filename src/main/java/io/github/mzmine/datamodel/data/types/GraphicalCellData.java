@@ -18,36 +18,12 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
 import io.github.mzmine.datamodel.data.RowData;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.shape.Circle;
 
-public class DetectionType extends DataType<FeatureStatus> implements GraphicalCellData {
-
-  public DetectionType(FeatureStatus value) {
-    super(value);
-  }
-
-  @Override
-  public String getFormattedString() {
-    return value.toString();
-  }
-
-  @Override
-  public String getHeaderString() {
-    return "Detection status";
-  }
-
-  @Override
+public interface GraphicalCellData {
   public Node getCellNode(TreeTableCell<RowData, DataType<?>> cell,
-      TreeTableColumn<RowData, ? extends DataType> coll) {
-    Circle circle = new Circle();
-    circle.setRadius(10);
-    circle.setFill(value.getColorFX());
-    return circle;
-  }
-
+      TreeTableColumn<RowData, ? extends DataType> coll);
 }
