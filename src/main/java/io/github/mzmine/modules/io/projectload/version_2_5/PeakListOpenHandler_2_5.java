@@ -35,15 +35,14 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import com.Ostermiller.util.Base64;
 import com.google.common.collect.Range;
-
 import io.github.mzmine.datamodel.DataPoint;
+import io.github.mzmine.datamodel.FeatureStatus;
+import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import io.github.mzmine.datamodel.PeakInformation;
 import io.github.mzmine.datamodel.PeakList;
+import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.Scan;
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
-import io.github.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import io.github.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import io.github.mzmine.datamodel.impl.SimpleDataPoint;
 import io.github.mzmine.datamodel.impl.SimpleFeature;
 import io.github.mzmine.datamodel.impl.SimpleIsotopePattern;
@@ -212,8 +211,7 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements PeakListO
         currentPeakCharge = 0;
       try {
         parentChromatogramRowID = Integer.parseInt(
-                attrs.getValue(
-                        PeakListElementName_2_5.PARENT_CHROMATOGRAM_ROW_ID.getElementName()));
+            attrs.getValue(PeakListElementName_2_5.PARENT_CHROMATOGRAM_ROW_ID.getElementName()));
       } catch (NumberFormatException e) {
         parentChromatogramRowID = null;
       }

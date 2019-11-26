@@ -19,16 +19,16 @@
 package io.github.mzmine.modules.visualization.featurelisttable.table;
 
 import io.github.mzmine.datamodel.Feature;
-import io.github.mzmine.datamodel.Feature.FeatureStatus;
+import io.github.mzmine.datamodel.FeatureStatus;
 
 public enum DataFileColumnType {
 
   STATUS("Status", FeatureStatus.class), PEAKSHAPE("Peak shape", Feature.class), MZ("m/z",
       Double.class), RT("RT", Double.class), RT_START("RT start", Double.class), RT_END("RT end",
-          Double.class), DURATION("Duration", Double.class), HEIGHT("Height", Double.class), AREA(
-              "Area", Double.class), CHARGE("Charge", Integer.class), DATAPOINTS("# Data points",
-                  Integer.class), FWHM("FWHM", Double.class), TF("Tailing factor",
-                      Double.class), AF("Asymmetry factor",
+          Double.class), DURATION("Duration", Double.class), HEIGHT("Height",
+              Double.class), AREA("Area", Double.class), CHARGE("Charge",
+                  Integer.class), DATAPOINTS("# Data points", Integer.class), FWHM("FWHM",
+                      Double.class), TF("Tailing factor", Double.class), AF("Asymmetry factor",
                           Double.class), PARENT_ROW_ID("Parent Row ID", Integer.class);
 
   private final String columnName;
@@ -47,6 +47,7 @@ public enum DataFileColumnType {
     return columnClass;
   }
 
+  @Override
   public String toString() {
     return columnName;
   }

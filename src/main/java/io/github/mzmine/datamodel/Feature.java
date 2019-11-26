@@ -17,78 +17,15 @@
 
 package io.github.mzmine.datamodel;
 
-import java.awt.Color;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.impl.SimplePeakInformation;
-import io.github.mzmine.main.MZmineCore;
-import io.github.mzmine.util.color.Colors;
-import io.github.mzmine.util.color.ColorsFX;
-import io.github.mzmine.util.color.Vision;
 
 /**
  * This interface defines the properties of a detected peak
  */
 public interface Feature {
-
-  enum FeatureStatus {
-
-    /**
-     * Peak was not found
-     */
-    UNKNOWN,
-
-    /**
-     * Peak was found in primary peak picking
-     */
-    DETECTED,
-
-    /**
-     * Peak was estimated in secondary peak picking
-     */
-    ESTIMATED,
-
-    /**
-     * Peak was defined manually
-     */
-    MANUAL;
-
-
-    public Color getColor() {
-      Vision vision =
-          MZmineCore.getConfiguration() != null ? MZmineCore.getConfiguration().getColorVision()
-              : Vision.DEUTERANOPIA;
-      switch (this) {
-        case DETECTED:
-          return Colors.getPositiveColor(vision);
-        case ESTIMATED:
-          return Colors.getNeutralColor();
-        case MANUAL:
-          return Color.BLACK;
-        case UNKNOWN:
-        default:
-          return Colors.getNegativeColor(vision);
-      }
-    }
-
-    public javafx.scene.paint.Color getColorFX() {
-      Vision vision =
-          MZmineCore.getConfiguration() != null ? MZmineCore.getConfiguration().getColorVision()
-              : Vision.DEUTERANOPIA;
-      switch (this) {
-        case DETECTED:
-          return ColorsFX.getPositiveColor(vision);
-        case ESTIMATED:
-          return ColorsFX.getNeutralColor();
-        case MANUAL:
-          return javafx.scene.paint.Color.BLACK;
-        case UNKNOWN:
-        default:
-          return ColorsFX.getNegativeColor(vision);
-      }
-    }
-  }
 
   /**
    * This method returns the status of the peak
