@@ -27,5 +27,5 @@ import javafx.scene.control.TreeTableColumn;
  *
  */
 public interface SubColumnsFactory {
-  public void addSubColumns(TreeTableColumn parent);
+  public TreeTableColumn[] createSubColumns();
 }

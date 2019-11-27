@@ -1,6 +1,7 @@
 package io.github.mzmine.datamodel.fx.test;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -19,6 +20,7 @@ import javafx.scene.control.TreeItem;
 import javafx.stage.Stage;
 
 public class FXTableWindow extends Application {
+  Random rand = new Random(System.currentTimeMillis());
 
   @Override
   public void start(Stage stage) {
@@ -65,7 +67,7 @@ public class FXTableWindow extends Application {
     data.set(HeightType.class, new HeightType(2E4f * i));
     data.set(AreaType.class, new AreaType(1E4f * i));
 
-    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, 2)));
+    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, 3)));
     return data;
   }
 
@@ -101,7 +103,7 @@ public class FXTableWindow extends Application {
     data.set(HeightType.class, new HeightType(2E4f * i));
     // data.set(AreaType.class, new AreaType(1E4f * i));
 
-    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, 2)));
+    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, 3)));
     return data;
   }
 
@@ -109,16 +111,17 @@ public class FXTableWindow extends Application {
     ModularFeature data = new ModularFeature();
     data.set(MZType.class, new MZType(300d * i + j));
     data.set(RTType.class, new RTType(100f * i + j));
-    data.set(AreaType.class, new AreaType(1E1f * i));
+    data.set(AreaType.class, new AreaType(rand.nextFloat() * 100f));
     data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
     return data;
   }
 
   public ModularFeature createIncompleteFeature(int i, int j) {
     ModularFeature data = new ModularFeature();
-
-    data.set(AreaType.class, new AreaType(null));
-    data.set(DetectionType.class, new DetectionType(FeatureStatus.UNKNOWN));
+    data.set(RTType.class, new RTType(100f * i + j));
+    data.set(AreaType.class, new AreaType(rand.nextFloat() * 100f));
+    data.set(DetectionType.class,
+        new DetectionType(rand.nextBoolean() ? FeatureStatus.UNKNOWN : FeatureStatus.ESTIMATED));
     return data;
   }
 
