@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types;
 
+import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -87,11 +88,14 @@ public abstract class DataType<T> {
         new TreeTableColumn<>(getHeaderString());
 
     if (this instanceof SubColumnsFactory) {
+      col.setSortable(false);
       // add sub columns (no value factory needed for parent column)
-      TreeTableColumn[] children = ((SubColumnsFactory) this).createSubColumns();
+      List<TreeTableColumn<ModularFeatureListRow, ?>> children =
+          ((SubColumnsFactory) this).createSubColumns();
       col.getColumns().addAll(children);
       return col;
     } else {
+      col.setSortable(true);
       // define observable
       col.setCellValueFactory(r -> {
         final DataTypeMap map;

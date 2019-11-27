@@ -18,6 +18,9 @@
 
 package io.github.mzmine.datamodel.data.types.modifiers;
 
+import java.util.List;
+import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import javafx.scene.control.TreeTableColumn;
 
 /**
@@ -27,5 +30,11 @@ import javafx.scene.control.TreeTableColumn;
  *
  */
 public interface SubColumnsFactory {
-  public TreeTableColumn[] createSubColumns();
+  /**
+   * Creates sub columns which are then added to the parent column by the parent datatype
+   * 
+   * @return
+   */
+  @Nonnull
+  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns();
 }

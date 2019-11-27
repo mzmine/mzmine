@@ -18,11 +18,13 @@
 
 package io.github.mzmine.datamodel.data.types;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.DataTypeMap;
 import io.github.mzmine.datamodel.data.ModularFeature;
@@ -67,14 +69,14 @@ public class FeaturesType extends DataType<ObservableMap<RawDataFile, ModularFea
   }
 
   @Override
-  public TreeTableColumn[] createSubColumns() {
-    TreeTableColumn[] cols = new TreeTableColumn[value.size() + 2];
+  @Nonnull
+  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns() {
+    List<TreeTableColumn<ModularFeatureListRow, ?>> cols = new ArrayList<>();
     // create bar chart
-    cols[0] = createBarChartColl();
-    cols[1] = createAreaShareColl();
+    cols.add(createBarChartColl());
+    cols.add(createAreaShareColl());
 
     // create all sample columns
-    int i = 2;
     for (Entry<RawDataFile, ModularFeature> entry : value.entrySet()) {
       RawDataFile raw = entry.getKey();
       // create column per name
@@ -87,8 +89,7 @@ public class FeaturesType extends DataType<ObservableMap<RawDataFile, ModularFea
       });
 
       // add all
-      cols[i] = sampleCol;
-      i++;
+      cols.add(sampleCol);
     }
     return cols;
   }
