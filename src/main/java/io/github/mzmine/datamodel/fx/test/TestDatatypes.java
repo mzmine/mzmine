@@ -20,12 +20,12 @@ package io.github.mzmine.datamodel.fx.test;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.AreaType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
-import io.github.mzmine.datamodel.data.types.HeightType;
-import io.github.mzmine.datamodel.data.types.MZType;
-import io.github.mzmine.datamodel.data.types.RTType;
+import io.github.mzmine.datamodel.data.types.numbers.AreaType;
+import io.github.mzmine.datamodel.data.types.numbers.HeightType;
+import io.github.mzmine.datamodel.data.types.numbers.MZType;
+import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.util.color.ColorsFX;
 import javafx.scene.paint.Color;
 

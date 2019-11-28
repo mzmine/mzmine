@@ -18,31 +18,25 @@
 
 package io.github.mzmine.datamodel.data.types;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import io.github.mzmine.main.MZmineCore;
+import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.RawDataFile;
 
-public class AreaType extends NumberType<Float> {
-  // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0E00");
+public class RawFileType extends DataType<RawDataFile> {
 
-  public AreaType(Float value) {
+  public RawFileType(@Nonnull RawDataFile value) {
     super(value);
   }
 
   @Override
-  public NumberFormat getFormatter() {
-    try {
-      return MZmineCore.getConfiguration().getIntensityFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
+  @Nonnull
+  public String getHeaderString() {
+    return "Raw";
   }
 
   @Override
-  public String getHeaderString() {
-    return "Area";
+  @Nonnull
+  public String getFormattedString() {
+    return value.getName();
   }
 
 }

@@ -23,16 +23,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.DataTypeMap;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
+import io.github.mzmine.datamodel.data.types.fx.RawsMapCellValueFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
-import javafx.beans.property.SimpleObjectProperty;
+import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
@@ -70,8 +71,17 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
   public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns() {
     List<TreeTableColumn<ModularFeatureListRow, ?>> cols = new ArrayList<>();
     // create bar chart
-    cols.add(createBarChartColl());
-    cols.add(createAreaShareColl());
+    TreeTableColumn<ModularFeatureListRow, FeaturesType> barsCol =
+        new TreeTableColumn<>("Area Bars");
+    barsCol.setCellValueFactory(new RawsMapCellValueFactory<>(null, this.getClass()));
+    barsCol.setCellFactory(new DataTypeCellFactory<>(null, this.getClass(), 0));
+    cols.add(barsCol);
+
+    TreeTableColumn<ModularFeatureListRow, FeaturesType> sharesCol =
+        new TreeTableColumn<>("Area Share");
+    sharesCol.setCellValueFactory(new RawsMapCellValueFactory<>(null, this.getClass()));
+    sharesCol.setCellFactory(new DataTypeCellFactory<>(null, this.getClass(), 1));
+    cols.add(sharesCol);
 
     // create all sample columns
     for (Entry<RawDataFile, ModularFeature> entry : value.entrySet()) {
@@ -100,7 +110,7 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
    * @param coll
    * @return
    */
-  public Node getBarChart(TreeTableCell<ModularFeatureListRow, DataType<?>> cell,
+  public Node getBarChart(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     XYChart.Series data = new XYChart.Series();
@@ -128,103 +138,13 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
   }
 
   /**
-   * Create a bar chart column for area
-   * 
-   * @return
-   */
-  private TreeTableColumn<ModularFeatureListRow, ? extends DataType> createBarChartColl() {
-    // create column
-    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col =
-        new TreeTableColumn<>("Area Bars");
-
-    // define observable
-    col.setCellValueFactory(r -> {
-      final DataTypeMap map = r.getValue().getValue().getMap();
-
-      Optional<? extends DataType> o = map.get(this.getClass());
-      final SimpleObjectProperty<DataType<?>> property = new SimpleObjectProperty<>(o.orElse(null));
-      // listen for changes in this rows DataTypeMap
-      map.getObservableMap().addListener((
-          MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
-        if (this.getClass().equals(change.getKey())) {
-          property.set(map.get(this.getClass()).orElse(null));
-        }
-      });
-      return property;
-    });
-
-    // value representation
-    col.setCellFactory(param -> new TreeTableCell<ModularFeatureListRow, DataType<?>>() {
-      @Override
-      protected void updateItem(DataType<?> item, boolean empty) {
-        super.updateItem(item, empty);
-        if (item == null || empty) {
-          setGraphic(null);
-          setText(null);
-        } else {
-          setText(null);
-          setGraphic(getBarChart(this, param));
-        }
-        setAlignment(Pos.CENTER);
-      }
-    });
-    return col;
-  }
-
-
-  /**
-   * Create a area share
-   * 
-   * @return
-   */
-  private TreeTableColumn<ModularFeatureListRow, ? extends DataType> createAreaShareColl() {
-    // create column
-    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col =
-        new TreeTableColumn<>("Area Share");
-
-    // define observable
-    col.setCellValueFactory(r -> {
-      final DataTypeMap map = r.getValue().getValue().getMap();
-
-      Optional<? extends DataType> o = map.get(this.getClass());
-      final SimpleObjectProperty<DataType<?>> property = new SimpleObjectProperty<>(o.orElse(null));
-      // listen for changes in this rows DataTypeMap
-      map.getObservableMap().addListener((
-          MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
-        if (this.getClass().equals(change.getKey())) {
-          property.set(map.get(this.getClass()).orElse(null));
-        }
-      });
-      return property;
-    });
-
-    // value representation
-    col.setCellFactory(param -> new TreeTableCell<ModularFeatureListRow, DataType<?>>() {
-      @Override
-      protected void updateItem(DataType<?> item, boolean empty) {
-        super.updateItem(item, empty);
-        if (item == null || empty) {
-          setGraphic(null);
-          setText(null);
-        } else {
-          setText(null);
-          setGraphic(getAreaShareChart(this, param));
-        }
-        setAlignment(Pos.CENTER);
-      }
-    });
-    return col;
-  }
-
-
-  /**
    * Create bar chart of data
    * 
    * @param cell
    * @param coll
    * @return
    */
-  public Node getAreaShareChart(TreeTableCell<ModularFeatureListRow, DataType<?>> cell,
+  public Node getAreaShareChart(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
 
@@ -256,6 +176,28 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
     box.setAlignment(Pos.CENTER_LEFT);
 
     return box;
+  }
+
+  @Override
+  @Nullable
+  public String getFormattedSubColValue(int subcolumn) {
+    return "";
+  }
+
+  @Override
+  @Nullable
+  public Node getSubColNode(int subcolumn,
+      TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
+      RawDataFile raw) {
+
+    switch (subcolumn) {
+      case 0:
+        return getBarChart(cell, coll);
+      case 1:
+        return getAreaShareChart(cell, coll);
+    }
+    return null;
   }
 
 }

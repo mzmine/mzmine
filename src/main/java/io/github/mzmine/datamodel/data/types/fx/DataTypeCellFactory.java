@@ -22,6 +22,7 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
@@ -40,11 +41,18 @@ public class DataTypeCellFactory<T extends DataType> implements
 
   private RawDataFile raw;
   private Class<? extends DataType> dataTypeClass;
+  private int subcolumn = -1;
 
 
   public DataTypeCellFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass) {
+    this(raw, dataTypeClass, -1);
+  }
+
+  public DataTypeCellFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass,
+      int subcolumn) {
     this.dataTypeClass = dataTypeClass;
     this.raw = raw;
+    this.subcolumn = subcolumn;
   }
 
   @Override
@@ -58,7 +66,14 @@ public class DataTypeCellFactory<T extends DataType> implements
           setGraphic(null);
           setText(null);
         } else {
-          if (item instanceof GraphicalColumType) {
+          // sub columns provide values
+          if (item instanceof SubColumnsFactory) {
+            // get sub column value
+            SubColumnsFactory sub = (SubColumnsFactory) item;
+            Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
+            setGraphic(n);
+            setText(n != null ? null : sub.getFormattedSubColValue(subcolumn));
+          } else if (item instanceof GraphicalColumType) {
             Node node = ((GraphicalColumType) item).getCellNode(this, param, item, raw);
             setGraphic(node);
             setText(null);

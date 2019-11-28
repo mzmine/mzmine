@@ -104,59 +104,8 @@ public abstract class DataType<T> implements Comparable<DataType<T>> {
       col.setSortable(true);
       // define observable
       col.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this.getClass()));
-      // col.setCellValueFactory(r -> {
-      // final DataTypeMap map;
-      // if (raw != null) {
-      // // find data type map for feature for this raw file
-      // ObservableMap<RawDataFile, ModularFeature> features =
-      // r.getValue().getValue().getFeatures();
-      // // no features
-      // // TODO somehow: the HashMap fails to retrieve values for RawDataFiles
-      // // TODO look at equals and hashCode() method!
-      // if (features.get(raw) == null)
-      // return null;
-      // map = features.get(raw).getMap();
-      // } else {
-      // // use feature list row DataTypeMap
-      // map = r.getValue().getValue().getMap();
-      // }
-      //
-      // Optional<? extends DataType> o = map.get(this.getClass());
-      // final SimpleObjectProperty<DataType<?>> property =
-      // new SimpleObjectProperty<>(o.orElse(null));
-      // // listen for changes in this rows DataTypeMap
-      // map.getObservableMap().addListener((
-      // MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change)
-      // -> {
-      // if (this.getClass().equals(change.getKey())) {
-      // property.set(map.get(this.getClass()).orElse(null));
-      // }
-      // });
-      // return property;
-      // });
-
       // value representation
       col.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass()));
-      // col.setCellFactory(param -> new TreeTableCell<ModularFeatureListRow, DataType<?>>() {
-      // @Override
-      // protected void updateItem(DataType<?> item, boolean empty) {
-      // super.updateItem(item, empty);
-      // if (item == null || empty) {
-      // setGraphic(null);
-      // setText(null);
-      // } else {
-      // if (item instanceof GraphicalColumType) {
-      // Node node = ((GraphicalColumType) item).getCellNode(this, param, this.getItem(), raw);
-      // setGraphic(node);
-      // setText(null);
-      // } else {
-      // setText(item.getFormattedString());
-      // setGraphic(null);
-      // }
-      // }
-      // setAlignment(Pos.CENTER);
-      // }
-      // });
     }
     return col;
   }

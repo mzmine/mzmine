@@ -16,34 +16,31 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.numbers;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.main.MZmineCore;
 
-public class HeightType extends NumberType<Float> {
+public abstract class AreaRangeType extends NumberRangeType<Float>
+    implements SubColumnsFactory {
   // only used in cases where the mzmine config has no format
   private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0E00");
 
-
-  public HeightType(Float value) {
+  public AreaRangeType(Range<Float> value) {
     super(value);
   }
 
   @Override
   public NumberFormat getFormatter() {
     try {
-      return MZmineCore.getConfiguration().getIntensityFormat();
+      return MZmineCore.getConfiguration().getMZFormat();
     } catch (NullPointerException e) {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;
     }
   }
 
-
-  @Override
-  public String getHeaderString() {
-    return "Height";
-  }
 }

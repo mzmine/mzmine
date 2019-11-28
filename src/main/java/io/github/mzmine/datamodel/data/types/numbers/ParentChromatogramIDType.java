@@ -16,32 +16,19 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.numbers;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.datamodel.data.types.DataType;
 
-public class RTType extends NumberType<Float> {
-  // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.00");
+public class ParentChromatogramIDType extends DataType<Integer> {
 
-  public RTType(Float value) {
+  public ParentChromatogramIDType(Integer value) {
     super(value);
   }
 
   @Override
-  public NumberFormat getFormatter() {
-    try {
-      return MZmineCore.getConfiguration().getRTFormat();
-    } catch (NullPointerException e) {
-      // only happens if types are used without initializing the MZmineCore
-      return DEFAULT_FORMAT;
-    }
+  public String getHeaderString() {
+    return "ID";
   }
 
-  @Override
-  public String getHeaderString() {
-    return "RT";
-  }
 }

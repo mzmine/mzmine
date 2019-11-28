@@ -20,7 +20,12 @@ package io.github.mzmine.datamodel.data.types.modifiers;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.DataType;
+import javafx.scene.Node;
+import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 
 /**
@@ -37,4 +42,16 @@ public interface SubColumnsFactory {
    */
   @Nonnull
   public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns();
+
+  @Nullable
+  public String getFormattedSubColValue(int subcolumn);
+
+
+  @Nullable
+  default public Node getSubColNode(int subcolumn,
+      TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
+      RawDataFile raw) {
+    return null;
+  }
 }

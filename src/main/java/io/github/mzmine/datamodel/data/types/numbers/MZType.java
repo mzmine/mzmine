@@ -16,21 +16,32 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.numbers;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import io.github.mzmine.main.MZmineCore;
 
-public abstract class NumberType<T extends Number> extends DataType<T> {
+public class MZType extends NumberType<Double> {
+  // only used in cases where the mzmine config has no format
+  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0000");
 
-  public NumberType(T value) {
+  public MZType(Double value) {
     super(value);
   }
 
   @Override
-  public String getFormattedString() {
-    return value == null ? "" : getFormatter().format(value);
+  public NumberFormat getFormatter() {
+    try {
+      return MZmineCore.getConfiguration().getMZFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
   }
 
-  public abstract NumberFormat getFormatter();
-
+  @Override
+  public String getHeaderString() {
+    return "m/z";
+  }
 }

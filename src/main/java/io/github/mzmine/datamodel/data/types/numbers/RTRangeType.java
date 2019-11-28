@@ -16,17 +16,19 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.numbers;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.main.MZmineCore;
 
-public class MZType extends NumberType<Double> {
+public abstract class RTRangeType extends NumberRangeType<Float> implements SubColumnsFactory {
   // only used in cases where the mzmine config has no format
-  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0000");
+  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.00");
 
-  public MZType(Double value) {
+  public RTRangeType(Range<Float> value) {
     super(value);
   }
 
@@ -40,8 +42,4 @@ public class MZType extends NumberType<Double> {
     }
   }
 
-  @Override
-  public String getHeaderString() {
-    return "m/z";
-  }
 }

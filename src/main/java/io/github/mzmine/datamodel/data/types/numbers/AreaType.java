@@ -16,16 +16,33 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.numbers;
 
-public class RowChargeType extends DataType<Integer> {
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import io.github.mzmine.main.MZmineCore;
 
-  public RowChargeType(Integer value) {
+public class AreaType extends NumberType<Float> {
+  // only used in cases where the mzmine config has no format
+  private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0E00");
+
+  public AreaType(Float value) {
     super(value);
   }
 
   @Override
-  public String getHeaderString() {
-    return "Charge";
+  public NumberFormat getFormatter() {
+    try {
+      return MZmineCore.getConfiguration().getIntensityFormat();
+    } catch (NullPointerException e) {
+      // only happens if types are used without initializing the MZmineCore
+      return DEFAULT_FORMAT;
+    }
   }
+
+  @Override
+  public String getHeaderString() {
+    return "Area";
+  }
+
 }

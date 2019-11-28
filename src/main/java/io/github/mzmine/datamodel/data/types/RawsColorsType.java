@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.RawsMapCellValueFactory;
-import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.util.color.ColorsFX;
 import javafx.scene.Node;
@@ -44,8 +44,7 @@ import javafx.scene.paint.Color;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class RawsColorsType extends DataType<Map<RawDataFile, Color>>
-    implements SubColumnsFactory, GraphicalColumType {
+public class RawsColorsType extends DataType<Map<RawDataFile, Color>> implements SubColumnsFactory {
 
   public RawsColorsType(Map<RawDataFile, Color> map) {
     super(Collections.unmodifiableMap(map));
@@ -63,28 +62,57 @@ public class RawsColorsType extends DataType<Map<RawDataFile, Color>>
     List<TreeTableColumn<ModularFeatureListRow, ?>> cols = new ArrayList<>();
 
     // create all sample columns
+    int subcol = 0;
     for (Entry<RawDataFile, Color> entry : value.entrySet()) {
       RawDataFile raw = entry.getKey();
       // create column per name
       TreeTableColumn<ModularFeatureListRow, RawsColorsType> sampleCol =
           new TreeTableColumn<>(raw.getName());
       sampleCol.setCellValueFactory(new RawsMapCellValueFactory<>(raw, this.getClass()));
-      sampleCol.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass()));
+      sampleCol.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass(), subcol));
 
       // add all
       cols.add(sampleCol);
+      subcol++;
     }
     return cols;
   }
 
+  public RawDataFile getRawFile(int i) {
+    int c = 0;
+    for (Entry<RawDataFile, Color> entry : value.entrySet()) {
+      if (c == i)
+        return entry.getKey();
+      c++;
+    }
+    return null;
+  }
+
+  public Color getValue(int i) {
+    int c = 0;
+    for (Entry<RawDataFile, Color> entry : value.entrySet()) {
+      if (c == i)
+        return entry.getValue();
+      c++;
+    }
+    return null;
+  }
+
   @Override
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
+  @Nullable
+  public String getFormattedSubColValue(int column) {
+    Color color = getValue(column);
+    return color == null ? "" : color.toString();
+  }
+
+  @Override
+  @Nullable
+  public Node getSubColNode(int subcolumn,
+      TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
       RawDataFile raw) {
-    Color color = null;
-    if (cellData instanceof RawsColorsType) {
-      color = ((RawsColorsType) cellData).value.get(raw);
-    }
+
+    Color color = getValue(subcolumn);
     if (color == null)
       color = Color.BLACK;
     Pane pane = new Pane();
