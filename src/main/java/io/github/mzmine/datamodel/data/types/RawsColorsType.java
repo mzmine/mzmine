@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.data.types;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,8 +31,6 @@ import io.github.mzmine.datamodel.data.types.fx.RawsMapCellValueFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.util.color.ColorsFX;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -45,11 +44,11 @@ import javafx.scene.paint.Color;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class RawsColorsType extends DataType<ObservableMap<RawDataFile, Color>>
+public class RawsColorsType extends DataType<Map<RawDataFile, Color>>
     implements SubColumnsFactory, GraphicalColumType {
 
   public RawsColorsType(Map<RawDataFile, Color> map) {
-    super(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(map)));
+    super(Collections.unmodifiableMap(map));
   }
 
   @Override

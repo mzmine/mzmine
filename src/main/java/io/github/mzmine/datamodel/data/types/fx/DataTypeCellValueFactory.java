@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types.fx;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -31,7 +32,6 @@ import io.github.mzmine.datamodel.data.types.DataType;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.util.Callback;
@@ -97,8 +97,7 @@ public class DataTypeCellValueFactory<T extends DataType> implements
   public DataTypeMap apply(CellDataFeatures<ModularFeatureListRow, T> param) {
     if (raw != null) {
       // find data type map for feature for this raw file
-      ObservableMap<RawDataFile, ModularFeature> features =
-          param.getValue().getValue().getFeatures();
+      Map<RawDataFile, ModularFeature> features = param.getValue().getValue().getFeatures();
       // no features
       if (features.get(raw) == null)
         return null;

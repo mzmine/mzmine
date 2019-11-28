@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.data.types;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +33,6 @@ import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableMap;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
@@ -53,11 +53,11 @@ import javafx.scene.shape.Rectangle;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
-public class FeaturesType extends DataType<ObservableMap<RawDataFile, ModularFeature>>
+public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
     implements SubColumnsFactory {
 
   public FeaturesType(Map<RawDataFile, ModularFeature> map) {
-    super(FXCollections.unmodifiableObservableMap(FXCollections.observableMap(map)));
+    super(Collections.unmodifiableMap(map));
   }
 
   @Override

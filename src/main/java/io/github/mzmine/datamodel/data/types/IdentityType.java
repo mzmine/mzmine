@@ -18,26 +18,29 @@
 
 package io.github.mzmine.datamodel.data.types;
 
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.Nonnull;
-import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
-import javafx.scene.paint.Color;
+import javax.annotation.Nullable;
+import io.github.mzmine.datamodel.PeakIdentity;
+import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import javafx.scene.control.TreeTableColumn;
 
-/**
- * e.g. the color of a feature
- * 
- * @author Robin Schmid (robinschmid@uni-muenster.de)
- *
- */
-public class ColorType extends DataType<Color> implements NullColumnType {
+public class IdentityType extends DataType<List<PeakIdentity>> {
 
-  public ColorType(Color value) {
-    super(value);
+  public IdentityType(List<PeakIdentity> value) {
+    super(Collections.unmodifiableList(value));
+  }
+
+  @Override
+  public String getHeaderString() {
+    return "Identity";
   }
 
   @Override
   @Nonnull
-  public String getHeaderString() {
-    return "Color";
+  public String getFormattedString() {
+    return value == null || value.isEmpty() ? "" : value.get(0).toString();
   }
-
 }
