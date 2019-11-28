@@ -23,15 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.DataTypeMap;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
-import io.github.mzmine.util.color.ColorsFX;
-import io.github.mzmine.util.color.Vision;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -76,15 +73,14 @@ public class FeaturesType extends DataType<ObservableMap<RawDataFile, ModularFea
     cols.add(createBarChartColl());
     cols.add(createAreaShareColl());
 
-    Color[] colors = ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, false);
-
     // create all sample columns
     for (Entry<RawDataFile, ModularFeature> entry : value.entrySet()) {
       RawDataFile raw = entry.getKey();
       // create column per name
       TreeTableColumn<ModularFeatureListRow, String> sampleCol =
           new TreeTableColumn<>(raw.getName());
-      sampleCol.setStyle("-fx-background-color:  #6622CC;");
+      // TODO get RawDataFile -> Color and set column header
+      // sampleCol.setStyle("-fx-background-color: #"+ColorsFX.getHexString(color));
       // add sub columns of feature
       DataTypeMap map = entry.getValue().getMap();
       map.stream().forEach(dataType -> {
@@ -232,26 +228,30 @@ public class FeaturesType extends DataType<ObservableMap<RawDataFile, ModularFea
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
 
-    List<Float> area = row.getFeatures().entrySet().stream().map(Entry::getValue)
-        .map(e -> e.get(AreaType.class).map(DataType::getValue).orElse(0f))
-        .collect(Collectors.toList());
-    Float sum = area.stream().reduce(0f, Float::sum);
+    Float sum = row.getFeatures().entrySet().stream().map(Entry::getValue)
+        .map(e -> e.get(AreaType.class).map(DataType::getValue).orElse(0f)).reduce(0f, Float::sum);
+    Map<RawDataFile, Color> rawColors = row.get(RawsColorsType.class).map(DataType::getValue)
+        .orElse(FXCollections.emptyObservableMap());
 
-
-    Color[] colors = ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, false);
-
-
-    Rectangle[] all = new Rectangle[area.size()];
-    for (int i = 0; i < area.size(); i++) {
-      float ratio = area.get(i) / sum;
-      Rectangle rect = new Rectangle();
-      rect.setFill(colors[i % colors.length]);
-      // bind width
-      rect.widthProperty().bind(cell.widthProperty().multiply(ratio));
-      rect.setHeight(i % 2 == 0 ? 20 : 25);
-      all[i] = rect;
+    List<Rectangle> all = new ArrayList<>();
+    int i = 0;
+    for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
+      Float area = entry.getValue().get(AreaType.class).map(DataType::getValue).orElse(null);
+      if (area != null) {
+        Color color = rawColors.get(entry.getKey());
+        if (color == null)
+          color = Color.LIGHTSLATEGREY;
+        float ratio = area / sum;
+        Rectangle rect = new Rectangle();
+        rect.setFill(color);
+        // bind width
+        rect.widthProperty().bind(cell.widthProperty().multiply(ratio));
+        rect.setHeight(i % 2 == 0 ? 20 : 25);
+        all.add(rect);
+        i++;
+      }
     }
-    HBox box = new HBox(0, all);
+    HBox box = new HBox(0, all.toArray(Rectangle[]::new));
     box.setPrefWidth(100);
     box.setAlignment(Pos.CENTER_LEFT);
 
