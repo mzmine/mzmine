@@ -16,46 +16,31 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.modifiers;
 
-import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.WrongTypeException;
-import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
+import io.github.mzmine.datamodel.data.types.DataType;
 import javafx.scene.Node;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
-import javafx.scene.shape.Circle;
 
-public class DetectionType extends DataType<FeatureStatus> implements GraphicalColumType {
-
-  public DetectionType(FeatureStatus value) {
-    super(value);
-  }
-
-  @Override
-  public String getFormattedString() {
-    return value.toString();
-  }
-
-  @Override
-  public String getHeaderString() {
-    return "Detection status";
-  }
-
-  @Override
+/**
+ * This DataType creates a graphical cell content
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
+public interface GraphicalColumType {
+  /**
+   * 
+   * @param cell
+   * @param coll
+   * @param cellData same as cell.getItem
+   * @param raw only provided for sample specific DataTypes
+   * @return
+   */
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
-      RawDataFile raw) {
-    if (!(cellData instanceof DetectionType))
-      throw new WrongTypeException(this.getClass(), cellData);
-
-    DetectionType type = (DetectionType) cellData;
-    Circle circle = new Circle();
-    circle.setRadius(10);
-    circle.setFill(type.getValue().getColorFX());
-    return circle;
-  }
-
+      RawDataFile raw);
 }

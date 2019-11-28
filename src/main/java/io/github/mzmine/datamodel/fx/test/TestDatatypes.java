@@ -26,10 +26,20 @@ import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.HeightType;
 import io.github.mzmine.datamodel.data.types.MZType;
 import io.github.mzmine.datamodel.data.types.RTType;
+import io.github.mzmine.util.color.ColorsFX;
+import javafx.scene.paint.Color;
 
 public class TestDatatypes {
 
   public static void main(String[] args) {
+    testColor(Color.BLACK);
+    testColor(Color.WHITE);
+    testColor(Color.RED);
+    testColor(Color.GREEN);
+    testColor(Color.BLUE);
+    testColor(Color.MAGENTA);
+
+
     ModularFeatureListRow data = new ModularFeatureListRow();
 
     System.out.println(data.getDetectionType().toString());
@@ -46,6 +56,10 @@ public class TestDatatypes {
 
     System.out.println("Should throw an error");
     data.set(HeightType.class, new MZType(50d));
+  }
+
+  private static void testColor(Color color) {
+    System.out.println(ColorsFX.toHexString(color) + "   " + ColorsFX.toHexOpacityString(color));
   }
 
 }

@@ -18,13 +18,12 @@
 
 package io.github.mzmine.datamodel.data.types.modifiers;
 
-import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.DataType;
-import javafx.scene.Node;
-import javafx.scene.control.TreeTableCell;
-import javafx.scene.control.TreeTableColumn;
+/**
+ * DataType tag: This DataType produces null on createColumn
+ * 
+ * @author Robin Schmid (robinschmid@uni-muenster.de)
+ *
+ */
+public interface NullColumnType {
 
-public interface GraphicalCellData {
-  public Node getCellNode(TreeTableCell<ModularFeatureListRow, DataType<?>> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll);
 }

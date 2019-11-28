@@ -124,4 +124,23 @@ public class ColorsFX {
   public static Color getNeutralColor() {
     return NEUTRAL_MARKER;
   }
+
+  public static String toHexString(Color color) {
+    return String.format("%02x%02x%02x", Math.min(255, (int) (color.getRed() * 255)),
+        Math.min(255, (int) (color.getGreen() * 255)),
+        Math.min(255, (int) (color.getBlue() * 255)));
+  }
+
+  public static String toHexOpacityString(Color color) {
+    return colorChanelToHex(color.getRed()) + colorChanelToHex(color.getGreen())
+        + colorChanelToHex(color.getBlue()) + colorChanelToHex(color.getOpacity());
+  }
+
+  private static String colorChanelToHex(double chanelValue) {
+    String rtn = Integer.toHexString((int) Math.min(Math.round(chanelValue * 255), 255));
+    if (rtn.length() == 1) {
+      rtn = "0" + rtn;
+    }
+    return rtn;
+  }
 }

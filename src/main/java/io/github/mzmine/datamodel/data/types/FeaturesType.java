@@ -76,12 +76,15 @@ public class FeaturesType extends DataType<ObservableMap<RawDataFile, ModularFea
     cols.add(createBarChartColl());
     cols.add(createAreaShareColl());
 
+    Color[] colors = ColorsFX.getSevenColorPalette(Vision.DEUTERANOPIA, false);
+
     // create all sample columns
     for (Entry<RawDataFile, ModularFeature> entry : value.entrySet()) {
       RawDataFile raw = entry.getKey();
       // create column per name
       TreeTableColumn<ModularFeatureListRow, String> sampleCol =
           new TreeTableColumn<>(raw.getName());
+      sampleCol.setStyle("-fx-background-color:  #6622CC;");
       // add sub columns of feature
       DataTypeMap map = entry.getValue().getMap();
       map.stream().forEach(dataType -> {
