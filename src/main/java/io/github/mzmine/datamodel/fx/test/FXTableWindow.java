@@ -12,7 +12,7 @@ import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
-import io.github.mzmine.datamodel.data.types.FeaturesType;
+import io.github.mzmine.datamodel.data.types.RawColorType;
 import io.github.mzmine.datamodel.data.types.RawsColorsType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
@@ -76,8 +76,9 @@ public class FXTableWindow extends Application {
     data.set(HeightType.class, new HeightType(2E4f * i));
     data.set(AreaType.class, new AreaType(1E4f * i));
 
-    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, raw)));
-    data.set(RawsColorsType.class, new RawsColorsType(createColorsMap(data, raw)));
+    Map<RawDataFile, Color> colorMap = createColorsMap(data, raw);
+    data.set(RawsColorsType.class, new RawsColorsType(colorMap));
+    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, raw, colorMap)));
     return data;
   }
 
@@ -87,8 +88,9 @@ public class FXTableWindow extends Application {
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
 
-    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, raw)));
-    data.set(RawsColorsType.class, new RawsColorsType(createColorsMap(data, raw)));
+    Map<RawDataFile, Color> colorMap = createColorsMap(data, raw);
+    data.set(RawsColorsType.class, new RawsColorsType(colorMap));
+    data.set(FeaturesType.class, new FeaturesType(createFeatures(i, raw, colorMap)));
     return data;
   }
 
@@ -102,13 +104,15 @@ public class FXTableWindow extends Application {
     return map;
   }
 
-  private Map<RawDataFile, ModularFeature> createFeatures(int i, List<RawDataFile> raw) {
+  private Map<RawDataFile, ModularFeature> createFeatures(int i, List<RawDataFile> raw,
+      Map<RawDataFile, Color> colorMap) {
     Map<RawDataFile, ModularFeature> map = new ConcurrentHashMap<>(raw.size());
     for (int a = 0; a < raw.size(); a++) {
+      Color color = colorMap.get(raw.get(a));
       if (a < raw.size() / 2)
-        map.put(raw.get(a), createFeature(i, a));
+        map.put(raw.get(a), createFeature(i, a, color));
       else
-        map.put(raw.get(a), createIncompleteFeature(i, a));
+        map.put(raw.get(a), createIncompleteFeature(i, a, color));
     }
     return map;
   }
@@ -123,21 +127,23 @@ public class FXTableWindow extends Application {
   }
 
 
-  public ModularFeature createFeature(int i, int j) {
+  public ModularFeature createFeature(int i, int j, Color color) {
     ModularFeature data = new ModularFeature();
     data.set(MZType.class, new MZType(300d * i + j));
     data.set(RTType.class, new RTType(100f * i + j));
     data.set(AreaType.class, new AreaType(rand.nextFloat() * 100f));
     data.set(DetectionType.class, new DetectionType(FeatureStatus.DETECTED));
+    data.set(RawColorType.class, new RawColorType(color));
     return data;
   }
 
-  public ModularFeature createIncompleteFeature(int i, int j) {
+  public ModularFeature createIncompleteFeature(int i, int j, Color color) {
     ModularFeature data = new ModularFeature();
     data.set(RTType.class, new RTType(100f * i + j));
     data.set(AreaType.class, new AreaType(rand.nextFloat() * 100f));
     data.set(DetectionType.class,
         new DetectionType(rand.nextBoolean() ? FeatureStatus.UNKNOWN : FeatureStatus.ESTIMATED));
+    data.set(RawColorType.class, new RawColorType(color));
     return data;
   }
 
