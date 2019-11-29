@@ -16,19 +16,8 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types;
+package io.github.mzmine.datamodel.data.types.modifiers;
 
-import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
-
-public class CommentType extends DataType<String> implements EditableColumnType {
-
-  public CommentType(String value) {
-    super(value);
-  }
-
-  @Override
-  public String getHeaderString() {
-    return "Comment";
-  }
+public interface EditableColumnType {
 
 }

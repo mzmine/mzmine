@@ -11,6 +11,7 @@ import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.RawColorType;
@@ -73,6 +74,7 @@ public class FXTableWindow extends Application {
 
   public ModularFeatureListRow createRow(int i, List<RawDataFile> raw) {
     ModularFeatureListRow data = new ModularFeatureListRow();
+    data.set(CommentType.class, new CommentType(""));
     data.set(MZType.class, new MZType(50d * i));
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
@@ -87,6 +89,7 @@ public class FXTableWindow extends Application {
 
   public ModularFeatureListRow createIncompleteRow(int i, List<RawDataFile> raw) {
     ModularFeatureListRow data = new ModularFeatureListRow();
+    data.set(CommentType.class, new CommentType(""));
     data.set(MZType.class, new MZType(50d * i));
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
@@ -133,6 +136,7 @@ public class FXTableWindow extends Application {
 
   public ModularFeature createFeature(int i, int j, Color color) {
     ModularFeature data = new ModularFeature();
+    data.set(CommentType.class, new CommentType(""));
     data.set(MZType.class, new MZType(300d * i + j));
     data.set(RTType.class, new RTType(100f * i + j));
     data.set(AreaType.class, new AreaType(rand.nextFloat() * 100f));
@@ -143,6 +147,7 @@ public class FXTableWindow extends Application {
 
   public ModularFeature createIncompleteFeature(int i, int j, Color color) {
     ModularFeature data = new ModularFeature();
+    data.set(CommentType.class, new CommentType(""));
     data.set(RTType.class, new RTType(100f * i + j));
     data.set(AreaType.class, new AreaType(rand.nextFloat() * 100f));
     data.set(DetectionType.class,

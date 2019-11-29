@@ -26,6 +26,8 @@ import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
+import io.github.mzmine.datamodel.data.types.fx.EditableDataTypeCellFactory;
+import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import javafx.scene.control.TreeTableColumn;
 
@@ -105,7 +107,18 @@ public abstract class DataType<T> implements Comparable<DataType<T>> {
       // define observable
       col.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this.getClass()));
       // value representation
-      col.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass()));
+      if (this instanceof EditableColumnType) {
+        col.setCellFactory(new EditableDataTypeCellFactory<>(raw, this.getClass()));
+        col.setEditable(true);
+        col.setOnEditCommit(event -> {
+          DataType data = event.getNewValue();
+          if (raw == null)
+            event.getRowValue().getValue().set(data.getClass(), data);
+          else
+            event.getRowValue().getValue().getFeatures().get(raw).set(data.getClass(), data);
+        });
+      } else
+        col.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass()));
     }
     return col;
   }

@@ -52,6 +52,7 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     this.setTableMenuButtonVisible(true);
     this.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     this.getSelectionModel().setCellSelectionEnabled(true);
+    setTableEditable(true);
 
     // enable copy on selection
     final KeyCodeCombination keyCodeCopy =
@@ -61,6 +62,35 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
         copySelectionToClipboard(table, true);
       }
     });
+  }
+
+
+  private void setTableEditable(boolean b) {
+    this.setEditable(true);// when character or numbers pressed it will start edit in editable
+    // fields
+    this.setOnKeyPressed(event -> {
+      if (event.getCode().isLetterKey() || event.getCode().isDigitKey()) {
+        editFocusedCell();
+      } else if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.TAB) {
+        this.getSelectionModel().selectNext();
+        event.consume();
+      } else if (event.getCode() == KeyCode.LEFT) {
+        this.getSelectionModel().selectPrevious();
+        // work around due to
+        // TableView.getSelectionModel().selectPrevious() due to a bug
+        // stopping it from working on
+        // the first column in the last row of the table
+        // selectPrevious();
+        event.consume();
+      }
+    });
+  }
+
+  @SuppressWarnings("unchecked")
+  private void editFocusedCell() {
+    TreeTablePosition<ModularFeatureListRow, ?> focusedCell =
+        this.focusModelProperty().get().focusedCellProperty().get();
+    this.edit(focusedCell.getRow(), focusedCell.getTableColumn());
   }
 
 

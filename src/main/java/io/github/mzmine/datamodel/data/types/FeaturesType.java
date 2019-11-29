@@ -113,6 +113,9 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
   public Node getBarChart(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
+    if (row == null)
+      return null;
+
     XYChart.Series data = new XYChart.Series();
     int i = 1;
     for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
@@ -147,6 +150,9 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
   public Node getAreaShareChart(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
+
+    if (row == null)
+      return null;
 
     Float sum = row.getFeatures().entrySet().stream().map(Entry::getValue)
         .map(e -> e.get(AreaType.class).map(DataType::getValue).orElse(0f)).reduce(0f, Float::sum);

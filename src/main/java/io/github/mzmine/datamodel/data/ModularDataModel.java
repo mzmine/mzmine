@@ -26,8 +26,8 @@ public interface ModularDataModel {
 
   public DataTypeMap getMap();
 
-  public default void set(Class<? extends DataType<?>> key, DataType<?> data) {
-    getMap().set(key, data);
+  public default void set(Class<? extends DataType> class1, DataType<?> data) {
+    getMap().set(class1, data);
   }
 
   public default <T extends DataType<?>> Optional<T> get(Class<T> type) {

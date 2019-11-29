@@ -29,19 +29,19 @@ import javafx.collections.ObservableMap;
 public class DataTypeMap {
   private static final long serialVersionUID = 1L;
 
-  private final ObservableMap<Class<? extends DataType<?>>, DataType> map =
+  private final ObservableMap<Class<? extends DataType>, DataType> map =
       FXCollections.observableMap(new HashMap<>());
 
   public <T extends DataType<?>> Optional<T> get(Class<T> type) {
     return Optional.ofNullable(map.get(type));
   }
 
-  public void set(Class<? extends DataType<?>> key, DataType<?> data) {
-    if (key.isInstance(data))
-      map.put(key, data);
+  public void set(Class<? extends DataType> class1, DataType<?> data) {
+    if (class1.isInstance(data))
+      map.put(class1, data);
     // wrong data type. Check code that supplied this data
     else
-      throw new WrongTypeException(key, data);
+      throw new WrongTypeException(class1, data);
   }
 
   public void remove(Class<? extends DataType<?>> key) {
@@ -54,7 +54,7 @@ public class DataTypeMap {
    * 
    * @return
    */
-  public ObservableMap<Class<? extends DataType<?>>, DataType> getObservableMap() {
+  public ObservableMap<Class<? extends DataType>, DataType> getObservableMap() {
     return map;
   }
 
