@@ -18,6 +18,7 @@
 
 package io.github.mzmine.datamodel.data.types;
 
+import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
@@ -35,19 +36,18 @@ public class DetectionType extends DataType<FeatureStatus> implements GraphicalC
   }
 
   @Override
-  public String getFormattedString() {
-    return value.toString();
-  }
-
-  @Override
+  @Nonnull
   public String getHeaderString() {
-    return "Detection status";
+    return "State";
   }
 
   @Override
   public Node getCellNode(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
       RawDataFile raw) {
+    if (cellData == null)
+      return null;
+
     if (!(cellData instanceof DetectionType))
       throw new WrongTypeException(this.getClass(), cellData);
 

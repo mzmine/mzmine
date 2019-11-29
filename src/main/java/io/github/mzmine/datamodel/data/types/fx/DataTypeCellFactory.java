@@ -25,6 +25,7 @@ import io.github.mzmine.datamodel.data.types.modifiers.GraphicalColumType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
 import javafx.util.Callback;
@@ -73,13 +74,18 @@ public class DataTypeCellFactory<T extends DataType> implements
             Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
             setGraphic(n);
             setText(n != null ? null : sub.getFormattedSubColValue(subcolumn));
-          } else if (item instanceof GraphicalColumType) {
-            Node node = ((GraphicalColumType) item).getCellNode(this, param, item, raw);
-            setGraphic(node);
-            setText(null);
+            setTooltip(new Tooltip(sub.getFormattedSubColValue(subcolumn)));
           } else {
-            setText(item.getFormattedString());
-            setGraphic(null);
+            if (item instanceof GraphicalColumType) {
+              Node node = ((GraphicalColumType) item).getCellNode(this, param, item, raw);
+              setGraphic(node);
+              setText(null);
+              setTooltip(new Tooltip(item.getFormattedString()));
+            } else {
+              setTooltip(new Tooltip(item.getFormattedString()));
+              setText(item.getFormattedString());
+              setGraphic(null);
+            }
           }
         }
         setAlignment(Pos.CENTER);
