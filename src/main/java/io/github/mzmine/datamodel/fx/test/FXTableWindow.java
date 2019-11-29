@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import com.google.common.collect.Range;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
@@ -16,6 +17,7 @@ import io.github.mzmine.datamodel.data.types.RawColorType;
 import io.github.mzmine.datamodel.data.types.RawsColorsType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
+import io.github.mzmine.datamodel.data.types.numbers.MZRangeType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import io.github.mzmine.datamodel.fx.FeatureTableFX;
@@ -75,6 +77,7 @@ public class FXTableWindow extends Application {
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
     data.set(AreaType.class, new AreaType(1E4f * i));
+    data.set(MZRangeType.class, new MZRangeType(Range.closed(100d, 200d)));
 
     Map<RawDataFile, Color> colorMap = createColorsMap(data, raw);
     data.set(RawsColorsType.class, new RawsColorsType(colorMap));
@@ -87,6 +90,7 @@ public class FXTableWindow extends Application {
     data.set(MZType.class, new MZType(50d * i));
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
+    data.set(MZRangeType.class, new MZRangeType(Range.closed(100d, 200d)));
 
     Map<RawDataFile, Color> colorMap = createColorsMap(data, raw);
     data.set(RawsColorsType.class, new RawsColorsType(colorMap));

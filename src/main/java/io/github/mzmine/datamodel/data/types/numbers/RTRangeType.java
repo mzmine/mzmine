@@ -20,11 +20,11 @@ package io.github.mzmine.datamodel.data.types.numbers;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import javax.annotation.Nonnull;
 import com.google.common.collect.Range;
-import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.main.MZmineCore;
 
-public abstract class RTRangeType extends NumberRangeType<Float> implements SubColumnsFactory {
+public class RTRangeType extends NumberRangeType<Float> {
   // only used in cases where the mzmine config has no format
   private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.00");
 
@@ -40,6 +40,12 @@ public abstract class RTRangeType extends NumberRangeType<Float> implements SubC
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;
     }
+  }
+
+  @Override
+  @Nonnull
+  public String getHeaderString() {
+    return "RT Range";
   }
 
 }
