@@ -19,7 +19,7 @@
 package io.github.mzmine.datamodel.data.types.fx;
 
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.DataTypeMap;
+import io.github.mzmine.datamodel.data.ModularDataModel;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
@@ -41,7 +41,7 @@ public class RawsMapCellValueFactory<T extends DataType> extends DataTypeCellVal
    * The default way to get the DataMap. FeatureListRow (for raw==null), Feature for raw!=null.
    */
   @Override
-  public DataTypeMap apply(CellDataFeatures<ModularFeatureListRow, T> param) {
-    return param.getValue().getValue().getMap();
+  public ModularDataModel apply(CellDataFeatures<ModularFeatureListRow, T> param) {
+    return param.getValue().getValue();
   }
 }

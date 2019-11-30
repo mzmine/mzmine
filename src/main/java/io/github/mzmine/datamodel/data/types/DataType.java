@@ -23,6 +23,7 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.ModularDataModel;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
@@ -32,7 +33,7 @@ import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import javafx.scene.control.TreeTableColumn;
 
 /**
- * Class of data types: Provides formatters
+ * Class of data types: Provides formatters. Should only be added to one {@link ModularDataModel}
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
@@ -40,10 +41,30 @@ import javafx.scene.control.TreeTableColumn;
  */
 public abstract class DataType<T> implements Comparable<DataType<T>> {
 
+  protected ModularDataModel model;
   protected final T value;
 
   public DataType(T value) {
     this.value = value;
+  }
+
+
+  /**
+   * The current data model (should only be added to one data model). Data model registers itself.
+   * 
+   * @return
+   */
+  public ModularDataModel getDataModel() {
+    return model;
+  }
+
+  /**
+   * Set current data model - should only be added to one data model. Data model registers itself.
+   * 
+   * @param model
+   */
+  public void setDataModel(ModularDataModel model) {
+    this.model = model;
   }
 
   /**

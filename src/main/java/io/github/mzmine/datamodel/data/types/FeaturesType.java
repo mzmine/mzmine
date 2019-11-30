@@ -26,7 +26,6 @@ import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.DataTypeMap;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
@@ -92,8 +91,7 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
       // TODO get RawDataFile -> Color and set column header
       // sampleCol.setStyle("-fx-background-color: #"+ColorsFX.getHexString(color));
       // add sub columns of feature
-      DataTypeMap map = entry.getValue().getMap();
-      map.stream().forEach(dataType -> {
+      entry.getValue().stream().forEach(dataType -> {
         sampleCol.getColumns().add(dataType.createColumn(raw));
       });
 

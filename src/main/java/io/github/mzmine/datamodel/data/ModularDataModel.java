@@ -21,20 +21,29 @@ package io.github.mzmine.datamodel.data;
 import java.util.Optional;
 import java.util.stream.Stream;
 import io.github.mzmine.datamodel.data.types.DataType;
+import javafx.collections.ObservableMap;
 
 public interface ModularDataModel {
 
-  public DataTypeMap getMap();
+  public ObservableMap<Class<? extends DataType>, DataType> getMap();
 
-  public default void set(Class<? extends DataType> class1, DataType<?> data) {
-    getMap().set(class1, data);
+  default <T extends DataType<?>> Optional<T> get(Class<T> type) {
+    return Optional.ofNullable(getMap().get(type));
   }
 
-  public default <T extends DataType<?>> Optional<T> get(Class<T> type) {
-    return getMap().get(type);
+  default void set(Class<? extends DataType> class1, DataType<?> data) {
+    if (class1.isInstance(data))
+      getMap().put(class1, data);
+    // wrong data type. Check code that supplied this data
+    else
+      throw new WrongTypeException(class1, data);
   }
 
-  public default Stream<DataType> stream() {
-    return getMap().stream();
+  default void remove(Class<? extends DataType<?>> key) {
+    getMap().remove(key);
+  }
+
+  default Stream<DataType> stream() {
+    return getMap().values().stream();
   }
 }

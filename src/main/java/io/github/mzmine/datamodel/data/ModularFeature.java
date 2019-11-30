@@ -18,18 +18,25 @@
 
 package io.github.mzmine.datamodel.data;
 
+import java.util.HashMap;
+import io.github.mzmine.datamodel.data.types.DataType;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
+
 /**
  * Feature with modular DataTypes
  * 
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
+@SuppressWarnings("rawtypes")
 public class ModularFeature implements ModularDataModel {
 
-  private final DataTypeMap map = new DataTypeMap();
+  private final ObservableMap<Class<? extends DataType>, DataType> map =
+      FXCollections.observableMap(new HashMap<>());
 
   @Override
-  public DataTypeMap getMap() {
+  public ObservableMap<Class<? extends DataType>, DataType> getMap() {
     return map;
   }
 

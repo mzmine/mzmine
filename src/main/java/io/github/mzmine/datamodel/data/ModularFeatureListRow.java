@@ -19,6 +19,7 @@
 package io.github.mzmine.datamodel.data;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -29,6 +30,8 @@ import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 
 /**
  * Map of all feature related data.
@@ -36,12 +39,14 @@ import io.github.mzmine.datamodel.data.types.numbers.RTType;
  * @author Robin Schmid (robinschmid@uni-muenster.de)
  *
  */
+@SuppressWarnings("rawtypes")
 public class ModularFeatureListRow implements ModularDataModel {
 
-  private final DataTypeMap map = new DataTypeMap();
+  private final ObservableMap<Class<? extends DataType>, DataType> map =
+      FXCollections.observableMap(new HashMap<>());
 
   @Override
-  public DataTypeMap getMap() {
+  public ObservableMap<Class<? extends DataType>, DataType> getMap() {
     return map;
   }
 

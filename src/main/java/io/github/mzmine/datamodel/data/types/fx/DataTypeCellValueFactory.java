@@ -25,7 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
-import io.github.mzmine.datamodel.data.DataTypeMap;
+import io.github.mzmine.datamodel.data.ModularDataModel;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
@@ -45,12 +45,12 @@ import javafx.util.Callback;
  */
 public class DataTypeCellValueFactory<T extends DataType> implements
     Callback<TreeTableColumn.CellDataFeatures<ModularFeatureListRow, T>, ObservableValue<T>>,
-    Function<CellDataFeatures<ModularFeatureListRow, T>, DataTypeMap> {
+    Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private RawDataFile raw;
   private Class<? extends DataType> dataTypeClass;
-  private final @Nonnull Function<CellDataFeatures<ModularFeatureListRow, T>, DataTypeMap> dataMapSupplier;
+  private final @Nonnull Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> dataMapSupplier;
 
   public DataTypeCellValueFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass) {
     this(raw, dataTypeClass, null);
@@ -59,7 +59,7 @@ public class DataTypeCellValueFactory<T extends DataType> implements
   }
 
   public DataTypeCellValueFactory(RawDataFile raw, Class<? extends DataType> dataTypeClass,
-      Function<CellDataFeatures<ModularFeatureListRow, T>, DataTypeMap> dataMapSupplier) {
+      Function<CellDataFeatures<ModularFeatureListRow, T>, ModularDataModel> dataMapSupplier) {
     this.dataTypeClass = dataTypeClass;
     this.raw = raw;
     this.dataMapSupplier = dataMapSupplier == null ? this : dataMapSupplier;
@@ -67,7 +67,7 @@ public class DataTypeCellValueFactory<T extends DataType> implements
 
   @Override
   public ObservableValue<T> call(CellDataFeatures<ModularFeatureListRow, T> param) {
-    final DataTypeMap map = dataMapSupplier.apply(param);
+    final ModularDataModel map = dataMapSupplier.apply(param);
     if (map == null) {
       logger.log(Level.WARNING,
           "There was no DataTypeMap for the column of DataType " + dataTypeClass.descriptorString()
@@ -79,7 +79,7 @@ public class DataTypeCellValueFactory<T extends DataType> implements
 
     final SimpleObjectProperty<T> property = new SimpleObjectProperty<>(o.orElse(null));
     // listen for changes in this rows DataTypeMap
-    map.getObservableMap().addListener((
+    map.getMap().addListener((
         MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
       if (this.getClass().equals(change.getKey())) {
         Optional<? extends DataType> o2 = map.get(dataTypeClass);
@@ -94,17 +94,17 @@ public class DataTypeCellValueFactory<T extends DataType> implements
    * The default way to get the DataMap. FeatureListRow (for raw==null), Feature for raw!=null.
    */
   @Override
-  public DataTypeMap apply(CellDataFeatures<ModularFeatureListRow, T> param) {
+  public ModularDataModel apply(CellDataFeatures<ModularFeatureListRow, T> param) {
     if (raw != null) {
       // find data type map for feature for this raw file
       Map<RawDataFile, ModularFeature> features = param.getValue().getValue().getFeatures();
       // no features
       if (features.get(raw) == null)
         return null;
-      return features.get(raw).getMap();
+      return features.get(raw);
     } else {
       // use feature list row DataTypeMap
-      return param.getValue().getValue().getMap();
+      return param.getValue().getValue();
     }
   }
 }
