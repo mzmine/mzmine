@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.data;
 
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.data.types.DataType;
 import javafx.collections.ObservableMap;
 
@@ -29,6 +30,10 @@ public interface ModularDataModel {
 
   default <T extends DataType<?>> Optional<T> get(Class<T> type) {
     return Optional.ofNullable(getMap().get(type));
+  }
+
+  default void set(@Nonnull DataType<?> data) {
+    getMap().put(data.getClass(), data);
   }
 
   default void set(Class<? extends DataType> class1, DataType<?> data) {

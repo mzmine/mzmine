@@ -73,8 +73,8 @@ public class FXTableWindow extends Application {
 
   public ModularFeatureListRow createRow(int i, List<RawDataFile> raw) {
     ModularFeatureListRow data = new ModularFeatureListRow();
-    data.set(CommentType.class, new CommentType(""));
-    data.set(MZType.class, new MZType(50d * i));
+    data.set(new CommentType(""));
+    data.set(new MZType(50d * i));
     data.set(RTType.class, new RTType(1f * i));
     data.set(HeightType.class, new HeightType(2E4f * i));
     data.set(AreaType.class, new AreaType(1E4f * i));
