@@ -19,10 +19,13 @@
 package io.github.mzmine.datamodel.fx;
 
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
@@ -42,6 +45,8 @@ import javafx.scene.input.KeyCombination;
  */
 public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
+  Random rand = new Random(System.currentTimeMillis());
+
   public FeatureTableFX() {
     FeatureTableFX table = this;
     // add dummy root
@@ -53,22 +58,38 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
     this.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     this.getSelectionModel().setCellSelectionEnabled(true);
     setTableEditable(true);
+  }
+
+
+  private void setTableEditable(boolean state) {
+    this.setEditable(true);// when character or numbers pressed it will start edit in editable
+    // fields
 
     // enable copy on selection
     final KeyCodeCombination keyCodeCopy =
         new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_ANY);
+    final KeyCodeCombination keyCodeRandomComment =
+        new KeyCodeCombination(KeyCode.R, KeyCombination.CONTROL_ANY);
+    final KeyCodeCombination keyCodeRandomMZ =
+        new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_ANY);
+
     this.setOnKeyPressed(event -> {
       if (keyCodeCopy.match(event)) {
-        copySelectionToClipboard(table, true);
+        copySelectionToClipboard(this, true);
       }
-    });
-  }
+      if (keyCodeRandomComment.match(event)) {
+        this.getSelectionModel().getSelectedItem().getValue().set(CommentType.class,
+            new CommentType("Random" + rand.nextInt(100)));
+        this.getSelectionModel().getSelectedItem().getValue().getFeatures().values().stream()
+            .forEach(f -> f.set(CommentType.class, new CommentType("Random" + rand.nextInt(100))));
+      }
+      if (keyCodeRandomMZ.match(event)) {
+        this.getSelectionModel().getSelectedItem().getValue().set(MZType.class,
+            new MZType(rand.nextDouble() * 200d));
+        this.getSelectionModel().getSelectedItem().getValue().getFeatures().values().stream()
+            .forEach(f -> f.set(MZType.class, new MZType(rand.nextDouble() * 200d)));
+      }
 
-
-  private void setTableEditable(boolean b) {
-    this.setEditable(true);// when character or numbers pressed it will start edit in editable
-    // fields
-    this.setOnKeyPressed(event -> {
       if (event.getCode().isLetterKey() || event.getCode().isDigitKey()) {
         editFocusedCell();
       } else if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.TAB) {

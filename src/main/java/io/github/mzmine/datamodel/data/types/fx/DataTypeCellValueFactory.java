@@ -19,7 +19,6 @@
 package io.github.mzmine.datamodel.data.types.fx;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,9 +28,7 @@ import io.github.mzmine.datamodel.data.ModularDataModel;
 import io.github.mzmine.datamodel.data.ModularFeature;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.MapChangeListener;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableColumn.CellDataFeatures;
 import javafx.util.Callback;
@@ -75,18 +72,7 @@ public class DataTypeCellValueFactory<T extends DataType> implements
       return null;
     }
 
-    Optional<? extends DataType> o = map.get(dataTypeClass);
-
-    final SimpleObjectProperty<T> property = new SimpleObjectProperty<>(o.orElse(null));
-    // listen for changes in this rows DataTypeMap
-    map.getMap().addListener((
-        MapChangeListener.Change<? extends Class<? extends DataType>, ? extends DataType> change) -> {
-      if (this.getClass().equals(change.getKey())) {
-        Optional<? extends DataType> o2 = map.get(dataTypeClass);
-        property.set((T) o2.orElse(null));
-      }
-    });
-    return property;
+    return new ObservableDataType<>(map, dataTypeClass);
   }
 
 
