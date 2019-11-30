@@ -60,12 +60,21 @@ public class DataTypeCellFactory<T extends DataType> implements
   public TreeTableCell<ModularFeatureListRow, T> call(
       TreeTableColumn<ModularFeatureListRow, T> param) {
     return new TreeTableCell<>() {
+      private T lastItem = null;
+      private Tooltip lastTP = null;
+      private Node lastNode = null;
+      private String lastText = null;
+
       @Override
       protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
         if (item == null || empty) {
           setGraphic(null);
           setText(null);
+        } else if (lastItem != null && lastItem.equals(item)) {
+          setText(lastText);
+          setGraphic(lastNode);
+          setTooltip(lastTP);
         } else {
           // sub columns provide values
           if (item instanceof SubColumnsFactory) {
@@ -88,6 +97,12 @@ public class DataTypeCellFactory<T extends DataType> implements
             }
           }
         }
+        // save last
+        lastText = getText();
+        lastNode = getGraphic();
+        lastTP = getTooltip();
+        lastItem = item;
+
         setAlignment(Pos.CENTER);
       }
     };

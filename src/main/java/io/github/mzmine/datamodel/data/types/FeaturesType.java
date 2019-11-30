@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import com.google.common.util.concurrent.AtomicDouble;
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeature;
@@ -34,6 +35,13 @@ import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
+import io.github.mzmine.datamodel.data.types.numbers.IDType;
+import io.github.mzmine.main.MZmineCore;
+import io.github.mzmine.taskcontrol.AbstractTask;
+import io.github.mzmine.taskcontrol.Task;
+import io.github.mzmine.taskcontrol.TaskPriority;
+import io.github.mzmine.taskcontrol.TaskStatus;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -123,17 +131,19 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
    * @return
    */
   public Node getBarChart(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll) {
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, AtomicDouble progress) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null)
       return null;
 
     XYChart.Series data = new XYChart.Series();
     int i = 1;
+    int size = row.getFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
       Float area = entry.getValue().get(AreaType.class).map(DataType::getValue).orElse(0f);
       data.getData().add(new XYChart.Data("" + i, area));
       i++;
+      progress.addAndGet(1.0 / size);
     }
 
     final CategoryAxis xAxis = new CategoryAxis();
@@ -160,7 +170,7 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
    * @return
    */
   public Node getAreaShareChart(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll) {
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, AtomicDouble progress) {
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
 
     if (row == null)
@@ -173,6 +183,7 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
 
     List<Rectangle> all = new ArrayList<>();
     int i = 0;
+    int size = row.getFeatures().size();
     for (Entry<RawDataFile, ModularFeature> entry : row.getFeatures().entrySet()) {
       Float area = entry.getValue().get(AreaType.class).map(DataType::getValue).orElse(null);
       if (area != null) {
@@ -187,6 +198,7 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
         rect.setHeight(i % 2 == 0 ? 20 : 25);
         all.add(rect);
         i++;
+        progress.addAndGet(1.0 / size);
       }
     }
     HBox box = new HBox(0, all.toArray(Rectangle[]::new));
@@ -204,24 +216,67 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
 
   @Override
   @Nullable
-  public Node getSubColNode(int subcolumn,
+  public Node getSubColNode(final int subcolumn,
       TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
       TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
       RawDataFile raw) {
+    final StackPane pane = new StackPane();
 
-    switch (subcolumn) {
-      case 0:
-        return getBarChart(cell, coll);
-      case 1:
-        return getAreaShareChart(cell, coll);
-      case 2:
-        return getShapeChart(cell, coll, cellData);
-    }
-    return null;
+    Task task = new AbstractTask() {
+      private AtomicDouble progress = new AtomicDouble(0d);
+      private int rowID = -1;
+
+      @Override
+      public void run() {
+        if (cell != null && cell.getTreeTableRow() != null)
+          rowID =
+              cell.getTreeTableRow().getItem().get(IDType.class).map(DataType::getValue).orElse(-1);
+
+        setStatus(TaskStatus.PROCESSING);
+        final Node n;
+
+        switch (subcolumn) {
+          case 0:
+            n = getBarChart(cell, coll, progress);
+            break;
+          case 1:
+            n = getAreaShareChart(cell, coll, progress);
+            break;
+          case 2:
+            n = getShapeChart(cell, coll, cellData, progress);
+            break;
+          default:
+            n = null;
+            break;
+        }
+        if (n != null)
+          Platform.runLater(() -> {
+            pane.getChildren().add(n);
+          });
+
+        setStatus(TaskStatus.FINISHED);
+        progress.set(1d);
+      }
+
+      @Override
+      public String getTaskDescription() {
+        return "Creating a graphical column for col: " + cell.getTableColumn().getText()
+            + " in row: " + rowID;
+      }
+
+      @Override
+      public double getFinishedPercentage() {
+        return progress.get();
+      }
+    };
+    MZmineCore.getTaskController().addTask(task, TaskPriority.NORMAL);
+
+    return pane;
   }
 
   private Node getShapeChart(TreeTableCell<ModularFeatureListRow, ? extends DataType> cell,
-      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData) {
+      TreeTableColumn<ModularFeatureListRow, ? extends DataType> coll, DataType<?> cellData,
+      AtomicDouble progress) {
 
     ModularFeatureListRow row = cell.getTreeTableRow().getItem();
     if (row == null)
@@ -234,6 +289,8 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
 
       DataPoint max = null;
       double maxRT = 0;
+      int size = row.getFeatures().size();
+      int fi = 0;
       for (ModularFeature f : row.getFeatures().values()) {
         XYChart.Series<Number, Number> data = new XYChart.Series<>();
         List<Integer> scans = f.getScanNumbers();
@@ -249,7 +306,10 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
             max = dp;
             maxRT = retentionTime;
           }
+          progress.addAndGet(1.0 / size / scans.size());
         }
+        fi++;
+        progress.set((double) fi / size);
         bc.getData().add(data);
       }
 
@@ -262,36 +322,26 @@ public class FeaturesType extends DataType<Map<RawDataFile, ModularFeature>>
 
       // do not add data to chart
       xAxis.setAutoRanging(false);
-      final double minX = xAxis.getLowerBound();
-      final double maxX = xAxis.getUpperBound();
       xAxis.setUpperBound(maxRT + 1.5d);
       xAxis.setLowerBound(maxRT - 1.5d);
 
-      bc.setOnScroll(new EventHandler<ScrollEvent>() {
+      bc.setOnScroll(new EventHandler<>() {
         @Override
         public void handle(ScrollEvent event) {
           NumberAxis axis = xAxis;
-          double threshold = minX + (maxX - minX) / 2d;
+          final double minX = xAxis.getLowerBound();
+          final double maxX = xAxis.getUpperBound();
+          double d = maxX - minX;
           double x = event.getX();
-          double value = axis.getValueForDisplay(x).doubleValue();
           double direction = event.getDeltaY();
           if (direction > 0) {
-            if (maxX - minX <= 0.1) {
-              return;
-            }
-            if (value > threshold) {
-              axis.setLowerBound(minX + 0.2);
-            } else {
-              axis.setUpperBound(maxX - 0.2);
+            if (d > 0.3) {
+              axis.setLowerBound(minX + 0.1);
+              axis.setUpperBound(maxX - 0.1);
             }
           } else {
-            if (value < threshold) {
-              double nextBound = Math.max(axis.getLowerBound(), minX - 0.2);
-              axis.setLowerBound(nextBound);
-            } else {
-              double nextBound = Math.min(axis.getUpperBound(), maxX + 0.2);
-              axis.setUpperBound(nextBound);
-            }
+            axis.setLowerBound(minX - 0.1);
+            axis.setUpperBound(maxX + 0.1);
           }
           event.consume();
         }
