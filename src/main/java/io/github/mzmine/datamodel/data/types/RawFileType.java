@@ -20,8 +20,9 @@ package io.github.mzmine.datamodel.data.types;
 
 import javax.annotation.Nonnull;
 import io.github.mzmine.datamodel.RawDataFile;
+import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 
-public class RawFileType extends DataType<RawDataFile> {
+public class RawFileType extends DataType<RawDataFile> implements NullColumnType {
 
   public RawFileType(@Nonnull RawDataFile value) {
     super(value);
