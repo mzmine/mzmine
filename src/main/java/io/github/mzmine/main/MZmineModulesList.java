@@ -81,6 +81,7 @@ import io.github.mzmine.modules.dataprocessing.id_precursordbsearch.PrecursorDBS
 import io.github.mzmine.modules.dataprocessing.id_sirius.SiriusProcessingModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.LocalSpectralDBSearchModule;
 import io.github.mzmine.modules.dataprocessing.id_spectraldbsearch.sort.SortSpectralDBIdentitiesModule;
+import io.github.mzmine.modules.dataprocessing.modular_featdet_adapchromatogrambuilder.ModularADAPChromatogramBuilderModule;
 import io.github.mzmine.modules.dataprocessing.norm_linear.LinearNormalizerModule;
 import io.github.mzmine.modules.dataprocessing.norm_rtcalibration.RTCalibrationModule;
 import io.github.mzmine.modules.dataprocessing.norm_standardcompound.StandardCompoundNormalizerModule;
@@ -167,6 +168,7 @@ public class MZmineModulesList {
       ShoulderPeaksFilterModule.class, //
       ChromatogramBuilderModule.class, //
       ADAPChromatogramBuilderModule.class, //
+      ModularADAPChromatogramBuilderModule.class, //
       // Not ready for prime time: ADAP3DModule.class,
       GridMassModule.class, //
       ManualPeakPickerModule.class, //
@@ -310,6 +312,6 @@ public class MZmineModulesList {
       // not ready for prime time:
       // DPPAnyElementIsotopeGrouperModule.class basically working, but only for specific elements
       // at the moment
-//       PeakListBlankSubtractionModule.class
+      // PeakListBlankSubtractionModule.class
   };
 }
