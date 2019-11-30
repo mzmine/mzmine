@@ -20,6 +20,7 @@ package io.github.mzmine.datamodel.data.types;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import io.github.mzmine.datamodel.RawDataFile;
@@ -40,6 +41,7 @@ import javafx.scene.control.TreeTableColumn;
  * @param <T>
  */
 public abstract class DataType<T> implements Comparable<DataType<T>> {
+  protected Logger logger = Logger.getLogger(this.getClass().getName());
 
   protected ModularDataModel model;
   protected final T value;
@@ -133,10 +135,12 @@ public abstract class DataType<T> implements Comparable<DataType<T>> {
         col.setEditable(true);
         col.setOnEditCommit(event -> {
           DataType data = event.getNewValue();
-          if (raw == null)
-            event.getRowValue().getValue().set(data.getClass(), data);
-          else
-            event.getRowValue().getValue().getFeatures().get(raw).set(data.getClass(), data);
+          if (data != null) {
+            if (raw == null)
+              event.getRowValue().getValue().set(this.getClass(), data);
+            else
+              event.getRowValue().getValue().getFeatures().get(raw).set(this.getClass(), data);
+          }
         });
       } else
         col.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass()));

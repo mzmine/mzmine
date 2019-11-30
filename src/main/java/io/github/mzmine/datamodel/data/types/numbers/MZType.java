@@ -20,9 +20,12 @@ package io.github.mzmine.datamodel.data.types.numbers;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.logging.Level;
+import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
 import io.github.mzmine.main.MZmineCore;
 
-public class MZType extends NumberType<Double> {
+public class MZType extends NumberType<Double> implements EditableColumnType, StringParser<MZType> {
   // only used in cases where the mzmine config has no format
   private static final NumberFormat DEFAULT_FORMAT = new DecimalFormat("0.0000");
 
@@ -43,5 +46,15 @@ public class MZType extends NumberType<Double> {
   @Override
   public String getHeaderString() {
     return "m/z";
+  }
+
+  @Override
+  public MZType fromString(String s) {
+    try {
+      return new MZType(Double.parseDouble(s));
+    } catch (Exception e) {
+      logger.log(Level.WARNING, "Cannot convert String to Double: " + s);
+      return null;
+    }
   }
 }

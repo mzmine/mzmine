@@ -20,8 +20,10 @@ package io.github.mzmine.datamodel.fx.test;
 
 import io.github.mzmine.datamodel.FeatureStatus;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
+import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.DetectionType;
+import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
@@ -32,6 +34,11 @@ import javafx.scene.paint.Color;
 public class TestDatatypes {
 
   public static void main(String[] args) {
+    System.out.println(CommentType.class.isAssignableFrom(StringParser.class));
+    System.out.println(StringParser.class.isAssignableFrom(CommentType.class));
+    System.out.println(CommentType.class.isNestmateOf(StringParser.class));
+    System.out.println(StringParser.class.isNestmateOf(CommentType.class));
+
     testColor(Color.BLACK);
     testColor(Color.WHITE);
     testColor(Color.RED);

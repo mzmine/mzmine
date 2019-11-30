@@ -18,10 +18,12 @@
 
 package io.github.mzmine.datamodel.data.types.fx;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
-import io.github.mzmine.datamodel.data.types.CommentType;
 import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.modifiers.StringParser;
 import javafx.geometry.Pos;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.TreeTableColumn;
@@ -38,6 +40,7 @@ import javafx.util.StringConverter;
  */
 public class EditableDataTypeCellFactory<T extends DataType> implements
     Callback<TreeTableColumn<ModularFeatureListRow, T>, TreeTableCell<ModularFeatureListRow, T>> {
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private RawDataFile raw;
   private Class<? extends DataType> dataTypeClass;
@@ -60,20 +63,31 @@ public class EditableDataTypeCellFactory<T extends DataType> implements
       TreeTableColumn<ModularFeatureListRow, T> param) {
 
     TextFieldTreeTableCell<ModularFeatureListRow, T> cell = new TextFieldTreeTableCell<>();
-    StringConverter<T> converter = new StringConverter<T>() {
-      @Override
-      public String toString(T t) {
-        return t == null ? "" : t.getFormattedString();
-      }
 
-      @Override
-      public T fromString(String string) {
-        return (T) new CommentType(string);
-      }
-    };
-    cell.setConverter(converter);
-    cell.setAlignment(Pos.CENTER);
-    return cell;
+    if (StringParser.class.isAssignableFrom(dataTypeClass)) {
+      StringConverter<T> converter = new StringConverter<T>() {
+        @Override
+        public String toString(T t) {
+          return t == null ? "" : t.getFormattedString();
+        }
+
+        @Override
+        public T fromString(String string) {
+          if (cell.getItem() instanceof StringParser) {
+            return ((StringParser<T>) cell.getItem()).fromString(string);
+          }
+          return null;
+        }
+      };
+
+      cell.setConverter(converter);
+      cell.setAlignment(Pos.CENTER);
+      return cell;
+    } else {
+      logger.log(Level.SEVERE,
+          "Class in editable CellFactory is no StringParser: " + dataTypeClass.descriptorString());
+      return null;
+    }
   }
 
 

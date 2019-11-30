@@ -53,10 +53,9 @@ public class FXTableWindow extends Application {
     Scene scene = new Scene(table);
 
     stage.setScene(scene);
+    stage.setMaximized(true);
     stage.show();
-
-    // test for change listener
-    table.getRoot().getChildren().get(0).getValue().set(MZType.class, new MZType(1234d));
+    // stage.setFullScreen(true);
   }
 
 
