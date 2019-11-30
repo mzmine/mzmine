@@ -30,6 +30,7 @@ import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.data.types.fx.EditableDataTypeCellFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.EditableColumnType;
+import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import javafx.scene.control.TreeTableColumn;
 
@@ -114,6 +115,8 @@ public abstract class DataType<T> implements Comparable<DataType<T>> {
   @Nullable
   public TreeTableColumn<ModularFeatureListRow, ? extends DataType> createColumn(
       final @Nullable RawDataFile raw) {
+    if (this instanceof NullColumnType)
+      return null;
     // create column
     TreeTableColumn<ModularFeatureListRow, ? extends DataType> col =
         new TreeTableColumn<>(getHeaderString());
@@ -122,7 +125,7 @@ public abstract class DataType<T> implements Comparable<DataType<T>> {
       col.setSortable(false);
       // add sub columns (no value factory needed for parent column)
       List<TreeTableColumn<ModularFeatureListRow, ?>> children =
-          ((SubColumnsFactory) this).createSubColumns();
+          ((SubColumnsFactory) this).createSubColumns(raw);
       col.getColumns().addAll(children);
       return col;
     } else {

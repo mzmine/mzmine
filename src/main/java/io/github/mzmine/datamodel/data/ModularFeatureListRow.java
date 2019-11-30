@@ -28,6 +28,7 @@ import io.github.mzmine.datamodel.data.types.DetectionType;
 import io.github.mzmine.datamodel.data.types.FeaturesType;
 import io.github.mzmine.datamodel.data.types.numbers.AreaType;
 import io.github.mzmine.datamodel.data.types.numbers.HeightType;
+import io.github.mzmine.datamodel.data.types.numbers.IDType;
 import io.github.mzmine.datamodel.data.types.numbers.MZType;
 import io.github.mzmine.datamodel.data.types.numbers.RTType;
 import javafx.collections.FXCollections;
@@ -44,6 +45,15 @@ public class ModularFeatureListRow implements ModularDataModel {
 
   private final ObservableMap<Class<? extends DataType>, DataType> map =
       FXCollections.observableMap(new HashMap<>());
+
+  public ModularFeatureListRow() {}
+
+  public ModularFeatureListRow(int id, RawDataFile raw, ModularFeature p) {
+    set(new IDType(id));
+    Map<RawDataFile, ModularFeature> fmap = new HashMap<>(1);
+    fmap.put(raw, p);
+    set(new FeaturesType(fmap));
+  }
 
   @Override
   public ObservableMap<Class<? extends DataType>, DataType> getMap() {
@@ -74,6 +84,16 @@ public class ModularFeatureListRow implements ModularDataModel {
 
   public Map<RawDataFile, ModularFeature> getFeatures() {
     return get(FeaturesType.class).map(DataType::getValue).orElse(Collections.emptyMap());
+  }
+
+  /**
+   * 
+   * @param dataFile
+   * @param p
+   */
+  public void addPeak(RawDataFile dataFile, ModularFeature p) {
+    // TODO get old map and add new
+
   }
 
 }

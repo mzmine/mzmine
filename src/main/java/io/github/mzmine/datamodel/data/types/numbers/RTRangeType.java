@@ -35,7 +35,7 @@ public class RTRangeType extends NumberRangeType<Float> {
   @Override
   public NumberFormat getFormatter() {
     try {
-      return MZmineCore.getConfiguration().getMZFormat();
+      return MZmineCore.getConfiguration().getRTFormat();
     } catch (NullPointerException e) {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;

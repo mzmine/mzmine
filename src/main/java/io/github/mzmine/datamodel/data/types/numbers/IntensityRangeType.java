@@ -35,7 +35,7 @@ public class IntensityRangeType extends NumberRangeType<Float> {
   @Override
   public NumberFormat getFormatter() {
     try {
-      return MZmineCore.getConfiguration().getMZFormat();
+      return MZmineCore.getConfiguration().getIntensityFormat();
     } catch (NullPointerException e) {
       // only happens if types are used without initializing the MZmineCore
       return DEFAULT_FORMAT;

@@ -116,27 +116,19 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
 
 
   /**
-   * add row data
+   * add row data and columns of first row
    * 
    * @param data
    */
   public void addData(List<ModularFeatureListRow> data) {
+    if (data.isEmpty())
+      return;
+
+    addColumns(data.get(0));
     TreeItem<ModularFeatureListRow> root = getRoot();
     for (ModularFeatureListRow row : data) {
       root.getChildren().add(new TreeItem<>(row));
     }
-  }
-
-  /**
-   * Add a new column to the table
-   * 
-   * @param dataType
-   */
-  public void addColumn(DataType dataType) {
-    // value binding
-    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType.createColumn(null);
-    // add to table
-    this.getColumns().add(col);
   }
 
   /**
@@ -150,6 +142,20 @@ public class FeatureTableFX extends TreeTableView<ModularFeatureListRow> {
       addColumn(dataType);
     });
   }
+
+  /**
+   * Add a new column to the table
+   * 
+   * @param dataType
+   */
+  public void addColumn(DataType dataType) {
+    // value binding
+    TreeTableColumn<ModularFeatureListRow, ? extends DataType> col = dataType.createColumn(null);
+    // add to table
+    if (col != null)
+      this.getColumns().add(col);
+  }
+
 
   /**
    * Copy all rows of selected cells

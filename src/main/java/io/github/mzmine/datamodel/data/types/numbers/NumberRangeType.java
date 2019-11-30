@@ -24,10 +24,11 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.google.common.collect.Range;
+import io.github.mzmine.datamodel.RawDataFile;
 import io.github.mzmine.datamodel.data.ModularFeatureListRow;
 import io.github.mzmine.datamodel.data.types.DataType;
 import io.github.mzmine.datamodel.data.types.fx.DataTypeCellFactory;
-import io.github.mzmine.datamodel.data.types.fx.RawsMapCellValueFactory;
+import io.github.mzmine.datamodel.data.types.fx.DataTypeCellValueFactory;
 import io.github.mzmine.datamodel.data.types.modifiers.SubColumnsFactory;
 import javafx.scene.control.TreeTableColumn;
 
@@ -50,17 +51,18 @@ public abstract class NumberRangeType<T extends Comparable<?>> extends DataType<
 
   @Override
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns() {
+  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns(
+      final @Nullable RawDataFile raw) {
     List<TreeTableColumn<ModularFeatureListRow, ?>> cols = new ArrayList<>();
 
     // create column per name
     TreeTableColumn<ModularFeatureListRow, NumberRangeType<?>> min = new TreeTableColumn<>("min");
-    min.setCellValueFactory(new RawsMapCellValueFactory<>(null, this.getClass()));
-    min.setCellFactory(new DataTypeCellFactory<>(null, this.getClass(), 0));
+    min.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this.getClass()));
+    min.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass(), 0));
 
     TreeTableColumn<ModularFeatureListRow, NumberRangeType<?>> max = new TreeTableColumn<>("max");
-    max.setCellValueFactory(new RawsMapCellValueFactory<>(null, this.getClass()));
-    max.setCellFactory(new DataTypeCellFactory<>(null, this.getClass(), 1));
+    max.setCellValueFactory(new DataTypeCellValueFactory<>(raw, this.getClass()));
+    max.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass(), 1));
 
     // add all
     cols.add(min);
@@ -71,7 +73,7 @@ public abstract class NumberRangeType<T extends Comparable<?>> extends DataType<
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int subcolumn) {
+  public String getFormattedSubColValue(int subcolumn, final @Nullable RawDataFile raw) {
     if (value == null)
       return "";
     switch (subcolumn) {

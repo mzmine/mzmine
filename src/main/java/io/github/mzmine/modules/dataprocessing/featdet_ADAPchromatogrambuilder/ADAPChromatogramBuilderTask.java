@@ -20,8 +20,16 @@
 
 package io.github.mzmine.modules.dataprocessing.featdet_ADAPchromatogrambuilder;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
-
 import io.github.mzmine.datamodel.DataPoint;
 import io.github.mzmine.datamodel.Feature;
 import io.github.mzmine.datamodel.MZmineProject;
@@ -42,15 +50,6 @@ import io.github.mzmine.util.PeakSorter;
 import io.github.mzmine.util.SortingDirection;
 import io.github.mzmine.util.SortingProperty;
 
-import com.google.common.collect.RangeSet;
-
-import java.util.*;
-import java.util.logging.Logger;
-
-import com.google.common.collect.Range;
-
-import java.lang.*;
-
 
 
 public class ADAPChromatogramBuilderTask extends AbstractTask {
@@ -66,7 +65,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
   private RawDataFile dataFile;
 
   // scan counter
-//  private int processedPoints = 0, totalPoints;
+  // private int processedPoints = 0, totalPoints;
   private double progress = 0.0;
   private ScanSelection scanSelection;
   private int newPeakID = 1;
@@ -102,8 +101,8 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
 
     this.mzTolerance =
         parameters.getParameter(ADAPChromatogramBuilderParameters.mzTolerance).getValue();
-    this.minimumScanSpan = parameters
-        .getParameter(ADAPChromatogramBuilderParameters.minimumScanSpan).getValue();
+    this.minimumScanSpan =
+        parameters.getParameter(ADAPChromatogramBuilderParameters.minimumScanSpan).getValue();
     // this.minimumHeight = parameters
     // .getParameter(ChromatogramBuilderParameters.minimumHeight)
     // .getValue();
@@ -122,6 +121,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getTaskDescription()
    */
+  @Override
   public String getTaskDescription() {
     return "Detecting chromatograms in " + dataFile;
   }
@@ -129,6 +129,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
   /**
    * @see io.github.mzmine.taskcontrol.Task#getFinishedPercentage()
    */
+  @Override
   public double getFinishedPercentage() {
     return progress;
   }
@@ -140,6 +141,7 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
   /**
    * @see Runnable#run()
    */
+  @Override
   public void run() {
     boolean writeChromCDF = true;
 
@@ -176,21 +178,17 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
     }
 
     // Check if the scans are MS1-only or MS2-only.
-    int minMsLevel = Arrays.stream(scans)
-            .mapToInt(Scan::getMSLevel)
-            .min()
-            .orElseThrow(() -> new IllegalStateException("Cannot find the minimum MS level"));
+    int minMsLevel = Arrays.stream(scans).mapToInt(Scan::getMSLevel).min()
+        .orElseThrow(() -> new IllegalStateException("Cannot find the minimum MS level"));
 
-    int maxMsLevel = Arrays.stream(scans)
-            .mapToInt(Scan::getMSLevel)
-            .max()
-            .orElseThrow(() -> new IllegalStateException("Cannot find the maximum MS level"));
+    int maxMsLevel = Arrays.stream(scans).mapToInt(Scan::getMSLevel).max()
+        .orElseThrow(() -> new IllegalStateException("Cannot find the maximum MS level"));
 
     if (minMsLevel != maxMsLevel) {
       MZmineCore.getDesktop().displayMessage(null,
-              "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. " +
-                      "This will likely produce wrong results. " +
-                      "Please, set the scan filter parameter to a specific MS level");
+          "MZmine thinks that you are running ADAP Chromatogram builder on both MS1- and MS2-scans. "
+              + "This will likely produce wrong results. "
+              + "Please, set the scan filter parameter to a specific MS level");
     }
 
 
@@ -337,14 +335,12 @@ public class ADAPChromatogramBuilderTask extends AbstractTask {
           // also need to put it in the set -> this is where the range can be efficiently found.
 
           rangeSet.add(newRange);
-        }
-        else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
+        } else if (toBeLowerBound.equals(toBeUpperBound) && plusRange != null) {
           ADAPChromatogram curChrom = rangeToChromMap.get(plusRange);
           curChrom.addMzPeak(mzPeak.getScanNumber(), mzPeak);
-        }
-        else
+        } else
           throw new IllegalStateException(String.format("Incorrect range [%f, %f] for m/z %f",
-                  toBeLowerBound, toBeUpperBound, mzPeak.getMZ()));
+              toBeLowerBound, toBeUpperBound, mzPeak.getMZ()));
 
       } else {
         // In this case we do not need to update the rangeSet

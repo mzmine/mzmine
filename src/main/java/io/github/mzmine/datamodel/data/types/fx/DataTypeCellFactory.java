@@ -73,8 +73,8 @@ public class DataTypeCellFactory<T extends DataType> implements
             SubColumnsFactory sub = (SubColumnsFactory) item;
             Node n = sub.getSubColNode(subcolumn, this, param, item, raw);
             setGraphic(n);
-            setText(n != null ? null : sub.getFormattedSubColValue(subcolumn));
-            setTooltip(new Tooltip(sub.getFormattedSubColValue(subcolumn)));
+            setText(n != null ? null : sub.getFormattedSubColValue(subcolumn, raw));
+            setTooltip(new Tooltip(sub.getFormattedSubColValue(subcolumn, raw)));
           } else {
             if (item instanceof GraphicalColumType) {
               Node node = ((GraphicalColumType) item).getCellNode(this, param, item, raw);

@@ -18,17 +18,29 @@
 
 package io.github.mzmine.datamodel.data.types.numbers;
 
-import io.github.mzmine.datamodel.data.types.DataType;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 
-public class ParentChromatogramIDType extends DataType<Integer> {
+public class FragmentScanNumbersType extends ScanNumbersType implements NullColumnType {
 
-  public ParentChromatogramIDType(Integer value) {
-    super(value);
+  public FragmentScanNumbersType(int... value) {
+    this(Arrays.stream(value).boxed().collect(Collectors.toList()));
+  }
+
+  public FragmentScanNumbersType(Integer... value) {
+    this(List.of(value));
+  }
+
+  public FragmentScanNumbersType(List<Integer> value) {
+    super(Collections.unmodifiableList(value));
   }
 
   @Override
   public String getHeaderString() {
-    return "Parent ID";
+    return "Fragment Scans";
   }
 
 }

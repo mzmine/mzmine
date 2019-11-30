@@ -19,16 +19,17 @@
 package io.github.mzmine.datamodel.data.types.numbers;
 
 import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 
-public class ParentChromatogramIDType extends DataType<Integer> {
+public class BestFragmentScanNumberType extends DataType<Integer> implements NullColumnType {
 
-  public ParentChromatogramIDType(Integer value) {
+  public BestFragmentScanNumberType(Integer value) {
     super(value);
   }
 
   @Override
   public String getHeaderString() {
-    return "Parent ID";
+    return "Best Scan #";
   }
 
 }

@@ -46,9 +46,6 @@ public class FXTableWindow extends Application {
     table.addColumns(data);
 
     // Table tree root
-    final TreeItem<ModularFeatureListRow> root = new TreeItem<>();
-    root.setExpanded(true);
-
     addDummyData(table.getRoot(), raw);
     Scene scene = new Scene(table);
 

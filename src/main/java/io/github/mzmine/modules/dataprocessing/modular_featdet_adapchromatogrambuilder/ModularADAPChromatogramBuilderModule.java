@@ -56,7 +56,7 @@ public class ModularADAPChromatogramBuilderModule implements MZmineProcessingMod
 
     for (int i = 0; i < dataFiles.length; i++) {
       Task newTask =
-          new ADAPChromatogramBuilderTask(project, dataFiles[i], parameters.cloneParameterSet());
+          new ModularADAPChromatogramBuilderTask(project, dataFiles[i], parameters.cloneParameterSet());
       tasks.add(newTask);
     }
 

@@ -16,19 +16,27 @@
  * USA
  */
 
-package io.github.mzmine.datamodel.data.types.numbers;
+package io.github.mzmine.datamodel.data.types;
 
-import io.github.mzmine.datamodel.data.types.DataType;
+import javax.annotation.Nonnull;
+import io.github.mzmine.datamodel.IsotopePattern;
 
-public class ParentChromatogramIDType extends DataType<Integer> {
+public class IsotopePatternType extends DataType<IsotopePattern> {
 
-  public ParentChromatogramIDType(Integer value) {
+  public IsotopePatternType(IsotopePattern value) {
     super(value);
   }
 
   @Override
+  @Nonnull
   public String getHeaderString() {
-    return "Parent ID";
+    return "Isotopes";
+  }
+
+  @Override
+  @Nonnull
+  public String getFormattedString() {
+    return value != null ? "" + value.getNumberOfDataPoints() : "";
   }
 
 }

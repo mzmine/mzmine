@@ -58,18 +58,19 @@ public class RawsColorsType extends DataType<Map<RawDataFile, Color>> implements
 
   @Override
   @Nonnull
-  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns() {
+  public List<TreeTableColumn<ModularFeatureListRow, ?>> createSubColumns(
+      final @Nullable RawDataFile raw) {
     List<TreeTableColumn<ModularFeatureListRow, ?>> cols = new ArrayList<>();
 
     // create all sample columns
     int subcol = 0;
     for (Entry<RawDataFile, Color> entry : value.entrySet()) {
-      RawDataFile raw = entry.getKey();
+      RawDataFile subRaw = entry.getKey();
       // create column per name
       TreeTableColumn<ModularFeatureListRow, RawsColorsType> sampleCol =
-          new TreeTableColumn<>(raw.getName());
-      sampleCol.setCellValueFactory(new RawsMapCellValueFactory<>(raw, this.getClass()));
-      sampleCol.setCellFactory(new DataTypeCellFactory<>(raw, this.getClass(), subcol));
+          new TreeTableColumn<>(subRaw.getName());
+      sampleCol.setCellValueFactory(new RawsMapCellValueFactory<>(subRaw, this.getClass()));
+      sampleCol.setCellFactory(new DataTypeCellFactory<>(subRaw, this.getClass(), subcol));
 
       // add all
       cols.add(sampleCol);
@@ -100,7 +101,7 @@ public class RawsColorsType extends DataType<Map<RawDataFile, Color>> implements
 
   @Override
   @Nullable
-  public String getFormattedSubColValue(int column) {
+  public String getFormattedSubColValue(int column, final @Nullable RawDataFile raw) {
     Color color = getValue(column);
     return color == null ? "" : color.toString();
   }

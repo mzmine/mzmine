@@ -19,15 +19,17 @@
 package io.github.mzmine.datamodel.data.types.numbers;
 
 import io.github.mzmine.datamodel.data.types.DataType;
+import io.github.mzmine.datamodel.data.types.modifiers.NullColumnType;
 
-public class RowChargeType extends DataType<Integer> {
+public class BestScanNumberType extends DataType<Integer> implements NullColumnType {
 
-  public RowChargeType(Integer value) {
+  public BestScanNumberType(Integer value) {
     super(value);
   }
 
   @Override
   public String getHeaderString() {
-    return "Charge";
+    return "Best Scan #";
   }
+
 }
